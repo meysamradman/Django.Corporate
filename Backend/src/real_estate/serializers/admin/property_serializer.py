@@ -248,6 +248,7 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
     features = PropertyFeatureSimpleAdminSerializer(many=True, read_only=True)
     media = serializers.SerializerMethodField()
     property_media = serializers.SerializerMethodField()
+    floor_plans = serializers.SerializerMethodField()
     
     seo_data = serializers.SerializerMethodField()
     seo_preview = serializers.SerializerMethodField()
@@ -265,7 +266,7 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
             'id', 'public_id', 'title', 'slug', 'short_description', 'description',
             'is_published', 'is_featured', 'is_public', 'is_verified', 'is_active',
             'main_image', 'property_type', 'state', 'agent', 'agency',
-            'labels', 'tags', 'features', 'media', 'property_media',
+            'labels', 'tags', 'features', 'media', 'property_media', 'floor_plans',
             'region', 'city', 'city_name', 'province', 'province_name',
             'country', 'country_name', 'district_name', 'region_name', 'neighborhood',
             'address', 'postal_code', 'latitude', 'longitude',
@@ -432,6 +433,17 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
     
     def get_country_name(self, obj):
         return obj.country.name if obj.country else None
+    
+    def get_floor_plans(self, obj):
+        """Get all floor plans for this property (مثل Portfolio Media)"""
+        from src.real_estate.serializers.admin.floor_plan_serializer import FloorPlanAdminListSerializer
+        
+        # Get active floor plans with images prefetched
+        floor_plans = obj.floor_plans.prefetch_related(
+            'images__image'
+        ).filter(is_active=True).order_by('display_order', 'floor_number')
+        
+        return FloorPlanAdminListSerializer(floor_plans, many=True, context=self.context).data
 
 
 class PropertyAdminCreateSerializer(serializers.ModelSerializer):

@@ -87,31 +87,40 @@ def get_or_create_defaults():
     )
 
     province, _ = Province.objects.get_or_create(
-        name="Tehran",
-        defaults={'code': 'THR', 'country': country, 'is_active': True}
+        name="تهران",
+        defaults={'code': '08', 'country': country, 'is_active': True}
     )
 
     city, _ = City.objects.get_or_create(
-        name="Tehran",
+        name="تهران",
         province=province,
-        defaults={'code': '001', 'is_active': True}
+        defaults={'code': '0801', 'is_active': True}
     )
 
-    region, _ = CityRegion.objects.get_or_create(
-        name="منطقه ۱",
+    # جستجوی CityRegion به صورت ایمن‌تر
+    region = CityRegion.objects.filter(
         city=city,
-        code=1,
-        defaults={'is_active': True}
-    )
+        code=1
+    ).first()
     
-    property_type, _ = PropertyType.objects.get_or_create(
-        title="Apartment",
-        defaults={
-            'slug': 'apartment',
-            'is_active': True, 
-            'display_order': 1
-        }
-    )
+    if not region:
+        # اگر وجود ندارد، ایجاد کن
+        region = CityRegion.objects.create(
+            name="منطقه ۱",
+            city=city,
+            code=1,
+            is_active=True
+        )
+    
+    # ✅ PropertyType استفاده از MP_Node برای ساخت درخت
+    property_type = PropertyType.objects.filter(title="Apartment").first()
+    if not property_type:
+        property_type = PropertyType.add_root(
+            title="Apartment",
+            slug='apartment',
+            is_active=True,
+            display_order=1
+        )
     
     property_state, _ = PropertyState.objects.get_or_create(
         title="For Sale",
@@ -197,6 +206,8 @@ def create_sample_property():
             floor_number=5,
             parking_spaces=1,
             storage_rooms=1,
+            # usage_type حذف شد - از property_type استفاده می‌شود
+            document_type='official',  # نوع سند
             is_published=True,
             is_featured=True,
             is_public=True,

@@ -58,7 +58,6 @@ class PropertyAgent(BaseModel, SEOMixin):
         help_text="Specialization (e.g., Residential, Commercial)"
     )
     
-    # Media
     profile_picture = models.ForeignKey(
         'media.ImageMedia',
         on_delete=models.SET_NULL,
@@ -109,7 +108,6 @@ class PropertyAgent(BaseModel, SEOMixin):
         verbose_name_plural = 'Property Agents'
         ordering = ['-rating', '-total_sales', 'user__admin_profile__last_name']
         indexes = [
-            # Composite indexes for common query patterns
             models.Index(fields=['is_active', 'is_verified', '-rating']),
             models.Index(fields=['agency', 'is_active']),
             models.Index(fields=['user', 'is_active']),

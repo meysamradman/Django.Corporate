@@ -5,6 +5,7 @@ from src.real_estate.models.managers import PropertyTagQuerySet
 
 
 class PropertyTag(BaseModel, SEOMixin):
+    
     title = models.CharField(
         max_length=100,
         unique=True,

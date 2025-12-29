@@ -89,6 +89,7 @@ const MediaTab = lazy(() => import("@/components/real-estate/list/create/MediaTa
 const SEOTab = lazy(() => import("@/components/real-estate/list/create/SEOTab"));
 const LocationTab = lazy(() => import("@/components/real-estate/list/create/LocationTab"));
 const DetailsTab = lazy(() => import("@/components/real-estate/list/create/DetailsTab"));
+const FloorPlansTab = lazy(() => import("@/components/real-estate/list/create/FloorPlansTab"));
 
 export default function EditPropertyPage() {
   const navigate = useNavigate();
@@ -513,13 +514,17 @@ export default function EditPropertyPage() {
               <FileText className="h-4 w-4" />
               اطلاعات پایه
             </TabsTrigger>
+            <TabsTrigger value="location">
+              <MapPin className="h-4 w-4" />
+              لوکیشن
+            </TabsTrigger>
             <TabsTrigger value="details">
               <Home className="h-4 w-4" />
               جزئیات و قیمت
             </TabsTrigger>
-            <TabsTrigger value="location">
-              <MapPin className="h-4 w-4" />
-              لوکیشن
+            <TabsTrigger value="floorplans">
+              <Home className="h-4 w-4" />
+              پلان‌ها
             </TabsTrigger>
             <TabsTrigger value="media">
               <Image className="h-4 w-4" />
@@ -589,6 +594,10 @@ export default function EditPropertyPage() {
             <Home className="h-4 w-4" />
             جزئیات و قیمت
           </TabsTrigger>
+          <TabsTrigger value="floorplans">
+            <Home className="h-4 w-4" />
+            پلان‌ها
+          </TabsTrigger>
           <TabsTrigger value="media">
             <Image className="h-4 w-4" />
             مدیا
@@ -637,6 +646,14 @@ export default function EditPropertyPage() {
               handleInputChange={handleInputChange}
               editMode={editMode}
               errors={{}}
+            />
+          </Suspense>
+        </TabsContent>
+        <TabsContent value="floorplans">
+          <Suspense fallback={<TabSkeleton />}>
+            <FloorPlansTab
+              propertyId={id ? Number(id) : undefined}
+              editMode={editMode}
             />
           </Suspense>
         </TabsContent>

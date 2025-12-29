@@ -11,7 +11,7 @@ class PropertyQuerySet(models.QuerySet):
         return self.filter(is_active=True)
     
     def with_relations(self):
-        """Load all relations with select_related and prefetch_related to avoid N+1 queries"""
+
         from django.db.models import Prefetch
         from src.real_estate.models.media import PropertyImage
         
@@ -38,13 +38,7 @@ class PropertyQuerySet(models.QuerySet):
         )
     
     def for_admin_listing(self):
-        """
-        ✅ OPTIMIZED: کاهش 80% Query Time
-        - select_related برای ForeignKey
-        - prefetch_related برای ManyToMany
-        - annotate برای count
-        - only() برای فیلدهای ضروری (کاهش بار دیتابیس)
-        """
+
         from django.db.models import Prefetch
         from src.real_estate.models.media import PropertyImage, PropertyVideo, PropertyAudio, PropertyDocument
         
@@ -88,7 +82,6 @@ class PropertyQuerySet(models.QuerySet):
             tags_count=Count('tags', distinct=True),
             features_count=Count('features', distinct=True)
         ).only(
-            # ✅ فقط فیلدهای ضروری برای لیست ادمین
             'id', 'public_id', 'title', 'slug', 'short_description',
             'is_published', 'is_featured', 'is_public', 'is_verified', 'is_active',
             'property_type_id', 'state_id', 'agent_id', 'agency_id',
@@ -197,13 +190,9 @@ class PropertyQuerySet(models.QuerySet):
         return qs
     
     def fast_filter(self, filters):
-        """
-        ✅ OPTIMIZED: استفاده از Partial Index
-        فیلتر سریع برای املاک منتشر شده با استفاده از Index های بهینه
-        """
+
         qs = self.filter(is_published=True, is_public=True, is_active=True)
-        
-        # ✅ ترتیب فیلترها مهم است (از selective به less selective)
+
         if filters.get('city'):
             qs = qs.filter(city_id=filters['city'])
         
@@ -219,7 +208,6 @@ class PropertyQuerySet(models.QuerySet):
         if filters.get('parking_spaces') is not None:
             qs = qs.filter(parking_spaces=filters['parking_spaces'])
         
-        # ✅ Range filters (با Index)
         if filters.get('min_price'):
             qs = qs.filter(price__gte=filters['min_price'])
         
@@ -237,20 +225,16 @@ class PropertyQuerySet(models.QuerySet):
         
         if filters.get('max_area'):
             qs = qs.filter(built_area__lte=filters['max_area'])
-        
-        # ✅ Region filter (فقط اگر city منطقه داشته باشد)
+
         if filters.get('region'):
             qs = qs.filter(region_id=filters['region'])
-        
-        # ✅ Neighborhood (ILIKE search با Index)
+
         if filters.get('neighborhood'):
             qs = qs.filter(neighborhood__icontains=filters['neighborhood'])
-        
-        # ✅ State filter
+
         if filters.get('state'):
             qs = qs.filter(state_id=filters['state'])
-        
-        # ✅ Featured filter
+
         if filters.get('featured') is not None:
             qs = qs.filter(is_featured=filters['featured'])
         
@@ -258,7 +242,6 @@ class PropertyQuerySet(models.QuerySet):
 
 
 class PropertyTypeQuerySet(models.QuerySet):
-    """QuerySet for PropertyType (Tree Structure)"""
     
     def active(self):
         return self.filter(is_active=True)

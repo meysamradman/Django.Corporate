@@ -4,16 +4,6 @@ from src.core.models import BaseModel
 
 
 class RealEstateFloorPlan(BaseModel):
-    """
-    Floor Plan Model - برای نمایش پلان‌های مختلف یک پروژه ساختمانی
-    
-    مثال:
-    - پلان طبقه اول - نوع A (1267 sqft)
-    - پلان دوبلکس - VIP (2500 sqft)
-    - پلان استاندارد (670 sqft)
-    
-    Note: Images are managed via FloorPlanImage model (Many-to-Many with central ImageMedia)
-    """
     
     property_obj = models.ForeignKey(
         'Property',
@@ -45,10 +35,6 @@ class RealEstateFloorPlan(BaseModel):
         verbose_name="Description",
         help_text="Detailed description of this floor plan"
     )
-    
-    # ═══════════════════════════════════════════════════════
-    # Floor Plan Specifications
-    # ═══════════════════════════════════════════════════════
     
     floor_size = models.DecimalField(
         max_digits=10,
@@ -85,10 +71,6 @@ class RealEstateFloorPlan(BaseModel):
         help_text="Number of bathrooms in this floor plan"
     )
     
-    # ═══════════════════════════════════════════════════════
-    # Pricing (برای پیش‌فروش یا اجاره)
-    # ═══════════════════════════════════════════════════════
-    
     price = models.BigIntegerField(
         null=True,
         blank=True,
@@ -103,11 +85,6 @@ class RealEstateFloorPlan(BaseModel):
         verbose_name="Currency",
         help_text="Currency code (USD, EUR, IRR, etc.)"
     )
-    
-    # ═══════════════════════════════════════════════════════
-    # Additional Info
-    # Note: Floor plan images are managed via FloorPlanImage model (M2M with ImageMedia)
-    # ═══════════════════════════════════════════════════════
     
     floor_number = models.SmallIntegerField(
         null=True,

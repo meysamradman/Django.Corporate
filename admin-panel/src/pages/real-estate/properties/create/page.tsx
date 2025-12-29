@@ -85,6 +85,7 @@ const DetailsTab = lazy(() => import("@/components/real-estate/list/create/Detai
 const MediaTab = lazy(() => import("@/components/real-estate/list/create/MediaTab"));
 const SEOTab = lazy(() => import("@/components/real-estate/list/create/SEOTab"));
 const LocationTab = lazy(() => import("@/components/real-estate/list/create/LocationTab"));
+const FloorPlansTab = lazy(() => import("@/components/real-estate/list/create/FloorPlansTab"));
 
 
 export default function PropertyCreatePage() {
@@ -119,6 +120,7 @@ export default function PropertyCreatePage() {
             is_active: property.is_active ?? true,
             is_published: property.is_published || false,
             is_featured: property.is_featured || false,
+            is_verified: property.is_verified || false,
             property_type: property.property_type?.id || null,
             state: property.state?.id || null,
             agent: property.agent ? (property.agent as any).id : null,
@@ -138,13 +140,26 @@ export default function PropertyCreatePage() {
             built_area: property.built_area || null,
             bedrooms: property.bedrooms || null,
             bathrooms: property.bathrooms || null,
+            kitchens: property.kitchens || null,
+            living_rooms: property.living_rooms || null,
             year_built: property.year_built || null,
+            build_years: property.build_years || null,
             floors_in_building: property.floors_in_building || null,
+            floor_number: property.floor_number || null,
             parking_spaces: property.parking_spaces || null,
             storage_rooms: property.storage_rooms || null,
+            // usage_type حذف شد - از property_type استفاده می‌شود
+            document_type: (property as any).document_type || null,
             price: property.price || null,
+            sale_price: property.sale_price || null,
+            pre_sale_price: property.pre_sale_price || null,
+            monthly_rent: property.monthly_rent || null,
             mortgage_amount: property.mortgage_amount || null,
             rent_amount: property.rent_amount || null,
+            security_deposit: property.security_deposit || null,
+            currency: property.currency || "IRR",
+            is_negotiable: property.is_negotiable ?? true,
+            extra_attributes: (property as any).extra_attributes || {},
             labels_ids: property.labels?.map((label: any) => label.id) || [],
             tags_ids: property.tags?.map((tag: any) => tag.id) || [],
             features_ids: property.features?.map((feature: any) => feature.id) || [],
@@ -190,6 +205,7 @@ export default function PropertyCreatePage() {
     is_active: true,
     is_published: false,
     is_featured: false,
+    is_verified: false,
     property_type: null as number | null,
     state: null as number | null,
     agent: null as number | null,
@@ -209,13 +225,26 @@ export default function PropertyCreatePage() {
     built_area: null as number | null,
     bedrooms: null as number | null,
     bathrooms: null as number | null,
+    kitchens: null as number | null,
+    living_rooms: null as number | null,
     year_built: null as number | null,
+    build_years: null as number | null,
     floors_in_building: null as number | null,
+    floor_number: null as number | null,
     parking_spaces: null as number | null,
     storage_rooms: null as number | null,
+    // usage_type: "residential" as string, // حذف شد
+    document_type: null as string | null,
     price: null as number | null,
+    sale_price: null as number | null,
+    pre_sale_price: null as number | null,
+    monthly_rent: null as number | null,
     mortgage_amount: null as number | null,
     rent_amount: null as number | null,
+    security_deposit: null as number | null,
+    currency: "IRR" as string,
+    is_negotiable: true,
+    extra_attributes: {} as Record<string, any>,
     labels_ids: [] as number[],
     tags_ids: [] as number[],
     features_ids: [] as number[],
@@ -225,6 +254,9 @@ export default function PropertyCreatePage() {
 
   // Errors state
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Floor Plans state - برای ذخیره موقت پلان‌ها قبل از ایجاد ملک
+  const [tempFloorPlans, setTempFloorPlans] = useState<any[]>([]);
 
 
   // Selected items state
@@ -564,6 +596,15 @@ export default function PropertyCreatePage() {
             <Home className="h-4 w-4" />
             جزییات و قیمت
           </TabsTrigger>
+          <TabsTrigger value="floorplans">
+            <Home className="h-4 w-4" />
+            پلان‌ها
+            {tempFloorPlans.length > 0 && (
+              <span className="mr-1 text-xs bg-blue-1 text-white px-1.5 py-0.5 rounded">
+                {tempFloorPlans.length}
+              </span>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="media">
             <Image className="h-4 w-4" />
             مدیا
@@ -616,6 +657,16 @@ export default function PropertyCreatePage() {
               handleInputChange={handleInputChange}
               editMode={true}
               errors={errors}
+            />
+          </Suspense>
+        </TabsContent>
+        <TabsContent value="floorplans">
+          <Suspense fallback={<TabSkeleton />}>
+            <FloorPlansTab
+              propertyId={id ? Number(id) : undefined}
+              editMode={true}
+              tempFloorPlans={tempFloorPlans}
+              onTempFloorPlansChange={setTempFloorPlans}
             />
           </Suspense>
         </TabsContent>

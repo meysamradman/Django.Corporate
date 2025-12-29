@@ -193,18 +193,116 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             </Select>
                             {errors?.parking_spaces && <p className="text-sm text-red-500">{errors.parking_spaces}</p>}
                         </div>
-                        <div className="flex-1">
-                            <FormFieldInput
-                                label="انباری"
-                                id="storage_rooms"
-                                type="number"
-                                placeholder="0"
-                                disabled={!editMode}
-                                value={formData?.storage_rooms ?? ""}
-                                onChange={handleNumericChange("storage_rooms")}
-                                error={errors?.storage_rooms}
-                            />
+                        <div className="flex-1 space-y-2">
+                            <Label htmlFor="storage_rooms">
+                                <Box className="w-4 h-4 inline ml-1" />
+                                انباری
+                            </Label>
+                            <Select
+                                value={formData?.storage_rooms?.toString() ?? ""}
+                                onValueChange={handleSelectChange("storage_rooms")}
+                                disabled={!editMode || isLoadingOptions}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="انتخاب کنید" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {fieldOptions?.storage_rooms?.map((item: [number, string]) => (
+                                        <SelectItem key={item[0]} value={item[0].toString()}>
+                                            {item[1]}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {errors?.storage_rooms && <p className="text-sm text-red-500">{errors.storage_rooms}</p>}
                         </div>
+                    </div>
+
+                    {/* Kitchen & Living Rooms - داینامیک از API */}
+                    <div className="space-y-2">
+                        <Label htmlFor="kitchens">تعداد آشپزخانه</Label>
+                        <Select
+                            value={formData?.kitchens?.toString() ?? "1"}
+                            onValueChange={handleSelectChange("kitchens")}
+                            disabled={!editMode || isLoadingOptions}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="انتخاب کنید" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {fieldOptions?.kitchens?.map((item: [number, string]) => (
+                                    <SelectItem key={item[0]} value={item[0].toString()}>
+                                        {item[1]}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {errors?.kitchens && <p className="text-sm text-red-500">{errors.kitchens}</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="living_rooms">تعداد پذیرایی</Label>
+                        <Select
+                            value={formData?.living_rooms?.toString() ?? "1"}
+                            onValueChange={handleSelectChange("living_rooms")}
+                            disabled={!editMode || isLoadingOptions}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="انتخاب کنید" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {fieldOptions?.living_rooms?.map((item: [number, string]) => (
+                                    <SelectItem key={item[0]} value={item[0].toString()}>
+                                        {item[1]}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {errors?.living_rooms && <p className="text-sm text-red-500">{errors.living_rooms}</p>}
+                    </div>
+
+                    {/* Floor Number */}
+                    <div className="space-y-2">
+                        <Label htmlFor="floor_number">شماره طبقه</Label>
+                        <Select
+                            value={formData?.floor_number?.toString() ?? ""}
+                            onValueChange={handleSelectChange("floor_number")}
+                            disabled={!editMode || isLoadingOptions}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="انتخاب کنید" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {fieldOptions?.floor_number?.map((item: [number, string]) => (
+                                    <SelectItem key={item[0]} value={item[0].toString()}>
+                                        {item[1]}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {errors?.floor_number && <p className="text-sm text-red-500">{errors.floor_number}</p>}
+                    </div>
+
+                    {/* Document Type */}
+                    <div className="space-y-2">
+                        <Label htmlFor="document_type">نوع سند</Label>
+                        <Select
+                            value={formData?.document_type ?? "none"}
+                            onValueChange={(value) => handleInputChange("document_type", value === "none" ? null : value)}
+                            disabled={!editMode || isLoadingOptions}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="انتخاب کنید" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="none">بدون انتخاب</SelectItem>
+                                {fieldOptions?.document_type?.map((item: [string, string]) => (
+                                    <SelectItem key={item[0]} value={item[0]}>
+                                        {item[1]}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {errors?.document_type && <p className="text-sm text-red-500">{errors.document_type}</p>}
                     </div>
                 </div>
             </CardWithIcon>
@@ -216,17 +314,84 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                 iconColor="stroke-green-2"
                 borderColor="border-b-green-1"
             >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormFieldInput
-                        label="قیمت کل (فروش)"
-                        id="price"
-                        type="number"
-                        placeholder="0"
-                        disabled={!editMode}
-                        value={formData?.price ?? ""}
-                        onChange={handleNumericChange("price")}
-                        error={errors?.price}
-                    />
+                <div className="space-y-6">
+                    {/* Currency & Negotiable - داینامیک از API */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="currency">واحد پول</Label>
+                            <Select
+                                value={formData?.currency ?? "IRR"}
+                                onValueChange={(value) => handleInputChange("currency", value)}
+                                disabled={!editMode || isLoadingOptions}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {fieldOptions?.currency?.map((item: [string, string]) => (
+                                        <SelectItem key={item[0]} value={item[0]}>
+                                            {item[1]}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="is_negotiable">قابلیت چانه‌زنی</Label>
+                            <Select
+                                value={formData?.is_negotiable ? "true" : "false"}
+                                onValueChange={(value) => handleInputChange("is_negotiable", value === "true")}
+                                disabled={!editMode || isLoadingOptions}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {fieldOptions?.is_negotiable?.map((item: [string, string]) => (
+                                        <SelectItem key={item[0]} value={item[0]}>
+                                            {item[1]}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    {/* Sale Prices */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <FormFieldInput
+                            label="قیمت کل (فروش)"
+                            id="price"
+                            type="number"
+                            placeholder="0"
+                            disabled={!editMode}
+                            value={formData?.price ?? ""}
+                            onChange={handleNumericChange("price")}
+                            error={errors?.price}
+                        />
+                        <FormFieldInput
+                            label="قیمت حراج (تخفیف‌دار)"
+                            id="sale_price"
+                            type="number"
+                            placeholder="0"
+                            disabled={!editMode}
+                            value={formData?.sale_price ?? ""}
+                            onChange={handleNumericChange("sale_price")}
+                            error={errors?.sale_price}
+                        />
+                        <FormFieldInput
+                            label="قیمت پیش‌فروش"
+                            id="pre_sale_price"
+                            type="number"
+                            placeholder="0"
+                            disabled={!editMode}
+                            value={formData?.pre_sale_price ?? ""}
+                            onChange={handleNumericChange("pre_sale_price")}
+                            error={errors?.pre_sale_price}
+                        />
+                    </div>
+
+                    {/* Price per SQM (calculated) */}
                     <FormFieldInput
                         label="قیمت متری (محاسبه خودکار)"
                         id="price_per_sqm"
@@ -236,26 +401,54 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                         placeholder="-"
                         className="bg-muted/50"
                     />
-                    <FormFieldInput
-                        label="مبلغ رهن (اجاره)"
-                        id="mortgage_amount"
-                        type="number"
-                        placeholder="0"
-                        disabled={!editMode}
-                        value={formData?.mortgage_amount ?? ""}
-                        onChange={handleNumericChange("mortgage_amount")}
-                        error={errors?.mortgage_amount}
-                    />
-                    <FormFieldInput
-                        label="اجاره ماهیانه"
-                        id="rent_amount"
-                        type="number"
-                        placeholder="0"
-                        disabled={!editMode}
-                        value={formData?.rent_amount ?? ""}
-                        onChange={handleNumericChange("rent_amount")}
-                        error={errors?.rent_amount}
-                    />
+
+                    {/* Rental Prices */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormFieldInput
+                            label="مبلغ رهن (اجاره)"
+                            id="mortgage_amount"
+                            type="number"
+                            placeholder="0"
+                            disabled={!editMode}
+                            value={formData?.mortgage_amount ?? ""}
+                            onChange={handleNumericChange("mortgage_amount")}
+                            error={errors?.mortgage_amount}
+                        />
+                        <FormFieldInput
+                            label="اجاره ماهیانه"
+                            id="rent_amount"
+                            type="number"
+                            placeholder="0"
+                            disabled={!editMode}
+                            value={formData?.rent_amount ?? ""}
+                            onChange={handleNumericChange("rent_amount")}
+                            error={errors?.rent_amount}
+                        />
+                    </div>
+
+                    {/* Additional Rental Fields */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormFieldInput
+                            label="اجاره ماهیانه (مدت‌دار)"
+                            id="monthly_rent"
+                            type="number"
+                            placeholder="0"
+                            disabled={!editMode}
+                            value={formData?.monthly_rent ?? ""}
+                            onChange={handleNumericChange("monthly_rent")}
+                            error={errors?.monthly_rent}
+                        />
+                        <FormFieldInput
+                            label="ودیعه (سپرده)"
+                            id="security_deposit"
+                            type="number"
+                            placeholder="0"
+                            disabled={!editMode}
+                            value={formData?.security_deposit ?? ""}
+                            onChange={handleNumericChange("security_deposit")}
+                            error={errors?.security_deposit}
+                        />
+                    </div>
                 </div>
             </CardWithIcon>
         </div>

@@ -1,5 +1,4 @@
 from django.db import models
-from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.contrib.postgres.indexes import GinIndex, BrinIndex
@@ -20,272 +19,69 @@ from src.real_estate.models.managers import PropertyQuerySet
 
 
 class Property(BaseModel, SEOMixin):
-    
-    title = models.CharField(
-        max_length=200,
-        db_index=True,
-        verbose_name="Title",
-        help_text="Property title"
-    )
-    short_description = models.CharField(
-        max_length=300,
-        blank=True,
-        verbose_name="Short Description",
-        help_text="Brief summary of the property"
-    )
-    description = models.TextField(
-        verbose_name="Description",
-        help_text="Full property description"
-    )
-    slug = models.SlugField(
-        max_length=200,
-        unique=True,
-        db_index=True,
-        allow_unicode=True,
-        verbose_name="URL Slug",
-        help_text="URL-friendly identifier"
-    )
-    
-    agent = models.ForeignKey(
-        PropertyAgent,
-        on_delete=models.PROTECT,
-        related_name='properties',
-        db_index=True,
-        verbose_name="Agent",
-        help_text="Agent responsible for this property"
-    )
-    agency = models.ForeignKey(
-        RealEstateAgency,
-        on_delete=models.PROTECT,
-        related_name='properties',
-        null=True,
-        blank=True,
-        db_index=True,
-        verbose_name="Agency",
-        help_text="Agency this property belongs to"
-    )
 
-    property_type = models.ForeignKey(
-        PropertyType,
-        on_delete=models.PROTECT,
-        related_name='properties',
-        db_index=True,
-        verbose_name="Property Type",
-        help_text="Type of property (Apartment, Villa, etc.)"
-    )
-    state = models.ForeignKey(
-        PropertyState,
-        on_delete=models.PROTECT,
-        related_name='properties',
-        db_index=True,
-        verbose_name="State",
-        help_text="Property state (For Sale, For Rent, etc.)"
-    )
-    labels = models.ManyToManyField(
-        PropertyLabel,
-        blank=True,
-        related_name='properties',
-        verbose_name="Labels",
-        help_text="Property labels (Featured, Hot Deal, etc.)"
-    )
-    tags = models.ManyToManyField(
-        PropertyTag,
-        blank=True,
-        related_name='properties',
-        verbose_name="Tags",
-        help_text="Flexible tags for the property"
-    )
-    features = models.ManyToManyField(
-        PropertyFeature,
-        blank=True,
-        related_name='properties',
-        verbose_name="Features",
-        help_text="Property features (Parking, Elevator, etc.)"
-    )
+    title = models.CharField(max_length=100, db_index=True, verbose_name="Title")
+    slug = models.SlugField(max_length=120, unique=True, db_index=True, allow_unicode=True, verbose_name="URL Slug")
+    short_description = models.CharField(max_length=300, blank=True, verbose_name="Short Description")
+    description = models.TextField(verbose_name="Description")
     
-    region = models.ForeignKey(
-        CityRegion,
-        on_delete=models.SET_NULL,
-        related_name='properties',
-        null=True,
-        blank=True,
-        db_index=True,
-        verbose_name="Region",
-        help_text="City region (only for major cities like Tehran)"
-    )
+    agent = models.ForeignKey(PropertyAgent, on_delete=models.PROTECT, related_name='properties', db_index=True)
+    agency = models.ForeignKey(RealEstateAgency, on_delete=models.PROTECT, related_name='properties', null=True, blank=True, db_index=True)
+    property_type = models.ForeignKey(PropertyType, on_delete=models.PROTECT, related_name='properties', db_index=True)
+    state = models.ForeignKey(PropertyState, on_delete=models.PROTECT, related_name='properties', db_index=True)
+    country = models.ForeignKey(Country, on_delete=models.PROTECT, related_name='properties', db_index=True, default=1)  # Iran
+    province = models.ForeignKey(Province, on_delete=models.PROTECT, related_name='real_estate_properties', db_index=True)
+    city = models.ForeignKey(City, on_delete=models.PROTECT, related_name='real_estate_properties', db_index=True)
+    region = models.ForeignKey(CityRegion, on_delete=models.SET_NULL, related_name='properties', null=True, blank=True, db_index=True)
 
-    # محله به صورت متنی آزاد (ساده و سریع)
-    neighborhood = models.CharField(
-        max_length=120,
-        blank=True,
-        db_index=True,
-        verbose_name="Neighborhood",
-        help_text="Neighborhood name as text (from map or user input)"
-    )
-    city = models.ForeignKey(
-        City,
-        on_delete=models.PROTECT,
-        related_name='real_estate_properties',
-        db_index=True,
-        verbose_name="City",
-        help_text="City where property is located (denormalized for performance)"
-    )
-    province = models.ForeignKey(
-        Province,
-        on_delete=models.PROTECT,
-        related_name='real_estate_properties',
-        db_index=True,
-        verbose_name="Province",
-        help_text="Province where property is located (denormalized for performance)"
-    )
-    country = models.ForeignKey(
-        Country,
-        on_delete=models.PROTECT,
-        related_name='properties',
-        db_index=True,
-        verbose_name="Country",
-        help_text="Country where property is located (default: Iran, prepared for future expansion)",
-        default=1  # Iran - hardcoded for now, change via migration if expanding to other countries
-    )
-    address = models.TextField(
-        verbose_name="Address",
-        help_text="Full address of the property"
-    )
-    postal_code = models.CharField(
-        max_length=20,
-        blank=True,
-        db_index=True,
-        verbose_name="Postal Code",
-        help_text="Postal or ZIP code"
-    )
-    latitude = models.DecimalField(
-        max_digits=10,
-        decimal_places=8,
-        null=True,
-        blank=True,
-        db_index=True,
-        verbose_name="Latitude",
-        help_text="Geographic latitude (for map selection and reverse geocoding)"
-    )
-    longitude = models.DecimalField(
-        max_digits=11,
-        decimal_places=8,
-        null=True,
-        blank=True,
-        db_index=True,
-        verbose_name="Longitude",
-        help_text="Geographic longitude (for map selection and reverse geocoding)"
-    )
+    labels = models.ManyToManyField(PropertyLabel, blank=True, related_name='properties')
+    tags = models.ManyToManyField(PropertyTag, blank=True, related_name='properties')
+    features = models.ManyToManyField(PropertyFeature, blank=True, related_name='properties')
+
+    neighborhood = models.CharField(max_length=120, blank=True, db_index=True)
+    address = models.TextField()
+    postal_code = models.CharField(max_length=20, blank=True, db_index=True)
+    latitude = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True, db_index=True)
+    longitude = models.DecimalField(max_digits=11, decimal_places=8, null=True, blank=True, db_index=True)
+
+    price = models.BigIntegerField(null=True, blank=True, db_index=True)
+    sale_price = models.BigIntegerField(null=True, blank=True, db_index=True)
+    pre_sale_price = models.BigIntegerField(null=True, blank=True, db_index=True)
+    price_per_sqm = models.IntegerField(null=True, blank=True, db_index=True, editable=False)
+    currency = models.CharField(max_length=3, default='USD', db_index=True)
+    is_negotiable = models.BooleanField(default=True)
     
-    price = models.BigIntegerField(
-        null=True,
-        blank=True,
-        db_index=True,
-        verbose_name="Price",
-        help_text="Property price (in smallest currency unit)"
-    )
-    sale_price = models.BigIntegerField(
-        null=True,
-        blank=True,
-        db_index=True,
-        verbose_name="Sale Price",
-        help_text="Sale price (in smallest currency unit)"
-    )
-    pre_sale_price = models.BigIntegerField(
-        null=True,
-        blank=True,
-        db_index=True,
-        verbose_name="Pre Sale Price",
-        help_text="Pre-sale price (in smallest currency unit)"
-    )
-    price_per_sqm = models.IntegerField(
-        null=True,
-        blank=True,
-        db_index=True,
-        editable=False,
-        verbose_name="Price per SQM",
-        help_text="Price per square meter (auto-calculated)"
-    )
-    currency = models.CharField(
-        max_length=3,
-        default='USD',
-        db_index=True,
-        verbose_name="Currency",
-        help_text="Currency code (USD, EUR, etc.)"
-    )
-    is_negotiable = models.BooleanField(
-        default=True,
-        verbose_name="Negotiable",
-        help_text="Whether price is negotiable"
-    )
+    monthly_rent = models.BigIntegerField(null=True, blank=True, db_index=True)
+    rent_amount = models.BigIntegerField(null=True, blank=True, db_index=True)
+    mortgage_amount = models.BigIntegerField(null=True, blank=True, db_index=True)
+    security_deposit = models.BigIntegerField(null=True, blank=True)
     
-    monthly_rent = models.BigIntegerField(
-        null=True,
-        blank=True,
-        db_index=True,
-        verbose_name="Monthly Rent",
-        help_text="Monthly rent amount (for rental properties)"
-    )
-    rent_amount = models.BigIntegerField(
-        null=True,
-        blank=True,
-        db_index=True,
-        verbose_name="Rent Amount",
-        help_text="Rent amount (for rental properties)"
-    )
-    mortgage_amount = models.BigIntegerField(
-        null=True,
-        blank=True,
-        db_index=True,
-        verbose_name="Mortgage Amount",
-        help_text="Mortgage amount (for rental properties)"
-    )
-    security_deposit = models.BigIntegerField(
-        null=True,
-        blank=True,
-        verbose_name="Security Deposit",
-        help_text="Security deposit amount"
-    )
+    land_area = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], db_index=True)
+    built_area = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], db_index=True)
     
-    land_area = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        validators=[MinValueValidator(0)],
-        db_index=True,
-        verbose_name="Land Area",
-        help_text="Land area in square meters"
-    )
-    built_area = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        validators=[MinValueValidator(0)],
-        db_index=True,
-        verbose_name="Built Area",
-        help_text="Built area in square meters"
-    )
-    
+    # Room Counts with English labels (i18n handled in frontend)
     BEDROOM_CHOICES = [
-        (0, 'استودیو / بدون خواب'),
-        (1, '۱ خوابه'),
-        (2, '۲ خوابه'),
-        (3, '۳ خوابه'),
-        (4, '۴ خوابه'),
-        (5, '۵ خوابه'),
-        (6, '۶ خوابه'),
-        (7, '۷ خوابه'),
-        (8, '۸ خوابه'),
-        (9, '۹ خوابه'),
-        (10, '۱۰ خوابه'),
-        (11, '۱۱ خوابه'),
-        (12, '۱۲ خوابه'),
-        (13, '۱۳ خوابه'),
-        (14, '۱۴ خوابه'),
-        (15, '۱۵ خوابه'),
-        (16, '۱۶ خوابه'),
-        (17, '۱۷ خوابه'),
-        (18, '۱۸ خوابه'),
-        (19, '۱۹ خوابه'),
-        (20, '۲۰+ خوابه'),
+        (0, 'Studio'),
+        (1, '1 Bedroom'),
+        (2, '2 Bedrooms'),
+        (3, '3 Bedrooms'),
+        (4, '4 Bedrooms'),
+        (5, '5 Bedrooms'),
+        (6, '6 Bedrooms'),
+        (7, '7 Bedrooms'),
+        (8, '8 Bedrooms'),
+        (9, '9 Bedrooms'),
+        (10, '10 Bedrooms'),
+        (11, '11 Bedrooms'),
+        (12, '12 Bedrooms'),
+        (13, '13 Bedrooms'),
+        (14, '14 Bedrooms'),
+        (15, '15 Bedrooms'),
+        (16, '16 Bedrooms'),
+        (17, '17 Bedrooms'),
+        (18, '18 Bedrooms'),
+        (19, '19 Bedrooms'),
+        (20, '20+ Bedrooms'),
     ]
     
     bedrooms = models.SmallIntegerField(
@@ -298,27 +94,27 @@ class Property(BaseModel, SEOMixin):
     )
     
     BATHROOM_CHOICES = [
-        (0, 'بدون سرویس بهداشتی'),
-        (1, '۱ سرویس'),
-        (2, '۲ سرویس'),
-        (3, '۳ سرویس'),
-        (4, '۴ سرویس'),
-        (5, '۵ سرویس'),
-        (6, '۶ سرویس'),
-        (7, '۷ سرویس'),
-        (8, '۸ سرویس'),
-        (9, '۹ سرویس'),
-        (10, '۱۰ سرویس'),
-        (11, '۱۱ سرویس'),
-        (12, '۱۲ سرویس'),
-        (13, '۱۳ سرویس'),
-        (14, '۱۴ سرویس'),
-        (15, '۱۵ سرویس'),
-        (16, '۱۶ سرویس'),
-        (17, '۱۷ سرویس'),
-        (18, '۱۸ سرویس'),
-        (19, '۱۹ سرویس'),
-        (20, '۲۰+ سرویس'),
+        (0, 'No Bathroom'),
+        (1, '1 Bathroom'),
+        (2, '2 Bathrooms'),
+        (3, '3 Bathrooms'),
+        (4, '4 Bathrooms'),
+        (5, '5 Bathrooms'),
+        (6, '6 Bathrooms'),
+        (7, '7 Bathrooms'),
+        (8, '8 Bathrooms'),
+        (9, '9 Bathrooms'),
+        (10, '10 Bathrooms'),
+        (11, '11 Bathrooms'),
+        (12, '12 Bathrooms'),
+        (13, '13 Bathrooms'),
+        (14, '14 Bathrooms'),
+        (15, '15 Bathrooms'),
+        (16, '16 Bathrooms'),
+        (17, '17 Bathrooms'),
+        (18, '18 Bathrooms'),
+        (19, '19 Bathrooms'),
+        (20, '20+ Bathrooms'),
     ]
     
     bathrooms = models.SmallIntegerField(
@@ -343,9 +139,6 @@ class Property(BaseModel, SEOMixin):
         help_text="Number of living rooms"
     )
     
-    # =====================================================
-    # ✅ OPTIMIZED: Year Built (سال شمسی - با CHOICES)
-    # =====================================================
     YEAR_MIN = 1300
     YEAR_BUFFER = 5
     
@@ -361,15 +154,11 @@ class Property(BaseModel, SEOMixin):
     
     @classmethod
     def get_year_max(cls):
-        """سال حداکثر: سال فعلی + 5 سال (پروژه‌های در دست ساخت)"""
         return cls.get_current_shamsi_year() + cls.YEAR_BUFFER
     
     @classmethod
     def get_year_built_choices(cls):
-        """
-        تولید CHOICES دینامیک برای year_built
-        از سال جدید به قدیم (برای راحتی انتخاب)
-        """
+
         year_max = cls.get_year_max()
         return [
             (year, f'{year}')
@@ -397,41 +186,41 @@ class Property(BaseModel, SEOMixin):
         help_text="Total floors in the building"
     )
     
-    # ✅ طبقه با همکف و زیرهمکف
+    # Floor levels (basement to top floors)
     FLOOR_CHOICES = [
-        (-2, 'زیرزمین دوم'),
-        (-1, 'زیرزمین / زیرهمکف'),
-        (0, 'همکف'),
-        (1, 'طبقه ۱'),
-        (2, 'طبقه ۲'),
-        (3, 'طبقه ۳'),
-        (4, 'طبقه ۴'),
-        (5, 'طبقه ۵'),
-        (6, 'طبقه ۶'),
-        (7, 'طبقه ۷'),
-        (8, 'طبقه ۸'),
-        (9, 'طبقه ۹'),
-        (10, 'طبقه ۱۰'),
-        (11, 'طبقه ۱۱'),
-        (12, 'طبقه ۱۲'),
-        (13, 'طبقه ۱۳'),
-        (14, 'طبقه ۱۴'),
-        (15, 'طبقه ۱۵'),
-        (16, 'طبقه ۱۶'),
-        (17, 'طبقه ۱۷'),
-        (18, 'طبقه ۱۸'),
-        (19, 'طبقه ۱۹'),
-        (20, 'طبقه ۲۰'),
-        (21, 'طبقه ۲۱'),
-        (22, 'طبقه ۲۲'),
-        (23, 'طبقه ۲۳'),
-        (24, 'طبقه ۲۴'),
-        (25, 'طبقه ۲۵'),
-        (30, 'طبقه ۳۰'),
-        (35, 'طبقه ۳۵'),
-        (40, 'طبقه ۴۰'),
-        (45, 'طبقه ۴۵'),
-        (50, 'طبقه ۵۰+'),
+        (-2, '2nd Basement'),
+        (-1, 'Basement'),
+        (0, 'Ground Floor'),
+        (1, '1st Floor'),
+        (2, '2nd Floor'),
+        (3, '3rd Floor'),
+        (4, '4th Floor'),
+        (5, '5th Floor'),
+        (6, '6th Floor'),
+        (7, '7th Floor'),
+        (8, '8th Floor'),
+        (9, '9th Floor'),
+        (10, '10th Floor'),
+        (11, '11th Floor'),
+        (12, '12th Floor'),
+        (13, '13th Floor'),
+        (14, '14th Floor'),
+        (15, '15th Floor'),
+        (16, '16th Floor'),
+        (17, '17th Floor'),
+        (18, '18th Floor'),
+        (19, '19th Floor'),
+        (20, '20th Floor'),
+        (21, '21st Floor'),
+        (22, '22nd Floor'),
+        (23, '23rd Floor'),
+        (24, '24th Floor'),
+        (25, '25th Floor'),
+        (30, '30th Floor'),
+        (35, '35th Floor'),
+        (40, '40th Floor'),
+        (45, '45th Floor'),
+        (50, '50+ Floor'),
     ]
     
     floor_number = models.SmallIntegerField(
@@ -444,27 +233,27 @@ class Property(BaseModel, SEOMixin):
     )
     
     PARKING_CHOICES = [
-        (0, 'بدون پارکینگ'),
-        (1, '۱ پارکینگ'),
-        (2, '۲ پارکینگ'),
-        (3, '۳ پارکینگ'),
-        (4, '۴ پارکینگ'),
-        (5, '۵ پارکینگ'),
-        (6, '۶ پارکینگ'),
-        (7, '۷ پارکینگ'),
-        (8, '۸ پارکینگ'),
-        (9, '۹ پارکینگ'),
-        (10, '۱۰ پارکینگ'),
-        (11, '۱۱ پارکینگ'),
-        (12, '۱۲ پارکینگ'),
-        (13, '۱۳ پارکینگ'),
-        (14, '۱۴ پارکینگ'),
-        (15, '۱۵ پارکینگ'),
-        (16, '۱۶ پارکینگ'),
-        (17, '۱۷ پارکینگ'),
-        (18, '۱۸ پارکینگ'),
-        (19, '۱۹ پارکینگ'),
-        (20, '۲۰+ پارکینگ'),
+        (0, 'No Parking'),
+        (1, '1 Parking'),
+        (2, '2 Parkings'),
+        (3, '3 Parkings'),
+        (4, '4 Parkings'),
+        (5, '5 Parkings'),
+        (6, '6 Parkings'),
+        (7, '7 Parkings'),
+        (8, '8 Parkings'),
+        (9, '9 Parkings'),
+        (10, '10 Parkings'),
+        (11, '11 Parkings'),
+        (12, '12 Parkings'),
+        (13, '13 Parkings'),
+        (14, '14 Parkings'),
+        (15, '15 Parkings'),
+        (16, '16 Parkings'),
+        (17, '17 Parkings'),
+        (18, '18 Parkings'),
+        (19, '19 Parkings'),
+        (20, '20+ Parkings'),
     ]
     
     parking_spaces = models.SmallIntegerField(
@@ -475,14 +264,19 @@ class Property(BaseModel, SEOMixin):
         verbose_name="Parking Spaces",
         help_text="Number of parking spaces"
     )
-    # ✅ انباری با CHOICES (دارد/ندارد + تعداد)
+
     STORAGE_CHOICES = [
-        (0, 'بدون انباری'),
-        (1, '۱ انباری'),
-        (2, '۲ انباری'),
-        (3, '۳ انباری'),
-        (4, '۴ انباری'),
-        (5, '۵+ انباری'),
+        (0, 'No Storage'),
+        (1, '1 Storage'),
+        (2, '2 Storages'),
+        (3, '3 Storages'),
+        (4, '4 Storages'),
+        (5, '5 Storages'),
+        (6, '5 Storages'),
+        (7, '5 Storages'),
+        (8, '5 Storages'),
+        (9, '9 Storages'),
+        (10, '10+ Storages'),
     ]
     
     storage_rooms = models.SmallIntegerField(
@@ -494,48 +288,13 @@ class Property(BaseModel, SEOMixin):
         help_text="Number of storage rooms (0 = No storage)"
     )
     
-    # ✅ نوع کاربری ملک (مسکونی، تجاری، اداری)
-    USAGE_TYPE_CHOICES = [
-        ('residential', 'مسکونی'),
-        ('commercial', 'تجاری'),
-        ('office', 'اداری'),
-        ('industrial', 'صنعتی'),
-        ('agricultural', 'کشاورزی'),
-        ('warehouse', 'انبار'),
-        ('clinic', 'مطب / کلینیک'),
-        ('educational', 'آموزشی'),
-        ('mixed', 'مختلط'),
-    ]
-    
-    usage_type = models.CharField(
-        max_length=20,
-        choices=USAGE_TYPE_CHOICES,
-        default='residential',
-        db_index=True,
-        verbose_name="Usage Type",
-        help_text="Type of property usage (residential, commercial, office, etc.)"
-    )
-    
-    # ✅ نوع سند (اداری، قولنامه‌ای، فاقد سند)
-    DOCUMENT_TYPE_CHOICES = [
-        ('official', 'سند اداری / ششدانگ'),
-        ('pre_official', 'در حال اخذ سند'),
-        ('contract', 'قولنامه‌ای'),
-        ('cooperative', 'تعاونی'),
-        ('agricultural', 'سند زراعی'),
-        ('endowment', 'وقفی'),
-        ('court', 'حکم دادگاه'),
-        ('none', 'فاقد سند'),
-    ]
-    
     document_type = models.CharField(
-        max_length=20,
-        choices=DOCUMENT_TYPE_CHOICES,
+        max_length=32,
         null=True,
         blank=True,
         db_index=True,
         verbose_name="Document Type",
-        help_text="Type of property ownership document"
+        help_text="Type of property ownership document (official, contract, cooperative, etc.)"
     )
     
     is_published = models.BooleanField(
@@ -594,46 +353,11 @@ class Property(BaseModel, SEOMixin):
         help_text="Full-text search vector (PostgreSQL)"
     )
     
-    # ═══════════════════════════════════════════════════
-    # ✅ FLEXIBLE ATTRIBUTES: برای ویژگی‌های خاص هر نوع ملک
-    # ═══════════════════════════════════════════════════
     extra_attributes = models.JSONField(
         default=dict,
         blank=True,
         verbose_name="Extra Attributes",
-        help_text="""
-        Flexible attributes for specific property types:
-        
-        • اجاره کوتاه مدت (Short-term Rental):
-          {
-            "short_term": {
-              "capacity_standard": 4,
-              "capacity_extra": 2,
-              "weekday_price": 3000000,
-              "weekend_price": 4500000,
-              "price_per_extra_person": 500000
-            }
-          }
-        
-        • پیش فروش (Pre-sale):
-          {
-            "pre_sale": {
-              "unit_type": "A",
-              "document_status": "in_progress",
-              "payment_plan": "24 months",
-              "completion_year": 1404
-            }
-          }
-        
-        • پروژه‌های ساخت و ساز (Construction Projects):
-          {
-            "construction": {
-              "current_status": "foundation",
-              "location_status": "city_center",
-              "partnership_type": "investment"
-            }
-          }
-        """
+        help_text="Flexible attributes for specific property types"
     )
     
     objects = PropertyQuerySet.as_manager()
@@ -644,57 +368,43 @@ class Property(BaseModel, SEOMixin):
         verbose_name_plural = 'Properties'
         ordering = ['-is_featured', '-published_at', '-created_at']
         indexes = [
-            # ═══════════════════════════════════════════════════════════════════════
-            # 🎯 PRIMARY INDEXES: 80% of queries use these (Optimized for 1M+ properties)
-            # ═══════════════════════════════════════════════════════════════════════
-            
-            # 1. Main Search & Filter (Most Common Query Pattern)
+
             models.Index(
                 fields=['is_published', 'is_public', 'city', 'property_type', 'bedrooms', '-price'],
                 condition=models.Q(is_published=True, is_public=True, is_active=True),
                 name='idx_main_search'
             ),
             
-            # 2. Location-Based Search (City + Region + Neighborhood)
             models.Index(
                 fields=['city', 'region', 'neighborhood', '-created_at'],
                 condition=models.Q(is_published=True, is_public=True),
                 name='idx_location_search'
             ),
-            
-            # 3. Price Range Filter (Most Filtered Field)
+
             models.Index(
                 fields=['is_published', 'is_public', 'price', 'sale_price', 'monthly_rent'],
                 condition=models.Q(is_published=True, is_public=True),
                 name='idx_price_range'
             ),
             
-            # 4. Property Details Filter (Year, Floor, Parking, Storage)
             models.Index(
                 fields=['city', 'year_built', 'floor_number', 'parking_spaces', 'storage_rooms'],
                 condition=models.Q(is_published=True, year_built__isnull=False),
                 name='idx_property_details'
             ),
             
-            # 5. Usage & Document Type Filter (Commercial/Residential)
             models.Index(
-                fields=['city', 'usage_type', 'document_type', '-price'],
+                fields=['city', 'document_type', '-price'],
                 condition=models.Q(is_published=True, is_public=True),
-                name='idx_usage_document'
+                name='idx_document_type'
             ),
             
-            # ═══════════════════════════════════════════════════════════════════════
-            # 🔍 SECONDARY INDEXES: For specific use cases
-            # ═══════════════════════════════════════════════════════════════════════
-            
-            # 6. Featured Properties (Homepage, Landing Pages)
             models.Index(
                 fields=['is_featured', '-views_count', '-created_at'],
                 condition=models.Q(is_published=True, is_public=True, is_featured=True),
                 name='idx_featured_props'
             ),
             
-            # 7. Agent/Agency Dashboard (Admin Panel)
             models.Index(
                 fields=['agent', 'is_published', '-created_at'],
                 name='idx_agent_dashboard'
@@ -704,30 +414,22 @@ class Property(BaseModel, SEOMixin):
                 name='idx_agency_dashboard'
             ),
             
-            # 8. Map Search (Geo-spatial)
             models.Index(
                 fields=['latitude', 'longitude', 'city'],
                 condition=models.Q(latitude__isnull=False, longitude__isnull=False),
                 name='idx_map_search'
             ),
             
-            # ═══════════════════════════════════════════════════════════════════════
-            # 🚀 SPECIALIZED INDEXES: PostgreSQL-specific optimizations
-            # ═══════════════════════════════════════════════════════════════════════
-            
-            # 9. Full-Text Search (GIN Index for search_vector)
             GinIndex(
                 fields=['search_vector'],
                 name='idx_gin_fulltext'
             ),
-            
-            # 10. JSON Field Search (Extra Attributes for Short-term Rent, Pre-sale)
+
             GinIndex(
                 fields=['extra_attributes'],
                 name='idx_gin_json_attrs'
             ),
-            
-            # 11. Time-Series Data (BRIN for large datasets)
+
             BrinIndex(
                 fields=['created_at'],
                 pages_per_range=128,
@@ -784,7 +486,7 @@ class Property(BaseModel, SEOMixin):
                 condition=models.Q(parking_spaces__gte=0) & models.Q(parking_spaces__lte=20),
                 name='property_parking_range'
             ),
-            # Year Built: Constraint ثابت تا سال 1500 (هیچ Migration سالانه لازم نیست)
+
             models.CheckConstraint(
                 condition=Q(year_built__isnull=True) | 
                          (Q(year_built__gte=1300) & Q(year_built__lte=1500)),
@@ -808,20 +510,16 @@ class Property(BaseModel, SEOMixin):
             ),
         ]
     
-    # =====================================================
-    # ✅ Helper Methods
-    # =====================================================
-    
     @property
     def decade_built(self):
-        """گروه‌بندی دهه‌ای سال ساخت (برای فیلتر)"""
+
         if not self.year_built:
             return None
         return (self.year_built // 10) * 10  # مثلاً 1395 → 1390
     
     @property
     def age_years(self):
-        """سن ملک به سال (شمسی)"""
+
         if not self.year_built:
             return None
         try:
@@ -829,16 +527,13 @@ class Property(BaseModel, SEOMixin):
             current_year = jdatetime.datetime.now().year
             return current_year - self.year_built
         except ImportError:
-            # اگر jdatetime نصب نیست، از سال میلادی تقریبی استفاده کن
             from datetime import datetime
             current_year = datetime.now().year
-            # تقریبی: سال شمسی ≈ سال میلادی - 621
             shamsi_year = current_year - 621
             return shamsi_year - self.year_built
     
     @property
     def has_region(self):
-        """آیا این شهر منطقه دارد؟"""
         return self.region is not None and self.city is not None
     
     def __str__(self):
@@ -848,27 +543,19 @@ class Property(BaseModel, SEOMixin):
         return f"/property/{self.slug}/"
     
     def get_main_image(self):
-        """
-        دریافت تصویر اصلی - delegated به PropertyAdminMediaService
-        Logic پیچیده media در service قرار داره
-        """
-        # اگر prefetch شده، مستقیماً استفاده کن
+
         if hasattr(self, 'all_images'):
             all_images = getattr(self, 'all_images', [])
             main_images = [m for m in all_images if m.is_main]
             if main_images and len(main_images) > 0:
                 return main_images[0].image if main_images[0].image else None
             return None
-        
-        # وگرنه delegate به service
+
         from src.real_estate.services.admin.property_media_services import PropertyAdminMediaService
         return PropertyAdminMediaService.get_main_image_for_model(self)
     
     def get_main_image_details(self):
-        """
-        جزئیات تصویر اصلی - این method فقط برای backward compatibility
-        در serializer ها بهتره مستقیماً از service استفاده بشه
-        """
+
         main_image = self.get_main_image()
         if main_image and main_image.file:
             file_url = main_image.file.url if main_image.file else None
@@ -882,15 +569,8 @@ class Property(BaseModel, SEOMixin):
         return None
     
     def generate_structured_data(self):
-        """
-        ایجاد structured data - delegated به PropertyAdminSEOService
-        Logic SEO در service قرار داره
-        """
-        # این method فقط برای backward compatibility
-        # در view/serializer ها بهتره مستقیماً از service استفاده بشه
+
         from src.real_estate.services.admin.property_seo_services import PropertyAdminSEOService
-        # TODO: باید method مناسب در service اضافه بشه
-        # فعلاً همون منطق قبلی رو نگه می‌داریم
         from django.core.cache import cache
         
         cache_key = PropertyCacheKeys.structured_data(self.pk)
@@ -962,28 +642,23 @@ class Property(BaseModel, SEOMixin):
         return structured_data
     
     def clean(self):
-        """
-        Validation دینامیک برای فیلدهای Model
-        برای year_built: validation بر اساس سال فعلی
-        """
         super().clean()
-        
-        # Validation دینامیک برای year_built
+
         if self.year_built is not None:
-            year_max = self.__class__.get_year_max()  # استفاده از classmethod
+            year_max = self.__class__.get_year_max()
             
             if self.year_built < self.YEAR_MIN:
                 raise ValidationError({
-                    'year_built': f'سال ساخت نباید کمتر از {self.YEAR_MIN} باشد.'
+                    'year_built': f'Year built cannot be less than {self.YEAR_MIN}.'
                 })
             
             if self.year_built > year_max:
                 raise ValidationError({
-                    'year_built': f'سال ساخت نباید بیشتر از {year_max} (سال فعلی + {self.YEAR_BUFFER}) باشد.'
+                    'year_built': f'Year built cannot be greater than {year_max} (current year + {self.YEAR_BUFFER}).'
                 })
     
     def save(self, *args, **kwargs):
-        # Auto-populate SEO fields
+
         if not self.meta_title and self.title:
             self.meta_title = self.title[:70]
         
@@ -999,7 +674,6 @@ class Property(BaseModel, SEOMixin):
         if not self.og_description and self.meta_description:
             self.og_description = self.meta_description
         
-        # Auto-calculate price_per_sqm
         if self.built_area and self.built_area > 0:
             if self.price:
                 self.price_per_sqm = int(self.price / float(self.built_area))
@@ -1008,25 +682,15 @@ class Property(BaseModel, SEOMixin):
             elif self.pre_sale_price:
                 self.price_per_sqm = int(self.pre_sale_price / float(self.built_area))
         
-        # Auto-populate location (denormalization) - optimized
         if self.city_id and not self.province_id:
             self.province = self.city.province
-        
-        # Country is auto-set via default=1 (Iran)
-        # No need for database lookup - optimized for single-country deployment
-        # If expanding to multiple countries, modify via data migration
-        
-        # Auto-set published_at
+
         if self.is_published and not self.published_at:
             from django.utils import timezone
             self.published_at = timezone.now()
         
-        # Note: search_vector is updated via signals (see signals.py)
-        # This ensures proper indexing with PostgreSQL SearchVector
-        
         super().save(*args, **kwargs)
-        
-        # Clear caches
+
         if self.pk:
             PropertyCacheManager.invalidate_property(self.pk)
             PropertyCacheManager.invalidate_list()

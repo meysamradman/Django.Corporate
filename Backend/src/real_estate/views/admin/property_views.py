@@ -621,19 +621,54 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     def field_options(self, request):
         """
         Returns field options/choices for property form fields
+        Dynamically retrieves choices from Property model and Constants
         """
         from src.real_estate.models.property import Property
+        from src.real_estate.constants.document_types import get_document_type_choices_list
         
+        # تمام CHOICES رو مستقیماً از مدل می‌خونیم (داینامیک)
         options = {
+            # ✅ Static Choices از Model
             'bedrooms': Property.BEDROOM_CHOICES,
             'bathrooms': Property.BATHROOM_CHOICES,
             'parking_spaces': Property.PARKING_CHOICES,
+            'storage_rooms': Property.STORAGE_CHOICES,
+            'floor_number': Property.FLOOR_CHOICES,
+            
+            # ✅ Document Type از Constants (فقط این!)
+            'document_type': get_document_type_choices_list(),
+            
             'year_built': {
                 'min': Property.YEAR_MIN,
                 'max': Property.get_year_max(),
-                'help_text': f'سال شمسی ({Property.YEAR_MIN}-{Property.get_year_max()}) - به صورت خودکار محاسبه می‌شود'
+                'placeholder': f'مثلاً {Property.get_current_shamsi_year()}',
+                'help_text': f'سال شمسی ({Property.YEAR_MIN}-{Property.get_year_max()})'
             }
         }
+        
+        # برای فیلدهایی که تو مدل CHOICES ندارند، اینجا تعریف می‌کنیم
+        # چون فیلد ساده SmallIntegerField هستند
+        options['kitchens'] = [
+            (i, 'بدون آشپزخانه' if i == 0 else f'{i} آشپزخانه')
+            for i in range(0, 11)
+        ]
+        
+        options['living_rooms'] = [
+            (i, 'بدون پذیرایی' if i == 0 else f'{i} پذیرایی')
+            for i in range(0, 11)
+        ]
+        
+        # Currency و is_negotiable هم ساده هستند
+        options['currency'] = [
+            ('IRR', 'ریال (ی‌ریال)'),
+            ('USD', 'دلار (USD)'),
+            ('EUR', 'یورو (EUR)'),
+        ]
+        
+        options['is_negotiable'] = [
+            ('true', 'بله (قابل مذاکره)'),
+            ('false', 'خیر (قیمت ثابت)'),
+        ]
         
         return APIResponse.success(
             message="Field options retrieved successfully",

@@ -16,7 +16,7 @@ class PropertyAdminMediaService:
         دریافت تصویر اصلی ملک با cache
         این method منطق پیچیده را از model جدا می‌کنه
         """
-        from src.real_estate.cache.keys import PropertyCacheKeys
+        from src.real_estate.utils.cache import PropertyCacheKeys
         
         cache_key = PropertyCacheKeys.main_image(property_instance.pk)
         main_image_id = cache.get(cache_key)

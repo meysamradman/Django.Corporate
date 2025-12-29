@@ -6,10 +6,7 @@ from src.media.models.media import ImageMedia
 
 
 class FloorPlanImage(BaseModel):
-    """
-    Many-to-Many intermediary model between FloorPlan and ImageMedia
-    Allows multiple images per floor plan (2D blueprint, 3D render, actual photo, etc.)
-    """
+
     floor_plan = models.ForeignKey(
         RealEstateFloorPlan,
         on_delete=models.CASCADE,
