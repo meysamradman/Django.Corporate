@@ -144,7 +144,8 @@ class Property(BaseModel, SEOMixin):
         related_name='properties',
         db_index=True,
         verbose_name="Country",
-        help_text="Country where property is located (denormalized for performance)"
+        help_text="Country where property is located (default: Iran, prepared for future expansion)",
+        default=1  # Iran - hardcoded for now, change via migration if expanding to other countries
     )
     address = models.TextField(
         verbose_name="Address",
@@ -1032,17 +1033,13 @@ class Property(BaseModel, SEOMixin):
             elif self.pre_sale_price:
                 self.price_per_sqm = int(self.pre_sale_price / float(self.built_area))
         
-        # Auto-populate location (denormalization) - ساده شده
+        # Auto-populate location (denormalization) - optimized
         if self.city_id and not self.province_id:
             self.province = self.city.province
-        if self.province_id and not self.country_id:
-            # Assuming Iran as default country - adjust as needed
-            from src.core.models import Country
-            iran_country, _ = Country.objects.get_or_create(
-                code='IRN',
-                defaults={'name': 'Iran'}
-            )
-            self.country = iran_country
+        
+        # Country is auto-set via default=1 (Iran)
+        # No need for database lookup - optimized for single-country deployment
+        # If expanding to multiple countries, modify via data migration
         
         # Auto-set published_at
         if self.is_published and not self.published_at:
