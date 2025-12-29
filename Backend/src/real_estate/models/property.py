@@ -272,9 +272,9 @@ class Property(BaseModel, SEOMixin):
         (3, '3 Storages'),
         (4, '4 Storages'),
         (5, '5 Storages'),
-        (6, '5 Storages'),
-        (7, '5 Storages'),
-        (8, '5 Storages'),
+        (6, '6 Storages'),
+        (7, '7 Storages'),
+        (8, '8 Storages'),
         (9, '9 Storages'),
         (10, '10+ Storages'),
     ]
@@ -295,6 +295,12 @@ class Property(BaseModel, SEOMixin):
         db_index=True,
         verbose_name="Document Type",
         help_text="Type of property ownership document (official, contract, cooperative, etc.)"
+    )
+    has_document = models.BooleanField(
+        default=True,
+        db_index=True,
+        verbose_name="Has Document",
+        help_text="Whether the property has any ownership document"
     )
     
     is_published = models.BooleanField(
