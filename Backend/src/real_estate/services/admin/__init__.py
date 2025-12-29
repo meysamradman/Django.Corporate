@@ -5,6 +5,7 @@ from .property_services import (
 from .property_statistics_service import PropertyStatisticsService
 from .property_seo_services import PropertyAdminSEOService
 from .property_media_services import PropertyAdminMediaService
+from .floor_plan_media_services import FloorPlanMediaService
 from .type_services import PropertyTypeAdminService
 from .state_services import PropertyStateAdminService
 from .label_services import PropertyLabelAdminService
@@ -21,6 +22,7 @@ __all__ = [
     'PropertyStatisticsService',
     'PropertyAdminSEOService',
     'PropertyAdminMediaService',
+    'FloorPlanMediaService',
     'PropertyTypeAdminService',
     'PropertyStateAdminService',
     'PropertyLabelAdminService',

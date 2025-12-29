@@ -195,3 +195,28 @@ TAG_ERRORS = {
     "tag_has_properties": "این تگ در {count} ملک استفاده شده و قابل حذف نیست.",
 }
 
+FLOOR_PLAN_SUCCESS = {
+    "floor_plan_list_success": "لیست پلان‌های معماری با موفقیت دریافت شد.",
+    "floor_plan_created": "پلان معماری با موفقیت ایجاد شد.",
+    "floor_plan_updated": "پلان معماری با موفقیت به‌روزرسانی شد.",
+    "floor_plan_deleted": "پلان معماری با موفقیت حذف شد.",
+    "floor_plan_retrieved": "پلان معماری با موفقیت دریافت شد.",
+    "floor_plan_images_added": "تصاویر با موفقیت به پلان معماری اضافه شدند.",
+    "floor_plan_image_removed": "تصویر با موفقیت حذف شد.",
+    "floor_plan_main_image_set": "تصویر شاخص پلان با موفقیت تنظیم شد.",
+    "floor_plan_images_synced": "تصاویر پلان با موفقیت همگام‌سازی شدند.",
+}
+
+FLOOR_PLAN_ERRORS = {
+    "floor_plan_not_found": "پلان معماری یافت نشد.",
+    "floor_plan_not_authorized": "شما اجازه دسترسی به پلان‌های معماری را ندارید.",
+    "floor_plan_create_failed": "ایجاد پلان معماری ناموفق بود.",
+    "floor_plan_update_failed": "به‌روزرسانی پلان معماری ناموفق بود.",
+    "floor_plan_delete_failed": "حذف پلان معماری ناموفق بود.",
+    "floor_plan_property_required": "شناسه ملک مورد نیاز است.",
+    "image_id_required": "شناسه تصویر مورد نیاز است.",
+    "image_not_found_in_floor_plan": "تصویر در این پلان یافت نشد.",
+    "media_upload_limit_exceeded": "حداکثر {max_items} تصویر برای آپلود مجاز است. شما {total_items} تصویر ارسال کرده‌اید.",
+    "only_one_main_image": "فقط یک تصویر اصلی برای هر پلان مجاز است.",
+}
+

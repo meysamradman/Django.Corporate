@@ -181,3 +181,71 @@ class PropertyTagCacheManager:
         """Invalidate all tag-related caches"""
         pattern = f"{PropertyTagCacheKeys.NAMESPACE}:*"
         return CacheService.delete_pattern(pattern)
+
+
+# ============================================
+# Property Type Cache (Tree Structure)
+# ============================================
+
+class TypeCacheKeys:
+    """Cache key generators for PropertyType model (Tree)"""
+    
+    NAMESPACE = "property:type"
+    
+    @staticmethod
+    def type_detail(type_id: int) -> str:
+        return f"{TypeCacheKeys.NAMESPACE}:{type_id}"
+    
+    @staticmethod
+    def root_types() -> str:
+        return f"{TypeCacheKeys.NAMESPACE}:roots"
+    
+    @staticmethod
+    def tree_admin() -> str:
+        return f"{TypeCacheKeys.NAMESPACE}:tree:admin"
+    
+    @staticmethod
+    def tree_public() -> str:
+        return f"{TypeCacheKeys.NAMESPACE}:tree:public"
+    
+    @staticmethod
+    def popular(limit: int = 10) -> str:
+        return f"{TypeCacheKeys.NAMESPACE}:popular:{limit}"
+    
+    @staticmethod
+    def statistics() -> str:
+        return f"{TypeCacheKeys.NAMESPACE}:statistics"
+    
+    @staticmethod
+    def all_keys(type_ids: list[int] | None = None) -> list[str]:
+        keys = [
+            TypeCacheKeys.root_types(),
+            TypeCacheKeys.tree_admin(),
+            TypeCacheKeys.tree_public(),
+            TypeCacheKeys.statistics()
+        ]
+        if type_ids:
+            keys.extend([TypeCacheKeys.type_detail(tid) for tid in type_ids])
+        return keys
+
+
+class TypeCacheManager:
+    """Cache management for PropertyType model"""
+    
+    @staticmethod
+    def invalidate_type(type_id: int) -> int:
+        """Invalidate cache for a specific type"""
+        keys = TypeCacheKeys.all_keys([type_id])
+        return CacheService.delete_many(keys)
+    
+    @staticmethod
+    def invalidate_types(type_ids: list[int]) -> int:
+        """Invalidate caches for multiple types"""
+        keys = TypeCacheKeys.all_keys(type_ids)
+        return CacheService.delete_many(keys)
+    
+    @staticmethod
+    def invalidate_all() -> int:
+        """Invalidate all type-related caches (Full clear)"""
+        pattern = f"{TypeCacheKeys.NAMESPACE}:*"
+        return CacheService.delete_pattern(pattern)

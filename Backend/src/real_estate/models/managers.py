@@ -258,15 +258,29 @@ class PropertyQuerySet(models.QuerySet):
 
 
 class PropertyTypeQuerySet(models.QuerySet):
+    """QuerySet for PropertyType (Tree Structure)"""
     
     def active(self):
         return self.filter(is_active=True)
     
+    def public(self):
+        """Active types only"""
+        return self.filter(is_active=True)
+    
     def with_counts(self):
+        """Annotate with property count"""
         return self.annotate(
-            properties_count=Count('properties', 
+            property_count=Count('properties', 
                                 filter=Q(properties__is_published=True))
         )
+    
+    def roots(self):
+        """Get only root types (depth=1)"""
+        return self.filter(depth=1)
+    
+    def for_tree(self):
+        """Optimized fields for tree display"""
+        return self.only('id', 'title', 'slug', 'depth', 'path', 'public_id', 'display_order')
 
 
 class PropertyStateQuerySet(models.QuerySet):

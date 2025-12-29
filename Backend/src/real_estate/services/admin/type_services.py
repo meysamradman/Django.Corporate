@@ -1,87 +1,275 @@
+from django.db import transaction, models
 from django.db.models import Count
-from django.db import transaction
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
+
 from src.real_estate.models.type import PropertyType
 from src.real_estate.models.property import Property
-from src.real_estate.messages.messages import TYPE_ERRORS
+from src.real_estate.utils.cache import TypeCacheKeys, TypeCacheManager
+from src.real_estate.messages import TYPE_ERRORS
 
 
 class PropertyTypeAdminService:
     
     @staticmethod
-    def get_type_queryset(filters=None, search=None):
-        queryset = PropertyType.objects.annotate(
+    def get_tree_queryset():
+        return PropertyType.objects.annotate(
             property_count=Count('properties', distinct=True)
-        )
+        ).order_by('path')
+    
+    @staticmethod
+    def get_list_queryset(filters=None, order_by='created_at', order_desc=True):
+        queryset = PropertyTypeAdminService.get_tree_queryset()
         
-        if filters:
-            if filters.get('is_active') is not None:
-                queryset = queryset.filter(is_active=filters['is_active'])
+        if order_by:
+            order_field = f"-{order_by}" if order_desc else order_by
+            queryset = queryset.order_by(order_field)
         
-        if search:
-            queryset = queryset.filter(title__icontains=search)
-        
-        return queryset.order_by('display_order', 'title')
+        return queryset
     
     @staticmethod
     def get_type_by_id(type_id):
         try:
-            return PropertyType.objects.annotate(
-                property_count=Count('properties', distinct=True)
-            ).get(id=type_id)
+            return PropertyTypeAdminService.get_tree_queryset().get(id=type_id)
         except PropertyType.DoesNotExist:
             return None
     
     @staticmethod
+    def get_root_types():
+        cache_key = TypeCacheKeys.root_types()
+        root_types = cache.get(cache_key)
+        
+        if root_types is None:
+            root_types = list(
+                PropertyType.get_root_nodes().annotate(
+                    property_count=Count('properties', distinct=True)
+                ).values(
+                    'id', 'public_id', 'title', 'slug', 'property_count'
+                )
+            )
+            cache.set(cache_key, root_types, 300)
+        
+        return root_types
+
+    @staticmethod
+    def get_tree_data():
+        cache_key = TypeCacheKeys.tree_admin()
+        tree_data = cache.get(cache_key)
+        
+        if tree_data is None:
+            def build_tree(nodes):
+                tree = []
+                for node in nodes:
+                    children = node.get_children().filter(is_active=True)
+                    tree_node = {
+                        'id': node.id,
+                        'public_id': node.public_id,
+                        'title': node.title,
+                        'slug': node.slug,
+                        'level': node.get_depth(),
+                        'property_count': getattr(node, 'property_count', 0),
+                        'children': build_tree(children) if children else []
+                    }
+                    tree.append(tree_node)
+                return tree
+            
+            root_nodes = PropertyType.get_root_nodes().annotate(
+                property_count=Count('properties', distinct=True)
+            ).filter(is_active=True)
+            
+            tree_data = build_tree(root_nodes)
+            cache.set(cache_key, tree_data, 900)
+        
+        return tree_data
+
+    @staticmethod
     def create_type(validated_data, created_by=None):
         with transaction.atomic():
-            type_obj = PropertyType.objects.create(**validated_data)
-        return type_obj
-    
+            parent_id = validated_data.pop('parent_id', None)
+            
+            validated_data.pop('created_by', None)
+            
+            if parent_id:
+                property_type = parent_id.add_child(**validated_data)
+            else:
+                property_type = PropertyType.add_root(**validated_data)
+            
+            TypeCacheManager.invalidate_all()
+            
+            return property_type
+
     @staticmethod
     def update_type_by_id(type_id, validated_data, updated_by=None):
-        type_obj = PropertyTypeAdminService.get_type_by_id(type_id)
+        property_type = PropertyTypeAdminService.get_type_by_id(type_id)
         
-        if not type_obj:
+        if not property_type:
             raise PropertyType.DoesNotExist(TYPE_ERRORS["type_not_found"])
         
         with transaction.atomic():
+            parent_id = validated_data.pop('parent_id', None)
+            
+            validated_data.pop('updated_by', None)
+            
             for field, value in validated_data.items():
-                setattr(type_obj, field, value)
-            type_obj.save()
+                setattr(property_type, field, value)
+            
+            if parent_id is not None:
+                current_parent = property_type.get_parent()
+                
+                if (current_parent and current_parent.id != parent_id.id) or \
+                   (not current_parent and parent_id):
+                    property_type.move(parent_id, pos='last-child')
+                elif not parent_id and current_parent:
+                    property_type.move(PropertyType.get_root_nodes().first(), pos='last-sibling')
+            
+        property_type.save()
         
-        return type_obj
-    
+        TypeCacheManager.invalidate_all()
+        
+        return property_type
+
     @staticmethod
     def delete_type_by_id(type_id):
-        type_obj = PropertyTypeAdminService.get_type_by_id(type_id)
+        property_type = PropertyTypeAdminService.get_type_by_id(type_id)
         
-        if not type_obj:
+        if not property_type:
             raise PropertyType.DoesNotExist(TYPE_ERRORS["type_not_found"])
         
-        property_count = type_obj.properties.count()
+        property_count = property_type.properties.count()
         if property_count > 0:
             raise ValidationError(TYPE_ERRORS["type_has_properties"].format(count=property_count))
         
+        children_count = property_type.get_children_count()
+        if children_count > 0:
+            raise ValidationError(TYPE_ERRORS["type_has_children"].format(count=children_count))
+        
         with transaction.atomic():
-            type_obj.delete()
+            property_type.delete()
+            TypeCacheManager.invalidate_all()
+    
+    @staticmethod
+    def move_type(type_id, target_id, position='last-child'):
+        property_type = PropertyTypeAdminService.get_type_by_id(type_id)
+        target = PropertyTypeAdminService.get_type_by_id(target_id)
+        
+        if not property_type or not target:
+            raise PropertyType.DoesNotExist(TYPE_ERRORS["type_not_found"])
+        
+        if target.is_descendant_of(property_type):
+            raise ValidationError(TYPE_ERRORS["type_move_to_descendant"])
+        
+        if property_type.id == target.id:
+            raise ValidationError(TYPE_ERRORS["type_move_to_self"])
+        
+        with transaction.atomic():
+            property_type.move(target, pos=position)
+            TypeCacheManager.invalidate_all()
+    
+    @staticmethod
+    def get_popular_types(limit=10):
+        cache_key = TypeCacheKeys.popular(limit)
+        popular = cache.get(cache_key)
+        
+        if popular is None:
+            popular = list(
+                PropertyType.objects.annotate(
+                    property_count=Count('properties')
+                ).filter(
+                    property_count__gt=0, is_active=True
+                ).order_by('-property_count')[:limit].values(
+                    'id', 'public_id', 'title', 'slug', 'property_count'
+                )
+            )
+            cache.set(cache_key, popular, 600)
+        
+        return popular
+    
+    @staticmethod
+    def get_breadcrumbs(property_type):
+        ancestors = property_type.get_ancestors()
+        breadcrumbs = []
+        
+        for ancestor in ancestors:
+            breadcrumbs.append({
+                'id': ancestor.id,
+                'title': ancestor.title,
+                'slug': ancestor.slug
+            })
+        
+        breadcrumbs.append({
+            'id': property_type.id,
+            'title': property_type.title,
+            'slug': property_type.slug
+        })
+        
+        return breadcrumbs
     
     @staticmethod
     def bulk_delete_types(type_ids):
         types = PropertyType.objects.filter(id__in=type_ids)
         
         if not types.exists():
-            raise ValidationError(TYPE_ERRORS["type_not_found"])
+            raise ValidationError(TYPE_ERRORS["types_not_found"])
         
         with transaction.atomic():
+            all_type_ids = set()
             type_list = list(types)
-            for type_obj in type_list:
-                property_count = type_obj.properties.count()
-                if property_count > 0:
-                    raise ValidationError(TYPE_ERRORS["type_has_properties"].format(count=property_count))
             
-            deleted_count = types.count()
-            types.delete()
+            top_level_types = []
+            for property_type in type_list:
+                is_descendant = False
+                for other_type in type_list:
+                    if other_type.id != property_type.id:
+                        if property_type.is_descendant_of(other_type):
+                            is_descendant = True
+                            break
+                
+                if not is_descendant:
+                    top_level_types.append(property_type)
+                    all_type_ids.add(property_type.id)
+                    descendants = property_type.get_descendants()
+                    all_type_ids.update(descendant.id for descendant in descendants)
+            
+            all_types = PropertyType.objects.filter(id__in=all_type_ids)
+            
+            for property_type in all_types:
+                property_type.properties.clear()
+            
+            deleted_count = 0
+            for property_type in top_level_types:
+                descendants_count = property_type.get_descendants().count()
+                property_type.delete()
+                deleted_count += 1 + descendants_count
+            
+            TypeCacheManager.invalidate_all()
         
         return deleted_count
-
+    
+    @staticmethod
+    def get_type_statistics():
+        cache_key = TypeCacheKeys.statistics()
+        stats = cache.get(cache_key)
+        
+        if stats is None:
+            total_types = PropertyType.objects.count()
+            active_types = PropertyType.objects.filter(is_active=True).count()
+            used_types = PropertyType.objects.filter(
+                properties__isnull=False
+            ).distinct().count()
+            
+            root_types = PropertyType.get_root_nodes().count()
+            max_depth = PropertyType.objects.aggregate(
+                max_depth=models.Max('depth')
+            )['max_depth'] or 0
+            
+            stats = {
+                'total_types': total_types,
+                'active_types': active_types,
+                'used_types': used_types,
+                'unused_types': total_types - used_types,
+                'root_types': root_types,
+                'max_depth': max_depth
+            }
+            cache.set(cache_key, stats, 300)
+        
+        return stats

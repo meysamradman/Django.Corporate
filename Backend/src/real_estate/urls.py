@@ -5,6 +5,7 @@ from src.real_estate.views.admin import location_views
 
 router = DefaultRouter()
 router.register(r'admin/property', views.PropertyAdminViewSet, basename='admin-property')
+router.register(r'admin/floor-plan', views.FloorPlanAdminViewSet, basename='admin-floor-plan')
 router.register(r'admin/property-type', views.PropertyTypeAdminViewSet, basename='admin-property-type')
 router.register(r'admin/property-state', views.PropertyStateAdminViewSet, basename='admin-property-state')
 router.register(r'admin/property-label', views.PropertyLabelAdminViewSet, basename='admin-property-label')

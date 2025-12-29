@@ -53,12 +53,13 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         'toggle_featured': 'real_estate.property.update',
         'toggle_verified': 'real_estate.property.update',
         'set_main_image': 'real_estate.property.update',
+        'add_media': 'real_estate.property.update',
+        'remove_media': 'real_estate.property.update',
         'statistics': 'real_estate.property.read',
         'seo_report': 'real_estate.property.read',
         'bulk_generate_seo': 'real_estate.property.update',
         'generate_seo': 'real_estate.property.update',
         'validate_seo': 'real_estate.property.read',
-        'add_media': 'real_estate.property.update',
         'field_options': 'real_estate.property.read',
     }
     permission_denied_message = PROPERTY_ERRORS["property_not_authorized"]
@@ -561,37 +562,58 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
-    @action(detail=True, methods=['post'], url_path='set-main-image')
-    def set_main_image(self, request, pk=None):
+    @action(detail=True, methods=['post'], url_path='remove-media')
+    def remove_media(self, request, pk=None):
+        """
+        Remove single media from property
+        POST /property/{id}/remove-media/
+        Body: media_id (int), media_type (str: image/video/audio/document)
+        """
+        property_obj = self.get_object()
         media_id = request.data.get('media_id')
+        media_type = request.data.get('media_type', 'image')
         
         if not media_id:
             return APIResponse.error(
-                message=PROPERTY_ERRORS.get("media_id_required", "Media ID is required"),
+                message=PROPERTY_ERRORS["media_id_required"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
         try:
-            from src.real_estate.models.media import PropertyImage
+            from src.real_estate.models.media import PropertyImage, PropertyVideo, PropertyAudio, PropertyDocument
             
-            PropertyImage.objects.filter(property_id=pk, is_main=True).update(is_main=False)
-            
-            property_image = PropertyImage.objects.filter(property_id=pk, image_id=media_id).first()
-            if property_image:
-                property_image.is_main = True
-                property_image.save()
+            if media_type == 'image':
+                deleted = PropertyImage.objects.filter(property_id=pk, image_id=media_id).delete()[0]
+            elif media_type == 'video':
+                deleted = PropertyVideo.objects.filter(property_id=pk, video_id=media_id).delete()[0]
+            elif media_type == 'audio':
+                deleted = PropertyAudio.objects.filter(property_id=pk, audio_id=media_id).delete()[0]
+            elif media_type == 'document':
+                deleted = PropertyDocument.objects.filter(property_id=pk, document_id=media_id).delete()[0]
             else:
-                PropertyAdminService.set_main_image(pk, media_id)
+                return APIResponse.error(
+                    message="Invalid media type",
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
             
-            PropertyCacheManager.invalidate_property(pk)
-            
-            return APIResponse.success(
-                message=PROPERTY_SUCCESS["property_main_image_set"],
-                status_code=status.HTTP_200_OK
-            )
+            if deleted > 0:
+                property_obj.refresh_from_db()
+                PropertyCacheManager.invalidate_property(property_obj.id)
+                serializer = PropertyAdminDetailSerializer(property_obj)
+                
+                return APIResponse.success(
+                    message="رسانه با موفقیت حذف شد.",
+                    data=serializer.data,
+                    status_code=status.HTTP_200_OK
+                )
+            else:
+                return APIResponse.error(
+                    message="رسانه یافت نشد.",
+                    status_code=status.HTTP_404_NOT_FOUND
+                )
         except Exception as e:
             return APIResponse.error(
-                message=str(e) or PROPERTY_ERRORS["property_update_failed"],
+                message=str(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     

@@ -1,5 +1,6 @@
 from .admin import (
     PropertyAdminViewSet,
+    FloorPlanAdminViewSet,
     PropertyTypeAdminViewSet,
     PropertyStateAdminViewSet,
     PropertyLabelAdminViewSet,
@@ -11,6 +12,7 @@ from .admin import (
 
 __all__ = [
     "PropertyAdminViewSet",
+    "FloorPlanAdminViewSet",
     "PropertyTypeAdminViewSet",
     "PropertyStateAdminViewSet",
     "PropertyLabelAdminViewSet",

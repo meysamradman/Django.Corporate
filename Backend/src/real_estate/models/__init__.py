@@ -7,6 +7,7 @@ from .label import PropertyLabel
 from .feature import PropertyFeature
 from .tag import PropertyTag
 from .floor_plan import RealEstateFloorPlan
+from .floor_plan_media import FloorPlanImage
 from .agency import RealEstateAgency
 from .agent import PropertyAgent
 from .property import Property
@@ -24,6 +25,7 @@ __all__ = [
     'PropertyFeature',
     'PropertyTag',
     'RealEstateFloorPlan',
+    'FloorPlanImage',
     'RealEstateAgency',
     'PropertyAgent',
     'Property',

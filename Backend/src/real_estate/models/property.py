@@ -1,4 +1,5 @@
 from django.db import models
+from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.contrib.postgres.indexes import GinIndex, BrinIndex
@@ -592,6 +593,48 @@ class Property(BaseModel, SEOMixin):
         help_text="Full-text search vector (PostgreSQL)"
     )
     
+    # ═══════════════════════════════════════════════════
+    # ✅ FLEXIBLE ATTRIBUTES: برای ویژگی‌های خاص هر نوع ملک
+    # ═══════════════════════════════════════════════════
+    extra_attributes = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name="Extra Attributes",
+        help_text="""
+        Flexible attributes for specific property types:
+        
+        • اجاره کوتاه مدت (Short-term Rental):
+          {
+            "short_term": {
+              "capacity_standard": 4,
+              "capacity_extra": 2,
+              "weekday_price": 3000000,
+              "weekend_price": 4500000,
+              "price_per_extra_person": 500000
+            }
+          }
+        
+        • پیش فروش (Pre-sale):
+          {
+            "pre_sale": {
+              "unit_type": "A",
+              "document_status": "in_progress",
+              "payment_plan": "24 months",
+              "completion_year": 1404
+            }
+          }
+        
+        • پروژه‌های ساخت و ساز (Construction Projects):
+          {
+            "construction": {
+              "current_status": "foundation",
+              "location_status": "city_center",
+              "partnership_type": "investment"
+            }
+          }
+        """
+    )
+    
     objects = PropertyQuerySet.as_manager()
     
     class Meta(BaseModel.Meta, SEOMixin.Meta):
@@ -672,6 +715,9 @@ class Property(BaseModel, SEOMixin):
             models.Index(fields=['city', 'usage_type', 'document_type', '-price']),
             models.Index(fields=['floor_number', 'is_published']),
             models.Index(fields=['storage_rooms', 'is_published']),
+            
+            # ✅ GIN Index برای JSON Field (فیلتر روی extra_attributes)
+            GinIndex(fields=['extra_attributes'], name='idx_gin_extra_attrs'),
         ]
         constraints = [
             models.CheckConstraint(
