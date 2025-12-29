@@ -192,8 +192,6 @@ def create_sample_property():
             latitude=Decimal('35.6892'),
             longitude=Decimal('51.3890'),
             price=50000000000,
-            currency="IRR",
-            is_negotiable=True,
             land_area=Decimal('200.00'),
             built_area=Decimal('150.00'),
             bedrooms=3,

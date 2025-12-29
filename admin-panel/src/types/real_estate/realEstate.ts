@@ -53,8 +53,6 @@ export interface Property extends Base {
   sale_price?: number | null;
   pre_sale_price?: number | null;
   price_per_sqm?: number | null;
-  currency?: string;
-  is_negotiable?: boolean;
   
   monthly_rent?: number | null;
   rent_amount?: number | null;
@@ -76,6 +74,8 @@ export interface Property extends Base {
   
   parking_spaces?: number | null;
   storage_rooms?: number | null;
+  
+  extra_attributes?: Record<string, any>;
   
   views_count?: number;
   favorites_count?: number;
@@ -160,5 +160,6 @@ export interface PropertyUpdateData extends Partial<Omit<Property,
   main_image_id?: number | null;
   media_covers?: { [mediaId: number]: number | null };
   og_image_id?: number | null;
+  extra_attributes?: Record<string, any>;
 }
 

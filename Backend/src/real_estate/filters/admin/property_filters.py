@@ -211,14 +211,6 @@ class PropertyAdminFilter(django_filters.FilterSet):
         help_text="Filter by minimum number of media files"
     )
     
-    currency = django_filters.CharFilter(
-        help_text="Filter by currency code"
-    )
-    
-    is_negotiable = django_filters.BooleanFilter(
-        help_text="Filter by negotiable status"
-    )
-    
     class Meta:
         model = Property
         fields = [
@@ -233,7 +225,6 @@ class PropertyAdminFilter(django_filters.FilterSet):
             'seo_status', 'has_meta_title', 'has_meta_description',
             'has_og_image', 'has_canonical_url',
             'search', 'has_main_image', 'media_count', 'media_count_gte',
-            'currency', 'is_negotiable'
         ]
     
     def filter_seo_status(self, queryset, name, value):

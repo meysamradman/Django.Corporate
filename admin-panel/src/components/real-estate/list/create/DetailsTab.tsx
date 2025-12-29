@@ -87,12 +87,12 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                     <div className="space-y-2">
                         <Label htmlFor="bedrooms">تعداد خواب *</Label>
                         <Select
-                            value={formData?.bedrooms?.toString() ?? ""}
+                            value={formData?.bedrooms?.toString() || undefined}
                             onValueChange={handleSelectChange("bedrooms")}
                             disabled={!editMode || isLoadingOptions}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="انتخاب کنید" />
+                                <SelectValue placeholder="تعداد اتاق خواب" />
                             </SelectTrigger>
                             <SelectContent>
                                 {fieldOptions?.bedrooms?.map((item: [number, string]) => (
@@ -109,12 +109,12 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                     <div className="space-y-2">
                         <Label htmlFor="bathrooms">تعداد سرویس/حمام *</Label>
                         <Select
-                            value={formData?.bathrooms?.toString() ?? ""}
+                            value={formData?.bathrooms?.toString() || undefined}
                             onValueChange={handleSelectChange("bathrooms")}
                             disabled={!editMode || isLoadingOptions}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="انتخاب کنید" />
+                                <SelectValue placeholder="تعداد سرویس بهداشتی" />
                             </SelectTrigger>
                             <SelectContent>
                                 {fieldOptions?.bathrooms?.map((item: [number, string]) => (
@@ -168,7 +168,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                         onChange={handleNumericChange("floors_in_building")}
                         error={errors?.floors_in_building}
                     />
-                    {/* Parking Spaces - Dropdown */}
+                    {/* Parking & Storage - در یک ردیف */}
                     <div className="flex gap-4">
                         <div className="flex-1 space-y-2">
                             <Label htmlFor="parking_spaces">
@@ -176,12 +176,12 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                                 پارکینگ
                             </Label>
                             <Select
-                                value={formData?.parking_spaces?.toString() ?? ""}
+                                value={formData?.parking_spaces?.toString() || undefined}
                                 onValueChange={handleSelectChange("parking_spaces")}
                                 disabled={!editMode || isLoadingOptions}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="انتخاب کنید" />
+                                    <SelectValue placeholder="تعداد پارکینگ" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {fieldOptions?.parking_spaces?.map((item: [number, string]) => (
@@ -199,12 +199,12 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                                 انباری
                             </Label>
                             <Select
-                                value={formData?.storage_rooms?.toString() ?? ""}
+                                value={formData?.storage_rooms?.toString() || undefined}
                                 onValueChange={handleSelectChange("storage_rooms")}
                                 disabled={!editMode || isLoadingOptions}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="انتخاب کنید" />
+                                    <SelectValue placeholder="تعداد انباری" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {fieldOptions?.storage_rooms?.map((item: [number, string]) => (
@@ -227,7 +227,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             disabled={!editMode || isLoadingOptions}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="انتخاب کنید" />
+                                <SelectValue placeholder="1 آشپزخانه" />
                             </SelectTrigger>
                             <SelectContent>
                                 {fieldOptions?.kitchens?.map((item: [number, string]) => (
@@ -247,7 +247,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             disabled={!editMode || isLoadingOptions}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="انتخاب کنید" />
+                                <SelectValue placeholder="1 پذیرایی" />
                             </SelectTrigger>
                             <SelectContent>
                                 {fieldOptions?.living_rooms?.map((item: [number, string]) => (
@@ -264,12 +264,12 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                     <div className="space-y-2">
                         <Label htmlFor="floor_number">شماره طبقه</Label>
                         <Select
-                            value={formData?.floor_number?.toString() ?? ""}
+                            value={formData?.floor_number?.toString() || undefined}
                             onValueChange={handleSelectChange("floor_number")}
                             disabled={!editMode || isLoadingOptions}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="انتخاب کنید" />
+                                <SelectValue placeholder="طبقه ملک" />
                             </SelectTrigger>
                             <SelectContent>
                                 {fieldOptions?.floor_number?.map((item: [number, string]) => (
@@ -282,19 +282,18 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                         {errors?.floor_number && <p className="text-sm text-red-500">{errors.floor_number}</p>}
                     </div>
 
-                    {/* Document Type */}
+                    {/* Document Type - با string value */}
                     <div className="space-y-2">
                         <Label htmlFor="document_type">نوع سند</Label>
                         <Select
-                            value={formData?.document_type ?? "none"}
-                            onValueChange={(value) => handleInputChange("document_type", value === "none" ? null : value)}
+                            value={formData?.document_type || undefined}
+                            onValueChange={(value) => handleInputChange("document_type", value)}
                             disabled={!editMode || isLoadingOptions}
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder="انتخاب کنید" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="none">بدون انتخاب</SelectItem>
                                 {fieldOptions?.document_type?.map((item: [string, string]) => (
                                     <SelectItem key={item[0]} value={item[0]}>
                                         {item[1]}
@@ -315,48 +314,6 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                 borderColor="border-b-green-1"
             >
                 <div className="space-y-6">
-                    {/* Currency & Negotiable - داینامیک از API */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="currency">واحد پول</Label>
-                            <Select
-                                value={formData?.currency ?? "IRR"}
-                                onValueChange={(value) => handleInputChange("currency", value)}
-                                disabled={!editMode || isLoadingOptions}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {fieldOptions?.currency?.map((item: [string, string]) => (
-                                        <SelectItem key={item[0]} value={item[0]}>
-                                            {item[1]}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="is_negotiable">قابلیت چانه‌زنی</Label>
-                            <Select
-                                value={formData?.is_negotiable ? "true" : "false"}
-                                onValueChange={(value) => handleInputChange("is_negotiable", value === "true")}
-                                disabled={!editMode || isLoadingOptions}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {fieldOptions?.is_negotiable?.map((item: [string, string]) => (
-                                        <SelectItem key={item[0]} value={item[0]}>
-                                            {item[1]}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
                     {/* Sale Prices */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <FormFieldInput

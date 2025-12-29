@@ -219,11 +219,16 @@ export const realEstateApi = {
     return response.data;
   },
 
-  // ✅ NEW: Get field options for dropdowns
+  // ✅ NEW: Get field options for dropdowns (Complete)
   getFieldOptions: async (): Promise<{
     bedrooms: [number, string][];
     bathrooms: [number, string][];
     parking_spaces: [number, string][];
+    storage_rooms: [number, string][];
+    floor_number: [number, string][];
+    kitchens: [number, string][];
+    living_rooms: [number, string][];
+    document_type: [string, string][];
     year_built: {
       min: number;
       max: number;

@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import {
   FileText, Image, Search,
-  Loader2, Save, List, MapPin, Home, Settings
+  Loader2, Save, List, MapPin, Home, Settings, FileJson
 } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
@@ -86,6 +86,7 @@ const MediaTab = lazy(() => import("@/components/real-estate/list/create/MediaTa
 const SEOTab = lazy(() => import("@/components/real-estate/list/create/SEOTab"));
 const LocationTab = lazy(() => import("@/components/real-estate/list/create/LocationTab"));
 const FloorPlansTab = lazy(() => import("@/components/real-estate/list/create/FloorPlansTab"));
+const ExtraAttributesTab = lazy(() => import("@/components/real-estate/list/create/ExtraAttributesTab"));
 
 
 export default function PropertyCreatePage() {
@@ -157,8 +158,6 @@ export default function PropertyCreatePage() {
             mortgage_amount: property.mortgage_amount || null,
             rent_amount: property.rent_amount || null,
             security_deposit: property.security_deposit || null,
-            currency: property.currency || "IRR",
-            is_negotiable: property.is_negotiable ?? true,
             extra_attributes: (property as any).extra_attributes || {},
             labels_ids: property.labels?.map((label: any) => label.id) || [],
             tags_ids: property.tags?.map((tag: any) => tag.id) || [],
@@ -242,8 +241,6 @@ export default function PropertyCreatePage() {
     mortgage_amount: null as number | null,
     rent_amount: null as number | null,
     security_deposit: null as number | null,
-    currency: "IRR" as string,
-    is_negotiable: true,
     extra_attributes: {} as Record<string, any>,
     labels_ids: [] as number[],
     tags_ids: [] as number[],
@@ -613,6 +610,10 @@ export default function PropertyCreatePage() {
             <Search className="h-4 w-4" />
             سئو
           </TabsTrigger>
+          <TabsTrigger value="extra">
+            <FileJson className="h-4 w-4" />
+            ویژگی‌های ویژه
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="account">
@@ -694,6 +695,15 @@ export default function PropertyCreatePage() {
               handleInputChange={handleInputChange}
               editMode={true}
               propertyId={undefined}
+            />
+          </Suspense>
+        </TabsContent>
+        <TabsContent value="extra">
+          <Suspense fallback={<TabSkeleton />}>
+            <ExtraAttributesTab
+              formData={formData}
+              handleInputChange={handleInputChange}
+              editMode={true}
             />
           </Suspense>
         </TabsContent>

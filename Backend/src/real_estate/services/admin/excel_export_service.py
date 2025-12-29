@@ -84,7 +84,7 @@ class PropertyExcelExportService:
             worksheet.write(row_num, 6, property_obj.province.name if property_obj.province else "", data_format)
             worksheet.write(row_num, 7, property_obj.price or "", data_format)
             worksheet.write(row_num, 8, property_obj.sale_price or "", data_format)
-            worksheet.write(row_num, 9, property_obj.currency or "", data_format)
+
             worksheet.write(row_num, 10, property_obj.bedrooms or "", data_format)
             worksheet.write(row_num, 11, property_obj.bathrooms or "", data_format)
             worksheet.write(row_num, 12, property_obj.built_area or "", data_format)

@@ -48,8 +48,6 @@ class Property(BaseModel, SEOMixin):
     sale_price = models.BigIntegerField(null=True, blank=True, db_index=True)
     pre_sale_price = models.BigIntegerField(null=True, blank=True, db_index=True)
     price_per_sqm = models.IntegerField(null=True, blank=True, db_index=True, editable=False)
-    currency = models.CharField(max_length=3, default='USD', db_index=True)
-    is_negotiable = models.BooleanField(default=True)
     
     monthly_rent = models.BigIntegerField(null=True, blank=True, db_index=True)
     rent_amount = models.BigIntegerField(null=True, blank=True, db_index=True)
@@ -126,13 +124,44 @@ class Property(BaseModel, SEOMixin):
         help_text="Number of bathrooms"
     )
     
+    KITCHEN_CHOICES = [
+        (0, 'No Kitchen'),
+        (1, '1 Kitchen'),
+        (2, '2 Kitchens'),
+        (3, '3 Kitchens'),
+        (4, '4 Kitchens'),
+        (5, '5 Kitchens'),
+        (6, '6 Kitchens'),
+        (7, '7 Kitchens'),
+        (8, '8 Kitchens'),
+        (9, '9 Kitchens'),
+        (10, '10 Kitchens'),
+    ]
+    
     kitchens = models.SmallIntegerField(
+        choices=KITCHEN_CHOICES,
         default=1,
         validators=[MinValueValidator(0), MaxValueValidator(10)],
         verbose_name="Kitchens",
         help_text="Number of kitchens"
     )
+    
+    LIVING_ROOM_CHOICES = [
+        (0, 'No Living Room'),
+        (1, '1 Living Room'),
+        (2, '2 Living Rooms'),
+        (3, '3 Living Rooms'),
+        (4, '4 Living Rooms'),
+        (5, '5 Living Rooms'),
+        (6, '6 Living Rooms'),
+        (7, '7 Living Rooms'),
+        (8, '8 Living Rooms'),
+        (9, '9 Living Rooms'),
+        (10, '10 Living Rooms'),
+    ]
+    
     living_rooms = models.SmallIntegerField(
+        choices=LIVING_ROOM_CHOICES,
         default=1,
         validators=[MinValueValidator(0), MaxValueValidator(10)],
         verbose_name="Living Rooms",
@@ -632,8 +661,7 @@ class Property(BaseModel, SEOMixin):
                 "price": {
                     "@type": "PriceSpecification",
                     "price": float(self.price),
-                    "priceCurrency": self.currency,
-                },
+                } if self.price else None,
                 "keywords": tags + ([self.neighborhood] if self.neighborhood else []),
                 "amenityFeature": [
                     {

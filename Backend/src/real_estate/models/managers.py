@@ -86,7 +86,7 @@ class PropertyQuerySet(models.QuerySet):
             'is_published', 'is_featured', 'is_public', 'is_verified', 'is_active',
             'property_type_id', 'state_id', 'agent_id', 'agency_id',
             'city_id', 'region_id', 'province_id', 'country_id', 'neighborhood',
-            'price', 'sale_price', 'currency',
+            'price', 'sale_price',
             'bedrooms', 'bathrooms', 'built_area', 'land_area',
             'parking_spaces', 'year_built',
             'views_count', 'favorites_count', 'inquiries_count',
