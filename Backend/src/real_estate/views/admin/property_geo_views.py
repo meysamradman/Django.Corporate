@@ -12,7 +12,7 @@ from src.real_estate.messages.messages import PROPERTY_SUCCESS, PROPERTY_ERRORS
 
 class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     """
-    ViewSet برای عملیات جغرافیایی املاک (PostGIS)
+    ViewSet برای عملیات جغرافیایی املاک (PostgreSQL معمولی)
     
     Endpoints:
     - GET /nearby/ - املاک نزدیک من

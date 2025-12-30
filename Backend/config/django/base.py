@@ -139,7 +139,21 @@ TEMPLATES = [
 ]
 WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
-     'default': env.db('DATABASE_URL'),
+    'default': {
+        **env.db('DATABASE_URL'),
+        'CONN_MAX_AGE': 600,  # Keep connections alive for 10 minutes
+        'CONN_HEALTH_CHECKS': True,  # Check connection health before reuse
+        'OPTIONS': {
+            # ✅ Django 5.1+ Built-in Connection Pooling (psycopg3)
+            'pool': {
+                'min_size': 2,  # Minimum connections in pool
+                'max_size': 10,  # Maximum connections in pool
+                'timeout': 30,  # Connection timeout (seconds)
+            },
+            # PostgreSQL query optimization
+            'options': '-c statement_timeout=30000',  # 30 second query timeout
+        },
+    }
 }
 AUTH_PASSWORD_VALIDATORS = [
      {

@@ -16,6 +16,15 @@ from src.core.models import City, Province
 from src.real_estate.models.location import CityRegion
 from src.real_estate.utils.cache import PropertyCacheKeys
 from src.media.serializers.media_serializer import MediaAdminSerializer, MediaCoverSerializer
+from src.real_estate.models.constants import (
+    DOCUMENT_TYPE_CHOICES,
+    SPACE_TYPE_CHOICES,
+    CONSTRUCTION_STATUS_CHOICES,
+    PROPERTY_CONDITION_CHOICES,
+    PROPERTY_DIRECTION_CHOICES,
+    CITY_POSITION_CHOICES,
+    UNIT_TYPE_CHOICES,
+)
 
 _MEDIA_LIST_LIMIT = getattr(settings, 'REAL_ESTATE_MEDIA_LIST_LIMIT', 5)
 _MEDIA_DETAIL_LIMIT = getattr(settings, 'REAL_ESTATE_MEDIA_DETAIL_LIMIT', 50)
@@ -611,6 +620,58 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
         
         # year_built: Django validates automatically via model choices
         # No manual validation needed here!
+        
+        # ✅ Validate document_type against constants
+        if attrs.get('document_type'):
+            if attrs['document_type'] not in DOCUMENT_TYPE_CHOICES:
+                raise serializers.ValidationError({
+                    "document_type": f"نوع سند نامعتبر است. مقادیر مجاز: {', '.join(DOCUMENT_TYPE_CHOICES.keys())}"
+                })
+        
+        # ✅ Validate extra_attributes constants
+        extra_attrs = attrs.get('extra_attributes', {})
+        if extra_attrs and isinstance(extra_attrs, dict):
+            # Validate space_type (for short-term rentals)
+            if 'space_type' in extra_attrs:
+                if extra_attrs['space_type'] not in SPACE_TYPE_CHOICES:
+                    raise serializers.ValidationError({
+                        "extra_attributes": f"نوع فضا نامعتبر: {extra_attrs['space_type']}. مقادیر مجاز: {', '.join(SPACE_TYPE_CHOICES.keys())}"
+                    })
+            
+            # Validate construction_status (for pre-sale/projects)
+            if 'construction_status' in extra_attrs:
+                if extra_attrs['construction_status'] not in CONSTRUCTION_STATUS_CHOICES:
+                    raise serializers.ValidationError({
+                        "extra_attributes": f"وضعیت ساخت نامعتبر: {extra_attrs['construction_status']}. مقادیر مجاز: {', '.join(CONSTRUCTION_STATUS_CHOICES.keys())}"
+                    })
+            
+            # Validate property_condition
+            if 'property_condition' in extra_attrs:
+                if extra_attrs['property_condition'] not in PROPERTY_CONDITION_CHOICES:
+                    raise serializers.ValidationError({
+                        "extra_attributes": f"وضعیت ملک نامعتبر: {extra_attrs['property_condition']}. مقادیر مجاز: {', '.join(PROPERTY_CONDITION_CHOICES.keys())}"
+                    })
+            
+            # Validate property_direction
+            if 'property_direction' in extra_attrs:
+                if extra_attrs['property_direction'] not in PROPERTY_DIRECTION_CHOICES:
+                    raise serializers.ValidationError({
+                        "extra_attributes": f"جهت ملک نامعتبر: {extra_attrs['property_direction']}. مقادیر مجاز: {', '.join(PROPERTY_DIRECTION_CHOICES.keys())}"
+                    })
+            
+            # Validate city_position
+            if 'city_position' in extra_attrs:
+                if extra_attrs['city_position'] not in CITY_POSITION_CHOICES:
+                    raise serializers.ValidationError({
+                        "extra_attributes": f"موقعیت شهری نامعتبر: {extra_attrs['city_position']}. مقادیر مجاز: {', '.join(CITY_POSITION_CHOICES.keys())}"
+                    })
+            
+            # Validate unit_type
+            if 'unit_type' in extra_attrs:
+                if extra_attrs['unit_type'] not in UNIT_TYPE_CHOICES:
+                    raise serializers.ValidationError({
+                        "extra_attributes": f"نوع واحد نامعتبر: {extra_attrs['unit_type']}. مقادیر مجاز: {', '.join(UNIT_TYPE_CHOICES.keys())}"
+                    })
 
         return attrs
 
@@ -778,6 +839,58 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         
         # year_built: Django validates automatically via model choices
         # No manual validation needed here!
+        
+        # ✅ Validate document_type against constants
+        if attrs.get('document_type'):
+            if attrs['document_type'] not in DOCUMENT_TYPE_CHOICES:
+                raise serializers.ValidationError({
+                    "document_type": f"نوع سند نامعتبر است. مقادیر مجاز: {', '.join(DOCUMENT_TYPE_CHOICES.keys())}"
+                })
+        
+        # ✅ Validate extra_attributes constants
+        extra_attrs = attrs.get('extra_attributes', {})
+        if extra_attrs and isinstance(extra_attrs, dict):
+            # Validate space_type (for short-term rentals)
+            if 'space_type' in extra_attrs:
+                if extra_attrs['space_type'] not in SPACE_TYPE_CHOICES:
+                    raise serializers.ValidationError({
+                        "extra_attributes": f"نوع فضا نامعتبر: {extra_attrs['space_type']}. مقادیر مجاز: {', '.join(SPACE_TYPE_CHOICES.keys())}"
+                    })
+            
+            # Validate construction_status (for pre-sale/projects)
+            if 'construction_status' in extra_attrs:
+                if extra_attrs['construction_status'] not in CONSTRUCTION_STATUS_CHOICES:
+                    raise serializers.ValidationError({
+                        "extra_attributes": f"وضعیت ساخت نامعتبر: {extra_attrs['construction_status']}. مقادیر مجاز: {', '.join(CONSTRUCTION_STATUS_CHOICES.keys())}"
+                    })
+            
+            # Validate property_condition
+            if 'property_condition' in extra_attrs:
+                if extra_attrs['property_condition'] not in PROPERTY_CONDITION_CHOICES:
+                    raise serializers.ValidationError({
+                        "extra_attributes": f"وضعیت ملک نامعتبر: {extra_attrs['property_condition']}. مقادیر مجاز: {', '.join(PROPERTY_CONDITION_CHOICES.keys())}"
+                    })
+            
+            # Validate property_direction
+            if 'property_direction' in extra_attrs:
+                if extra_attrs['property_direction'] not in PROPERTY_DIRECTION_CHOICES:
+                    raise serializers.ValidationError({
+                        "extra_attributes": f"جهت ملک نامعتبر: {extra_attrs['property_direction']}. مقادیر مجاز: {', '.join(PROPERTY_DIRECTION_CHOICES.keys())}"
+                    })
+            
+            # Validate city_position
+            if 'city_position' in extra_attrs:
+                if extra_attrs['city_position'] not in CITY_POSITION_CHOICES:
+                    raise serializers.ValidationError({
+                        "extra_attributes": f"موقعیت شهری نامعتبر: {extra_attrs['city_position']}. مقادیر مجاز: {', '.join(CITY_POSITION_CHOICES.keys())}"
+                    })
+            
+            # Validate unit_type
+            if 'unit_type' in extra_attrs:
+                if extra_attrs['unit_type'] not in UNIT_TYPE_CHOICES:
+                    raise serializers.ValidationError({
+                        "extra_attributes": f"نوع واحد نامعتبر: {extra_attrs['unit_type']}. مقادیر مجاز: {', '.join(UNIT_TYPE_CHOICES.keys())}"
+                    })
 
         # Handle location fields - region is now optional
         region = attrs.get('region')

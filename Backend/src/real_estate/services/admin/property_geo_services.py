@@ -1,74 +1,82 @@
 from typing import List, Tuple, Optional, Dict, Any
 from decimal import Decimal
-from django.db.models import QuerySet, F
-from src.real_estate.models.property import Property, HAS_POSTGIS
-
-# PostGIS imports (conditional)
-if HAS_POSTGIS:
-    from django.contrib.gis.geos import Point, Polygon, MultiPolygon
-    from django.contrib.gis.measure import D  # Distance
-    from django.contrib.gis.db.models.functions import Distance
-else:
-    Point = None
-    Polygon = None
-    MultiPolygon = None
-    D = None
-    Distance = None
+from django.db.models import QuerySet
+from src.real_estate.models.property import Property
+import math
 
 
 class PropertyGeoService:
-    
-    @classmethod
-    def has_postgis_support(cls) -> bool:
+    """
+    سرویس جستجوی جغرافیایی املاک (استفاده از PostgreSQL معمولی)
+    از bbox و محاسبات ساده برای عملکرد بهتر استفاده می‌کند
+    """
 
-        return HAS_POSTGIS
-    
     @classmethod
     def search_nearby(
         cls,
         latitude: float,
         longitude: float,
         radius_km: float = 2.0,
+        limit: int = 20,
         queryset: Optional[QuerySet] = None
     ) -> QuerySet:
-
+        """
+        جستجوی املاک نزدیک با bbox بهینه‌شده
+        
+        Args:
+            latitude: عرض جغرافیایی
+            longitude: طول جغرافیایی
+            radius_km: شعاع به کیلومتر (پیش‌فرض 2)
+            limit: حداکثر تعداد نتایج
+            queryset: QuerySet اولیه (اختیاری)
+            
+        Returns:
+            QuerySet املاک در محدوده bbox
+        """
         if queryset is None:
             queryset = Property.objects.published()
         
-        if not HAS_POSTGIS:
-            # Fallback: استفاده از bbox ساده
-            return cls._search_nearby_fallback(
-                latitude, longitude, radius_km, queryset
-            )
-        
-        # استفاده از PostGIS برای جستجوی دقیق
-        user_location = Point(longitude, latitude, srid=4326)
+        # محاسبه bbox بهینه با تصحیح longitude
+        lat_delta = radius_km / 111.0
+        lon_delta = radius_km / (111.0 * abs(math.cos(math.radians(latitude))))
         
         return queryset.filter(
-            location__distance_lte=(user_location, D(km=radius_km))
-        ).annotate(
-            distance_km=Distance('location', user_location)
-        ).order_by('distance_km')
-    
+            latitude__gte=latitude - lat_delta,
+            latitude__lte=latitude + lat_delta,
+            longitude__gte=longitude - lon_delta,
+            longitude__lte=longitude + lon_delta
+        )[:limit]
     @classmethod
     def search_in_polygon(
         cls,
-        polygon_coords: List[Tuple[float, float]],
+        polygon: List[Tuple[float, float]],
+        limit: int = 100,
         queryset: Optional[QuerySet] = None
     ) -> QuerySet:
-
+        """
+        جستجوی املاک در یک چندضلعی - استفاده از bbox ساده
+        
+        Args:
+            polygon: لیست مختصات چندضلعی [(lat, lon), ...]
+            limit: حداکثر تعداد نتایج
+            queryset: QuerySet اولیه (اختیاری)
+            
+        Returns:
+            QuerySet املاک در bbox چندضلعی
+        """
         if queryset is None:
             queryset = Property.objects.published()
         
-        if not HAS_POSTGIS:
-            # Fallback: استفاده از bbox ساده
-            return cls._search_in_bbox_fallback(polygon_coords, queryset)
+        # استخراج bbox از مختصات
+        lats = [coord[0] for coord in polygon]
+        lons = [coord[1] for coord in polygon]
         
-        # تبدیل مختصات به Polygon
-        polygon = Polygon(polygon_coords, srid=4326)
-        
-        return queryset.filter(location__within=polygon)
-    
+        return queryset.filter(
+            latitude__gte=min(lats),
+            latitude__lte=max(lats),
+            longitude__gte=min(lons),
+            longitude__lte=max(lons)
+        )[:limit]
     @classmethod
     def search_in_bbox(
         cls,
@@ -76,20 +84,32 @@ class PropertyGeoService:
         max_lat: float,
         min_lon: float,
         max_lon: float,
+        limit: int = 100,
         queryset: Optional[QuerySet] = None
     ) -> QuerySet:
-
+        """
+        جستجوی املاک در یک bbox (مستطیل)
+        
+        Args:
+            min_lat: حداقل عرض جغرافیایی
+            max_lat: حداکثر عرض جغرافیایی
+            min_lon: حداقل طول جغرافیایی
+            max_lon: حداکثر طول جغرافیایی
+            limit: حداکثر تعداد نتایج
+            queryset: QuerySet اولیه (اختیاری)
+            
+        Returns:
+            QuerySet املاک در bbox
+        """
         if queryset is None:
             queryset = Property.objects.published()
         
-        # این کوئری با یا بدون PostGIS کار میکنه
         return queryset.filter(
             latitude__gte=min_lat,
             latitude__lte=max_lat,
             longitude__gte=min_lon,
             longitude__lte=max_lon
-        )
-    
+        )[:limit]
     @classmethod
     def calculate_distance(
         cls,
@@ -98,54 +118,18 @@ class PropertyGeoService:
         lat2: float,
         lon2: float
     ) -> float:
-
-        if HAS_POSTGIS:
-            # استفاده از PostGIS برای محاسبه دقیق
-            point1 = Point(lon1, lat1, srid=4326)
-            point2 = Point(lon2, lat2, srid=4326)
-            return point1.distance(point2) * 111.0  # تقریب به کیلومتر
-        else:
-            # Fallback: فرمول Haversine
-            return cls._haversine_distance(lat1, lon1, lat2, lon2)
-    
-    # ==================== Fallback Methods ====================
-    
-    @classmethod
-    def _search_nearby_fallback(
-        cls,
-        latitude: float,
-        longitude: float,
-        radius_km: float,
-        queryset: QuerySet
-    ) -> QuerySet:
-
-        lat_delta = radius_km / 111.0
-        lon_delta = radius_km / (111.0 * abs(Decimal(str(latitude)).cos()))
+        """
+        محاسبه فاصله بین دو نقطه با فرمول Haversine
         
-        return queryset.filter(
-            latitude__gte=latitude - lat_delta,
-            latitude__lte=latitude + lat_delta,
-            longitude__gte=longitude - lon_delta,
-            longitude__lte=longitude + lon_delta
-        )
-    
-    @classmethod
-    def _search_in_bbox_fallback(
-        cls,
-        polygon_coords: List[Tuple[float, float]],
-        queryset: QuerySet
-    ) -> QuerySet:
+        Args:
+            lat1, lon1: مختصات نقطه اول
+            lat2, lon2: مختصات نقطه دوم
+            
+        Returns:
+            فاصله به کیلومتر
+        """
+        return cls._haversine_distance(lat1, lon1, lat2, lon2)
 
-        lats = [coord[1] for coord in polygon_coords]
-        lons = [coord[0] for coord in polygon_coords]
-        
-        return queryset.filter(
-            latitude__gte=min(lats),
-            latitude__lte=max(lats),
-            longitude__gte=min(lons),
-            longitude__lte=max(lons)
-        )
-    
     @classmethod
     def _haversine_distance(
         cls,
@@ -154,9 +138,12 @@ class PropertyGeoService:
         lat2: float,
         lon2: float
     ) -> float:
-
-        import math
+        """
+        محاسبه فاصله با فرمول Haversine (دقیق)
         
+        Returns:
+            فاصله به کیلومتر
+        """
         R = 6371  # شعاع زمین به کیلومتر
         
         dlat = math.radians(lat2 - lat1)
@@ -176,7 +163,12 @@ class PropertyGeoService:
     
     @classmethod
     def get_property_coordinates(cls, property_id: int) -> Optional[Tuple[float, float]]:
-
+        """
+        دریافت مختصات یک ملک
+        
+        Returns:
+            Tuple (latitude, longitude) یا None
+        """
         try:
             prop = Property.objects.only('latitude', 'longitude').get(id=property_id)
             if prop.latitude and prop.longitude:
@@ -234,7 +226,7 @@ class PropertyGeoService:
         queryset: Optional[QuerySet] = None
     ) -> List[Dict[str, Any]]:
         """
-        املاک در محدوده مستطیلی برای نقشه
+        دریافت املاک در محدوده مستطیلی برای نقشه
         با فیلدهای بهینه برای نمایش
         """
         if queryset is None:
@@ -242,12 +234,12 @@ class PropertyGeoService:
         
         # فیلتر bbox
         properties = cls.search_in_bbox(
-            min_lat=min_lat,
-            max_lat=max_lat,
-            min_lon=min_lon,
-            max_lon=max_lon,
-            queryset=queryset,
-            limit=limit
+            min_lat=float(min_lat),
+            max_lat=float(max_lat),
+            min_lon=float(min_lon),
+            max_lon=float(max_lon),
+            limit=limit,
+            queryset=queryset
         )
         
         # تبدیل به دیکشنری با فیلدهای ضروری

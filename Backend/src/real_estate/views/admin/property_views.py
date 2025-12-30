@@ -624,7 +624,15 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         Dynamically retrieves choices from Property model and Constants
         """
         from src.real_estate.models.property import Property
-        from src.real_estate.constants.document_types import get_document_type_choices_list
+        from src.real_estate.constants import (
+            get_document_type_choices_list,
+            get_space_type_choices_list,
+            get_construction_status_choices_list,
+            get_property_condition_choices_list,
+            get_property_direction_choices_list,
+            get_city_position_choices_list,
+            get_unit_type_choices_list,
+        )
         
         # ✅ Static Choices از Model
         options = {
@@ -636,8 +644,18 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             'kitchens': Property.KITCHEN_CHOICES,
             'living_rooms': Property.LIVING_ROOM_CHOICES,
             
-            # ✅ Document Type از Constants
+            # ✅ Document Type از Constants (CharField field)
             'document_type': get_document_type_choices_list(),
+            
+            # ✅ Extra Attributes Options از Constants (JSONField options)
+            'extra_attributes_options': {
+                'space_type': get_space_type_choices_list(),
+                'construction_status': get_construction_status_choices_list(),
+                'property_condition': get_property_condition_choices_list(),
+                'property_direction': get_property_direction_choices_list(),
+                'city_position': get_city_position_choices_list(),
+                'unit_type': get_unit_type_choices_list(),
+            },
             
             'year_built': {
                 'min': Property.YEAR_MIN,

@@ -17,90 +17,68 @@ from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.utils.cache import PropertyCacheKeys, PropertyCacheManager
 from src.real_estate.models.managers import PropertyQuerySet
 
-# PostGIS support (optional - graceful fallback)
-HAS_POSTGIS = False
-Point = None
-
-try:
-    from django.contrib.gis.db import models as gis_models
-    from django.contrib.gis.geos import Point
-    HAS_POSTGIS = True
-except (ImportError, Exception):
-    # PostGIS/GDAL not installed - will use simple lat/lon
-    gis_models = None
-    Point = None
-
 
 class Property(BaseModel, SEOMixin):
 
+    # Core fields
     title = models.CharField(max_length=100, db_index=True, verbose_name="Title")
     slug = models.SlugField(max_length=120, unique=True, db_index=True, allow_unicode=True, verbose_name="URL Slug")
     short_description = models.CharField(max_length=300, blank=True, verbose_name="Short Description")
     description = models.TextField(verbose_name="Description")
     
-    agent = models.ForeignKey(PropertyAgent, on_delete=models.PROTECT, related_name='properties', db_index=True)
-    agency = models.ForeignKey(RealEstateAgency, on_delete=models.PROTECT, related_name='properties', null=True, blank=True, db_index=True)
-    property_type = models.ForeignKey(PropertyType, on_delete=models.PROTECT, related_name='properties', db_index=True)
-    state = models.ForeignKey(PropertyState, on_delete=models.PROTECT, related_name='properties', db_index=True)
+    # Foreign Keys - db_index removed (covered by partial indexes)
+    agent = models.ForeignKey(PropertyAgent, on_delete=models.PROTECT, related_name='properties')
+    agency = models.ForeignKey(RealEstateAgency, on_delete=models.PROTECT, related_name='properties', null=True, blank=True)
+    property_type = models.ForeignKey(PropertyType, on_delete=models.PROTECT, related_name='properties')
+    state = models.ForeignKey(PropertyState, on_delete=models.PROTECT, related_name='properties')
     
-    province = models.ForeignKey(Province, on_delete=models.PROTECT, related_name='real_estate_properties', db_index=True)
-    city = models.ForeignKey(City, on_delete=models.PROTECT, related_name='real_estate_properties', db_index=True)
-    region = models.ForeignKey(CityRegion, on_delete=models.SET_NULL, related_name='properties', null=True, blank=True, db_index=True)
+    province = models.ForeignKey(Province, on_delete=models.PROTECT, related_name='real_estate_properties')
+    city = models.ForeignKey(City, on_delete=models.PROTECT, related_name='real_estate_properties')
+    region = models.ForeignKey(CityRegion, on_delete=models.SET_NULL, related_name='properties', null=True, blank=True)
 
     labels = models.ManyToManyField(PropertyLabel, blank=True, related_name='properties')
     tags = models.ManyToManyField(PropertyTag, blank=True, related_name='properties')
     features = models.ManyToManyField(PropertyFeature, blank=True, related_name='properties')
 
-    neighborhood = models.CharField(max_length=120, blank=True, db_index=True)
+    # Location fields
+    neighborhood = models.CharField(max_length=120, blank=True)
     address = models.TextField()
-    postal_code = models.CharField(max_length=20, blank=True, db_index=True)
+    postal_code = models.CharField(max_length=20, blank=True)
     
-    # Geographic coordinates (Decimal - always available)
+    # Geographic coordinates (Standard - Decimal)
     latitude = models.DecimalField(
         max_digits=10, 
         decimal_places=8, 
         null=True, 
-        blank=True, 
+        blank=True,
         db_index=True,
         verbose_name="Latitude",
-        help_text="Geographic latitude (always stored for compatibility)"
+        help_text="Geographic latitude for map display"
     )
     longitude = models.DecimalField(
         max_digits=11, 
         decimal_places=8, 
         null=True, 
-        blank=True, 
+        blank=True,
         db_index=True,
         verbose_name="Longitude",
-        help_text="Geographic longitude (always stored for compatibility)"
+        help_text="Geographic longitude for map display"
     )
-    
-    # PostGIS location field (optional - for advanced geo queries)
-    # This field is automatically populated from latitude/longitude
-    if HAS_POSTGIS:
-        location = gis_models.PointField(
-            geography=True,
-            srid=4326,
-            null=True,
-            blank=True,
-            verbose_name="Location (PostGIS)",
-            help_text="Geographic point for advanced spatial queries (auto-populated from lat/lon)"
-        )
-    else:
-        location = None  # Fallback if PostGIS not installed
 
-    price = models.BigIntegerField(null=True, blank=True, db_index=True)
-    sale_price = models.BigIntegerField(null=True, blank=True, db_index=True)
-    pre_sale_price = models.BigIntegerField(null=True, blank=True, db_index=True)
-    price_per_sqm = models.IntegerField(null=True, blank=True, db_index=True, editable=False)
+    # Pricing fields - db_index removed (covered by partial indexes)
+    price = models.BigIntegerField(null=True, blank=True)
+    sale_price = models.BigIntegerField(null=True, blank=True)
+    pre_sale_price = models.BigIntegerField(null=True, blank=True)
+    price_per_sqm = models.IntegerField(null=True, blank=True, editable=False)
     
-    monthly_rent = models.BigIntegerField(null=True, blank=True, db_index=True)
-    rent_amount = models.BigIntegerField(null=True, blank=True, db_index=True)
-    mortgage_amount = models.BigIntegerField(null=True, blank=True, db_index=True)
+    monthly_rent = models.BigIntegerField(null=True, blank=True)
+    rent_amount = models.BigIntegerField(null=True, blank=True)
+    mortgage_amount = models.BigIntegerField(null=True, blank=True)
     security_deposit = models.BigIntegerField(null=True, blank=True)
     
-    land_area = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], db_index=True)
-    built_area = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], db_index=True)
+    # Area fields - db_index removed (covered by partial indexes)
+    land_area = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    built_area = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     
     # Room Counts with English labels (i18n handled in frontend)
     BEDROOM_CHOICES = [
@@ -127,6 +105,7 @@ class Property(BaseModel, SEOMixin):
         (20, '20+ Bedrooms'),
     ]
     
+    # Room fields - Keep db_index (frequently used in filters)
     bedrooms = models.SmallIntegerField(
         choices=BEDROOM_CHOICES,
         default=1,
@@ -169,7 +148,7 @@ class Property(BaseModel, SEOMixin):
         help_text="Number of bathrooms"
     )
     
-    # Capacity for short-term rentals
+    # Capacity for short-term rentals - db_index removed (less frequently used)
     CAPACITY_CHOICES = [
         (1, '1 Person'),
         (2, '2 People'),
@@ -193,7 +172,6 @@ class Property(BaseModel, SEOMixin):
         blank=True,
         choices=CAPACITY_CHOICES,
         validators=[MinValueValidator(1), MaxValueValidator(50)],
-        db_index=True,
         verbose_name="Capacity",
         help_text="Maximum number of people (mainly for short-term rentals)"
     )
@@ -268,6 +246,7 @@ class Property(BaseModel, SEOMixin):
             for year in range(year_max, cls.YEAR_MIN - 1, -1)
         ]
     
+    # Year fields - Keep db_index (frequently filtered)
     year_built = models.SmallIntegerField(
         null=True,
         blank=True,
@@ -278,7 +257,6 @@ class Property(BaseModel, SEOMixin):
     build_years = models.SmallIntegerField(
         null=True,
         blank=True,
-        db_index=True,
         verbose_name="Build Years",
         help_text="Number of years since the property was built"
     )
@@ -289,7 +267,7 @@ class Property(BaseModel, SEOMixin):
         help_text="Total floors in the building"
     )
     
-    # Floor levels (basement to top floors)
+    # Floor fields - db_index removed (covered by partial indexes)
     FLOOR_CHOICES = [
         (-2, '2nd Basement'),
         (-1, 'Basement'),
@@ -330,11 +308,11 @@ class Property(BaseModel, SEOMixin):
         null=True,
         blank=True,
         choices=FLOOR_CHOICES,
-        db_index=True,
         verbose_name="Floor Number",
         help_text="Floor number of the property (-2 to 50, -1=Basement, 0=Ground floor)"
     )
     
+    # Parking and storage - Keep db_index (frequently filtered)
     PARKING_CHOICES = [
         (0, 'No Parking'),
         (1, '1 Parking'),
@@ -391,6 +369,7 @@ class Property(BaseModel, SEOMixin):
         help_text="Number of storage rooms (0 = No storage)"
     )
     
+    # Document fields - Keep db_index (frequently filtered)
     document_type = models.CharField(
         max_length=32,
         null=True,
@@ -401,43 +380,39 @@ class Property(BaseModel, SEOMixin):
     )
     has_document = models.BooleanField(
         default=True,
-        db_index=True,
         verbose_name="Has Document",
         help_text="Whether the property has any ownership document"
     )
     
+    # Status fields - db_index removed (covered by partial indexes)
     is_published = models.BooleanField(
         default=False,
-        db_index=True,
         verbose_name="Published",
         help_text="Whether property is published"
     )
     is_featured = models.BooleanField(
         default=False,
-        db_index=True,
         verbose_name="Featured",
         help_text="Whether property is featured"
     )
     is_public = models.BooleanField(
         default=True,
-        db_index=True,
         verbose_name="Public",
         help_text="Designates whether this property is publicly visible"
     )
     is_verified = models.BooleanField(
         default=False,
-        db_index=True,
         verbose_name="Verified",
         help_text="Whether property is verified"
     )
     published_at = models.DateTimeField(
         null=True,
         blank=True,
-        db_index=True,
         verbose_name="Published At",
         help_text="Date and time when property was published"
     )
     
+    # Analytics fields - Keep db_index for views_count (sorting)
     views_count = models.IntegerField(
         default=0,
         db_index=True,
@@ -528,10 +503,6 @@ class Property(BaseModel, SEOMixin):
                 condition=models.Q(latitude__isnull=False, longitude__isnull=False),
                 name='idx_map_search'
             ),
-            
-            # PostGIS GiST Index (only if PostGIS is available)
-            # This provides ultra-fast spatial queries for 50K+ properties
-        ] + ([gis_models.GiSTIndex(fields=['location'], name='idx_gist_location')] if HAS_POSTGIS else []) + [
             
             GinIndex(
                 fields=['search_vector'],
@@ -808,20 +779,6 @@ class Property(BaseModel, SEOMixin):
         # Auto-set province from city
         if self.city_id and not self.province_id:
             self.province = self.city.province
-        
-        # Auto-populate PostGIS location from latitude/longitude
-        if HAS_POSTGIS and self.latitude and self.longitude:
-            try:
-                self.location = Point(
-                    float(self.longitude),
-                    float(self.latitude),
-                    srid=4326
-                )
-            except Exception as e:
-                # If Point creation fails, just log and continue
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.warning(f"Failed to create PostGIS Point: {e}")
         
         # Set published_at on first publish
         if self.is_published and not self.published_at:

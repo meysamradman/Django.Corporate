@@ -3,18 +3,6 @@ def get_country_from_ip(ip_address):
         return ''
     
     try:
-        from django.contrib.gis.geoip2 import GeoIP2
-        
-        try:
-            g = GeoIP2()
-            country_data = g.country(ip_address)
-            return country_data.get('country_code', '')
-        except Exception:
-            pass
-    except ImportError:
-        pass
-    
-    try:
         import geoip2.database
         from django.conf import settings
         import os
@@ -42,15 +30,6 @@ def get_country_from_ip(ip_address):
 def get_country_name(ip_address):
     if not ip_address or ip_address in ['127.0.0.1', 'localhost', '::1']:
         return ''
-    
-    try:
-        from django.contrib.gis.geoip2 import GeoIP2
-        
-        g = GeoIP2()
-        country_data = g.country(ip_address)
-        return country_data.get('country_name', '')
-    except Exception:
-        pass
     
     try:
         import geoip2.database
