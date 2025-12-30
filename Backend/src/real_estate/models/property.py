@@ -124,6 +124,35 @@ class Property(BaseModel, SEOMixin):
         help_text="Number of bathrooms"
     )
     
+    # Capacity for short-term rentals
+    CAPACITY_CHOICES = [
+        (1, '1 Person'),
+        (2, '2 People'),
+        (3, '3 People'),
+        (4, '4 People'),
+        (5, '5 People'),
+        (6, '6 People'),
+        (7, '7 People'),
+        (8, '8 People'),
+        (9, '9 People'),
+        (10, '10 People'),
+        (12, '12 People'),
+        (15, '15 People'),
+        (20, '20 People'),
+        (25, '25 People'),
+        (30, '30+ People'),
+    ]
+    
+    capacity = models.SmallIntegerField(
+        null=True,
+        blank=True,
+        choices=CAPACITY_CHOICES,
+        validators=[MinValueValidator(1), MaxValueValidator(50)],
+        db_index=True,
+        verbose_name="Capacity",
+        help_text="Maximum number of people (mainly for short-term rentals)"
+    )
+    
     KITCHEN_CHOICES = [
         (0, 'No Kitchen'),
         (1, '1 Kitchen'),
