@@ -1,11 +1,13 @@
 DOCUMENT_TYPE_CHOICES = {
+    "official_single": "سند تک‌برگ",
+    "official_old": "سند قدیمی",
     "official": "سند اداری / ششدانگ",
     "pre_official": "در حال اخذ سند",
     "contract": "قولنامه‌ای",
     "cooperative": "تعاونی",
     "agricultural": "سند زراعی",
     "endowment": "وقفی",
-    "court": "حکم دادگاه",
+    "judicial": "حکم دادگاه",
     "none": "فاقد سند",
 }
 

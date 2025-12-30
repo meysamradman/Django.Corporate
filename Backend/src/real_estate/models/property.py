@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.postgres.indexes import GinIndex, BrinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.db.models import Q
-from src.core.models import BaseModel, Country, Province, City
+from src.core.models import BaseModel, Province, City
 from src.real_estate.models.seo import SEOMixin
 from src.real_estate.models.location import CityRegion
 from src.real_estate.models.type import PropertyType
@@ -16,6 +16,19 @@ from src.real_estate.models.agency import RealEstateAgency
 from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.utils.cache import PropertyCacheKeys, PropertyCacheManager
 from src.real_estate.models.managers import PropertyQuerySet
+
+# PostGIS support (optional - graceful fallback)
+HAS_POSTGIS = False
+Point = None
+
+try:
+    from django.contrib.gis.db import models as gis_models
+    from django.contrib.gis.geos import Point
+    HAS_POSTGIS = True
+except (ImportError, Exception):
+    # PostGIS/GDAL not installed - will use simple lat/lon
+    gis_models = None
+    Point = None
 
 
 class Property(BaseModel, SEOMixin):
@@ -29,7 +42,7 @@ class Property(BaseModel, SEOMixin):
     agency = models.ForeignKey(RealEstateAgency, on_delete=models.PROTECT, related_name='properties', null=True, blank=True, db_index=True)
     property_type = models.ForeignKey(PropertyType, on_delete=models.PROTECT, related_name='properties', db_index=True)
     state = models.ForeignKey(PropertyState, on_delete=models.PROTECT, related_name='properties', db_index=True)
-    country = models.ForeignKey(Country, on_delete=models.PROTECT, related_name='properties', db_index=True, default=1)  # Iran
+    
     province = models.ForeignKey(Province, on_delete=models.PROTECT, related_name='real_estate_properties', db_index=True)
     city = models.ForeignKey(City, on_delete=models.PROTECT, related_name='real_estate_properties', db_index=True)
     region = models.ForeignKey(CityRegion, on_delete=models.SET_NULL, related_name='properties', null=True, blank=True, db_index=True)
@@ -41,8 +54,40 @@ class Property(BaseModel, SEOMixin):
     neighborhood = models.CharField(max_length=120, blank=True, db_index=True)
     address = models.TextField()
     postal_code = models.CharField(max_length=20, blank=True, db_index=True)
-    latitude = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True, db_index=True)
-    longitude = models.DecimalField(max_digits=11, decimal_places=8, null=True, blank=True, db_index=True)
+    
+    # Geographic coordinates (Decimal - always available)
+    latitude = models.DecimalField(
+        max_digits=10, 
+        decimal_places=8, 
+        null=True, 
+        blank=True, 
+        db_index=True,
+        verbose_name="Latitude",
+        help_text="Geographic latitude (always stored for compatibility)"
+    )
+    longitude = models.DecimalField(
+        max_digits=11, 
+        decimal_places=8, 
+        null=True, 
+        blank=True, 
+        db_index=True,
+        verbose_name="Longitude",
+        help_text="Geographic longitude (always stored for compatibility)"
+    )
+    
+    # PostGIS location field (optional - for advanced geo queries)
+    # This field is automatically populated from latitude/longitude
+    if HAS_POSTGIS:
+        location = gis_models.PointField(
+            geography=True,
+            srid=4326,
+            null=True,
+            blank=True,
+            verbose_name="Location (PostGIS)",
+            help_text="Geographic point for advanced spatial queries (auto-populated from lat/lon)"
+        )
+    else:
+        location = None  # Fallback if PostGIS not installed
 
     price = models.BigIntegerField(null=True, blank=True, db_index=True)
     sale_price = models.BigIntegerField(null=True, blank=True, db_index=True)
@@ -484,6 +529,10 @@ class Property(BaseModel, SEOMixin):
                 name='idx_map_search'
             ),
             
+            # PostGIS GiST Index (only if PostGIS is available)
+            # This provides ultra-fast spatial queries for 50K+ properties
+        ] + ([gis_models.GiSTIndex(fields=['location'], name='idx_gist_location')] if HAS_POSTGIS else []) + [
+            
             GinIndex(
                 fields=['search_vector'],
                 name='idx_gin_fulltext'
@@ -600,6 +649,16 @@ class Property(BaseModel, SEOMixin):
     def has_region(self):
         return self.region is not None and self.city is not None
     
+    @property
+    def country_code(self):
+        """کد کشور (همیشه ایران)"""
+        return "IR"
+    
+    @property
+    def country_name(self):
+        """نام کشور (همیشه ایران)"""
+        return "ایران"
+    
     def __str__(self):
         return self.title
     
@@ -673,7 +732,7 @@ class Property(BaseModel, SEOMixin):
                     "addressLocality": self.city.name if self.city else None,
                     "addressRegion": self.province.name if self.province else None,
                     "postalCode": self.postal_code or None,
-                    "addressCountry": self.country.code if self.country else None,
+                    "addressCountry": "IR",  # Iran
                 },
                 "geo": {
                     "@type": "GeoCoordinates",
@@ -721,7 +780,7 @@ class Property(BaseModel, SEOMixin):
                 })
     
     def save(self, *args, **kwargs):
-
+        # Auto-generate SEO fields
         if not self.meta_title and self.title:
             self.meta_title = self.title[:70]
         
@@ -737,6 +796,7 @@ class Property(BaseModel, SEOMixin):
         if not self.og_description and self.meta_description:
             self.og_description = self.meta_description
         
+        # Auto-calculate price per sqm
         if self.built_area and self.built_area > 0:
             if self.price:
                 self.price_per_sqm = int(self.price / float(self.built_area))
@@ -745,15 +805,32 @@ class Property(BaseModel, SEOMixin):
             elif self.pre_sale_price:
                 self.price_per_sqm = int(self.pre_sale_price / float(self.built_area))
         
+        # Auto-set province from city
         if self.city_id and not self.province_id:
             self.province = self.city.province
-
+        
+        # Auto-populate PostGIS location from latitude/longitude
+        if HAS_POSTGIS and self.latitude and self.longitude:
+            try:
+                self.location = Point(
+                    float(self.longitude),
+                    float(self.latitude),
+                    srid=4326
+                )
+            except Exception as e:
+                # If Point creation fails, just log and continue
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Failed to create PostGIS Point: {e}")
+        
+        # Set published_at on first publish
         if self.is_published and not self.published_at:
             from django.utils import timezone
             self.published_at = timezone.now()
         
         super().save(*args, **kwargs)
-
+        
+        # Invalidate cache
         if self.pk:
             PropertyCacheManager.invalidate_property(self.pk)
             PropertyCacheManager.invalidate_list()

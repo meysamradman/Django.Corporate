@@ -1,242 +1,529 @@
-# ✅ خلاصه تغییرات اعمال شده - Real Estate Property Model
+# 📘 سناریوی نهایی سیستم املاک (Property CRM)
 
-## 🎯 هدف: بهینه‌سازی مدیریت سال ساخت و سرعت Query
+**مقیاس:** 50K+ ملک
 
----
+**تکنولوژی:** Django 6 API + React (Vite) Admin
 
-## 📝 تغییرات اعمال شده در `property.py`:
+**دیتابیس:** PostgreSQL
 
-### 1️⃣ حذف توابع غیرضروری در سطح ماژول
+**نقشه:** OpenStreetMap + Leaflet
 
-**قبل (❌):**
-```python
-def get_current_shamsi_year():
-    """محاسبه سال فعلی شمسی"""
-    ...
+**نوع سیستم:** CRM (مارکت‌پلیس نیست)
 
-def validate_year_built_dynamic(value):
-    """Validator دینامیک برای سال ساخت"""
-    ...
-```
-
-**بعد (✅):**
-```python
-# حذف شدند - validation در method clean() انجام می‌شود
-```
-
-**دلیل:** بهتر است validation در method `clean()` مدل باشد تا در یک جا مدیریت شود.
+فقط برای ایران
 
 ---
 
-### 2️⃣ بهبود تعریف Year Built
+## 👤 کاربران و نقش‌ها
 
-**قبل (❌):**
+- **User (یک مدل واحد)**
+- **مشاور = Admin + AgentProfile**
+- **یوزر معمولی:** فقط برای وب‌سایت، بدون دسترسی پنل
+- **Agency:**
+    - User نیست
+    - فقط در صورت نیاز سازمانی اضافه می‌شود
+    - ارتباط از طریق ForeignKey در Property
+
 ```python
-YEAR_MIN = 1300
-YEAR_BUFFER = 5
-
-year_built = models.SmallIntegerField(
-    validators=[validate_year_built_dynamic],  # مشکل!
-    ...
-)
-```
-
-**بعد (✅):**
-```python
-# ثوابت کلاس
-YEAR_MIN = 1300  # ثابت - تغییر نمی‌کند
-YEAR_MAX_SAFE = 1500  # constraint دیتابیس (محافظه‌کارانه)
-YEAR_BUFFER = 5  # برای validation در application
-
-@classmethod
-def get_year_max_dynamic(cls):
-    """محاسبه سال حداکثر به صورت دینامیک"""
-    try:
-        import jdatetime
-        current_year = jdatetime.datetime.now().year
-        return current_year + cls.YEAR_BUFFER
-    except ImportError:
-        from datetime import datetime
-        current_year = datetime.now().year
-        shamsi_year = current_year - 621
-        return shamsi_year + cls.YEAR_BUFFER
-
-year_built = models.SmallIntegerField(
+agency = ForeignKey(
+    RealEstateAgency,
     null=True,
     blank=True,
-    db_index=True,
-    verbose_name="Year Built (Shamsi)",
-    help_text="Year the property was built in Solar calendar (e.g., 1402). Validated dynamically."
+    on_delete=SET_NULL
 )
-```
 
-**مزایا:**
-- ✅ بدون validator در field definition
-- ✅ متد class method برای محاسبه دینامیک
-- ✅ Help text واضح‌تر
-
----
-
-### 3️⃣ Database Constraint ثابت (مهم!)
-
-**قبل (❌):**
-```python
-models.CheckConstraint(
-    condition=Q(year_built__gte=1300) & Q(year_built__lte=1410),  # باید هر سال تغییر کند!
-    name='property_year_built_range'
-)
-```
-
-**بعد (✅):**
-```python
-# Year Built: Constraint ثابت تا سال 1500 (هیچ Migration سالانه لازم نیست)
-models.CheckConstraint(
-    condition=Q(year_built__isnull=True) | 
-             (Q(year_built__gte=1300) & Q(year_built__lte=1500)),
-    name='property_year_built_safe_range'
-)
-```
-
-**مزایا:**
-- ✅ **هیچ Migration سالانه لازم نیست**
-- ✅ تا سال 1500 کار می‌کند
-- ✅ Database safe
-- ✅ نام constraint تغییر کرد به `property_year_built_safe_range`
-
----
-
-### 4️⃣ اضافه کردن Method `clean()` برای Validation دینامیک
-
-**جدید (✅):**
-```python
-def clean(self):
-    """
-    Validation دینامیک برای فیلدهای Model
-    برای year_built: validation بر اساس سال فعلی
-    """
-    super().clean()
-    
-    # Validation دینامیک برای year_built
-    if self.year_built is not None:
-        year_max = self.get_year_max_dynamic()
-        
-        if self.year_built < self.YEAR_MIN:
-            raise ValidationError({
-                'year_built': f'سال ساخت نباید کمتر از {self.YEAR_MIN} باشد.'
-            })
-        
-        if self.year_built > year_max:
-            raise ValidationError({
-                'year_built': f'سال ساخت نباید بیشتر از {year_max} (سال فعلی + {self.YEAR_BUFFER}) باشد.'
-            })
-```
-
-**مزایا:**
-- ✅ Validation دینامیک بر اساس سال فعلی
-- ✅ پیام خطای واضح و مفید
-- ✅ در Admin Panel و API کار می‌کند
-- ✅ قابل گسترش برای validation های دیگر
-
----
-
-## 🚀 نتیجه نهایی:
-
-### چه مشکلی حل شد؟
-
-| مشکل قبلی | راهکار |
-|-----------|--------|
-| ❌ باید هر سال constraint دیتابیس تغییر کند | ✅ Constraint ثابت تا 1500 |
-| ❌ Validator در field definition | ✅ Validation در method `clean()` |
-| ❌ تکرار کد | ✅ یک method برای محاسبه سال |
-| ❌ Migration های مکرر | ✅ هیچ Migration سالانه لازم نیست |
-
----
-
-### عملکرد:
-
-```python
-# مثال استفاده:
-property = Property(
-    title="آپارتمان 100 متری",
-    year_built=1402  # ✅ قبول می‌شود (سال فعلی)
-)
-property.full_clean()  # ✅ بدون خطا
-
-property.year_built = 1250  # ❌ کمتر از 1300
-property.full_clean()  # ValidationError: سال ساخت نباید کمتر از 1300 باشد
-
-property.year_built = 1420  # ❌ بیشتر از سال فعلی + 5
-property.full_clean()  # ValidationError: سال ساخت نباید بیشتر از 1408 باشد
-
-property.year_built = 1405  # ✅ سال آینده (در دست ساخت)
-property.full_clean()  # ✅ بدون خطا
 ```
 
 ---
 
-### Performance:
+## 📍 قوانین Location (خیلی مهم)
 
-```sql
--- Query سریع (بدون JOIN)
-SELECT * FROM real_estate_properties 
-WHERE year_built >= 1390 AND year_built < 1400
-ORDER BY price DESC;
+استفاده از PostGIS برای جستجوی نقشه (Geo-Optimization)
 
--- Execution time: ~5ms ✅
+- **Country:** ایران (پیش‌فرض)
+
+و کشور فقط ایرانه و دو کشور اصلا نداریم و در core مدل لوکیشن داریم که هم اپ یوزر استفاده میکنه هم املاک
+
+- **Province / City / Region:**
+    - با اسکریپت وارد دیتابیس می‌شوند
+    - تکراری ایجاد نمی‌شوند
+- **Neighborhood:** متن آزاد (CharField)
+- **Region:** فقط برای شهرهایی که منطقه دارند (مثل تهران)
+- **مختصات نقشه:** از اسکریپت پر می‌شود
+
+### اسکریپت‌ها
+
+- `import_iranian_locations.py`
+- `populate_city_regions.py`
+- `populate_location_coordinates.py`
+
+### قانون داده
+
+- نام محله و منطقه نباید تکراری ذخیره شود
+- چند ملک می‌توانند مختصات نزدیک داشته باشند
+
+---
+
+## 🗺️ فرانت (Map & Address)
+
+- انتخاب **Province / City** → نقشه روی مختصات می‌رود
+- پین نقشه → latitude / longitude + neighborhood
+- آدرس نمونه:
+
+```
+تهران، منطقه ۱۱، خیابان BRT خط ۷
+
+```
+
+- Region فقط در شهرهای دارای منطقه نمایش داده می‌شود
+
+---
+
+## 📄 صفحات پنل (Admin / Agent)
+
+- لیست ادمین‌ها
+- لیست مشاوران
+- ایجاد / ویرایش / مشاهده مشترک
+- پروفایل شخصی (ME)
+
+### پروفایل من
+
+**URL:** `/me`
+
+- فقط اطلاعات `request.user`
+- اگر مشاور باشد → تب اطلاعات مشاور نمایش داده می‌شود
+- یوزرهای عادی امکان ویرایش ندارند
+
+---
+
+## 🧱 مدل‌ها
+
+- User
+- Permission
+- Property
+- PropertyType
+- PropertyState
+- PropertyLabel
+- PropertyTag
+- PropertyFeature
+- Location (Country / Province / City / Region)
+- Media (مرکزی)
+- FloorPlan
+- Agency
+- Manager
+- SEO
+
+---
+
+# 🏠 مدل Property (فیلدها)
+
+## 🔹 فیلدهای اصلی
+
+- `title`
+- `slug`
+- `short_description`
+- `description`
+
+---
+
+## 🔗 روابط (ForeignKey)
+
+1. `agent`
+2. `agency` (اختیاری)
+3. `property_type`
+4. `state`
+5. `country` (پیش‌فرض ایران)
+6. `province`
+7. `city`
+8. `region` (اختیاری)
+
+---
+
+## 📍 موقعیت جغرافیایی
+
+- `neighborhood`
+- `address`
+- `postal_code`
+- `latitude`
+- `longitude`
+
+---
+
+## 💰 قیمت‌ها
+
+- `price`
+- `sale_price`
+- `pre_sale_price`
+- `price_per_sqm` (محاسبه خودکار)
+- `monthly_rent`
+- `rent_amount`
+- `mortgage_amount`
+- `security_deposit`
+
+---
+
+## 📐 مساحت
+
+- `land_area`
+- `built_area`
+
+---
+
+## 🛏️ فضاها
+
+- `bedrooms`
+- `bathrooms`
+- `capacity` 🆕
+- `kitchens`
+- `living_rooms`
+
+---
+
+## 🏢 مشخصات ساختمان
+
+- `year_built`
+- `build_years`
+- `floors_in_building`
+- `floor_number`
+- `parking_spaces`
+- `storage_rooms`
+
+---
+
+## 📑 اسناد
+
+- `document_type`
+- `has_document`
+
+---
+
+## 🏷️ روابط ManyToMany
+
+- `labels`
+- `tags`
+- `features`
+
+---
+
+## 📢 وضعیت انتشار
+
+- `is_published`
+- `is_featured`
+- `is_public`
+- `is_verified`
+- `published_at`
+
+---
+
+## 📊 آمار
+
+- `views_count`
+- `favorites_count`
+- `inquiries_count`
+
+---
+
+## 🔍 SEO
+
+- `meta_title`
+- `meta_description`
+- `meta_keywords`
+- `og_title`
+- `og_description`
+- `og_image`
+- `search_vector`
+
+---
+
+## ⚙️ فیلد انعطاف‌پذیر
+
+### `extra_attributes` (JSON)
+
+برای فیلدهای غیر اصلی و خاص:
+
+```json
+{
+"nightly_price":500000,
+"min_stay_nights":2,
+"pet_allowed":true,
+"checkin_time":"14:00"
+}
+
 ```
 
 ---
 
-## 📋 مراحل بعدی (اختیاری):
+## 🎯 قوانین طراحی فیلد
 
-### 1. Migration:
-```bash
-python manage.py makemigrations real_estate
-python manage.py migrate real_estate
+### فیلدهای فیلتر اصلی (مستقیم + Index)
+
+- bedrooms
+- bathrooms
+- built_area
+- land_area
+- capacity
+- price
+- parking_spaces
+
+### فیلدهای غیر اصلی → `extra_attributes`
+
+- nightly_price
+- min_stay_nights
+- pet_allowed
+- checkin_time
+
+---
+
+## 📊 خلاصه نهایی
+
+- **فیلد مستقیم:** 59
+- **ForeignKey:** 9
+- **ManyToMany:** 3
+- **JSON:** 1
+- **فیلد جدید:** capacity
+- **وضعیت:** Production Ready ✅
+
+# ➕ الحاقات سناریو بر اساس فیلترها و ثبت آگهی (مشابه دیوار)
+
+این بخش مکمل سناریوی مدل `Property` است و فیلدها و فیلترهایی را پوشش می‌دهد که در پلتفرم‌هایی مانند **دیوار** وجود دارند و برای پوشش کامل بازار املاک ایران ضروری هستند.
+
+---
+
+## 🏖 سناریوی اجاره کوتاه‌مدت (Short-Term Rental)
+
+### فیلدهای فیلتر اصلی
+
+- تعداد افراد (✅ موجود: `capacity`)
+- متراژ بنا (✅ موجود: `built_area`)
+- قیمت اجاره:
+    - قیمت روزانه
+    - قیمت هفتگی
+
+### فیلدهای ثبت آگهی (extra_attributes)
+
+```json
+{
+"nightly_price":1200000,
+"weekly_price":7000000,
+"standard_capacity":4,
+"extra_capacity":2,
+"extra_person_price":300000,
+"space_type":"residential"
+}
+
 ```
 
-### 2. تست:
-```python
-# در Django shell
-from src.real_estate.models import Property
+### مقادیر `space_type`
 
-# تست validation
-p = Property()
-p.year_built = 1250
-try:
-    p.full_clean()
-except ValidationError as e:
-    print(e)  # سال ساخت نباید کمتر از 1300 باشد
+- `residential` (اقامتی)
+- `work` (کاری)
+- `corporate` (شرکتی)
+- `mixed` (ترکیبی)
+
+---
+
+## 🏠 سناریوی اجاره مسکن (بلندمدت)
+
+### فیلدهای فیلتر
+
+- ودیعه (✅ موجود: `mortgage_amount`)
+- اجاره ماهانه (✅ موجود: `monthly_rent`)
+- متراژ
+- تعداد اتاق خواب
+
+---
+
+## 🏷 فیلتر ویژگی‌ها (Features)
+
+ویژگی‌ها از طریق `PropertyFeature` و فیلتر Many-to-Many اعمال می‌شوند:
+
+- پارکینگ ✅
+- انباری ✅
+- بالکن ❗ (اضافه می‌شود)
+- آسانسور
+- حیاط
+- تراس
+- روف‌گاردن
+
+> بالکن به عنوان Feature اضافه می‌شود، نه فیلد مستقیم.
+> 
+
+---
+
+## 🏗 سناریوی پیش‌فروش / پروژه‌ای
+
+### فیلدهای اختصاصی (extra_attributes)
+
+```json
+{
+"prepayment_percent":30,
+"delivery_date":"1405-06",
+"construction_status":"skeleton",
+"project_phase":"under_construction"
+}
+
+```
+
+### مقادیر `construction_status`
+
+- `old_building` (ساختمان قدیمی)
+- `new_building` (نوساز)
+- `under_construction` (در حال ساخت)
+- `skeleton` (اسکلت)
+- `finishing` (نازک‌کاری)
+- `ready` (آماده تحویل)
+
+---
+
+## 🧱 وضعیت فعلی ملک
+
+### فیلد (extra_attributes)
+
+```json
+{
+"property_condition":"old"
+}
+
+```
+
+### مقادیر
+
+- `old` (قدیمی)
+- `new` (نوساز)
+- `renovated` (بازسازی شده)
+- `needs_renovation` (نیازمند بازسازی)
+
+---
+
+## 🧭 جهت ملک
+
+### فیلد (extra_attributes)
+
+```json
+{
+"property_direction":"south"
+}
+
+```
+
+### مقادیر
+
+- `north`
+- `south`
+- `east`
+- `west`
+- `north_south`
+- `corner` (نبش)
+- `two_sided` (دو نبش)
+
+---
+
+## 📍 موقعیت مکانی ملک (در شهر)
+
+### فیلد (extra_attributes)
+
+```json
+{
+"city_position":"north_city"
+}
+
+```
+
+### مقادیر
+
+- `north_city`
+- `south_city`
+- `center_city`
+- `suburb`
+- `out_of_city`
+
+---
+
+## 🏢 نوع واحد
+
+### فیلد (extra_attributes)
+
+```json
+{
+"unit_type":"single_unit"
+}
+
+```
+
+### مقادیر
+
+- `single_unit` (تک‌واحدی)
+- `two_units`
+- `multiple_units`
+- `tower`
+- `villa_unit`
+
+---
+
+## 📄 وضعیت سند (تکمیلی)
+
+### فیلد موجود
+
+- `document_type`
+- `has_document`
+
+### توسعه‌یافته (مقادیر document_type)
+
+- `official_single` (تک‌برگ)
+- `official_old`
+- `contract`
+- `cooperative`
+- `endowment`
+- `judicial`
+- `no_document`
+
+---
+
+## 🏡 سناریوی ویلا
+
+### فیلدهای الزامی
+
+- مساحت زمین (✅ `land_area`)
+- مساحت بنا (✅ `built_area`)
+- ظرفیت نفرات (در صورت کوتاه‌مدت)
+
+### ویژگی‌های متداول (Feature / extra_attributes)
+
+```json
+{
+"yard_area":300,
+"has_private_pool":true,
+"has_garden":true
+}
+
 ```
 
 ---
 
-## ✅ Checklist:
+## 🧾 جمع‌بندی الحاقات
 
-- [x] حذف توابع غیرضروری (`get_current_shamsi_year`, `validate_year_built_dynamic`)
-- [x] اضافه کردن ثوابت به کلاس (`YEAR_MIN`, `YEAR_MAX_SAFE`, `YEAR_BUFFER`)
-- [x] اضافه کردن method `get_year_max_dynamic()`
-- [x] تغییر Database Constraint به `1300-1500`
-- [x] اضافه کردن method `clean()` برای validation
-- [x] بهبود help text و verbose_name
-- [x] اضافه کردن import `Q` از `django.db.models`
+### فیلد مستقیم جدید
 
----
+- ❌ ندارد (مدل اصلی درست طراحی شده)
 
-## 🎯 خلاصه کلی:
+### Feature جدید
 
-**قبل:**
-- ❌ نیاز به Migration هر سال
-- ❌ Validator در field
-- ❌ کد تکراری
+- ✅ بالکن
 
-**بعد:**
-- ✅ هیچ Migration سالانه لازم نیست
-- ✅ Validation در `clean()`
-- ✅ کد تمیز و قابل نگهداری
-- ✅ Database safe تا سال 1500
-- ✅ Application validation دینامیک
+### extra_attributes (JSON)
+
+- نوع فضای اجاره کوتاه‌مدت
+- قیمت روزانه / هفتگی
+- ظرفیت استاندارد و اضافه
+- درصد پیش‌پرداخت
+- موعد تحویل
+- وضعیت ساخت
+- وضعیت فعلی ملک
+- جهت ملک
+- موقعیت شهری
+- نوع واحد
+- جزئیات اختصاصی ویلا
 
 ---
 
-**🎉 همه چیز آماده است!**
+##

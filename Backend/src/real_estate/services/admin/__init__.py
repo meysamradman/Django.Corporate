@@ -5,6 +5,7 @@ from .property_services import (
 from .property_statistics_service import PropertyStatisticsService
 from .property_seo_services import PropertyAdminSEOService
 from .property_media_services import PropertyAdminMediaService
+from .property_geo_services import PropertyGeoService  # ✅ سرویس جدید PostGIS
 from .floor_plan_media_services import FloorPlanMediaService
 from .type_services import PropertyTypeAdminService
 from .state_services import PropertyStateAdminService
@@ -22,6 +23,7 @@ __all__ = [
     'PropertyStatisticsService',
     'PropertyAdminSEOService',
     'PropertyAdminMediaService',
+    'PropertyGeoService',  # ✅ export جدید
     'FloorPlanMediaService',
     'PropertyTypeAdminService',
     'PropertyStateAdminService',

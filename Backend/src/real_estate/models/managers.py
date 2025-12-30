@@ -1,6 +1,20 @@
 from django.db import models
 from django.db.models import Prefetch, Count, Q
 
+# PostGIS support (optional - graceful fallback)
+HAS_POSTGIS = False
+Distance = None
+Point = None
+D = None
+
+try:
+    from django.contrib.gis.db.models.functions import Distance
+    from django.contrib.gis.geos import Point
+    from django.contrib.gis.measure import D
+    HAS_POSTGIS = True
+except (ImportError, Exception):
+    pass
+
 
 class PropertyQuerySet(models.QuerySet):
     
@@ -24,7 +38,6 @@ class PropertyQuerySet(models.QuerySet):
             'agency',
             'city',
             'province',
-            'country',
             'region'
         ).prefetch_related(
             'labels',
@@ -52,7 +65,7 @@ class PropertyQuerySet(models.QuerySet):
             'city',
             'city__province',
             'province',
-            'country',
+            # 'country' removed
             'region'
         ).prefetch_related(
             'labels',
@@ -85,7 +98,7 @@ class PropertyQuerySet(models.QuerySet):
             'id', 'public_id', 'title', 'slug', 'short_description',
             'is_published', 'is_featured', 'is_public', 'is_verified', 'is_active',
             'property_type_id', 'state_id', 'agent_id', 'agency_id',
-            'city_id', 'region_id', 'province_id', 'country_id', 'neighborhood',
+            'city_id', 'region_id', 'province_id','neighborhood',
             'price', 'sale_price',
             'bedrooms', 'bathrooms', 'built_area', 'land_area',
             'parking_spaces', 'year_built',
@@ -109,8 +122,7 @@ class PropertyQuerySet(models.QuerySet):
             'agency',
             'region',
             'city',
-            'province',
-            'country'
+            'province'
         ).prefetch_related(
             'labels',
             'tags',
@@ -239,6 +251,52 @@ class PropertyQuerySet(models.QuerySet):
             qs = qs.filter(is_featured=filters['featured'])
         
         return qs
+    
+    # ==================== PostGIS Geo Methods ====================
+    
+    def with_map_coords(self):
+        """املاک با مختصات برای نمایش روی نقشه"""
+        return self.filter(
+            latitude__isnull=False,
+            longitude__isnull=False
+        )
+    
+    def nearby(self, latitude, longitude, radius_km=2.0):
+        """
+        جستجوی املاک نزدیک (با PostGIS اگر موجود باشه)
+        
+        Args:
+            latitude: عرض جغرافیایی
+            longitude: طول جغرافیایی  
+            radius_km: شعاع به کیلومتر
+        """
+        if not HAS_POSTGIS:
+            # Fallback: bbox ساده
+            lat_delta = radius_km / 111.0
+            lon_delta = radius_km / 111.0
+            return self.filter(
+                latitude__gte=latitude - lat_delta,
+                latitude__lte=latitude + lat_delta,
+                longitude__gte=longitude - lon_delta,
+                longitude__lte=longitude + lon_delta
+            )
+        
+        # PostGIS: جستجوی دقیق با فاصله
+        user_location = Point(longitude, latitude, srid=4326)
+        return self.filter(
+            location__distance_lte=(user_location, D(km=radius_km))
+        ).annotate(
+            distance_km=Distance('location', user_location)
+        ).order_by('distance_km')
+    
+    def in_bbox(self, min_lat, max_lat, min_lon, max_lon):
+        """جستجوی در محدوده مستطیلی"""
+        return self.filter(
+            latitude__gte=min_lat,
+            latitude__lte=max_lat,
+            longitude__gte=min_lon,
+            longitude__lte=max_lon
+        )
 
 
 class PropertyTypeQuerySet(models.QuerySet):

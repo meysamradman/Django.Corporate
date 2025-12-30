@@ -3,30 +3,40 @@ from .base import BaseModel
 
 
 class Country(BaseModel):
-    """
-    Country model - کشورها
-    استفاده: برای multi-country support در آینده
-    """
+
     name = models.CharField(
         max_length=100,
         unique=True,
         db_index=True,
         verbose_name="نام کشور",
-        help_text="نام کشور (مثلاً: ایران، آلمان)"
+        help_text="نام کشور (فعلاً فقط ایران)"
     )
     code = models.CharField(
         max_length=3,
         unique=True,
         db_index=True,
         verbose_name="کد کشور",
-        help_text="کد ISO کشور (مثلاً: IRN، USA)"
+        help_text="کد ISO کشور (فعلاً فقط IRN برای ایران)"
     )
     phone_code = models.CharField(
         max_length=5,
         blank=True,
         verbose_name="کد تلفن",
-        help_text="کد تلفن بین‌المللی (مثلاً: +98)"
+        help_text="کد تلفن بین‌المللی (مثلاً: +98 برای ایران)"
     )
+    
+    @classmethod
+    def get_iran(cls):
+        """دریافت رکورد ایران (کشور پیش‌فرض)"""
+        iran, _ = cls.objects.get_or_create(
+            code='IRN',
+            defaults={
+                'name': 'ایران',
+                'phone_code': '+98',
+                'is_active': True
+            }
+        )
+        return iran
     
     class Meta(BaseModel.Meta):
         db_table = 'countries'
@@ -43,14 +53,7 @@ class Country(BaseModel):
 
 
 class Province(BaseModel):
-    """
-    Province model - استان‌ها
-    استفاده مشترک در User و Real Estate
-    
-    Performance Note:
-    - تعداد کم (31 استان ایران) → همیشه در cache
-    - Read-heavy, Write-rarely → عملکرد بالا
-    """
+
     name = models.CharField(
         max_length=50,
         unique=True,
@@ -75,7 +78,6 @@ class Province(BaseModel):
         help_text="کشور مربوط به این استان"
     )
     
-    # Optional fields برای Real Estate (geographic data)
     latitude = models.DecimalField(
         max_digits=10,
         decimal_places=8,
@@ -109,14 +111,7 @@ class Province(BaseModel):
 
 
 class City(BaseModel):
-    """
-    City model - شهرها
-    استفاده مشترک در User و Real Estate
-    
-    Performance Note:
-    - تعداد متوسط (~1000 شهر) → کش می‌شود
-    - Read-heavy → عملکرد بالا با index
-    """
+
     name = models.CharField(
         max_length=50,
         db_index=True,
@@ -139,7 +134,6 @@ class City(BaseModel):
         help_text="استان مربوط به این شهر"
     )
     
-    # Optional fields برای Real Estate (geographic data)
     latitude = models.DecimalField(
         max_digits=10,
         decimal_places=8,
@@ -174,5 +168,4 @@ class City(BaseModel):
     
     @property
     def full_name(self):
-        """نام کامل شهر با استان و کشور"""
-        return f"{self.name}, {self.province.name}, {self.province.country.name}"
+        return f"{self.name}, {self.province.name}, ایران"

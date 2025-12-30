@@ -1,10 +1,11 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from src.real_estate import views
-from src.real_estate.views.admin import location_views
+from src.real_estate.views.admin import location_views, property_geo_views
 
 router = DefaultRouter()
 router.register(r'admin/property', views.PropertyAdminViewSet, basename='admin-property')
+router.register(r'admin/property-geo', property_geo_views.PropertyGeoViewSet, basename='admin-property-geo')
 router.register(r'admin/floor-plan', views.FloorPlanAdminViewSet, basename='admin-floor-plan')
 router.register(r'admin/property-type', views.PropertyTypeAdminViewSet, basename='admin-property-type')
 router.register(r'admin/property-state', views.PropertyStateAdminViewSet, basename='admin-property-state')

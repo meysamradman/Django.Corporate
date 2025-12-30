@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from django.core.cache import cache
 
-from src.core.models import Province, City, Country
+from src.core.models import Province, City
 from src.real_estate.models.location import CityRegion
 from rest_framework.response import Response
 from django.db.models import Q, F
@@ -64,18 +64,6 @@ class RealEstateProvinceViewSet(viewsets.ReadOnlyModelViewSet):
             message="شهرها با موفقیت دریافت شدند",
             data=data
         )
-    
-    def get_serializer_class(self):
-        from rest_framework import serializers
-        
-        class ProvinceSerializer(serializers.ModelSerializer):
-            country_name = serializers.CharField(source='country.name', read_only=True)
-            
-            class Meta:
-                model = Province
-                fields = ['id', 'public_id', 'name', 'code', 'country_name', 'latitude', 'longitude', 'is_active']
-        
-        return ProvinceSerializer
 
 
 class RealEstateCityViewSet(viewsets.ReadOnlyModelViewSet):
@@ -141,19 +129,6 @@ class RealEstateCityViewSet(viewsets.ReadOnlyModelViewSet):
             message="مناطق شهری با موفقیت دریافت شدند",
             data=data
         )
-    
-    def get_serializer_class(self):
-        from rest_framework import serializers
-        
-        class CitySerializer(serializers.ModelSerializer):
-            province_name = serializers.CharField(source='province.name', read_only=True)
-            province_id = serializers.IntegerField(source='province.id', read_only=True)
-            
-            class Meta:
-                model = City
-                fields = ['id', 'public_id', 'name', 'code', 'province_id', 'province_name', 'latitude', 'longitude', 'is_active']
-        
-        return CitySerializer
 
 
 class RealEstateCityRegionViewSet(viewsets.ReadOnlyModelViewSet):

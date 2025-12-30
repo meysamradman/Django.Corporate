@@ -25,7 +25,7 @@ from src.real_estate.models.feature import PropertyFeature
 from src.real_estate.models.tag import PropertyTag
 from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.models.agency import RealEstateAgency
-from src.core.models import Country, Province, City
+from src.core.models import Province, City
 from src.real_estate.models.location import CityRegion
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.real_estate.signals import update_property_search_vector
@@ -80,11 +80,9 @@ def get_or_create_defaults():
             "No admin user found. Please run: python scripts/create_admin_super.py"
         )
 
-    # Create country first
-    country, _ = Country.objects.get_or_create(
-        code="IRN",
-        defaults={'name': 'Iran', 'is_active': True}
-    )
+    # ✅ Iran is default country (hardcoded)
+    from src.core.models import Country
+    country = Country.get_iran()  # استفاده از متد جدید
 
     province, _ = Province.objects.get_or_create(
         name="تهران",

@@ -37,7 +37,7 @@ try:
     import django
     from django.db import transaction
     django.setup()
-    from src.core.models import Province as UserProvince, City as UserCity, Country
+    from src.core.models import Province as UserProvince, City as UserCity
     from src.real_estate.models.location import CityRegion
 except ImportError as e:
     print(f"❌ خطا در import Django: {e}")
@@ -204,14 +204,8 @@ def import_user_locations(update_mode=True):
     try:
         with transaction.atomic():
             # دریافت کشور ایران (باید از قبل ساخته شده باشه)
-            iran, created = Country.objects.get_or_create(
-                code='IRN',
-                defaults={
-                    'name': 'ایران',
-                    'phone_code': '+98',
-                    'is_active': True
-                }
-            )
+            from src.core.models import Country
+            iran = Country.get_iran()  # استفاده از متد جدید
             print(f"🌍 کشور: {iran.name} (id={iran.id})")
             
             total_provinces = len(PROVINCES_DATA)
