@@ -14,11 +14,10 @@ from src.real_estate.utils.cache import PropertyCacheKeys
 
 
 class PropertyStatisticsService:
-    CACHE_TIMEOUT = 600  # 10 minutes
+    CACHE_TIMEOUT = 600
     
     @classmethod
     def get_statistics(cls):
-        """دریافت آمار کامل املاک"""
         cache_key = PropertyCacheKeys.statistics()
         cached_stats = cache.get(cache_key)
         if cached_stats:
@@ -41,7 +40,6 @@ class PropertyStatisticsService:
     
     @staticmethod
     def _get_properties_stats():
-        """آمار کلی املاک"""
         total = Property.objects.count()
         published = Property.objects.filter(is_published=True, is_public=True).count()
         draft = Property.objects.filter(is_published=False).count()
@@ -65,7 +63,6 @@ class PropertyStatisticsService:
     
     @staticmethod
     def _get_types_stats():
-        """آمار نوع‌های ملک"""
         types_count = PropertyType.objects.count()
         types_with_properties = PropertyType.objects.filter(properties__isnull=False).distinct().count()
         
@@ -77,7 +74,6 @@ class PropertyStatisticsService:
     
     @staticmethod
     def _get_states_stats():
-        """آمار وضعیت‌های ملک"""
         states_count = PropertyState.objects.count()
         states_with_properties = PropertyState.objects.filter(properties__isnull=False).distinct().count()
         
@@ -89,7 +85,6 @@ class PropertyStatisticsService:
     
     @staticmethod
     def _get_labels_stats():
-        """آمار برچسب‌های ملک"""
         labels_count = PropertyLabel.objects.count()
         labels_with_properties = PropertyLabel.objects.filter(properties__isnull=False).distinct().count()
         
@@ -101,7 +96,6 @@ class PropertyStatisticsService:
     
     @staticmethod
     def _get_features_stats():
-        """آمار ویژگی‌های ملک"""
         features_count = PropertyFeature.objects.count()
         features_with_properties = PropertyFeature.objects.filter(properties__isnull=False).distinct().count()
         
@@ -113,7 +107,6 @@ class PropertyStatisticsService:
     
     @staticmethod
     def _get_tags_stats():
-        """آمار تگ‌های ملک"""
         tags_count = PropertyTag.objects.count()
         tags_with_properties = PropertyTag.objects.filter(properties__isnull=False).distinct().count()
         
@@ -125,7 +118,6 @@ class PropertyStatisticsService:
     
     @staticmethod
     def _get_agents_stats():
-        """آمار مشاورین"""
         agents_total = PropertyAgent.objects.count()
         agents_active = PropertyAgent.objects.filter(is_active=True).count()
         agents_verified = PropertyAgent.objects.filter(is_verified=True).count()
@@ -142,19 +134,17 @@ class PropertyStatisticsService:
     
     @staticmethod
     def _get_agencies_stats():
-        """آمار آژانس‌ها"""
         agencies_total = RealEstateAgency.objects.count()
         agencies_active = RealEstateAgency.objects.filter(is_active=True).count()
-        agencies_verified = RealEstateAgency.objects.filter(is_verified=True).count()
         agencies_with_properties = RealEstateAgency.objects.filter(properties__isnull=False).distinct().count()
         
         return {
             'total': agencies_total,
             'active': agencies_active,
-            'verified': agencies_verified,
+            'verified': 0,  # RealEstateAgency model doesn't have is_verified field
             'with_properties': agencies_with_properties,
             'active_percentage': round((agencies_active / agencies_total * 100) if agencies_total > 0 else 0, 1),
-            'verified_percentage': round((agencies_verified / agencies_total * 100) if agencies_total > 0 else 0, 1),
+            'verified_percentage': 0,  # RealEstateAgency model doesn't have is_verified field
         }
     
     @classmethod
