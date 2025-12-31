@@ -4,6 +4,11 @@ import type { ApiResponse } from '@/types/api/apiResponse';
 import { ApiError } from '@/types/api/apiError';
 import { sessionManager } from '../auth/session';
 import { env } from './environment';
+import { rateLimitHandler, handleRateLimitError } from '../utils/rateLimitHandler';
+
+// 🔧 Rate Limit Handling: تعداد تلاش مجدد و تأخیر exponential backoff
+const MAX_RETRY_ATTEMPTS = 3;
+const RETRY_DELAY_BASE = 1000; // 1 second
 
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: env.API_URL,
@@ -54,7 +59,39 @@ axiosInstance.interceptors.response.use(
     
     return response;
   },
-  (error: AxiosError<ApiResponse<any>>) => {
+  async (error: AxiosError<ApiResponse<any>>) => {
+    const originalRequest = error.config as AxiosRequestConfig & { _retry?: number };
+    const endpoint = originalRequest?.url || 'unknown';
+
+    // 🔧 Rate Limit Handling: اگر 429 شد، چند بار retry کن
+    if (error.response?.status === 429 && originalRequest && !originalRequest._retry) {
+      // ثبت خطای rate limit
+      const retryAfterHeader = error.response.headers['retry-after'];
+      const retryAfter = retryAfterHeader ? parseInt(retryAfterHeader, 10) : 60;
+      
+      handleRateLimitError(endpoint, retryAfter);
+
+      originalRequest._retry = originalRequest._retry || 0;
+
+      if (originalRequest._retry < MAX_RETRY_ATTEMPTS) {
+        originalRequest._retry++;
+        
+        // Exponential backoff: 1s, 2s, 4s
+        const delay = RETRY_DELAY_BASE * Math.pow(2, originalRequest._retry - 1);
+        
+        console.warn(
+          `⚠️ Rate limit hit (429) for ${endpoint}. Retrying in ${delay}ms... (Attempt ${originalRequest._retry}/${MAX_RETRY_ATTEMPTS})`
+        );
+
+        // منتظر بمون و دوباره امتحان کن
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return axiosInstance(originalRequest);
+      } else {
+        console.error(`🚫 Rate limit exceeded after max retries for ${endpoint}. Giving up.`);
+      }
+    }
+
+    // Session expiry handling
     if (error.response?.status === 401) {
       sessionManager.handleExpiredSession();
     }

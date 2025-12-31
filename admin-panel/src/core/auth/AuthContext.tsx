@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useRef, type ReactNode, type FC, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { authApi } from '@/api/auth/auth';
 import { csrfManager, sessionManager } from './session';
 import { ApiError } from '@/types/api/apiError';
@@ -28,6 +29,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
 
   const handleSessionExpired = useCallback(() => {
     setUser(null);
@@ -95,6 +97,12 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       const currentUser = await authApi.getCurrentUser();
       setUser(currentUser);
 
+      // ✅ Invalidate permission-map after successful login
+      queryClient.invalidateQueries({ queryKey: ['permission-map'] });
+      queryClient.invalidateQueries({ queryKey: ['permissions'] });
+      queryClient.invalidateQueries({ queryKey: ['roles'] });
+      queryClient.invalidateQueries({ queryKey: ['base-permissions'] });
+
       const urlParams = new URLSearchParams(window.location.search);
       const returnTo = urlParams.get('return_to') || '/';
       navigate(returnTo, { replace: true });
@@ -123,6 +131,12 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
       const currentUser = await authApi.getCurrentUser();
       setUser(currentUser);
+
+      // ✅ Invalidate permission-map after successful login
+      queryClient.invalidateQueries({ queryKey: ['permission-map'] });
+      queryClient.invalidateQueries({ queryKey: ['permissions'] });
+      queryClient.invalidateQueries({ queryKey: ['roles'] });
+      queryClient.invalidateQueries({ queryKey: ['base-permissions'] });
 
       const urlParams = new URLSearchParams(window.location.search);
       const returnTo = urlParams.get('return_to') || '/';

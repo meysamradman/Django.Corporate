@@ -33,11 +33,13 @@ export const usePermissions = () => {
       const response = await roleApi.getPermissions()
       return response.data
     },
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnWindowFocus: false, // Don't refetch on window focus to avoid rate limiting
-    refetchOnMount: true, // Fetch on mount (first load) - this is necessary!
-    refetchOnReconnect: false, // Don't refetch on reconnect to avoid rate limiting
+    // ✅ پنل ادمین: Session خودش مدیریت می‌کنه - نیازی به refetch نیست!
+    staleTime: Infinity,          // ✅ هیچ‌وقت stale نمی‌شه - تا وقتی invalidate کنیم
+    gcTime: Infinity,             // ✅ همیشه در memory - تا logout
+    refetchOnWindowFocus: false,  // ✅ هیچ‌وقت refetch نشه
+    refetchOnMount: false,        // ✅ هیچ‌وقت refetch نشه
+    refetchOnReconnect: false,    // ✅ هیچ‌وقت refetch نشه
+    // ✅ فقط بعد از mutation (create/update/delete) با invalidateQueries refresh می‌شه
   })
 }
 
@@ -48,11 +50,12 @@ export const useBasePermissions = () => {
       const response = await roleApi.getBasePermissions()
       return response.data
     },
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnWindowFocus: false, // Don't refetch on window focus to avoid rate limiting
-    refetchOnMount: true, // Fetch on mount (first load) - this is necessary!
-    refetchOnReconnect: false, // Don't refetch on reconnect to avoid rate limiting
+    // ✅ Base Permissions: Static data - هیچ‌وقت تغییر نمی‌کنه
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   })
 }
 
@@ -63,7 +66,11 @@ export const useRoles = (params: RoleListParams = {}) => {
       const response = await roleApi.getRoleList(params)
       return response
     },
-    staleTime: 0,
+    // ✅ پنل ادمین: فقط بعد از mutation refresh می‌شه
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   })
 }
 

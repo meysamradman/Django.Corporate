@@ -195,13 +195,13 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle'
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/hour',
-        'user': '1000/hour',
-        'admin_login': '3/min',
-        'user_login': '5/min',
-        'captcha': '30/min',  # افزایش برای جلوگیری از throttle در login
-        'failed_login': '10/hour',
-        'security': '20/hour',
+        'anon': '500/hour',           # 🔧 Anonymous - فقط برای جلوگیری از حملات
+        'user': '10000/hour',         # 🔧 Authenticated users - تقریباً unlimited برای ادمین‌ها
+        'admin_login': '20/min',      # 🔧 Login attempts - فقط برای brute force protection
+        'user_login': '20/min',       # 🔧 Login attempts - فقط برای brute force protection
+        'captcha': '100/min',         # 🔧 Captcha - راحت برای ادمین‌ها
+        'failed_login': '10/hour',    # 🔧 Failed logins - فقط برای امنیت
+        'security': '100/hour',       # 🔧 Security endpoints - راحتتر
     },
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],

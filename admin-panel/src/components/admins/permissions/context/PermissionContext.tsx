@@ -23,13 +23,22 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       const res = await permissionApi.getMap();
       return res;
     },
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnWindowFocus: false, // Don't refetch on window focus to avoid rate limiting
-    refetchOnMount: true, // Fetch on mount (first load) - this is necessary!
-    refetchOnReconnect: false, // Don't refetch on reconnect to avoid rate limiting
-    retry: false, // Don't retry on error to avoid rate limiting (429 errors)
-    retryOnMount: false, // Don't retry on mount if there was an error
+    // ✅ پنل ادمین: Session-based - فقط بعد از تغییرات refresh
+    staleTime: Infinity,          // ✅ هیچ‌وقت stale نمی‌شه
+    gcTime: Infinity,             // ✅ همیشه در memory - تا logout
+    refetchOnWindowFocus: false,  // ✅ هیچ‌وقت refetch نشه
+    refetchOnMount: false,        // ✅ فقط اولین بار - بعدش از memory
+    refetchOnReconnect: false,    // ✅ هیچ‌وقت refetch نشه
+    retry: (failureCount, error) => {
+      // ✅ Retry فقط برای 403 (unauthenticated) - حداکثر 2 بار
+      if ((error as any)?.response?.status === 403 && failureCount < 2) {
+        return true;
+      }
+      return false;
+    },
+    retryDelay: (attemptIndex) => Math.min(500 * 2 ** attemptIndex, 2000), // Exponential backoff: 500ms, 1s, 2s
+    retryOnMount: false,
+    // ✅ فقط بعد از تغییر permissions (assign/revoke role) با refresh() به‌روز می‌شه
   });
 
   const permissionMap = useMemo(() => {

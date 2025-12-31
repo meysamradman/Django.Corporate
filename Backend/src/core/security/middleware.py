@@ -72,12 +72,13 @@ class RateLimitMiddleware(MiddlewareMixin):
         cache_key = f"rate_limit_{operation_type}_{ip}"
         requests = cache.get(cache_key, 0)
         
+        # 🔧 افزایش محدودیت‌ها برای rate limiting
         limits = {
-            'admin_login': 5,
-            'captcha': 10,
+            'admin_login': 10,    # 🔧 افزایش یافته: 5 → 10
+            'captcha': 30,        # 🔧 افزایش یافته: 10 → 30
         }
         
-        limit = limits.get(operation_type, 10)
+        limit = limits.get(operation_type, 20)  # 🔧 default افزایش یافت: 10 → 20
         
         if requests >= limit:
             return True
