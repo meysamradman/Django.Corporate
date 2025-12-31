@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import { cleanupDateRangeFromURL } from '@/components/tables/utils/tableSorting';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/PageHeader/PageHeader';
 import { useDebounce } from '@/core/hooks/useDebounce';
@@ -45,7 +46,7 @@ import {
   SelectValue,
 } from "@/components/elements/Select"
 import { Loader } from '@/components/elements/Loader';
-import { PersianDatePicker } from '@/components/elements/PersianDatePicker';
+import { PersianDateRangePicker } from '@/components/elements/PersianDateRangePicker';
 
 const MediaGridSkeleton = () => (
   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 p-6">
@@ -78,12 +79,16 @@ const actualDefaultFilters: MediaFilter = {
   date_to: "",
 };
 
+interface MediaFiltersWithRange extends MediaFilter {
+  date_range?: { from?: string; to?: string };
+}
+
 export default function MediaPage() {
   const navigate = useNavigate();
 
   const [mediaItems, setMediaItems] = useState<Media[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
-  const [filters, setFilters] = useState<MediaFilter>(actualDefaultFilters);
+  const [filters, setFilters] = useState<MediaFiltersWithRange>(actualDefaultFilters);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedItems, setSelectedItems] = useState<Record<string | number, boolean>>({});
   const [error, setError] = useState<string | null>(null);
@@ -137,12 +142,21 @@ export default function MediaPage() {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
+    
+    // Clean up date_range from URL if it exists
+    cleanupDateRangeFromURL();
+    
     const urlFilters: Partial<MediaFilter> = {};
 
     if (urlParams.get('search')) urlFilters.search = urlParams.get('search')!;
     if (urlParams.get('file_type')) urlFilters.file_type = urlParams.get('file_type')!;
-    if (urlParams.get('date_from')) urlFilters.date_from = urlParams.get('date_from')!;
-    if (urlParams.get('date_to')) urlFilters.date_to = urlParams.get('date_to')!;
+    const dateFrom = urlParams.get('date_from');
+    const dateTo = urlParams.get('date_to');
+    if (dateFrom || dateTo) {
+      urlFilters.date_from = dateFrom || '';
+      urlFilters.date_to = dateTo || '';
+      (urlFilters as any).date_range = { from: dateFrom || undefined, to: dateTo || undefined };
+    }
     if (urlParams.get('page')) urlFilters.page = parseInt(urlParams.get('page')!, 10);
     if (urlParams.get('limit')) urlFilters.size = parseInt(urlParams.get('limit')!, 10);
 
@@ -193,20 +207,29 @@ export default function MediaPage() {
     window.history.replaceState({}, '', url.toString());
   };
 
-  const handleDateFromChange = (date: string) => {
-    setFilters(prev => ({ ...prev, date_from: date, page: 1 }));
+  const handleDateRangeChange = (range: { from?: string; to?: string }) => {
+    setFilters(prev => ({ 
+      ...prev, 
+      date_from: range.from || '', 
+      date_to: range.to || '',
+      date_range: range,
+      page: 1 
+    }));
 
     const url = new URL(window.location.href);
-    url.searchParams.set('date_from', date);
-    url.searchParams.set('page', '1');
-    window.history.replaceState({}, '', url.toString());
-  };
-
-  const handleDateToChange = (date: string) => {
-    setFilters(prev => ({ ...prev, date_to: date, page: 1 }));
-
-    const url = new URL(window.location.href);
-    url.searchParams.set('date_to', date);
+    // Remove date_range from URL (it shouldn't be there)
+    url.searchParams.delete('date_range');
+    
+    if (range.from) {
+      url.searchParams.set('date_from', range.from);
+    } else {
+      url.searchParams.delete('date_from');
+    }
+    if (range.to) {
+      url.searchParams.set('date_to', range.to);
+    } else {
+      url.searchParams.delete('date_to');
+    }
     url.searchParams.set('page', '1');
     window.history.replaceState({}, '', url.toString());
   };
@@ -395,21 +418,12 @@ export default function MediaPage() {
                 </Select>
               )}
 
-              <div className="flex items-center gap-2">
-                <PersianDatePicker
-                  value={filters.date_from || ''}
-                  onChange={(date) => handleDateFromChange(date)}
-                  placeholder="از تاریخ"
-                  className="h-8 w-36"
-                />
-                <span className="text-xs text-font-s">تا</span>
-                <PersianDatePicker
-                  value={filters.date_to || ''}
-                  onChange={(date) => handleDateToChange(date)}
-                  placeholder="تا تاریخ"
-                  className="h-8 w-36"
-                />
-              </div>
+              <PersianDateRangePicker
+                value={filters.date_range || { from: filters.date_from || undefined, to: filters.date_to || undefined }}
+                onChange={handleDateRangeChange}
+                placeholder="انتخاب بازه تاریخ"
+                className="h-8 w-[280px]"
+              />
             </div>
           </div>
         </CardHeader>

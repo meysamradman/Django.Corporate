@@ -1,4 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from "react";
+import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useBlogColumns } from "@/components/blogs/list/BlogTableColumns";
@@ -98,8 +99,13 @@ export default function BlogPage() {
           filters.categories = categoryIds.join(',') as any;
         }
       }
-      if (urlParams.get('date_from')) filters['date_from'] = urlParams.get('date_from') as string;
-      if (urlParams.get('date_to')) filters['date_to'] = urlParams.get('date_to') as string;
+      const dateFrom = urlParams.get('date_from');
+      const dateTo = urlParams.get('date_to');
+      if (dateFrom || dateTo) {
+        filters.date_range = { from: dateFrom || undefined, to: dateTo || undefined };
+        filters.date_from = dateFrom || undefined;
+        filters.date_to = dateTo || undefined;
+      }
       return filters;
     }
     return {};
@@ -134,6 +140,29 @@ export default function BlogPage() {
     fetchCategories();
   }, []);
 
+  const { handleFilterChange } = useTableFilters<BlogFilters>(
+    setClientFilters,
+    setSearchValue,
+    setPagination,
+    {
+      categories: (value, updateUrl) => {
+        setClientFilters(prev => ({
+          ...prev,
+          categories: value as string | undefined
+        }));
+        setPagination(prev => ({ ...prev, pageIndex: 0 }));
+        
+        const url = new URL(window.location.href);
+        if (value && value !== 'all' && value !== '') {
+          url.searchParams.set('categories', String(value));
+        } else {
+          url.searchParams.delete('categories');
+        }
+        updateUrl(url);
+      }
+    }
+  );
+
   const blogFilterConfig = getBlogFilterConfig(
     statusFilterOptions,
     booleanFilterOptions,
@@ -151,8 +180,8 @@ export default function BlogPage() {
     is_public: clientFilters.is_public as boolean | undefined,
     is_active: clientFilters.is_active as boolean | undefined,
     categories__in: clientFilters.categories ? clientFilters.categories.toString() : undefined,
-    date_from: clientFilters['date_from'] as string | undefined,
-    date_to: clientFilters['date_to'] as string | undefined,
+    date_from: (clientFilters.date_range?.from || clientFilters['date_from']) as string | undefined,
+    date_to: (clientFilters.date_range?.to || clientFilters['date_to']) as string | undefined,
   };
 
   const { data: blogs, isLoading, error } = useQuery({
@@ -483,48 +512,6 @@ export default function BlogPage() {
     printWindow.document.close();
   };
 
-  const handleFilterChange = (filterId: string | number, value: unknown) => {
-    const filterKey = filterId as string;
-
-    if (filterKey === "search") {
-      setSearchValue(typeof value === 'string' ? value : '');
-      setPagination(prev => ({ ...prev, pageIndex: 0 }));
-
-      const url = new URL(window.location.href);
-      if (value && typeof value === 'string') {
-        url.searchParams.set('search', value);
-      } else {
-        url.searchParams.delete('search');
-      }
-      url.searchParams.set('page', '1');
-      window.history.replaceState({}, '', url.toString());
-    } else {
-      setClientFilters(prev => ({
-        ...prev,
-        [filterKey]: value as string | boolean | number | undefined
-      }));
-      setPagination(prev => ({ ...prev, pageIndex: 0 }));
-
-      const url = new URL(window.location.href);
-      if (value !== undefined && value !== null) {
-        if (typeof value === 'boolean') {
-          url.searchParams.set(filterKey, value.toString());
-        } else if (filterKey === 'categories' && value !== undefined) {
-          if (value === 'all' || value === '') {
-            url.searchParams.delete('categories');
-          } else {
-            url.searchParams.set(filterKey, String(value));
-          }
-        } else {
-          url.searchParams.set(filterKey, String(value));
-        }
-      } else {
-        url.searchParams.delete(filterKey);
-      }
-      url.searchParams.set('page', '1');
-      window.history.replaceState({}, '', url.toString());
-    }
-  };
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function'

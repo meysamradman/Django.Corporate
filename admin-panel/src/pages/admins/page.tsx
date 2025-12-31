@@ -1,15 +1,15 @@
 import { useState, useEffect, useMemo } from "react";
+import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { useNavigate, Link } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useAdminFilterOptions } from "@/components/admins/AdminTableFilters";
-import { PersianDatePicker } from '@/components/elements/PersianDatePicker';
+import { PersianDateRangePicker } from '@/components/elements/PersianDateRangePicker';
 import type { AdminWithProfile, AdminListParams, AdminFilters } from "@/types/auth/admin";
 import { useAuth } from "@/core/auth/AuthContext";
 import { adminApi } from "@/api/admins/admins";
 import { Edit, Trash2, Plus, Search, Building2, UserCog } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { ProtectedButton } from "@/components/admins/permissions";
 import { showSuccess, showError } from '@/core/toast';
 import type { SortingState } from "@tanstack/react-table";
@@ -54,6 +54,7 @@ export default function AdminsPage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     
+
     if (urlParams.get('page')) {
       const page = parseInt(urlParams.get('page')!, 10);
       setPagination(prev => ({ ...prev, pageIndex: page - 1 }));
@@ -89,17 +90,46 @@ export default function AdminsPage() {
         newClientFilters.user_role_type = userRoleType;
       }
     }
-    if (urlParams.get('date_from')) {
-      newClientFilters.date_from = urlParams.get('date_from')!;
-    }
-    if (urlParams.get('date_to')) {
-      newClientFilters.date_to = urlParams.get('date_to')!;
+    const dateFrom = urlParams.get('date_from');
+    const dateTo = urlParams.get('date_to');
+    if (dateFrom || dateTo) {
+      newClientFilters.date_from = dateFrom || undefined;
+      newClientFilters.date_to = dateTo || undefined;
+      (newClientFilters as any).date_range = { from: dateFrom || undefined, to: dateTo || undefined };
     }
     
     if (Object.keys(newClientFilters).length > 0) {
       setClientFilters(newClientFilters);
     }
   }, []);
+
+  const { handleFilterChange: baseHandleFilterChange } = useTableFilters<AdminFilters>(
+    setClientFilters,
+    setSearchValue,
+    setPagination
+  );
+
+  const handleFilterChange = (filterId: keyof AdminFilters, value: unknown) => {
+    if (filterId === 'user_role_type') {
+      const actualValue = value === 'all' ? undefined : value;
+      setClientFilters(prev => ({
+        ...prev,
+        user_role_type: actualValue as 'admin' | 'consultant' | undefined
+      }));
+      setPagination(prev => ({ ...prev, pageIndex: 0 }));
+      
+      const url = new URL(window.location.href);
+      if (actualValue) {
+        url.searchParams.set('user_role_type', String(actualValue));
+      } else {
+        url.searchParams.delete('user_role_type');
+      }
+      url.searchParams.set('page', '1');
+      window.history.replaceState({}, '', url.toString());
+    } else {
+      baseHandleFilterChange(filterId as string, value);
+    }
+  };
 
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
@@ -119,13 +149,13 @@ export default function AdminsPage() {
     order_desc: sorting.length > 0 ? sorting[0].desc : true,
     is_active: clientFilters.is_active,
     is_superuser: clientFilters.is_superuser,
-    date_from: clientFilters.date_from as string | undefined,
-    date_to: clientFilters.date_to as string | undefined,
+    date_from: ((clientFilters as any).date_range?.from || clientFilters.date_from) as string | undefined,
+    date_to: ((clientFilters as any).date_range?.to || clientFilters.date_to) as string | undefined,
     ...(clientFilters.user_role_type && { user_role_type: clientFilters.user_role_type }),
   };
 
   const { data: response, isLoading, error } = useQuery({
-    queryKey: ['admins', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_superuser, queryParams.user_role_type, queryParams.date_from, queryParams.date_to],
+    queryKey: ['admins', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_superuser, queryParams.user_role_type, queryParams.date_from, queryParams.date_to, (clientFilters as any).date_range],
     queryFn: async () => {
       return await adminApi.getAdminList(queryParams);
     },
@@ -295,39 +325,6 @@ export default function AdminsPage() {
     return null;
   };
 
-  const handleFilterChange = (filterId: keyof AdminFilters, value: unknown) => {
-    if (filterId === "search") {
-      setSearchValue(typeof value === 'string' ? value : '');
-      setPagination(prev => ({ ...prev, pageIndex: 0 }));
-      
-      const url = new URL(window.location.href);
-      if (value && typeof value === 'string') {
-        url.searchParams.set('search', value);
-      } else {
-        url.searchParams.delete('search');
-      }
-      url.searchParams.set('page', '1');
-      window.history.replaceState({}, '', url.toString());
-    } else {
-      const filterKey = filterId;
-      const actualValue = (filterId === 'user_role_type' && value === 'all') ? undefined : value;
-      
-      setClientFilters(prev => ({
-        ...prev,
-        [filterId]: actualValue as any
-      }));
-      setPagination(prev => ({ ...prev, pageIndex: 0 }));
-      
-      const url = new URL(window.location.href);
-      if (actualValue !== undefined && actualValue !== null && actualValue !== 'all') {
-        url.searchParams.set(String(filterKey), String(actualValue));
-      } else {
-        url.searchParams.delete(String(filterKey));
-      }
-      url.searchParams.set('page', '1');
-      window.history.replaceState({}, '', url.toString());
-    }
-  };
 
   const handlePaginationChange = (updaterOrValue: TablePaginationState | ((prev: TablePaginationState) => TablePaginationState)) => {
     const newPagination = typeof updaterOrValue === 'function' 
@@ -414,21 +411,16 @@ export default function AdminsPage() {
             onChange={(value) => handleFilterChange('is_superuser', value)}
           />
 
-          <div className="flex items-center gap-2">
-            <PersianDatePicker
-              value={clientFilters.date_from as string || ''}
-              onChange={(date) => handleFilterChange('date_from', date)}
-              placeholder="از تاریخ"
-              className="h-9 w-36"
-            />
-            <span className="text-xs text-font-s">تا</span>
-            <PersianDatePicker
-              value={clientFilters.date_to as string || ''}
-              onChange={(date) => handleFilterChange('date_to', date)}
-              placeholder="تا تاریخ"
-              className="h-9 w-36"
-            />
-          </div>
+          <PersianDateRangePicker
+            value={(clientFilters as any).date_range || { from: clientFilters.date_from as string || undefined, to: clientFilters.date_to as string || undefined }}
+            onChange={(range) => {
+              handleFilterChange('date_range', range);
+              handleFilterChange('date_from', range.from);
+              handleFilterChange('date_to', range.to);
+            }}
+            placeholder="انتخاب بازه تاریخ"
+            className="h-9 w-[280px]"
+          />
         </div>
 
         <div className="text-sm font-medium text-font-p">

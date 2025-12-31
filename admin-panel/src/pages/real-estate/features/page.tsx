@@ -1,4 +1,5 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
+import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { usePropertyFeatureColumns } from "@/components/real-estate/features/PropertyFeatureTableColumns";
@@ -79,6 +80,12 @@ export default function PropertyFeaturesPage() {
     open: false,
     isBulk: false,
   });
+
+  const { handleFilterChange } = useTableFilters(
+    setClientFilters,
+    setSearchValue,
+    setPagination
+  );
 
   const featureFilterConfig = getPropertyFeatureFilterConfig(booleanFilterOptions);
 
@@ -195,42 +202,6 @@ export default function PropertyFeaturesPage() {
   
   const columns = usePropertyFeatureColumns(rowActions, handleToggleActive) as ColumnDef<PropertyFeature>[];
 
-  const handleFilterChange = (filterId: string | number, value: unknown) => {
-    const filterKey = filterId as string;
-    
-    if (filterKey === "search") {
-      setSearchValue(typeof value === 'string' ? value : '');
-      setPagination(prev => ({ ...prev, pageIndex: 0 }));
-      
-      const url = new URL(window.location.href);
-      if (value && typeof value === 'string') {
-        url.searchParams.set('search', value);
-      } else {
-        url.searchParams.delete('search');
-      }
-      url.searchParams.set('page', '1');
-      window.history.replaceState({}, '', url.toString());
-    } else {
-      setClientFilters(prev => ({
-        ...prev,
-        [filterKey]: value as string | boolean | number | undefined
-      }));
-      setPagination(prev => ({ ...prev, pageIndex: 0 }));
-      
-      const url = new URL(window.location.href);
-      if (value !== undefined && value !== null) {
-        if (typeof value === 'boolean') {
-          url.searchParams.set(filterKey, value.toString());
-        } else {
-          url.searchParams.set(filterKey, String(value));
-        }
-      } else {
-        url.searchParams.delete(filterKey);
-      }
-      url.searchParams.set('page', '1');
-      window.history.replaceState({}, '', url.toString());
-    }
-  };
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 

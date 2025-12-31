@@ -1,16 +1,18 @@
 import { useState, useEffect, useMemo } from "react";
+import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { useNavigate, Link } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useAdminFilterOptions } from "@/components/admins/AdminTableFilters";
-import { PersianDatePicker } from '@/components/elements/PersianDatePicker';
+import { PersianDateRangePicker } from '@/components/elements/PersianDateRangePicker';
+import { realEstateApi } from "@/api/real-estate/properties";
 
 interface AgencyFilters {
   search?: string;
   is_active?: boolean;
   date_from?: string;
   date_to?: string;
+  date_range?: { from?: string; to?: string };
 }
-import { realEstateApi } from "@/api/real-estate/properties";
 import { showSuccess, showError } from '@/core/toast';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Edit, Trash2, Plus, Search, Building2 } from "lucide-react";
@@ -54,6 +56,7 @@ export default function AdminsAgenciesPage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
 
+
     if (urlParams.get('page')) {
       const page = parseInt(urlParams.get('page')!, 10);
       setPagination(prev => ({ ...prev, pageIndex: page - 1 }));
@@ -79,17 +82,24 @@ export default function AdminsAgenciesPage() {
     if (urlParams.get('is_active') !== null) {
       newClientFilters.is_active = urlParams.get('is_active') === 'true';
     }
-    if (urlParams.get('date_from')) {
-      newClientFilters.date_from = urlParams.get('date_from')!;
-    }
-    if (urlParams.get('date_to')) {
-      newClientFilters.date_to = urlParams.get('date_to')!;
+    const dateFrom = urlParams.get('date_from');
+    const dateTo = urlParams.get('date_to');
+    if (dateFrom || dateTo) {
+      newClientFilters.date_from = dateFrom || undefined;
+      newClientFilters.date_to = dateTo || undefined;
+      (newClientFilters as any).date_range = { from: dateFrom || undefined, to: dateTo || undefined };
     }
 
     if (Object.keys(newClientFilters).length > 0) {
       setClientFilters(newClientFilters);
     }
   }, []);
+
+  const { handleFilterChange } = useTableFilters<AgencyFilters>(
+    setClientFilters,
+    setSearchValue,
+    setPagination
+  );
 
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
@@ -108,12 +118,12 @@ export default function AdminsAgenciesPage() {
     order_by: sorting.length > 0 ? sorting[0].id : "created_at",
     order_desc: sorting.length > 0 ? sorting[0].desc : true,
     is_active: clientFilters.is_active,
-    date_from: clientFilters.date_from,
-    date_to: clientFilters.date_to,
+    date_from: (clientFilters.date_range as any)?.from || clientFilters.date_from,
+    date_to: (clientFilters.date_range as any)?.to || clientFilters.date_to,
   };
 
   const { data: response, isLoading, error } = useQuery({
-    queryKey: ['agencies', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.date_from, queryParams.date_to],
+    queryKey: ['agencies', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.date_from, queryParams.date_to, (clientFilters as any).date_range],
     queryFn: async () => {
       return await realEstateApi.getAgencies(queryParams);
     },
@@ -212,39 +222,6 @@ export default function AdminsAgenciesPage() {
       : null;
   };
 
-  const handleFilterChange = (filterId: keyof AgencyFilters, value: unknown) => {
-    if (filterId === "search") {
-      setSearchValue(typeof value === 'string' ? value : '');
-      setPagination(prev => ({ ...prev, pageIndex: 0 }));
-
-      const url = new URL(window.location.href);
-      if (value && typeof value === 'string') {
-        url.searchParams.set('search', value);
-      } else {
-        url.searchParams.delete('search');
-      }
-      url.searchParams.set('page', '1');
-      window.history.replaceState({}, '', url.toString());
-    } else {
-      const filterKey = filterId;
-      const actualValue = value;
-
-      setClientFilters(prev => ({
-        ...prev,
-        [filterId]: actualValue
-      }));
-      setPagination(prev => ({ ...prev, pageIndex: 0 }));
-
-      const url = new URL(window.location.href);
-      if (actualValue !== undefined && actualValue !== null) {
-        url.searchParams.set(String(filterKey), String(actualValue));
-      } else {
-        url.searchParams.delete(String(filterKey));
-      }
-      url.searchParams.set('page', '1');
-      window.history.replaceState({}, '', url.toString());
-    }
-  };
 
   const handlePaginationChange = (updaterOrValue: TablePaginationState | ((prev: TablePaginationState) => TablePaginationState)) => {
     const newPagination = typeof updaterOrValue === 'function'
@@ -314,21 +291,16 @@ export default function AdminsAgenciesPage() {
             onChange={(value) => handleFilterChange('is_active', value)}
           />
 
-          <div className="flex items-center gap-2">
-            <PersianDatePicker
-              value={clientFilters.date_from || ''}
-              onChange={(date) => handleFilterChange('date_from', date)}
-              placeholder="از تاریخ"
-              className="h-9 w-36"
-            />
-            <span className="text-xs text-font-s">تا</span>
-            <PersianDatePicker
-              value={clientFilters.date_to || ''}
-              onChange={(date) => handleFilterChange('date_to', date)}
-              placeholder="تا تاریخ"
-              className="h-9 w-36"
-            />
-          </div>
+          <PersianDateRangePicker
+            value={(clientFilters as any).date_range || { from: clientFilters.date_from || undefined, to: clientFilters.date_to || undefined }}
+            onChange={(range) => {
+              handleFilterChange('date_range', range);
+              handleFilterChange('date_from', range.from);
+              handleFilterChange('date_to', range.to);
+            }}
+            placeholder="انتخاب بازه تاریخ"
+            className="h-9 w-[280px]"
+          />
         </div>
 
         <div className="text-sm font-medium text-font-p">

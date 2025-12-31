@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { Link } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { DataTable } from "@/components/tables/DataTable";
@@ -45,6 +46,7 @@ export default function RolesPage() {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
+    
     
     if (urlParams.get('page')) {
       const page = parseInt(urlParams.get('page')!, 10);
@@ -194,36 +196,6 @@ export default function RolesPage() {
     setDeleteConfirm({ open: false, isBulk: false });
   };
 
-  const handleFilterChange = (filterId: string, value: unknown) => {
-    if (filterId === "search") {
-      setSearchValue(typeof value === 'string' ? value : '');
-      setPagination(prev => ({ ...prev, pageIndex: 0 }));
-      
-      const url = new URL(window.location.href);
-      if (value && typeof value === 'string') {
-        url.searchParams.set('search', value);
-      } else {
-        url.searchParams.delete('search');
-      }
-      url.searchParams.set('page', '1');
-      window.history.replaceState({}, '', url.toString());
-    } else {
-      setClientFilters(prev => ({
-        ...prev,
-        [filterId]: value as boolean | undefined
-      }));
-      setPagination(prev => ({ ...prev, pageIndex: 0 }));
-      
-      const url = new URL(window.location.href);
-      if (value !== undefined && value !== null) {
-        url.searchParams.set(filterId, String(value));
-      } else {
-        url.searchParams.delete(filterId);
-      }
-      url.searchParams.set('page', '1');
-      window.history.replaceState({}, '', url.toString());
-    }
-  };
 
   const handlePaginationChange: OnChangeFn<PaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 

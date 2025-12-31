@@ -64,7 +64,10 @@ export interface PropertyFilters {
   city?: number | string;
   province?: number | string;
   district?: number | string;
-  [key: string]: string | boolean | number | undefined;
+  date_range?: { from?: string; to?: string };
+  date_from?: string;
+  date_to?: string;
+  [key: string]: string | boolean | number | undefined | { from?: string; to?: string };
 }
 
 export interface PropertyExportParams extends PropertyListParams {

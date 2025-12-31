@@ -19,7 +19,10 @@ export interface BlogFilters {
   is_public?: boolean;
   is_active?: boolean;
   categories?: number | string;
-  [key: string]: string | boolean | number | undefined;
+  date_range?: { from?: string; to?: string };
+  date_from?: string;
+  date_to?: string;
+  [key: string]: string | boolean | number | { from?: string; to?: string } | undefined;
 }
 
 // DEPRECATED: Use BlogCategoryListParams from category/blogCategoryFilter.ts instead

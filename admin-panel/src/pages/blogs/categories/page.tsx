@@ -8,6 +8,7 @@ import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/components/admins/permissions";
 import { showSuccess, showError } from '@/core/toast';
+import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -58,6 +59,12 @@ export default function CategoryPage() {
     open: false,
     isBulk: false,
   });
+
+  const { handleFilterChange } = useTableFilters(
+    setClientFilters,
+    setSearchValue,
+    setPagination
+  );
 
   const queryParams: any = {
     search: searchValue,
@@ -192,36 +199,6 @@ export default function CategoryPage() {
     }
   }, []);
 
-  const handleFilterChange = (filterId: string | number, value: unknown) => {
-    if (filterId === "search") {
-      setSearchValue(typeof value === 'string' ? value : '');
-      setPagination(prev => ({ ...prev, pageIndex: 0 }));
-      
-      const url = new URL(window.location.href);
-      if (value && typeof value === 'string') {
-        url.searchParams.set('search', value);
-      } else {
-        url.searchParams.delete('search');
-      }
-      url.searchParams.set('page', '1');
-      window.history.replaceState({}, '', url.toString());
-    } else {
-      setClientFilters(prev => ({
-        ...prev,
-        [filterId]: value
-      }));
-      setPagination(prev => ({ ...prev, pageIndex: 0 }));
-      
-      const url = new URL(window.location.href);
-      if (value !== undefined && value !== null) {
-        url.searchParams.set(String(filterId), String(value));
-      } else {
-        url.searchParams.delete(String(filterId));
-      }
-      url.searchParams.set('page', '1');
-      window.history.replaceState({}, '', url.toString());
-    }
-  };
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 

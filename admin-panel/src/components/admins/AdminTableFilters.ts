@@ -46,15 +46,9 @@ export const getAdminFilterConfig = (
         type: 'select'
     },
     {
-        columnId: "date_from",
-        title: "از تاریخ",
-        placeholder: "از تاریخ",
-        type: 'date'
-    },
-    {
-        columnId: "date_to",
-        title: "تا تاریخ",
-        placeholder: "تا تاریخ",
-        type: 'date'
+        columnId: "date_range",
+        title: "بازه تاریخ",
+        placeholder: "انتخاب بازه تاریخ",
+        type: 'date_range'
     },
 ]; 

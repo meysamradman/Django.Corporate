@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { useNavigate, Link } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { DataTable } from "@/components/tables/DataTable";
@@ -108,6 +109,12 @@ export default function TagPage() {
     },
   });
 
+  const { handleFilterChange } = useTableFilters(
+    setClientFilters,
+    setSearchValue,
+    setPagination
+  );
+
   const handleDeleteTag = (tagId: number | string) => {
     setDeleteConfirm({
       open: true,
@@ -152,36 +159,6 @@ export default function TagPage() {
   
   const columns = useTagColumns(rowActions) as ColumnDef<BlogTag>[];
 
-  const handleFilterChange = (filterId: string | number, value: unknown) => {
-    if (filterId === "search") {
-      setSearchValue(typeof value === 'string' ? value : '');
-      setPagination(prev => ({ ...prev, pageIndex: 0 }));
-      
-      const url = new URL(window.location.href);
-      if (value && typeof value === 'string') {
-        url.searchParams.set('search', value);
-      } else {
-        url.searchParams.delete('search');
-      }
-      url.searchParams.set('page', '1');
-      window.history.replaceState({}, '', url.toString());
-    } else {
-      setClientFilters(prev => ({
-        ...prev,
-        [filterId]: value
-      }));
-      setPagination(prev => ({ ...prev, pageIndex: 0 }));
-      
-      const url = new URL(window.location.href);
-      if (value !== undefined && value !== null) {
-        url.searchParams.set(String(filterId), String(value));
-      } else {
-        url.searchParams.delete(String(filterId));
-      }
-      url.searchParams.set('page', '1');
-      window.history.replaceState({}, '', url.toString());
-    }
-  };
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 

@@ -19,7 +19,10 @@ export interface PortfolioFilters {
   is_public?: boolean;
   is_active?: boolean;
   categories?: number | string;
-  [key: string]: string | boolean | number | undefined;
+  date_range?: { from?: string; to?: string };
+  date_from?: string;
+  date_to?: string;
+  [key: string]: string | boolean | number | { from?: string; to?: string } | undefined;
 }
 
 // DEPRECATED: Use PortfolioCategoryListParams from category/portfolioCategoryFilter.ts instead

@@ -58,15 +58,9 @@ export const getBlogFilterConfig = (
     placeholder: "دسته‌بندی",
   },
   {
-    columnId: "date_from",
-    title: "از تاریخ",
-    type: "date",
-    placeholder: "از تاریخ",
-  },
-  {
-    columnId: "date_to",
-    title: "تا تاریخ",
-    type: "date",
-    placeholder: "تا تاریخ",
+    columnId: "date_range",
+    title: "بازه تاریخ",
+    type: "date_range",
+    placeholder: "انتخاب بازه تاریخ",
   },
 ];

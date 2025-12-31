@@ -22,7 +22,7 @@ export interface FilterConfig {
   title: string;
   options?: FilterOption[];
   placeholder?: string;
-  type?: 'select' | 'hierarchical' | 'date';
+  type?: 'select' | 'hierarchical' | 'date' | 'date_range';
 }
 
 export interface DeleteConfig {

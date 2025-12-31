@@ -37,7 +37,7 @@ class RealEstateAgencyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSe
     filterset_class = RealEstateAgencyAdminFilter
     search_fields = ['name', 'phone', 'email', 'license_number']
     ordering_fields = ['created_at', 'updated_at', 'rating', 'name']
-    ordering = ['-rating', '-is_verified', 'name']
+    ordering = ['-rating', 'name']
     pagination_class = StandardLimitPagination
     
     def get_queryset(self):
