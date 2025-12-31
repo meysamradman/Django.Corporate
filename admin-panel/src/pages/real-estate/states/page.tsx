@@ -63,6 +63,8 @@ export default function PropertyStatesPage() {
       const urlParams = new URLSearchParams(window.location.search);
       const filters: Record<string, unknown> = {};
       if (urlParams.get('is_active')) filters.is_active = urlParams.get('is_active') === 'true';
+      if (urlParams.get('date_from')) filters.date_from = urlParams.get('date_from');
+      if (urlParams.get('date_to')) filters.date_to = urlParams.get('date_to');
       return filters;
     }
     return {};
@@ -87,10 +89,12 @@ export default function PropertyStatesPage() {
     order_by: sorting.length > 0 ? sorting[0].id : "created_at",
     order_desc: sorting.length > 0 ? sorting[0].desc : true,
     is_active: clientFilters.is_active as boolean | undefined,
+    date_from: clientFilters.date_from as string | undefined,
+    date_to: clientFilters.date_to as string | undefined,
   };
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['property-states', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active],
+    queryKey: ['property-states', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.date_from, queryParams.date_to],
     queryFn: async () => {
       const response = await realEstateApi.getStates(queryParams);
       return response;

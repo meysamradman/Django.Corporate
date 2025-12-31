@@ -3,6 +3,8 @@ import type { FilterConfig } from "@/types/shared/table";
 export interface TagFilters {
   is_active?: boolean;
   is_public?: boolean;
+  date_from?: string;
+  date_to?: string;
 }
 
 export const useTagFilterOptions = () => {
@@ -32,5 +34,17 @@ export const getTagFilterConfig = (
     type: "select",
     options: booleanFilterOptions,
     placeholder: "عمومی",
+  },
+  {
+    columnId: "date_from",
+    title: "از تاریخ",
+    type: "date",
+    placeholder: "از تاریخ",
+  },
+  {
+    columnId: "date_to",
+    title: "تا تاریخ",
+    type: "date",
+    placeholder: "تا تاریخ",
   },
 ];

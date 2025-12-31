@@ -57,4 +57,16 @@ export const getPortfolioFilterConfig = (
     options: categoryOptions,
     placeholder: "دسته‌بندی",
   },
+  {
+    columnId: "date_from",
+    title: "از تاریخ",
+    type: "date",
+    placeholder: "از تاریخ",
+  },
+  {
+    columnId: "date_to",
+    title: "تا تاریخ",
+    type: "date",
+    placeholder: "تا تاریخ",
+  },
 ];

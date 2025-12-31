@@ -1,6 +1,7 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.authentication import SessionAuthentication
+from django_filters.rest_framework import DjangoFilterBackend
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from django.db import transaction, models
 from django.db.models import Count
@@ -12,6 +13,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from src.core.responses.response import APIResponse
 from src.core.pagination.pagination import StandardLimitPagination
 from src.user.models import AdminRole, AdminUserRole, User
+from src.user.filters.admin_role_filters import AdminRoleAdminFilter
 from .admin_role_serializer import (
     AdminRoleSerializer,
     AdminRoleListSerializer,
@@ -36,48 +38,46 @@ from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS, ROLE_ERRORS, ROLE_SUCCE
 class AdminRoleView(viewsets.ViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
     pagination_class = StandardLimitPagination
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = AdminRoleAdminFilter
+    search_fields = ['name', 'display_name', 'description']
+    ordering_fields = ['name', 'display_name', 'level', 'created_at', 'updated_at', 'is_active', 'is_system_role']
+    ordering = ['-created_at']
     
     def get_permissions(self):
         return [SimpleAdminPermission()]
     
+    def get_queryset(self):
+        """بازیابی queryset با annotation برای users_count"""
+        return AdminRole.objects.annotate(
+            users_count=Count('admin_user_roles', filter=models.Q(admin_user_roles__is_active=True))
+        )
+    
+    def filter_queryset(self, queryset):
+        """استفاده از filter backend ها"""
+        for backend in list(self.filter_backends):
+            queryset = backend().filter_queryset(self.request, queryset, self)
+        return queryset
+    
     def list(self, request):
         try:
-            is_active = request.query_params.get('is_active')
-            is_system_role = request.query_params.get('is_system_role')
-            search = request.query_params.get('search', '').strip()
-            order_by = request.query_params.get('order_by', 'created_at')
-            order_desc = request.query_params.get('order_desc', 'true').lower() in ('true', '1', 'yes')
+            # استفاده از filter_queryset برای اعمال filterset_class
+            queryset = self.filter_queryset(self.get_queryset())
             
-            queryset = AdminRole.objects.annotate(
-                users_count=Count('admin_user_roles', filter=models.Q(admin_user_roles__is_active=True))
-            )
+            # ترتیب‌بندی manual از query params (برای سازگاری با کد قبلی)
+            order_by = request.query_params.get('order_by')
+            order_desc = request.query_params.get('order_desc', 'true').lower() in ('true', '1', 'yes')
             
             allowed_order_fields = {
                 'name', 'display_name', 'level', 'created_at', 'updated_at', 
                 'is_active', 'is_system_role', 'users_count'
             }
             
-            if order_by in allowed_order_fields:
+            if order_by and order_by in allowed_order_fields:
                 order_prefix = '-' if order_desc else ''
                 queryset = queryset.order_by(f'{order_prefix}{order_by}')
-            else:
-                queryset = queryset.order_by('-created_at')
             
-            if is_active is not None:
-                is_active_bool = is_active.lower() in ('true', '1', 'yes')
-                queryset = queryset.filter(is_active=is_active_bool)
-            
-            if is_system_role is not None:
-                is_system_role_bool = is_system_role.lower() in ('true', '1', 'yes')
-                queryset = queryset.filter(is_system_role=is_system_role_bool)
-            
-            if search:
-                queryset = queryset.filter(
-                    name__icontains=search
-                ) | queryset.filter(
-                    display_name__icontains=search
-                )
-            
+            # Pagination
             paginator = self.pagination_class()
             page = paginator.paginate_queryset(queryset, request)
             if page is not None:

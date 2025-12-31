@@ -63,6 +63,9 @@ export default function PropertyTypesPage() {
       const urlParams = new URLSearchParams(window.location.search);
       const filters: Record<string, unknown> = {};
       if (urlParams.get('is_active')) filters.is_active = urlParams.get('is_active') === 'true';
+      if (urlParams.get('is_public')) filters.is_public = urlParams.get('is_public') === 'true';
+      if (urlParams.get('date_from')) filters.date_from = urlParams.get('date_from');
+      if (urlParams.get('date_to')) filters.date_to = urlParams.get('date_to');
       return filters;
     }
     return {};
@@ -87,10 +90,13 @@ export default function PropertyTypesPage() {
     order_by: sorting.length > 0 ? sorting[0].id : "created_at",
     order_desc: sorting.length > 0 ? sorting[0].desc : true,
     is_active: clientFilters.is_active as boolean | undefined,
+    is_public: clientFilters.is_public as boolean | undefined,
+    date_from: clientFilters.date_from as string | undefined,
+    date_to: clientFilters.date_to as string | undefined,
   };
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['property-types', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active],
+    queryKey: ['property-types', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_public, queryParams.date_from, queryParams.date_to],
     queryFn: async () => {
       const response = await realEstateApi.getTypes(queryParams);
       return response;

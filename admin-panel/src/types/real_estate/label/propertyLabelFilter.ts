@@ -1,9 +1,8 @@
-export interface PortfolioTagListParams {
+export interface PropertyLabelListParams {
   search?: string;
   page?: number;
   size?: number;
   is_active?: boolean | string;
-  is_public?: boolean | string;
   date_from?: string;
   date_to?: string;
   created_after?: string;
@@ -12,8 +11,7 @@ export interface PortfolioTagListParams {
   order_desc?: boolean;
 }
 
-export interface PortfolioTagFilters {
+export interface PropertyLabelFilters {
   is_active?: boolean;
-  is_public?: boolean;
   [key: string]: string | boolean | number | undefined;
 }

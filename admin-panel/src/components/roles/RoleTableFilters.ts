@@ -29,4 +29,16 @@ export const getRoleFilterConfig = (
         placeholder: "نوع نقش",
         type: 'select'
     },
+    {
+        columnId: "date_from",
+        title: "از تاریخ",
+        placeholder: "از تاریخ",
+        type: 'date'
+    },
+    {
+        columnId: "date_to",
+        title: "تا تاریخ",
+        placeholder: "تا تاریخ",
+        type: 'date'
+    },
 ];

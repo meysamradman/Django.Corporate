@@ -5,6 +5,8 @@ export interface Filter {
     size?: number;
     limit?: number;
     offset?: number;
+    date_from?: string;
+    date_to?: string;
 }
 
 export interface AdminFilter extends Filter {

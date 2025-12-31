@@ -21,5 +21,17 @@ export const getPropertyFeatureFilterConfig = (
     options: booleanFilterOptions,
     placeholder: "فعال",
   },
+  {
+    columnId: "date_from",
+    title: "از تاریخ",
+    type: "date",
+    placeholder: "از تاریخ",
+  },
+  {
+    columnId: "date_to",
+    title: "تا تاریخ",
+    type: "date",
+    placeholder: "تا تاریخ",
+  },
 ];
 

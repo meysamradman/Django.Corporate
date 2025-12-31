@@ -41,7 +41,12 @@ export default function TagPage() {
   const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
   const [rowSelection, setRowSelection] = useState({});
   const [searchValue, setSearchValue] = useState("");
-  const [clientFilters, setClientFilters] = useState<Record<string, unknown>>({});
+  const [clientFilters, setClientFilters] = useState<Record<string, unknown>>({
+    is_active: undefined,
+    is_public: undefined,
+    date_from: undefined,
+    date_to: undefined,
+  });
 
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
@@ -59,10 +64,14 @@ export default function TagPage() {
     size: pagination.pageSize,
     order_by: sorting.length > 0 ? sorting[0].id : "created_at",
     order_desc: sorting.length > 0 ? sorting[0].desc : true,
+    is_active: clientFilters.is_active as boolean | undefined,
+    is_public: clientFilters.is_public as boolean | undefined,
+    date_from: clientFilters.date_from as string | undefined,
+    date_to: clientFilters.date_to as string | undefined,
   };
 
   const { data: tags, isLoading, error } = useQuery({
-    queryKey: ['portfolio-tags', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc],
+    queryKey: ['portfolio-tags', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_public, queryParams.date_from, queryParams.date_to],
     queryFn: async () => {
       return await portfolioApi.getTags(queryParams);
     },

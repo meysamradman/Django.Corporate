@@ -98,6 +98,8 @@ export default function BlogPage() {
           filters.categories = categoryIds.join(',') as any;
         }
       }
+      if (urlParams.get('date_from')) filters['date_from'] = urlParams.get('date_from') as string;
+      if (urlParams.get('date_to')) filters['date_to'] = urlParams.get('date_to') as string;
       return filters;
     }
     return {};
@@ -149,10 +151,12 @@ export default function BlogPage() {
     is_public: clientFilters.is_public as boolean | undefined,
     is_active: clientFilters.is_active as boolean | undefined,
     categories__in: clientFilters.categories ? clientFilters.categories.toString() : undefined,
+    date_from: clientFilters['date_from'] as string | undefined,
+    date_to: clientFilters['date_to'] as string | undefined,
   };
 
   const { data: blogs, isLoading, error } = useQuery({
-    queryKey: ['blogs', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.status, queryParams.is_featured, queryParams.is_public, queryParams.is_active, queryParams.categories__in],
+    queryKey: ['blogs', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.status, queryParams.is_featured, queryParams.is_public, queryParams.is_active, queryParams.categories__in, queryParams.date_from, queryParams.date_to],
     queryFn: async () => {
       const response = await blogApi.getBlogList(queryParams);
       return response;

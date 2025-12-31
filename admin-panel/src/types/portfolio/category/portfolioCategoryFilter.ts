@@ -1,4 +1,4 @@
-export interface PortfolioTagListParams {
+export interface PortfolioCategoryListParams {
   search?: string;
   page?: number;
   size?: number;
@@ -10,9 +10,10 @@ export interface PortfolioTagListParams {
   created_before?: string;
   order_by?: string;
   order_desc?: boolean;
+  tree?: boolean;
 }
 
-export interface PortfolioTagFilters {
+export interface PortfolioCategoryFilters {
   is_active?: boolean;
   is_public?: boolean;
   [key: string]: string | boolean | number | undefined;

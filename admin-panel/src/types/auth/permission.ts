@@ -95,6 +95,8 @@ export interface RoleListParams {
   order_desc?: boolean;
   is_active?: boolean;
   is_system_role?: boolean;
+  date_from?: string;
+  date_to?: string;
 }
 
 export interface RolePermissionsResponse {

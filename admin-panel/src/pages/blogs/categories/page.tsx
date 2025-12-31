@@ -45,6 +45,8 @@ export default function CategoryPage() {
   const [clientFilters, setClientFilters] = useState<Record<string, unknown>>({
     is_active: undefined,
     is_public: undefined,
+    date_from: undefined,
+    date_to: undefined,
   });
 
   const [deleteConfirm, setDeleteConfirm] = useState<{
@@ -65,10 +67,12 @@ export default function CategoryPage() {
     order_desc: sorting.length > 0 ? sorting[0].desc : true,
     is_active: clientFilters.is_active as string || undefined,
     is_public: clientFilters.is_public as string || undefined,
+    date_from: clientFilters.date_from as string || undefined,
+    date_to: clientFilters.date_to as string || undefined,
   };
 
   const { data: categories, isLoading, error } = useQuery({
-    queryKey: ['blog-categories', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_public],
+    queryKey: ['blog-categories', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_public, queryParams.date_from, queryParams.date_to],
     queryFn: async () => {
       return await blogApi.getCategories(queryParams as CategoryListParams);
     },

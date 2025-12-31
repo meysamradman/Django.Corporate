@@ -9,6 +9,7 @@ import type {
     CategoryListParams,
     TagListParams
 } from "@/types/blog/blogListParams";
+import type { BlogCategoryListParams } from "@/types/blog/category/blogCategoryFilter";
 
 export const blogApi = {
   getBlogList: async (params?: BlogListParams): Promise<PaginatedResponse<Blog>> => {
@@ -167,14 +168,17 @@ export const blogApi = {
     return response.data;
   },
 
-  getCategories: async (params?: CategoryListParams): Promise<PaginatedResponse<BlogCategory>> => {
+  getCategories: async (params?: CategoryListParams | BlogCategoryListParams | Record<string, unknown>): Promise<PaginatedResponse<BlogCategory>> => {
     let url = '/admin/blog-category/';
     if (params) {
       const queryParams = new URLSearchParams();
       
       const apiParams: Record<string, unknown> = { ...params };
-      if (params.page && params.size) {
-        const { limit, offset } = convertToLimitOffset(params.page, params.size);
+      const pageParam = typeof params === 'object' && 'page' in params ? params.page as number : undefined;
+      const sizeParam = typeof params === 'object' && 'size' in params ? params.size as number : undefined;
+      
+      if (pageParam && sizeParam) {
+        const { limit, offset } = convertToLimitOffset(pageParam, sizeParam);
         apiParams.limit = limit;
         apiParams.offset = offset;
         delete apiParams.page;
@@ -196,14 +200,16 @@ export const blogApi = {
     
     const responseData = Array.isArray(response.data) ? response.data : [];
     const responsePagination = response.pagination;
+    const pageParam = typeof params === 'object' && params && 'page' in params ? params.page as number : 1;
+    const sizeParam = typeof params === 'object' && params && 'size' in params ? params.size as number : 10;
     
     const pagination: ApiPagination = {
       count: responsePagination?.count || responseData.length,
       next: responsePagination?.next || null,
       previous: responsePagination?.previous || null,
-      page_size: responsePagination?.page_size || (params?.size || 10),
-      current_page: responsePagination?.current_page || (params?.page || 1),
-      total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
+      page_size: responsePagination?.page_size || sizeParam,
+      current_page: responsePagination?.current_page || pageParam,
+      total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / sizeParam)
     };
     
     if (pagination.current_page < 1) {

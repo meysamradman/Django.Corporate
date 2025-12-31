@@ -3,6 +3,8 @@ import type { FilterConfig } from "@/types/shared/table";
 export interface OptionFilters {
   is_active?: string;
   is_public?: string;
+  date_from?: string;
+  date_to?: string;
 }
 
 export const useOptionFilterOptions = () => {
@@ -32,5 +34,17 @@ export const getOptionFilterConfig = (
     type: "select",
     options: booleanFilterOptions,
     placeholder: "عمومی",
+  },
+  {
+    columnId: "date_from",
+    title: "از تاریخ",
+    type: "date",
+    placeholder: "از تاریخ",
+  },
+  {
+    columnId: "date_to",
+    title: "تا تاریخ",
+    type: "date",
+    placeholder: "تا تاریخ",
   },
 ];

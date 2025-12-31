@@ -9,6 +9,8 @@ export interface PortfolioListParams {
   is_public?: string | boolean;
   is_active?: string | boolean;
   categories__in?: string;
+  date_from?: string;
+  date_to?: string;
 }
 
 export interface PortfolioFilters {
@@ -20,6 +22,7 @@ export interface PortfolioFilters {
   [key: string]: string | boolean | number | undefined;
 }
 
+// DEPRECATED: Use PortfolioCategoryListParams from category/portfolioCategoryFilter.ts instead
 export interface CategoryListParams {
   search?: string;
   page?: number;
@@ -28,14 +31,26 @@ export interface CategoryListParams {
   is_public?: boolean;
   created_after?: string;
   created_before?: string;
+  date_from?: string;
+  date_to?: string;
+  order_by?: string;
+  order_desc?: boolean;
+  tree?: boolean;
 }
 
+// DEPRECATED: Use PortfolioTagListParams from tags/portfolioTagFilter.ts instead
 export interface TagListParams {
   search?: string;
   page?: number;
   size?: number;
   is_active?: boolean;
   is_public?: boolean;
+  date_from?: string;
+  date_to?: string;
+  created_after?: string;
+  created_before?: string;
+  order_by?: string;
+  order_desc?: boolean;
 }
 
 export interface PortfolioExportParams extends PortfolioListParams {

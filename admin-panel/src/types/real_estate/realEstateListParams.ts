@@ -47,6 +47,8 @@ export interface PropertyListParams {
   has_main_image?: boolean | string;
   media_count?: number | string;
   media_count_gte?: number | string;
+  date_from?: string;
+  date_to?: string;
 }
 
 export interface PropertyFilters {

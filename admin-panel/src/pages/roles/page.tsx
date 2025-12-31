@@ -39,6 +39,8 @@ export default function RolesPage() {
   const [clientFilters, setClientFilters] = useState<{
     is_active?: boolean;
     is_system_role?: boolean;
+    date_from?: string;
+    date_to?: string;
   }>({});
 
   useEffect(() => {
@@ -72,6 +74,12 @@ export default function RolesPage() {
     if (urlParams.get('is_system_role') !== null) {
       newClientFilters.is_system_role = urlParams.get('is_system_role') === 'true';
     }
+    if (urlParams.get('date_from')) {
+      newClientFilters.date_from = urlParams.get('date_from') as string;
+    }
+    if (urlParams.get('date_to')) {
+      newClientFilters.date_to = urlParams.get('date_to') as string;
+    }
     
     if (Object.keys(newClientFilters).length > 0) {
       setClientFilters(newClientFilters);
@@ -97,10 +105,12 @@ export default function RolesPage() {
       order_desc: sorting.length > 0 ? sorting[0].desc : true,
       is_active: clientFilters.is_active,
       is_system_role: clientFilters.is_system_role,
+      date_from: clientFilters.date_from as string | undefined,
+      date_to: clientFilters.date_to as string | undefined,
     };
     
     return params;
-  }, [searchValue, pagination.pageIndex, pagination.pageSize, sorting, clientFilters.is_active, clientFilters.is_system_role]);
+  }, [searchValue, pagination.pageIndex, pagination.pageSize, sorting, clientFilters.is_active, clientFilters.is_system_role, clientFilters.date_from, clientFilters.date_to]);
 
   const { data: response, isLoading, error } = useRoles(queryParams);
 

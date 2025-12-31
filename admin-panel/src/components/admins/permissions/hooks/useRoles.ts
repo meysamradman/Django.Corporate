@@ -58,7 +58,7 @@ export const useBasePermissions = () => {
 
 export const useRoles = (params: RoleListParams = {}) => {
   return useQuery({
-    queryKey: ['roles', params.search, params.page, params.size, params.order_by, params.order_desc, params.is_active, params.is_system_role],
+    queryKey: ['roles', params.search, params.page, params.size, params.order_by, params.order_desc, params.is_active, params.is_system_role, params.date_from, params.date_to],
     queryFn: async () => {
       const response = await roleApi.getRoleList(params)
       return response
