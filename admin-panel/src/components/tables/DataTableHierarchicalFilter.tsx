@@ -1,8 +1,9 @@
 import { useState, useEffect, Fragment } from "react"
-import { Check, PlusCircle, ChevronRight } from "lucide-react"
+import { PlusCircle, ChevronRight } from "lucide-react"
 import { cn } from '@/core/utils/cn';
 import { Button } from "@/components/elements/Button";
 import { Badge } from "@/components/elements/Badge";
+import { Checkbox } from "@/components/elements/Checkbox";
 import {
   Command,
   CommandEmpty,
@@ -91,16 +92,10 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
             value={item.value}
             onSelect={() => handleValueChange(item.value)}
           >
-            <div
-              className={cn(
-                "flex h-4 w-4 items-center justify-center rounded-sm border border-primary me-2",
-                isSelected
-                  ? "bg-primary text-static-w"
-                  : "opacity-50"
-              )}
-            >
-              {isSelected && <Check className="h-3 w-3" />}
-            </div>
+            <Checkbox
+              checked={isSelected}
+              className="me-2"
+            />
             <div
               style={{ paddingRight: `${depth * 16}px` }}
               className={cn(
@@ -164,16 +159,10 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
             <CommandEmpty>نتیجه‌ای یافت نشد</CommandEmpty>
             <CommandGroup>
               <CommandItem value="all" onSelect={() => handleValueChange("all")}>
-                <div
-                  className={cn(
-                    "flex h-4 w-4 items-center justify-center rounded-sm border border-primary me-2",
-                    filterValue === undefined
-                      ? "bg-primary text-static-w"
-                      : "opacity-50"
-                  )}
-                >
-                  {filterValue === undefined && <Check className="h-3 w-3" />}
-                </div>
+                <Checkbox
+                  checked={filterValue === undefined}
+                  className="me-2"
+                />
                 <span className="flex-1 font-medium">همه</span>
               </CommandItem>
               {renderItems(items)}

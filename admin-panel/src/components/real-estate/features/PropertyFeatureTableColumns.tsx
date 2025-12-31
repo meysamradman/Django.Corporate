@@ -8,7 +8,7 @@ import { Switch } from "@/components/elements/Switch";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { ProtectedLink } from "@/components/admins/permissions";
+import { ProtectedLink, usePermission } from "@/components/admins/permissions";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Avatar, AvatarFallback } from "@/components/elements/Avatar";
 
@@ -17,6 +17,7 @@ export const usePropertyFeatureColumns = (
   onToggleActive?: (feature: PropertyFeature) => void
 ) => {
   const navigate = useNavigate();
+  const { hasPermission } = usePermission();
   
   const baseColumns: ColumnDef<PropertyFeature>[] = [
     {
@@ -59,7 +60,7 @@ export const usePropertyFeatureColumns = (
         return (
           <ProtectedLink 
             to={`/real-estate/features/${feature.id}/edit`} 
-            permission="real_estate.feature.read"
+            permission="real_estate.feature.update"
             className="flex items-center gap-3"
           >
             <Avatar className="table-avatar">
@@ -107,12 +108,14 @@ export const usePropertyFeatureColumns = (
       cell: ({ row }) => {
         const feature = row.original;
         const isActive = feature.is_active;
+        const canUpdate = hasPermission("real_estate.feature.update");
         
         if (onToggleActive) {
           return (
             <div onClick={(e) => e.stopPropagation()}>
               <Switch
                 checked={isActive}
+                disabled={!canUpdate}
                 onCheckedChange={() => onToggleActive(feature)}
               />
             </div>

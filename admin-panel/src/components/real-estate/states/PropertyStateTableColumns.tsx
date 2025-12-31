@@ -1,4 +1,3 @@
-import { type ReactNode } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { PropertyState } from "@/types/real_estate/state/realEstateState";
 import { Edit, Trash2 } from "lucide-react";
@@ -8,7 +7,7 @@ import { Switch } from "@/components/elements/Switch";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { ProtectedLink } from "@/components/admins/permissions";
+import { ProtectedLink, usePermission } from "@/components/admins/permissions";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Avatar, AvatarFallback } from "@/components/elements/Avatar";
 
@@ -17,6 +16,7 @@ export const usePropertyStateColumns = (
   onToggleActive?: (state: PropertyState) => void
 ) => {
   const navigate = useNavigate();
+  const { hasPermission } = usePermission();
   
   const baseColumns: ColumnDef<PropertyState>[] = [
     {
@@ -59,7 +59,7 @@ export const usePropertyStateColumns = (
         return (
           <ProtectedLink 
             to={`/real-estate/states/${state.id}/edit`} 
-            permission="real_estate.state.read"
+            permission="real_estate.state.update"
             className="flex items-center gap-3"
           >
             <Avatar className="table-avatar">
@@ -95,12 +95,14 @@ export const usePropertyStateColumns = (
       cell: ({ row }) => {
         const state = row.original;
         const isActive = state.is_active;
+        const canUpdate = hasPermission("real_estate.state.update");
         
         if (onToggleActive) {
           return (
             <div onClick={(e) => e.stopPropagation()}>
               <Switch
                 checked={isActive}
+                disabled={!canUpdate}
                 onCheckedChange={() => onToggleActive(state)}
               />
             </div>

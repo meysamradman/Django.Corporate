@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
+import { ProtectedButton } from "@/components/admins/permissions";
 import { FileText, Image, Search, Edit2, FileDown } from "lucide-react";
 import { showError, showSuccess } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
@@ -103,12 +104,13 @@ export default function PropertyViewPage() {
             <FileDown className="h-4 w-4" />
             خروجی PDF
           </Button>
-          <Button
+          <ProtectedButton
+            permission="real_estate.property.update"
             onClick={() => navigate(`/real-estate/properties/${propertyId}/edit`)}
           >
             <Edit2 />
             ویرایش ملک
-          </Button>
+          </ProtectedButton>
         </>
       </PageHeader>
 

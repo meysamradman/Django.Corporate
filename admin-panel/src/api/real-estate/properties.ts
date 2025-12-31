@@ -737,6 +737,16 @@ export const realEstateApi = {
     return response.data || [];
   },
 
+  // ✅ NEW: Get cities that have properties (for filters)
+  getCitiesWithProperties: async (provinceId?: number): Promise<RealEstateCity[]> => {
+    let url = '/admin/real-estate-cities/?has_properties=true';
+    if (provinceId) {
+      url += `&province_id=${provinceId}`;
+    }
+    const response = await api.get<RealEstateCity[]>(url);
+    return response.data || [];
+  },
+
   // Simplified location APIs
   getCityRegions: async (cityId?: number): Promise<RealEstateCityRegion[]> => {
     let url = '/admin/real-estate-city-regions/';

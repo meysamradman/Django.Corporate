@@ -7,7 +7,7 @@ import { Switch } from "@/components/elements/Switch";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { ProtectedLink } from "@/components/admins/permissions";
+import { ProtectedLink, usePermission } from "@/components/admins/permissions";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import { mediaService } from "@/components/media/services";
@@ -24,6 +24,7 @@ export const useBlogColumns = (
   onToggleActive?: (blog: Blog) => void
 ) => {
   const navigate = useNavigate();
+  const { hasPermission } = usePermission();
   
   const baseColumns: ColumnDef<Blog>[] = [
     {
@@ -201,12 +202,14 @@ export const useBlogColumns = (
       cell: ({ row }) => {
         const blog = row.original;
         const isActive = blog.is_active;
+        const canUpdate = hasPermission("blog.update");
         
         if (onToggleActive) {
           return (
             <div onClick={(e) => e.stopPropagation()}>
               <Switch
                 checked={isActive}
+                disabled={!canUpdate}
                 onCheckedChange={() => onToggleActive(blog)}
               />
             </div>

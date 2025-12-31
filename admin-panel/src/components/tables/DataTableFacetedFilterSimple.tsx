@@ -1,8 +1,8 @@
-import { PlusCircle, Check } from "lucide-react";
+import { PlusCircle} from "lucide-react";
 import type { ComponentType } from "react";
-import { cn } from "@/core/utils/cn";
 import { Badge } from "@/components/elements/Badge";
 import { Button } from "@/components/elements/Button";
+import { Checkbox } from "@/components/elements/Checkbox";
 import {
   Command,
   CommandEmpty,
@@ -125,16 +125,10 @@ export function DataTableFacetedFilterSimple({
                     key={String(option.value)}
                     onSelect={() => handleToggle(option.value)}
                   >
-                    <div
-                      className={cn(
-                        "flex h-4 w-4 items-center justify-center rounded-sm border border-primary me-2",
-                        isSelected
-                          ? "bg-primary text-static-w"
-                          : "opacity-50"
-                      )}
-                    >
-                      {isSelected && <Check className="h-3 w-3" />}
-                    </div>
+                    <Checkbox
+                      checked={isSelected}
+                      className="me-2"
+                    />
                     {option.icon && (
                       <option.icon className="h-4 w-4 text-font-s me-2" />
                     )}

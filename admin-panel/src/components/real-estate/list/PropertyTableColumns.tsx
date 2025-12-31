@@ -8,7 +8,7 @@ import { Switch } from "@/components/elements/Switch";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { ProtectedLink } from "@/components/admins/permissions";
+import { ProtectedLink, usePermission } from "@/components/admins/permissions";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import { mediaService } from "@/components/media/services";
@@ -25,6 +25,7 @@ export const usePropertyColumns = (
   onToggleActive?: (property: Property) => void
 ) => {
   const navigate = useNavigate();
+  const { hasPermission } = usePermission();
   
   const baseColumns: ColumnDef<Property>[] = [
     {
@@ -72,7 +73,7 @@ export const usePropertyColumns = (
         return (
           <ProtectedLink 
             to={`/real-estate/properties/${property.id}/view`} 
-            permission="real_estate.property.read"
+            permission="real_estate.property.update"
             className="flex items-center gap-3"
           >
             <Avatar className="table-avatar">
@@ -108,6 +109,40 @@ export const usePropertyColumns = (
       enableSorting: false,
       enableHiding: true,
       minSize: 120,
+    },
+    {
+      accessorKey: "labels",
+      header: () => <div className="table-header-text">برچسب‌ها</div>,
+      cell: ({ row }) => {
+        const property = row.original;
+        const labels = property.labels || [];
+        
+        if (labels.length === 0) {
+          return (
+            <div className="table-cell-secondary">
+              بدون برچسب
+            </div>
+          );
+        }
+        
+        return (
+          <div className="flex flex-wrap gap-1">
+            {labels.slice(0, 2).map((label) => (
+              <Badge key={label.id} variant="purple" className="text-xs" title={label.title}>
+                {label.title.length > 15 ? `${label.title.substring(0, 15)}...` : label.title}
+              </Badge>
+            ))}
+            {labels.length > 2 && (
+              <Badge variant="purple" className="text-xs">
+                +{labels.length - 2}
+              </Badge>
+            )}
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: true,
+      minSize: 150,
     },
     {
       accessorKey: "state",
@@ -230,12 +265,14 @@ export const usePropertyColumns = (
       cell: ({ row }) => {
         const property = row.original;
         const isActive = property.is_active;
+        const canUpdate = hasPermission("real_estate.property.update");
         
         if (onToggleActive) {
           return (
             <div onClick={(e) => e.stopPropagation()}>
               <Switch
                 checked={isActive}
+                disabled={!canUpdate}
                 onCheckedChange={() => onToggleActive(property)}
               />
             </div>
@@ -265,12 +302,14 @@ export const usePropertyColumns = (
             label: "ویرایش",
             icon: <Edit className="h-4 w-4" />,
             onClick: (property) => navigate(`/real-estate/properties/${property.id}/edit`),
+            permission: "real_estate.property.update",
           },
           {
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
             onClick: (_property) => {},
             isDestructive: true,
+            permission: "real_estate.property.delete",
           },
         ];
         

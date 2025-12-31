@@ -7,7 +7,7 @@ import { Switch } from "@/components/elements/Switch";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { ProtectedLink } from "@/components/admins/permissions";
+import { ProtectedLink, usePermission } from "@/components/admins/permissions";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Avatar, AvatarFallback } from "@/components/elements/Avatar";
 
@@ -16,6 +16,7 @@ export const usePropertyTagColumns = (
   onToggleActive?: (tag: PropertyTag) => void
 ) => {
   const navigate = useNavigate();
+  const { hasPermission } = usePermission();
   
   const baseColumns: ColumnDef<PropertyTag>[] = [
     {
@@ -58,7 +59,7 @@ export const usePropertyTagColumns = (
         return (
           <ProtectedLink 
             to={`/real-estate/tags/${tag.id}/edit`} 
-            permission="real_estate.tag.read"
+            permission="real_estate.tag.update"
             className="flex items-center gap-3"
           >
             <Avatar className="table-avatar">
@@ -122,12 +123,14 @@ export const usePropertyTagColumns = (
       cell: ({ row }) => {
         const tag = row.original;
         const isActive = tag.is_active;
+        const canUpdate = hasPermission("real_estate.tag.update");
         
         if (onToggleActive) {
           return (
             <div onClick={(e) => e.stopPropagation()}>
               <Switch
                 checked={isActive ?? true}
+                disabled={!canUpdate}
                 onCheckedChange={() => onToggleActive(tag)}
               />
             </div>

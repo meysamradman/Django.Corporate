@@ -1,10 +1,9 @@
 from rest_framework import viewsets, status
-from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.core.cache import cache
-from django.db.models import Q, F
+from django.db.models import Q, F, Count
 from decimal import Decimal
 import math
 
@@ -87,13 +86,25 @@ class RealEstateCityViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         province_id = self.request.query_params.get('province_id')
+        # ✅ فیلتر شهرهایی که ملک دارند
+        has_properties = self.request.query_params.get('has_properties', 'false').lower() == 'true'
+        
         if province_id:
             queryset = queryset.filter(province_id=province_id)
+        
+        if has_properties:
+            # فقط شهرهایی که حداقل یک ملک فعال دارند
+            queryset = queryset.annotate(
+                property_count=Count('real_estate_properties', filter=Q(real_estate_properties__is_active=True))
+            ).filter(property_count__gt=0)
+        
         return queryset
     
     def list(self, request, *args, **kwargs):
         province_id = request.query_params.get('province_id')
-        cache_key = f'real_estate_cities_province_{province_id or "all"}'
+        has_properties = request.query_params.get('has_properties', 'false').lower() == 'true'
+        cache_key = f'real_estate_cities_province_{province_id or "all"}_has_prop_{has_properties}'
+        
         cached_data = cache.get(cache_key)
         
         if cached_data:
@@ -103,10 +114,22 @@ class RealEstateCityViewSet(viewsets.ReadOnlyModelViewSet):
             )
         
         queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        data = serializer.data
         
-        cache.set(cache_key, data, 3600)
+        # اگر فیلتر has_properties فعال باشه، property_count رو هم برگردونیم
+        if has_properties:
+            data = [{
+                'id': city.id,
+                'name': city.name,
+                'province_id': city.province_id,
+                'province_name': city.province.name,
+                'property_count': city.property_count  # تعداد املاک
+            } for city in queryset]
+        else:
+            serializer = self.get_serializer(queryset, many=True)
+            data = serializer.data
+        
+        # Cache برای 30 دقیقه (چون data نسبتاً استاتیک است)
+        cache.set(cache_key, data, 1800)
         
         return APIResponse.success(
             message="شهرها با موفقیت دریافت شدند",

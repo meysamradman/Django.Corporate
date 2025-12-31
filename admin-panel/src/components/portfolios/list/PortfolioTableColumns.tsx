@@ -8,7 +8,7 @@ import { Switch } from "@/components/elements/Switch";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { ProtectedLink } from "@/components/admins/permissions";
+import { ProtectedLink, usePermission } from "@/components/admins/permissions";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import { mediaService } from "@/components/media/services";
@@ -25,6 +25,7 @@ export const usePortfolioColumns = (
   onToggleActive?: (portfolio: Portfolio) => void
 ) => {
   const navigate = useNavigate();
+  const { hasPermission } = usePermission();
   
   const baseColumns: ColumnDef<Portfolio>[] = [
     {
@@ -202,12 +203,14 @@ export const usePortfolioColumns = (
       cell: ({ row }) => {
         const portfolio = row.original;
         const isActive = portfolio.is_active;
+        const canUpdate = hasPermission("portfolio.update");
         
         if (onToggleActive) {
           return (
             <div onClick={(e) => e.stopPropagation()}>
               <Switch
                 checked={isActive}
+                disabled={!canUpdate}
                 onCheckedChange={() => onToggleActive(portfolio)}
               />
             </div>
@@ -237,12 +240,14 @@ export const usePortfolioColumns = (
             label: "ویرایش",
             icon: <Edit className="h-4 w-4" />,
             onClick: (portfolio) => navigate(`/portfolios/${portfolio.id}/edit`),
+            permission: "portfolio.update",
           },
           {
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
             onClick: (_portfolio) => {},
             isDestructive: true,
+            permission: "portfolio.delete",
           },
         ];
         
