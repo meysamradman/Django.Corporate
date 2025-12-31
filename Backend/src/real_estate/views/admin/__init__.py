@@ -8,6 +8,11 @@ from .feature_views import PropertyFeatureAdminViewSet
 from .tag_views import PropertyTagAdminViewSet
 from .agent_views import PropertyAgentAdminViewSet
 from .agency_views import RealEstateAgencyAdminViewSet
+from .location_views import (
+    RealEstateProvinceViewSet,
+    RealEstateCityViewSet,
+    RealEstateCityRegionViewSet,
+)
 
 __all__ = [
     'PropertyAdminViewSet',
@@ -20,5 +25,9 @@ __all__ = [
     'PropertyTagAdminViewSet',
     'PropertyAgentAdminViewSet',
     'RealEstateAgencyAdminViewSet',
+    # Location ViewSets
+    'RealEstateProvinceViewSet',
+    'RealEstateCityViewSet',
+    'RealEstateCityRegionViewSet',
 ]
 

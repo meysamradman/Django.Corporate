@@ -624,7 +624,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         Dynamically retrieves choices from Property model and Constants
         """
         from src.real_estate.models.property import Property
-        from src.real_estate.constants import (
+        from src.real_estate.models.constants import (
             get_document_type_choices_list,
             get_space_type_choices_list,
             get_construction_status_choices_list,

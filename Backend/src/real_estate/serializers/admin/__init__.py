@@ -71,6 +71,13 @@ from .agency_serializer import (
     RealEstateAgencyAdminUpdateSerializer,
     RealEstateAgencyAdminSerializer,
 )
+from .location_serializer import (
+    RealEstateProvinceSerializer,
+    RealEstateCitySerializer,
+    RealEstateCityRegionSerializer,
+    RealEstateCitySimpleSerializer,
+    RealEstateCityRegionSimpleSerializer,
+)
 
 __all__ = [
     'PropertyAdminListSerializer',
@@ -128,5 +135,11 @@ __all__ = [
     'RealEstateAgencyAdminCreateSerializer',
     'RealEstateAgencyAdminUpdateSerializer',
     'RealEstateAgencyAdminSerializer',
+    # Location serializers
+    'RealEstateProvinceSerializer',
+    'RealEstateCitySerializer',
+    'RealEstateCityRegionSerializer',
+    'RealEstateCitySimpleSerializer',
+    'RealEstateCityRegionSimpleSerializer',
 ]
 

@@ -1,14 +1,21 @@
 from rest_framework import viewsets, status
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
-from django.core.cache import cache
-
-from src.core.models import Province, City
-from src.real_estate.models.location import CityRegion
 from rest_framework.response import Response
+from django.core.cache import cache
 from django.db.models import Q, F
 from decimal import Decimal
 import math
+
+from src.core.models import Province, City
+from src.real_estate.models.location import CityRegion
+from src.real_estate.serializers.admin import (
+    RealEstateProvinceSerializer,
+    RealEstateCitySerializer,
+    RealEstateCityRegionSerializer,
+    RealEstateCitySimpleSerializer,
+)
 from src.core.responses.response import APIResponse
 from src.core.pagination.pagination import StandardLimitPagination
 
@@ -18,6 +25,7 @@ class RealEstateProvinceViewSet(viewsets.ReadOnlyModelViewSet):
     ViewSet for Real Estate Provinces (read-only)
     """
     queryset = Province.objects.filter(is_active=True).select_related('country').order_by('country__name', 'name')
+    serializer_class = RealEstateProvinceSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = StandardLimitPagination
     
@@ -56,7 +64,8 @@ class RealEstateProvinceViewSet(viewsets.ReadOnlyModelViewSet):
             )
         
         cities = City.objects.filter(province=province, is_active=True).order_by('name')
-        data = [{'id': city.id, 'name': city.name, 'code': city.code} for city in cities]
+        serializer = RealEstateCitySimpleSerializer(cities, many=True)
+        data = serializer.data
         
         cache.set(cache_key, data, 3600)
         
@@ -71,6 +80,7 @@ class RealEstateCityViewSet(viewsets.ReadOnlyModelViewSet):
     ViewSet for Real Estate Cities (read-only)
     """
     queryset = City.objects.filter(is_active=True).select_related('province', 'province__country').order_by('province__name', 'name')
+    serializer_class = RealEstateCitySerializer
     permission_classes = [IsAuthenticated]
     pagination_class = StandardLimitPagination
     
@@ -137,6 +147,7 @@ class RealEstateCityRegionViewSet(viewsets.ReadOnlyModelViewSet):
     Only for major cities like Tehran (regions 1-22)
     """
     queryset = CityRegion.objects.filter(is_active=True).select_related('city', 'city__province').order_by('city', 'code')
+    serializer_class = RealEstateCityRegionSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):

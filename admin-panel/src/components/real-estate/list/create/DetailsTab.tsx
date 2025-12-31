@@ -222,12 +222,12 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                     <div className="space-y-2">
                         <Label htmlFor="kitchens">تعداد آشپزخانه</Label>
                         <Select
-                            value={formData?.kitchens?.toString() ?? "1"}
+                            value={formData?.kitchens?.toString() || undefined}
                             onValueChange={handleSelectChange("kitchens")}
                             disabled={!editMode || isLoadingOptions}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="1 آشپزخانه" />
+                                <SelectValue placeholder="تعداد آشپزخانه" />
                             </SelectTrigger>
                             <SelectContent>
                                 {fieldOptions?.kitchens?.map((item: [number, string]) => (
@@ -242,12 +242,12 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                     <div className="space-y-2">
                         <Label htmlFor="living_rooms">تعداد پذیرایی</Label>
                         <Select
-                            value={formData?.living_rooms?.toString() ?? "1"}
+                            value={formData?.living_rooms?.toString() || undefined}
                             onValueChange={handleSelectChange("living_rooms")}
                             disabled={!editMode || isLoadingOptions}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="1 پذیرایی" />
+                                <SelectValue placeholder="تعداد پذیرایی" />
                             </SelectTrigger>
                             <SelectContent>
                                 {fieldOptions?.living_rooms?.map((item: [number, string]) => (

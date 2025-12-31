@@ -502,11 +502,23 @@ export default function PropertyCreatePage() {
         bathrooms: formData.bathrooms !== null && formData.bathrooms !== undefined
           ? formData.bathrooms
           : undefined,
+        kitchens: formData.kitchens !== null && formData.kitchens !== undefined
+          ? formData.kitchens
+          : undefined,
+        living_rooms: formData.living_rooms !== null && formData.living_rooms !== undefined
+          ? formData.living_rooms
+          : undefined,
         year_built: formData.year_built !== null && formData.year_built !== undefined
           ? formData.year_built
           : undefined,
+        build_years: formData.build_years !== null && formData.build_years !== undefined
+          ? formData.build_years
+          : undefined,
         floors_in_building: formData.floors_in_building !== null && formData.floors_in_building !== undefined
           ? formData.floors_in_building
+          : undefined,
+        floor_number: formData.floor_number !== null && formData.floor_number !== undefined
+          ? formData.floor_number
           : undefined,
         parking_spaces: formData.parking_spaces !== null && formData.parking_spaces !== undefined
           ? formData.parking_spaces
@@ -514,15 +526,28 @@ export default function PropertyCreatePage() {
         storage_rooms: formData.storage_rooms !== null && formData.storage_rooms !== undefined
           ? formData.storage_rooms
           : undefined,
+        document_type: formData.document_type || undefined,
         price: formData.price !== null && formData.price !== undefined
           ? formData.price
           : 0,
+        sale_price: formData.sale_price !== null && formData.sale_price !== undefined
+          ? formData.sale_price
+          : undefined,
+        pre_sale_price: formData.pre_sale_price !== null && formData.pre_sale_price !== undefined
+          ? formData.pre_sale_price
+          : undefined,
+        monthly_rent: formData.monthly_rent !== null && formData.monthly_rent !== undefined
+          ? formData.monthly_rent
+          : undefined,
         mortgage_amount: formData.mortgage_amount !== null && formData.mortgage_amount !== undefined
           ? formData.mortgage_amount
           : 0,
         rent_amount: formData.rent_amount !== null && formData.rent_amount !== undefined
           ? formData.rent_amount
           : 0,
+        security_deposit: formData.security_deposit !== null && formData.security_deposit !== undefined
+          ? formData.security_deposit
+          : undefined,
       };
 
       let property;
