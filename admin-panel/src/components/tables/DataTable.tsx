@@ -222,10 +222,13 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
            <div className="flex flex-col flex-wrap gap-2 md:flex-row md:items-center md:gap-2">
              {customHeaderActions}
               {filterConfig.map((filter) => {
-               const column = table.getColumn(filter.columnId);
-               
-               // Allow rendering for non-column filters like date_from, date_to, date_range, date_range_dropdown, categories, property_type
+               // ✅ Check if it's a non-column filter FIRST to avoid warning
                const isNonColumnFilter = ['categories', 'property_type', 'date_from', 'date_to', 'date_range', 'date_range_dropdown'].includes(filter.columnId);
+               
+               // Only call getColumn if it's not a non-column filter
+               const column = isNonColumnFilter ? null : table.getColumn(filter.columnId);
+               
+               // Skip if no column found and it's not a non-column filter
                if (!column && !isNonColumnFilter) return null;
                
                if (filter.type === 'hierarchical') {
