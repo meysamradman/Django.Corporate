@@ -21,16 +21,17 @@ urlpatterns = [
     path('api/', include('src.email.urls')),
     path('api/', include('src.page.urls')),
     path('api/', include('src.form.urls')),
-    path('api/', include('src.blog.urls')),
-    path('api/', include('src.portfolio.urls')),
-    path('api/', include('src.real_estate.urls')),
-    # Export views (also feature flag controlled via middleware)
+    # Export views (also feature flag controlled via middleware) - MUST be before include urls
     path('api/admin/blog/export/', BlogExportView.as_view(), name='admin-blog-export'),
     path('api/admin/blog/export', BlogExportView.as_view(), name='admin-blog-export-no-slash'),
     path('api/admin/portfolio/export/', PortfolioExportView.as_view(), name='admin-portfolio-export'),
     path('api/admin/portfolio/export', PortfolioExportView.as_view(), name='admin-portfolio-export-no-slash'),
     path('api/admin/property/export/', PropertyExportView.as_view(), name='admin-property-export'),
     path('api/admin/property/export', PropertyExportView.as_view(), name='admin-property-export-no-slash'),
+    # App includes - MUST be after export paths
+    path('api/', include('src.blog.urls')),
+    path('api/', include('src.portfolio.urls')),
+    path('api/', include('src.real_estate.urls')),
     # ========================================
     # API Documentation
     # ========================================

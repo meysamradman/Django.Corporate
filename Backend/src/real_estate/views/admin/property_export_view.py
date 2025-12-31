@@ -79,7 +79,7 @@ class PropertyExportView(PermissionRequiredMixin, APIView):
                 'videos__video', 'videos__video__cover_image',
                 'audios__audio', 'audios__audio__cover_image',
                 'documents__document', 'documents__document__cover_image',
-            ).select_related('city', 'province', 'country', 'region')
+            ).select_related('city', 'province', 'region')
             
             queryset = PropertyAdminFilter(query_params, queryset=queryset).qs
             

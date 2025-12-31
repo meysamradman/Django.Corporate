@@ -521,6 +521,12 @@ class Property(BaseModel, SEOMixin):
                 name='idx_featured_props'
             ),
             
+            # ✅ NEW: Index بهینه برای admin listing با ordering
+            models.Index(
+                fields=['is_active', '-created_at', 'id'],
+                name='idx_admin_list_order'
+            ),
+            
             models.Index(
                 fields=['agent', 'is_published', '-created_at'],
                 name='idx_agent_dashboard'

@@ -1,6 +1,7 @@
 from io import BytesIO
 from datetime import datetime
 from django.http import HttpResponse
+from django.utils import timezone
 from src.real_estate.messages.messages import PROPERTY_ERRORS
 
 try:
@@ -15,7 +16,7 @@ class PropertyExcelExportService:
     @staticmethod
     def export_properties(queryset):
         if not XLSXWRITER_AVAILABLE:
-            raise ImportError(PROPERTY_ERRORS.get("property_export_failed", "Export failed"))
+            raise ImportError(PROPERTY_ERRORS["property_export_failed"])
         
         output = BytesIO()
         workbook = xlsxwriter.Workbook(output, {
@@ -84,7 +85,8 @@ class PropertyExcelExportService:
             worksheet.write(row_num, 6, property_obj.province.name if property_obj.province else "", data_format)
             worksheet.write(row_num, 7, property_obj.price or "", data_format)
             worksheet.write(row_num, 8, property_obj.sale_price or "", data_format)
-
+            worksheet.write(row_num, 9, "USD", data_format)  # Currency - can be dynamic later
+            
             worksheet.write(row_num, 10, property_obj.bedrooms or "", data_format)
             worksheet.write(row_num, 11, property_obj.bathrooms or "", data_format)
             worksheet.write(row_num, 12, property_obj.built_area or "", data_format)
@@ -97,13 +99,20 @@ class PropertyExcelExportService:
             worksheet.write(row_num, 19, property_obj.agent.full_name if property_obj.agent else "", data_format)
             worksheet.write(row_num, 20, property_obj.agency.name if property_obj.agency else "", data_format)
             
+            # Convert timezone-aware datetime to naive for xlsxwriter
             if property_obj.created_at:
-                worksheet.write_datetime(row_num, 21, property_obj.created_at, data_format)
+                created_dt = property_obj.created_at
+                if timezone.is_aware(created_dt):
+                    created_dt = timezone.make_naive(created_dt, timezone.get_current_timezone())
+                worksheet.write_datetime(row_num, 21, created_dt, data_format)
             else:
                 worksheet.write(row_num, 21, "", data_format)
                 
             if property_obj.updated_at:
-                worksheet.write_datetime(row_num, 22, property_obj.updated_at, data_format)
+                updated_dt = property_obj.updated_at
+                if timezone.is_aware(updated_dt):
+                    updated_dt = timezone.make_naive(updated_dt, timezone.get_current_timezone())
+                worksheet.write_datetime(row_num, 22, updated_dt, data_format)
             else:
                 worksheet.write(row_num, 22, "", data_format)
             
