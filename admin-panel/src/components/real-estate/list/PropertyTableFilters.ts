@@ -1,4 +1,4 @@
-import type { FilterConfig } from "@/types/shared/table";
+import type { FilterConfig, CategoryItem } from "@/types/shared/table";
 
 export const usePropertyFilterOptions = () => {
   const booleanFilterOptions = [
@@ -13,58 +13,64 @@ export const usePropertyFilterOptions = () => {
 
 export const getPropertyFilterConfig = (
   booleanFilterOptions: { label: string; value: boolean }[],
-  propertyTypeOptions: { label: string; value: string }[] = [],
+  propertyTypeOptions: CategoryItem[] = [],
   stateOptions: { label: string; value: string }[] = [],
   cityOptions: { label: string; value: string }[] = []
 ): FilterConfig[] => [
   {
     columnId: "is_published",
     title: "منتشر شده",
-    type: "select",
+    type: "faceted",
     options: booleanFilterOptions,
     placeholder: "منتشر شده",
+    showSearch: false,
   },
   {
     columnId: "is_featured",
     title: "ویژه",
-    type: "select",
+    type: "faceted",
     options: booleanFilterOptions,
     placeholder: "ویژه",
+    showSearch: false,
   },
   {
     columnId: "is_verified",
     title: "تایید شده",
-    type: "select",
+    type: "faceted",
     options: booleanFilterOptions,
     placeholder: "تایید شده",
+    showSearch: false,
   },
   {
     columnId: "is_active",
     title: "فعال",
-    type: "select",
+    type: "faceted",
     options: booleanFilterOptions,
     placeholder: "فعال",
+    showSearch: false,
   },
   {
     columnId: "property_type",
     title: "نوع ملک",
-    type: "select",
+    type: "hierarchical",
     options: propertyTypeOptions,
     placeholder: "نوع ملک",
   },
   {
     columnId: "state",
     title: "وضعیت",
-    type: "select",
+    type: "faceted",
     options: stateOptions,
     placeholder: "وضعیت",
+    showSearch: true,
   },
   {
     columnId: "city",
     title: "شهر",
-    type: "select",
+    type: "faceted",
     options: cityOptions,
     placeholder: "شهر",
+    showSearch: true,
   },
   {
     columnId: "date_range",

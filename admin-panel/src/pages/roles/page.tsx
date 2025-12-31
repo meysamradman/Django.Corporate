@@ -11,7 +11,8 @@ import { Edit, Trash2, Eye, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/components/admins/permissions";
 import { showWarning } from "@/core/toast";
-import type { PaginationState, SortingState, OnChangeFn } from "@tanstack/react-table";
+import type { SortingState, OnChangeFn } from "@tanstack/react-table";
+import type { TablePaginationState } from '@/types/shared/pagination';
 import { getConfirm } from '@/core/messages';
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 import type { DataTableRowAction } from "@/types/shared/table";
@@ -30,7 +31,7 @@ export default function RolesPage() {
   const { roleTypeFilterOptions } = useRoleFilterOptions();
   const roleFilterConfig = getRoleFilterConfig(roleTypeFilterOptions);
 
-  const [pagination, setPagination] = useState<PaginationState>({
+  const [pagination, setPagination] = useState<TablePaginationState>({
     pageIndex: 0,
     pageSize: 10,
   });
@@ -87,6 +88,12 @@ export default function RolesPage() {
       setClientFilters(newClientFilters);
     }
   }, []);
+
+  const { handleFilterChange } = useTableFilters<typeof clientFilters>(
+    setClientFilters,
+    setSearchValue,
+    setPagination
+  );
 
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
@@ -197,7 +204,7 @@ export default function RolesPage() {
   };
 
 
-  const handlePaginationChange: OnChangeFn<PaginationState> = (updaterOrValue) => {
+  const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 
       ? updaterOrValue(pagination) 
       : updaterOrValue;

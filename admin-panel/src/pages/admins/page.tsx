@@ -3,7 +3,7 @@ import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { useNavigate, Link } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useAdminFilterOptions } from "@/components/admins/AdminTableFilters";
-import { PersianDateRangePicker } from '@/components/elements/PersianDateRangePicker';
+import { DataTableDateRangeFilter } from "@/components/tables/DataTableDateRangeFilter";
 import type { AdminWithProfile, AdminListParams, AdminFilters } from "@/types/auth/admin";
 import { useAuth } from "@/core/auth/AuthContext";
 import { adminApi } from "@/api/admins/admins";
@@ -23,7 +23,7 @@ import { Mail, Phone } from "lucide-react";
 import { getPermissionTranslation } from "@/core/messages/permissions";
 import { PaginationControls } from "@/components/shared/Pagination";
 import { Loader } from "@/components/elements/Loader";
-import { DataTableSelectFilter } from "@/components/tables/DataTableSelectFilter";
+import { DataTableFacetedFilterSimple } from "@/components/tables/DataTableFacetedFilterSimple";
 import { getConfirm } from '@/core/messages';
 import { Badge } from "@/components/elements/Badge";
 import {
@@ -387,31 +387,35 @@ export default function AdminsPage() {
             />
           </div>
 
-          <DataTableSelectFilter
+          <DataTableFacetedFilterSimple
             title="نوع کاربر"
-            placeholder="نوع کاربر"
             options={userRoleTypeOptions}
             value={clientFilters.user_role_type}
             onChange={(value) => handleFilterChange('user_role_type', value)}
+            multiSelect={false}
+            showSearch={false}
           />
 
-          <DataTableSelectFilter
+          <DataTableFacetedFilterSimple
             title="وضعیت"
-            placeholder="وضعیت"
             options={booleanFilterOptions}
             value={clientFilters.is_active}
             onChange={(value) => handleFilterChange('is_active', value)}
+            multiSelect={false}
+            showSearch={false}
           />
 
-          <DataTableSelectFilter
+          <DataTableFacetedFilterSimple
             title="نقش"
-            placeholder="نقش"
             options={roleFilterOptions}
             value={clientFilters.is_superuser}
             onChange={(value) => handleFilterChange('is_superuser', value)}
+            multiSelect={false}
+            showSearch={false}
           />
 
-          <PersianDateRangePicker
+          <DataTableDateRangeFilter
+            title="بازه تاریخ"
             value={(clientFilters as any).date_range || { from: clientFilters.date_from as string || undefined, to: clientFilters.date_to as string || undefined }}
             onChange={(range) => {
               handleFilterChange('date_range', range);
@@ -419,7 +423,6 @@ export default function AdminsPage() {
               handleFilterChange('date_to', range.to);
             }}
             placeholder="انتخاب بازه تاریخ"
-            className="h-9 w-[280px]"
           />
         </div>
 

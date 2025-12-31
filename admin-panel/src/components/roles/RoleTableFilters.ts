@@ -20,14 +20,16 @@ export const getRoleFilterConfig = (
             { label: "غیرفعال", value: false }
         ],
         placeholder: "وضعیت",
-        type: 'select'
+        type: 'faceted',
+        showSearch: false,
     },
     {
         columnId: "is_system_role",
         title: "نوع نقش",
         options: roleTypeFilterOptions,
         placeholder: "نوع نقش",
-        type: 'select'
+        type: 'faceted',
+        showSearch: false,
     },
     {
         columnId: "date_range",

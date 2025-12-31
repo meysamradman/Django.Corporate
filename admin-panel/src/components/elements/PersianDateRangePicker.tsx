@@ -31,7 +31,7 @@ interface PersianDateRangePickerProps {
 export function PersianDateRangePicker({
   value,
   onChange,
-  placeholder = "انتخاب بازه تاریخ",
+  placeholder = "",
   disabled = false,
   className = ""
 }: PersianDateRangePickerProps) {
@@ -331,7 +331,10 @@ export function PersianDateRangePicker({
             placeholder={placeholder}
             readOnly
             disabled={disabled}
-            className="flex h-9 w-full rounded-md border border-input bg-card pr-3 pl-10 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-font-s focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+            className={cn(
+              "flex h-9 rounded-md border border-input bg-card pr-3 pl-10 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-font-s focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer",
+              className?.includes('w-') ? "" : "w-auto min-w-[120px]"
+            )}
           />
           <div className="absolute left-0 top-0 h-full flex items-center justify-center px-2 pointer-events-none">
             <Calendar className="h-4 w-4 text-font-s" />

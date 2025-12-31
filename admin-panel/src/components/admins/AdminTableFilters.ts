@@ -29,21 +29,24 @@ export const getAdminFilterConfig = (
         title: "نوع کاربر",
         options: userRoleTypeOptions,
         placeholder: "نوع کاربر",
-        type: 'select'
+        type: 'faceted',
+        showSearch: false,
     },
     {
         columnId: "is_active",
         title: "وضعیت",
         options: booleanFilterOptions,
         placeholder: "وضعیت",
-        type: 'select'
+        type: 'faceted',
+        showSearch: false,
     },
     {
         columnId: "is_superuser",
         title: "نقش",
         options: roleFilterOptions,
         placeholder: "نقش",
-        type: 'select'
+        type: 'faceted',
+        showSearch: false,
     },
     {
         columnId: "date_range",

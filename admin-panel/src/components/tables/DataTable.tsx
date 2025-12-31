@@ -29,11 +29,13 @@ import {
   TableRow,
 } from "@/components/elements/Table"
 
-import { DataTableSelectFilter } from "./DataTableSelectFilter"
 import { DataTableHierarchicalFilter } from "./DataTableHierarchicalFilter"
 import type { CategoryItem } from "@/types/shared/table";
 import { DataTableDateFilter } from "./DataTableDateFilter"
 import { DataTableDateRangeFilter } from "./DataTableDateRangeFilter"
+import { DataTableDateRangeFilterDropdown } from "./DataTableDateRangeFilterDropdown"
+import { DataTableFacetedFilterSimple } from "./DataTableFacetedFilterSimple"
+import type { DateRangeOption } from "@/types/shared/table"
 import { Trash, Search, Download, Printer, FileSpreadsheet, FileText } from "lucide-react"
 import { Loader } from "@/components/elements/Loader"
 import { PaginationControls } from "@/components/shared/Pagination"
@@ -222,8 +224,8 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
               {filterConfig.map((filter) => {
                const column = table.getColumn(filter.columnId);
                
-               // Allow rendering for non-column filters like date_from, date_to, date_range, categories
-               const isNonColumnFilter = ['categories', 'date_from', 'date_to', 'date_range'].includes(filter.columnId);
+               // Allow rendering for non-column filters like date_from, date_to, date_range, date_range_dropdown, categories, property_type
+               const isNonColumnFilter = ['categories', 'property_type', 'date_from', 'date_to', 'date_range', 'date_range_dropdown'].includes(filter.columnId);
                if (!column && !isNonColumnFilter) return null;
                
                if (filter.type === 'hierarchical') {
@@ -264,6 +266,32 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                  );
                }
                
+               if (filter.type === 'date_range_dropdown') {
+                 // Get range from filters, or construct from date_from/date_to
+                 const rangeValue = clientFilters[filter.columnId as keyof TClientFilters] as { from?: string; to?: string } | undefined;
+                 const dateFrom = clientFilters['date_from' as keyof TClientFilters] as string | undefined;
+                 const dateTo = clientFilters['date_to' as keyof TClientFilters] as string | undefined;
+                 
+                 const currentRange = rangeValue || (dateFrom || dateTo ? { from: dateFrom, to: dateTo } : { from: undefined, to: undefined });
+                 
+                 return (
+                   <DataTableDateRangeFilterDropdown
+                     key={filter.columnId}
+                     title={filter.title}
+                     options={(filter.options || []) as DateRangeOption[]}
+                     value={currentRange}
+                     onChange={(range) => {
+                       // Store the range object for UI
+                       onFilterChange(filter.columnId, range);
+                       // Also set date_from and date_to for backend compatibility
+                       onFilterChange('date_from', range.from);
+                       onFilterChange('date_to', range.to);
+                     }}
+                     placeholder={filter.placeholder || filter.title || "بازه تاریخ"}
+                   />
+                 );
+               }
+               
                if (filter.type === 'date') {
                  return (
                    <DataTableDateFilter
@@ -276,14 +304,30 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                  );
                }
                
+               if (filter.type === 'faceted') {
+                 return (
+                   <DataTableFacetedFilterSimple
+                     key={filter.columnId}
+                     title={filter.title}
+                     options={(filter.options || []) as Array<{ label: string; value: string | boolean; icon?: React.ComponentType<{ className?: string }>; count?: number }>}
+                     value={clientFilters[filter.columnId as keyof TClientFilters] as string | boolean | (string | boolean)[] | undefined}
+                     onChange={(value) => onFilterChange(filter.columnId, value)}
+                     multiSelect={false}
+                     showSearch={filter.showSearch !== false}
+                   />
+                 );
+               }
+               
+               // Default to faceted filter for backward compatibility
                return (
-                 <DataTableSelectFilter
+                 <DataTableFacetedFilterSimple
                    key={filter.columnId}
                    title={filter.title}
-                   options={filter.options || []}
-                   placeholder={filter.placeholder || filter.title || "انتخاب کنید..."}
-                   value={clientFilters[filter.columnId as keyof TClientFilters] as string | boolean | undefined}
+                   options={(filter.options || []) as Array<{ label: string; value: string | boolean; icon?: React.ComponentType<{ className?: string }>; count?: number }>}
+                   value={clientFilters[filter.columnId as keyof TClientFilters] as string | boolean | (string | boolean)[] | undefined}
                    onChange={(value) => onFilterChange(filter.columnId, value)}
+                   multiSelect={false}
+                   showSearch={filter.showSearch !== false && (filter.options || []).length > 5}
                  />
                );
              })}

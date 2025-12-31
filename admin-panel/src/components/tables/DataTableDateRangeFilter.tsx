@@ -8,26 +8,17 @@ interface DataTableDateRangeFilterProps {
 }
 
 export function DataTableDateRangeFilter({
-  title,
   value,
   onChange,
   placeholder,
 }: DataTableDateRangeFilterProps) {
-  const defaultPlaceholder = placeholder || title || "انتخاب بازه تاریخ";
   return (
-    <div className="flex items-center gap-2">
-      {title && (
-        <label className="text-sm font-medium text-font-s whitespace-nowrap">
-          {title}
-        </label>
-      )}
-      <PersianDateRangePicker
-        value={value || { from: undefined, to: undefined }}
-        onChange={(range) => onChange(range)}
-        placeholder={defaultPlaceholder}
-        className="h-9 w-[280px]"
-      />
-    </div>
+    <PersianDateRangePicker
+      value={value || { from: undefined, to: undefined }}
+      onChange={(range) => onChange(range)}
+      placeholder={placeholder || ""}
+      className="h-9 w-full md:w-auto min-w-[120px]"
+    />
   )
 }
 

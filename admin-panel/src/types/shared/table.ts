@@ -17,12 +17,21 @@ export interface FilterOption {
   value: string | boolean;
 }
 
+export interface DateRangeOption {
+  label: string;
+  value: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  count?: number;
+  dateRange: { from?: string; to?: string };
+}
+
 export interface FilterConfig {
   columnId: string;
   title: string;
-  options?: FilterOption[];
+  options?: FilterOption[] | DateRangeOption[];
   placeholder?: string;
-  type?: 'select' | 'hierarchical' | 'date' | 'date_range';
+  type?: 'select' | 'hierarchical' | 'date' | 'date_range' | 'date_range_dropdown' | 'faceted';
+  showSearch?: boolean;
 }
 
 export interface DeleteConfig {

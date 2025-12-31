@@ -38,15 +38,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/elements/Dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/elements/Select"
+import { DataTableFacetedFilterSimple } from "@/components/tables/DataTableFacetedFilterSimple";
+import { DataTableDateRangeFilter } from "@/components/tables/DataTableDateRangeFilter";
 import { Loader } from '@/components/elements/Loader';
-import { PersianDateRangePicker } from '@/components/elements/PersianDateRangePicker';
 
 const MediaGridSkeleton = () => (
   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 p-6">
@@ -401,28 +395,32 @@ export default function MediaPage() {
 
             <div className="flex flex-col flex-wrap gap-2 md:flex-row md:items-center md:gap-2">
               {mounted && (
-                <Select
-                  value={filters.file_type}
-                  onValueChange={handleFileTypeChange}
-                >
-                  <SelectTrigger className="h-8 w-32">
-                    <SelectValue placeholder="نوع فایل" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">همه انواع</SelectItem>
-                    <SelectItem value="image">تصویر</SelectItem>
-                    <SelectItem value="video">ویدیو</SelectItem>
-                    <SelectItem value="audio">صوت</SelectItem>
-                    <SelectItem value="pdf">مستند</SelectItem>
-                  </SelectContent>
-                </Select>
+                <DataTableFacetedFilterSimple
+                  title="نوع فایل"
+                  options={[
+                    { label: "تصویر", value: "image" },
+                    { label: "ویدیو", value: "video" },
+                    { label: "صوت", value: "audio" },
+                    { label: "مستند", value: "pdf" },
+                  ]}
+                  value={filters.file_type === "all" ? undefined : filters.file_type}
+                  onChange={(value) => {
+                    if (value === undefined || value === null) {
+                      handleFileTypeChange("all");
+                    } else {
+                      handleFileTypeChange(value as string);
+                    }
+                  }}
+                  multiSelect={false}
+                  showSearch={false}
+                />
               )}
 
-              <PersianDateRangePicker
+              <DataTableDateRangeFilter
+                title="بازه تاریخ"
                 value={filters.date_range || { from: filters.date_from || undefined, to: filters.date_to || undefined }}
                 onChange={handleDateRangeChange}
                 placeholder="انتخاب بازه تاریخ"
-                className="h-8 w-[280px]"
               />
             </div>
           </div>

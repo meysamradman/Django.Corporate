@@ -1,7 +1,8 @@
 import { useState, useEffect, Fragment } from "react"
-import { Check, ChevronsUpDown, ChevronRight } from "lucide-react"
+import { Check, PlusCircle, ChevronRight } from "lucide-react"
 import { cn } from '@/core/utils/cn';
 import { Button } from "@/components/elements/Button";
+import { Badge } from "@/components/elements/Badge";
 import {
   Command,
   CommandEmpty,
@@ -9,6 +10,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from "@/components/elements/Command"
 import {
   Popover,
@@ -80,43 +82,49 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
   }
 
   const renderItems = (items: CategoryItem[], depth = 0) => {
-    return items.map((item) => (
-      <Fragment key={`item-${item.id}-${depth}`}>
-        <CommandItem
-          key={`command-${item.id}-${depth}`}
-          value={item.value}
-          onSelect={() => handleValueChange(item.value)}
-          className="flex items-center"
-        >
-          <div
-            style={{ marginRight: `${depth * 16}px` }}
-            className={cn(
-              "flex items-center flex-1",
-              depth > 0 && "relative before:absolute before:right-[-8px] before:h-full before:w-[2px] before:bg-bg/50"
-            )}
+    return items.map((item) => {
+      const isSelected = filterValue === item.value;
+      return (
+        <Fragment key={`item-${item.id}-${depth}`}>
+          <CommandItem
+            key={`command-${item.id}-${depth}`}
+            value={item.value}
+            onSelect={() => handleValueChange(item.value)}
           >
-            {item.children?.length ? (
-              <ChevronRight className="mr-1 h-3 w-3 shrink-0 opacity-50" />
-            ) : (
-              <div className="mr-1 w-3"></div>
-            )}
-            <span className={cn(
-              "ml-1",
-              item.children?.length ? "font-medium" : "text-font-s"  
-            )}>
-              {item.label}
-            </span>
-          </div>
-          <Check
-            className={cn(
-              "ml-auto h-4 w-4",
-              filterValue === item.value ? "opacity-100" : "opacity-0"
-            )}
-          />
-        </CommandItem>
-        {item.children?.length ? renderItems(item.children, depth + 1) : null}
-      </Fragment>
-    ))
+            <div
+              className={cn(
+                "flex h-4 w-4 items-center justify-center rounded-sm border border-primary me-2",
+                isSelected
+                  ? "bg-primary text-static-w"
+                  : "opacity-50"
+              )}
+            >
+              {isSelected && <Check className="h-3 w-3" />}
+            </div>
+            <div
+              style={{ paddingRight: `${depth * 16}px` }}
+              className={cn(
+                "flex items-center flex-1",
+                depth > 0 && "relative before:absolute before:right-[-8px] before:h-full before:w-[2px] before:bg-bg/50"
+              )}
+            >
+              {item.children?.length ? (
+                <ChevronRight className="ms-1 h-3 w-3 shrink-0 opacity-50" />
+              ) : (
+                <div className="ms-1 w-3"></div>
+              )}
+              <span className={cn(
+                "me-1 flex-1",
+                item.children?.length ? "font-medium" : "text-font-s"  
+              )}>
+                {item.label}
+              </span>
+            </div>
+          </CommandItem>
+          {item.children?.length ? renderItems(item.children, depth + 1) : null}
+        </Fragment>
+      )
+    })
   }
 
   let triggerText: string;
@@ -128,45 +136,64 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
     triggerText = selectedLabel || (defaultPlaceholder ?? title ?? "انتخاب کنید...");
   }
 
+  const hasSelection = filterValue !== undefined;
+
   return (
-    <div className="filter-width">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="justify-between w-full h-8 px-3 text-xs filter-title"
-          >
-            <span className="truncate">
-              {triggerText}
-            </span>
-            <ChevronsUpDown className="ml-1 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[300px] p-0">
-          <Command>
-            <CommandInput placeholder={defaultPlaceholder ?? title ?? "انتخاب کنید..."} className="h-9" />
-            <CommandList className="max-h-[300px] overflow-auto">
-              <CommandEmpty>نتیجه‌ای یافت نشد</CommandEmpty>
-              <CommandGroup>
-                                  <CommandItem value="all" onSelect={() => handleValueChange("all")}>
-                    <div className="flex items-center font-medium">
-                      همه
-                  </div>
-                  <Check
-                    className={cn(
-                      "ml-auto h-4 w-4",
-                      filterValue === undefined ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                </CommandItem>
-                {renderItems(items)}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-    </div>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="border-dashed">
+          <PlusCircle />
+          {title}
+          {hasSelection && (
+            <>
+              <span className="mx-2 h-4 w-px bg-border" />
+              <Badge
+                variant="outline"
+                className="rounded-sm px-1 font-normal"
+              >
+                {selectedLabel || triggerText}
+              </Badge>
+            </>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[280px] p-0" align="start">
+        <Command>
+          <CommandInput placeholder={defaultPlaceholder ?? title ?? "جستجو..."} />
+          <CommandList>
+            <CommandEmpty>نتیجه‌ای یافت نشد</CommandEmpty>
+            <CommandGroup>
+              <CommandItem value="all" onSelect={() => handleValueChange("all")}>
+                <div
+                  className={cn(
+                    "flex h-4 w-4 items-center justify-center rounded-sm border border-primary me-2",
+                    filterValue === undefined
+                      ? "bg-primary text-static-w"
+                      : "opacity-50"
+                  )}
+                >
+                  {filterValue === undefined && <Check className="h-3 w-3" />}
+                </div>
+                <span className="flex-1 font-medium">همه</span>
+              </CommandItem>
+              {renderItems(items)}
+            </CommandGroup>
+            {hasSelection && (
+              <>
+                <CommandSeparator />
+                <CommandGroup>
+                  <CommandItem
+                    onSelect={() => onChange(undefined)}
+                    className="justify-center text-center"
+                  >
+                    پاک کردن فیلتر
+                  </CommandItem>
+                </CommandGroup>
+              </>
+            )}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   )
 }

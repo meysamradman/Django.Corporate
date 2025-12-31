@@ -17,16 +17,18 @@ export const getPropertyTagFilterConfig = (
   {
     columnId: "is_active",
     title: "فعال",
-    type: "select",
+    type: "faceted",
     options: booleanFilterOptions,
     placeholder: "فعال",
+    showSearch: false,
   },
   {
     columnId: "is_public",
     title: "عمومی",
-    type: "select",
+    type: "faceted",
     options: booleanFilterOptions,
     placeholder: "عمومی",
+    showSearch: false,
   },
   {
     columnId: "date_range",

@@ -17,7 +17,8 @@ export const getUserFilterConfig = (
         title: "فعال",
         options: booleanFilterOptions,
         placeholder: "فعال",
-        type: 'select'
+        type: 'faceted',
+        showSearch: false,
     },
     {
         columnId: "date_range",

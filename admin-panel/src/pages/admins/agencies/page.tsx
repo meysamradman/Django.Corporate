@@ -3,7 +3,7 @@ import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { useNavigate, Link } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useAdminFilterOptions } from "@/components/admins/AdminTableFilters";
-import { PersianDateRangePicker } from '@/components/elements/PersianDateRangePicker';
+import { DataTableDateRangeFilter } from "@/components/tables/DataTableDateRangeFilter";
 import { realEstateApi } from "@/api/real-estate/properties";
 
 interface AgencyFilters {
@@ -38,7 +38,7 @@ import { getConfirm } from '@/core/messages';
 import type { SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
-import { DataTableSelectFilter } from "@/components/tables/DataTableSelectFilter";
+import { DataTableFacetedFilterSimple } from "@/components/tables/DataTableFacetedFilterSimple";
 
 export default function AdminsAgenciesPage() {
   const navigate = useNavigate();
@@ -283,15 +283,17 @@ export default function AdminsAgenciesPage() {
             />
           </div>
 
-          <DataTableSelectFilter
+          <DataTableFacetedFilterSimple
             title="وضعیت"
-            placeholder="وضعیت"
             options={booleanFilterOptions}
             value={clientFilters.is_active}
             onChange={(value) => handleFilterChange('is_active', value)}
+            multiSelect={false}
+            showSearch={false}
           />
 
-          <PersianDateRangePicker
+          <DataTableDateRangeFilter
+            title="بازه تاریخ"
             value={(clientFilters as any).date_range || { from: clientFilters.date_from || undefined, to: clientFilters.date_to || undefined }}
             onChange={(range) => {
               handleFilterChange('date_range', range);
@@ -299,7 +301,6 @@ export default function AdminsAgenciesPage() {
               handleFilterChange('date_to', range.to);
             }}
             placeholder="انتخاب بازه تاریخ"
-            className="h-9 w-[280px]"
           />
         </div>
 

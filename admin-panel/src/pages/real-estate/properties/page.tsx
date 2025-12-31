@@ -35,6 +35,25 @@ import type { DataTableRowAction } from "@/types/shared/table";
 import type { PropertyType } from "@/types/real_estate/type/propertyType";
 import type { PropertyState } from "@/types/real_estate/state/realEstateState";
 import { env } from '@/core/config/environment';
+import type { CategoryItem } from "@/types/shared/table";
+
+const convertPropertyTypesToHierarchical = (types: PropertyType[]): CategoryItem[] => {
+  const rootTypes = types.filter(type => !type.parent_id);
+  
+  const buildTree = (type: PropertyType): CategoryItem => {
+    const children = types.filter(t => t.parent_id === type.id);
+    
+    return {
+      id: type.id,
+      label: type.title,
+      value: type.id.toString(),
+      parent_id: type.parent_id,
+      children: children.map(buildTree)
+    };
+  };
+  
+  return rootTypes.map(buildTree);
+};
 
 export default function PropertyPage() {
   const navigate = useNavigate();
@@ -42,7 +61,7 @@ export default function PropertyPage() {
   const { booleanFilterOptions } = usePropertyFilterOptions();
   
   const [_propertyTypes, setPropertyTypes] = useState<PropertyType[]>([]);
-  const [propertyTypeOptions, setPropertyTypeOptions] = useState<{ label: string; value: string }[]>([]);
+  const [propertyTypeOptions, setPropertyTypeOptions] = useState<CategoryItem[]>([]);
   
   const [_states, setStates] = useState<PropertyState[]>([]);
   const [stateOptions, setStateOptions] = useState<{ label: string; value: string }[]>([]);
@@ -108,7 +127,7 @@ export default function PropertyPage() {
         ]);
         
         setPropertyTypes(typesResponse.data);
-        setPropertyTypeOptions(typesResponse.data.map((t: PropertyType) => ({ label: t.title, value: t.id.toString() })));
+        setPropertyTypeOptions(convertPropertyTypesToHierarchical(typesResponse.data));
         
         setStates(statesResponse.data);
         setStateOptions(statesResponse.data.map((s: PropertyState) => ({ label: s.title, value: s.id.toString() })));
@@ -122,7 +141,25 @@ export default function PropertyPage() {
   const { handleFilterChange } = useTableFilters<PropertyFilters>(
     setClientFilters,
     setSearchValue,
-    setPagination
+    setPagination,
+    {
+      property_type: (value, updateUrl) => {
+        const numValue = value ? (typeof value === 'string' ? parseInt(value) : value) : undefined;
+        setClientFilters(prev => ({
+          ...prev,
+          property_type: numValue as number | undefined
+        }));
+        setPagination(prev => ({ ...prev, pageIndex: 0 }));
+        
+        const url = new URL(window.location.href);
+        if (numValue && numValue !== 0) {
+          url.searchParams.set('property_type', String(numValue));
+        } else {
+          url.searchParams.delete('property_type');
+        }
+        updateUrl(url);
+      }
+    }
   );
 
   const propertyFilterConfig = getPropertyFilterConfig(

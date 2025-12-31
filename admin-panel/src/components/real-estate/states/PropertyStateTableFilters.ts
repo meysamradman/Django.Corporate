@@ -17,9 +17,10 @@ export const getPropertyStateFilterConfig = (
   {
     columnId: "is_active",
     title: "فعال",
-    type: "select",
+    type: "faceted",
     options: booleanFilterOptions,
     placeholder: "فعال",
+    showSearch: false,
   },
   {
     columnId: "date_range",
