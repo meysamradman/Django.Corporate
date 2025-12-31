@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.db.models import Count
 from django.db import transaction
 from django.core.exceptions import ValidationError
@@ -8,7 +9,7 @@ from src.real_estate.messages.messages import STATE_ERRORS
 class PropertyStateAdminService:
     
     @staticmethod
-    def get_state_queryset(filters=None, search=None):
+    def get_state_queryset(filters=None, search=None, date_from=None, date_to=None):
         queryset = PropertyState.objects.annotate(
             property_count=Count('properties', distinct=True)
         )
@@ -19,6 +20,21 @@ class PropertyStateAdminService:
         
         if search:
             queryset = queryset.filter(title__icontains=search)
+        
+        # Date filters
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__gte=date_from_obj)
+            except ValueError:
+                pass
+        
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__lte=date_to_obj)
+            except ValueError:
+                pass
         
         return queryset.order_by('title')
     

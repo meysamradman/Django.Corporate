@@ -9,6 +9,7 @@ from src.core.pagination import StandardLimitPagination
 from src.user.access_control import real_estate_permission, PermissionRequiredMixin
 
 from src.real_estate.models.tag import PropertyTag
+from src.real_estate.filters.admin.tag_filters import PropertyTagAdminFilter
 from src.real_estate.serializers.admin.tag_serializer import (
     PropertyTagAdminListSerializer,
     PropertyTagAdminDetailSerializer,
@@ -34,6 +35,7 @@ class PropertyTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     }
     permission_denied_message = TAG_ERRORS["tag_not_authorized"]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = PropertyTagAdminFilter
     search_fields = ['title', 'description']
     ordering_fields = ['created_at', 'updated_at', 'title']
     ordering = ['-created_at']
@@ -58,14 +60,7 @@ class PropertyTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             return PropertyTagAdminDetailSerializer
     
     def list(self, request, *args, **kwargs):
-        filters = {
-            'is_active': self._parse_bool(request.query_params.get('is_active')),
-            'is_public': self._parse_bool(request.query_params.get('is_public')),
-        }
-        filters = {k: v for k, v in filters.items() if v is not None}
-        search = request.query_params.get('search')
-        
-        queryset = PropertyTagAdminService.get_tag_queryset(filters=filters, search=search)
+        queryset = self.filter_queryset(self.get_queryset())
         
         page = self.paginate_queryset(queryset)
         if page is not None:

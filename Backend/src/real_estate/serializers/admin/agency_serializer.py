@@ -18,7 +18,7 @@ class RealEstateAgencyAdminListSerializer(serializers.ModelSerializer):
             'phone', 'email', 'website',
             'province_name', 'city_name',
             'property_count', 'agent_count',
-            'is_verified', 'rating', 'total_reviews',
+            'rating', 'total_reviews',
             'profile_picture_url', 'is_active',
             'created_at', 'updated_at'
         ]
@@ -45,7 +45,7 @@ class RealEstateAgencyAdminDetailSerializer(serializers.ModelSerializer):
             'province', 'province_name', 'city', 'city_name', 'address',
             'profile_picture',
             'property_count', 'agent_count',
-            'is_verified', 'rating', 'total_reviews',
+            'rating', 'total_reviews',
             'description', 'is_active',
             'created_at', 'updated_at',
             'meta_title', 'meta_description', 'og_title', 'og_description',
@@ -62,7 +62,7 @@ class RealEstateAgencyAdminCreateSerializer(serializers.ModelSerializer):
             'phone', 'email', 'website',
             'province', 'city', 'address',
             'profile_picture',
-            'is_verified', 'rating', 'total_reviews',
+            'rating', 'total_reviews',
             'description', 'is_active',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'
@@ -90,7 +90,7 @@ class RealEstateAgencyAdminUpdateSerializer(serializers.ModelSerializer):
             'phone', 'email', 'website',
             'province', 'city', 'address',
             'profile_picture',
-            'is_verified', 'rating', 'total_reviews',
+            'rating', 'total_reviews',
             'description', 'is_active',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'

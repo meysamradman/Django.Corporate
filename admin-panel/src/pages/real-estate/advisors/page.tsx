@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Card, CardContent } from "@/components/elements/Card";
 import { Input } from "@/components/elements/Input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
+import { PersianDatePicker } from '@/components/elements/PersianDatePicker';
 import { PaginationControls } from "@/components/shared/Pagination";
 import { Plus, Search, Phone, Mail, Edit, Trash2, Eye, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -18,6 +19,8 @@ export default function AdvisorsListPage() {
   const [searchValue, setSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [verifiedFilter, setVerifiedFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
 
@@ -27,10 +30,12 @@ export default function AdvisorsListPage() {
     ...(searchValue && { search: searchValue }),
     ...(statusFilter !== "all" && { is_active: statusFilter === "active" }),
     ...(verifiedFilter !== "all" && { is_verified: verifiedFilter === "true" }),
+    ...(dateFrom && { date_from: dateFrom }),
+    ...(dateTo && { date_to: dateTo }),
   };
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['property-agents', queryParams.page, queryParams.size, queryParams.search, queryParams.is_active, queryParams.is_verified],
+    queryKey: ['property-agents', queryParams.page, queryParams.size, queryParams.search, queryParams.is_active, queryParams.is_verified, queryParams.date_from, queryParams.date_to],
     queryFn: async () => {
       return await realEstateApi.getAgents(queryParams);
     },
@@ -152,6 +157,27 @@ export default function AdvisorsListPage() {
                   <SelectItem value="false">تایید نشده</SelectItem>
                 </SelectContent>
               </Select>
+              <div className="flex items-center gap-2">
+                <PersianDatePicker
+                  value={dateFrom}
+                  onChange={(date) => {
+                    setDateFrom(date);
+                    setCurrentPage(1);
+                  }}
+                  placeholder="از تاریخ"
+                  className="h-9 w-36"
+                />
+                <span className="text-xs text-font-s">تا</span>
+                <PersianDatePicker
+                  value={dateTo}
+                  onChange={(date) => {
+                    setDateTo(date);
+                    setCurrentPage(1);
+                  }}
+                  placeholder="تا تاریخ"
+                  className="h-9 w-36"
+                />
+              </div>
             </div>
           </div>
         </CardContent>

@@ -162,7 +162,15 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             })
         
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        
+        # Debug validation errors
+        if not serializer.is_valid():
+            print(f"❌ VALIDATION ERRORS: {serializer.errors}")
+            return APIResponse.error(
+                message=PROPERTY_ERRORS["property_validation_failed"],
+                errors=serializer.errors,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
         
         validated_data = serializer.validated_data.copy()
         

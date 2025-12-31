@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.db.models import Count, Prefetch, Q
 from django.db import transaction
 from django.core.exceptions import ValidationError
@@ -11,7 +12,7 @@ from src.real_estate.messages.messages import AGENCY_ERRORS
 class RealEstateAgencyAdminService:
     
     @staticmethod
-    def get_agency_queryset(filters=None, search=None):
+    def get_agency_queryset(filters=None, search=None, date_from=None, date_to=None):
         queryset = RealEstateAgency.objects.select_related(
             'province',
             'city',
@@ -24,8 +25,6 @@ class RealEstateAgencyAdminService:
         if filters:
             if filters.get('is_active') is not None:
                 queryset = queryset.filter(is_active=filters['is_active'])
-            if filters.get('is_verified') is not None:
-                queryset = queryset.filter(is_verified=filters['is_verified'])
             if filters.get('province_id'):
                 queryset = queryset.filter(province_id=filters['province_id'])
             if filters.get('city_id'):
@@ -39,7 +38,22 @@ class RealEstateAgencyAdminService:
                 Q(license_number__icontains=search)
             )
         
-        return queryset.order_by('-rating', '-is_verified', 'name')
+        # Date filters
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__gte=date_from_obj)
+            except ValueError:
+                pass
+        
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__lte=date_to_obj)
+            except ValueError:
+                pass
+        
+        return queryset.order_by('-rating', 'name')
     
     @staticmethod
     def get_agency_by_id(agency_id):

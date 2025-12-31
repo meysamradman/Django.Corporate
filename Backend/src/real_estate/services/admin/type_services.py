@@ -2,24 +2,41 @@ from django.db import transaction, models
 from django.db.models import Count
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from datetime import datetime
 
 from src.real_estate.models.type import PropertyType
 from src.real_estate.models.property import Property
 from src.real_estate.utils.cache import TypeCacheKeys, TypeCacheManager
 from src.real_estate.messages import TYPE_ERRORS
+from src.media.models.media import ImageMedia
 
 
 class PropertyTypeAdminService:
     
     @staticmethod
     def get_tree_queryset():
-        return PropertyType.objects.annotate(
+        return PropertyType.objects.select_related('image').annotate(
             property_count=Count('properties', distinct=True)
         ).order_by('path')
     
     @staticmethod
-    def get_list_queryset(filters=None, order_by='created_at', order_desc=True):
+    def get_list_queryset(filters=None, order_by='created_at', order_desc=True, date_from=None, date_to=None):
         queryset = PropertyTypeAdminService.get_tree_queryset()
+        
+        # Date filters
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__gte=date_from_obj)
+            except ValueError:
+                pass
+        
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__lte=date_to_obj)
+            except ValueError:
+                pass
         
         if order_by:
             order_field = f"-{order_by}" if order_desc else order_by
@@ -86,6 +103,7 @@ class PropertyTypeAdminService:
     def create_type(validated_data, created_by=None):
         with transaction.atomic():
             parent_id = validated_data.pop('parent_id', None)
+            image_id = validated_data.pop('image_id', None)
             
             validated_data.pop('created_by', None)
             
@@ -93,6 +111,14 @@ class PropertyTypeAdminService:
                 property_type = parent_id.add_child(**validated_data)
             else:
                 property_type = PropertyType.add_root(**validated_data)
+            
+            if image_id:
+                try:
+                    media = ImageMedia.objects.get(id=image_id)
+                    property_type.image = media
+                    property_type.save()
+                except ImageMedia.DoesNotExist:
+                    pass
             
             TypeCacheManager.invalidate_all()
             
@@ -107,6 +133,7 @@ class PropertyTypeAdminService:
         
         with transaction.atomic():
             parent_id = validated_data.pop('parent_id', None)
+            image_id = validated_data.pop('image_id', None)
             
             validated_data.pop('updated_by', None)
             
@@ -121,6 +148,16 @@ class PropertyTypeAdminService:
                     property_type.move(parent_id, pos='last-child')
                 elif not parent_id and current_parent:
                     property_type.move(PropertyType.get_root_nodes().first(), pos='last-sibling')
+            
+            if image_id is not None:
+                if image_id:
+                    try:
+                        media = ImageMedia.objects.get(id=image_id)
+                        property_type.image = media
+                    except ImageMedia.DoesNotExist:
+                        pass
+                else:
+                    property_type.image = None
             
         property_type.save()
         

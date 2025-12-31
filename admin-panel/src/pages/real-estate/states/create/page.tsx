@@ -6,7 +6,7 @@ import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { FormField } from "@/components/forms/FormField";
 import { Switch } from "@/components/elements/Switch";
-import { Item, ItemContent, ItemTitle, ItemDescription } from "@/components/elements/Item";
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
 import { showError, showSuccess } from "@/core/toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";

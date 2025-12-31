@@ -17,6 +17,7 @@ import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
 import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
 import type { PropertyMedia } from "@/types/real_estate/realEstateMedia";
+import { collectMediaFilesAndIds } from "@/components/real-estate/utils/propertyMediaUtils";
 
 const TabSkeleton = () => (
   <div className="mt-0 space-y-6">
@@ -550,11 +551,37 @@ export default function PropertyCreatePage() {
           : undefined,
       };
 
+      // جمع‌آوری فایل‌های مدیا و IDها مثل Portfolio
+      const { allMediaFiles, allMediaIds } = collectMediaFilesAndIds(
+        propertyMedia,
+        formData.og_image
+      );
+
+      // اضافه کردن media_ids به updateData
+      if (allMediaIds.length > 0) {
+        updateData.media_ids = allMediaIds;
+      }
+
       let property;
       if (isEditMode && id) {
+        // در حالت ویرایش
         property = await realEstateApi.updateProperty(Number(id), updateData);
+        
+        // اگر فایل جدید یا ID جدید داریم، اضافه کن
+        if (allMediaFiles.length > 0 || allMediaIds.length > 0) {
+          await realEstateApi.addMediaToProperty(Number(id), allMediaFiles, allMediaIds);
+        }
       } else {
-        property = await realEstateApi.createProperty(updateData);
+        // در حالت ایجاد
+        if (allMediaFiles.length > 0) {
+          // اگر فایل داریم، از createPropertyWithMedia استفاده کن
+          property = await realEstateApi.createPropertyWithMedia(updateData, allMediaFiles);
+        } else {
+          // اگر فقط ID داریم یا هیچکدام، از createProperty استفاده کن
+          // توجه: media_ids قبلاً در updateData اضافه شده و در backend پردازش می‌شود
+          property = await realEstateApi.createProperty(updateData);
+          // نیازی به فراخوانی addMediaToProperty نیست چون backend در create پردازش می‌کند
+        }
       }
 
       showSuccess(isEditMode ? "ملک با موفقیت ویرایش شد" : "ملک با موفقیت ایجاد شد");

@@ -2,6 +2,7 @@ from django.db import transaction, models
 from django.db.models import Count
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from datetime import datetime
 
 from src.portfolio.models.category import PortfolioCategory
 from src.portfolio.models.portfolio import Portfolio
@@ -19,8 +20,23 @@ class PortfolioCategoryAdminService:
         ).order_by('path')
     
     @staticmethod
-    def get_list_queryset(filters=None, order_by='created_at', order_desc=True):
+    def get_list_queryset(filters=None, order_by='created_at', order_desc=True, date_from=None, date_to=None):
         queryset = PortfolioCategoryAdminService.get_tree_queryset()
+        
+        # Date filters
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__gte=date_from_obj)
+            except ValueError:
+                pass
+        
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__lte=date_to_obj)
+            except ValueError:
+                pass
         
         if order_by:
             order_field = f"-{order_by}" if order_desc else order_by

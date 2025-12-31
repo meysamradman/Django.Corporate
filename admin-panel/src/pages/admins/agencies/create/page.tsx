@@ -11,28 +11,43 @@ import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Loader2, Save, Building2, ImageIcon, Settings } from "lucide-react";
+import { Loader2, Save, Building2, UserCircle } from "lucide-react";
 import type { Media } from "@/types/shared/media";
 import * as z from "zod";
+import { generateSlug, formatSlug } from '@/core/slug/generate';
+
 
 const TabSkeleton = () => (
-    <div className="mt-6 space-y-6">
-        <div className="space-y-4 rounded-lg border p-6">
-            <Skeleton className="h-8 w-1/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-        </div>
-        <div className="space-y-4 rounded-lg border p-6">
-            <Skeleton className="h-8 w-1/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
+    <div className="mt-0 space-y-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+            <div className="flex-1 min-w-0">
+                <CardWithIcon
+                    icon={Building2}
+                    title="اطلاعات پایه"
+                    iconBgColor="bg-blue"
+                    iconColor="stroke-blue-2"
+                    borderColor="border-b-blue-1"
+                >
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-16" />
+                                <Skeleton className="h-10 w-full" />
+                            </div>
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-10 w-full" />
+                            </div>
+                        </div>
+                    </div>
+                </CardWithIcon>
+            </div>
         </div>
     </div>
 );
 
 const BaseInfoTab = lazy(() => import("@/components/real-estate/agencies/edit/BaseInfoTab"));
-const MediaTab = lazy(() => import("@/components/real-estate/agencies/create/MediaTab"));
-const SettingsTab = lazy(() => import("@/components/real-estate/agencies/create/SettingsTab"));
+const ProfileTab = lazy(() => import("@/components/real-estate/agencies/create/ProfileTab"));
 
 const agencySchema = z.object({
     name: z.string().min(1, "نام آژانس لازم است"),
@@ -47,7 +62,6 @@ const agencySchema = z.object({
     description: z.string().optional().nullable(),
     address: z.string().optional().nullable(),
     is_active: z.boolean().optional(),
-    is_verified: z.boolean().optional(),
     rating: z.number().min(0).max(5).optional(),
     total_reviews: z.number().min(0).optional(),
     meta_title: z.string().optional().nullable(),
@@ -82,7 +96,6 @@ export default function AdminsAgenciesCreatePage() {
             description: "",
             address: "",
             is_active: true,
-            is_verified: false,
             rating: 0,
             total_reviews: 0,
             meta_title: "",
@@ -92,6 +105,20 @@ export default function AdminsAgenciesCreatePage() {
         },
         mode: "onSubmit",
     });
+
+    // ✅ Auto-generate slug from name
+    const handleInputChange = (field: string, value: any) => {
+        if (field === "name" && typeof value === "string") {
+            const generatedSlug = generateSlug(value);
+            form.setValue("name", value);
+            form.setValue("slug", generatedSlug);
+        } else if (field === "slug" && typeof value === "string") {
+            const formattedSlug = formatSlug(value);
+            form.setValue("slug", formattedSlug);
+        } else {
+            form.setValue(field as any, value);
+        }
+    };
 
     const createAgencyMutation = useMutation({
         mutationFn: async (data: AgencyFormValues) => {
@@ -108,7 +135,6 @@ export default function AdminsAgenciesCreatePage() {
                 description: data.description || undefined,
                 address: data.address || undefined,
                 is_active: data.is_active ?? true,
-                is_verified: data.is_verified ?? false,
                 rating: data.rating || 0,
                 total_reviews: data.total_reviews || 0,
                 meta_title: data.meta_title || undefined,
@@ -184,13 +210,9 @@ export default function AdminsAgenciesCreatePage() {
                         <Building2 className="w-4 h-4" />
                         اطلاعات پایه
                     </TabsTrigger>
-                    <TabsTrigger value="media">
-                        <ImageIcon className="w-4 h-4" />
-                        رسانه‌ها
-                    </TabsTrigger>
-                    <TabsTrigger value="settings">
-                        <Settings className="w-4 h-4" />
-                        تنظیمات پیشرفته
+                    <TabsTrigger value="profile">
+                        <UserCircle className="w-4 h-4" />
+                        پروفایل
                     </TabsTrigger>
                 </TabsList>
 
@@ -199,24 +221,17 @@ export default function AdminsAgenciesCreatePage() {
                         <BaseInfoTab
                             form={form as any}
                             editMode={editMode}
+                            handleInputChange={handleInputChange}
                         />
                     </Suspense>
                 </TabsContent>
 
-                <TabsContent value="media">
+                <TabsContent value="profile">
                     <Suspense fallback={<TabSkeleton />}>
-                        <MediaTab
-                            selectedLogo={selectedLogo}
-                            setSelectedLogo={setSelectedLogo}
-                            editMode={editMode}
-                        />
-                    </Suspense>
-                </TabsContent>
-
-                <TabsContent value="settings">
-                    <Suspense fallback={<TabSkeleton />}>
-                        <SettingsTab
+                        <ProfileTab
                             form={form as any}
+                            selectedMedia={selectedLogo}
+                            setSelectedMedia={setSelectedLogo}
                             editMode={editMode}
                         />
                     </Suspense>
@@ -225,13 +240,6 @@ export default function AdminsAgenciesCreatePage() {
 
             {editMode && (
                 <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
-                    <Button
-                        variant="outline"
-                        onClick={() => navigate("/admins/agencies")}
-                        disabled={createAgencyMutation.isPending}
-                    >
-                        انصراف
-                    </Button>
                     <Button
                         onClick={handleSubmit}
                         size="lg"

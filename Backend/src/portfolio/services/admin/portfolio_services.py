@@ -4,6 +4,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
+from datetime import datetime
 
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.services.admin.media_services import PortfolioAdminMediaService
@@ -16,7 +17,7 @@ from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 class PortfolioAdminService:
     
     @staticmethod
-    def get_portfolio_queryset(filters=None, search=None, order_by=None, order_desc=None):
+    def get_portfolio_queryset(filters=None, search=None, order_by=None, order_desc=None, date_from=None, date_to=None):
         queryset = Portfolio.objects.select_related('og_image').prefetch_related(
             'categories',
             'tags',
@@ -68,6 +69,21 @@ class PortfolioAdminService:
                 Q(meta_title__icontains=search) |
                 Q(meta_description__icontains=search)
             )
+        
+        # Date filters
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__gte=date_from_obj)
+            except ValueError:
+                pass
+        
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__lte=date_to_obj)
+            except ValueError:
+                pass
         
         if order_by:
             ordering_field = order_by

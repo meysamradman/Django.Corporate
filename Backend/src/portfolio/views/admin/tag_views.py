@@ -50,13 +50,7 @@ class PortfolioTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             return PortfolioTag.objects.all()
 
     def list(self, request, *args, **kwargs):
-        filters = {
-            'is_active': self._parse_bool(request.query_params.get('is_active')),
-        }
-        filters = {k: v for k, v in filters.items() if v is not None}
-        search = request.query_params.get('search')
-        
-        queryset = PortfolioTagAdminService.get_tag_queryset(filters=filters, search=search)
+        queryset = self.filter_queryset(self.get_queryset())
         
         page = self.paginate_queryset(queryset)
         if page is not None:

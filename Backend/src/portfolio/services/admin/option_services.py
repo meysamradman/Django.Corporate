@@ -1,6 +1,7 @@
 from django.db.models import Count, Q
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from datetime import datetime
 from src.portfolio.models.option import PortfolioOption
 from src.portfolio.utils.cache import OptionCacheKeys, OptionCacheManager
 from src.portfolio.messages.messages import OPTION_ERRORS
@@ -9,7 +10,7 @@ from src.portfolio.messages.messages import OPTION_ERRORS
 class PortfolioOptionAdminService:
     
     @staticmethod
-    def get_option_queryset(filters=None, search=None):
+    def get_option_queryset(filters=None, search=None, date_from=None, date_to=None):
         queryset = PortfolioOption.objects.with_portfolio_counts()
         
         if filters:
@@ -23,6 +24,21 @@ class PortfolioOptionAdminService:
                 Q(name__icontains=search) |
                 Q(description__icontains=search)
             )
+        
+        # Date filters
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__gte=date_from_obj)
+            except ValueError:
+                pass
+        
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__lte=date_to_obj)
+            except ValueError:
+                pass
         
         return queryset.order_by('-portfolio_count', 'name')
     

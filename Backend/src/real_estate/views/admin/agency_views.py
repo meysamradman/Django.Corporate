@@ -9,6 +9,7 @@ from src.core.pagination import StandardLimitPagination
 from src.user.access_control import real_estate_permission, PermissionRequiredMixin
 
 from src.real_estate.models.agency import RealEstateAgency
+from src.real_estate.filters.admin.agency_filters import RealEstateAgencyAdminFilter
 from src.real_estate.serializers.admin.agency_serializer import (
     RealEstateAgencyAdminListSerializer,
     RealEstateAgencyAdminDetailSerializer,
@@ -33,6 +34,7 @@ class RealEstateAgencyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSe
     }
     permission_denied_message = AGENCY_ERRORS["agency_not_authorized"]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = RealEstateAgencyAdminFilter
     search_fields = ['name', 'phone', 'email', 'license_number']
     ordering_fields = ['created_at', 'updated_at', 'rating', 'name']
     ordering = ['-rating', '-is_verified', 'name']
@@ -57,16 +59,7 @@ class RealEstateAgencyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSe
             return RealEstateAgencyAdminDetailSerializer
     
     def list(self, request, *args, **kwargs):
-        filters = {
-            'is_active': self._parse_bool(request.query_params.get('is_active')),
-            'is_verified': self._parse_bool(request.query_params.get('is_verified')),
-            'province_id': request.query_params.get('province_id'),
-            'city_id': request.query_params.get('city_id'),
-        }
-        filters = {k: v for k, v in filters.items() if v is not None}
-        search = request.query_params.get('search')
-        
-        queryset = RealEstateAgencyAdminService.get_agency_queryset(filters=filters, search=search)
+        queryset = self.filter_queryset(self.get_queryset())
         
         page = self.paginate_queryset(queryset)
         if page is not None:

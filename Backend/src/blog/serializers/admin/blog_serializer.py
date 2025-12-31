@@ -317,6 +317,32 @@ class BlogAdminCreateSerializer(serializers.ModelSerializer):
             'media_files'
         ]
     
+    def validate(self, attrs):
+        # ✅ Auto-generate unique slug if not provided or if duplicate
+        if not attrs.get('slug') and attrs.get('title'):
+            from django.utils.text import slugify
+            base_slug = slugify(attrs['title'])
+            slug = base_slug
+            counter = 1
+            while Blog.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            attrs['slug'] = slug
+        elif attrs.get('slug'):
+            # ✅ Slug provided - check if it exists and make it unique
+            from django.utils.text import slugify
+            base_slug = attrs['slug']
+            slug = base_slug
+            counter = 1
+            while Blog.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            # Only update if we had to change it
+            if slug != base_slug:
+                attrs['slug'] = slug
+        
+        return attrs
+    
     def create(self, validated_data):
         categories_ids = validated_data.pop('categories_ids', [])
         tags_ids = validated_data.pop('tags_ids', [])

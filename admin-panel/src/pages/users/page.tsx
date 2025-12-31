@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useUserColumns } from "@/components/users/UserTableColumns";
 import { useUserFilterOptions, getUserFilterConfig } from "@/components/users/UserTableFilters";
+import { PersianDatePicker } from '@/components/elements/PersianDatePicker';
 import type { UserWithProfile } from "@/types/auth/user";
 import { adminApi } from "@/api/admins/admins";
 import type { Filter } from "@/types/auth/adminFilter";
@@ -75,6 +76,12 @@ export default function UsersPage() {
     if (urlParams.get('is_verified') !== null) {
       newClientFilters.is_verified = urlParams.get('is_verified') === 'true';
     }
+    if (urlParams.get('date_from')) {
+      newClientFilters.date_from = urlParams.get('date_from')!;
+    }
+    if (urlParams.get('date_to')) {
+      newClientFilters.date_to = urlParams.get('date_to')!;
+    }
 
     if (Object.keys(newClientFilters).length > 0) {
       setClientFilters(newClientFilters);
@@ -99,10 +106,12 @@ export default function UsersPage() {
     order_desc: sorting.length > 0 ? sorting[0].desc : true,
     is_active: clientFilters.is_active,
     is_verified: clientFilters.is_verified,
+    date_from: clientFilters.date_from as string | undefined,
+    date_to: clientFilters.date_to as string | undefined,
   };
 
   const { data: response, isLoading, error } = useQuery({
-    queryKey: ['users', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_verified],
+    queryKey: ['users', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_verified, queryParams.date_from, queryParams.date_to],
     queryFn: async () => {
       return await adminApi.fetchUsersList('user', queryParams);
     },

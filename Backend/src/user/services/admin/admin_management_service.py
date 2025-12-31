@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.db.models import Q
 from django.core.cache import cache
 from django.db.models import Q
@@ -23,7 +24,7 @@ def _clear_permission_cache(user_id):
 
 class AdminManagementService:
     @staticmethod
-    def get_admins_list(search=None, is_active=None, is_superuser=None, user_role_type=None, request=None):
+    def get_admins_list(search=None, is_active=None, is_superuser=None, user_role_type=None, date_from=None, date_to=None, request=None):
         # بهینه‌سازی: select_related برای جلوگیری از N+1 queries
         queryset = User.objects.select_related(
             'admin_profile',
@@ -65,6 +66,21 @@ class AdminManagementService:
                 Q(admin_profile__first_name__icontains=search) |
                 Q(admin_profile__last_name__icontains=search)
             ).distinct()
+        
+        # Date filters
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__gte=date_from_obj)
+            except ValueError:
+                pass
+        
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__lte=date_to_obj)
+            except ValueError:
+                pass
         
         return queryset.order_by('-created_at')
 

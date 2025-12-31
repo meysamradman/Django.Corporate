@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from src.real_estate.models.type import PropertyType
 from src.real_estate.messages import TYPE_ERRORS
+from src.media.serializers import MediaAdminSerializer
 
 
 class PropertyTypeAdminListSerializer(serializers.ModelSerializer):
@@ -8,13 +9,14 @@ class PropertyTypeAdminListSerializer(serializers.ModelSerializer):
     has_children = serializers.SerializerMethodField()
     parent_name = serializers.SerializerMethodField()
     property_count = serializers.IntegerField(read_only=True)
+    image_url = serializers.SerializerMethodField()
     
     class Meta:
         model = PropertyType
         fields = [
             'id', 'public_id', 'title', 'slug', 'description',
-            'is_active', 'display_order', 'level', 'has_children',
-            'parent_name', 'property_count',
+            'is_active', 'is_public', 'display_order', 'level', 'has_children',
+            'parent_name', 'property_count', 'image_url',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
@@ -28,6 +30,14 @@ class PropertyTypeAdminListSerializer(serializers.ModelSerializer):
     def get_parent_name(self, obj):
         parent = obj.get_parent()
         return parent.title if parent else None
+    
+    def get_image_url(self, obj):
+        try:
+            if obj.image and hasattr(obj.image, 'file') and obj.image.file:
+                return obj.image.file.url
+        except:
+            pass
+        return None
 
 
 class PropertyTypeAdminDetailSerializer(serializers.ModelSerializer):
@@ -39,14 +49,17 @@ class PropertyTypeAdminDetailSerializer(serializers.ModelSerializer):
     level = serializers.SerializerMethodField()
     recent_properties = serializers.SerializerMethodField()
     full_path_title = serializers.SerializerMethodField()
+    image = MediaAdminSerializer(read_only=True)
     
     class Meta:
         model = PropertyType
         fields = [
             'id', 'public_id', 'title', 'slug', 'description',
-            'is_active', 'display_order', 'level', 'tree_path',
+            'is_active', 'is_public', 'display_order', 'level', 'tree_path',
             'parent', 'children', 'breadcrumbs', 'property_count',
-            'recent_properties', 'full_path_title',
+            'recent_properties', 'full_path_title', 'image',
+            'meta_title', 'meta_description', 'og_title', 'og_description',
+            'canonical_url', 'robots_meta',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
@@ -63,24 +76,30 @@ class PropertyTypeAdminDetailSerializer(serializers.ModelSerializer):
         return None
     
     def get_children(self, obj):
-        children = obj.get_children().filter(is_active=True)
-        return [
-            {
-                'id': child.id,
-                'public_id': child.public_id,
-                'title': child.title,
-                'slug': child.slug,
-                'property_count': child.properties.count(),
-                'has_children': child.get_children_count() > 0
-            }
-            for child in children
-        ]
+        try:
+            children = obj.get_children().filter(is_active=True)
+            return [
+                {
+                    'id': child.id,
+                    'public_id': child.public_id,
+                    'title': child.title,
+                    'slug': child.slug,
+                    'property_count': child.properties.count(),
+                    'has_children': child.get_children_count() > 0
+                }
+                for child in children
+            ]
+        except Exception as e:
+            return []
     
     def get_breadcrumbs(self, obj):
         return obj.get_ancestors_list() + [obj.title]
     
     def get_property_count(self, obj):
-        return getattr(obj, 'property_count', obj.properties.count())
+        try:
+            return getattr(obj, 'property_count', 0) or obj.properties.count()
+        except Exception:
+            return 0
     
     def get_tree_path(self, obj):
         return obj.path
@@ -89,20 +108,24 @@ class PropertyTypeAdminDetailSerializer(serializers.ModelSerializer):
         return obj.get_depth()
     
     def get_recent_properties(self, obj):
-        properties = obj.properties.filter(
-            is_published=True, is_public=True
-        ).order_by('-created_at')[:5]
-        
-        return [
-            {
-                'id': p.id,
-                'public_id': p.public_id,
-                'title': p.title,
-                'slug': p.slug,
-                'created_at': p.created_at
-            }
-            for p in properties
-        ]
+        try:
+            properties = obj.properties.filter(
+                is_published=True, is_public=True
+            ).order_by('-created_at')[:5]
+            
+            return [
+                {
+                    'id': p.id,
+                    'public_id': p.public_id,
+                    'title': p.title,
+                    'slug': p.slug,
+                    'created_at': p.created_at
+                }
+                for p in properties
+            ]
+        except Exception as e:
+            # اگر خطا داد، لیست خالی برگردان
+            return []
     
     def get_full_path_title(self, obj):
         return obj.get_full_path_title()
@@ -116,12 +139,20 @@ class PropertyTypeAdminCreateSerializer(serializers.ModelSerializer):
         write_only=True,
         help_text="Parent type ID. Leave empty for root type."
     )
+    image_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        write_only=True,
+        help_text="Media ID from central media app"
+    )
     
     class Meta:
         model = PropertyType
         fields = [
-            'title', 'slug', 'description', 'is_active',
-            'display_order', 'parent_id'
+            'title', 'slug', 'description', 'is_active', 'is_public',
+            'display_order', 'parent_id', 'image_id',
+            'meta_title', 'meta_description', 'og_title', 'og_description',
+            'canonical_url', 'robots_meta'
         ]
     
     def validate_title(self, value):
@@ -154,12 +185,20 @@ class PropertyTypeAdminUpdateSerializer(serializers.ModelSerializer):
         write_only=True,
         help_text="Parent type ID. Leave empty for root type."
     )
+    image_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        write_only=True,
+        help_text="Media ID from central media app"
+    )
     
     class Meta:
         model = PropertyType
         fields = [
-            'title', 'slug', 'description', 'is_active',
-            'display_order', 'parent_id'
+            'title', 'slug', 'description', 'is_active', 'is_public',
+            'display_order', 'parent_id', 'image_id',
+            'meta_title', 'meta_description', 'og_title', 'og_description',
+            'canonical_url', 'robots_meta'
         ]
     
     def validate_title(self, value):
@@ -202,12 +241,13 @@ class PropertyTypeTreeSerializer(serializers.ModelSerializer):
     children = serializers.SerializerMethodField()
     level = serializers.SerializerMethodField()
     property_count = serializers.IntegerField(read_only=True)
+    image_url = serializers.SerializerMethodField()
     
     class Meta:
         model = PropertyType
         fields = [
             'id', 'public_id', 'title', 'slug', 'level',
-            'property_count', 'children'
+            'property_count', 'image_url', 'children'
         ]
     
     def get_children(self, obj):
@@ -216,6 +256,11 @@ class PropertyTypeTreeSerializer(serializers.ModelSerializer):
     
     def get_level(self, obj):
         return obj.get_depth()
+    
+    def get_image_url(self, obj):
+        if obj.image and obj.image.file:
+            return obj.image.file.url
+        return None
 
 
 class PropertyTypeSimpleAdminSerializer(serializers.ModelSerializer):

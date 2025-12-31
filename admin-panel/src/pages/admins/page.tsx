@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useAdminFilterOptions } from "@/components/admins/AdminTableFilters";
+import { PersianDatePicker } from '@/components/elements/PersianDatePicker';
 import type { AdminWithProfile, AdminListParams, AdminFilters } from "@/types/auth/admin";
 import { useAuth } from "@/core/auth/AuthContext";
 import { adminApi } from "@/api/admins/admins";
@@ -88,6 +89,12 @@ export default function AdminsPage() {
         newClientFilters.user_role_type = userRoleType;
       }
     }
+    if (urlParams.get('date_from')) {
+      newClientFilters.date_from = urlParams.get('date_from')!;
+    }
+    if (urlParams.get('date_to')) {
+      newClientFilters.date_to = urlParams.get('date_to')!;
+    }
     
     if (Object.keys(newClientFilters).length > 0) {
       setClientFilters(newClientFilters);
@@ -112,11 +119,13 @@ export default function AdminsPage() {
     order_desc: sorting.length > 0 ? sorting[0].desc : true,
     is_active: clientFilters.is_active,
     is_superuser: clientFilters.is_superuser,
+    date_from: clientFilters.date_from as string | undefined,
+    date_to: clientFilters.date_to as string | undefined,
     ...(clientFilters.user_role_type && { user_role_type: clientFilters.user_role_type }),
   };
 
   const { data: response, isLoading, error } = useQuery({
-    queryKey: ['admins', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_superuser, queryParams.user_role_type],
+    queryKey: ['admins', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_superuser, queryParams.user_role_type, queryParams.date_from, queryParams.date_to],
     queryFn: async () => {
       return await adminApi.getAdminList(queryParams);
     },
@@ -405,41 +414,21 @@ export default function AdminsPage() {
             onChange={(value) => handleFilterChange('is_superuser', value)}
           />
 
-          <Select
-            value={sorting.length > 0 ? `${sorting[0].id}_${sorting[0].desc ? 'desc' : 'asc'}` : "latest"}
-            onValueChange={(value) => {
-              const sortMap: Record<string, { id: string; desc: boolean }> = {
-                latest: { id: "created_at", desc: true },
-                oldest: { id: "created_at", desc: false },
-                name_asc: { id: "full_name", desc: false },
-                name_desc: { id: "full_name", desc: true },
-              };
-              const sort = sortMap[value];
-              if (sort) {
-                setSorting([sort]);
-                const url = new URL(window.location.href);
-                url.searchParams.set('order_by', sort.id);
-                url.searchParams.set('order_desc', String(sort.desc));
-                window.history.replaceState({}, '', url.toString());
-              }
-            }}
-          >
-            <SelectTrigger className="w-[120px] h-9">
-              <SelectValue>
-                {sorting.length === 0 ? "جدیدترین" : (
-                  sorting[0].id === "created_at" 
-                    ? (sorting[0].desc ? "جدیدترین" : "قدیمی‌ترین")
-                    : (sorting[0].desc ? "نام (نزولی)" : "نام (صعودی)")
-                )}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="latest">جدیدترین</SelectItem>
-              <SelectItem value="oldest">قدیمی‌ترین</SelectItem>
-              <SelectItem value="name_asc">نام (صعودی)</SelectItem>
-              <SelectItem value="name_desc">نام (نزولی)</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+            <PersianDatePicker
+              value={clientFilters.date_from as string || ''}
+              onChange={(date) => handleFilterChange('date_from', date)}
+              placeholder="از تاریخ"
+              className="h-9 w-36"
+            />
+            <span className="text-xs text-font-s">تا</span>
+            <PersianDatePicker
+              value={clientFilters.date_to as string || ''}
+              onChange={(date) => handleFilterChange('date_to', date)}
+              placeholder="تا تاریخ"
+              className="h-9 w-36"
+            />
+          </div>
         </div>
 
         <div className="text-sm font-medium text-font-p">

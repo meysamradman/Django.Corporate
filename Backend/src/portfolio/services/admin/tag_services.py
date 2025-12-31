@@ -3,6 +3,7 @@ from django.db import transaction
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
+from datetime import datetime
 from src.portfolio.models.tag import PortfolioTag
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.utils.cache import TagCacheKeys, TagCacheManager
@@ -12,7 +13,7 @@ from src.portfolio.messages import TAG_ERRORS
 class PortfolioTagAdminService:
     
     @staticmethod
-    def get_tag_queryset(filters=None, search=None):
+    def get_tag_queryset(filters=None, search=None, date_from=None, date_to=None):
         queryset = PortfolioTag.objects.with_counts()
         
         if filters:
@@ -24,6 +25,21 @@ class PortfolioTagAdminService:
                 Q(name__icontains=search) |
                 Q(description__icontains=search)
             )
+        
+        # Date filters
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__gte=date_from_obj)
+            except ValueError:
+                pass
+        
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__lte=date_to_obj)
+            except ValueError:
+                pass
         
         return queryset.order_by('-portfolio_count', 'name')
     

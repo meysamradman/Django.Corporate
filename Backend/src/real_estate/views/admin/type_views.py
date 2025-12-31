@@ -5,6 +5,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.core.exceptions import ValidationError
 
 from src.real_estate.models.type import PropertyType
+from src.real_estate.filters.admin.type_filters import PropertyTypeAdminFilter
 from src.real_estate.serializers.admin.type_serializer import (
     PropertyTypeAdminListSerializer,
     PropertyTypeAdminDetailSerializer,
@@ -22,6 +23,7 @@ from src.real_estate.messages import TYPE_SUCCESS, TYPE_ERRORS
 class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = PropertyTypeAdminFilter
     search_fields = ['title', 'description']
     ordering_fields = ['path', 'created_at', 'title']
     ordering = ['path']

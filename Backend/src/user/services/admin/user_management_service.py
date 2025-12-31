@@ -1,5 +1,6 @@
 from django.db.models import Q
 from rest_framework.exceptions import NotFound, ValidationError, AuthenticationFailed
+from datetime import datetime
 from src.user.messages import AUTH_ERRORS
 from src.user.utils import validate_identifier, validate_register_password
 from src.user.models import User, UserProfile
@@ -10,7 +11,7 @@ from src.media.services.media_services import MediaAdminService as MediaService
 
 class UserManagementService:
     @staticmethod
-    def get_users_list(search=None, is_active=None, request=None):
+    def get_users_list(search=None, is_active=None, date_from=None, date_to=None, request=None):
         queryset = User.objects.select_related('user_profile').prefetch_related(
             'user_profile__profile_picture'
         ).filter(user_type='user', is_staff=False)
@@ -29,6 +30,21 @@ class UserManagementService:
                 Q(user_profile__first_name__icontains=search) |
                 Q(user_profile__last_name__icontains=search)
             ).distinct()
+        
+        # Date filters
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__gte=date_from_obj)
+            except ValueError:
+                pass
+        
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__lte=date_to_obj)
+            except ValueError:
+                pass
 
         return queryset.order_by('-created_at')
 

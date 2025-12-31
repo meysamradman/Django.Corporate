@@ -7,6 +7,7 @@ from src.core.pagination import StandardLimitPagination
 from src.user.access_control import real_estate_permission, PermissionRequiredMixin
 
 from src.real_estate.models.label import PropertyLabel
+from src.real_estate.filters.admin.label_filters import PropertyLabelAdminFilter
 from src.real_estate.serializers.admin.label_serializer import (
     PropertyLabelAdminListSerializer,
     PropertyLabelAdminDetailSerializer,
@@ -30,6 +31,7 @@ class PropertyLabelAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     }
     permission_denied_message = LABEL_ERRORS["label_not_authorized"]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = PropertyLabelAdminFilter
     search_fields = ['title']
     ordering_fields = ['created_at', 'title']
     ordering = ['title']
@@ -54,13 +56,7 @@ class PropertyLabelAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             return PropertyLabelAdminDetailSerializer
     
     def list(self, request, *args, **kwargs):
-        filters = {
-            'is_active': self._parse_bool(request.query_params.get('is_active')),
-        }
-        filters = {k: v for k, v in filters.items() if v is not None}
-        search = request.query_params.get('search')
-        
-        queryset = PropertyLabelAdminService.get_label_queryset(filters=filters, search=search)
+        queryset = self.filter_queryset(self.get_queryset())
         
         page = self.paginate_queryset(queryset)
         if page is not None:

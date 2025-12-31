@@ -73,11 +73,15 @@ class UserManagementView(PermissionRequiredMixin, AdminAuthMixin, APIView):
             validated_filters = filter_serializer.validated_data
             search_value = validated_filters.get('search')
             is_active_filter = validated_filters.get('is_active')
+            date_from = validated_filters.get('date_from')
+            date_to = validated_filters.get('date_to')
 
             try:
                 users_data = UserManagementService.get_users_list(
                     search=search_value,
                     is_active=is_active_filter,
+                    date_from=date_from,
+                    date_to=date_to,
                     request=request
                 )
                 

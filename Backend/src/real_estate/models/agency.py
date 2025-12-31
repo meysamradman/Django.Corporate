@@ -93,12 +93,6 @@ class RealEstateAgency(BaseModel, SEOMixin):
         help_text="Agency profile picture"
     )
     
-    is_verified = models.BooleanField(
-        default=False,
-        db_index=True,
-        verbose_name="Verified",
-        help_text="Designates whether this agency is verified"
-    )
     rating = models.DecimalField(
         max_digits=3,
         decimal_places=2,
@@ -126,10 +120,10 @@ class RealEstateAgency(BaseModel, SEOMixin):
         db_table = 'real_estate_agencies'
         verbose_name = 'Real Estate Agency'
         verbose_name_plural = 'Real Estate Agencies'
-        ordering = ['-rating', '-is_verified', 'name']
+        ordering = ['-rating', 'name']
         indexes = [
             # Composite indexes for common query patterns
-            models.Index(fields=['is_active', 'is_verified', '-rating']),
+            models.Index(fields=['is_active', '-rating']),
             models.Index(fields=['province', 'is_active']),
             models.Index(fields=['city', 'is_active']),
             models.Index(fields=['license_number']),

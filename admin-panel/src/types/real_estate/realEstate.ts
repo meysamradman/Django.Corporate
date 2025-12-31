@@ -43,6 +43,8 @@ export interface Property extends Base {
   city_name?: string;
   region?: number | null;  // CityRegion (optional)
   region_name?: string;
+  district?: number | null;  // Backend field name
+  district_name?: string;  // Backend field name
   neighborhood?: string;  // text field
   address?: string | null;
   postal_code?: string | null;
@@ -74,8 +76,11 @@ export interface Property extends Base {
   
   parking_spaces?: number | null;
   storage_rooms?: number | null;
+  document_type?: string | null;
+  capacity?: number | null;
   
   extra_attributes?: Record<string, any>;
+  currency?: string;  // واحد پول
   
   views_count?: number;
   favorites_count?: number;

@@ -36,6 +36,18 @@ class PropertyAdminFilter(django_filters.FilterSet):
         help_text="Created before this date (YYYY-MM-DD)"
     )
     
+    date_from = django_filters.DateFilter(
+        field_name='created_at__date',
+        lookup_expr='gte',
+        help_text="Filter from this date (YYYY-MM-DD)"
+    )
+    
+    date_to = django_filters.DateFilter(
+        field_name='created_at__date',
+        lookup_expr='lte',
+        help_text="Filter to this date (YYYY-MM-DD)"
+    )
+    
     published_after = django_filters.DateFilter(
         field_name='published_at',
         lookup_expr='gte',

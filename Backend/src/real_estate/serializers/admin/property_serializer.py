@@ -278,7 +278,7 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
             'main_image', 'property_type', 'state', 'agent', 'agency',
             'labels', 'tags', 'features', 'media', 'property_media', 'floor_plans',
             'region', 'city', 'city_name', 'province', 'province_name',
-            'country', 'country_name', 'district_name', 'region_name', 'neighborhood',
+            'country_name', 'district_name', 'region_name', 'neighborhood',
             'address', 'postal_code', 'latitude', 'longitude',
             'price', 'sale_price', 'pre_sale_price', 'price_per_sqm',
             'monthly_rent', 'rent_amount', 'mortgage_amount', 'security_deposit',
@@ -442,7 +442,8 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
         return obj.region.name if obj.region else None
     
     def get_country_name(self, obj):
-        return obj.country.name if obj.country else None
+        # همیشه ایران چون فیلد country در مدل نداریم
+        return "ایران"
     
     def get_floor_plans(self, obj):
         """Get all floor plans for this property (مثل Portfolio Media)"""
@@ -539,7 +540,7 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
             'agent', 'agency', 'property_type', 'state',
             'province', 'city', 'region', 'neighborhood',
             'address', 'postal_code', 'latitude', 'longitude',
-            'price', 'sale_price', 'pre_sale_price', 'is_negotiable',
+            'price', 'sale_price', 'pre_sale_price',
             'monthly_rent', 'rent_amount', 'mortgage_amount', 'security_deposit',
             'land_area', 'built_area',
             'bedrooms', 'bathrooms', 'kitchens', 'living_rooms',
@@ -589,11 +590,56 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
         return super().to_internal_value(data)
 
     def validate(self, attrs):
-        # Validate that at least one price field is provided
-        price_fields = ['price', 'sale_price', 'pre_sale_price', 'monthly_rent', 'rent_amount']
-        if not any(attrs.get(field) for field in price_fields):
-            raise serializers.ValidationError("حداقل یکی از فیلدهای قیمت باید پر شود.")
-
+        # ✅ Auto-generate unique slug if not provided or if duplicate
+        if not attrs.get('slug') and attrs.get('title'):
+            from django.utils.text import slugify
+            base_slug = slugify(attrs['title'])
+            slug = base_slug
+            counter = 1
+            while Property.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            attrs['slug'] = slug
+        elif attrs.get('slug'):
+            # ✅ Slug provided - check if it exists and make it unique
+            from django.utils.text import slugify
+            base_slug = attrs['slug']
+            slug = base_slug
+            counter = 1
+            while Property.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            # Only update if we had to change it
+            if slug != base_slug:
+                attrs['slug'] = slug
+        
+        # ✅ Auto-assign agent if not provided
+        if not attrs.get('agent'):
+            # Get or create default agent from current user (from context)
+            request = self.context.get('request')
+            if request and hasattr(request, 'user') and request.user.is_authenticated:
+                from src.real_estate.models.agent import PropertyAgent
+                import uuid
+                
+                # Try to get existing agent for this user
+                agent = PropertyAgent.objects.filter(user=request.user).first()
+                
+                if not agent:
+                    # Create new agent for this user
+                    license_num = f'AUTO-{uuid.uuid4().hex[:8].upper()}'
+                    agent_slug = f'agent-{request.user.id}-{uuid.uuid4().hex[:6]}'
+                    
+                    agent = PropertyAgent.objects.create(
+                        user=request.user,
+                        license_number=license_num,
+                        slug=agent_slug,
+                        specialization='General',
+                        is_active=True,
+                        is_verified=True
+                    )
+                
+                attrs['agent'] = agent
+        
         # Validate location fields - simplified like Diwar
         if not attrs.get('province'):
             raise serializers.ValidationError("استان الزامی است.")
@@ -717,6 +763,34 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         help_text="Mapping of media_id to cover_image_id for property-specific covers. Format: {media_id: cover_image_id}"
     )
     
+    # ✅ FIX: Allow null for optional numeric fields
+    parking_spaces = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        min_value=0,
+        max_value=20,
+        help_text="تعداد پارکینگ (اختیاری)"
+    )
+    storage_rooms = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        min_value=0,
+        max_value=20,
+        help_text="تعداد انباری (اختیاری)"
+    )
+    year_built = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="سال ساخت (اختیاری)"
+    )
+    floors_in_building = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        min_value=1,
+        max_value=100,
+        help_text="تعداد طبقات ساختمان (اختیاری)"
+    )
+    
     city = serializers.PrimaryKeyRelatedField(
         queryset=City.objects.all(),
         required=False,
@@ -739,7 +813,7 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
             'agent', 'agency', 'property_type', 'state',
             'region', 'city', 'province', 'country', 'neighborhood',
             'address', 'postal_code', 'latitude', 'longitude',
-            'price', 'sale_price', 'pre_sale_price', 'is_negotiable',
+            'price', 'sale_price', 'pre_sale_price',
             'monthly_rent', 'rent_amount', 'mortgage_amount', 'security_deposit',
             'land_area', 'built_area',
             'bedrooms', 'bathrooms', 'kitchens', 'living_rooms',
@@ -921,18 +995,6 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
             pass
 
         return attrs
-
-    def to_representation(self, instance):
-        """Ensure latitude/longitude are returned as numbers for frontend"""
-        data = super().to_representation(instance)
-
-        # Convert latitude and longitude to float for frontend
-        if instance.latitude is not None:
-            data['latitude'] = float(instance.latitude)
-        if instance.longitude is not None:
-            data['longitude'] = float(instance.longitude)
-
-        return data
 
 
 class PropertyAdminSerializer(PropertyAdminDetailSerializer):

@@ -221,7 +221,9 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
               {filterConfig.map((filter) => {
                const column = table.getColumn(filter.columnId);
                
-               if (!column && filter.columnId !== 'categories') return null;
+               // Allow rendering for non-column filters like date_from, date_to, categories
+               const isNonColumnFilter = ['categories', 'date_from', 'date_to'].includes(filter.columnId);
+               if (!column && !isNonColumnFilter) return null;
                
                if (filter.type === 'hierarchical') {
                  return (

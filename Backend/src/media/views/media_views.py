@@ -17,6 +17,7 @@ from src.media.serializers.media_serializer import MediaAdminSerializer, MediaPu
 from src.media.services.media_services import MediaAdminService, MediaPublicService
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.user.access_control import media_permission, PermissionRequiredMixin
+from src.user.access_control.definitions.validator import PermissionValidator
 
 
 class MediaAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):

@@ -3,6 +3,7 @@ from django.db import transaction
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
+from datetime import datetime
 from src.blog.models.tag import BlogTag
 from src.blog.models.blog import Blog
 from src.blog.utils.cache import TagCacheKeys, TagCacheManager
@@ -12,7 +13,7 @@ from src.blog.messages import TAG_ERRORS
 class BlogTagAdminService:
     
     @staticmethod
-    def get_tag_queryset(filters=None, search=None):
+    def get_tag_queryset(filters=None, search=None, date_from=None, date_to=None):
         queryset = BlogTag.objects.with_counts()
         
         if filters:
@@ -24,6 +25,21 @@ class BlogTagAdminService:
                 Q(name__icontains=search) |
                 Q(description__icontains=search)
             )
+        
+        # Date filters
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__gte=date_from_obj)
+            except ValueError:
+                pass
+        
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__lte=date_to_obj)
+            except ValueError:
+                pass
         
         return queryset.order_by('-blog_count', 'name')
     

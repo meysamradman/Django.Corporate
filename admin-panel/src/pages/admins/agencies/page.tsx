@@ -2,16 +2,18 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useAdminFilterOptions } from "@/components/admins/AdminTableFilters";
+import { PersianDatePicker } from '@/components/elements/PersianDatePicker';
 
 interface AgencyFilters {
   search?: string;
   is_active?: boolean;
-  is_verified?: boolean;
+  date_from?: string;
+  date_to?: string;
 }
 import { realEstateApi } from "@/api/real-estate/properties";
 import { showSuccess, showError } from '@/core/toast';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Edit, Trash2, Plus, Search, Building2, CheckCircle } from "lucide-react";
+import { Edit, Trash2, Plus, Search, Building2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { ProtectedButton } from "@/components/admins/permissions";
@@ -34,7 +36,6 @@ import { getConfirm } from '@/core/messages';
 import type { SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { DataTableSelectFilter } from "@/components/tables/DataTableSelectFilter";
 
 export default function AdminsAgenciesPage() {
@@ -78,10 +79,11 @@ export default function AdminsAgenciesPage() {
     if (urlParams.get('is_active') !== null) {
       newClientFilters.is_active = urlParams.get('is_active') === 'true';
     }
-    if (urlParams.get('is_verified') !== null) {
-      newClientFilters.is_verified = urlParams.get('is_verified') === 'true';
-    } else {
-      newClientFilters.is_verified = undefined;
+    if (urlParams.get('date_from')) {
+      newClientFilters.date_from = urlParams.get('date_from')!;
+    }
+    if (urlParams.get('date_to')) {
+      newClientFilters.date_to = urlParams.get('date_to')!;
     }
 
     if (Object.keys(newClientFilters).length > 0) {
@@ -106,11 +108,12 @@ export default function AdminsAgenciesPage() {
     order_by: sorting.length > 0 ? sorting[0].id : "created_at",
     order_desc: sorting.length > 0 ? sorting[0].desc : true,
     is_active: clientFilters.is_active,
-    is_verified: clientFilters.is_verified as boolean | undefined,
+    date_from: clientFilters.date_from,
+    date_to: clientFilters.date_to,
   };
 
   const { data: response, isLoading, error } = useQuery({
-    queryKey: ['agencies', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_verified],
+    queryKey: ['agencies', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.date_from, queryParams.date_to],
     queryFn: async () => {
       return await realEstateApi.getAgencies(queryParams);
     },
@@ -311,57 +314,21 @@ export default function AdminsAgenciesPage() {
             onChange={(value) => handleFilterChange('is_active', value)}
           />
 
-          <DataTableSelectFilter
-            title="تأیید شده"
-            placeholder="تأیید شده"
-            options={booleanFilterOptions}
-            value={clientFilters.is_verified}
-            onChange={(value) => handleFilterChange('is_verified', value)}
-          />
-
-          <Select
-            value={sorting.length > 0 ? `${sorting[0].id}_${sorting[0].desc ? 'desc' : 'asc'}` : "created_at_desc"}
-            onValueChange={(value) => {
-              const sortMap: Record<string, { id: string; desc: boolean }> = {
-                created_at_desc: { id: "created_at", desc: true },
-                created_at_asc: { id: "created_at", desc: false },
-                name_asc: { id: "name", desc: false },
-                name_desc: { id: "name", desc: true },
-                rating_desc: { id: "rating", desc: true },
-                rating_asc: { id: "rating", desc: false },
-              };
-              const sort = sortMap[value];
-              if (sort) {
-                setSorting([sort]);
-                const url = new URL(window.location.href);
-                url.searchParams.set('order_by', sort.id);
-                url.searchParams.set('order_desc', String(sort.desc));
-                window.history.replaceState({}, '', url.toString());
-              }
-            }}
-          >
-            <SelectTrigger className="w-[140px] h-9">
-              <SelectValue>
-                {sorting.length === 0 ? "جدیدترین" : (
-                  sorting[0].id === "created_at"
-                    ? (sorting[0].desc ? "جدیدترین" : "قدیمی‌ترین")
-                    : sorting[0].id === "name"
-                      ? (sorting[0].desc ? "نام (نزولی)" : "نام (صعودی)")
-                      : sorting[0].id === "rating"
-                        ? (sorting[0].desc ? "رتبه (نزولی)" : "رتبه (صعودی)")
-                        : "مرتب‌سازی"
-                )}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="created_at_desc">جدیدترین</SelectItem>
-              <SelectItem value="created_at_asc">قدیمی‌ترین</SelectItem>
-              <SelectItem value="name_asc">نام (صعودی)</SelectItem>
-              <SelectItem value="name_desc">نام (نزولی)</SelectItem>
-              <SelectItem value="rating_desc">رتبه (نزولی)</SelectItem>
-              <SelectItem value="rating_asc">رتبه (صعودی)</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+            <PersianDatePicker
+              value={clientFilters.date_from || ''}
+              onChange={(date) => handleFilterChange('date_from', date)}
+              placeholder="از تاریخ"
+              className="h-9 w-36"
+            />
+            <span className="text-xs text-font-s">تا</span>
+            <PersianDatePicker
+              value={clientFilters.date_to || ''}
+              onChange={(date) => handleFilterChange('date_to', date)}
+              placeholder="تا تاریخ"
+              className="h-9 w-36"
+            />
+          </div>
         </div>
 
         <div className="text-sm font-medium text-font-p">
@@ -417,9 +384,6 @@ export default function AdminsAgenciesPage() {
                           <p className="text-xs text-font-s mb-1">رتبه</p>
                           <p className="text-sm font-medium text-font-p">
                             {agency.rating ? `${agency.rating}/5` : "-"}
-                            {agency.is_verified && (
-                              <CheckCircle className="inline size-3 text-green-1 ml-1" />
-                            )}
                           </p>
                         </div>
                         <div className="text-left">

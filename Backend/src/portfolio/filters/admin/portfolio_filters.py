@@ -31,6 +31,18 @@ class PortfolioAdminFilter(django_filters.FilterSet):
         lookup_expr='lte',
         help_text="Created before this date (YYYY-MM-DD)"
     )
+    
+    date_from = django_filters.DateFilter(
+        field_name='created_at__date',
+        lookup_expr='gte',
+        help_text="Filter from this date (YYYY-MM-DD)"
+    )
+    
+    date_to = django_filters.DateFilter(
+        field_name='created_at__date',
+        lookup_expr='lte',
+        help_text="Filter to this date (YYYY-MM-DD)"
+    )
     category = django_filters.NumberFilter(
         field_name='categories__id',
         help_text="Filter by category ID"
@@ -114,7 +126,7 @@ class PortfolioAdminFilter(django_filters.FilterSet):
         model = Portfolio
         fields = [
             'status', 'is_featured', 'is_public', 'is_active',
-            'created_after', 'created_before',
+            'created_after', 'created_before', 'date_from', 'date_to',
             'category', 'category_slug', 'tag', 'tag_slug',
             'seo_status', 'has_meta_title', 'has_meta_description',
             'has_og_image', 'has_canonical_url',

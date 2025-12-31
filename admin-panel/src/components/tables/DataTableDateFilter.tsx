@@ -1,5 +1,4 @@
-import { Calendar } from "lucide-react"
-import { Input } from "@/components/elements/Input"
+import { PersianDatePicker } from "@/components/elements/PersianDatePicker"
 
 interface DataTableDateFilterProps {
   title?: string
@@ -22,16 +21,12 @@ export function DataTableDateFilter({
           {title}
         </label>
       )}
-      <div className="relative">
-        <Input
-          type="date"
-          value={value || ""}
-          onChange={(e) => onChange(e.target.value)}
-          className="h-8 w-36 pl-8"
-          placeholder={defaultPlaceholder}
-        />
-        <Calendar className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-font-s" />
-      </div>
+      <PersianDatePicker
+        value={value || ""}
+        onChange={(date) => onChange(date)}
+        placeholder={defaultPlaceholder}
+        className="h-9 w-36"
+      />
     </div>
   )
 }

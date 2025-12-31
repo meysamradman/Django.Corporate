@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.db.models import Count, Prefetch, Q
 from django.db import transaction
 from django.core.exceptions import ValidationError
@@ -10,7 +11,7 @@ from src.real_estate.messages.messages import AGENT_ERRORS
 class PropertyAgentAdminService:
     
     @staticmethod
-    def get_agent_queryset(filters=None, search=None):
+    def get_agent_queryset(filters=None, search=None, date_from=None, date_to=None):
         queryset = PropertyAgent.objects.select_related(
             'user',
             'user__admin_profile',
@@ -39,6 +40,21 @@ class PropertyAgentAdminService:
                 Q(user__admin_profile__last_name__icontains=search) |
                 Q(license_number__icontains=search)
             )
+        
+        # Date filters
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__gte=date_from_obj)
+            except ValueError:
+                pass
+        
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__lte=date_to_obj)
+            except ValueError:
+                pass
         
         return queryset.order_by('-rating', '-total_sales', 'user__admin_profile__last_name')
     

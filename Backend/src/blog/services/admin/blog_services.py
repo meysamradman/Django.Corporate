@@ -4,6 +4,7 @@ from django.core.cache import cache
 from django.db import transaction
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from datetime import datetime
 
 from src.blog.models.blog import Blog
 from src.blog.utils.cache import BlogCacheManager, BlogCacheKeys
@@ -16,7 +17,7 @@ from src.blog.messages.messages import BLOG_ERRORS
 class BlogAdminService:
     
     @staticmethod
-    def get_blog_queryset(filters=None, search=None, order_by=None, order_desc=None):
+    def get_blog_queryset(filters=None, search=None, order_by=None, order_desc=None, date_from=None, date_to=None):
         queryset = Blog.objects.select_related('og_image').prefetch_related(
             'categories',
             'tags',
@@ -68,6 +69,21 @@ class BlogAdminService:
                 Q(meta_title__icontains=search) |
                 Q(meta_description__icontains=search)
             )
+        
+        # Date filters
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__gte=date_from_obj)
+            except ValueError:
+                pass
+        
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__lte=date_to_obj)
+            except ValueError:
+                pass
         
         if order_by:
             ordering_field = order_by

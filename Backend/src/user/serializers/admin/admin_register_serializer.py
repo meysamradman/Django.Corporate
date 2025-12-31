@@ -62,19 +62,14 @@ class AdminRegisterSerializer(serializers.Serializer):
     agency_id = serializers.IntegerField(required=False, allow_null=True)
     is_verified = serializers.BooleanField(required=False, default=False)
     
-    # فیلدهای SEO برای PropertyAgent (اختیاری)
+    # فیلدهای SEO برای PropertyAgent (اختیاری) - فقط فیلدهای SEOMixin
     meta_title = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=70)
     meta_description = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=300)
-    meta_keywords = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=200)
     og_title = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=70)
     og_description = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=300)
     og_image_id = serializers.IntegerField(required=False, allow_null=True)
-    twitter_card = serializers.ChoiceField(
-        choices=[('summary', 'Summary'), ('summary_large_image', 'Summary Large Image')],
-        required=False,
-        allow_blank=True,
-        allow_null=True
-    )
+    canonical_url = serializers.URLField(required=False, allow_blank=True, allow_null=True)
+    robots_meta = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=50)
 
     def validate_mobile(self, value):
         if value == "" or value is None:

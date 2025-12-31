@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 from django.utils.text import slugify
+from datetime import datetime
 
 from src.real_estate.models.property import Property
 from src.real_estate.models.media import PropertyImage, PropertyVideo, PropertyAudio, PropertyDocument
@@ -65,7 +66,7 @@ class PropertyYearService:
 class PropertyAdminService:
     
     @staticmethod
-    def get_property_queryset(filters=None, search=None, order_by=None, order_desc=None):
+    def get_property_queryset(filters=None, search=None, order_by=None, order_desc=None, date_from=None, date_to=None):
         queryset = Property.objects.for_admin_listing()
         
         if filters:
@@ -124,6 +125,21 @@ class PropertyAdminService:
                 Q(meta_description__icontains=search)
             ).distinct()
         
+        # Date filters
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__gte=date_from_obj)
+            except ValueError:
+                pass
+        
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+                queryset = queryset.filter(created_at__date__lte=date_to_obj)
+            except ValueError:
+                pass
+        
         if order_by:
             ordering_field = order_by
             if order_desc:
@@ -147,7 +163,18 @@ class PropertyAdminService:
         tags_ids = validated_data.pop('tags_ids', [])
         features_ids = validated_data.pop('features_ids', [])
         
-        if not validated_data.get('slug') and validated_data.get('title'):
+        # ✅ Always ensure slug is unique (even if provided by frontend)
+        if validated_data.get('slug'):
+            # Slug provided - check if it exists and make it unique
+            base_slug = validated_data['slug']
+            slug = base_slug
+            counter = 1
+            while Property.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            validated_data['slug'] = slug
+        elif validated_data.get('title'):
+            # No slug provided - generate from title
             base_slug = slugify(validated_data['title'])
             slug = base_slug
             counter = 1

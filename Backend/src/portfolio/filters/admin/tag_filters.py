@@ -33,6 +33,16 @@ class PortfolioTagAdminFilter(django_filters.FilterSet):
         lookup_expr='lte',
         label='Created Before'
     )
+    date_from = django_filters.DateFilter(
+        field_name='created_at__date',
+        lookup_expr='gte',
+        label='Filter from this date'
+    )
+    date_to = django_filters.DateFilter(
+        field_name='created_at__date',
+        lookup_expr='lte',
+        label='Filter to this date'
+    )
     name_length = django_filters.ChoiceFilter(
         method='filter_name_length',
         choices=[

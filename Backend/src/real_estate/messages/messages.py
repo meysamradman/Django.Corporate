@@ -20,6 +20,7 @@ PROPERTY_ERRORS = {
     "property_create_failed": "ایجاد ملک ناموفق بود.",
     "property_update_failed": "به‌روزرسانی ملک ناموفق بود.",
     "property_delete_failed": "حذف ملک ناموفق بود.",
+    "property_validation_failed": "خطا در اعتبارسنجی داده‌های ملک. لطفاً فیلدهای الزامی را بررسی کنید.",
     "property_ids_required": "شناسه املاک مورد نیاز است.",
     "properties_not_found": "املاک انتخاب شده یافت نشدند.",
     "media_id_required": "شناسه رسانه مورد نیاز است.",

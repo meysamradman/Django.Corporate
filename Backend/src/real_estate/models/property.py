@@ -27,8 +27,21 @@ class Property(BaseModel, SEOMixin):
     description = models.TextField(verbose_name="Description")
     
     # Foreign Keys - db_index removed (covered by partial indexes)
-    agent = models.ForeignKey(PropertyAgent, on_delete=models.PROTECT, related_name='properties')
-    agency = models.ForeignKey(RealEstateAgency, on_delete=models.PROTECT, related_name='properties', null=True, blank=True)
+    agent = models.ForeignKey(
+        PropertyAgent, 
+        on_delete=models.PROTECT, 
+        related_name='properties',
+        null=True,
+        blank=True,
+        help_text="Property agent (auto-assigned if not provided)"
+    )
+    agency = models.ForeignKey(
+        RealEstateAgency, 
+        on_delete=models.PROTECT, 
+        related_name='properties', 
+        null=True, 
+        blank=True
+    )
     property_type = models.ForeignKey(PropertyType, on_delete=models.PROTECT, related_name='properties')
     state = models.ForeignKey(PropertyState, on_delete=models.PROTECT, related_name='properties')
     
@@ -77,8 +90,22 @@ class Property(BaseModel, SEOMixin):
     security_deposit = models.BigIntegerField(null=True, blank=True)
     
     # Area fields - db_index removed (covered by partial indexes)
-    land_area = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    built_area = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    land_area = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        validators=[MinValueValidator(0)],
+        null=True,
+        blank=True,
+        help_text="Land area in square meters (optional)"
+    )
+    built_area = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        validators=[MinValueValidator(0)],
+        null=True,
+        blank=True,
+        help_text="Built area in square meters (optional)"
+    )
     
     # Room Counts with English labels (i18n handled in frontend)
     BEDROOM_CHOICES = [
@@ -340,10 +367,12 @@ class Property(BaseModel, SEOMixin):
     parking_spaces = models.SmallIntegerField(
         choices=PARKING_CHOICES,
         default=0,
+        null=True,
+        blank=True,
         validators=[MinValueValidator(0), MaxValueValidator(20)],
         db_index=True,
         verbose_name="Parking Spaces",
-        help_text="Number of parking spaces"
+        help_text="Number of parking spaces (optional)"
     )
 
     STORAGE_CHOICES = [
@@ -363,10 +392,12 @@ class Property(BaseModel, SEOMixin):
     storage_rooms = models.SmallIntegerField(
         choices=STORAGE_CHOICES,
         default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(5)],
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(10)],
         db_index=True,
         verbose_name="Storage Rooms",
-        help_text="Number of storage rooms (0 = No storage)"
+        help_text="Number of storage rooms (optional, 0 = No storage)"
     )
     
     # Document fields - Keep db_index (frequently filtered)
@@ -433,6 +464,7 @@ class Property(BaseModel, SEOMixin):
     search_vector = SearchVectorField(
         null=True,
         blank=True,
+        editable=False,
         verbose_name="Search Vector",
         help_text="Full-text search vector (PostgreSQL)"
     )
@@ -785,7 +817,27 @@ class Property(BaseModel, SEOMixin):
             from django.utils import timezone
             self.published_at = timezone.now()
         
-        super().save(*args, **kwargs)
+        # ذخیره متغیر برای بعد
+        is_new = self.pk is None
+        
+        # ذخیره رکورد
+        if is_new:
+            # برای insert جدید - بدون full_clean چون search_vector مشکل دارد
+            models.Model.save(self, *args, **kwargs)
+        else:
+            # برای update - با full_clean از BaseModel
+            super().save(*args, **kwargs)
+        
+        # به‌روزرسانی search_vector بعد از save (فقط برای insert)
+        if is_new:
+            from django.contrib.postgres.search import SearchVector
+            Property.objects.filter(pk=self.pk).update(
+                search_vector=(
+                    SearchVector('title', weight='A', config='english') +
+                    SearchVector('description', weight='B', config='english') +
+                    SearchVector('address', weight='C', config='english')
+                )
+            )
         
         # Invalidate cache
         if self.pk:

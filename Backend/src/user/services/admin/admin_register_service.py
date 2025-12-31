@@ -254,21 +254,39 @@ class AdminRegisterService:
     def _create_property_agent(cls, user, validated_data):
         from src.real_estate.models import PropertyAgent, RealEstateAgency
         from src.media.models import ImageMedia
+        from django.utils.text import slugify
+        
+        # ایجاد slug منحصر به فرد از نام کاربر
+        first_name = validated_data.get('first_name', '')
+        last_name = validated_data.get('last_name', '')
+        full_name = f"{first_name} {last_name}".strip()
+        
+        # اگر نامی نداشت، از mobile یا email استفاده کن
+        if not full_name:
+            full_name = user.mobile or user.email or f"agent-{user.id}"
+        
+        base_slug = slugify(full_name, allow_unicode=True)
+        slug = base_slug
+        counter = 1
+        while PropertyAgent.objects.filter(slug=slug).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
         
         agent_data = {
             'user': user,
+            'slug': slug,  # اضافه کردن slug
             'license_number': validated_data.get('license_number'),
             'license_expire_date': validated_data.get('license_expire_date'),
             'specialization': validated_data.get('specialization', ''),
             'bio': validated_data.get('bio', ''),
             'is_verified': validated_data.get('is_verified', False),
-            # SEO fields
+            # SEO fields (only fields from SEOMixin)
             'meta_title': validated_data.get('meta_title', ''),
             'meta_description': validated_data.get('meta_description', ''),
-            'meta_keywords': validated_data.get('meta_keywords', ''),
             'og_title': validated_data.get('og_title', ''),
             'og_description': validated_data.get('og_description', ''),
-            'twitter_card': validated_data.get('twitter_card', ''),
+            'canonical_url': validated_data.get('canonical_url', ''),
+            'robots_meta': validated_data.get('robots_meta', ''),
         }
         
         # Agency relationship
@@ -291,7 +309,8 @@ class AdminRegisterService:
         agent_data = {k: v for k, v in agent_data.items() if v is not None}
         
         try:
-            PropertyAgent.objects.create(**agent_data)
+            agent = PropertyAgent.objects.create(**agent_data)
+            return agent
         except Exception as e:
             # اگر خطا داد، کاربر رو حذف کن
             user.delete()

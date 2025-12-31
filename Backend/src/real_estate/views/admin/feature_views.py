@@ -7,6 +7,7 @@ from src.core.pagination import StandardLimitPagination
 from src.user.access_control import real_estate_permission, PermissionRequiredMixin
 
 from src.real_estate.models.feature import PropertyFeature
+from src.real_estate.filters.admin.feature_filters import PropertyFeatureAdminFilter
 from src.real_estate.serializers.admin.feature_serializer import (
     PropertyFeatureAdminListSerializer,
     PropertyFeatureAdminDetailSerializer,
@@ -31,6 +32,7 @@ class PropertyFeatureAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
     }
     permission_denied_message = FEATURE_ERRORS["feature_not_authorized"]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = PropertyFeatureAdminFilter
     search_fields = ['title', 'category']
     ordering_fields = ['category', 'created_at', 'title']
     ordering = ['category', 'title']
@@ -55,14 +57,7 @@ class PropertyFeatureAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
             return PropertyFeatureAdminDetailSerializer
     
     def list(self, request, *args, **kwargs):
-        filters = {
-            'is_active': self._parse_bool(request.query_params.get('is_active')),
-            'category': request.query_params.get('category'),
-        }
-        filters = {k: v for k, v in filters.items() if v is not None}
-        search = request.query_params.get('search')
-        
-        queryset = PropertyFeatureAdminService.get_feature_queryset(filters=filters, search=search)
+        queryset = self.filter_queryset(self.get_queryset())
         
         page = self.paginate_queryset(queryset)
         if page is not None:

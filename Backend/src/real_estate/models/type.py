@@ -1,10 +1,14 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 from treebeard.mp_tree import MP_Node
 from src.core.models import BaseModel
+from src.real_estate.models.seo import SEOMixin
+from src.media.models.media import ImageMedia
 from src.real_estate.models.managers import PropertyTypeQuerySet
+from src.real_estate.utils.cache import TypeCacheManager
 
 
-class PropertyType(MP_Node, BaseModel):
+class PropertyType(MP_Node, BaseModel, SEOMixin):
     
     title = models.CharField(
         max_length=100,
@@ -22,9 +26,27 @@ class PropertyType(MP_Node, BaseModel):
         help_text="URL-friendly identifier for the property type"
     )
     description = models.TextField(
+        null=True,
         blank=True,
         verbose_name="Description",
         help_text="Detailed description of this property type"
+    )
+    
+    is_public = models.BooleanField(
+        default=True,
+        db_index=True,
+        verbose_name="Public",
+        help_text="Designates whether this type is publicly visible"
+    )
+    
+    image = models.ForeignKey(
+        ImageMedia,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='property_type_images',
+        verbose_name="Main Image",
+        help_text="Main image for this property type"
     )
     
     display_order = models.IntegerField(
@@ -38,7 +60,7 @@ class PropertyType(MP_Node, BaseModel):
     
     objects = PropertyTypeQuerySet.as_manager()
     
-    class Meta(BaseModel.Meta):
+    class Meta(BaseModel.Meta, SEOMixin.Meta):
         db_table = 'real_estate_property_types'
         verbose_name = 'Property Type'
         verbose_name_plural = 'Property Types'
@@ -63,12 +85,29 @@ class PropertyType(MP_Node, BaseModel):
     def get_public_url(self):
         return f"/properties/type/{self.slug}/"
     
-    @property
-    def is_root(self):
+    def save(self, *args, **kwargs):
+        # Auto-generate SEO fields
+        if not self.meta_title and self.title:
+            self.meta_title = self.title[:70]
+        
+        if not self.meta_description and self.description:
+            self.meta_description = self.description[:300]
+            
+        super().save(*args, **kwargs)
+        
+        # Invalidate cache
+        TypeCacheManager.invalidate_all()
+    
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        TypeCacheManager.invalidate_all()
+    
+    def is_root_level(self):
+        """بررسی اینکه آیا این نوع در سطح ریشه است"""
         return self.depth == 1
     
-    @property
-    def is_leaf(self):
+    def is_leaf_node(self):
+        """بررسی اینکه آیا این نوع برگ است (فرزند ندارد)"""
         return self.get_children().count() == 0
     
     def get_ancestors_list(self):
@@ -77,3 +116,13 @@ class PropertyType(MP_Node, BaseModel):
     def get_full_path_title(self):
         ancestors = self.get_ancestors_list()
         return ' > '.join(ancestors + [self.title])
+    
+    def generate_structured_data(self):
+        """Generate JSON-LD structured data for SEO"""
+        return {
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": self.get_meta_title(),
+            "description": self.get_meta_description(),
+            "url": self.get_public_url(),
+        }

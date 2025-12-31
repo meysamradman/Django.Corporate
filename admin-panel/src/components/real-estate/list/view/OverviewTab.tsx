@@ -3,6 +3,7 @@ import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import type { Property } from "@/types/real_estate/realEstate";
 import { Badge } from "@/components/elements/Badge";
 import { ReadMore } from "@/components/elements/ReadMore";
+import { Link } from "react-router-dom";
 import {
   Tag,
   Image as ImageIcon,
@@ -12,6 +13,8 @@ import {
   MapPin,
   Building2,
   DollarSign,
+  ExternalLink,
+  Phone,
 } from "lucide-react";
 
 interface OverviewTabProps {
@@ -198,6 +201,46 @@ export function OverviewTab({ property }: OverviewTabProps) {
               </div>
             </div>
           )}
+          {property.agent && (
+            <div>
+              <label className="text-font-s mb-2 block">کارشناس</label>
+              <Link 
+                to={`/real-estate/advisors/${property.agent.id}/view`}
+                className="flex items-center gap-2 text-font-p font-medium text-blue-2 hover:text-blue-1 transition-colors group"
+              >
+                <span>
+                  {property.agent.full_name || 
+                   `${property.agent.first_name} ${property.agent.last_name}` || 
+                   "-"}
+                </span>
+                <ExternalLink className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </Link>
+              {property.agent.phone && (
+                <div className="flex items-center gap-1 mt-1 text-font-s text-gray-2">
+                  <Phone className="w-3 h-3" />
+                  <span dir="ltr">{property.agent.phone}</span>
+                </div>
+              )}
+            </div>
+          )}
+          {property.agency && (
+            <div>
+              <label className="text-font-s mb-2 block">آژانس</label>
+              <Link 
+                to={`/real-estate/agencies/${property.agency.id}/view`}
+                className="flex items-center gap-2 text-font-p font-medium text-blue-2 hover:text-blue-1 transition-colors group"
+              >
+                <span>{property.agency.name || "-"}</span>
+                <ExternalLink className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </Link>
+              {property.agency.phone && (
+                <div className="flex items-center gap-1 mt-1 text-font-s text-gray-2">
+                  <Phone className="w-3 h-3" />
+                  <span dir="ltr">{property.agency.phone}</span>
+                </div>
+              )}
+            </div>
+          )}
         </CardWithIcon>
 
         <CardWithIcon
@@ -239,35 +282,191 @@ export function OverviewTab({ property }: OverviewTabProps) {
         </CardWithIcon>
 
         <CardWithIcon
+          icon={Building2}
+          title="مشخصات ملک"
+          iconBgColor="bg-teal"
+          iconColor="stroke-teal-2"
+          borderColor="border-b-teal-1"
+          contentClassName="space-y-4"
+        >
+          <div className="grid grid-cols-2 gap-4">
+            {property.land_area && (
+              <div>
+                <label className="text-font-s mb-2 block">متراژ زمین</label>
+                <div className="text-font-p">
+                  {formatPrice(property.land_area)} متر مربع
+                </div>
+              </div>
+            )}
+            {property.built_area && (
+              <div>
+                <label className="text-font-s mb-2 block">زیربنا</label>
+                <div className="text-font-p">
+                  {formatPrice(property.built_area)} متر مربع
+                </div>
+              </div>
+            )}
+            {property.bedrooms !== null && property.bedrooms !== undefined && (
+              <div>
+                <label className="text-font-s mb-2 block">تعداد خواب</label>
+                <div className="text-font-p">
+                  {property.bedrooms === 0 ? 'استودیو' : `${property.bedrooms} اتاق`}
+                </div>
+              </div>
+            )}
+            {property.bathrooms !== null && property.bathrooms !== undefined && (
+              <div>
+                <label className="text-font-s mb-2 block">سرویس/حمام</label>
+                <div className="text-font-p">
+                  {property.bathrooms === 0 ? 'ندارد' : `${property.bathrooms} عدد`}
+                </div>
+              </div>
+            )}
+            {property.kitchens !== null && property.kitchens !== undefined && (
+              <div>
+                <label className="text-font-s mb-2 block">آشپزخانه</label>
+                <div className="text-font-p">
+                  {property.kitchens === 0 ? 'ندارد' : `${property.kitchens} عدد`}
+                </div>
+              </div>
+            )}
+            {property.living_rooms !== null && property.living_rooms !== undefined && (
+              <div>
+                <label className="text-font-s mb-2 block">پذیرایی</label>
+                <div className="text-font-p">
+                  {property.living_rooms === 0 ? 'ندارد' : `${property.living_rooms} عدد`}
+                </div>
+              </div>
+            )}
+            {property.parking_spaces !== null && property.parking_spaces !== undefined && (
+              <div>
+                <label className="text-font-s mb-2 block">پارکینگ</label>
+                <div className="text-font-p">
+                  {property.parking_spaces === 0 ? 'ندارد' : `${property.parking_spaces} عدد`}
+                </div>
+              </div>
+            )}
+            {property.storage_rooms !== null && property.storage_rooms !== undefined && (
+              <div>
+                <label className="text-font-s mb-2 block">انباری</label>
+                <div className="text-font-p">
+                  {property.storage_rooms === 0 ? 'ندارد' : `${property.storage_rooms} عدد`}
+                </div>
+              </div>
+            )}
+            {property.floor_number !== null && property.floor_number !== undefined && (
+              <div>
+                <label className="text-font-s mb-2 block">طبقه</label>
+                <div className="text-font-p">
+                  {property.floor_number === 0 ? 'همکف' : 
+                   property.floor_number === -1 ? 'زیرزمین' : 
+                   property.floor_number === -2 ? 'زیرزمین دوم' : 
+                   `طبقه ${property.floor_number}`}
+                </div>
+              </div>
+            )}
+            {property.floors_in_building && (
+              <div>
+                <label className="text-font-s mb-2 block">تعداد طبقات</label>
+                <div className="text-font-p">
+                  {property.floors_in_building} طبقه
+                </div>
+              </div>
+            )}
+            {property.year_built && (
+              <div>
+                <label className="text-font-s mb-2 block">سال ساخت</label>
+                <div className="text-font-p">
+                  {property.year_built}
+                </div>
+              </div>
+            )}
+            {property.document_type && (
+              <div>
+                <label className="text-font-s mb-2 block">نوع سند</label>
+                <div className="text-font-p">
+                  {property.document_type}
+                </div>
+              </div>
+            )}
+          </div>
+        </CardWithIcon>
+
+        <CardWithIcon
           icon={DollarSign}
           title="اطلاعات قیمت"
           iconBgColor="bg-green"
           iconColor="stroke-green-2"
           borderColor="border-b-green-1"
           contentClassName="space-y-4"
+          className="md:col-span-2"
         >
-          <div>
-            <label className="text-font-s mb-2 block">قیمت</label>
-            <div className="text-font-p font-medium">
-              {getPriceDisplay()}
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {property.price && (
+              <div>
+                <label className="text-font-s mb-2 block">قیمت کل</label>
+                <div className="text-font-p font-medium">
+                  {formatPrice(property.price)} {property.currency || 'تومان'}
+                </div>
+              </div>
+            )}
+            {property.sale_price && (
+              <div>
+                <label className="text-font-s mb-2 block">قیمت حراج</label>
+                <div className="text-font-p font-medium">
+                  {formatPrice(property.sale_price)} {property.currency || 'تومان'}
+                </div>
+              </div>
+            )}
+            {property.pre_sale_price && (
+              <div>
+                <label className="text-font-s mb-2 block">قیمت پیش‌فروش</label>
+                <div className="text-font-p font-medium">
+                  {formatPrice(property.pre_sale_price)} {property.currency || 'تومان'}
+                </div>
+              </div>
+            )}
+            {property.price_per_sqm && (
+              <div>
+                <label className="text-font-s mb-2 block">قیمت هر متر مربع</label>
+                <div className="text-font-p">
+                  {formatPrice(property.price_per_sqm)} {property.currency || 'تومان'}
+                </div>
+              </div>
+            )}
+            {property.mortgage_amount && (
+              <div>
+                <label className="text-font-s mb-2 block">رهن</label>
+                <div className="text-font-p">
+                  {formatPrice(property.mortgage_amount)} {property.currency || 'تومان'}
+                </div>
+              </div>
+            )}
+            {property.rent_amount && (
+              <div>
+                <label className="text-font-s mb-2 block">اجاره</label>
+                <div className="text-font-p">
+                  {formatPrice(property.rent_amount)} {property.currency || 'تومان'}
+                </div>
+              </div>
+            )}
+            {property.monthly_rent && (
+              <div>
+                <label className="text-font-s mb-2 block">اجاره ماهیانه</label>
+                <div className="text-font-p">
+                  {formatPrice(property.monthly_rent)} {property.currency || 'تومان'}
+                </div>
+              </div>
+            )}
+            {property.security_deposit && (
+              <div>
+                <label className="text-font-s mb-2 block">ودیعه</label>
+                <div className="text-font-p">
+                  {formatPrice(property.security_deposit)} {property.currency || 'تومان'}
+                </div>
+              </div>
+            )}
           </div>
-          {property.price_per_sqm && (
-            <div>
-              <label className="text-font-s mb-2 block">قیمت هر متر مربع</label>
-              <div className="text-font-p">
-                {formatPrice(property.price_per_sqm)} {property.currency || 'تومان'}
-              </div>
-            </div>
-          )}
-          {property.built_area && (
-            <div>
-              <label className="text-font-s mb-2 block">متراژ</label>
-              <div className="text-font-p">
-                {formatPrice(property.built_area)} متر مربع
-              </div>
-            </div>
-          )}
         </CardWithIcon>
       </div>
 
