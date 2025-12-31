@@ -19,7 +19,7 @@ from src.user.services.admin.admin_register_service import AdminRegisterService
 from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS
 from src.user.models import User
 from src.user.auth.admin_auth_mixin import AdminAuthMixin
-from src.user.access_control import SimpleAdminPermission
+from src.user.access_control import SimpleAdminPermission, SuperAdminOnly, UserManagementPermission
 from src.core.pagination.pagination import StandardLimitPagination
 
 
@@ -30,7 +30,10 @@ class AdminManagementView(AdminAuthMixin, APIView):
     pagination_class = StandardLimitPagination
 
     def get_permissions(self):
-        return [SimpleAdminPermission()]
+
+        if self.request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
+            return [SuperAdminOnly()]
+        return [UserManagementPermission()]
 
     def get(self, request, admin_id=None, **kwargs):
         try:

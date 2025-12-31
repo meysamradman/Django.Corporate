@@ -188,7 +188,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         access: {
           module: "admin",
           actions: ["read", "view"],
-          allowReadOnly: true
+          requireSuperAdmin: true  // فقط Super Admin
         },
         items: [
           {
@@ -198,7 +198,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
             access: {
               module: "admin",
               actions: ["read", "view"],
-              allowReadOnly: true
+              requireSuperAdmin: true  // فقط Super Admin
             }
           },
           {

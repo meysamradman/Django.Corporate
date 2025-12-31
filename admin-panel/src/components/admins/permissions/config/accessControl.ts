@@ -76,7 +76,7 @@ const adminManagementRoutes: RouteRule[] = [
     module: MODULES.ADMIN,
     action: "read",
     description: "Admin List",
-    requireSuperAdmin: true,
+    requireSuperAdmin: true,  // فقط Super Admin
   }),
   createRule({
     id: "admins-create",
@@ -84,7 +84,7 @@ const adminManagementRoutes: RouteRule[] = [
     module: MODULES.ADMIN,
     action: "create",
     description: "Create Admin",
-    requireSuperAdmin: true,
+    requireSuperAdmin: true,  // فقط Super Admin
   }),
   createRule({
     id: "admins-edit",
@@ -92,7 +92,7 @@ const adminManagementRoutes: RouteRule[] = [
     module: MODULES.ADMIN,
     action: "update",
     description: "Edit Admin",
-    requireSuperAdmin: true,
+    requireSuperAdmin: true,  // فقط Super Admin
   }),
   createRule({
     id: "admins-permissions",
@@ -100,7 +100,7 @@ const adminManagementRoutes: RouteRule[] = [
     module: MODULES.ADMIN,
     action: "manage",
     description: "مدیریت دسترسی ادمین",
-    requireSuperAdmin: true,
+    requireSuperAdmin: true,  // فقط Super Admin
   }),
   createRule({
     id: "admins-self-edit",
@@ -108,6 +108,7 @@ const adminManagementRoutes: RouteRule[] = [
     module: MODULES.ADMIN,
     action: "update",
     description: "ویرایش پروفایل من",
+    // همه ادمین‌ها می‌توانند پروفایل خودشون رو ویرایش کنند
   }),
 ];
 
@@ -142,7 +143,7 @@ const roleRoutes: RouteRule[] = [
     module: MODULES.ADMIN,
     action: "read",
     description: "لیست نقش‌ها",
-    requireSuperAdmin: true,
+    requireSuperAdmin: true,  // فقط Super Admin
   }),
   createRule({
     id: "roles-create",
@@ -150,7 +151,7 @@ const roleRoutes: RouteRule[] = [
     module: MODULES.ADMIN,
     action: "create",
     description: "ایجاد نقش",
-    requireSuperAdmin: true,
+    requireSuperAdmin: true,  // فقط Super Admin
   }),
   createRule({
     id: "roles-detail",
@@ -158,7 +159,7 @@ const roleRoutes: RouteRule[] = [
     module: MODULES.ADMIN,
     action: "read",
     description: "جزئیات نقش",
-    requireSuperAdmin: true,
+    requireSuperAdmin: true,  // فقط Super Admin
   }),
   createRule({
     id: "roles-edit",
@@ -166,7 +167,7 @@ const roleRoutes: RouteRule[] = [
     module: MODULES.ADMIN,
     action: "update",
     description: "ویرایش نقش",
-    requireSuperAdmin: true,
+    requireSuperAdmin: true,  // فقط Super Admin
   }),
 ];
 
@@ -194,7 +195,7 @@ const settingsRoutes: RouteRule[] = [
     module: MODULES.PANEL,
     action: "manage",
     description: "تنظیمات پنل",
-    requireSuperAdmin: true,  // IP Management حساس است، فقط Super Admin
+    requireSuperAdmin: true,  // فقط Super Admin - IP Management حساس است
   }),
   createRule({
     id: "settings-general",
@@ -202,6 +203,7 @@ const settingsRoutes: RouteRule[] = [
     module: MODULES.SETTINGS,
     action: "manage",
     description: "تنظیمات عمومی",
+    requireSuperAdmin: true,  // فقط Super Admin - تنظیمات سیستم حساس است
   }),
 ];
 

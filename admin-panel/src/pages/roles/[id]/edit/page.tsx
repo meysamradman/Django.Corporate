@@ -878,17 +878,6 @@ export default function EditRolePage() {
                   />
                 )}
 
-                {/* بخش 3: مجوزهای مدیریتی (Admin-only) */}
-                {adminOnlyResources.length > 0 && (
-                  <AdminPermissionsCard
-                    resources={adminOnlyResources}
-                    selectedPermissions={selectedPermissions}
-                    isSuperAdmin={isSuperAdmin}
-                    onTogglePermission={togglePermission}
-                    isPermissionSelected={isPermissionSelected}
-                    getResourceIcon={getResourceIcon}
-                  />
-                )}
                 
                 {selectedPermissions.length > 0 && (
                   <div className="p-3 bg-bg/50 rounded-lg">

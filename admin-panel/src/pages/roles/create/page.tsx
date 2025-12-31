@@ -498,19 +498,10 @@ export default function CreateRolePage() {
     return filtered;
   }, [organizedPermissions]);
 
-  // منابع Admin-only (admin)
+  // منابع Admin-only (admin) - ❌ حذف می‌شوند چون requires_superadmin هستند
   const adminOnlyResources = useMemo(() => {
-    return organizedPermissions.filter((r: any) => {
-      // حذف analytics و ai (جداگانه نمایش داده می‌شوند)
-      if (r.resource === 'analytics' || r.resource?.startsWith('analytics.')) {
-        return false;
-      }
-      if (r.resource === 'ai' || r.resource?.startsWith('ai.')) {
-        return false;
-      }
-      // فقط resources با requires_superadmin: true
-      return isAdminOnlyResource(r);
-    });
+    // ❌ حذف کامل - admin permissions نباید نمایش داده شوند
+    return [];
   }, [organizedPermissions]);
 
   // منابع Standard (محتوا و داده - CRUD)
@@ -723,17 +714,6 @@ export default function CreateRolePage() {
                   />
                 )}
 
-                {/* بخش 3: مجوزهای مدیریتی (Admin-only) */}
-                {adminOnlyResources.length > 0 && (
-                  <AdminPermissionsCard
-                    resources={adminOnlyResources}
-                    selectedPermissions={selectedPermissions}
-                    isSuperAdmin={isSuperAdmin}
-                    onTogglePermission={togglePermission}
-                    isPermissionSelected={isPermissionSelected}
-                    getResourceIcon={getResourceIcon}
-                  />
-                )}
                 
                 {selectedPermissions.length > 0 && (
                   <div className="p-3 bg-bg/50 rounded-lg">

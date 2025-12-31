@@ -4,6 +4,7 @@ export interface Permission {
   action: string;
   description?: string;
   is_standalone?: boolean;
+  requires_superadmin?: boolean;  // ✅ Added for filtering
 }
 
 export interface PermissionCategory {

@@ -21,19 +21,8 @@ class AdminPermissionView(viewsets.ViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
     
     def get_permissions(self):
-        permission_map = {
-            'check_permission': [require_admin_roles('super_admin', 'user_manager')],
-            'user_permissions': [require_admin_roles('super_admin', 'user_manager')],
-            'available_modules': [require_admin_roles('super_admin', 'user_manager')],
-            'available_actions': [require_admin_roles('super_admin', 'user_manager')],
-            'permission_matrix': [SuperAdminOnly()],
-            'clear_cache': [SuperAdminOnly()],
-            'system_permissions': [SuperAdminOnly()],
-        }
-        
-        action = getattr(self, 'action', None)
-        permissions = permission_map.get(action, [SuperAdminOnly()])
-        return permissions
+        """فقط Super Admin - تمام عملیات مدیریت پرمیژن‌ها"""
+        return [SuperAdminOnly()]
     
     @action(detail=False, methods=['post'])
     def check_permission(self, request):

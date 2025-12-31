@@ -45,7 +45,8 @@ class AdminRoleView(viewsets.ViewSet):
     ordering = ['-created_at']
     
     def get_permissions(self):
-        return [SimpleAdminPermission()]
+        """فقط Super Admin - تمام عملیات نقش‌ها"""
+        return [SuperAdminOnly()]
     
     def get_queryset(self):
         """بازیابی queryset با annotation برای users_count"""
@@ -575,6 +576,10 @@ class AdminRoleView(viewsets.ViewSet):
                     
                 for perm_key, perm_data in real_perms:
                     if perm_key in base_permission_keys:
+                        continue
+                    
+                    # ❌ حذف permissions با requires_superadmin=True (admin permissions)
+                    if perm_data.get('requires_superadmin', False):
                         continue
                     
                     if module_key == 'analytics' and perm_key not in ANALYTICS_USED_PERMISSIONS:

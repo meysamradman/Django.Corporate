@@ -10,7 +10,6 @@ import { adminApi } from "@/api/admins/admins";
 import { Edit, Trash2, Plus, Search, Building2, UserCog } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
-import { ProtectedButton } from "@/components/admins/permissions";
 import { showSuccess, showError } from '@/core/toast';
 import type { SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';
@@ -360,18 +359,17 @@ export default function AdminsPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="مدیریت ادمین‌ها">
-        <ProtectedButton 
-          size="sm" 
-          asChild
-          permission="admin.create"
-          showDenyToast
-          denyMessage="شما مجوز ایجاد ادمین ندارید"
-        >
-          <Link to="/admins/create">
-            <Plus />
-            افزودن ادمین
-          </Link>
-        </ProtectedButton>
+        {isSuperAdmin ? (
+          <Button 
+            size="sm" 
+            asChild
+          >
+            <Link to="/admins/create">
+              <Plus />
+              افزودن ادمین
+            </Link>
+          </Button>
+        ) : null}
       </PageHeader>
 
       {/* Filters and Search Bar */}
