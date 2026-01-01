@@ -9,7 +9,8 @@ import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { ProtectedLink, usePermission } from "@/components/admins/permissions";
 import { Checkbox } from "@/components/elements/Checkbox";
-import { Avatar, AvatarFallback } from "@/components/elements/Avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
+import { mediaService } from "@/components/media/services";
 
 export const usePropertyTypeColumns = (
   actions: DataTableRowAction<PropertyType>[] = [],
@@ -50,6 +51,11 @@ export const usePropertyTypeColumns = (
       header: () => <div className="table-header-text">عنوان</div>,
       cell: ({ row }) => {
         const type = row.original;
+        const imageUrl = type.image_url 
+          ? mediaService.getMediaUrlFromObject({ file_url: type.image_url } as any)
+          : type.image 
+            ? mediaService.getMediaUrlFromObject(type.image)
+            : "";
         
         const getInitial = () => {
           if (!type.title) return "؟";
@@ -63,9 +69,13 @@ export const usePropertyTypeColumns = (
             className="flex items-center gap-3"
           >
             <Avatar className="table-avatar">
-              <AvatarFallback className="table-cell-avatar-fallback">
-                {getInitial()}
-              </AvatarFallback>
+              {imageUrl ? (
+                <AvatarImage src={imageUrl} alt={type.title} />
+              ) : (
+                <AvatarFallback className="table-cell-avatar-fallback">
+                  {getInitial()}
+                </AvatarFallback>
+              )}
             </Avatar>
             <div className="table-cell-primary table-cell-wide">
               {type.title}

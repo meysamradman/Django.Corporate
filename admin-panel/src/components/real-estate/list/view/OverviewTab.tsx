@@ -3,19 +3,19 @@ import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import type { Property } from "@/types/real_estate/realEstate";
 import { Badge } from "@/components/elements/Badge";
 import { ReadMore } from "@/components/elements/ReadMore";
-import { Link } from "react-router-dom";
 import {
   Tag,
   Image as ImageIcon,
   Video,
   Music,
   FileText,
-  MapPin,
   Building2,
-  DollarSign,
-  ExternalLink,
-  Phone,
+  MapPin,
+  Check,
+  Home,
+  Info,
 } from "lucide-react";
+import { Button } from "@/components/elements/Button";
 
 interface OverviewTabProps {
   property: Property;
@@ -34,14 +34,6 @@ export function OverviewTab({ property }: OverviewTabProps) {
   const formatPrice = (price: number | null | undefined) => {
     if (!price) return "-";
     return new Intl.NumberFormat('fa-IR').format(price);
-  };
-
-  const getPriceDisplay = () => {
-    if (property.price) return `${formatPrice(property.price)} ${property.currency || 'تومان'}`;
-    if (property.sale_price) return `${formatPrice(property.sale_price)} ${property.currency || 'تومان'}`;
-    if (property.pre_sale_price) return `${formatPrice(property.pre_sale_price)} ${property.currency || 'تومان'}`;
-    if (property.monthly_rent) return `${formatPrice(property.monthly_rent)} ${property.currency || 'تومان'} (ماهانه)`;
-    return "-";
   };
 
   return (
@@ -176,299 +168,338 @@ export function OverviewTab({ property }: OverviewTabProps) {
         </CardWithIcon>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <CardWithIcon
-          icon={Building2}
-          title="اطلاعات پایه"
-          iconBgColor="bg-blue"
-          iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
-          contentClassName="space-y-4"
-        >
-          {property.property_type && (
-            <div>
-              <label className="text-font-s mb-2 block">نوع ملک</label>
-              <div className="text-font-p font-medium">
-                {property.property_type.title || "-"}
-              </div>
-            </div>
-          )}
-          {property.state && (
-            <div>
-              <label className="text-font-s mb-2 block">وضعیت ملک</label>
-              <div className="text-font-p">
-                {property.state.title || "-"}
-              </div>
-            </div>
-          )}
-          {property.agent && (
-            <div>
-              <label className="text-font-s mb-2 block">کارشناس</label>
-              <Link 
-                to={`/real-estate/advisors/${property.agent.id}/view`}
-                className="flex items-center gap-2 text-font-p font-medium text-blue-2 hover:text-blue-1 transition-colors group"
-              >
-                <span>
-                  {property.agent.full_name || 
-                   `${property.agent.first_name} ${property.agent.last_name}` || 
-                   "-"}
-                </span>
-                <ExternalLink className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Link>
-              {property.agent.phone && (
-                <div className="flex items-center gap-1 mt-1 text-font-s text-gray-2">
-                  <Phone className="w-3 h-3" />
-                  <span dir="ltr">{property.agent.phone}</span>
-                </div>
-              )}
-            </div>
-          )}
-          {property.agency && (
-            <div>
-              <label className="text-font-s mb-2 block">آژانس</label>
-              <Link 
-                to={`/real-estate/agencies/${property.agency.id}/view`}
-                className="flex items-center gap-2 text-font-p font-medium text-blue-2 hover:text-blue-1 transition-colors group"
-              >
-                <span>{property.agency.name || "-"}</span>
-                <ExternalLink className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Link>
-              {property.agency.phone && (
-                <div className="flex items-center gap-1 mt-1 text-font-s text-gray-2">
-                  <Phone className="w-3 h-3" />
-                  <span dir="ltr">{property.agency.phone}</span>
-                </div>
-              )}
-            </div>
-          )}
-        </CardWithIcon>
-
-        <CardWithIcon
-          icon={MapPin}
-          title="اطلاعات مکانی"
-          iconBgColor="bg-emerald"
-          iconColor="stroke-emerald-2"
-          borderColor="border-b-emerald-1"
-          contentClassName="space-y-4"
-        >
-          <div>
-            <label className="text-font-s mb-2 block">آدرس</label>
-            <div className="text-font-p">
-              {property.address || "-"}
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-font-s mb-2 block">شهر</label>
-              <div className="text-font-p">
-                {property.city_name || "-"}
-              </div>
-            </div>
-            <div>
-              <label className="text-font-s mb-2 block">استان</label>
-              <div className="text-font-p">
-                {property.province_name || "-"}
-              </div>
-            </div>
-          </div>
-          {property.district_name && (
-            <div>
-              <label className="text-font-s mb-2 block">محله</label>
-              <div className="text-font-p">
-                {property.district_name}
-              </div>
-            </div>
-          )}
-        </CardWithIcon>
-
-        <CardWithIcon
-          icon={Building2}
-          title="مشخصات ملک"
-          iconBgColor="bg-teal"
-          iconColor="stroke-teal-2"
-          borderColor="border-b-teal-1"
-          contentClassName="space-y-4"
-        >
-          <div className="grid grid-cols-2 gap-4">
-            {property.land_area && (
-              <div>
-                <label className="text-font-s mb-2 block">متراژ زمین</label>
-                <div className="text-font-p">
-                  {formatPrice(property.land_area)} متر مربع
-                </div>
+      {/* Details Section - Two Column Layout */}
+      <CardWithIcon
+        icon={Info}
+        title="جزئیات"
+        iconBgColor="bg-blue"
+        iconColor="stroke-blue-2"
+        borderColor="border-b-blue-1"
+        contentClassName="space-y-0"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Column 1 */}
+          <div className="space-y-4">
+            {property.property_type && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">نوع ملک:</span>
+                <span className="text-font-p text-right">{property.property_type.title || "-"}</span>
               </div>
             )}
             {property.built_area && (
-              <div>
-                <label className="text-font-s mb-2 block">زیربنا</label>
-                <div className="text-font-p">
-                  {formatPrice(property.built_area)} متر مربع
-                </div>
-              </div>
-            )}
-            {property.bedrooms !== null && property.bedrooms !== undefined && (
-              <div>
-                <label className="text-font-s mb-2 block">تعداد خواب</label>
-                <div className="text-font-p">
-                  {property.bedrooms === 0 ? 'استودیو' : `${property.bedrooms} اتاق`}
-                </div>
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">متراژ:</span>
+                <span className="text-font-p text-right">{formatPrice(property.built_area)} متر مربع</span>
               </div>
             )}
             {property.bathrooms !== null && property.bathrooms !== undefined && (
-              <div>
-                <label className="text-font-s mb-2 block">سرویس/حمام</label>
-                <div className="text-font-p">
-                  {property.bathrooms === 0 ? 'ندارد' : `${property.bathrooms} عدد`}
-                </div>
-              </div>
-            )}
-            {property.kitchens !== null && property.kitchens !== undefined && (
-              <div>
-                <label className="text-font-s mb-2 block">آشپزخانه</label>
-                <div className="text-font-p">
-                  {property.kitchens === 0 ? 'ندارد' : `${property.kitchens} عدد`}
-                </div>
-              </div>
-            )}
-            {property.living_rooms !== null && property.living_rooms !== undefined && (
-              <div>
-                <label className="text-font-s mb-2 block">پذیرایی</label>
-                <div className="text-font-p">
-                  {property.living_rooms === 0 ? 'ندارد' : `${property.living_rooms} عدد`}
-                </div>
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">سرویس/حمام:</span>
+                <span className="text-font-p text-right">{property.bathrooms === 0 ? 'ندارد' : `${property.bathrooms} عدد`}</span>
               </div>
             )}
             {property.parking_spaces !== null && property.parking_spaces !== undefined && (
-              <div>
-                <label className="text-font-s mb-2 block">پارکینگ</label>
-                <div className="text-font-p">
-                  {property.parking_spaces === 0 ? 'ندارد' : `${property.parking_spaces} عدد`}
-                </div>
-              </div>
-            )}
-            {property.storage_rooms !== null && property.storage_rooms !== undefined && (
-              <div>
-                <label className="text-font-s mb-2 block">انباری</label>
-                <div className="text-font-p">
-                  {property.storage_rooms === 0 ? 'ندارد' : `${property.storage_rooms} عدد`}
-                </div>
-              </div>
-            )}
-            {property.floor_number !== null && property.floor_number !== undefined && (
-              <div>
-                <label className="text-font-s mb-2 block">طبقه</label>
-                <div className="text-font-p">
-                  {property.floor_number === 0 ? 'همکف' : 
-                   property.floor_number === -1 ? 'زیرزمین' : 
-                   property.floor_number === -2 ? 'زیرزمین دوم' : 
-                   `طبقه ${property.floor_number}`}
-                </div>
-              </div>
-            )}
-            {property.floors_in_building && (
-              <div>
-                <label className="text-font-s mb-2 block">تعداد طبقات</label>
-                <div className="text-font-p">
-                  {property.floors_in_building} طبقه
-                </div>
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">پارکینگ:</span>
+                <span className="text-font-p text-right">{property.parking_spaces === 0 ? 'ندارد' : `${property.parking_spaces} عدد`}</span>
               </div>
             )}
             {property.year_built && (
-              <div>
-                <label className="text-font-s mb-2 block">سال ساخت</label>
-                <div className="text-font-p">
-                  {property.year_built}
-                </div>
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">سال ساخت:</span>
+                <span className="text-font-p text-right">{property.year_built}</span>
               </div>
             )}
-            {property.document_type && (
-              <div>
-                <label className="text-font-s mb-2 block">نوع سند</label>
-                <div className="text-font-p">
-                  {property.document_type}
-                </div>
+            {property.extra_attributes?.garage_size && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">اندازه پارکینگ:</span>
+                <span className="text-font-p text-right">{property.extra_attributes.garage_size}</span>
               </div>
             )}
           </div>
-        </CardWithIcon>
 
-        <CardWithIcon
-          icon={DollarSign}
-          title="اطلاعات قیمت"
-          iconBgColor="bg-green"
-          iconColor="stroke-green-2"
-          borderColor="border-b-green-1"
-          contentClassName="space-y-4"
-          className="md:col-span-2"
-        >
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Column 2 */}
+          <div className="space-y-4">
             {property.price && (
-              <div>
-                <label className="text-font-s mb-2 block">قیمت کل</label>
-                <div className="text-font-p font-medium">
-                  {formatPrice(property.price)} {property.currency || 'تومان'}
-                </div>
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">قیمت:</span>
+                <span className="text-font-p text-right font-medium">{formatPrice(property.price)} {property.currency || 'تومان'}</span>
               </div>
             )}
-            {property.sale_price && (
-              <div>
-                <label className="text-font-s mb-2 block">قیمت حراج</label>
-                <div className="text-font-p font-medium">
-                  {formatPrice(property.sale_price)} {property.currency || 'تومان'}
-                </div>
+            {property.bedrooms !== null && property.bedrooms !== undefined && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">خواب:</span>
+                <span className="text-font-p text-right">{property.bedrooms === 0 ? 'استودیو' : `${property.bedrooms} اتاق`}</span>
               </div>
             )}
-            {property.pre_sale_price && (
-              <div>
-                <label className="text-font-s mb-2 block">قیمت پیش‌فروش</label>
-                <div className="text-font-p font-medium">
-                  {formatPrice(property.pre_sale_price)} {property.currency || 'تومان'}
-                </div>
+            {property.extra_attributes?.garages && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">گاراژ:</span>
+                <span className="text-font-p text-right">{property.extra_attributes.garages}</span>
               </div>
             )}
-            {property.price_per_sqm && (
-              <div>
-                <label className="text-font-s mb-2 block">قیمت هر متر مربع</label>
-                <div className="text-font-p">
-                  {formatPrice(property.price_per_sqm)} {property.currency || 'تومان'}
-                </div>
+            {property.extra_attributes?.available_from && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">قابل استفاده از:</span>
+                <span className="text-font-p text-right">{property.extra_attributes.available_from}</span>
               </div>
             )}
-            {property.mortgage_amount && (
-              <div>
-                <label className="text-font-s mb-2 block">رهن</label>
-                <div className="text-font-p">
-                  {formatPrice(property.mortgage_amount)} {property.currency || 'تومان'}
-                </div>
+            {property.extra_attributes?.roofing && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">سقف:</span>
+                <span className="text-font-p text-right">{property.extra_attributes.roofing}</span>
               </div>
             )}
-            {property.rent_amount && (
-              <div>
-                <label className="text-font-s mb-2 block">اجاره</label>
-                <div className="text-font-p">
-                  {formatPrice(property.rent_amount)} {property.currency || 'تومان'}
-                </div>
+            {property.extra_attributes?.basement && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">زیرزمین:</span>
+                <span className="text-font-p text-right">{property.extra_attributes.basement}</span>
               </div>
             )}
-            {property.monthly_rent && (
-              <div>
-                <label className="text-font-s mb-2 block">اجاره ماهیانه</label>
-                <div className="text-font-p">
-                  {formatPrice(property.monthly_rent)} {property.currency || 'تومان'}
-                </div>
+            {property.extra_attributes?.structure_type && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">نوع سازه:</span>
+                <span className="text-font-p text-right">{property.extra_attributes.structure_type}</span>
               </div>
             )}
-            {property.security_deposit && (
-              <div>
-                <label className="text-font-s mb-2 block">ودیعه</label>
-                <div className="text-font-p">
-                  {formatPrice(property.security_deposit)} {property.currency || 'تومان'}
+          </div>
+
+          {/* Column 3 */}
+          <div className="space-y-4">
+            {property.land_area && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">متراژ زمین:</span>
+                <span className="text-font-p text-right">{formatPrice(property.land_area)} متر مربع</span>
+              </div>
+            )}
+            {property.extra_attributes?.property_id && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">شناسه ملک:</span>
+                <span className="text-font-p text-right">{property.extra_attributes.property_id}</span>
+              </div>
+            )}
+            {property.extra_attributes?.custom_id && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">شناسه سفارشی:</span>
+                <span className="text-font-p text-right">{property.extra_attributes.custom_id}</span>
+              </div>
+            )}
+            {property.extra_attributes?.rooms && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">اتاق:</span>
+                <span className="text-font-p text-right">{property.extra_attributes.rooms}</span>
+              </div>
+            )}
+            {property.extra_attributes?.floors_no && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">تعداد طبقات:</span>
+                <span className="text-font-p text-right">{property.extra_attributes.floors_no}</span>
+              </div>
+            )}
+            {property.extra_attributes?.extra_details && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">جزئیات اضافی:</span>
+                <span className="text-font-p text-right">{property.extra_attributes.extra_details}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </CardWithIcon>
+
+      {/* Additional Details Section */}
+      {(property.extra_attributes?.deposit || property.extra_attributes?.last_remodel_year || property.extra_attributes?.additional_rooms || 
+        property.extra_attributes?.pool_size || property.extra_attributes?.amenities || property.extra_attributes?.equipment) && (
+        <CardWithIcon
+          icon={Info}
+          title="جزئیات اضافی"
+          iconBgColor="bg-teal"
+          iconColor="stroke-teal-2"
+          borderColor="border-b-teal-1"
+          contentClassName="space-y-0"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Column 1 */}
+            <div className="space-y-4">
+              {property.extra_attributes?.deposit && (
+                <div className="flex justify-between items-start border-b pb-3">
+                  <span className="text-font-s text-gray-2 font-medium">ودیعه:</span>
+                  <span className="text-font-p text-right">{property.extra_attributes.deposit}</span>
                 </div>
+              )}
+              {property.extra_attributes?.last_remodel_year && (
+                <div className="flex justify-between items-start border-b pb-3">
+                  <span className="text-font-s text-gray-2 font-medium">سال آخرین بازسازی:</span>
+                  <span className="text-font-p text-right">{property.extra_attributes.last_remodel_year}</span>
+                </div>
+              )}
+              {property.extra_attributes?.additional_rooms && (
+                <div className="flex justify-between items-start border-b pb-3">
+                  <span className="text-font-s text-gray-2 font-medium">اتاق‌های اضافی:</span>
+                  <span className="text-font-p text-right">{property.extra_attributes.additional_rooms}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Column 2 */}
+            <div className="space-y-4">
+              {property.extra_attributes?.pool_size && (
+                <div className="flex justify-between items-start border-b pb-3">
+                  <span className="text-font-s text-gray-2 font-medium">اندازه استخر:</span>
+                  <span className="text-font-p text-right">{property.extra_attributes.pool_size}</span>
+                </div>
+              )}
+              {property.extra_attributes?.amenities && (
+                <div className="flex justify-between items-start border-b pb-3">
+                  <span className="text-font-s text-gray-2 font-medium">امکانات:</span>
+                  <span className="text-font-p text-right">{property.extra_attributes.amenities}</span>
+                </div>
+              )}
+              {property.extra_attributes?.equipment && (
+                <div className="flex justify-between items-start border-b pb-3">
+                  <span className="text-font-s text-gray-2 font-medium">تجهیزات:</span>
+                  <span className="text-font-p text-right">{property.extra_attributes.equipment}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardWithIcon>
+      )}
+
+      {/* Address Section with Google Maps */}
+      {(property.address || property.city_name || property.province_name || property.postal_code || property.neighborhood) && (
+        <CardWithIcon
+          icon={MapPin}
+          title="آدرس"
+          iconBgColor="bg-emerald"
+          iconColor="stroke-emerald-2"
+          borderColor="border-b-emerald-1"
+          contentClassName="space-y-3"
+          titleExtra={
+            (property.latitude && property.longitude) ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const url = `https://www.google.com/maps?q=${property.latitude},${property.longitude}`;
+                  window.open(url, '_blank');
+                }}
+                className="flex items-center gap-2"
+              >
+                <MapPin className="w-4 h-4" />
+                باز کردن در Google Maps
+              </Button>
+            ) : undefined
+          }
+        >
+          <div className="space-y-3">
+            {property.address && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">آدرس:</span>
+                <span className="text-font-p text-right">{property.address}</span>
+              </div>
+            )}
+            {property.city_name && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">شهر:</span>
+                <span className="text-font-p text-right">{property.city_name}</span>
+              </div>
+            )}
+            {property.province_name && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">استان/شهرستان:</span>
+                <span className="text-font-p text-right">{property.province_name}</span>
+              </div>
+            )}
+            {property.postal_code && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">کد پستی:</span>
+                <span className="text-font-p text-right">{property.postal_code}</span>
+              </div>
+            )}
+            {property.neighborhood && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">محله:</span>
+                <span className="text-font-p text-right">{property.neighborhood}</span>
+              </div>
+            )}
+            {property.district_name && (
+              <div className="flex justify-between items-start border-b pb-3">
+                <span className="text-font-s text-gray-2 font-medium">منطقه:</span>
+                <span className="text-font-p text-right">{property.district_name}</span>
               </div>
             )}
           </div>
         </CardWithIcon>
-      </div>
+      )}
+
+      {/* Features Section with Checkboxes in 3 Columns */}
+      {property.features && property.features.length > 0 && (
+        <CardWithIcon
+          icon={Building2}
+          title="ویژگی‌ها"
+          iconBgColor="bg-teal"
+          iconColor="stroke-teal-2"
+          borderColor="border-b-teal-1"
+          contentClassName="space-y-0"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {property.features.map((feature) => (
+              <div key={feature.id} className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full border-2 border-gray-1 flex items-center justify-center bg-white">
+                  <Check className="w-3 h-3 text-green-2 stroke-[3]" />
+                </div>
+                <span className="text-font-p">{feature.title}</span>
+              </div>
+            ))}
+          </div>
+        </CardWithIcon>
+      )}
+
+      {/* Floor Plans Section */}
+      {property.floor_plans && property.floor_plans.length > 0 && (
+        <CardWithIcon
+          icon={Home}
+          title="پلان طبقات"
+          iconBgColor="bg-orange"
+          iconColor="stroke-orange-2"
+          borderColor="border-b-orange-1"
+          contentClassName="space-y-6"
+        >
+          <div className="space-y-6">
+            {property.floor_plans.map((floorPlan) => (
+              <div key={floorPlan.id} className="border rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Home className="w-5 h-5 text-gray-2" />
+                  <h4 className="text-font-p font-semibold">{floorPlan.title}</h4>
+                </div>
+                <div className="flex flex-wrap items-center gap-4 text-font-s text-gray-2">
+                  <span>اندازه: {floorPlan.floor_size} {floorPlan.size_unit === 'sqft' ? 'فوت مربع' : 'متر مربع'}</span>
+                  {floorPlan.bedrooms !== null && floorPlan.bedrooms !== undefined && (
+                    <span className="flex items-center gap-1">
+                      <Building2 className="w-4 h-4" />
+                      {floorPlan.bedrooms} خواب
+                    </span>
+                  )}
+                  {floorPlan.bathrooms !== null && floorPlan.bathrooms !== undefined && (
+                    <span className="flex items-center gap-1">
+                      <Building2 className="w-4 h-4" />
+                      {floorPlan.bathrooms} حمام
+                    </span>
+                  )}
+                  {floorPlan.price && (
+                    <span className="text-font-p font-medium text-gray-1">
+                      قیمت: {formatPrice(floorPlan.price)} {floorPlan.currency || 'تومان'}
+                    </span>
+                  )}
+                </div>
+                {floorPlan.description && (
+                  <p className="text-font-s text-gray-2 mt-2">{floorPlan.description}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardWithIcon>
+      )}
 
       <CardWithIcon
         icon={FileText}

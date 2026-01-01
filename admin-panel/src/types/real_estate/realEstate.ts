@@ -95,6 +95,7 @@ export interface Property extends Base {
   
   media?: PropertyMediaItem[];
   property_media?: PropertyMediaItem[];
+  floor_plans?: FloorPlan[];
   
   seo_status?: {
     score: number;
@@ -141,6 +142,33 @@ export interface PropertyMediaItem {
   media: Media;
   is_main_image?: boolean;
   order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FloorPlan {
+  id: number;
+  title: string;
+  slug: string;
+  description?: string;
+  floor_size: number;
+  size_unit: 'sqft' | 'sqm';
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  price?: number | null;
+  currency?: string;
+  floor_number?: number | null;
+  unit_type?: string;
+  display_order: number;
+  is_available: boolean;
+  main_image?: {
+    id: number;
+    url?: string;
+    file_url?: string;
+    title: string;
+    alt_text: string;
+  } | null;
+  image_count?: number;
   created_at: string;
   updated_at: string;
 }

@@ -3,7 +3,7 @@ import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import type { Property } from "@/types/real_estate/realEstate";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from "@/components/media/services";
-import { Image, Video, Music, FileText } from "lucide-react";
+import { FileText, Music } from "lucide-react";
 
 interface MediaInfoTabProps {
   property: Property;
@@ -14,8 +14,6 @@ export function MediaInfoTab({ property }: MediaInfoTabProps) {
     if (!mediaArray || mediaArray.length === 0) {
       return (
         <div className="text-center py-8 text-font-s">
-          {type === "image" && "تصویری آپلود نشده است"}
-          {type === "video" && "ویدیویی آپلود نشده است"}
           {type === "audio" && "فایل صوتی آپلود نشده است"}
           {type === "document" && "سندی آپلود نشده است"}
         </div>
@@ -27,13 +25,7 @@ export function MediaInfoTab({ property }: MediaInfoTabProps) {
         {mediaArray.map((item: any) => {
           const media = item.media_detail || item.media || item;
           
-          let mediaUrl: string | null = null;
-          if (type === "image") {
-            mediaUrl = media?.file_url || media?.url || null;
-          } else {
-            mediaUrl = media?.cover_image_url || media?.cover_image?.file_url || media?.file_url || media?.url || null;
-          }
-          
+          const mediaUrl = media?.cover_image_url || media?.cover_image?.file_url || media?.file_url || media?.url || null;
           const fullUrl = mediaUrl ? mediaService.getMediaUrlFromObject({ file_url: mediaUrl } as any) : null;
 
           return (
@@ -50,8 +42,6 @@ export function MediaInfoTab({ property }: MediaInfoTabProps) {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-bg">
-                  {type === "image" && <Image className="w-8 h-8 text-font-s" />}
-                  {type === "video" && <Video className="w-8 h-8 text-font-s" />}
                   {type === "audio" && <Music className="w-8 h-8 text-font-s" />}
                   {type === "document" && <FileText className="w-8 h-8 text-font-s" />}
                 </div>
@@ -70,21 +60,13 @@ export function MediaInfoTab({ property }: MediaInfoTabProps) {
 
   const allMedia = property.media || property.property_media || [];
   
-  const images = allMedia.filter((item: any) => {
-    const media = item.media_detail || item.media || item;
-    return media?.media_type === 'image';
-  });
-  
-  const videos = allMedia.filter((item: any) => {
-    const media = item.media_detail || item.media || item;
-    return media?.media_type === 'video';
-  });
-  
+  // فایل‌های صوتی
   const audios = allMedia.filter((item: any) => {
     const media = item.media_detail || item.media || item;
     return media?.media_type === 'audio';
   });
   
+  // اسناد (PDF)
   const documents = allMedia.filter((item: any) => {
     const media = item.media_detail || item.media || item;
     return media?.media_type === 'document' || media?.media_type === 'pdf';
@@ -93,28 +75,6 @@ export function MediaInfoTab({ property }: MediaInfoTabProps) {
   return (
     <TabsContent value="media" className="mt-0 space-y-6">
       <div className="grid grid-cols-1 gap-6">
-        <CardWithIcon
-          icon={Image}
-          title="تصاویر"
-          iconBgColor="bg-blue"
-          iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
-          titleExtra={<span className="text-font-s">{images.length} مورد</span>}
-        >
-          {renderMediaGrid(images, "image")}
-        </CardWithIcon>
-
-        <CardWithIcon
-          icon={Video}
-          title="ویدیوها"
-          iconBgColor="bg-purple"
-          iconColor="stroke-purple-2"
-          borderColor="border-b-purple-1"
-          titleExtra={<span className="text-font-s">{videos.length} مورد</span>}
-        >
-          {renderMediaGrid(videos, "video")}
-        </CardWithIcon>
-
         <CardWithIcon
           icon={Music}
           title="فایل‌های صوتی"
@@ -129,9 +89,9 @@ export function MediaInfoTab({ property }: MediaInfoTabProps) {
         <CardWithIcon
           icon={FileText}
           title="اسناد"
-          iconBgColor="bg-gray"
-          iconColor="stroke-gray-2"
-          borderColor="border-b-gray-1"
+          iconBgColor="bg-orange"
+          iconColor="stroke-orange-2"
+          borderColor="border-b-orange-1"
           titleExtra={<span className="text-font-s">{documents.length} مورد</span>}
         >
           {renderMediaGrid(documents, "document")}

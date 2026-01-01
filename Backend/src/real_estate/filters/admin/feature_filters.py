@@ -7,10 +7,10 @@ class PropertyFeatureAdminFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method='filter_search', label='Search')
     is_active = django_filters.BooleanFilter(field_name='is_active', label='Active Status')
     
-    category = django_filters.CharFilter(
-        field_name='category',
+    group = django_filters.CharFilter(
+        field_name='group',
         lookup_expr='icontains',
-        label='Feature Category'
+        label='Feature Group'
     )
     
     usage = django_filters.ChoiceFilter(

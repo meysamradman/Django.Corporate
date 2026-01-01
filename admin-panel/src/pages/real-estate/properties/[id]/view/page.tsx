@@ -10,6 +10,7 @@ import { showError, showSuccess } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate";
 import { PropertySidebar } from "@/components/real-estate/list/view/PropertySidebar";
+import { PropertyImageGallery } from "@/components/real-estate/list/view/PropertyImageGallery";
 import { OverviewTab } from "@/components/real-estate/list/view/OverviewTab";
 import { MediaInfoTab } from "@/components/real-estate/list/view/MediaInfoTab";
 import { SEOInfoTab } from "@/components/real-estate/list/view/SEOInfoTab";
@@ -113,6 +114,9 @@ export default function PropertyViewPage() {
           </ProtectedButton>
         </>
       </PageHeader>
+
+      {/* گالری تصاویر حرفه‌ای */}
+      <PropertyImageGallery property={propertyData} />
 
       <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
         <div className="lg:col-span-2">

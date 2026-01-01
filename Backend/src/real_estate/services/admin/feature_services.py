@@ -3,6 +3,7 @@ from django.db.models import Count
 from django.db import transaction
 from src.real_estate.models.feature import PropertyFeature
 from src.real_estate.messages.messages import FEATURE_ERRORS
+from src.media.models.media import ImageMedia
 
 
 class PropertyFeatureAdminService:
@@ -16,8 +17,8 @@ class PropertyFeatureAdminService:
         if filters:
             if filters.get('is_active') is not None:
                 queryset = queryset.filter(is_active=filters['is_active'])
-            if filters.get('category'):
-                queryset = queryset.filter(category=filters['category'])
+            if filters.get('group'):
+                queryset = queryset.filter(group=filters['group'])
         
         if search:
             queryset = queryset.filter(title__icontains=search)
@@ -37,7 +38,7 @@ class PropertyFeatureAdminService:
             except ValueError:
                 pass
         
-        return queryset.order_by('category', 'title')
+        return queryset.order_by('group', 'title')
     
     @staticmethod
     def get_feature_by_id(feature_id):
@@ -51,7 +52,19 @@ class PropertyFeatureAdminService:
     @staticmethod
     def create_feature(validated_data, created_by=None):
         with transaction.atomic():
+            # Handle image_id
+            image_id = validated_data.pop('image_id', None)
             feature_obj = PropertyFeature.objects.create(**validated_data)
+            
+            # Set image if provided
+            if image_id:
+                try:
+                    image = ImageMedia.objects.get(id=image_id)
+                    feature_obj.image = image
+                    feature_obj.save()
+                except ImageMedia.DoesNotExist:
+                    pass
+        
         return feature_obj
     
     @staticmethod
@@ -62,8 +75,23 @@ class PropertyFeatureAdminService:
             raise PropertyFeature.DoesNotExist(FEATURE_ERRORS["feature_not_found"])
         
         with transaction.atomic():
+            # Handle image_id
+            image_id = validated_data.pop('image_id', None)
+            
             for field, value in validated_data.items():
                 setattr(feature_obj, field, value)
+            
+            # Update image if provided
+            if image_id is not None:
+                if image_id == 0 or image_id == '':
+                    feature_obj.image = None
+                else:
+                    try:
+                        image = ImageMedia.objects.get(id=image_id)
+                        feature_obj.image = image
+                    except ImageMedia.DoesNotExist:
+                        pass
+            
             feature_obj.save()
         
         return feature_obj

@@ -5,8 +5,12 @@ import { Button } from "@/components/elements/Button";
 import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { Label } from "@/components/elements/Label";
-import { Home, Plus, Trash2, Loader2 } from "lucide-react";
+import { Home, Plus, Trash2, Loader2, Maximize2, Bed, Bath, DollarSign } from "lucide-react";
 import { showError, showSuccess } from "@/core/toast";
+import { realEstateApi } from "@/api/real-estate";
+import { MediaGallery } from "@/components/media/galleries/MediaGallery";
+import type { Media } from "@/types/shared/media";
+import { generateSlug } from "@/core/slug/generate";
 
 interface FloorPlan {
   id?: number;
@@ -59,6 +63,9 @@ export default function FloorPlansTab({
     images: [],
   });
 
+  // Media state for new floor plan
+  const [selectedImages, setSelectedImages] = useState<Media[]>([]);
+
   // سَنکرون کردن با tempFloorPlans
   useEffect(() => {
     if (!propertyId && tempFloorPlans) {
@@ -74,11 +81,12 @@ export default function FloorPlansTab({
   }, [propertyId, editMode]);
 
   const loadFloorPlans = async () => {
+    if (!propertyId) return;
+    
     try {
       setIsLoading(true);
-      // TODO: Implement API call to load floor plans
-      // const plans = await realEstateApi.getFloorPlans(propertyId);
-      // setFloorPlans(plans);
+      const plans = await realEstateApi.getFloorPlans(propertyId);
+      setFloorPlans(plans || []);
     } catch (error) {
       console.error("Error loading floor plans:", error);
       showError("خطا در بارگذاری پلان‌های طبقات");
@@ -102,24 +110,48 @@ export default function FloorPlansTab({
       return;
     }
 
+    if (!propertyId) {
+      showError("ابتدا باید ملک را ذخیره کنید");
+      return;
+    }
+
     try {
       setIsLoading(true);
       
-      const newPlan = { ...newFloorPlan, id: Date.now() };
-      const updatedPlans = [...floorPlans, newPlan];
-      
-      setFloorPlans(updatedPlans);
-      
-      // اگر در حالت ایجاد هستیم، ذخیره موقت
-      if (!propertyId && onTempFloorPlansChange) {
-        onTempFloorPlansChange(updatedPlans);
-      } else if (propertyId) {
-        // TODO: Implement API call to save floor plan
-        // const saved = await realEstateApi.createFloorPlan(propertyId, newFloorPlan);
+      // Prepare data
+      const floorPlanData: any = {
+        property_obj: propertyId,
+        title: newFloorPlan.title,
+        slug: newFloorPlan.slug || generateSlug(newFloorPlan.title),
+        description: newFloorPlan.description,
+        floor_size: newFloorPlan.floor_size,
+        size_unit: newFloorPlan.size_unit,
+        bedrooms: newFloorPlan.bedrooms,
+        bathrooms: newFloorPlan.bathrooms,
+        price: newFloorPlan.price,
+        currency: newFloorPlan.currency,
+        floor_number: newFloorPlan.floor_number,
+        unit_type: newFloorPlan.unit_type,
+        display_order: newFloorPlan.display_order,
+        is_available: newFloorPlan.is_available,
+      };
+
+      // Add image IDs if selected
+      if (selectedImages.length > 0) {
+        floorPlanData.image_ids = selectedImages.map(img => img.id);
       }
+
+      // Create floor plan via API
+      const savedPlan = await realEstateApi.createFloorPlan(floorPlanData);
+      
+      // Add to local state
+      setFloorPlans(prev => [...prev, savedPlan]);
       
       showSuccess("پلان با موفقیت اضافه شد");
+      
+      // Reset form
       setIsAdding(false);
+      setSelectedImages([]);
       setNewFloorPlan({
         title: "",
         slug: "",
@@ -138,7 +170,7 @@ export default function FloorPlansTab({
       });
     } catch (error) {
       console.error("Error saving floor plan:", error);
-      showError("خطا در ذخیره پلان");
+      showError(error);
     } finally {
       setIsLoading(false);
     }
@@ -152,21 +184,19 @@ export default function FloorPlansTab({
     try {
       setIsLoading(true);
       
+      // Call API to delete
+      if (propertyId) {
+        await realEstateApi.deleteFloorPlan(id);
+      }
+      
+      // Remove from local state
       const updatedPlans = floorPlans.filter(plan => plan.id !== id);
       setFloorPlans(updatedPlans);
-      
-      // اگر در حالت ایجاد هستیم
-      if (!propertyId && onTempFloorPlansChange) {
-        onTempFloorPlansChange(updatedPlans);
-      } else if (propertyId) {
-        // TODO: Implement API call to delete floor plan
-        // await realEstateApi.deleteFloorPlan(id);
-      }
       
       showSuccess("پلان با موفقیت حذف شد");
     } catch (error) {
       console.error("Error deleting floor plan:", error);
-      showError("خطا در حذف پلان");
+      showError(error);
     } finally {
       setIsLoading(false);
     }
@@ -176,6 +206,10 @@ export default function FloorPlansTab({
     const value = e.target.value;
     if (field === "floor_size" || field === "bedrooms" || field === "bathrooms" || field === "price" || field === "floor_number") {
       setNewFloorPlan(prev => ({ ...prev, [field]: value ? Number(value) : null }));
+    } else if (field === "title") {
+      // Auto-generate slug from title
+      const slug = generateSlug(value);
+      setNewFloorPlan(prev => ({ ...prev, title: value, slug }));
     } else {
       setNewFloorPlan(prev => ({ ...prev, [field]: value }));
     }
@@ -183,6 +217,10 @@ export default function FloorPlansTab({
 
   const handleSelectChange = (field: keyof FloorPlan) => (value: string) => {
     setNewFloorPlan(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleMediaSelect = (media: Media[]) => {
+    setSelectedImages(media);
   };
 
   if (!editMode) {
@@ -237,36 +275,89 @@ export default function FloorPlansTab({
                   key={plan.id}
                   className="border border-br rounded-lg p-4 hover:border-blue-1 transition-colors"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 space-y-2">
-                      <h4 className="font-medium text-tx-1">{plan.title}</h4>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-tx-2">
-                        <div>
-                          <span className="font-medium">مساحت:</span>{" "}
-                          {plan.floor_size} {plan.size_unit === "sqm" ? "متر مربع" : "فوت مربع"}
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-3">
+                      <h4 className="font-medium text-tx-1 text-lg">{plan.title}</h4>
+                      
+                      {/* Floor Plan Details with Icons */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        {/* Size */}
+                        <div className="flex items-center gap-2 text-sm text-tx-2">
+                          <div className="flex-shrink-0 w-8 h-8 bg-blue/10 rounded-full flex items-center justify-center">
+                            <Maximize2 className="h-4 w-4 text-blue-1" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-tx-3">مساحت</p>
+                            <p className="font-medium text-tx-1">
+                              {plan.floor_size} {plan.size_unit === "sqm" ? "متر مربع" : "فوت مربع"}
+                            </p>
+                          </div>
                         </div>
+
+                        {/* Bedrooms */}
                         {plan.bedrooms !== null && (
-                          <div>
-                            <span className="font-medium">اتاق:</span> {plan.bedrooms}
+                          <div className="flex items-center gap-2 text-sm text-tx-2">
+                            <div className="flex-shrink-0 w-8 h-8 bg-green/10 rounded-full flex items-center justify-center">
+                              <Bed className="h-4 w-4 text-green-1" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-tx-3">اتاق خواب</p>
+                              <p className="font-medium text-tx-1">{plan.bedrooms} اتاق</p>
+                            </div>
                           </div>
                         )}
+
+                        {/* Bathrooms */}
                         {plan.bathrooms !== null && (
-                          <div>
-                            <span className="font-medium">سرویس:</span> {plan.bathrooms}
+                          <div className="flex items-center gap-2 text-sm text-tx-2">
+                            <div className="flex-shrink-0 w-8 h-8 bg-cyan/10 rounded-full flex items-center justify-center">
+                              <Bath className="h-4 w-4 text-cyan-1" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-tx-3">سرویس بهداشتی</p>
+                              <p className="font-medium text-tx-1">{plan.bathrooms} سرویس</p>
+                            </div>
                           </div>
                         )}
+
+                        {/* Price */}
                         {plan.price !== null && (
-                          <div>
-                            <span className="font-medium">قیمت:</span>{" "}
-                            {plan.price.toLocaleString()} {plan.currency}
+                          <div className="flex items-center gap-2 text-sm text-tx-2">
+                            <div className="flex-shrink-0 w-8 h-8 bg-orange/10 rounded-full flex items-center justify-center">
+                              <DollarSign className="h-4 w-4 text-orange-1" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-tx-3">قیمت</p>
+                              <p className="font-medium text-tx-1">
+                                {plan.price.toLocaleString()} {plan.currency}
+                              </p>
+                            </div>
                           </div>
                         )}
                       </div>
+
+                      {/* Additional Info */}
+                      {(plan.floor_number !== null || plan.unit_type) && (
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          {plan.floor_number !== null && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-bg rounded text-xs text-tx-2">
+                              <span className="font-medium">طبقه:</span> {plan.floor_number}
+                            </span>
+                          )}
+                          {plan.unit_type && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-bg rounded text-xs text-tx-2">
+                              <span className="font-medium">نوع:</span> {plan.unit_type}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
+                    
                     <Button
                       variant="destructive"
                       size="sm"
                       onClick={() => handleDeleteFloorPlan(plan.id!)}
+                      className="flex-shrink-0"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -370,6 +461,18 @@ export default function FloorPlansTab({
                   value={newFloorPlan.price || ""}
                   onChange={handleInputChange("price")}
                   placeholder="مثلاً: 5000000000"
+                />
+              </div>
+
+              {/* Image Management Section with MediaGallery */}
+              <div className="space-y-4 pt-4 border-t border-br">
+                <MediaGallery
+                  mediaItems={selectedImages}
+                  onMediaSelect={handleMediaSelect}
+                  mediaType="image"
+                  title="تصاویر پلان (نقشه، رندر 3D)"
+                  isGallery={true}
+                  context="media_library"
                 />
               </div>
 

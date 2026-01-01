@@ -12,10 +12,13 @@ import { showError, showSuccess, showInfo } from "@/core/toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyType } from "@/types/real_estate/type/propertyType";
+import type { Media } from "@/types/shared/media";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
-import { Building, Loader2, Save, List, FolderTree, Home, FolderOpen, Folder } from "lucide-react";
+import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
+import { mediaService } from "@/components/media/services";
+import { Building, Loader2, Save, List, FolderTree, Home, FolderOpen, Folder, Image as ImageIcon, UploadCloud, X } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function EditPropertyTypePage() {
@@ -23,6 +26,9 @@ export default function EditPropertyTypePage() {
   const queryClient = useQueryClient();
   const { id } = useParams<{ id: string }>();
   const typeId = Number(id);
+  
+  const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
+  const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
   
   const [formData, setFormData] = useState({
     title: "",
@@ -125,6 +131,10 @@ export default function EditPropertyTypePage() {
         display_order: type.display_order || 0,
         is_active: type.is_active,
       });
+      
+      if (type.image) {
+        setSelectedMedia(type.image);
+      }
     }
   }, [type]);
 
@@ -173,6 +183,16 @@ export default function EditPropertyTypePage() {
     setFormData(prev => ({ ...prev, parent_id: parentId }));
   };
 
+  const handleImageSelect = (media: Media | Media[] | null) => {
+    const selected = Array.isArray(media) ? media[0] || null : media;
+    setSelectedMedia(selected);
+    setIsMediaModalOpen(false);
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedMedia(null);
+  };
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     
@@ -208,6 +228,12 @@ export default function EditPropertyTypePage() {
     
     if (formData.is_active !== type.is_active) {
       submitData.is_active = formData.is_active;
+    }
+    
+    const currentImageId = type.image?.id || null;
+    const newImageId = selectedMedia?.id || null;
+    if (currentImageId !== newImageId) {
+      (submitData as any).image_id = newImageId;
     }
     
     if (Object.keys(submitData).length === 0) {
@@ -286,14 +312,16 @@ export default function EditPropertyTypePage() {
       </PageHeader>
 
       <form id="type-edit-form" onSubmit={handleSubmit}>
-        <CardWithIcon
-          icon={FolderTree}
-          title="اطلاعات نوع ملک"
-          iconBgColor="bg-purple"
-          iconColor="stroke-purple-2"
-          borderColor="border-b-purple-1"
-          className="hover:shadow-lg transition-all duration-300"
-        >
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
+          <div className="lg:col-span-4 space-y-6">
+            <CardWithIcon
+              icon={FolderTree}
+              title="اطلاعات نوع ملک"
+              iconBgColor="bg-purple"
+              iconColor="stroke-purple-2"
+              borderColor="border-b-purple-1"
+              className="hover:shadow-lg transition-all duration-300"
+            >
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
@@ -454,7 +482,75 @@ export default function EditPropertyTypePage() {
             </div>
           </div>
         </CardWithIcon>
-      </form>
+      </div>
+  
+      <div className="lg:col-span-2">
+        <div className="w-full space-y-6 sticky top-20 transition-all duration-300 ease-in-out self-start">
+          <CardWithIcon
+            icon={ImageIcon}
+            title="تصویر نوع ملک"
+            iconBgColor="bg-blue"
+            iconColor="stroke-blue-2"
+            borderColor="border-b-blue-1"
+            className="hover:shadow-lg transition-all duration-300"
+          >
+            {selectedMedia ? (
+              <div className="relative w-full aspect-video rounded-lg overflow-hidden group border">
+                <img
+                  src={mediaService.getMediaUrlFromObject(selectedMedia)}
+                  alt={selectedMedia.alt_text || "تصویر نوع ملک"}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-static-b/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsMediaModalOpen(true)}
+                    className="mx-1"
+                    type="button"
+                  >
+                    تغییر تصویر
+                  </Button>
+  
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleRemoveImage}
+                    className="mx-1"
+                    type="button"
+                  >
+                    <X className="w-4 h-4" />
+                    حذف
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div
+                onClick={() => setIsMediaModalOpen(true)}
+                className="relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors"
+              >
+                <UploadCloud className="w-12 h-12 text-font-s" />
+                <p className="mt-4 text-lg font-semibold">انتخاب تصویر</p>
+                <p className="mt-1 text-sm text-font-s text-center">
+                  برای انتخاب از کتابخانه کلیک کنید
+                </p>
+              </div>
+            )}
+          </CardWithIcon>
+        </div>
+      </div>
+    </div>
+  </form>
+  
+  <MediaLibraryModal
+    isOpen={isMediaModalOpen}
+    onClose={() => setIsMediaModalOpen(false)}
+    onSelect={handleImageSelect}
+    selectMultiple={false}
+    initialFileType="image"
+    showTabs={true}
+    context="media_library"
+  />
 
       <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
         <Button

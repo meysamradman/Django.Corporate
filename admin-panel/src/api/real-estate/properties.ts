@@ -498,6 +498,94 @@ export const realEstateApi = {
     return response.data;
   },
 
+  // ✅ Floor Plans APIs
+  getFloorPlans: async (propertyId?: number): Promise<any[]> => {
+    let url = '/admin/floor-plan/';
+    if (propertyId) {
+      url += '?property_id=' + propertyId;
+    }
+    const response = await api.get<any[]>(url);
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
+  getFloorPlanById: async (id: number): Promise<any> => {
+    const response = await api.get<any>('/admin/floor-plan/' + id + '/');
+    return response.data;
+  },
+
+  createFloorPlan: async (data: any): Promise<any> => {
+    const formData = new FormData();
+    
+    // Add basic fields
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && key !== 'image_files' && key !== 'image_ids') {
+        if (typeof value === 'object' && !(value instanceof File)) {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, String(value));
+        }
+      }
+    });
+    
+    // Add image files if provided
+    if (data.image_files && Array.isArray(data.image_files)) {
+      data.image_files.forEach((file: File) => {
+        formData.append('image_files', file);
+      });
+    }
+    
+    // Add image IDs if provided
+    if (data.image_ids && Array.isArray(data.image_ids) && data.image_ids.length > 0) {
+      formData.append('image_ids', data.image_ids.join(','));
+    }
+    
+    const response = await api.post<any>('/admin/floor-plan/', formData);
+    return response.data;
+  },
+
+  updateFloorPlan: async (id: number, data: any): Promise<any> => {
+    const response = await api.patch<any>('/admin/floor-plan/' + id + '/', data);
+    return response.data;
+  },
+
+  deleteFloorPlan: async (id: number): Promise<void> => {
+    await api.delete('/admin/floor-plan/' + id + '/');
+  },
+
+  // Floor Plan Media Management
+  addFloorPlanImages: async (floorPlanId: number, imageFiles: File[], imageIds?: number[]): Promise<any> => {
+    const formData = new FormData();
+    
+    imageFiles.forEach(file => {
+      formData.append('image_files', file);
+    });
+    
+    if (imageIds && imageIds.length > 0) {
+      formData.append('image_ids', imageIds.join(','));
+    }
+    
+    const response = await api.post<any>('/admin/floor-plan/' + floorPlanId + '/add-images/', formData);
+    return response.data;
+  },
+
+  removeFloorPlanImage: async (floorPlanId: number, imageId: number): Promise<any> => {
+    const response = await api.post<any>('/admin/floor-plan/' + floorPlanId + '/remove-image/', { image_id: imageId });
+    return response.data;
+  },
+
+  setFloorPlanMainImage: async (floorPlanId: number, imageId: number): Promise<any> => {
+    const response = await api.post<any>('/admin/floor-plan/' + floorPlanId + '/set-main-image/', { image_id: imageId });
+    return response.data;
+  },
+
+  syncFloorPlanImages: async (floorPlanId: number, imageIds: number[], mainImageId?: number): Promise<any> => {
+    const response = await api.post<any>('/admin/floor-plan/' + floorPlanId + '/sync-images/', {
+      image_ids: imageIds,
+      main_image_id: mainImageId
+    });
+    return response.data;
+  },
+
   updateFeature: async (id: number, data: Partial<PropertyFeature>): Promise<PropertyFeature> => {
     const response = await api.put<PropertyFeature>('/admin/property-feature/' + id + '/', data);
     return response.data;
