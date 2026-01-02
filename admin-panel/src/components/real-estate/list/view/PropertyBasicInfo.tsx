@@ -26,50 +26,68 @@ export function PropertyBasicInfo({ property }: PropertyBasicInfoProps) {
 
     return (
         <Card className="h-full">
-            <CardContent className="p-6 space-y-4">
+            <CardContent className="pt-0 pb-0">
                 {/* Status Cards */}
-                <div className="grid grid-cols-2 gap-3">
-                    <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-xl transition-colors ${property.is_published ? "bg-green/10" : "bg-yellow/10"
+                <div className="pb-6 border-b">
+                    <div className="grid grid-cols-3 gap-3">
+                    <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
+                        property.is_published ? "bg-green" : "bg-yellow"
+                    }`}>
+                        <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
+                            property.is_published ? "bg-green-0" : "bg-yellow-0"
                         }`}>
-                        <div className={`flex items-center justify-center w-10 h-10 rounded-full mb-2 ${property.is_published ? "bg-green/20" : "bg-yellow/20"
-                            }`}>
                             {property.is_published ? (
-                                <CheckCircle2 className="w-5 h-5 text-green-2" />
+                                <CheckCircle2 className="w-4 h-4 stroke-green-2" />
                             ) : (
-                                <XCircle className="w-5 h-5 text-yellow-2" />
+                                <XCircle className="w-4 h-4 stroke-yellow-2" />
                             )}
                         </div>
-                        <span className={`text-sm font-bold ${property.is_published ? "text-green-2" : "text-yellow-2"
-                            }`}>
-                            {property.is_published ? "فعال" : "پیش‌نویس"}
+                        <span className={`text-sm font-medium ${
+                            property.is_published ? "text-green-2" : "text-yellow-2"
+                        }`}>
+                            {property.is_published ? "منتشر شده" : "پیش‌نویس"}
                         </span>
                     </div>
 
-                    <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-xl transition-colors ${property.is_featured ? "bg-orange/10" : "bg-bg-2"
+                    <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
+                        property.is_active ? "bg-blue" : "bg-red"
+                    }`}>
+                        <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
+                            property.is_active ? "bg-blue-0" : "bg-red-0"
                         }`}>
-                        <div className={`flex items-center justify-center w-10 h-10 rounded-full mb-2 ${property.is_featured ? "bg-orange/20" : "bg-gray-100 dark:bg-gray-800"
-                            }`}>
-                            <Star className={`w-5 h-5 ${property.is_featured ? "text-orange-2 fill-orange-2" : "text-font-s"
-                                }`} />
+                            <Zap className={`w-4 h-4 ${
+                                property.is_active ? "stroke-blue-2" : "stroke-red-2"
+                            }`} />
                         </div>
-                        <span className={`text-sm font-bold ${property.is_featured ? "text-orange-2" : "text-font-s"
-                            }`}>
+                        <span className={`text-sm font-medium ${
+                            property.is_active ? "text-blue-2" : "text-red-2"
+                        }`}>
+                            {property.is_active ? "فعال" : "غیرفعال"}
+                        </span>
+                    </div>
+
+                    <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
+                        property.is_featured ? "bg-orange" : "bg-gray"
+                    }`}>
+                        <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
+                            property.is_featured ? "bg-orange-0" : "bg-gray-0"
+                        }`}>
+                            <Star className={`w-4 h-4 ${
+                                property.is_featured ? "stroke-orange-2 fill-orange-2" : "stroke-gray-1"
+                            }`} />
+                        </div>
+                        <span className={`text-sm font-medium ${
+                            property.is_featured ? "text-orange-2" : "text-gray-1"
+                        }`}>
                             {property.is_featured ? "ویژه" : "عادی"}
                         </span>
                     </div>
-
-                    <div className="col-span-2 flex flex-col items-center justify-center py-4 px-3 rounded-xl bg-blue/10">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full mb-2 bg-blue/20">
-                            <Zap className="w-5 h-5 text-blue-2" />
-                        </div>
-                        <span className="text-sm font-bold text-blue-2">
-                            {property.state?.title || (property.monthly_rent ? 'اجاره‌ای' : 'فروشی')}
-                        </span>
                     </div>
                 </div>
 
                 {/* Basic Info */}
-                <div className="bg-bg-2 rounded-xl p-5 space-y-4">
+                <div className="pt-4 pb-4">
+                    <div className="bg-bg-2 rounded-xl p-5 space-y-4">
                     <div className="flex items-start justify-between gap-4">
                         <div className="space-y-1">
                             <h5 className="text-font-s text-xs">عنوان ملک</h5>
@@ -130,6 +148,7 @@ export function PropertyBasicInfo({ property }: PropertyBasicInfoProps) {
                                     property.monthly_rent ? `اجاره: ${formatPrice(property.monthly_rent)}` : 'توافقی'}
                             </span>
                         </div>
+                    </div>
                     </div>
                 </div>
             </CardContent>

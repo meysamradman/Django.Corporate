@@ -41,10 +41,22 @@ interface FloorPlanImage {
 }
 
 export function OverviewTab({ property }: OverviewTabProps) {
-  const imagesCount = property.media_count ? Math.floor(property.media_count * 0.6) : 0;
-  const videosCount = property.media_count ? Math.floor(property.media_count * 0.2) : 0;
-  const audiosCount = property.media_count ? Math.floor(property.media_count * 0.1) : 0;
-  const documentsCount = property.media_count ? Math.floor(property.media_count * 0.1) : 0;
+  const allMedia = property.media || property.property_media || [];
+  const imagesCount = allMedia.filter(
+    (item: any) => (item.media_detail || item.media)?.media_type === "image"
+  ).length;
+  const videosCount = allMedia.filter(
+    (item: any) => (item.media_detail || item.media)?.media_type === "video"
+  ).length;
+  const audiosCount = allMedia.filter(
+    (item: any) => (item.media_detail || item.media)?.media_type === "audio"
+  ).length;
+  const documentsCount = allMedia.filter(
+    (item: any) => {
+      const media = item.media_detail || item.media;
+      return media?.media_type === "document" || media?.media_type === "pdf";
+    }
+  ).length;
 
   const labelsCount = property.labels?.length || 0;
   const tagsCount = property.tags?.length || 0;
