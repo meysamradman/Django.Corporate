@@ -136,12 +136,12 @@ export function AIPermissionsCard({
   }, [allPermissions, _selectedPermissions]);
 
   return (
-    <Card className="border-2 border-dashed border-yellow-500/20 bg-yellow-500/5">
+    <Card className="border-2 border-dashed border-yellow-1/20 bg-yellow-0">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-yellow-500/10">
-              <Sparkles className="h-5 w-5 text-yellow-600" />
+            <div className="p-2 bg-yellow-0">
+              <Sparkles className="h-5 w-5 text-yellow-1" />
             </div>
             <div>
               <CardTitle>
@@ -165,14 +165,14 @@ export function AIPermissionsCard({
       </CardHeader>
       <CardContent>
         {hasContentPermission && !hasBlogPermission && !hasPortfolioPermission && (
-          <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+          <div className="mb-4 p-3 bg-amber-0 border border-amber-1/30">
             <div className="flex items-start gap-2">
-              <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <Info className="h-5 w-5 text-amber-1 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-amber-600">
+                <p className="text-sm font-medium text-amber-1">
                   ⚠️ توجه: تولید محتوا بدون دسترسی وبلاگ یا نمونه‌کار
                 </p>
-                <p className="text-xs text-amber-600/80 mt-1">
+                <p className="text-xs text-amber-1/80 mt-1">
                   این نقش می‌تواند محتوا تولید کند ولی بدون <strong>دسترسی وبلاگ یا نمونه‌کار</strong>، نمی‌تواند محتوا را در دیتابیس ذخیره کند.
                   <br />
                   برای فعال کردن قابلیت ذخیره محتوا، <strong>دسترسی وبلاگ یا نمونه‌کار</strong> را نیز فعال کنید.
@@ -183,14 +183,14 @@ export function AIPermissionsCard({
         )}
         
         {hasImagePermission && !hasMediaPermission && (
-          <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+          <div className="mb-4 p-3 bg-amber-0 border border-amber-1/20 rounded-lg">
             <div className="flex items-start gap-2">
-              <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <Info className="h-5 w-5 text-amber-1 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-amber-600">
+                <p className="text-sm font-medium text-amber-1">
                   ⚠️ توجه: تولید تصویر بدون دسترسی مدیا
                 </p>
-                <p className="text-xs text-amber-600/80 mt-1">
+                <p className="text-xs text-amber-1/80 mt-1">
                   این نقش می‌تواند تصویر تولید کند ولی بدون <strong>دسترسی مدیا</strong>، نمی‌تواند تصاویر را در دیتابیس ذخیره کند.
                   <br />
                   برای فعال کردن قابلیت ذخیره تصاویر، <strong>دسترسی مدیا</strong> را نیز فعال کنید.
@@ -201,14 +201,14 @@ export function AIPermissionsCard({
         )}
         
         {hasAudioPermission && !hasMediaPermission && (
-          <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+          <div className="mb-4 p-3 bg-amber-0 border border-amber-1/20 rounded-lg">
             <div className="flex items-start gap-2">
-              <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <Info className="h-5 w-5 text-amber-1 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-amber-600">
+                <p className="text-sm font-medium text-amber-1">
                   ⚠️ توجه: تولید صدا/پادکست بدون دسترسی مدیا
                 </p>
-                <p className="text-xs text-amber-600/80 mt-1">
+                <p className="text-xs text-amber-1/80 mt-1">
                   این نقش می‌تواند فایل صوتی تولید کند ولی بدون <strong>دسترسی مدیا</strong>، نمی‌تواند فایل‌ها را در دیتابیس ذخیره کند.
                   <br />
                   برای فعال کردن قابلیت ذخیره فایل‌های صوتی، <strong>دسترسی مدیا</strong> را نیز فعال کنید.
@@ -224,7 +224,7 @@ export function AIPermissionsCard({
             <div
               className={`relative flex items-center gap-4 p-4 rounded-lg border transition-all duration-200 ${
                 isAiManageSelected
-                  ? "border-yellow-600 bg-yellow-500/10"
+                  ? "border-yellow-1 bg-yellow-0"
                   : "border-br bg-card"
               }`}
             >
@@ -232,7 +232,7 @@ export function AIPermissionsCard({
                 <div
                   className={`p-2 rounded-lg transition-colors ${
                     isAiManageSelected
-                      ? "bg-yellow-500/20"
+                      ? "bg-yellow-0/50"
                       : "bg-bg"
                   }`}
                 >
@@ -244,7 +244,7 @@ export function AIPermissionsCard({
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
                     <h3 className={`text-sm font-medium leading-tight ${
-                      isAiManageSelected ? "text-yellow-600" : "text-font-p"
+                      isAiManageSelected ? "text-yellow-1" : "text-font-p"
                     }`}>
                       {getPermissionTranslation(aiManagePermission.display_name, "description")}
                     </h3>
@@ -262,7 +262,7 @@ export function AIPermissionsCard({
                   <div className="flex-shrink-0 flex items-center gap-2">
                     {aiManagePermission.requires_superadmin && !isSuperAdmin && (
                       <div title="نیازمند دسترسی سوپر ادمین">
-                        <Shield className="h-4 w-4 text-amber-500" />
+                        <Shield className="h-4 w-4 text-amber-1" />
                       </div>
                     )}
                     <Switch
@@ -300,7 +300,7 @@ export function AIPermissionsCard({
                       key={perm.id}
                       className={`relative flex items-center gap-4 p-4 rounded-lg border transition-all duration-200 ${
                         isSelected
-                          ? "border-yellow-600 bg-yellow-500/10"
+                          ? "border-yellow-1 bg-yellow-0"
                           : "border-br bg-card"
                       } ${!canToggle ? "opacity-50" : ""}`}
                     >
@@ -308,7 +308,7 @@ export function AIPermissionsCard({
                     <div
                       className={`p-2 rounded-lg transition-colors ${
                         isSelected
-                          ? "bg-yellow-500/20"
+                          ? "bg-yellow-0/50"
                           : "bg-bg"
                       }`}
                     >
@@ -320,7 +320,7 @@ export function AIPermissionsCard({
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
                         <h3 className={`text-sm font-medium leading-tight ${
-                          isSelected ? "text-yellow-600" : "text-font-p"
+                          isSelected ? "text-yellow-1" : "text-font-p"
                         }`}>
                           {getPermissionTranslation(perm.display_name, "description")}
                         </h3>
@@ -338,7 +338,7 @@ export function AIPermissionsCard({
                       <div className="flex-shrink-0 flex items-center gap-2">
                         {perm.requires_superadmin && !isSuperAdmin && (
                           <div title="نیازمند دسترسی سوپر ادمین">
-                            <Shield className="h-4 w-4 text-amber-500" />
+                            <Shield className="h-4 w-4 text-amber-1" />
                           </div>
                         )}
                         <Switch

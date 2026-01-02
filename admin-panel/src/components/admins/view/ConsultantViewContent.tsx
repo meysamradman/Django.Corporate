@@ -91,11 +91,11 @@ export default function ConsultantViewContent({ consultantId }: ConsultantViewCo
                             <img
                                 src={profile.profile_picture.file_url}
                                 alt={fullName}
-                                className="w-32 h-32 rounded-full object-cover border-4 border-green-500"
+                                className="w-32 h-32 rounded-full object-cover border-4 border-green-1"
                             />
                         ) : (
-                            <div className="w-32 h-32 rounded-full bg-green-50 border-4 border-green-500 flex items-center justify-center">
-                                <Building2 className="w-16 h-16 text-green-500" />
+                            <div className="w-32 h-32 rounded-full bg-green-0 border-4 border-green-1 flex items-center justify-center">
+                                <Building2 className="w-16 h-16 text-green-1" />
                             </div>
                         )}
                     </div>
@@ -104,7 +104,7 @@ export default function ConsultantViewContent({ consultantId }: ConsultantViewCo
                     <div className="flex-1">
                         <div className="flex items-start justify-between">
                             <div>
-                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                                <h2 className="text-2xl font-bold text-font-p mb-2">
                                     {fullName}
                                 </h2>
                                 <div className="flex flex-wrap gap-2 mb-4">
@@ -130,7 +130,7 @@ export default function ConsultantViewContent({ consultantId }: ConsultantViewCo
                         </div>
 
                         {agentProfile?.bio && (
-                            <p className="text-gray-2 dark:text-gray-300 mt-4">
+                            <p className="text-font-s mt-4">
                                 {agentProfile.bio}
                             </p>
                         )}
@@ -142,12 +142,12 @@ export default function ConsultantViewContent({ consultantId }: ConsultantViewCo
             {agentProfile && (
                 <Card className="p-6">
                     <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                        <Briefcase className="w-5 h-5 text-green-500" />
+                        <Briefcase className="w-5 h-5 text-green-1" />
                         اطلاعات حرفه‌ای
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {agentProfile.license_number && (
-                            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <div className="flex items-center gap-3 p-3 bg-gray-0">
                                 <Award className="w-5 h-5 text-gray-2" />
                                 <div>
                                     <p className="text-xs text-gray-2">شماره پروانه</p>
@@ -156,7 +156,7 @@ export default function ConsultantViewContent({ consultantId }: ConsultantViewCo
                             </div>
                         )}
                         {agentProfile.license_expire_date && (
-                            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <div className="flex items-center gap-3 p-3 bg-gray-0">
                                 <Calendar className="w-5 h-5 text-gray-2" />
                                 <div>
                                     <p className="text-xs text-gray-2">تاریخ انقضای پروانه</p>
@@ -165,7 +165,7 @@ export default function ConsultantViewContent({ consultantId }: ConsultantViewCo
                             </div>
                         )}
                         {agentProfile.specialization && (
-                            <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg md:col-span-2">
+                            <div className="flex items-start gap-3 p-3 bg-gray-0 rounded-lg md:col-span-2">
                                 <Briefcase className="w-5 h-5 text-gray-2 mt-1" />
                                 <div>
                                     <p className="text-xs text-gray-2">تخصص</p>
@@ -194,7 +194,7 @@ export default function ConsultantViewContent({ consultantId }: ConsultantViewCo
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {adminData.email && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-3 p-3 bg-gray-0">
                             <Mail className="w-5 h-5 text-gray-2" />
                             <div>
                                 <p className="text-xs text-gray-2">ایمیل</p>
@@ -203,7 +203,7 @@ export default function ConsultantViewContent({ consultantId }: ConsultantViewCo
                         </div>
                     )}
                     {adminData.mobile && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-3 p-3 bg-gray-0">
                             <Phone className="w-5 h-5 text-gray-2" />
                             <div>
                                 <p className="text-xs text-gray-2">موبایل</p>
@@ -212,7 +212,7 @@ export default function ConsultantViewContent({ consultantId }: ConsultantViewCo
                         </div>
                     )}
                     {profile?.phone && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-3 p-3 bg-gray-0">
                             <Phone className="w-5 h-5 text-gray-2" />
                             <div>
                                 <p className="text-xs text-gray-2">تلفن ثابت</p>
@@ -232,7 +232,7 @@ export default function ConsultantViewContent({ consultantId }: ConsultantViewCo
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {profile.birth_date && (
-                            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <div className="flex items-center gap-3 p-3 bg-gray-0">
                                 <Calendar className="w-5 h-5 text-gray-2" />
                                 <div>
                                     <p className="text-xs text-gray-2">تاریخ تولد</p>
@@ -241,7 +241,7 @@ export default function ConsultantViewContent({ consultantId }: ConsultantViewCo
                             </div>
                         )}
                         {profile.national_id && (
-                            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <div className="flex items-center gap-3 p-3 bg-gray-0">
                                 <User className="w-5 h-5 text-gray-2" />
                                 <div>
                                     <p className="text-xs text-gray-2">کد ملی</p>
@@ -250,7 +250,7 @@ export default function ConsultantViewContent({ consultantId }: ConsultantViewCo
                             </div>
                         )}
                         {profile.address && (
-                            <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg md:col-span-2">
+                            <div className="flex items-start gap-3 p-3 bg-gray-0 rounded-lg md:col-span-2">
                                 <MapPin className="w-5 h-5 text-gray-2 mt-1" />
                                 <div>
                                     <p className="text-xs text-gray-2">آدرس</p>

@@ -226,7 +226,7 @@ export default function EditOptionPage() {
             </FormField>
 
             <div className="mt-6 space-y-4">
-              <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+              <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
                 <Item variant="default" size="default" className="py-5">
                   <ItemContent>
                     <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
@@ -243,7 +243,7 @@ export default function EditOptionPage() {
                 </Item>
               </div>
               
-              <div className="rounded-xl border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
+              <div className="border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
                 <Item variant="default" size="default" className="py-5">
                   <ItemContent>
                     <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>

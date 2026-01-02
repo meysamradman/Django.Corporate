@@ -116,10 +116,10 @@ export default function SettingsTab({ agencyData }: SettingsTabProps) {
             <CardWithIcon
                 icon={Settings}
                 title="اطلاعات سیستم"
-                iconBgColor="bg-gray-100 dark:bg-gray-800"
-                iconColor="stroke-gray-600 dark:stroke-gray-400"
-                borderColor="border-b-gray-400"
-                className="hover:shadow-lg transition-all duration-300"
+                iconBgColor="bg-gray-0"
+                iconColor="stroke-gray-1"
+                borderColor="border-b-gray-1"
+                className="transition-all duration-300"
             >
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 text-sm">
                     <div>

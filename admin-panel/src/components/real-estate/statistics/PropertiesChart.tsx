@@ -22,23 +22,23 @@ import { Badge } from "@/components/elements/Badge";
 const chartConfig = {
   published: {
     label: "منتشر شده",
-    color: "#10B981", // green-500
+    color: "#10B981", // green-100
   },
   draft: {
     label: "پیش‌نویس",
-    color: "#F59E0B", // amber-500
+    color: "#F59E0B", // amber-100
   },
   featured: {
     label: "ویژه",
-    color: "#8B5CF6", // violet-500
+    color: "#8B5CF6", // purple-100
   },
   verified: {
     label: "تأیید شده",
-    color: "#EF4444", // red-500
+    color: "#DC2626", // red-100
   },
   total: {
     label: "کل املاک",
-    color: "#3B82F6", // blue-500
+    color: "#3B82F6", // blue-100
   },
 } satisfies ChartConfig;
 

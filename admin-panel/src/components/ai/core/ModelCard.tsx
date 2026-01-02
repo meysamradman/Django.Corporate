@@ -22,10 +22,10 @@ export function ModelCard({
 
   if (viewMode === 'list') {
     return (
-      <div className="flex items-center justify-between p-4 bg-surface-light dark:bg-surface-dark rounded-lg border border-border-light dark:border-border-dark hover:border-primary-light dark:hover:border-primary-dark transition-all">
+      <div className="flex items-center justify-between p-4 bg-card border border-br hover:border-primary transition-all">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-1">
-            <h4 className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark truncate">
+            <h4 className="text-sm font-medium text-font-p truncate">
               {model.name}
             </h4>
             {model.provider && (
@@ -34,7 +34,7 @@ export function ModelCard({
               </Badge>
             )}
             {model.free ? (
-              <Badge className="bg-green-500/10 text-green-600 dark:text-green-400 text-xs shrink-0">
+              <Badge className="bg-green-0 text-green-1 text-xs shrink-0">
                 رایگان
               </Badge>
             ) : (
@@ -45,7 +45,7 @@ export function ModelCard({
             )}
           </div>
           {model.description && (
-            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark line-clamp-1">
+            <p className="text-xs text-font-s line-clamp-1">
               {model.description}
             </p>
           )}
@@ -67,11 +67,11 @@ export function ModelCard({
   }
 
   return (
-    <Card className="hover:border-primary-light dark:hover:border-primary-dark transition-all">
+    <Card className="hover:border-primary transition-all">
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2 truncate">
+            <h4 className="text-sm font-medium text-font-p mb-2 truncate">
               {model.name}
             </h4>
             {model.provider && (
@@ -96,7 +96,7 @@ export function ModelCard({
 
         <div className="space-y-2">
           {model.free ? (
-            <Badge className="bg-green-500/10 text-green-600 dark:text-green-400 text-xs w-full justify-center">
+            <Badge className="bg-green-0 text-green-1 text-xs w-full justify-center">
               <Sparkles className="w-3 h-3 mr-1" />
               رایگان
             </Badge>
@@ -108,13 +108,13 @@ export function ModelCard({
           )}
 
           {model.description && (
-            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark line-clamp-2 min-h-[2.5rem]">
+            <p className="text-xs text-font-s line-clamp-2 min-h-[2.5rem]">
               {model.description}
             </p>
           )}
 
           {model.context_length && model.context_length > 0 && (
-            <div className="flex items-center gap-1 text-xs text-text-secondary-light dark:text-text-secondary-dark">
+            <div className="flex items-center gap-1 text-xs text-font-s">
               <Info className="w-3 h-3" />
               <span>Context: {model.context_length.toLocaleString()}</span>
             </div>

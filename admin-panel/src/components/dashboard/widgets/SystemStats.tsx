@@ -66,10 +66,10 @@ export const SystemStats: FC<SystemStatsProps> = ({ systemStats, isLoading = fal
         className="h-full w-full"
       >
         <div className="space-y-6 h-full p-2">
-          <Skeleton className="h-44 w-full rounded-xl" />
+          <Skeleton className="h-44 w-full" />
           <div className="grid grid-cols-2 gap-3">
-            <Skeleton className="h-20 rounded-xl" />
-            <Skeleton className="h-20 rounded-xl" />
+            <Skeleton className="h-20" />
+            <Skeleton className="h-20" />
           </div>
         </div>
       </CardWithIcon>
@@ -83,7 +83,7 @@ export const SystemStats: FC<SystemStatsProps> = ({ systemStats, isLoading = fal
       iconBgColor="bg-primary/10"
       iconColor="stroke-primary"
       borderColor="border-b-primary"
-      className="shadow-xl h-full w-full flex flex-col transition-all duration-500 hover:shadow-primary/10 group/card"
+      className="h-full w-full flex flex-col transition-all duration-500 group/card"
       contentClassName="flex-1 flex flex-col pt-5 px-5 pb-0 gap-6"
       titleExtra={<p className="text-[10px] text-font-s opacity-60 font-black tracking-widest uppercase">System Resources</p>}
     >
@@ -118,9 +118,9 @@ export const SystemStats: FC<SystemStatsProps> = ({ systemStats, isLoading = fal
         </div>
 
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-3.5 rounded-xl border border-br/50 bg-bg/30 hover:bg-white dark:hover:bg-card hover:shadow-md transition-all duration-300">
+          <div className="flex items-center justify-between p-3.5 border border-br/50 bg-bg/30 hover:bg-wt hover:shadow-md transition-all duration-300">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600">
+              <div className="p-2 bg-blue-0 text-blue-1">
                 <Database className="w-4 h-4" />
               </div>
               <div>
@@ -131,9 +131,9 @@ export const SystemStats: FC<SystemStatsProps> = ({ systemStats, isLoading = fal
             <p className="text-sm font-black text-font-p tabular-nums">{systemStats?.database?.size_formatted || '0 B'}</p>
           </div>
 
-          <div className="flex items-center justify-between p-3.5 rounded-xl border border-br/50 bg-bg/30 hover:bg-white dark:hover:bg-card hover:shadow-md transition-all duration-300">
+          <div className="flex items-center justify-between p-3.5 border border-br/50 bg-bg/30 hover:bg-wt hover:shadow-md transition-all duration-300">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-500/10 text-green-600">
+              <div className="p-2 bg-green-0 text-green-1">
                 <Box className="w-4 h-4" />
               </div>
               <div>
@@ -151,7 +151,7 @@ export const SystemStats: FC<SystemStatsProps> = ({ systemStats, isLoading = fal
             <span className="text-[9px] font-bold">آخرین واکشی: {lastUpdateTime || '--:--'}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500/50 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-1/50 animate-pulse" />
             <span className="text-[9px] font-black text-font-s opacity-60 uppercase tracking-tighter">System Pulse</span>
           </div>
         </div>

@@ -14,7 +14,7 @@ const AnalyticsSkeleton = () => (
         <Card key={i} className="border-b-4 border-b-primary">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-8 w-8 rounded-lg" />
+            <Skeleton className="h-8 w-8" />
           </CardHeader>
           <CardContent>
             <Skeleton className="h-8 w-32 mb-2" />
@@ -24,20 +24,15 @@ const AnalyticsSkeleton = () => (
       ))}
     </div>
 
-    <Card className="border-b-4 border-b-primary">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-3">
-          <div className="p-2.5 rounded-lg shadow-sm bg-primary/10">
-            <BarChart3 className="w-5 h-5 stroke-primary" />
-          </div>
-          <Skeleton className="h-6 w-48" />
-        </CardTitle>
-        <Skeleton className="h-4 w-64 mt-1" />
-      </CardHeader>
-      <CardContent>
-        <Skeleton className="h-[400px] w-full" />
-      </CardContent>
-    </Card>
+    <CardWithIcon
+      icon={BarChart3}
+      title={<Skeleton className="h-6 w-48" />}
+      iconBgColor="bg-blue"
+      iconColor="stroke-blue-2"
+      borderColor="border-b-blue-1"
+    >
+      <Skeleton className="h-[400px] w-full" />
+    </CardWithIcon>
 
     <div className="grid md:grid-cols-2 gap-4">
       <CardWithIcon

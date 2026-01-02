@@ -18,21 +18,21 @@ export default function RealEstateStaticPage() {
           </p>
           
           <div className="mt-6 space-y-3">
-            <div className="p-4 border rounded-lg">
+            <div className="p-4 border">
               <h3 className="font-medium mb-2">صفحه اصلی املاک</h3>
               <p className="text-sm text-muted-foreground">
                 صفحه اصلی نمایش املاک
               </p>
             </div>
             
-            <div className="p-4 border rounded-lg">
+            <div className="p-4 border">
               <h3 className="font-medium mb-2">صفحه جزئیات ملک</h3>
               <p className="text-sm text-muted-foreground">
                 صفحه نمایش جزئیات یک ملک خاص
               </p>
             </div>
             
-            <div className="p-4 border rounded-lg">
+            <div className="p-4 border">
               <h3 className="font-medium mb-2">صفحه جستجوی املاک</h3>
               <p className="text-sm text-muted-foreground">
                 صفحه جستجو و فیلتر املاک

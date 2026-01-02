@@ -123,7 +123,7 @@ export default function CreatePropertyStatePage() {
             </div>
 
             <div className="mt-6 space-y-4">
-              <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+              <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
                 <Item variant="default" size="default" className="py-5">
                   <ItemContent>
                     <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>

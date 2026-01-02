@@ -168,7 +168,7 @@ export function StaticModelSelector({
                         {model.display_name}
                       </h4>
                       {isFree && (
-                        <Badge className="bg-green-500/10 text-green-600 dark:text-green-400 text-xs">
+                        <Badge className="bg-green-0 text-green-1 text-xs">
                           رایگان
                         </Badge>
                       )}

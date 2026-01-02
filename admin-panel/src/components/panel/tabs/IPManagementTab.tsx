@@ -381,7 +381,7 @@ export function IPManagementTab() {
                   className="flex items-center justify-between p-3 border rounded-lg"
                 >
                   <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-green-500" />
+                    <Shield className="h-4 w-4 text-green-1" />
                     <span className="font-mono">{ip}</span>
                   {currentIP && currentIP.ip === ip && (
                     <Badge variant="default" className="text-xs">IP فعلی</Badge>

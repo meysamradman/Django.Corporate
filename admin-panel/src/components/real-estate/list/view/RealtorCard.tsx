@@ -73,7 +73,7 @@ export function RealtorCard({ property }: RealtorCardProps) {
                             <div className="flex items-center justify-center gap-2">
                                 <h3 className="text-xl font-bold text-font-p">{name}</h3>
                                 {isVerified && (
-                                    <CheckCircle2 className="w-5 h-5 text-blue-500 fill-blue-500/10" aria-label="تایید شده" />
+                                    <CheckCircle2 className="w-5 h-5 text-blue-1 fill-blue-0" aria-label="تایید شده" />
                                 )}
                             </div>
 

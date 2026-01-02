@@ -7,12 +7,12 @@ import { Button } from "@/components/elements/Button";
 
 const EditFormSkeleton = () => (
   <div className="space-y-6">
-    <div className="rounded-lg border p-6">
+    <div className="border p-6">
       <Skeleton className="h-32 w-full mb-4" />
       <Skeleton className="h-8 w-1/3 mb-2" />
       <Skeleton className="h-4 w-2/3" />
     </div>
-    <div className="space-y-4 rounded-lg border p-6">
+    <div className="space-y-4 border p-6">
       <Skeleton className="h-8 w-1/4" />
       <Skeleton className="h-4 w-full" />
       <Skeleton className="h-4 w-3/4" />
@@ -55,7 +55,7 @@ export default function EditAdminPage() {
     return (
       <div className="space-y-6">
         <PageHeader title="ویرایش ادمین" />
-        <div className="rounded-lg border p-6 text-center space-y-4">
+        <div className="border p-6 text-center space-y-4">
           <p className="text-destructive">شما فقط می‌توانید پروفایل خود را مشاهده یا ویرایش کنید.</p>
           <Button onClick={() => navigate("/admins/me/edit")}>پروفایل من</Button>
         </div>

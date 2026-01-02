@@ -60,12 +60,12 @@ export function AdminPermissionsCard({
   }).length;
 
   return (
-    <Card className="border-2 border-dashed border-red-500/20 bg-red-500/5">
+    <Card className="border-2 border-dashed border-red-1/20 bg-red-0">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-red-500/10">
-              <UserCog className="h-5 w-5 text-red-600" />
+            <div className="p-2 bg-red-0">
+              <UserCog className="h-5 w-5 text-red-1" />
             </div>
             <div>
               <CardTitle>
@@ -100,15 +100,15 @@ export function AdminPermissionsCard({
                   <div
                     className={`relative flex items-center gap-4 p-4 rounded-lg border transition-all duration-200 ${
                       isManageSelected
-                        ? "border-red-600 bg-red-500/10"
+                        ? "border-red-1 bg-red-0"
                         : "border-br bg-card"
                     }`}
                   >
                     <div className="flex-shrink-0">
                       <div
-                        className={`p-2 rounded-lg transition-colors ${
+                        className={`p-2 transition-colors ${
                           isManageSelected
-                            ? "bg-red-500/20"
+                            ? "bg-red-0"
                             : "bg-bg"
                         }`}
                       >
@@ -120,7 +120,7 @@ export function AdminPermissionsCard({
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
                           <h3 className={`text-sm font-medium leading-tight ${
-                            isManageSelected ? "text-red-600" : "text-font-p"
+                            isManageSelected ? "text-red-1" : "text-font-p"
                           }`}>
                             {getPermissionTranslation(managePerm.display_name || resource.display_name, "resource")}
                           </h3>
@@ -129,7 +129,7 @@ export function AdminPermissionsCard({
                         <div className="flex-shrink-0 flex items-center gap-2">
                           {managePerm.requires_superadmin && (
                             <div title="دسترسی حساس - فقط برای مدیران کل">
-                              <Shield className="h-4 w-4 text-red-600" />
+                              <Shield className="h-4 w-4 text-red-1" />
                             </div>
                           )}
                           <Switch
@@ -160,12 +160,12 @@ export function AdminPermissionsCard({
                           key={perm.id}
                           className={`flex items-center justify-between gap-2 p-3 rounded-lg border transition-all ${
                             isSelected
-                              ? "border-red-600/50 bg-red-500/5"
+                              ? "border-red-1/50 bg-red-0"
                               : "border-br bg-card"
                           } ${!canToggle ? "opacity-50" : ""}`}
                         >
                           <span className={`text-sm ${
-                            isSelected ? "text-red-600 font-medium" : "text-font-p"
+                            isSelected ? "text-red-1 font-medium" : "text-font-p"
                           }`}>
                             {getPermissionTranslation(perm.display_name || `${resource.display_name} - ${perm.action}`, "resource")}
                           </span>

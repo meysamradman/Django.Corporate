@@ -102,7 +102,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                                 ))}
                             </SelectContent>
                         </Select>
-                        {errors?.bedrooms && <p className="text-sm text-red-500">{errors.bedrooms}</p>}
+                        {errors?.bedrooms && <p className="text-sm text-red-1">{errors.bedrooms}</p>}
                     </div>
 
                     {/* Bathrooms - Dropdown */}
@@ -124,7 +124,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                                 ))}
                             </SelectContent>
                         </Select>
-                        {errors?.bathrooms && <p className="text-sm text-red-500">{errors.bathrooms}</p>}
+                        {errors?.bathrooms && <p className="text-sm text-red-1">{errors.bathrooms}</p>}
                     </div>
 
                     {/* Year Built - Number Input با راهنما */}
@@ -191,7 +191,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                                     ))}
                                 </SelectContent>
                             </Select>
-                            {errors?.parking_spaces && <p className="text-sm text-red-500">{errors.parking_spaces}</p>}
+                            {errors?.parking_spaces && <p className="text-sm text-red-1">{errors.parking_spaces}</p>}
                         </div>
                         <div className="flex-1 space-y-2">
                             <Label htmlFor="storage_rooms">
@@ -214,7 +214,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                                     ))}
                                 </SelectContent>
                             </Select>
-                            {errors?.storage_rooms && <p className="text-sm text-red-500">{errors.storage_rooms}</p>}
+                            {errors?.storage_rooms && <p className="text-sm text-red-1">{errors.storage_rooms}</p>}
                         </div>
                     </div>
 
@@ -237,7 +237,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                                 ))}
                             </SelectContent>
                         </Select>
-                        {errors?.kitchens && <p className="text-sm text-red-500">{errors.kitchens}</p>}
+                        {errors?.kitchens && <p className="text-sm text-red-1">{errors.kitchens}</p>}
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="living_rooms">تعداد پذیرایی</Label>
@@ -257,7 +257,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                                 ))}
                             </SelectContent>
                         </Select>
-                        {errors?.living_rooms && <p className="text-sm text-red-500">{errors.living_rooms}</p>}
+                        {errors?.living_rooms && <p className="text-sm text-red-1">{errors.living_rooms}</p>}
                     </div>
 
                     {/* Floor Number */}
@@ -279,7 +279,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                                 ))}
                             </SelectContent>
                         </Select>
-                        {errors?.floor_number && <p className="text-sm text-red-500">{errors.floor_number}</p>}
+                        {errors?.floor_number && <p className="text-sm text-red-1">{errors.floor_number}</p>}
                     </div>
 
                     {/* Document Type - با string value */}
@@ -301,7 +301,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                                 ))}
                             </SelectContent>
                         </Select>
-                        {errors?.document_type && <p className="text-sm text-red-500">{errors.document_type}</p>}
+                        {errors?.document_type && <p className="text-sm text-red-1">{errors.document_type}</p>}
                     </div>
                 </div>
             </CardWithIcon>

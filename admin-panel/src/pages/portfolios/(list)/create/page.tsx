@@ -51,7 +51,7 @@ const TabSkeleton = () => (
 
             <div className="space-y-2">
               <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-64 w-full rounded-lg" />
+              <Skeleton className="h-64 w-full" />
             </div>
           </div>
         </CardWithIcon>
@@ -86,6 +86,7 @@ const TabSkeleton = () => (
 const BaseInfoTab = lazy(() => import("@/components/portfolios/list/create/BaseInfoTab"));
 const MediaTab = lazy(() => import("@/components/portfolios/list/create/MediaTab"));
 const SEOTab = lazy(() => import("@/components/portfolios/list/create/SEOTab"));
+const ExtraAttributesTab = lazy(() => import("@/components/portfolios/list/create/ExtraAttributesTab"));
 
 export default function CreatePortfolioPage() {
   const navigate = useNavigate();
@@ -135,6 +136,7 @@ export default function CreatePortfolioPage() {
         og_image: data.og_image?.id || undefined,
         canonical_url: data.canonical_url || undefined,
         robots_meta: data.robots_meta || undefined,
+        extra_attributes: data.extra_attributes || {},
         categories_ids: data.selectedCategories ? data.selectedCategories.map((cat: any) => typeof cat === 'number' ? cat : cat.id) : [],
         tags_ids: data.selectedTags ? data.selectedTags.map(tag => tag.id) : [],
         options_ids: data.selectedOptions ? data.selectedOptions.map(option => option.id) : [],
@@ -231,6 +233,10 @@ export default function CreatePortfolioPage() {
                 <Search className="h-4 w-4" />
                 سئو
               </TabsTrigger>
+              <TabsTrigger value="extra">
+                <Settings className="h-4 w-4" />
+                فیلدهای اضافی
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="account">
@@ -254,6 +260,14 @@ export default function CreatePortfolioPage() {
             <TabsContent value="seo">
               <Suspense fallback={<TabSkeleton />}>
                 <SEOTab 
+                  form={form as any}
+                  editMode={editMode}
+                />
+              </Suspense>
+            </TabsContent>
+            <TabsContent value="extra">
+              <Suspense fallback={<TabSkeleton />}>
+                <ExtraAttributesTab 
                   form={form as any}
                   editMode={editMode}
                 />

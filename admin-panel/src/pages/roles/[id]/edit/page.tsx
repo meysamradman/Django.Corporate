@@ -759,7 +759,7 @@ export default function EditRolePage() {
                   <Card className="border-2 border-dashed border-green-500/20 bg-green-500/5">
                     <CardHeader>
                       <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-green-500/10">
+                        <div className="p-2 bg-green-500/10">
                           <ShieldCheck className="h-5 w-5 text-green-600" />
                         </div>
                         <div>
@@ -850,7 +850,7 @@ export default function EditRolePage() {
 
                 
                 {selectedPermissions.length > 0 && (
-                  <div className="p-3 bg-bg/50 rounded-lg">
+                  <div className="p-3 bg-bg/50">
                     <div className="text-sm font-medium">
                       دسترسی‌های انتخاب شده: {selectedPermissions.length}
                     </div>
@@ -858,7 +858,7 @@ export default function EditRolePage() {
                 )}
                 
                 {errors.permission_ids?.message && (
-                  <div className="flex items-start gap-2 text-sm text-destructive mt-4 p-3 bg-destructive/10 rounded-lg">
+                  <div className="flex items-start gap-2 text-sm text-destructive mt-4 p-3 bg-destructive/10">
                     <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                     <span>{String(errors.permission_ids.message)}</span>
                   </div>

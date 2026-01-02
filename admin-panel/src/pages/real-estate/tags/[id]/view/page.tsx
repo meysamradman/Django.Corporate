@@ -48,7 +48,7 @@ export default function PropertyTagViewPage() {
 
   if (error || !tag) {
     return (
-      <div className="rounded-lg border p-6">
+      <div className="border p-6">
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات تگ ملک</p>
         </div>
@@ -83,13 +83,13 @@ export default function PropertyTagViewPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-sm font-medium text-font-s">عنوان</label>
-              <div className="px-3 py-2 rounded-md border border-br bg-bg/50 text-font-p">
+              <div className="px-3 py-2 border border-br bg-bg/50 text-font-p">
                 {tag.title}
               </div>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-font-s">نامک</label>
-              <div className="px-3 py-2 rounded-md border border-br bg-bg/50 text-font-p">
+              <div className="px-3 py-2 border border-br bg-bg/50 text-font-p">
                 {tag.slug}
               </div>
             </div>
@@ -98,7 +98,7 @@ export default function PropertyTagViewPage() {
           {tag.description && (
             <div className="space-y-2">
               <label className="text-sm font-medium text-font-s">توضیحات</label>
-              <div className="px-3 py-2 rounded-md border border-br bg-bg/50 text-font-p">
+              <div className="px-3 py-2 border border-br bg-bg/50 text-font-p">
                 {tag.description}
               </div>
             </div>
@@ -126,7 +126,7 @@ export default function PropertyTagViewPage() {
                 <Calendar className="h-4 w-4" />
                 تاریخ ایجاد
               </label>
-              <div className="px-3 py-2 rounded-md border border-br bg-bg/50 text-font-p">
+              <div className="px-3 py-2 border border-br bg-bg/50 text-font-p">
                 {formatDate(tag.created_at)}
               </div>
             </div>

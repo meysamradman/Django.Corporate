@@ -190,7 +190,7 @@ export default function TicketPage() {
   }, [tickets]);
 
   return (
-    <div className="flex h-[calc(100vh-4rem-4rem)] bg-card overflow-hidden rounded-lg border shadow-[rgb(0_0_0/2%)_0px_6px_24px_0px,rgb(0_0_0/2%)_0px_0px_0px_1px]">
+    <div className="flex h-[calc(100vh-4rem-4rem)] bg-card overflow-hidden border shadow-[rgb(0_0_0/2%)_0px_6px_24px_0px,rgb(0_0_0/2%)_0px_0px_0px_1px]">
       <div className="w-64 flex-shrink-0 h-full overflow-hidden bg-card">
         <TicketSidebar
           selectedStatus={selectedStatus}
@@ -199,7 +199,7 @@ export default function TicketPage() {
         />
       </div>
 
-      <div className="w-[1px] h-full bg-gray-200 dark:bg-gray-700 flex-shrink-0"></div>
+      <div className="w-[1px] h-full bg-gray-200 flex-shrink-0"></div>
 
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {selectedTicket ? (

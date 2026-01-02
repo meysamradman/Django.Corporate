@@ -10,7 +10,7 @@ const AIAudioGeneratorSkeleton = () => (
     <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-purple-1">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-3">
-          <div className="p-2.5 bg-purple rounded-xl shadow-sm">
+          <div className="p-2.5 bg-purple shadow-sm">
             <Mic className="w-5 h-5 stroke-purple-2" />
           </div>
           تولید پادکست با AI

@@ -140,7 +140,7 @@ export function ModelSelector({
 
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 relative">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary-light dark:text-text-secondary-dark" />
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-font-s" />
           <Input
             type="text"
             value={searchQuery}
@@ -171,7 +171,7 @@ export function ModelSelector({
         </div>
       </div>
 
-      <div className="flex items-center justify-between text-sm text-text-secondary-light dark:text-text-secondary-dark">
+      <div className="flex items-center justify-between text-sm text-font-s">
         <span>
           نمایش {paginatedModels.length} از {filteredModels.length} مدل
           {searchQuery && ` (در نتایج جستجو برای "${searchQuery}")`}
@@ -183,7 +183,7 @@ export function ModelSelector({
       </div>
 
       {paginatedModels.length === 0 ? (
-        <div className="text-center py-12 text-text-secondary-light dark:text-text-secondary-dark">
+        <div className="text-center py-12 text-font-s">
           {searchQuery ? 'مدلی با این مشخصات یافت نشد' : 'مدلی موجود نیست'}
         </div>
       ) : (

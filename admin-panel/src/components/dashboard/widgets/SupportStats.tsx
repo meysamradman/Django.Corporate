@@ -54,11 +54,11 @@ export const SupportStats: FC<SupportStatsProps> = ({ stats, isLoading = false }
       iconBgColor="bg-primary/10"
       iconColor="stroke-primary"
       borderColor="border-b-primary"
-      className="shadow-xl h-full w-full flex flex-col transition-all duration-500 hover:shadow-primary/10 group/card"
+      className="h-full w-full flex flex-col transition-all duration-500 group/card"
       contentClassName="flex-1 flex flex-col pt-5 px-5 pb-0 gap-6"
       titleExtra={<p className="text-[10px] text-font-s opacity-60 font-black tracking-widest uppercase">Support Analytics</p>}
     >
-      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-transparent to-transparent border border-primary/10 p-5 group">
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-transparent to-transparent border border-primary/10 p-5 group">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <div className="relative">
@@ -87,10 +87,10 @@ export const SupportStats: FC<SupportStatsProps> = ({ stats, isLoading = false }
       </div>
 
       <div className="space-y-4">
-        <div className="p-4 rounded-xl border border-br/50 bg-bg/30 hover:bg-white dark:hover:bg-card hover:shadow-md transition-all duration-300 group/item">
+        <div className="p-4 border border-br/50 bg-bg/30 hover:bg-wt hover:shadow-md transition-all duration-300 group/item">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-rose-0 text-rose-1 group-hover/item:scale-110 transition-transform duration-300">
+              <div className="p-2.5 bg-pink-0 text-pink-1 group-hover/item:scale-110 transition-transform duration-300">
                 <Mail className="w-5 h-5" />
               </div>
               <div>
@@ -101,8 +101,8 @@ export const SupportStats: FC<SupportStatsProps> = ({ stats, isLoading = false }
               </div>
             </div>
             <div className="text-left">
-              <span className="text-sm font-black text-rose-1">{formatNumber(stats?.unanswered_emails || 0)}</span>
-              <p className="text-[9px] font-black text-rose-1/60 uppercase">بی‌پاسخ</p>
+              <span className="text-sm font-black text-pink-1">{formatNumber(stats?.unanswered_emails || 0)}</span>
+              <p className="text-[9px] font-black text-pink-1/60 uppercase">بی‌پاسخ</p>
             </div>
           </div>
           <div className="space-y-2">
@@ -112,17 +112,17 @@ export const SupportStats: FC<SupportStatsProps> = ({ stats, isLoading = false }
             </div>
             <div className="h-1.5 w-full bg-br/20 rounded-full overflow-hidden">
               <div
-                className="h-full bg-rose-1 rounded-full transition-all duration-1000"
+                className="h-full bg-pink-1 rounded-full transition-all duration-1000"
                 style={{ width: `${emailProgress}%` }}
               />
             </div>
           </div>
         </div>
 
-        <div className="p-4 rounded-xl border border-br/50 bg-bg/30 hover:bg-white dark:hover:bg-card hover:shadow-md transition-all duration-300 group/item">
+        <div className="p-4 border border-br/50 bg-bg/30 hover:bg-wt hover:shadow-md transition-all duration-300 group/item">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-cyan-0 text-cyan-1 group-hover/item:scale-110 transition-transform duration-300">
+              <div className="p-2.5 bg-teal-0 text-teal-1 group-hover/item:scale-110 transition-transform duration-300">
                 <Ticket className="w-5 h-5" />
               </div>
               <div>
@@ -133,8 +133,8 @@ export const SupportStats: FC<SupportStatsProps> = ({ stats, isLoading = false }
               </div>
             </div>
             <div className="text-left">
-              <span className="text-sm font-black text-cyan-1">{formatNumber(stats?.open_tickets || 0)}</span>
-              <p className="text-[9px] font-black text-cyan-1/60 uppercase">تیکت باز</p>
+              <span className="text-sm font-black text-teal-1">{formatNumber(stats?.open_tickets || 0)}</span>
+              <p className="text-[9px] font-black text-teal-1/60 uppercase">تیکت باز</p>
             </div>
           </div>
           <div className="space-y-2">
@@ -144,7 +144,7 @@ export const SupportStats: FC<SupportStatsProps> = ({ stats, isLoading = false }
             </div>
             <div className="h-1.5 w-full bg-br/20 rounded-full overflow-hidden">
               <div
-                className="h-full bg-cyan-1 rounded-full transition-all duration-1000"
+                className="h-full bg-teal-1 rounded-full transition-all duration-1000"
                 style={{ width: `${ticketProgress}%` }}
               />
             </div>
@@ -153,18 +153,18 @@ export const SupportStats: FC<SupportStatsProps> = ({ stats, isLoading = false }
       </div>
 
       <div className="mt-auto pt-2 grid grid-cols-2 gap-3">
-        <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-500/5 border border-amber-500/10">
-          <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+        <div className="flex items-center gap-2 p-3 bg-amber-0 border border-amber-1/20">
+          <AlertCircle className="w-3.5 h-3.5 text-amber-1" />
           <div className="flex flex-col">
-            <span className="text-xs font-black text-amber-600 leading-none">{formatNumber(stats?.active_tickets || 0)}</span>
-            <span className="text-[8px] font-bold text-amber-600/70">تیکت در جریان</span>
+            <span className="text-xs font-black text-amber-1 leading-none">{formatNumber(stats?.active_tickets || 0)}</span>
+            <span className="text-[8px] font-bold text-amber-1/70">تیکت در جریان</span>
           </div>
         </div>
-        <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-500/5 border border-blue-500/10">
-          <Inbox className="w-3.5 h-3.5 text-blue-500" />
+        <div className="flex items-center gap-2 p-3 bg-blue-0 border border-blue-1/20">
+          <Inbox className="w-3.5 h-3.5 text-blue-1" />
           <div className="flex flex-col">
-            <span className="text-xs font-black text-blue-600 leading-none">{formatNumber(stats?.new_emails || 0)}</span>
-            <span className="text-[8px] font-bold text-blue-600/70">ایمیل جدید</span>
+            <span className="text-xs font-black text-blue-1 leading-none">{formatNumber(stats?.new_emails || 0)}</span>
+            <span className="text-[8px] font-bold text-blue-1/70">ایمیل جدید</span>
           </div>
         </div>
       </div>

@@ -5,7 +5,7 @@ import { Card } from '@/components/elements/Card';
 import { Button } from '@/components/elements/Button';
 import { Badge } from '@/components/elements/Badge';
 import { Skeleton } from '@/components/elements/Skeleton';
-import { User, Mail, Phone, MapPin, Calendar, Building2, Edit } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Calendar, Edit } from 'lucide-react';
 import { ApiError } from '@/types/api/apiError';
 // Utility function for formatting dates
 const formatDate = (dateString: string) => {
@@ -102,7 +102,7 @@ export default function AdminViewContent({ adminId }: AdminViewContentProps) {
                     <div className="flex-1">
                         <div className="flex items-start justify-between">
                             <div>
-                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                                <h2 className="text-2xl font-bold text-font-p mb-2">
                                     {fullName}
                                 </h2>
                                 <div className="flex flex-wrap gap-2 mb-4">
@@ -127,7 +127,7 @@ export default function AdminViewContent({ adminId }: AdminViewContentProps) {
                         </div>
 
                         {profile?.bio && (
-                            <p className="text-gray-2 dark:text-gray-300 mt-4">
+                            <p className="text-font-s mt-4">
                                 {profile.bio}
                             </p>
                         )}
@@ -143,7 +143,7 @@ export default function AdminViewContent({ adminId }: AdminViewContentProps) {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {adminData.email && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-3 p-3 bg-gray-0">
                             <Mail className="w-5 h-5 text-gray-2" />
                             <div>
                                 <p className="text-xs text-gray-2">ایمیل</p>
@@ -152,7 +152,7 @@ export default function AdminViewContent({ adminId }: AdminViewContentProps) {
                         </div>
                     )}
                     {adminData.mobile && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-3 p-3 bg-gray-0">
                             <Phone className="w-5 h-5 text-gray-2" />
                             <div>
                                 <p className="text-xs text-gray-2">موبایل</p>
@@ -161,7 +161,7 @@ export default function AdminViewContent({ adminId }: AdminViewContentProps) {
                         </div>
                     )}
                     {profile?.phone && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-3 p-3 bg-gray-0">
                             <Phone className="w-5 h-5 text-gray-2" />
                             <div>
                                 <p className="text-xs text-gray-2">تلفن ثابت</p>
@@ -181,7 +181,7 @@ export default function AdminViewContent({ adminId }: AdminViewContentProps) {
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {profile.birth_date && (
-                            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <div className="flex items-center gap-3 p-3 bg-gray-0">
                                 <Calendar className="w-5 h-5 text-gray-2" />
                                 <div>
                                     <p className="text-xs text-gray-2">تاریخ تولد</p>
@@ -190,7 +190,7 @@ export default function AdminViewContent({ adminId }: AdminViewContentProps) {
                             </div>
                         )}
                         {profile.national_id && (
-                            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <div className="flex items-center gap-3 p-3 bg-gray-0">
                                 <User className="w-5 h-5 text-gray-2" />
                                 <div>
                                     <p className="text-xs text-gray-2">کد ملی</p>
@@ -199,7 +199,7 @@ export default function AdminViewContent({ adminId }: AdminViewContentProps) {
                             </div>
                         )}
                         {profile.address && (
-                            <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg md:col-span-2">
+                            <div className="flex items-start gap-3 p-3 bg-gray-0 rounded-lg md:col-span-2">
                                 <MapPin className="w-5 h-5 text-gray-2 mt-1" />
                                 <div>
                                     <p className="text-xs text-gray-2">آدرس</p>

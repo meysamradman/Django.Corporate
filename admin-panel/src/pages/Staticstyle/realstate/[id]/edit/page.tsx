@@ -436,7 +436,7 @@ export default function RealEstateEditPage() {
             <p className="text-font-s mb-4">
               در این بخش می‌توانید تصاویر و ویدیوهای مربوط به ملک را مدیریت کنید.
             </p>
-            <div className="p-8 border-2 border-dashed rounded-lg text-center">
+            <div className="p-8 border-2 border-dashed text-center">
               <Image className="w-12 h-12 mx-auto mb-2 text-muted-foreground" />
               <p className="text-muted-foreground">هیچ مدیایی اضافه نشده است</p>
             </div>

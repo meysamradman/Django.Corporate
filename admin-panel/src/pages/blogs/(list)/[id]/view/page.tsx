@@ -11,7 +11,7 @@ import { FloatingActions } from "@/components/elements/FloatingActions";
 
 const TabSkeleton = () => (
   <div className="mt-6 space-y-4">
-    <div className="rounded-lg border p-6">
+    <div className="border p-6">
       <div className="space-y-4">
         <Skeleton className="h-6 w-32" />
         <div className="grid grid-cols-2 gap-4">
@@ -27,7 +27,7 @@ const TabSkeleton = () => (
         <Skeleton className="h-32 w-full" />
       </div>
     </div>
-    <div className="rounded-lg border p-6">
+    <div className="border p-6">
       <Skeleton className="h-6 w-24 mb-4" />
       <div className="grid grid-cols-3 gap-4">
         <Skeleton className="h-32 w-full" />
@@ -68,7 +68,7 @@ export default function BlogViewPage() {
       <div className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-2">
-            <div className="rounded-lg border p-6 space-y-4">
+            <div className="border p-6 space-y-4">
               <Skeleton className="h-6 w-32" />
               <Skeleton className="h-40 w-full" />
               <Skeleton className="h-4 w-full" />
@@ -101,7 +101,7 @@ export default function BlogViewPage() {
 
   if (error || !blogData) {
     return (
-      <div className="rounded-lg border p-6">
+      <div className="border p-6">
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات وبلاگ</p>
           <p className="text-font-s">

@@ -25,10 +25,10 @@ const TabSkeleton = () => (
   <div className="mt-0 space-y-6">
     <div className="flex flex-col lg:flex-row gap-6">
       <div className="flex-1 min-w-0">
-        <div className="rounded-lg border border-br overflow-hidden">
+        <div className="border border-br overflow-hidden">
           <div className="border-b border-b-blue-1 bg-bg/50 px-6 py-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue">
+              <div className="flex h-10 w-10 items-center justify-center bg-blue">
                 <FileText className="h-5 w-5 stroke-blue-2" />
               </div>
               <Skeleton className="h-6 w-32" />
@@ -52,17 +52,17 @@ const TabSkeleton = () => (
               </div>
               <div className="space-y-2">
                 <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-64 w-full rounded-lg" />
+                <Skeleton className="h-64 w-full" />
               </div>
             </div>
           </div>
         </div>
       </div>
       <div className="w-full lg:w-[420px] lg:flex-shrink-0">
-        <div className="rounded-lg border border-br overflow-hidden lg:sticky lg:top-20">
+        <div className="border border-br overflow-hidden lg:sticky lg:top-20">
           <div className="border-b border-b-blue-1 bg-bg/50 px-6 py-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue">
+              <div className="flex h-10 w-10 items-center justify-center bg-blue">
                 <Settings className="h-5 w-5 stroke-blue-2" />
               </div>
               <Skeleton className="h-6 w-24" />
@@ -89,6 +89,7 @@ const TabSkeleton = () => (
 const BaseInfoTab = lazy(() => import("@/components/portfolios/list/create/BaseInfoTab"));
 const MediaTab = lazy(() => import("@/components/portfolios/list/create/MediaTab"));
 const SEOTab = lazy(() => import("@/components/portfolios/list/create/SEOTab"));
+const ExtraAttributesTab = lazy(() => import("@/components/portfolios/list/create/ExtraAttributesTab"));
 
 export default function EditPortfolioPage() {
   const navigate = useNavigate();
@@ -116,6 +117,7 @@ export default function EditPortfolioPage() {
     og_image: null as Media | null,
     canonical_url: "",
     robots_meta: "",
+    extra_attributes: {} as Record<string, any>,
     is_public: true,
     is_active: true,
   });
@@ -149,6 +151,7 @@ export default function EditPortfolioPage() {
         og_image: portfolioData.og_image || null,
         canonical_url: portfolioData.canonical_url || "",
         robots_meta: portfolioData.robots_meta || "",
+        extra_attributes: portfolioData.extra_attributes || {},
         is_public: portfolioData.is_public ?? true,
         is_active: portfolioData.is_active ?? true,
       });
@@ -281,6 +284,7 @@ export default function EditPortfolioPage() {
         og_image_id: formData.og_image?.id || undefined,
         canonical_url: formData.canonical_url || undefined,
         robots_meta: formData.robots_meta || undefined,
+        extra_attributes: formData.extra_attributes || {},
         status: "published",
         is_public: formData.is_public,
         is_active: formData.is_active,
@@ -335,6 +339,7 @@ export default function EditPortfolioPage() {
         og_image_id: formData.og_image?.id || undefined,
         canonical_url: formData.canonical_url || undefined,
         robots_meta: formData.robots_meta || undefined,
+        extra_attributes: formData.extra_attributes || {},
         status: "draft",
         is_public: formData.is_public,
         is_active: formData.is_active,
@@ -402,6 +407,10 @@ export default function EditPortfolioPage() {
                 <Search className="h-4 w-4" />
                 سئو
               </TabsTrigger>
+              <TabsTrigger value="extra">
+                <Settings className="h-4 w-4" />
+                فیلدهای اضافی
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="account">
@@ -442,6 +451,15 @@ export default function EditPortfolioPage() {
                   handleInputChange={handleInputChange}
                   editMode={editMode}
                   portfolioId={id}
+                />
+              </Suspense>
+            </TabsContent>
+            <TabsContent value="extra">
+              <Suspense fallback={<TabSkeleton />}>
+                <ExtraAttributesTab 
+                  formData={formData}
+                  handleInputChange={handleInputChange}
+                  editMode={editMode}
                 />
               </Suspense>
             </TabsContent>

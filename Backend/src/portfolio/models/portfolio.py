@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.cache import cache
+from django.contrib.postgres.indexes import GinIndex
 from src.core.models.base import BaseModel
 from src.portfolio.models.seo import SEOMixin
 from src.portfolio.models.category import PortfolioCategory
@@ -87,6 +88,13 @@ class Portfolio(BaseModel, SEOMixin):
         help_text="Options associated with this portfolio item"
     )
     
+    extra_attributes = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name="Extra Attributes",
+        help_text="Flexible attributes for custom fields (price, brand, specifications, etc.)"
+    )
+    
     objects = PortfolioQuerySet.as_manager()
 
     class Meta(BaseModel.Meta, SEOMixin.Meta):
@@ -97,6 +105,8 @@ class Portfolio(BaseModel, SEOMixin):
         indexes = [
             models.Index(fields=['status', 'is_public', '-created_at']),
             models.Index(fields=['is_featured', 'status', '-created_at']),
+            # GIN Index for JSON field (PostgreSQL)
+            GinIndex(fields=['extra_attributes'], name='idx_portfolio_gin_extra_attrs'),
         ]
 
     def __str__(self):

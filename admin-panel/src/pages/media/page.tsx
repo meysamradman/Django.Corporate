@@ -53,7 +53,7 @@ const MediaGridSkeleton = () => (
           <Skeleton className="h-full w-full" />
         </div>
         <div className="absolute top-2 right-2 z-10">
-          <Skeleton className="h-5 w-5 rounded" />
+          <Skeleton className="h-5 w-5" />
         </div>
       </Card>
     ))}
@@ -350,7 +350,7 @@ export default function MediaPage() {
       </PageHeader>
 
       {error && (
-        <div className="text-center text-destructive bg-destructive/10 border border-destructive/20 p-4 rounded">
+        <div className="text-center text-destructive bg-destructive/10 border border-destructive/20 p-4">
           <p>{error}</p>
         </div>
       )}
@@ -484,7 +484,7 @@ export default function MediaPage() {
 
                       {(item.media_type === 'video' || item.media_type === 'audio') && (
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                          <div className="bg-static-b/50 rounded-full p-3">
+                          <div className="bg-static-b/50 p-3">
                             {item.media_type === 'video' ? (
                               <Play className="h-6 w-6 text-static-w" />
                             ) : (

@@ -73,6 +73,8 @@ export interface Portfolio extends Base {
     structured_data?: Record<string, any> | null;
     hreflang_data?: Record<string, any> | null;
     
+    extra_attributes?: Record<string, any>;
+    
     seo?: PortfolioSEOMeta;
 }
 

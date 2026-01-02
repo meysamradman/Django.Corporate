@@ -148,6 +148,7 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
             'short_description', 'description',
             'is_featured', 'is_public', 'is_active',
             'main_image', 'categories', 'tags', 'options', 'media', 'portfolio_media',
+            'extra_attributes',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
             'structured_data', 'hreflang_data',
@@ -317,6 +318,7 @@ class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
         fields = [
             'title', 'slug', 'short_description', 'description',
             'status', 'is_featured', 'is_public',
+            'extra_attributes',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
             'categories_ids', 'tags_ids', 'options_ids',
@@ -408,6 +410,7 @@ class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'title', 'slug', 'short_description', 'description',
             'status', 'is_featured', 'is_public', 'is_active',
+            'extra_attributes',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
             'categories_ids', 'tags_ids', 'options_ids', 'media_ids', 'main_image_id', 'media_covers'

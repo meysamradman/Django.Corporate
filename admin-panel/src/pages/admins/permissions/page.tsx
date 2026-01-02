@@ -208,7 +208,7 @@ export default function PermissionsManagementPage() {
                   {filteredRoles.map((role: RoleWithPermissions) => (
                     <div
                       key={role.id}
-                      className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                      className={`p-3 border cursor-pointer transition-colors ${
                         selectedRole?.id === role.id
                           ? 'border-primary bg-primary/5'
                           : 'hover:border-primary/50 hover:bg-bg/50'
@@ -285,7 +285,7 @@ export default function PermissionsManagementPage() {
                             return (
                               <div
                                 key={permission.id}
-                                className={`p-4 rounded-lg border-2 transition-all ${
+                                className={`p-4 border-2 transition-all ${
                                   isModified ? 'border-yellow-1 bg-yellow' : 'border-purple-1 bg-purple/5'
                                 }`}
                               >
@@ -328,7 +328,7 @@ export default function PermissionsManagementPage() {
                           return (
                             <div
                               key={permission.id}
-                              className={`p-3 rounded-lg border transition-all ${
+                              className={`p-3 border transition-all ${
                                 isModified ? 'border-yellow-1 bg-yellow' : ''
                               }`}
                             >

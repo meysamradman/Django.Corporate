@@ -147,7 +147,7 @@ export function StandardPermissionsTable({
                       </div>
                       {viewPerm.requires_superadmin && (
                         <div
-                          className="absolute -top-2 -right-3 text-amber-500"
+                          className="absolute -top-2 -right-3 text-amber-1"
                           title="نیازمند دسترسی سوپر ادمین"
                         >
                           <Shield className="h-3 w-3" />
@@ -185,7 +185,7 @@ export function StandardPermissionsTable({
                       />
                       {createPerm?.requires_superadmin && (
                         <div
-                          className="absolute -top-2 -right-3 text-amber-500"
+                          className="absolute -top-2 -right-3 text-amber-1"
                           title="نیازمند دسترسی سوپر ادمین"
                         >
                           <Shield className="h-3 w-3" />
@@ -214,7 +214,7 @@ export function StandardPermissionsTable({
                     />
                     {editPerm?.requires_superadmin && (
                       <div
-                        className="absolute -top-2 -right-3 text-amber-500"
+                        className="absolute -top-2 -right-3 text-amber-1"
                         title="نیازمند دسترسی سوپر ادمین"
                       >
                         <Shield className="h-3 w-3" />
@@ -242,7 +242,7 @@ export function StandardPermissionsTable({
                     />
                     {deletePerm?.requires_superadmin && (
                       <div
-                        className="absolute -top-2 -right-3 text-amber-500"
+                        className="absolute -top-2 -right-3 text-amber-1"
                         title="نیازمند دسترسی سوپر ادمین"
                       >
                         <Shield className="h-3 w-3" />

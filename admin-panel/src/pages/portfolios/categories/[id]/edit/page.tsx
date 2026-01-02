@@ -93,7 +93,7 @@ export default function EditCategoryPage() {
               <div className="flex items-center gap-1 shrink-0">
                 <div className="flex gap-0.5">
                   {Array.from({ length: level - 1 }).map((_, idx) => (
-                    <div key={idx} className="w-1 h-1 rounded-full bg-font-s/30" />
+                    <div key={idx} className="w-1 h-1 bg-font-s/30" />
                   ))}
                 </div>
               </div>
@@ -264,7 +264,7 @@ export default function EditCategoryPage() {
               borderColor="border-b-blue-1"
             >
               <div className="space-y-6">
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Skeleton className="h-32 w-full" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Skeleton className="h-4 w-16" />
@@ -294,7 +294,7 @@ export default function EditCategoryPage() {
                 className="lg:sticky lg:top-20"
               >
                 <div className="space-y-6">
-                  <Skeleton className="h-32 w-full rounded-lg" />
+                  <Skeleton className="h-32 w-full" />
                 </div>
               </CardWithIcon>
             </div>
@@ -380,7 +380,7 @@ export default function EditCategoryPage() {
                             return (
                               <>
                                 <SelectValue placeholder="دسته‌بندی والد را انتخاب کنید" className="flex-1 text-right w-full" />
-                                <div className="p-1.5 rounded-md bg-bg/50 shrink-0">
+                                <div className="p-1.5 bg-bg/50 shrink-0">
                                   <Home className="w-4 h-4 text-font-s" />
                                 </div>
                               </>
@@ -393,11 +393,11 @@ export default function EditCategoryPage() {
                                 <span className="font-medium truncate text-right block">{display.name}</span>
                               </SelectValue>
                               {display.badge && (
-                                <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full font-medium shrink-0">
+                                <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary font-medium shrink-0">
                                   {display.badge}
                                 </span>
                               )}
-                              <div className={`p-1.5 rounded-md shrink-0 ${
+                              <div className={`p-1.5 shrink-0 ${
                                 display.level === 0 
                                   ? 'bg-primary/10' 
                                   : 'bg-bg/50'
@@ -421,11 +421,11 @@ export default function EditCategoryPage() {
                         <div className="flex items-center gap-3 w-full justify-end">
                           <div className="flex items-center gap-2 flex-1 justify-end text-right">
                             <span>بدون والد (دسته‌بندی مادر)</span>
-                            <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full font-medium">
+                            <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary font-medium">
                               پیش‌فرض
                             </span>
                           </div>
-                          <div className="p-1.5 rounded-md bg-primary/10 shrink-0">
+                          <div className="p-1.5 bg-primary/10 shrink-0">
                             <Home className="w-4 h-4 text-primary" />
                           </div>
                         </div>
@@ -459,7 +459,7 @@ export default function EditCategoryPage() {
                 </FormField>
 
                 <div className="mt-6 space-y-4">
-                  <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                  <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
                     <Item variant="default" size="default" className="py-5">
                       <ItemContent>
                         <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
@@ -476,7 +476,7 @@ export default function EditCategoryPage() {
                     </Item>
                   </div>
                   
-                  <div className="rounded-xl border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
+                  <div className="border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
                     <Item variant="default" size="default" className="py-5">
                       <ItemContent>
                         <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>
@@ -509,7 +509,7 @@ export default function EditCategoryPage() {
               className="hover:shadow-lg transition-all duration-300"
             >
                 {selectedMedia ? (
-                  <div className="relative w-full aspect-video rounded-lg overflow-hidden group border">
+                  <div className="relative w-full aspect-video overflow-hidden group border">
                     <img
                       src={mediaService.getMediaUrlFromObject(selectedMedia)}
                       alt={selectedMedia.alt_text || "تصویر شاخص"}
@@ -541,7 +541,7 @@ export default function EditCategoryPage() {
                 ) : (
                   <div
                     onClick={() => setIsMediaModalOpen(true)}
-                    className="relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors"
+                    className="relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed cursor-pointer hover:border-primary transition-colors"
                   >
                     <UploadCloud className="w-12 h-12 text-font-s" />
                     <p className="mt-4 text-lg font-semibold">انتخاب تصویر شاخص</p>

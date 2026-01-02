@@ -90,7 +90,7 @@ export function AIProviderSelector({
                                                 {provider.label}
                                             </h3>
                                             {isActive && (
-                                                <CheckCircle2 className="h-3 w-3 text-green-600 flex-shrink-0" />
+                                                <CheckCircle2 className="h-3 w-3 text-green-1 flex-shrink-0" />
                                             )}
                                         </div>
                                         <p className="text-xs text-muted-foreground line-clamp-2">

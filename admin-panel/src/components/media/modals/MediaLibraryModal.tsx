@@ -373,12 +373,12 @@ export function MediaLibraryModal({
                       />
                       
                       {validationErrors && validationErrors.length > 0 && (
-                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 space-y-2">
+                        <div className="bg-red-0 border border-red-1/30 p-4 space-y-2">
                           <div className="flex items-start gap-2">
-                            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                            <AlertCircle className="w-5 h-5 text-red-1 flex-shrink-0 mt-0.5" />
                             <div className="flex-1 space-y-1">
-                              <p className="text-sm font-medium text-red-800 dark:text-red-200">خطا در آپلود فایل:</p>
-                              <ul className="list-disc list-inside space-y-1 text-sm text-red-700 dark:text-red-300">
+                              <p className="text-sm font-medium text-red-1">خطا در آپلود فایل:</p>
+                              <ul className="list-disc list-inside space-y-1 text-sm text-red-1/80">
                                 {validationErrors.map((error, index) => (
                                   <li key={index}>{error}</li>
                                 ))}

@@ -47,15 +47,15 @@ const actions: QuickAction[] = [
         label: "پیام‌های جدید",
         icon: Mail,
         href: "/support/emails",
-        color: "text-rose-1",
-        bgColor: "bg-rose-0",
+        color: "text-pink-1",
+        bgColor: "bg-pink-0",
     },
     {
         label: "تیکت‌های باز",
         icon: MessageSquare,
         href: "/support/tickets",
-        color: "text-cyan-1",
-        bgColor: "bg-cyan-0",
+        color: "text-teal-1",
+        bgColor: "bg-teal-0",
     },
     {
         label: "تنظیمات سیستم",
@@ -79,7 +79,7 @@ export const QuickActionsWidget: FC<{ isLoading?: boolean }> = ({ isLoading }) =
             >
                 <div className="grid grid-cols-2 gap-4 h-full p-2">
                     {[...Array(6)].map((_, i) => (
-                        <div key={i} className="h-28 rounded-xl bg-bg animate-pulse border border-br/50" />
+                        <div key={i} className="h-28 bg-bg animate-pulse border border-br/50" />
                     ))}
                 </div>
             </CardWithIcon>
@@ -93,7 +93,7 @@ export const QuickActionsWidget: FC<{ isLoading?: boolean }> = ({ isLoading }) =
             iconBgColor="bg-primary/10"
             iconColor="stroke-primary"
             borderColor="border-b-primary"
-            className="shadow-xl h-full w-full flex flex-col transition-all duration-500 hover:shadow-primary/5"
+            className="h-full w-full flex flex-col transition-all duration-500"
             contentClassName="flex-1 flex flex-col pt-4 px-4 pb-0"
             titleExtra={<p className="text-[10px] text-font-s opacity-60 font-black tracking-widest uppercase">Quick Control</p>}
         >
@@ -102,7 +102,7 @@ export const QuickActionsWidget: FC<{ isLoading?: boolean }> = ({ isLoading }) =
                     <Link
                         key={action.label}
                         to={action.href}
-                        className="group relative flex flex-col items-center justify-center p-6 rounded-xl border border-br/60 bg-white/40 dark:bg-card/40 hover:bg-white dark:hover:bg-card hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/40 transition-all duration-500 overflow-hidden"
+                        className="group relative flex flex-col items-center justify-center p-6 border border-br/60 bg-wt/40 hover:bg-wt hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/40 transition-all duration-500 overflow-hidden"
                     >
                         <div className={cn("absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-700", action.bgColor)} />
 

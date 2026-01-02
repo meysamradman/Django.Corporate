@@ -125,7 +125,7 @@ function AdvisorSidebar({ advisor }: { advisor: AdvisorItem }) {
       <Card className="overflow-hidden">
         <CardContent className="pt-0 pb-0">
           <div className="pb-2">
-            <div className="relative w-full aspect-video rounded-xl overflow-hidden border shadow-md">
+            <div className="relative w-full aspect-video overflow-hidden border shadow-md">
               <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-5xl font-bold">
                 {getInitial()}
               </div>
@@ -134,10 +134,10 @@ function AdvisorSidebar({ advisor }: { advisor: AdvisorItem }) {
 
           <div className="pb-6 pt-2 border-b -mx-6 px-6">
             <div className="grid grid-cols-3 gap-3">
-              <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
+              <div className={`flex flex-col items-center justify-center py-4 px-3 transition-colors ${
                 advisor.status === "active" ? "bg-green" : "bg-red"
               }`}>
-                <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
+                <div className={`flex items-center justify-center w-9 h-9 mb-2 ${
                   advisor.status === "active" ? "bg-green-0" : "bg-red-0"
                 }`}>
                   {advisor.status === "active" ? (
@@ -152,10 +152,10 @@ function AdvisorSidebar({ advisor }: { advisor: AdvisorItem }) {
                   {advisor.status === "active" ? "فعال" : "غیرفعال"}
                 </span>
               </div>
-              <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
+              <div className={`flex flex-col items-center justify-center py-4 px-3 transition-colors ${
                 advisor.is_active ? "bg-blue" : "bg-red"
               }`}>
-                <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
+                <div className={`flex items-center justify-center w-9 h-9 mb-2 ${
                   advisor.is_active ? "bg-blue-0" : "bg-red-0"
                 }`}>
                   <Zap className={`w-4 h-4 ${
@@ -168,10 +168,10 @@ function AdvisorSidebar({ advisor }: { advisor: AdvisorItem }) {
                   {advisor.is_active ? "فعال" : "غیرفعال"}
                 </span>
               </div>
-              <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
+              <div className={`flex flex-col items-center justify-center py-4 px-3 transition-colors ${
                 advisor.is_featured ? "bg-orange" : "bg-gray"
               }`}>
-                <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
+                <div className={`flex items-center justify-center w-9 h-9 mb-2 ${
                   advisor.is_featured ? "bg-orange-0" : "bg-gray-0"
                 }`}>
                   <Star className={`w-4 h-4 ${
@@ -291,7 +291,7 @@ const OverviewTab = ({ advisor }: { advisor: AdvisorItem }) => {
         contentClassName="space-y-6"
       >
         <div>
-          <div className="text-font-p leading-relaxed p-4 bg-bg/50 rounded-lg" style={{ textAlign: 'justify' }}>
+          <div className="text-font-p leading-relaxed p-4 bg-bg/50" style={{ textAlign: 'justify' }}>
             {advisor.bio || (
               <span className="text-font-s">
                 بیوگرافی وارد نشده است

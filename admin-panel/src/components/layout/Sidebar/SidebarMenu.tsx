@@ -362,9 +362,9 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
 ];
 
 export const MENU_BADGE_TONES: Record<string, string> = {
-  info: "bg-sky-500/15 text-sky-400 border border-sky-500/30",
-  warning: "bg-amber-500/15 text-amber-400 border border-amber-500/30",
-  muted: "bg-slate-500/15 text-slate-400 border border-slate-500/30",
+  info: "bg-blue-0 text-blue-1 border border-blue-1/30",
+  warning: "bg-amber-0 text-amber-1 border border-amber-1/30",
+  muted: "bg-gray-0 text-gray-1 border border-gray-1/30",
 };
 
 export const useMenuData = () => {

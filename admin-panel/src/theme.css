@@ -81,7 +81,6 @@ html body[data-scroll-locked] {
     font-optical-sizing: auto;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    direction: rtl;
     overflow: hidden;
     height: 100%;
     margin: 0;
@@ -316,14 +315,6 @@ html body[data-scroll-locked] {
 * {
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--font-s) 30%, transparent) var(--bg);
-}
-
-main {
-  direction: rtl;
-}
-
-main>div {
-  direction: rtl;
 }
 
 @media (max-width: 640px) {

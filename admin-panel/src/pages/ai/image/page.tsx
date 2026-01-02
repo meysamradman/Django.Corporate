@@ -10,7 +10,7 @@ const AIImageGeneratorSkeleton = () => (
     <Card className="hover:shadow-lg transition-all duration-300 border-b-4 border-b-pink-1">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-3">
-          <div className="p-2.5 bg-pink rounded-xl shadow-sm">
+          <div className="p-2.5 bg-pink shadow-sm">
             <Wand2 className="w-5 h-5 stroke-pink-2" />
           </div>
           تولید تصویر با AI

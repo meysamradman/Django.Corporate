@@ -310,8 +310,8 @@ export default function FloorPlansTab({
                         {/* Bathrooms */}
                         {plan.bathrooms !== null && (
                           <div className="flex items-center gap-2 text-sm text-tx-2">
-                            <div className="flex-shrink-0 w-8 h-8 bg-cyan/10 rounded-full flex items-center justify-center">
-                              <Bath className="h-4 w-4 text-cyan-1" />
+                            <div className="flex-shrink-0 w-8 h-8 bg-teal-0 rounded-full flex items-center justify-center">
+                              <Bath className="h-4 w-4 text-teal-1" />
                             </div>
                             <div>
                               <p className="text-xs text-tx-3">سرویس بهداشتی</p>

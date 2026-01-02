@@ -41,7 +41,7 @@ export default function PropertyViewPage() {
       <div className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-2">
-            <Skeleton className="h-96 w-full rounded-xl" />
+            <Skeleton className="h-96 w-full" />
           </div>
           <div className="lg:col-span-4 space-y-6">
             <div className="flex gap-2">
@@ -49,7 +49,7 @@ export default function PropertyViewPage() {
               <Skeleton className="h-10 w-32" />
               <Skeleton className="h-10 w-32" />
             </div>
-            <Skeleton className="h-64 w-full rounded-xl" />
+            <Skeleton className="h-64 w-full" />
           </div>
         </div>
       </div>
@@ -58,7 +58,7 @@ export default function PropertyViewPage() {
 
   if (error || !propertyData) {
     return (
-      <div className="rounded-lg border p-6">
+      <div className="border p-6">
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات ملک</p>
           <p className="text-font-s">

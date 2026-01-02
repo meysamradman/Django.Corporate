@@ -95,7 +95,7 @@ export default function AgencyViewContent({ agencyId }: AgencyViewContentProps) 
                     <div className="flex-1">
                         <div className="flex items-start justify-between">
                             <div>
-                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                                <h2 className="text-2xl font-bold text-font-p mb-2">
                                     {agencyData.name}
                                 </h2>
                                 <div className="flex flex-wrap gap-2 mb-4">
@@ -114,7 +114,7 @@ export default function AgencyViewContent({ agencyId }: AgencyViewContentProps) 
 
                                 {agencyData.rating > 0 && (
                                     <div className="flex items-center gap-2 mb-2">
-                                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                                        <Star className="w-4 h-4 text-yellow-1 fill-current" />
                                         <span className="font-medium">{agencyData.rating}/5</span>
                                         <span className="text-sm text-gray-2">
                                             ({agencyData.total_reviews} نظر)
@@ -140,7 +140,7 @@ export default function AgencyViewContent({ agencyId }: AgencyViewContentProps) 
                         </div>
 
                         {agencyData.description && (
-                            <p className="text-gray-2 dark:text-gray-300 mt-4 line-clamp-3">
+                            <p className="text-font-s mt-4 line-clamp-3">
                                 {agencyData.description}
                             </p>
                         )}
@@ -156,7 +156,7 @@ export default function AgencyViewContent({ agencyId }: AgencyViewContentProps) 
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {agencyData.email && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-3 p-3 bg-gray-0">
                             <Mail className="w-5 h-5 text-gray-2" />
                             <div>
                                 <p className="text-xs text-gray-2">ایمیل</p>
@@ -165,7 +165,7 @@ export default function AgencyViewContent({ agencyId }: AgencyViewContentProps) 
                         </div>
                     )}
                     {agencyData.phone && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-3 p-3 bg-gray-0">
                             <Phone className="w-5 h-5 text-gray-2" />
                             <div>
                                 <p className="text-xs text-gray-2">تلفن</p>
@@ -174,7 +174,7 @@ export default function AgencyViewContent({ agencyId }: AgencyViewContentProps) 
                         </div>
                     )}
                     {agencyData.website && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-3 p-3 bg-gray-0">
                             <Building2 className="w-5 h-5 text-gray-2" />
                             <div>
                                 <p className="text-xs text-gray-2">وب‌سایت</p>
@@ -200,7 +200,7 @@ export default function AgencyViewContent({ agencyId }: AgencyViewContentProps) 
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {agencyData.license_number && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-3 p-3 bg-gray-0">
                             <Building2 className="w-5 h-5 text-gray-2" />
                             <div>
                                 <p className="text-xs text-gray-2">شماره پروانه</p>
@@ -209,7 +209,7 @@ export default function AgencyViewContent({ agencyId }: AgencyViewContentProps) 
                         </div>
                     )}
                     {agencyData.license_expire_date && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-3 p-3 bg-gray-0">
                             <Calendar className="w-5 h-5 text-gray-2" />
                             <div>
                                 <p className="text-xs text-gray-2">انقضای پروانه</p>
@@ -218,7 +218,7 @@ export default function AgencyViewContent({ agencyId }: AgencyViewContentProps) 
                         </div>
                     )}
                     {agencyData.address && (
-                        <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg md:col-span-2">
+                        <div className="flex items-start gap-3 p-3 bg-gray-0 rounded-lg md:col-span-2">
                             <MapPin className="w-5 h-5 text-gray-2 mt-1" />
                             <div>
                                 <p className="text-xs text-gray-2">آدرس</p>

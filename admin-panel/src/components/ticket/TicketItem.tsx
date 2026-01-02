@@ -58,7 +58,7 @@ export function TicketItem({ ticket, isSelected, onSelect, onClick }: TicketItem
 
   const getStatusColor = (status: Ticket['status'], hasUnread: boolean) => {
     if (!hasUnread) {
-      return 'bg-gray-300 dark:bg-gray-600';
+      return 'bg-gray-1';
     }
     
     switch (status) {

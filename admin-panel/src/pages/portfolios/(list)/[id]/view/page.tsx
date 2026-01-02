@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { FileText, Image, Search, Edit2, FileDown } from "lucide-react";
+import { FileText, Image, Search, Edit2, FileDown, Settings } from "lucide-react";
 import { showError, showSuccess } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
 import { portfolioApi } from "@/api/portfolios/portfolios";
@@ -10,6 +10,7 @@ import { PortfolioSidebar } from "@/components/portfolios/list/view/PortfolioSid
 import { OverviewTab } from "@/components/portfolios/list/view/OverviewTab";
 import { MediaInfoTab } from "@/components/portfolios/list/view/MediaInfoTab";
 import { SEOInfoTab } from "@/components/portfolios/list/view/SEOInfoTab";
+import { ExtraAttributesInfoTab } from "@/components/portfolios/list/view/ExtraAttributesInfoTab";
 import { FloatingActions } from "@/components/elements/FloatingActions";
 
 export default function PortfolioViewPage() {
@@ -38,7 +39,7 @@ export default function PortfolioViewPage() {
       <div className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-2">
-            <Skeleton className="h-96 w-full rounded-xl" />
+            <Skeleton className="h-96 w-full" />
           </div>
           <div className="lg:col-span-4 space-y-6">
             <div className="flex gap-2">
@@ -46,7 +47,7 @@ export default function PortfolioViewPage() {
               <Skeleton className="h-10 w-32" />
               <Skeleton className="h-10 w-32" />
             </div>
-            <Skeleton className="h-64 w-full rounded-xl" />
+            <Skeleton className="h-64 w-full" />
           </div>
         </div>
       </div>
@@ -55,7 +56,7 @@ export default function PortfolioViewPage() {
 
   if (error || !portfolioData) {
     return (
-      <div className="rounded-lg border p-6">
+      <div className="border p-6">
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات نمونه‌کار</p>
           <p className="text-font-s">
@@ -115,11 +116,16 @@ export default function PortfolioViewPage() {
                 <Search className="h-4 w-4" />
                 سئو
               </TabsTrigger>
+              <TabsTrigger value="extra">
+                <Settings className="h-4 w-4" />
+                فیلدهای اضافی
+              </TabsTrigger>
             </TabsList>
 
             <OverviewTab portfolio={portfolioData} />
             <MediaInfoTab portfolio={portfolioData} />
             <SEOInfoTab portfolio={portfolioData} />
+            <ExtraAttributesInfoTab portfolio={portfolioData} />
           </Tabs>
         </div>
       </div>

@@ -67,9 +67,9 @@ export function SubMenuItem({
           <span
             className={cn(
               "px-2 py-0.5 text-xs font-medium rounded border",
-              item.badge.tone === "info" && "bg-sky-500/15 text-sky-400 border-sky-500/30",
-              item.badge.tone === "warning" && "bg-amber-500/15 text-amber-400 border-amber-500/30",
-              item.badge.tone === "muted" && "bg-slate-500/15 text-slate-400 border-slate-500/30"
+              item.badge.tone === "info" && "bg-blue-0 text-blue-1 border-blue-1/30",
+              item.badge.tone === "warning" && "bg-amber-0 text-amber-1 border-amber-1/30",
+              item.badge.tone === "muted" && "bg-gray-0 text-gray-1 border-gray-1/30"
             )}
           >
             {item.badge.label}
@@ -94,9 +94,9 @@ export function SubMenuItem({
         <span
           className={cn(
             "px-2 py-0.5 text-xs font-medium rounded border",
-            item.badge.tone === "info" && "bg-sky-500/15 text-sky-400 border-sky-500/30",
-            item.badge.tone === "warning" && "bg-amber-500/15 text-amber-400 border-amber-500/30",
-            item.badge.tone === "muted" && "bg-slate-500/15 text-slate-400 border-slate-500/30"
+            item.badge.tone === "info" && "bg-blue-0 text-blue-1 border-blue-1/30",
+            item.badge.tone === "warning" && "bg-amber-0 text-amber-1 border-amber-1/30",
+            item.badge.tone === "muted" && "bg-gray-0 text-gray-1 border-gray-1/30"
           )}
         >
           {item.badge.label}

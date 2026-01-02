@@ -142,7 +142,7 @@ function RealEstateSidebar({ realEstate }: { realEstate: RealEstateItem }) {
       <Card className="overflow-hidden">
         <CardContent className="pt-0 pb-0">
           <div className="pb-2">
-            <div className="relative w-full aspect-video rounded-xl overflow-hidden border shadow-md">
+            <div className="relative w-full aspect-video overflow-hidden border shadow-md">
               <div className="w-full h-full bg-gradient-to-br from-purple-1 to-purple-2 flex items-center justify-center text-static-w text-5xl font-bold">
                 {realEstate.title?.[0]?.toUpperCase() || "R"}
               </div>
@@ -151,18 +151,18 @@ function RealEstateSidebar({ realEstate }: { realEstate: RealEstateItem }) {
 
           <div className="pb-6 pt-2 border-b -mx-6 px-6">
             <div className="grid grid-cols-3 gap-3">
-              <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${status.bg}`}>
-                <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${status.iconBg}`}>
+              <div className={`flex flex-col items-center justify-center py-4 px-3 transition-colors ${status.bg}`}>
+                <div className={`flex items-center justify-center w-9 h-9 mb-2 ${status.iconBg}`}>
                   <status.icon className={`w-4 h-4 ${status.textColor}`} />
                 </div>
                 <span className={`text-sm font-medium ${status.textColor}`}>
                   {status.label}
                 </span>
               </div>
-              <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
+              <div className={`flex flex-col items-center justify-center py-4 px-3 transition-colors ${
                 isActive ? "bg-blue" : "bg-red"
               }`}>
-                <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
+                <div className={`flex items-center justify-center w-9 h-9 mb-2 ${
                   isActive ? "bg-blue-0" : "bg-red-0"
                 }`}>
                   <Zap className={`w-4 h-4 ${
@@ -175,10 +175,10 @@ function RealEstateSidebar({ realEstate }: { realEstate: RealEstateItem }) {
                   {isActive ? "فعال" : "غیرفعال"}
                 </span>
               </div>
-              <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
+              <div className={`flex flex-col items-center justify-center py-4 px-3 transition-colors ${
                 realEstate.is_featured ? "bg-orange" : "bg-gray"
               }`}>
-                <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
+                <div className={`flex items-center justify-center w-9 h-9 mb-2 ${
                   realEstate.is_featured ? "bg-orange-0" : "bg-gray-0"
                 }`}>
                   <Star className={`w-4 h-4 ${
@@ -256,7 +256,7 @@ function RealEstateSidebar({ realEstate }: { realEstate: RealEstateItem }) {
               <div className="pt-4 border-t">
                 <h4 className="mb-4 text-font-p">تنظیمات</h4>
                 <div className="space-y-4">
-                  <div className="rounded-xl border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
+                  <div className="border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
                     <Item variant="default" size="default" className="py-5">
                       <ItemContent>
                         <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>
@@ -273,7 +273,7 @@ function RealEstateSidebar({ realEstate }: { realEstate: RealEstateItem }) {
                     </Item>
                   </div>
                   
-                  <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                  <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
                     <Item variant="default" size="default" className="py-5">
                       <ItemContent>
                         <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
@@ -290,7 +290,7 @@ function RealEstateSidebar({ realEstate }: { realEstate: RealEstateItem }) {
                     </Item>
                   </div>
                   
-                  <div className="rounded-xl border border-orange-1/40 bg-orange-0/30 hover:border-orange-1/60 transition-colors overflow-hidden">
+                  <div className="border border-orange-1/40 bg-orange-0/30 hover:border-orange-1/60 transition-colors overflow-hidden">
                     <Item variant="default" size="default" className="py-5">
                       <ItemContent>
                         <ItemTitle className="text-orange-2">وضعیت ویژه</ItemTitle>
@@ -421,7 +421,7 @@ function OverviewTab({ realEstate }: { realEstate: RealEstateItem }) {
           <label className="text-font-s mb-3 block">
             توضیحات کوتاه
           </label>
-          <div className="text-font-p leading-relaxed p-4 bg-bg/50 rounded-lg" style={{ textAlign: 'justify' }}>
+          <div className="text-font-p leading-relaxed p-4 bg-bg/50" style={{ textAlign: 'justify' }}>
             {realEstate.short_description || (
               <span className="text-font-s">
                 توضیحی وارد نشده است
@@ -434,7 +434,7 @@ function OverviewTab({ realEstate }: { realEstate: RealEstateItem }) {
           <label className="text-font-s mb-3 block">
             توضیحات کامل
           </label>
-          <div className="p-4 bg-bg/50 rounded-lg" style={{ textAlign: 'justify' }}>
+          <div className="p-4 bg-bg/50" style={{ textAlign: 'justify' }}>
             {realEstate.description ? (
               <ReadMore
                 content={realEstate.description}
@@ -499,7 +499,7 @@ function SEOTab({ realEstate }: { realEstate: RealEstateItem }) {
                 <FileText className="w-4 h-4" />
                 عنوان متا (Meta Title)
               </label>
-              <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
+              <div className="p-4 bg-bg/50 border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
                 {metaTitle ? (
                   <div className="font-medium text-font-p line-clamp-2">
                     {metaTitle}
@@ -516,7 +516,7 @@ function SEOTab({ realEstate }: { realEstate: RealEstateItem }) {
                 <FileText className="w-4 h-4" />
                 توضیحات متا (Meta Description)
               </label>
-              <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
+              <div className="p-4 bg-bg/50 border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
                 {metaDescription ? (
                   <div className="text-font-p line-clamp-3">
                     {metaDescription}
@@ -533,7 +533,7 @@ function SEOTab({ realEstate }: { realEstate: RealEstateItem }) {
                 <LinkIcon className="w-4 h-4" />
                 آدرس Canonical
               </label>
-              <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
+              <div className="p-4 bg-bg/50 border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
                 {realEstate.canonical_url ? (
                   <div className="font-mono text-sm text-font-p break-all">
                     {realEstate.canonical_url}
@@ -550,7 +550,7 @@ function SEOTab({ realEstate }: { realEstate: RealEstateItem }) {
                 <Search className="w-4 h-4" />
                 Robots Meta
               </label>
-              <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-[60px] flex items-center">
+              <div className="p-4 bg-bg/50 border hover:bg-bg/70 transition-colors min-h-[60px] flex items-center">
                 {realEstate.robots_meta ? (
                   <Badge variant="blue" className="font-mono">
                     {realEstate.robots_meta}
@@ -579,7 +579,7 @@ function SEOTab({ realEstate }: { realEstate: RealEstateItem }) {
                   <FileText className="w-4 h-4" />
                   عنوان Open Graph
                 </label>
-                <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
+                <div className="p-4 bg-bg/50 border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
                   {ogTitle ? (
                     <div className="font-medium text-font-p line-clamp-2">
                       {ogTitle}
@@ -597,7 +597,7 @@ function SEOTab({ realEstate }: { realEstate: RealEstateItem }) {
                   <FileText className="w-4 h-4" />
                   توضیحات Open Graph
                 </label>
-                <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
+                <div className="p-4 bg-bg/50 border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
                   {ogDescription ? (
                     <div className="text-font-p line-clamp-3">
                       {ogDescription}
@@ -615,9 +615,9 @@ function SEOTab({ realEstate }: { realEstate: RealEstateItem }) {
                 <Image className="w-4 h-4" />
                 تصویر Open Graph (OG Image)
               </label>
-              <div className="relative aspect-video rounded-lg border-2 border-dashed bg-bg/30 flex items-center justify-center group hover:bg-bg/50 transition-colors">
+              <div className="relative aspect-video border-2 border-dashed bg-bg/30 flex items-center justify-center group hover:bg-bg/50 transition-colors">
                 <div className="text-center space-y-2">
-                  <div className="inline-flex p-3 bg-bg rounded-full">
+                  <div className="inline-flex p-3 bg-bg">
                     <Image className="w-6 h-6 text-font-s" />
                   </div>
                   <div className="text-sm text-font-s">

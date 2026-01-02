@@ -201,7 +201,7 @@ export function StatisticsPermissionsCard({
                       <div className="flex-shrink-0 flex items-center gap-2">
                         {perm.requires_superadmin && !isSuperAdmin && (
                           <div title="نیازمند دسترسی سوپر ادمین">
-                            <Shield className="h-4 w-4 text-amber-500" />
+                            <Shield className="h-4 w-4 text-amber-1" />
                           </div>
                         )}
                         <Switch

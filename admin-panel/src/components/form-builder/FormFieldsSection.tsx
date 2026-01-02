@@ -547,7 +547,7 @@ export function FormFieldsSection() {
                                         ).length > 1;
                                         
                                         return (
-                                            <div key={index} className="flex gap-2 items-start p-3 bg-white dark:bg-gray-800 rounded-md border">
+                                            <div key={index} className="flex gap-2 items-start p-3 bg-wt border">
                                                 <div className="flex-1 space-y-2">
                                                     <div>
                                                         <Label className="text-xs text-font-s mb-1 block">مقدار (Value) *</Label>
@@ -555,10 +555,10 @@ export function FormFieldsSection() {
                                                             placeholder="مثال: iran, usa, uk"
                                                             value={option.value}
                                                             onChange={(e) => handleOptionChange(index, 'value', e.target.value)}
-                                                            className={duplicateValue && option.value ? "border-red-500" : ""}
+                                                            className={duplicateValue && option.value ? "border-red-1" : ""}
                                                         />
                                                         {duplicateValue && option.value && (
-                                                            <p className="text-xs text-red-500 mt-1">مقدار تکراری است</p>
+                                                            <p className="text-xs text-red-1 mt-1">مقدار تکراری است</p>
                                                         )}
                                                         <p className="text-xs text-font-s mt-1">مقداری که در کد استفاده می‌شود</p>
                                                     </div>
@@ -585,7 +585,7 @@ export function FormFieldsSection() {
                                         );
                                     })}
                                     {options.length === 0 && (
-                                        <div className="text-center py-6 border-2 border-dashed rounded-lg bg-bg/50">
+                                        <div className="text-center py-6 border-2 border-dashed bg-bg/50">
                                             <p className="text-sm text-font-s mb-2">
                                                 هنوز گزینه‌ای اضافه نشده است
                                             </p>
@@ -595,8 +595,8 @@ export function FormFieldsSection() {
                                         </div>
                                     )}
                                     {options.length > 0 && options.filter(opt => opt.value && opt.label).length === 0 && (
-                                        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-                                            <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                                        <div className="p-3 bg-red-0 border border-red-1/30">
+                                            <p className="text-sm text-red-1 font-medium">
                                                 ⚠️ حداقل یک گزینه معتبر (با مقدار و برچسب) اضافه کنید
                                             </p>
                                         </div>

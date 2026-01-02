@@ -151,12 +151,49 @@
   /* --- Card --- */
   --card: #111111;
   /* Table */
-  --table-header-bg: #fafbfb;
-  --table-row-hv: #f8f9fa;
-  --table-row-slc: #dbeafe;
+  --table-header-bg: #1a1a1a;
+  --table-row-hv: #1a1a1a;
+  --table-row-slc: rgba(59, 130, 246, 0.15);
   /* --- Element Color --- */
   --wt: #000;
   --bl: #fff;
+  /* Badge Colors - More vibrant for dark mode */
+  --red-50: rgba(239, 68, 68, 0.35);
+  --red-25: rgba(239, 68, 68, 0.2);
+  --red-2: #f87171;
+  --green-50: rgba(34, 197, 94, 0.35);
+  --green-25: rgba(34, 197, 94, 0.2);
+  --green-2: #4ade80;
+  --blue-50: rgba(96, 165, 250, 0.35);
+  --blue-25: rgba(96, 165, 250, 0.2);
+  --blue-2: #60a5fa;
+  --yellow-50: rgba(234, 179, 8, 0.35);
+  --yellow-25: rgba(234, 179, 8, 0.2);
+  --yellow-2: #facc15;
+  --purple-50: rgba(168, 85, 247, 0.35);
+  --purple-25: rgba(168, 85, 247, 0.2);
+  --purple-2: #a78bfa;
+  --orange-50: rgba(251, 146, 60, 0.35);
+  --orange-25: rgba(251, 146, 60, 0.2);
+  --orange-2: #fb923c;
+  --pink-50: rgba(244, 114, 182, 0.35);
+  --pink-25: rgba(244, 114, 182, 0.2);
+  --pink-2: #f472b6;
+  --teal-50: rgba(45, 212, 191, 0.35);
+  --teal-25: rgba(45, 212, 191, 0.2);
+  --teal-2: #2dd4bf;
+  --indigo-50: rgba(129, 140, 248, 0.35);
+  --indigo-25: rgba(129, 140, 248, 0.2);
+  --indigo-2: #818cf8;
+  --amber-50: rgba(251, 191, 36, 0.35);
+  --amber-25: rgba(251, 191, 36, 0.2);
+  --amber-2: #fbbf24;
+  --emerald-50: rgba(16, 185, 129, 0.35);
+  --emerald-25: rgba(16, 185, 129, 0.2);
+  --emerald-2: #10b981;
+  --gray-50: rgba(148, 163, 184, 0.35);
+  --gray-25: rgba(148, 163, 184, 0.2);
+  --gray-2: #94a3b8;
 }
 
 @theme inline {

@@ -154,7 +154,7 @@ export default function CreateCategoryPage() {
                 </div>
                 <div className="space-y-2">
                   <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-32 w-full rounded-lg" />
+                  <Skeleton className="h-32 w-full" />
                 </div>
               </div>
             </CardWithIcon>
@@ -238,7 +238,7 @@ export default function CreateCategoryPage() {
                   </FormField>
 
                   <div className="mt-6 space-y-4">
-                    <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                    <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
                       <Item variant="default" size="default" className="py-5">
                         <ItemContent>
                           <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
@@ -255,7 +255,7 @@ export default function CreateCategoryPage() {
                       </Item>
                     </div>
 
-                    <div className="rounded-xl border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
+                    <div className="border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
                       <Item variant="default" size="default" className="py-5">
                         <ItemContent>
                           <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>
@@ -289,7 +289,7 @@ export default function CreateCategoryPage() {
                 className="hover:shadow-lg transition-all duration-300"
               >
                 {selectedMedia ? (
-                  <div className="relative w-full aspect-video rounded-lg overflow-hidden group border">
+                  <div className="relative w-full aspect-video overflow-hidden group border">
                     <img
                       src={mediaService.getMediaUrlFromObject(selectedMedia)}
                       alt={selectedMedia.alt_text || "تصویر شاخص"}
@@ -321,7 +321,7 @@ export default function CreateCategoryPage() {
                 ) : (
                   <div
                     onClick={() => setIsMediaModalOpen(true)}
-                    className="relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors"
+                    className="relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed cursor-pointer hover:border-primary transition-colors"
                   >
                     <UploadCloud className="w-12 h-12 text-font-s" />
                     <p className="mt-4 text-lg font-semibold">انتخاب تصویر شاخص</p>

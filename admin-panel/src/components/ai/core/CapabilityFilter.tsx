@@ -29,10 +29,10 @@ export function CapabilityFilter({ selected, onChange, counts }: CapabilityFilte
             key={cap.value}
             onClick={() => onChange(cap.value)}
             className={`
-              flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all
+              flex items-center gap-2 px-4 py-2 font-medium text-sm transition-all
               ${isSelected
-                ? 'bg-primary-light dark:bg-primary-dark text-white shadow-lg'
-                : 'bg-surface-light dark:bg-surface-dark text-text-secondary-light dark:text-text-secondary-dark hover:bg-primary-light/10 dark:hover:bg-primary-dark/10 hover:text-primary-light dark:hover:text-primary-dark'
+                ? 'bg-primary text-wt'
+                : 'bg-card text-font-s hover:bg-primary/10 hover:text-primary'
               }
             `}
           >

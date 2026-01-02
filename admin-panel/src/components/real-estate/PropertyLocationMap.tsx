@@ -9,8 +9,8 @@ import { showError } from "@/core/toast";
 // مختصات شهرهای بزرگ ایران - اولویت: شهر > استان
 // Custom SVG marker icon that requires no external assets and looks great on Retina
 const createCustomIcon = (isSelected: boolean) => {
-  const color = isSelected ? "#3b82f6" : "#64748b"; // blue-500 or slate-500
-  const fillColor = isSelected ? "#2563eb" : "#475569"; // blue-600 or slate-600
+  const color = isSelected ? "#3b82f6" : "#94A3B8"; // blue-100 or gray-100
+  const fillColor = isSelected ? "#1E3A8A" : "#94A3B8"; // blue-200 or gray-100
 
   // Lucide MapPin style SVG
   const svgIcon = `

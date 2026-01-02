@@ -161,6 +161,25 @@ class PortfolioQuerySet(models.QuerySet):
     
     def by_tag(self, tag_slug):
         return self.filter(tags__slug=tag_slug)
+    
+    def filter_by_extra_attribute(self, key, value):
+        """
+        Filter portfolios by extra_attributes key-value pair
+        Example: Portfolio.objects.filter_by_extra_attribute('price', 1000000)
+        """
+        return self.filter(extra_attributes__has_key=key).filter(**{f'extra_attributes__{key}': value})
+    
+    def filter_by_price_range(self, min_price=None, max_price=None):
+        """
+        Filter portfolios by price range in extra_attributes
+        Example: Portfolio.objects.filter_by_price_range(min_price=1000000, max_price=10000000)
+        """
+        qs = self.filter(extra_attributes__has_key='price')
+        if min_price is not None:
+            qs = qs.filter(extra_attributes__price__gte=min_price)
+        if max_price is not None:
+            qs = qs.filter(extra_attributes__price__lte=max_price)
+        return qs
 
 
 class PortfolioCategoryQuerySet(models.QuerySet):

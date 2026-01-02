@@ -23,10 +23,10 @@ const TabSkeleton = () => (
   <div className="mt-0 space-y-6">
     <div className="flex flex-col lg:flex-row gap-6">
       <div className="flex-1 min-w-0">
-        <div className="rounded-lg border border-br overflow-hidden">
+        <div className="border border-br overflow-hidden">
           <div className="border-b border-b-blue-1 bg-bg/50 px-6 py-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue">
+              <div className="flex h-10 w-10 items-center justify-center bg-blue">
                 <FileText className="h-5 w-5 stroke-blue-2" />
               </div>
               <Skeleton className="h-6 w-32" />
@@ -50,17 +50,17 @@ const TabSkeleton = () => (
               </div>
               <div className="space-y-2">
                 <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-64 w-full rounded-lg" />
+                <Skeleton className="h-64 w-full" />
               </div>
             </div>
           </div>
         </div>
       </div>
       <div className="w-full lg:w-[420px] lg:flex-shrink-0">
-        <div className="rounded-lg border border-br overflow-hidden lg:sticky lg:top-20">
+        <div className="border border-br overflow-hidden lg:sticky lg:top-20">
           <div className="border-b border-b-blue-1 bg-bg/50 px-6 py-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue">
+              <div className="flex h-10 w-10 items-center justify-center bg-blue">
                 <Settings className="h-5 w-5 stroke-blue-2" />
               </div>
               <Skeleton className="h-6 w-24" />
@@ -347,10 +347,10 @@ export default function EditBlogPage() {
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="flex-1 min-w-0">
             <div className="space-y-6">
-              <div className="rounded-lg border border-br overflow-hidden">
+              <div className="border border-br overflow-hidden">
                 <div className="border-b border-b-blue-1 bg-bg/50 px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue">
+                    <div className="flex h-10 w-10 items-center justify-center bg-blue">
                       <FileText className="h-5 w-5 stroke-blue-2" />
                     </div>
                     <Skeleton className="h-6 w-32" />
@@ -374,7 +374,7 @@ export default function EditBlogPage() {
                     </div>
                     <div className="space-y-2">
                       <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-64 w-full rounded-lg" />
+                      <Skeleton className="h-64 w-full" />
                     </div>
                   </div>
                 </div>
@@ -383,10 +383,10 @@ export default function EditBlogPage() {
           </div>
 
           <div className="w-full lg:w-[420px] lg:flex-shrink-0">
-            <div className="rounded-lg border border-br overflow-hidden lg:sticky lg:top-20">
+            <div className="border border-br overflow-hidden lg:sticky lg:top-20">
               <div className="border-b border-b-blue-1 bg-bg/50 px-6 py-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue">
+                  <div className="flex h-10 w-10 items-center justify-center bg-blue">
                     <Settings className="h-5 w-5 stroke-blue-2" />
                   </div>
                   <Skeleton className="h-6 w-24" />

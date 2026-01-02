@@ -51,11 +51,11 @@ export default function RoleDetailPage() {
       <div className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-2">
-            <Skeleton className="h-96 w-full rounded-xl" />
+            <Skeleton className="h-96 w-full" />
           </div>
           <div className="lg:col-span-4 space-y-6">
             <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-64 w-full rounded-xl" />
+            <Skeleton className="h-64 w-full" />
           </div>
         </div>
       </div>
@@ -145,8 +145,8 @@ export default function RoleDetailPage() {
             className="sticky top-20"
           >
             <div className="space-y-6">
-              <div className="flex flex-col items-center justify-center py-6 px-4 rounded-lg border border-br bg-bg/50">
-                <div className={`relative p-4 rounded-xl mb-4 ${
+              <div className="flex flex-col items-center justify-center py-6 px-4 border border-br bg-bg/50">
+                <div className={`relative p-4 mb-4 ${
                   isProtected 
                     ? "bg-gradient-to-br from-blue-1 to-indigo-1" 
                     : "bg-gradient-to-br from-gray-1 to-gray-2"
@@ -175,29 +175,29 @@ export default function RoleDetailPage() {
               </div>
 
               {role.description && (
-                <div className="p-4 rounded-lg border border-br bg-bg/50">
+                <div className="p-4 border border-br bg-bg/50">
                   <label className="text-xs font-semibold text-font-s mb-2 block">توضیحات</label>
                   <p className="text-sm text-font-s leading-relaxed">{role.description}</p>
                 </div>
               )}
 
               <div className="grid grid-cols-3 gap-3">
-                <div className="flex flex-col items-center justify-center py-4 px-3 rounded-lg border border-br bg-blue-0/30">
-                  <div className="flex items-center justify-center w-9 h-9 rounded-full mb-2 bg-blue">
+                <div className="flex flex-col items-center justify-center py-4 px-3 border border-br bg-blue-0/30">
+                  <div className="flex items-center justify-center w-9 h-9 mb-2 bg-blue">
                     <Key className="w-4 h-4 text-blue-2" />
                   </div>
                   <span className="text-lg font-bold text-font-p">{basePermsCount}</span>
                   <span className="text-xs text-font-s text-center">پایه</span>
                 </div>
-                <div className="flex flex-col items-center justify-center py-4 px-3 rounded-lg border border-br bg-purple-0/30">
-                  <div className="flex items-center justify-center w-9 h-9 rounded-full mb-2 bg-purple">
+                <div className="flex flex-col items-center justify-center py-4 px-3 border border-br bg-purple-0/30">
+                  <div className="flex items-center justify-center w-9 h-9 mb-2 bg-purple">
                     <Sparkles className="w-4 h-4 text-purple-2" />
                   </div>
                   <span className="text-lg font-bold text-font-p">{specificPermsCount}</span>
                   <span className="text-xs text-font-s text-center">اختصاصی</span>
                 </div>
-                <div className="flex flex-col items-center justify-center py-4 px-3 rounded-lg border border-br bg-green-0/30">
-                  <div className="flex items-center justify-center w-9 h-9 rounded-full mb-2 bg-green">
+                <div className="flex flex-col items-center justify-center py-4 px-3 border border-br bg-green-0/30">
+                  <div className="flex items-center justify-center w-9 h-9 mb-2 bg-green">
                     <CheckCircle2 className="w-4 h-4 text-green-2" />
                   </div>
                   <span className="text-lg font-bold text-font-p">{totalPermsCount}</span>
@@ -206,8 +206,8 @@ export default function RoleDetailPage() {
               </div>
 
               <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 rounded-lg border border-br bg-bg/50">
-                  <div className="p-2 rounded-lg bg-blue-0">
+                <div className="flex items-center gap-3 p-3 border border-br bg-bg/50">
+                  <div className="p-2 bg-blue-0">
                     <Calendar className="h-4 w-4 text-blue-1" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -217,8 +217,8 @@ export default function RoleDetailPage() {
                 </div>
 
                 {role.updated_at && (
-                  <div className="flex items-center gap-3 p-3 rounded-lg border border-br bg-bg/50">
-                    <div className="p-2 rounded-lg bg-purple-0">
+                  <div className="flex items-center gap-3 p-3 border border-br bg-bg/50">
+                    <div className="p-2 bg-purple-0">
                       <Calendar className="h-4 w-4 text-purple-1" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -246,7 +246,7 @@ export default function RoleDetailPage() {
             }
           >
             <div className="space-y-4">
-              <p className="text-sm text-font-s leading-relaxed p-3 rounded-lg bg-blue-0/30 border border-blue-1/20">
+              <p className="text-sm text-font-s leading-relaxed p-3 bg-blue-0/30 border border-blue-1/20">
                 این دسترسی‌ها به صورت پیش‌فرض به همه ادمین‌ها تعلق دارد و قابل تغییر نیست.
               </p>
               <div className="flex flex-wrap gap-2">
@@ -337,7 +337,7 @@ export default function RoleDetailPage() {
                     
                     return (
                       <div className="space-y-4">
-                        <p className="text-sm text-font-s leading-relaxed p-3 rounded-lg bg-purple-0/30 border border-purple-1/20">
+                        <p className="text-sm text-font-s leading-relaxed p-3 bg-purple-0/30 border border-purple-1/20">
                           دسترسی‌های اختصاصی که فقط به این نقش تعلق دارد.
                         </p>
                         <div className="flex flex-wrap gap-2">
@@ -361,7 +361,7 @@ export default function RoleDetailPage() {
               
               return (
                 <div className="text-center py-12">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-0 border-2 border-purple-1 mb-4">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-0 border-2 border-purple-1 mb-4">
                     <Shield className="h-8 w-8 text-purple-1" />
                   </div>
                   <p className="text-font-p font-semibold mb-2">فقط دسترسی‌های پایه</p>

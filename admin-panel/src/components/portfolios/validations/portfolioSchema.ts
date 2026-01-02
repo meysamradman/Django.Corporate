@@ -103,6 +103,11 @@ export const portfolioFormSchema = z.object({
     .boolean()
     .default(false)
     .optional(),
+  
+  extra_attributes: z
+    .record(z.any())
+    .optional()
+    .default({}),
 });
 
 export type PortfolioFormValues = z.infer<typeof portfolioFormSchema>;
@@ -126,4 +131,5 @@ export const portfolioFormDefaults: Partial<PortfolioFormValues> = {
   is_public: true,
   is_active: true,
   is_featured: false,
+  extra_attributes: {},
 };

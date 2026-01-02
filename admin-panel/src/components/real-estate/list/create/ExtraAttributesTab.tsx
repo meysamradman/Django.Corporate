@@ -516,7 +516,7 @@ export function ExtraAttributesTab({
                                             <button
                                                 type="button"
                                                 onClick={() => handleRemoveField(key)}
-                                                className="ml-1 hover:text-red-600"
+                                                className="ml-1 hover:text-red-1"
                                             >
                                                 <X className="w-3 h-3" />
                                             </button>

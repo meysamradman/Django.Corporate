@@ -51,7 +51,7 @@ const TabSkeleton = () => (
 
             <div className="space-y-2">
               <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-64 w-full rounded-lg" />
+              <Skeleton className="h-64 w-full" />
             </div>
           </div>
         </CardWithIcon>

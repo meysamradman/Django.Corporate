@@ -126,7 +126,7 @@ function AgencySidebar({ agency }: { agency: AgencyItem }) {
       <Card className="overflow-hidden">
         <CardContent className="pt-0 pb-0">
           <div className="pb-2">
-            <div className="relative w-full aspect-video rounded-xl overflow-hidden border shadow-md">
+            <div className="relative w-full aspect-video overflow-hidden border shadow-md">
               <div className="w-full h-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center text-white text-5xl font-bold">
                 {getInitial()}
               </div>
@@ -135,10 +135,10 @@ function AgencySidebar({ agency }: { agency: AgencyItem }) {
 
           <div className="pb-6 pt-2 border-b -mx-6 px-6">
             <div className="grid grid-cols-3 gap-3">
-              <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
+              <div className={`flex flex-col items-center justify-center py-4 px-3 transition-colors ${
                 agency.status === "active" ? "bg-green" : "bg-red"
               }`}>
-                <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
+                <div className={`flex items-center justify-center w-9 h-9 mb-2 ${
                   agency.status === "active" ? "bg-green-0" : "bg-red-0"
                 }`}>
                   {agency.status === "active" ? (
@@ -153,10 +153,10 @@ function AgencySidebar({ agency }: { agency: AgencyItem }) {
                   {agency.status === "active" ? "فعال" : "غیرفعال"}
                 </span>
               </div>
-              <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
+              <div className={`flex flex-col items-center justify-center py-4 px-3 transition-colors ${
                 agency.is_active ? "bg-blue" : "bg-red"
               }`}>
-                <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
+                <div className={`flex items-center justify-center w-9 h-9 mb-2 ${
                   agency.is_active ? "bg-blue-0" : "bg-red-0"
                 }`}>
                   <Zap className={`w-4 h-4 ${
@@ -169,10 +169,10 @@ function AgencySidebar({ agency }: { agency: AgencyItem }) {
                   {agency.is_active ? "فعال" : "غیرفعال"}
                 </span>
               </div>
-              <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
+              <div className={`flex flex-col items-center justify-center py-4 px-3 transition-colors ${
                 agency.is_featured ? "bg-orange" : "bg-gray"
               }`}>
-                <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
+                <div className={`flex items-center justify-center w-9 h-9 mb-2 ${
                   agency.is_featured ? "bg-orange-0" : "bg-gray-0"
                 }`}>
                   <Star className={`w-4 h-4 ${
@@ -306,7 +306,7 @@ const OverviewTab = ({ agency }: { agency: AgencyItem }) => {
         contentClassName="space-y-6"
       >
         <div>
-          <div className="text-font-p leading-relaxed p-4 bg-bg/50 rounded-lg" style={{ textAlign: 'justify' }}>
+          <div className="text-font-p leading-relaxed p-4 bg-bg/50" style={{ textAlign: 'justify' }}>
             {agency.description || (
               <span className="text-font-s">
                 توضیحی وارد نشده است

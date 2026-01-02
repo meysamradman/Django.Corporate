@@ -52,7 +52,7 @@ export function ExtraAttributesInfoTab({ property }: ExtraAttributesInfoTabProps
           iconColor="stroke-purple-2"
           borderColor="border-b-purple-1"
         >
-          <div className="text-center py-8 text-font-m text-gray-500">
+          <div className="text-center py-8 text-font-m text-font-s">
             هیچ ویژگی اضافی برای این ملک ثبت نشده است
           </div>
         </CardWithIcon>
@@ -106,18 +106,18 @@ export function ExtraAttributesInfoTab({ property }: ExtraAttributesInfoTabProps
               return (
                 <div
                   key={key}
-                  className="flex items-start gap-3 p-4 rounded-lg border border-br bg-card-hover"
+                  className="flex items-start gap-3 p-4 border border-br bg-card-hover"
                 >
                   <div className="flex-shrink-0 mt-1">
-                    <div className="w-8 h-8 rounded-lg bg-purple/10 flex items-center justify-center">
+                    <div className="w-8 h-8 bg-purple-0 flex items-center justify-center">
                       <Icon className="h-4 w-4 stroke-purple-2" />
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-font-s text-gray-600 mb-1">
+                    <div className="text-font-s text-font-s mb-1">
                       {config?.label || key}
                     </div>
-                    <div className="text-font-m font-medium text-gray-900">
+                    <div className="text-font-m font-medium text-font-p">
                       {getDisplayValue(key, value) || "-"}
                     </div>
                   </div>
@@ -141,12 +141,12 @@ export function ExtraAttributesInfoTab({ property }: ExtraAttributesInfoTabProps
             {Object.entries(customAttributes).map(([key, value]) => (
               <div
                 key={key}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-br bg-card-hover"
+                className="inline-flex items-center gap-2 px-4 py-2 border border-br bg-card-hover"
               >
-                <span className="text-font-s font-medium text-gray-700">
+                <span className="text-font-s font-medium text-font-s">
                   {key}:
                 </span>
-                <span className="text-font-m text-gray-900">
+                <span className="text-font-m text-font-p">
                   {value || "-"}
                 </span>
               </div>
@@ -159,9 +159,9 @@ export function ExtraAttributesInfoTab({ property }: ExtraAttributesInfoTabProps
       <CardWithIcon
         icon={Settings}
         title="خلاصه تمام ویژگی‌ها"
-        iconBgColor="bg-gray-500"
-        iconColor="stroke-white"
-        borderColor="border-b-gray-300"
+        iconBgColor="bg-gray-1"
+        iconColor="stroke-wt"
+        borderColor="border-b-gray-1"
       >
         <div className="flex flex-wrap gap-2">
           {attributeKeys.map(key => {
