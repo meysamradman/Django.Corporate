@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
-import { useRole, useUpdateRole, usePermissions, useBasePermissions } from "@/components/admins/permissions";
+import { useRole, useUpdateRole, usePermissions, useBasePermissions } from "@/core/permissions";
 import { Button } from "@/components/elements/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
@@ -16,7 +16,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { extractFieldErrors, hasFieldErrors, showError } from '@/core/toast';
-import { useUserPermissions } from "@/components/admins/permissions";
+import { useUserPermissions } from "@/core/permissions";
 import {
   StandardPermissionsTable,
   PermissionWarningAlert,

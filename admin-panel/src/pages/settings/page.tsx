@@ -1,7 +1,7 @@
 import { useState, useRef, lazy, Suspense } from "react";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { ProtectedButton, useUIPermissions } from '@/components/admins/permissions';
+import { ProtectedButton, useUIPermissions } from '@/core/permissions';
 import { Settings, Phone, Smartphone, Mail, Share2, Save, Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 

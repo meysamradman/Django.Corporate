@@ -9,38 +9,32 @@ const getEnvVar = (key: string, devDefault?: string): string => {
       throw new Error(`🚨 CONFIGURATION ERROR: ${key} environment variable is required in production. Please set it in your .env file.`);
     }
     
-    if (devDefault) {
+    if (devDefault !== undefined) {
       return devDefault;
     }
     
-    throw new Error(`Environment variable ${key} is required`);
+    throw new Error(`🚨 DEVELOPMENT ERROR: ${key} environment variable is required. Please create a .env file based on .env.example`);
   }
   
   return value;
 };
 
 let cachedAPI_URL: string | null = null;
-let cachedADMIN_SECRET: string | null = null;
 let cachedMEDIA_BASE_URL: string | null = null;
 
 export const env = {
   get API_URL(): string {
     if (cachedAPI_URL === null) {
-      cachedAPI_URL = getEnvVar('VITE_API_URL', IS_DEV ? 'http://localhost:8000/api' : undefined);
+      // بدون fallback - باید از .env بیاید
+      cachedAPI_URL = getEnvVar('VITE_API_URL');
     }
     return cachedAPI_URL;
   },
 
-  get ADMIN_SECRET(): string {
-    if (cachedADMIN_SECRET === null) {
-      cachedADMIN_SECRET = getEnvVar('VITE_ADMIN_SECRET', IS_DEV ? 'x7K9mP2qL5nR8tY3vZ6wC4fH1jN0bM' : undefined);
-    }
-    return cachedADMIN_SECRET;
-  },
-
   get MEDIA_BASE_URL(): string {
     if (cachedMEDIA_BASE_URL === null) {
-      cachedMEDIA_BASE_URL = getEnvVar('VITE_MEDIA_BASE_URL', IS_DEV ? 'http://localhost:8000' : undefined);
+      // بدون fallback - باید از .env بیاید
+      cachedMEDIA_BASE_URL = getEnvVar('VITE_MEDIA_BASE_URL');
     }
     return cachedMEDIA_BASE_URL;
   },

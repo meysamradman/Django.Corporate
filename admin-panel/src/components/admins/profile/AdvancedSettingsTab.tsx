@@ -10,7 +10,7 @@ import { showSuccess, showError, showInfo, showWarning } from "@/core/toast";
 import { roleApi } from "@/api/admins/roles/roles";
 import { adminApi } from "@/api/admins/admins";
 import { useAuth } from "@/core/auth/AuthContext";
-import { hasPermission } from "@/components/admins/permissions/utils/permissionUtils";
+import { hasPermission } from "@/core/permissions/utils/permissionUtils";
 import type { Role } from "@/types/auth/permission";
 import { Badge } from "@/components/elements/Badge";
 import { getPermissionTranslation } from "@/core/messages/permissions";

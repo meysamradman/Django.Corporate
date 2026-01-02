@@ -4,7 +4,7 @@ import { Textarea } from "@/components/elements/Textarea";
 import { Label } from "@/components/elements/Label";
 import { Send, Paperclip } from "lucide-react";
 import type { Ticket } from "@/types/ticket/ticket";
-import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
+import { ProtectedButton } from "@/core/permissions/components/ProtectedButton";
 
 const MediaLibraryModal = lazy(() => import("@/components/media/modals/MediaLibraryModal").then(mod => ({ default: mod.MediaLibraryModal })));
 

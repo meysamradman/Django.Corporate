@@ -6,7 +6,7 @@ import { PageSkeleton } from '@/lib/loaders';
 import { cn } from '@/core/utils/cn';
 import { useAdminStore } from '@/components/layout/Sidebar/stores/sidebarStore';
 import { useAuth } from '@/core/auth/AuthContext';
-import { RoutePermissionGuard } from '@/components/admins/permissions';
+import { RoutePermissionGuard } from '@/core/permissions';
 import { FloatingAIChat } from '@/components/ai/chat/FloatingAIChat';
 import { FaviconManager } from '@/components/panel/FaviconManager';
 

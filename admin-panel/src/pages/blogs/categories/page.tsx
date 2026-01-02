@@ -6,7 +6,7 @@ import { useCategoryColumns } from "@/components/blogs/categories/list/CategoryT
 import { useCategoryFilterOptions, getCategoryFilterConfig } from "@/components/blogs/categories/list/CategoryTableFilters";
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
-import { ProtectedButton } from "@/components/admins/permissions";
+import { ProtectedButton } from "@/core/permissions";
 import { showSuccess, showError } from '@/core/toast';
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate, Link, useParams } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
-import { useRole, useBasePermissions, usePermissions, usePermissionMap } from "@/components/admins/permissions";
+import { useRole, useBasePermissions, usePermissions, usePermissionMap } from "@/core/permissions";
 import { Button } from "@/components/elements/Button";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Badge } from "@/components/elements/Badge";

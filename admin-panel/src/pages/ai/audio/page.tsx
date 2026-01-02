@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/Card';
 import { Mic } from 'lucide-react';
-import { usePermission, AccessDenied } from '@/components/admins/permissions';
+import { usePermission, AccessDenied } from '@/core/permissions';
 
 const AIAudioGeneratorSkeleton = () => (
   <div className="space-y-6">

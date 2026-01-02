@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './core/auth/AuthContext';
 import { QueryProvider } from './components/providers/QueryProvider';
-import { PermissionProvider } from './components/admins/permissions';
+import { PermissionProvider } from './core/permissions';
 import { AIChatProvider } from './components/ai/chat/AIChatContext';
 import { RouteProgress } from './lib/loaders';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';

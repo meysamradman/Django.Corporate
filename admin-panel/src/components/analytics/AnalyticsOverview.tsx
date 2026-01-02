@@ -2,7 +2,7 @@ import { lazy, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { analyticsApi } from "@/api/analytics/analytics";
 import { useAnalytics } from "@/components/dashboard/hooks/useAnalytics";
-import { PermissionGate } from "@/components/admins/permissions/components/PermissionGate";
+import { PermissionGate } from "@/core/permissions/components/PermissionGate";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";

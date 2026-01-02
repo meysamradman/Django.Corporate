@@ -9,8 +9,8 @@ import {
 } from "@/components/elements/DropdownMenu";
 import { useNotifications } from "./hooks/useNotifications";
 import { useNavigate } from "react-router-dom";
-import { usePermission } from "@/components/admins/permissions";
-import { PERMISSIONS } from "@/components/admins/permissions/constants/permissions";
+import { usePermission } from "@/core/permissions";
+import { PERMISSIONS } from "@/core/permissions/constants/permissions";
 import { cn } from "@/core/utils/cn";
 
 export function Notifications() {

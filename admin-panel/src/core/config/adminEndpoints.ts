@@ -1,18 +1,13 @@
-import { env } from './environment';
-
-const ADMIN_SECRET = env.ADMIN_SECRET;
-
 /**
- * فقط برای login و captcha از secret path استفاده می‌شود
+ * Admin Panel Endpoints
+ * 
+ * ⚠️ نکته امنیتی مهم:
+ * Frontend نباید secret path داشته باشد چون همه می‌توانند source code را ببینند.
+ * امنیت باید از طریق Backend (Django middleware, CSRF, Session) انجام شود.
  */
-function getSecretEndpoint(path: string): string {
-  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-  const finalPath = cleanPath.endsWith('/') ? cleanPath : `${cleanPath}/`;
-  return `/admin/${ADMIN_SECRET}/${finalPath}`;
-}
 
 /**
- * برای بقیه endpointها بدون secret path
+ * ساخت endpoint ادمین با فرمت استاندارد
  */
 function getAdminEndpoint(path: string): string {
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
@@ -21,14 +16,12 @@ function getAdminEndpoint(path: string): string {
 }
 
 export const adminEndpoints = {
-  // ✅ فقط login و captcha با secret path
-  login: () => getSecretEndpoint('auth/login'),
-  csrfToken: () => getSecretEndpoint('auth/login'),
-  captchaGenerate: () => `${getSecretEndpoint('auth/captcha')}generate/`,
-  
-  // ✅ بقیه بدون secret path
+  // Authentication
+  login: () => getAdminEndpoint('auth/login'),
   logout: () => getAdminEndpoint('auth/logout'),
   register: () => getAdminEndpoint('auth/register'),
+  csrfToken: () => getAdminEndpoint('auth/login'),
+  captchaGenerate: () => `${getAdminEndpoint('auth/captcha')}generate/`,
   
   profile: () => getAdminEndpoint('profile'),
   profileMe: () => getAdminEndpoint('management/me'),

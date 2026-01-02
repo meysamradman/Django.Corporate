@@ -18,7 +18,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Edit, Trash2, Plus, Search, Building2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
-import { ProtectedButton } from "@/components/admins/permissions";
+import { ProtectedButton } from "@/core/permissions";
 import { CardItem, type CardItemAction } from "@/components/elements/CardItem";
 import { mediaService } from "@/components/media/services";
 import { formatDate } from "@/core/utils/format";

@@ -4,7 +4,7 @@ import { Mail, Calendar, Phone, Globe, Smartphone, Code, Reply, Trash2, Papercli
 import { cn } from "@/core/utils/cn";
 import type { EmailMessage } from "@/types/email/emailMessage";
 import type { MailboxType } from "./types";
-import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
+import { ProtectedButton } from "@/core/permissions/components/ProtectedButton";
 
 interface EmailDetailViewProps {
   email: EmailMessage | null;

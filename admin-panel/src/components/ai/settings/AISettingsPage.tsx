@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/elements/Card';
 import { Accordion } from '@/components/elements/Accordion';
 import { Skeleton } from '@/components/elements/Skeleton';
-import { useUserPermissions } from '@/components/admins/permissions';
+import { useUserPermissions } from '@/core/permissions';
 import { useAISettings } from './hooks/useAISettings';
 import { useProviderActions } from './hooks/useProviderActions';
 import { AISettingsHeader } from './components/AISettingsHeader';

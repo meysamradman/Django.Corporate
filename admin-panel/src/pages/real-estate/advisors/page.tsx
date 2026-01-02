@@ -11,7 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyAgent } from "@/types/real_estate/agent/realEstateAgent";
 import { mediaService } from "@/components/media/services";
-import { ProtectedButton } from "@/components/admins/permissions";
+import { ProtectedButton } from "@/core/permissions";
 import { CardItem, type CardItemAction } from "@/components/elements/CardItem";
 
 export default function AdvisorsListPage() {

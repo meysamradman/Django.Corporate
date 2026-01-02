@@ -7,7 +7,7 @@ import { useTagColumns } from "@/components/portfolios/tags/list/TagTableColumns
 import { useTagFilterOptions, getTagFilterConfig } from "@/components/portfolios/tags/list/TagTableFilters";
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
-import { ProtectedButton } from "@/components/admins/permissions";
+import { ProtectedButton } from "@/core/permissions";
 import { showSuccess, showError } from '@/core/toast';
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';

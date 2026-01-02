@@ -12,9 +12,9 @@ import {
   MailOpen,
 } from "lucide-react";
 import { showError } from "@/core/toast";
-import { usePermission } from "@/components/admins/permissions";
-import { PERMISSIONS } from "@/components/admins/permissions/constants";
-import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
+import { usePermission } from "@/core/permissions";
+import { PERMISSIONS } from "@/core/permissions/constants";
+import { ProtectedButton } from "@/core/permissions/components/ProtectedButton";
 import type { MailboxType } from "./types";
 
 interface EmailToolbarProps {

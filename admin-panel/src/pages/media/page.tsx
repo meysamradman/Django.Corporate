@@ -9,7 +9,7 @@ import { MediaImage } from '@/components/media/base/MediaImage';
 import { Skeleton } from "@/components/elements/Skeleton";
 import { Input } from '@/components/elements/Input';
 import { mediaService } from '@/components/media/services';
-import { ProtectedButton } from '@/components/admins/permissions';
+import { ProtectedButton } from '@/core/permissions';
 import { PaginationControls } from '@/components/shared/Pagination';
 import { ImageOff, Trash2, Upload, Search, Play, FileAudio, Sparkles } from 'lucide-react';
 import {
@@ -20,7 +20,7 @@ import {
 } from "@/components/elements/Card";
 import { Checkbox } from '@/components/elements/Checkbox';
 import { toast, showError } from '@/core/toast';
-import { useUserPermissions } from '@/components/admins/permissions';
+import { useUserPermissions } from '@/core/permissions';
 import { cn } from '@/core/utils/cn';
 import {
   AlertDialog,

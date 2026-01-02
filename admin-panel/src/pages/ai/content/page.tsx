@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { CardWithIcon } from '@/components/elements/CardWithIcon';
 import { Sparkles } from 'lucide-react';
-import { usePermission, AccessDenied } from '@/components/admins/permissions';
+import { usePermission, AccessDenied } from '@/core/permissions';
 
 const AIContentGeneratorSkeleton = () => (
   <CardWithIcon

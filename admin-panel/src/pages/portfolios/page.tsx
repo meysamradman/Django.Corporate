@@ -7,7 +7,7 @@ import { usePortfolioFilterOptions, getPortfolioFilterConfig } from "@/component
 import type { PortfolioFilters } from "@/types/portfolio/portfolioListParams";
 import { Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
-import { ProtectedButton } from "@/components/admins/permissions";
+import { ProtectedButton } from "@/core/permissions";
 import { showError, showSuccess, showWarning } from '@/core/toast';
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';

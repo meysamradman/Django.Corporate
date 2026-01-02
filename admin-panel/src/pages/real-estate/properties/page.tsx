@@ -7,7 +7,7 @@ import { usePropertyFilterOptions, getPropertyFilterConfig } from "@/components/
 import type { PropertyFilters } from "@/types/real_estate/realEstateListParams";
 import { Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
-import { ProtectedButton } from "@/components/admins/permissions";
+import { ProtectedButton } from "@/core/permissions";
 import { showError, showSuccess, showWarning } from '@/core/toast';
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';

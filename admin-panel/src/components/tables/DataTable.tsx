@@ -17,7 +17,7 @@ import {
 import type { TablePaginationState } from '@/types/shared/pagination';
 import { cn } from "@/core/utils/cn";
 
-import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
+import { ProtectedButton } from "@/core/permissions/components/ProtectedButton";
 import { Input } from "@/components/elements/Input"
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/elements/Card"
 import {

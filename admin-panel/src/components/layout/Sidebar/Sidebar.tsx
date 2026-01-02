@@ -26,7 +26,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { showError } from "@/core/toast";
 import { getError } from "@/core/messages/errors";
 import { useAdminStore } from "./stores/sidebarStore";
-import { getUserRoleDisplayText } from "@/components/admins/permissions/config/roles";
+import { getUserRoleDisplayText } from "@/core/permissions/config/roles";
 
 interface SidebarProps {
   isOpen: boolean;

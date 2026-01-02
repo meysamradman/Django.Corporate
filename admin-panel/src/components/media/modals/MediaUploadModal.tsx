@@ -14,7 +14,7 @@ import { FileDropzone } from '@/components/media/upload/MediaUploadZone';
 import { FileList } from '@/components/media/upload/FileList';
 import { useMediaUpload } from '@/components/media/hooks/useMediaUpload';
 import type { Media } from '@/types/shared/media';
-import { useUserPermissions } from '@/components/admins/permissions/hooks/useUserPermissions';
+import { useUserPermissions } from '@/core/permissions/hooks/useUserPermissions';
 import { useMediaContext } from '../MediaContext';
 
 interface MediaUploadModalProps {

@@ -1,6 +1,6 @@
 import { useRef, useState, lazy, Suspense, type ComponentType, type Ref } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader/PageHeader';
-import { useUIPermissions } from '@/components/admins/permissions';
+import { useUIPermissions } from '@/core/permissions';
 import { Save, Loader2, Flag, Image as ImageIcon, Database, Shield } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 

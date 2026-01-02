@@ -3,7 +3,7 @@ import { Badge } from "@/components/elements/Badge";
 import { Calendar, User, MessageSquare, Reply, Trash2, Download } from "lucide-react";
 import { cn } from "@/core/utils/cn";
 import type { Ticket, TicketMessage } from "@/types/ticket/ticket";
-import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
+import { ProtectedButton } from "@/core/permissions/components/ProtectedButton";
 
 interface TicketDetailViewProps {
   ticket: Ticket | null;

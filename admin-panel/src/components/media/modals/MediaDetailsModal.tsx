@@ -18,7 +18,7 @@ import { mediaApi } from '@/api/media/media';
 import { showSuccess, showError } from '@/core/toast';
 import { CoverImageManager } from '@/components/media/modals/CoverImageManager';
 import { TruncatedText } from '@/components/elements/TruncatedText';
-import { ProtectedButton, usePermission } from '@/components/admins/permissions';
+import { ProtectedButton, usePermission } from '@/core/permissions';
 
 interface MediaDetailsModalProps {
   media: Media | null;

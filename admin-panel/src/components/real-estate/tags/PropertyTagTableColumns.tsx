@@ -7,7 +7,7 @@ import { Switch } from "@/components/elements/Switch";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { ProtectedLink, usePermission } from "@/components/admins/permissions";
+import { ProtectedLink, usePermission } from "@/core/permissions";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Avatar, AvatarFallback } from "@/components/elements/Avatar";
 

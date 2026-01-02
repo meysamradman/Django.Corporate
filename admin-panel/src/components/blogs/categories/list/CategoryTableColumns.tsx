@@ -6,7 +6,7 @@ import { Badge } from "@/components/elements/Badge";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { ProtectedLink } from "@/components/admins/permissions";
+import { ProtectedLink } from "@/core/permissions";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import { mediaService } from "@/components/media/services";

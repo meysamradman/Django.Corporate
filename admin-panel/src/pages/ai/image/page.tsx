@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/Card';
 import { Wand2 } from 'lucide-react';
-import { usePermission, AccessDenied } from '@/components/admins/permissions';
+import { usePermission, AccessDenied } from '@/core/permissions';
 
 const AIImageGeneratorSkeleton = () => (
   <div className="space-y-6">

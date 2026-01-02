@@ -44,8 +44,8 @@ import {
   Building,
 } from "lucide-react"
 import { useMemo, useCallback } from "react"
-import { useUserPermissions } from "@/components/admins/permissions/hooks/useUserPermissions"
-import { usePermissions } from "@/components/admins/permissions"
+import { useUserPermissions } from "@/core/permissions/hooks/useUserPermissions"
+import { usePermissions } from "@/core/permissions"
 import type { ModuleAction } from "@/types/auth/permission"
 import { useFeatureFlags } from "@/core/feature-flags/useFeatureFlags"
 import { MODULE_TO_FEATURE_FLAG as CONFIG_MODULE_TO_FEATURE_FLAG } from "@/core/feature-flags/featureFlags"

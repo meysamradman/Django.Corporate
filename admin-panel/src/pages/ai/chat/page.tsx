@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Skeleton } from '@/components/elements/Skeleton';
-import { usePermission, AccessDenied } from '@/components/admins/permissions';
+import { usePermission, AccessDenied } from '@/core/permissions';
 
 const AIChatSkeleton = () => (
   <div className="relative flex flex-col h-full bg-bg">

@@ -7,7 +7,7 @@ import { useCategoryColumns } from "@/components/portfolios/categories/list/Cate
 import { useCategoryFilterOptions, getCategoryFilterConfig } from "@/components/portfolios/categories/list/CategoryTableFilters";
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
-import { ProtectedButton } from "@/components/admins/permissions";
+import { ProtectedButton } from "@/core/permissions";
 import { showError, showSuccess } from '@/core/toast';
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';

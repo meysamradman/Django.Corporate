@@ -20,7 +20,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/core/auth/AuthContext';
 import { showSuccess, showError } from '@/core/toast';
 import { adminApi } from '@/api/admins/admins';
-import { hasPermission } from "@/components/admins/permissions/utils/permissionUtils";
+import { hasPermission } from "@/core/permissions/utils/permissionUtils";
 
 interface FormData {
     firstName: string;

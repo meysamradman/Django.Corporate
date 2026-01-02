@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { usePermission, AccessDenied } from "@/components/admins/permissions";
+import { usePermission, AccessDenied } from "@/core/permissions";
 
 const StatisticsSkeleton = () => (
   <div className="space-y-6">

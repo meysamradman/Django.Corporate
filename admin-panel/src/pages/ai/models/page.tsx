@@ -11,7 +11,7 @@ import { getProviderMetadata, BACKEND_TO_FRONTEND_ID } from '@/components/ai/set
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/ai';
 import { api } from '@/core/config/api';
-import { useUserPermissions } from '@/components/admins/permissions';
+import { useUserPermissions } from '@/core/permissions';
 import { useAuth } from '@/core/auth/AuthContext';
 import { showError, showSuccess } from '@/core/toast';
 

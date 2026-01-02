@@ -8,7 +8,7 @@ import { Badge } from "@/components/elements/Badge";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import { Plus, MessageSquare, Edit, Trash2 } from "lucide-react";
 import { FAQDialog } from "./FAQDialog";
-import { ProtectedButton } from "@/components/admins/permissions";
+import { ProtectedButton } from "@/core/permissions";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { TruncatedText } from "@/components/elements/TruncatedText";
 import {

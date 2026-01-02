@@ -1,5 +1,5 @@
 import AISettingsPage from '@/components/ai/settings/AISettingsPage';
-import { usePermission, AccessDenied } from '@/components/admins/permissions';
+import { usePermission, AccessDenied } from '@/core/permissions';
 import { Skeleton } from '@/components/elements/Skeleton';
 
 export default function AISettingsPageRoute() {

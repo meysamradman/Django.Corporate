@@ -1,5 +1,5 @@
 import { RefreshCw } from "lucide-react";
-import { ProtectedButton } from "@/components/admins/permissions/components/ProtectedButton";
+import { ProtectedButton } from "@/core/permissions/components/ProtectedButton";
 
 interface TicketToolbarProps {
   onRefresh?: () => void;

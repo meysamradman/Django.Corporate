@@ -12,7 +12,7 @@ import { usePanelSettings, useUpdatePanelSettings } from './hooks/usePanelSettin
 import { showSuccess } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
 import type { Media } from '@/types/shared/media';
-import { ProtectedButton, useUIPermissions } from '@/components/admins/permissions';
+import { ProtectedButton, useUIPermissions } from '@/core/permissions';
 import { 
     FileText,
     Database,

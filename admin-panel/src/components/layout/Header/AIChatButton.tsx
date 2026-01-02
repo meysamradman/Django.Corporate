@@ -1,6 +1,6 @@
 import { MessageCircle } from 'lucide-react';
 import { useAIChat } from '@/components/ai/chat/AIChatContext';
-import { useCanManageAIChat } from '@/components/admins/permissions/hooks/useUIPermissions';
+import { useCanManageAIChat } from '@/core/permissions/hooks/useUIPermissions';
 
 export function AIChatButton() {
   const { setIsOpen, isOpen } = useAIChat();

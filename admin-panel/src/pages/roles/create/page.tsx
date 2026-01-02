@@ -1,7 +1,7 @@
 import { useState, useMemo, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
-import { useCreateRole, usePermissions, useBasePermissions, useUserPermissions } from "@/components/admins/permissions";
+import { useCreateRole, usePermissions, useBasePermissions, useUserPermissions } from "@/core/permissions";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
