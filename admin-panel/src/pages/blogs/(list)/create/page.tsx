@@ -5,9 +5,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
-import {
-  FileText, Edit2, Image,
-  Loader2, Save, Search, List, Settings
+import { 
+  FileText, Image, 
+  Loader2, Save, Search, Settings
 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { blogApi } from "@/api/blogs/blogs";
@@ -214,23 +214,6 @@ export default function CreateBlogPage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <PageHeader title="ایجاد وبلاگ جدید">
-        <>
-          <Button
-            variant="outline"
-            onClick={() => navigate("/blogs")}
-          >
-            <List className="h-4 w-4" />
-            نمایش لیست
-          </Button>
-          {!editMode && (
-            <Button onClick={() => setEditMode(true)}>
-              <Edit2 />
-              ویرایش
-            </Button>
-          )}
-        </>
-      </PageHeader>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList>

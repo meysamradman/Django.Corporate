@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -13,7 +12,7 @@ import { realEstateApi } from "@/api/real-estate";
 import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
-import { Tag, Loader2, Save, List } from "lucide-react";
+import { Tag, Loader2, Save } from "lucide-react";
 
 export default function CreatePropertyLabelPage() {
   const navigate = useNavigate();
@@ -83,15 +82,6 @@ export default function CreatePropertyLabelPage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <PageHeader title="ایجاد برچسب ملک جدید">
-        <Button 
-          variant="outline"
-          onClick={() => navigate("/real-estate/labels")}
-        >
-          <List className="h-4 w-4" />
-          نمایش لیست
-        </Button>
-      </PageHeader>
 
       <form id="label-create-form" onSubmit={handleSubmit}>
         <CardWithIcon

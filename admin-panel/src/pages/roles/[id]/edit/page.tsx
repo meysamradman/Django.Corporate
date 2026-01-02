@@ -3,13 +3,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useRole, useUpdateRole, usePermissions, useBasePermissions } from "@/core/permissions";
 import { Button } from "@/components/elements/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import {
-  ArrowLeft,
   Save,
   Loader2,
   ShieldCheck,
@@ -23,7 +21,6 @@ import {
   StatisticsPermissionsCard,
   AIPermissionsCard,
   ManagementPermissionsCard,
-  AdminPermissionsCard,
   RoleBasicInfoForm,
 } from "@/components/roles/form";
 import { getResourceIcon } from "@/components/roles/form/utils";
@@ -677,16 +674,6 @@ export default function EditRolePage() {
   if (roleLoading) {
     return (
       <div className="space-y-6 pb-28 relative">
-        <PageHeader title="ویرایش نقش">
-          <Button 
-            variant="outline"
-            onClick={() => navigate("/roles")}
-            disabled
-          >
-            <ArrowLeft className="h-4 w-4" />
-            بازگشت
-          </Button>
-        </PageHeader>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
@@ -720,16 +707,8 @@ export default function EditRolePage() {
 
   if (!role) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
-            <ArrowLeft />
-            بازگشت
-          </Button>
-        </div>
-        <div className="text-center py-8">
-          <p className="text-font-s">داده‌ای یافت نشد</p>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-font-s">داده‌ای یافت نشد</p>
       </div>
     );
   }
@@ -740,15 +719,6 @@ export default function EditRolePage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <PageHeader title={`ویرایش نقش: ${role.name}`}>
-        <Button 
-          variant="outline"
-          onClick={() => navigate("/roles")}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          بازگشت
-        </Button>
-      </PageHeader>
 
       <div className="space-y-6">
         <CardWithIcon

@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -18,7 +17,7 @@ import { validateSlug } from '@/core/slug/validate';
 import { showError, showSuccess } from "@/core/toast";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
-import { UploadCloud, X, FolderTree, Image as ImageIcon, Loader2, Save, List, Settings } from "lucide-react";
+import { UploadCloud, X, FolderTree, Image as ImageIcon, Loader2, Save, Settings } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function CreateCategoryPage() {
@@ -110,15 +109,6 @@ export default function CreateCategoryPage() {
   if (isLoadingCategories) {
     return (
       <div className="space-y-6 pb-28 relative">
-        <PageHeader title="ایجاد دسته‌بندی جدید">
-          <Button
-            variant="outline"
-            onClick={() => navigate("/blogs/categories")}
-          >
-            <List className="h-4 w-4" />
-            نمایش لیست
-          </Button>
-        </PageHeader>
 
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-4 space-y-6">
@@ -176,15 +166,6 @@ export default function CreateCategoryPage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <PageHeader title="ایجاد دسته‌بندی جدید">
-        <Button
-          variant="outline"
-          onClick={() => navigate("/blogs/categories")}
-        >
-          <List className="h-4 w-4" />
-          نمایش لیست
-        </Button>
-      </PageHeader>
 
       <form id="category-form" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">

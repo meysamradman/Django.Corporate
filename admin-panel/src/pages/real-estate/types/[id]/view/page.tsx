@@ -1,13 +1,11 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/elements/Button";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Badge } from "@/components/elements/Badge";
-import { showError } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate";
-import { Building, Edit2, List, Calendar } from "lucide-react";
+import { Building, Edit2, Calendar } from "lucide-react";
+import { FloatingActions } from "@/components/elements/FloatingActions";
 import { formatDate } from "@/core/utils/format";
 
 export default function PropertyTypeViewPage() {
@@ -24,11 +22,8 @@ export default function PropertyTypeViewPage() {
 
   if (!typeId) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="نمایش نوع ملک" />
-        <div className="text-center py-8">
-          <p className="text-destructive">شناسه نوع ملک یافت نشد</p>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-destructive">شناسه نوع ملک یافت نشد</p>
       </div>
     );
   }
@@ -36,12 +31,6 @@ export default function PropertyTypeViewPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="اطلاعات نوع ملک">
-          <Button disabled>
-            <Edit2 />
-            ویرایش نوع ملک
-          </Button>
-        </PageHeader>
         <CardWithIcon
           icon={Building}
           title="اطلاعات نوع ملک"
@@ -69,15 +58,12 @@ export default function PropertyTypeViewPage() {
 
   if (error || !type) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="نمایش نوع ملک" />
-        <div className="rounded-lg border p-6">
-          <div className="text-center py-8">
-            <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات نوع ملک</p>
-            <p className="text-font-s">
-              لطفاً دوباره تلاش کنید یا با مدیر سیستم تماس بگیرید.
-            </p>
-          </div>
+      <div className="rounded-lg border p-6">
+        <div className="text-center py-8">
+          <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات نوع ملک</p>
+          <p className="text-font-s">
+            لطفاً دوباره تلاش کنید یا با مدیر سیستم تماس بگیرید.
+          </p>
         </div>
       </div>
     );
@@ -85,23 +71,19 @@ export default function PropertyTypeViewPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="اطلاعات نوع ملک">
-        <>
-          <Button
-            variant="outline"
-            onClick={() => navigate("/real-estate/types")}
-          >
-            <List className="h-4 w-4" />
-            نمایش لیست
-          </Button>
-          <Button
-            onClick={() => navigate(`/real-estate/types/${type.id}/edit`)}
-          >
-            <Edit2 className="h-4 w-4" />
-            ویرایش نوع ملک
-          </Button>
-        </>
-      </PageHeader>
+
+      <FloatingActions
+        actions={[
+          {
+            icon: Edit2,
+            label: "ویرایش نوع ملک",
+            variant: "default",
+            permission: "real_estate.type.update",
+            onClick: () => navigate(`/real-estate/types/${type.id}/edit`),
+          },
+        ]}
+        position="left"
+      />
 
       <CardWithIcon
         icon={Building}

@@ -1,12 +1,11 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/elements/Button";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Badge } from "@/components/elements/Badge";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate";
-import { Circle, Edit2, List, Calendar } from "lucide-react";
+import { Circle, Edit2, Calendar } from "lucide-react";
+import { FloatingActions } from "@/components/elements/FloatingActions";
 import { formatDate } from "@/core/utils/format";
 
 export default function PropertyStateViewPage() {
@@ -23,11 +22,8 @@ export default function PropertyStateViewPage() {
 
   if (!stateId) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="نمایش وضعیت ملک" />
-        <div className="text-center py-8">
-          <p className="text-destructive">شناسه وضعیت ملک یافت نشد</p>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-destructive">شناسه وضعیت ملک یافت نشد</p>
       </div>
     );
   }
@@ -35,12 +31,6 @@ export default function PropertyStateViewPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="اطلاعات وضعیت ملک">
-          <Button disabled>
-            <Edit2 />
-            ویرایش وضعیت ملک
-          </Button>
-        </PageHeader>
         <CardWithIcon
           icon={Circle}
           title="اطلاعات وضعیت ملک"
@@ -58,12 +48,9 @@ export default function PropertyStateViewPage() {
 
   if (error || !state) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="نمایش وضعیت ملک" />
-        <div className="rounded-lg border p-6">
-          <div className="text-center py-8">
-            <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات وضعیت ملک</p>
-          </div>
+      <div className="rounded-lg border p-6">
+        <div className="text-center py-8">
+          <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات وضعیت ملک</p>
         </div>
       </div>
     );
@@ -71,23 +58,19 @@ export default function PropertyStateViewPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="اطلاعات وضعیت ملک">
-        <>
-          <Button
-            variant="outline"
-            onClick={() => navigate("/real-estate/states")}
-          >
-            <List className="h-4 w-4" />
-            نمایش لیست
-          </Button>
-          <Button
-            onClick={() => navigate(`/real-estate/states/${state.id}/edit`)}
-          >
-            <Edit2 className="h-4 w-4" />
-            ویرایش وضعیت ملک
-          </Button>
-        </>
-      </PageHeader>
+
+      <FloatingActions
+        actions={[
+          {
+            icon: Edit2,
+            label: "ویرایش وضعیت ملک",
+            variant: "default",
+            permission: "real_estate.state.update",
+            onClick: () => navigate(`/real-estate/states/${state.id}/edit`),
+          },
+        ]}
+        position="left"
+      />
 
       <CardWithIcon
         icon={Circle}

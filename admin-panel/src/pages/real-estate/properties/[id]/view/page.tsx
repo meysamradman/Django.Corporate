@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { Button } from "@/components/elements/Button";
-import { ProtectedButton } from "@/core/permissions";
 import { FileText, Image, Search, Edit2, FileDown, Settings } from "lucide-react";
 import { showError, showSuccess } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
@@ -16,6 +13,7 @@ import { OverviewTab } from "@/components/real-estate/list/view/OverviewTab";
 import { MediaInfoTab } from "@/components/real-estate/list/view/MediaInfoTab";
 import { SEOInfoTab } from "@/components/real-estate/list/view/SEOInfoTab";
 import { ExtraAttributesInfoTab } from "@/components/real-estate/list/view/ExtraAttributesInfoTab";
+import { FloatingActions } from "@/components/elements/FloatingActions";
 
 export default function PropertyViewPage() {
   const params = useParams();
@@ -32,11 +30,8 @@ export default function PropertyViewPage() {
 
   if (!propertyId) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="نمایش ملک" />
-        <div className="text-center py-8">
-          <p className="text-destructive">شناسه ملک یافت نشد</p>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-destructive">شناسه ملک یافت نشد</p>
       </div>
     );
   }
@@ -44,18 +39,6 @@ export default function PropertyViewPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="اطلاعات ملک">
-          <>
-            <Button variant="outline" disabled>
-              <FileDown className="h-4 w-4" />
-              خروجی PDF
-            </Button>
-            <Button disabled>
-              <Edit2 />
-              ویرایش ملک
-            </Button>
-          </>
-        </PageHeader>
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-2">
             <Skeleton className="h-96 w-full rounded-xl" />
@@ -75,15 +58,12 @@ export default function PropertyViewPage() {
 
   if (error || !propertyData) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="نمایش ملک" />
-        <div className="rounded-lg border p-6">
-          <div className="text-center py-8">
-            <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات ملک</p>
-            <p className="text-font-s">
-              لطفاً دوباره تلاش کنید یا با مدیر سیستم تماس بگیرید.
-            </p>
-          </div>
+      <div className="rounded-lg border p-6">
+        <div className="text-center py-8">
+          <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات ملک</p>
+          <p className="text-font-s">
+            لطفاً دوباره تلاش کنید یا با مدیر سیستم تماس بگیرید.
+          </p>
         </div>
       </div>
     );
@@ -91,31 +71,32 @@ export default function PropertyViewPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="اطلاعات ملک">
-        <>
-          <Button
-            variant="outline"
-            onClick={async () => {
+
+      <FloatingActions
+        actions={[
+          {
+            icon: FileDown,
+            label: "خروجی PDF",
+            variant: "outline",
+            onClick: async () => {
               try {
                 await realEstateApi.exportPropertyPdf(Number(propertyId));
                 showSuccess("فایل PDF با موفقیت دانلود شد");
               } catch (error) {
                 showError("خطا در دانلود فایل PDF");
               }
-            }}
-          >
-            <FileDown className="h-4 w-4" />
-            خروجی PDF
-          </Button>
-          <ProtectedButton
-            permission="real_estate.property.update"
-            onClick={() => navigate(`/real-estate/properties/${propertyId}/edit`)}
-          >
-            <Edit2 />
-            ویرایش ملک
-          </ProtectedButton>
-        </>
-      </PageHeader>
+            },
+          },
+          {
+            icon: Edit2,
+            label: "ویرایش ملک",
+            variant: "default",
+            permission: "real_estate.property.update",
+            onClick: () => navigate(`/real-estate/properties/${propertyId}/edit`),
+          },
+        ]}
+        position="left"
+      />
 
       {/* Top Section: Carousel + Basic Info */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">

@@ -1,6 +1,5 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -14,7 +13,7 @@ import { blogApi } from "@/api/blogs/blogs";
 import type { BlogTag } from "@/types/blog/tags/blogTag";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
-import { Loader2, Save, List, Tag } from "lucide-react";
+import { Loader2, Save, Tag } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function EditTagPage() {
@@ -100,15 +99,6 @@ export default function EditTagPage() {
   if (isLoading) {
     return (
       <div className="space-y-6 pb-28 relative">
-        <PageHeader title="ویرایش تگ">
-          <Button 
-            variant="outline"
-            onClick={() => navigate("/blogs/tags")}
-          >
-            <List className="h-4 w-4" />
-            نمایش لیست
-          </Button>
-        </PageHeader>
 
         <CardWithIcon
           icon={Tag}
@@ -144,32 +134,20 @@ export default function EditTagPage() {
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="ویرایش تگ" />
-        <div className="text-center py-8">
-          <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
-          <Button 
-            onClick={() => navigate(-1)} 
-            className="mt-4"
-          >
-            بازگشت
-          </Button>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
+        <Button 
+          onClick={() => navigate(-1)} 
+          className="mt-4"
+        >
+          بازگشت
+        </Button>
       </div>
     );
   }
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <PageHeader title="ویرایش تگ">
-        <Button 
-          variant="outline"
-          onClick={() => navigate("/blogs/tags")}
-        >
-          <List className="h-4 w-4" />
-          نمایش لیست
-        </Button>
-      </PageHeader>
 
       <form id="blog-tag-edit-form" onSubmit={handleSubmit}>
         <CardWithIcon

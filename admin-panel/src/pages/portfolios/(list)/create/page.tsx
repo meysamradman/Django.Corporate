@@ -1,6 +1,5 @@
 import { useState, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/elements/Button";
@@ -8,8 +7,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/
 import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { 
-  FileText, Edit2, Image, 
-  Loader2, Save, Search, List, Settings
+  FileText, Image, 
+  Loader2, Save, Search, Settings
 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/portfolios";
@@ -214,24 +213,6 @@ export default function CreatePortfolioPage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <PageHeader title="ایجاد نمونه‌کار جدید">
-        <>
-          <Button 
-            variant="outline"
-            onClick={() => navigate("/portfolios")}
-          >
-            <List className="h-4 w-4" />
-            نمایش لیست
-          </Button>
-          {!editMode && (
-            <Button onClick={() => setEditMode(true)}>
-              <Edit2 />
-              ویرایش
-            </Button>
-          )}
-        </>
-      </PageHeader>
-
       <AdminTabsFormWrapper
         activeTab={activeTab}
         onTabChange={setActiveTab}

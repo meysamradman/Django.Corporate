@@ -1,13 +1,12 @@
 import { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
-import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Button } from "@/components/elements/Button";
 import {
-  FileText, Edit2, Image, Search,
-  Loader2, Save, List, MapPin, Home, Settings
+  FileText, Image, Search,
+  Loader2, Save, MapPin, Home, Settings
 } from "lucide-react";
 import type { Media } from "@/types/shared/media";
 import type { Property } from "@/types/real_estate/realEstate";
@@ -506,22 +505,6 @@ export default function EditPropertyPage() {
   if (isLoading) {
     return (
       <div className="space-y-6 pb-28 relative">
-        <PageHeader title="ویرایش ملک">
-          <>
-            <Button
-              variant="outline"
-              disabled
-              onClick={() => navigate("/real-estate/properties")}
-            >
-              <List className="h-4 w-4" />
-              نمایش لیست
-            </Button>
-            <Button disabled>
-              <Edit2 />
-              ویرایش
-            </Button>
-          </>
-        </PageHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList>
@@ -562,42 +545,14 @@ export default function EditPropertyPage() {
 
   if (!property) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="ویرایش ملک">
-          <Button
-            variant="outline"
-            onClick={() => navigate("/real-estate/properties")}
-          >
-            <List className="h-4 w-4" />
-            نمایش لیست
-          </Button>
-        </PageHeader>
-        <div className="text-center py-8">
-          <p className="text-destructive">ملک مورد نظر یافت نشد.</p>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-destructive">ملک مورد نظر یافت نشد.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <PageHeader title="ویرایش ملک">
-        <>
-          <Button
-            variant="outline"
-            onClick={() => navigate("/real-estate/properties")}
-          >
-            <List className="h-4 w-4" />
-            نمایش لیست
-          </Button>
-          {!editMode && (
-            <Button onClick={() => setEditMode(true)}>
-              <Edit2 />
-              ویرایش
-            </Button>
-          )}
-        </>
-      </PageHeader>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList>

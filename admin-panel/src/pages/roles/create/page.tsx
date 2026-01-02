@@ -1,6 +1,5 @@
 import { useState, useMemo, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useCreateRole, usePermissions, useBasePermissions, useUserPermissions } from "@/core/permissions";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Skeleton } from "@/components/elements/Skeleton";
@@ -10,7 +9,6 @@ import {
   ShieldCheck,
   Loader2,
   Save,
-  List,
 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { useForm } from "react-hook-form";
@@ -555,15 +553,6 @@ export default function CreateRolePage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <PageHeader title="ایجاد نقش جدید">
-        <Button 
-          variant="outline"
-          onClick={() => navigate("/roles")}
-        >
-          <List className="h-4 w-4" />
-          نمایش لیست
-        </Button>
-      </PageHeader>
 
       <div className="space-y-6">
         <CardWithIcon

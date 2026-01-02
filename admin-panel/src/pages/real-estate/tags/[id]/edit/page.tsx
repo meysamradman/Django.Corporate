@@ -1,6 +1,5 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -10,8 +9,8 @@ import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/co
 import { showError, showSuccess, showInfo } from "@/core/toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
-import type { PropertyTag } from "@/types/real_estate/tags/propertyTag";
-import { Hash, Loader2, Save, List } from "lucide-react";
+import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
+import { Hash, Loader2, Save } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
@@ -131,15 +130,6 @@ export default function EditPropertyTagPage() {
   if (isLoading) {
     return (
       <div className="space-y-6 pb-28 relative">
-        <PageHeader title="ویرایش تگ ملک">
-          <Button 
-            variant="outline"
-            onClick={() => navigate("/real-estate/tags")}
-          >
-            <List className="h-4 w-4" />
-            نمایش لیست
-          </Button>
-        </PageHeader>
 
         <CardWithIcon
           icon={Hash}
@@ -158,32 +148,20 @@ export default function EditPropertyTagPage() {
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="ویرایش تگ ملک" />
-        <div className="text-center py-8">
-          <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
-          <Button 
-            onClick={() => navigate(-1)} 
-            className="mt-4"
-          >
-            بازگشت
-          </Button>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
+        <Button 
+          onClick={() => navigate(-1)} 
+          className="mt-4"
+        >
+          بازگشت
+        </Button>
       </div>
     );
   }
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <PageHeader title="ویرایش تگ ملک">
-        <Button 
-          variant="outline"
-          onClick={() => navigate("/real-estate/tags")}
-        >
-          <List className="h-4 w-4" />
-          نمایش لیست
-        </Button>
-      </PageHeader>
 
       <form id="tag-edit-form" onSubmit={handleSubmit}>
         <CardWithIcon

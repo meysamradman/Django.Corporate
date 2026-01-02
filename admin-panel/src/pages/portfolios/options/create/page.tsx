@@ -1,6 +1,5 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -14,7 +13,7 @@ import { portfolioApi } from "@/api/portfolios/portfolios";
 import type { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
-import { Settings, Loader2, Save, List } from "lucide-react";
+import { Settings, Loader2, Save } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function CreateOptionPage() {
@@ -86,15 +85,6 @@ export default function CreateOptionPage() {
   if (isInitialLoading) {
     return (
       <div className="space-y-6 pb-28 relative">
-        <PageHeader title="ایجاد گزینه جدید">
-          <Button 
-            variant="outline"
-            onClick={() => navigate("/portfolios/options")}
-          >
-            <List className="h-4 w-4" />
-            نمایش لیست
-          </Button>
-        </PageHeader>
 
         <CardWithIcon
           icon={Settings}

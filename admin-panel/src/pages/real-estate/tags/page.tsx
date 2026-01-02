@@ -12,7 +12,7 @@ import { Plus } from "lucide-react";
 import { ProtectedButton } from "@/core/permissions";
 import { showError, showSuccess } from '@/core/toast';
 import { realEstateApi } from "@/api/real-estate";
-import type { PropertyTag } from "@/types/real_estate/tags/propertyTag";
+import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
 import type { ColumnDef } from "@tanstack/react-table";
 import { getCrud, getConfirm, getStatus } from '@/core/messages';
 import {

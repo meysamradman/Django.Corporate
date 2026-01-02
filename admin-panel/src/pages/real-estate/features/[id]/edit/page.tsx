@@ -1,6 +1,5 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -14,7 +13,7 @@ import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeat
 import type { Media } from "@/types/shared/media";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
-import { Settings, Loader2, Save, List, Star, Image as ImageIcon, UploadCloud, X } from "lucide-react";
+import { Settings, Loader2, Save, Star, Image as ImageIcon, UploadCloud, X } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function EditPropertyFeaturePage() {
@@ -122,15 +121,6 @@ export default function EditPropertyFeaturePage() {
   if (isLoading) {
     return (
       <div className="space-y-6 pb-28 relative">
-        <PageHeader title="ویرایش ویژگی ملک">
-          <Button 
-            variant="outline"
-            onClick={() => navigate("/real-estate/features")}
-          >
-            <List className="h-4 w-4" />
-            نمایش لیست
-          </Button>
-        </PageHeader>
 
         <CardWithIcon
           icon={Settings}
@@ -149,32 +139,20 @@ export default function EditPropertyFeaturePage() {
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="ویرایش ویژگی ملک" />
-        <div className="text-center py-8">
-          <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
-          <Button 
-            onClick={() => navigate(-1)} 
-            className="mt-4"
-          >
-            بازگشت
-          </Button>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
+        <Button 
+          onClick={() => navigate(-1)} 
+          className="mt-4"
+        >
+          بازگشت
+        </Button>
       </div>
     );
   }
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <PageHeader title="ویرایش ویژگی ملک">
-        <Button 
-          variant="outline"
-          onClick={() => navigate("/real-estate/features")}
-        >
-          <List className="h-4 w-4" />
-          نمایش لیست
-        </Button>
-      </PageHeader>
 
       <form id="feature-edit-form" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">

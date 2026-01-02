@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -10,10 +9,10 @@ import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/co
 import { showError, showSuccess } from "@/core/toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
-import type { PropertyTag } from "@/types/real_estate/tags/propertyTag";
+import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
-import { Hash, Loader2, Save, List } from "lucide-react";
+import { Hash, Loader2, Save } from "lucide-react";
 
 export default function CreatePropertyTagPage() {
   const navigate = useNavigate();
@@ -84,15 +83,6 @@ export default function CreatePropertyTagPage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <PageHeader title="ایجاد تگ ملک جدید">
-        <Button 
-          variant="outline"
-          onClick={() => navigate("/real-estate/tags")}
-        >
-          <List className="h-4 w-4" />
-          نمایش لیست
-        </Button>
-      </PageHeader>
 
       <form id="tag-create-form" onSubmit={handleSubmit}>
         <CardWithIcon

@@ -1,12 +1,11 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/elements/Button";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Badge } from "@/components/elements/Badge";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate";
-import { Hash, Edit2, List, Calendar } from "lucide-react";
+import { Hash, Edit2, Calendar } from "lucide-react";
+import { FloatingActions } from "@/components/elements/FloatingActions";
 import { formatDate } from "@/core/utils/format";
 
 export default function PropertyTagViewPage() {
@@ -23,11 +22,8 @@ export default function PropertyTagViewPage() {
 
   if (!tagId) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="نمایش تگ ملک" />
-        <div className="text-center py-8">
-          <p className="text-destructive">شناسه تگ ملک یافت نشد</p>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-destructive">شناسه تگ ملک یافت نشد</p>
       </div>
     );
   }
@@ -35,12 +31,6 @@ export default function PropertyTagViewPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="اطلاعات تگ ملک">
-          <Button disabled>
-            <Edit2 />
-            ویرایش تگ ملک
-          </Button>
-        </PageHeader>
         <CardWithIcon
           icon={Hash}
           title="اطلاعات تگ ملک"
@@ -58,12 +48,9 @@ export default function PropertyTagViewPage() {
 
   if (error || !tag) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="نمایش تگ ملک" />
-        <div className="rounded-lg border p-6">
-          <div className="text-center py-8">
-            <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات تگ ملک</p>
-          </div>
+      <div className="rounded-lg border p-6">
+        <div className="text-center py-8">
+          <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات تگ ملک</p>
         </div>
       </div>
     );
@@ -71,23 +58,19 @@ export default function PropertyTagViewPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="اطلاعات تگ ملک">
-        <>
-          <Button
-            variant="outline"
-            onClick={() => navigate("/real-estate/tags")}
-          >
-            <List className="h-4 w-4" />
-            نمایش لیست
-          </Button>
-          <Button
-            onClick={() => navigate(`/real-estate/tags/${tag.id}/edit`)}
-          >
-            <Edit2 className="h-4 w-4" />
-            ویرایش تگ ملک
-          </Button>
-        </>
-      </PageHeader>
+
+      <FloatingActions
+        actions={[
+          {
+            icon: Edit2,
+            label: "ویرایش تگ ملک",
+            variant: "default",
+            permission: "real_estate.tag.update",
+            onClick: () => navigate(`/real-estate/tags/${tag.id}/edit`),
+          },
+        ]}
+        position="left"
+      />
 
       <CardWithIcon
         icon={Hash}

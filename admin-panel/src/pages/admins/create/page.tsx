@@ -1,6 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -16,7 +15,7 @@ import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Loader2, Save, User, UserCircle, ShieldCheck, List, Building2 } from "lucide-react";
+import { Loader2, Save, User, UserCircle, ShieldCheck, Building2 } from "lucide-react";
 import type { Media } from "@/types/shared/media";
 
 const TabSkeleton = () => (
@@ -212,15 +211,6 @@ export default function CreateAdminPage() {
 
     return (
         <div className="space-y-6 pb-28 relative">
-            <PageHeader title="ایجاد ادمین جدید">
-                <Button 
-                    variant="outline"
-                    onClick={() => navigate("/admins")}
-                >
-                    <List className="h-4 w-4" />
-                    نمایش لیست
-                </Button>
-            </PageHeader>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList>

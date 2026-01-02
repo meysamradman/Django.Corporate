@@ -1,6 +1,5 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -14,7 +13,7 @@ import { blogApi } from "@/api/blogs/blogs";
 import type { BlogTag } from "@/types/blog/tags/blogTag";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
-import { Tag, Loader2, Save, List } from "lucide-react";
+import { Tag, Loader2, Save } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function CreateTagPage() {
@@ -93,15 +92,6 @@ export default function CreateTagPage() {
   if (isInitialLoading) {
     return (
       <div className="space-y-6 pb-28 relative">
-        <PageHeader title="ایجاد تگ جدید">
-          <Button 
-            variant="outline"
-            onClick={() => navigate("/blogs/tags")}
-          >
-            <List className="h-4 w-4" />
-            نمایش لیست
-          </Button>
-        </PageHeader>
 
         <CardWithIcon
           icon={Tag}
@@ -137,15 +127,6 @@ export default function CreateTagPage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <PageHeader title="ایجاد تگ جدید">
-        <Button 
-          variant="outline"
-          onClick={() => navigate("/blogs/tags")}
-        >
-          <List className="h-4 w-4" />
-          نمایش لیست
-        </Button>
-      </PageHeader>
 
       <form id="tag-form" onSubmit={handleSubmit}>
         <CardWithIcon

@@ -1,13 +1,12 @@
 import { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
-import { Button } from "@/components/elements/Button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Button } from "@/components/elements/Button";
 import {
   FileText, Image, Search,
-  Loader2, Save, List, MapPin, Home, Settings, FileJson
+  Loader2, Save, MapPin, Home, Settings, FileJson
 } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
@@ -619,15 +618,6 @@ export default function PropertyCreatePage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <PageHeader title={isEditMode ? "ویرایش ملک" : "ایجاد ملک جدید"}>
-        <Button
-          variant="outline"
-          onClick={() => navigate("/real-estate/properties")}
-        >
-          <List className="h-4 w-4" />
-          نمایش لیست
-        </Button>
-      </PageHeader>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList>

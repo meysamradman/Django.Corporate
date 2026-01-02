@@ -1,12 +1,11 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/elements/Button";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Badge } from "@/components/elements/Badge";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate";
-import { Settings, Edit2, List, Calendar } from "lucide-react";
+import { Settings, Edit2, Calendar } from "lucide-react";
+import { FloatingActions } from "@/components/elements/FloatingActions";
 import { formatDate } from "@/core/utils/format";
 
 export default function PropertyFeatureViewPage() {
@@ -23,11 +22,8 @@ export default function PropertyFeatureViewPage() {
 
   if (!featureId) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="نمایش ویژگی ملک" />
-        <div className="text-center py-8">
-          <p className="text-destructive">شناسه ویژگی ملک یافت نشد</p>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-destructive">شناسه ویژگی ملک یافت نشد</p>
       </div>
     );
   }
@@ -35,12 +31,6 @@ export default function PropertyFeatureViewPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="اطلاعات ویژگی ملک">
-          <Button disabled>
-            <Edit2 />
-            ویرایش ویژگی ملک
-          </Button>
-        </PageHeader>
         <CardWithIcon
           icon={Settings}
           title="اطلاعات ویژگی ملک"
@@ -58,12 +48,9 @@ export default function PropertyFeatureViewPage() {
 
   if (error || !feature) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="نمایش ویژگی ملک" />
-        <div className="rounded-lg border p-6">
-          <div className="text-center py-8">
-            <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات ویژگی ملک</p>
-          </div>
+      <div className="rounded-lg border p-6">
+        <div className="text-center py-8">
+          <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات ویژگی ملک</p>
         </div>
       </div>
     );
@@ -71,23 +58,19 @@ export default function PropertyFeatureViewPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="اطلاعات ویژگی ملک">
-        <>
-          <Button
-            variant="outline"
-            onClick={() => navigate("/real-estate/features")}
-          >
-            <List className="h-4 w-4" />
-            نمایش لیست
-          </Button>
-          <Button
-            onClick={() => navigate(`/real-estate/features/${feature.id}/edit`)}
-          >
-            <Edit2 className="h-4 w-4" />
-            ویرایش ویژگی ملک
-          </Button>
-        </>
-      </PageHeader>
+
+      <FloatingActions
+        actions={[
+          {
+            icon: Edit2,
+            label: "ویرایش ویژگی ملک",
+            variant: "default",
+            permission: "real_estate.feature.update",
+            onClick: () => navigate(`/real-estate/features/${feature.id}/edit`),
+          },
+        ]}
+        position="left"
+      />
 
       <CardWithIcon
         icon={Settings}

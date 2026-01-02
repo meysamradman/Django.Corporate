@@ -1,6 +1,5 @@
 import { useState, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -195,14 +194,6 @@ export default function AdminsAgenciesCreatePage() {
 
     return (
         <div className="space-y-6">
-            <PageHeader title="ایجاد آژانس جدید" description="افزودن آژانس املاک جدید به سیستم">
-                <Button
-                    variant="outline"
-                    onClick={() => navigate("/admins/agencies")}
-                >
-                    نمایش لیست
-                </Button>
-            </PageHeader>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList>

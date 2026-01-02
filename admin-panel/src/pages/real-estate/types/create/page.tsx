@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -18,7 +17,7 @@ import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
-import { Loader2, Save, List, FolderTree, Image as ImageIcon, UploadCloud, X } from "lucide-react";
+import { Loader2, Save, FolderTree, Image as ImageIcon, UploadCloud, X } from "lucide-react";
 
 export default function CreatePropertyTypePage() {
   const navigate = useNavigate();
@@ -125,15 +124,6 @@ export default function CreatePropertyTypePage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <PageHeader title="ایجاد نوع ملک جدید">
-        <Button
-          variant="outline"
-          onClick={() => navigate("/real-estate/types")}
-        >
-          <List className="h-4 w-4" />
-          نمایش لیست
-        </Button>
-      </PageHeader>
 
       <form id="type-create-form" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">

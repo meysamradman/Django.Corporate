@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, lazy, type ElementType } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PageHeader } from '@/components/layout/PageHeader/PageHeader';
 import { MessageSquare, Image, Music, FileText, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/Card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/elements/Tabs';
@@ -189,7 +188,6 @@ export default function AIModelsPage() {
 
     return (
         <div className="space-y-6" suppressHydrationWarning>
-            <PageHeader title="انتخاب و مدیریت مدل‌های AI" />
 
             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as Capability)} suppressHydrationWarning>
                 <TabsList className="grid w-full grid-cols-4">

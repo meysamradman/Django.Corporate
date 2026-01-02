@@ -1,6 +1,5 @@
 import { lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { Button } from "@/components/elements/Button";
@@ -43,11 +42,8 @@ export default function EditUserPage() {
 
   if (!userId) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="ویرایش کاربر" />
-        <div className="text-center py-8">
-          <p className="text-destructive">شناسه کاربر یافت نشد</p>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-destructive">شناسه کاربر یافت نشد</p>
       </div>
     );
   }
@@ -55,7 +51,6 @@ export default function EditUserPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="ویرایش کاربر" />
         <EditFormSkeleton />
       </div>
     );
@@ -68,21 +63,17 @@ export default function EditUserPage() {
     }
 
     return (
-      <div className="space-y-6">
-        <PageHeader title="ویرایش کاربر" />
-        <div className="text-center py-8">
-          <p className="text-destructive">{errorMessage}</p>
-          <Button onClick={() => navigate(-1)} className="mt-4">
-            بازگشت
-          </Button>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-destructive">{errorMessage}</p>
+        <Button onClick={() => navigate(-1)} className="mt-4">
+          بازگشت
+        </Button>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title="ویرایش کاربر" />
       <Suspense fallback={<EditFormSkeleton />}>
         <EditUserForm userData={userData as any} />
       </Suspense>

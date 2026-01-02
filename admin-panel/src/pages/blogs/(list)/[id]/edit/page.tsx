@@ -4,8 +4,8 @@ import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { 
-  FileText, Edit2, Image, Search,
-  Loader2, Save, List, Settings
+  FileText, Image, Search,
+  Loader2, Save, Settings
 } from "lucide-react";
 import type { Media } from "@/types/shared/media";
 import type { Blog } from "@/types/blog/blog";
@@ -327,25 +327,6 @@ export default function EditBlogPage() {
   if (isLoading) {
     return (
       <div className="space-y-6 pb-28 relative">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="page-title">ویرایش وبلاگ</h1>
-          </div>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline"
-              disabled
-              onClick={() => navigate("/blogs")}
-            >
-              <List className="h-4 w-4" />
-              نمایش لیست
-            </Button>
-            <Button disabled>
-              <Edit2 />
-              ویرایش
-            </Button>
-          </div>
-        </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList>
@@ -433,39 +414,14 @@ export default function EditBlogPage() {
 
   if (!blog) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="page-title">ویرایش وبلاگ</h1>
-        </div>
-        <div className="text-center py-8">
-          <p className="text-destructive">وبلاگ مورد نظر یافت نشد.</p>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-destructive">وبلاگ مورد نظر یافت نشد.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="page-title">ویرایش وبلاگ</h1>
-        </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline"
-            onClick={() => navigate("/blogs")}
-          >
-            <List className="h-4 w-4" />
-            نمایش لیست
-          </Button>
-          {!editMode && (
-            <Button onClick={() => setEditMode(true)}>
-              <Edit2 />
-              ویرایش
-            </Button>
-          )}
-        </div>
-      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList>

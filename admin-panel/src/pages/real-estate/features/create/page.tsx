@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -14,7 +13,7 @@ import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeat
 import type { Media } from "@/types/shared/media";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
-import { Star, Loader2, Save, List, Image as ImageIcon, UploadCloud, X } from "lucide-react";
+import { Star, Loader2, Save, Image as ImageIcon, UploadCloud, X } from "lucide-react";
 
 export default function CreatePropertyFeaturePage() {
   const navigate = useNavigate();
@@ -80,15 +79,6 @@ export default function CreatePropertyFeaturePage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-      <PageHeader title="ایجاد ویژگی ملک جدید">
-        <Button 
-          variant="outline"
-          onClick={() => navigate("/real-estate/features")}
-        >
-          <List className="h-4 w-4" />
-          نمایش لیست
-        </Button>
-      </PageHeader>
 
       <form id="feature-create-form" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">

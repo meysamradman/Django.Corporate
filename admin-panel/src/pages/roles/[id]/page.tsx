@@ -1,12 +1,10 @@
 import { useMemo } from "react";
-import { useNavigate, Link, useParams } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
+import { useNavigate, useParams } from "react-router-dom";
 import { useRole, useBasePermissions, usePermissions, usePermissionMap } from "@/core/permissions";
-import { Button } from "@/components/elements/Button";
+import { FloatingActions } from "@/components/elements/FloatingActions";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Badge } from "@/components/elements/Badge";
 import { 
-  ArrowLeft, 
   Edit, 
   Shield, 
   ShieldCheck, 
@@ -51,23 +49,6 @@ export default function RoleDetailPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="اطلاعات نقش">
-          <>
-            <Button
-              variant="outline"
-              onClick={() => navigate(-1)}
-              disabled
-            >
-              <ArrowLeft className="h-4 w-4" />
-              بازگشت
-            </Button>
-            <Button disabled>
-              <Edit className="h-4 w-4" />
-              ویرایش نقش
-            </Button>
-          </>
-        </PageHeader>
-        
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-2">
             <Skeleton className="h-96 w-full rounded-xl" />
@@ -83,19 +64,8 @@ export default function RoleDetailPage() {
 
   if (error || !role) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
-            <ArrowLeft />
-            بازگشت
-          </Button>
-        </div>
-        <div className="text-center py-8">
-          <p className="text-red-1">نقش مورد نظر یافت نشد</p>
-          <Button onClick={() => navigate(-1)} className="mt-4">
-            بازگشت به لیست
-          </Button>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-red-1">نقش مورد نظر یافت نشد</p>
       </div>
     );
   }
@@ -150,23 +120,19 @@ export default function RoleDetailPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="اطلاعات نقش">
-        <>
-          <Button
-            variant="outline"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft className="h-4 w-4" />
-            بازگشت
-          </Button>
-          <Link to={`/roles/${roleId}/edit`}>
-            <Button>
-              <Edit className="h-4 w-4" />
-              ویرایش نقش
-            </Button>
-          </Link>
-        </>
-      </PageHeader>
+
+      <FloatingActions
+        actions={[
+          {
+            icon: Edit,
+            label: "ویرایش نقش",
+            variant: "default",
+            permission: "admin.update",
+            onClick: () => navigate(`/roles/${roleId}/edit`),
+          },
+        ]}
+        position="left"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
         <div className="lg:col-span-2">

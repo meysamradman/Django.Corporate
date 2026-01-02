@@ -1,14 +1,13 @@
 import { useState, lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { Button } from "@/components/elements/Button";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { FileText, Image, Search, Edit2, FileDown } from "lucide-react";
 import { showError, showSuccess } from '@/core/toast';
 import { blogApi } from "@/api/blogs/blogs";
 import { BlogSidebar } from "@/components/blogs/list/view/BlogSidebar";
+import { FloatingActions } from "@/components/elements/FloatingActions";
 
 const TabSkeleton = () => (
   <div className="mt-6 space-y-4">
@@ -58,11 +57,8 @@ export default function BlogViewPage() {
 
   if (!blogId) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="نمایش وبلاگ" />
-        <div className="text-center py-8">
-          <p className="text-destructive">شناسه وبلاگ یافت نشد</p>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-destructive">شناسه وبلاگ یافت نشد</p>
       </div>
     );
   }
@@ -70,18 +66,6 @@ export default function BlogViewPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="اطلاعات وبلاگ">
-          <>
-            <Button variant="outline" disabled>
-              <FileDown className="h-4 w-4" />
-              خروجی PDF
-            </Button>
-            <Button disabled>
-              <Edit2 />
-              ویرایش وبلاگ
-            </Button>
-          </>
-        </PageHeader>
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-2">
             <div className="rounded-lg border p-6 space-y-4">
@@ -117,15 +101,12 @@ export default function BlogViewPage() {
 
   if (error || !blogData) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="نمایش وبلاگ" />
-        <div className="rounded-lg border p-6">
-          <div className="text-center py-8">
-            <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات وبلاگ</p>
-            <p className="text-font-s">
-              لطفاً دوباره تلاش کنید یا با مدیر سیستم تماس بگیرید.
-            </p>
-          </div>
+      <div className="rounded-lg border p-6">
+        <div className="text-center py-8">
+          <p className="text-red-1 mb-4">خطا در بارگذاری اطلاعات وبلاگ</p>
+          <p className="text-font-s">
+            لطفاً دوباره تلاش کنید یا با مدیر سیستم تماس بگیرید.
+          </p>
         </div>
       </div>
     );
@@ -133,30 +114,32 @@ export default function BlogViewPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="اطلاعات وبلاگ">
-        <>
-          <Button
-            variant="outline"
-            onClick={async () => {
+
+      <FloatingActions
+        actions={[
+          {
+            icon: FileDown,
+            label: "خروجی PDF",
+            variant: "outline",
+            onClick: async () => {
               try {
                 await blogApi.exportBlogPdf(Number(blogId));
                 showSuccess("فایل PDF با موفقیت دانلود شد");
               } catch (error) {
                 showError("خطا در دانلود فایل PDF");
               }
-            }}
-          >
-            <FileDown className="h-4 w-4" />
-            خروجی PDF
-          </Button>
-          <Button
-            onClick={() => navigate(`/blogs/${blogId}/edit`)}
-          >
-            <Edit2 />
-            ویرایش وبلاگ
-          </Button>
-        </>
-      </PageHeader>
+            },
+          },
+          {
+            icon: Edit2,
+            label: "ویرایش وبلاگ",
+            variant: "default",
+            permission: "blog.update",
+            onClick: () => navigate(`/blogs/${blogId}/edit`),
+          },
+        ]}
+        position="left"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
         <div className="lg:col-span-2">
