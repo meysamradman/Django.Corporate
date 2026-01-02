@@ -43,7 +43,7 @@ export function ExtraAttributesInfoTab({ portfolio }: ExtraAttributesInfoTabProp
           {Object.entries(extraAttributes).map(([key, value]) => (
             <div
               key={key}
-              className="flex items-start gap-3 p-4 border border-br bg-card-hover"
+              className="flex items-start gap-3 p-4 border border-br bg-bg"
             >
               <div className="flex-1 min-w-0">
                 <div className="text-font-s text-font-s mb-1">
@@ -62,8 +62,8 @@ export function ExtraAttributesInfoTab({ portfolio }: ExtraAttributesInfoTabProp
       <CardWithIcon
         icon={Settings}
         title="خلاصه تمام ویژگی‌ها"
-        iconBgColor="bg-gray-1"
-        iconColor="stroke-wt"
+        iconBgColor="bg-gray"
+        iconColor="stroke-gray-2"
         borderColor="border-b-gray-1"
       >
         <div className="flex flex-wrap gap-2">

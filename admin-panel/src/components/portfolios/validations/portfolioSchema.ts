@@ -104,6 +104,11 @@ export const portfolioFormSchema = z.object({
     .default(false)
     .optional(),
   
+  status: z
+    .enum(["draft", "published"])
+    .default("draft")
+    .optional(),
+  
   extra_attributes: z
     .record(z.any())
     .optional()
@@ -131,5 +136,6 @@ export const portfolioFormDefaults: Partial<PortfolioFormValues> = {
   is_public: true,
   is_active: true,
   is_featured: false,
+  status: "draft",
   extra_attributes: {},
 };

@@ -120,6 +120,8 @@ export default function EditPortfolioPage() {
     extra_attributes: {} as Record<string, any>,
     is_public: true,
     is_active: true,
+    is_featured: false,
+    status: "draft" as "draft" | "published",
   });
   
   const [selectedCategories, setSelectedCategories] = useState<PortfolioCategory[]>([]);
@@ -154,6 +156,8 @@ export default function EditPortfolioPage() {
         extra_attributes: portfolioData.extra_attributes || {},
         is_public: portfolioData.is_public ?? true,
         is_active: portfolioData.is_active ?? true,
+        is_featured: portfolioData.is_featured ?? false,
+        status: portfolioData.status || "draft",
       });
       
       if (portfolioData.categories) {
@@ -285,9 +289,10 @@ export default function EditPortfolioPage() {
         canonical_url: formData.canonical_url || undefined,
         robots_meta: formData.robots_meta || undefined,
         extra_attributes: formData.extra_attributes || {},
-        status: "published",
+        status: formData.status || "published",
         is_public: formData.is_public,
         is_active: formData.is_active,
+        is_featured: formData.is_featured,
       };
       
       await portfolioApi.updatePortfolio(portfolio.id, updateData);

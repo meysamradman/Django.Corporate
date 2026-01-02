@@ -9,7 +9,8 @@ import {
     Home,
     BedDouble,
     Bath,
-    Maximize
+    Maximize,
+    Globe
 } from "lucide-react";
 import { TruncatedText } from "@/components/elements/TruncatedText";
 
@@ -29,23 +30,21 @@ export function PropertyBasicInfo({ property }: PropertyBasicInfoProps) {
             <CardContent className="pt-0 pb-0">
                 {/* Status Cards */}
                 <div className="pb-6 border-b">
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-4 gap-3">
                     <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
-                        property.is_published ? "bg-green" : "bg-yellow"
+                        property.is_public ? "bg-blue" : "bg-gray"
                     }`}>
                         <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
-                            property.is_published ? "bg-green-0" : "bg-yellow-0"
+                            property.is_public ? "bg-blue-0" : "bg-gray-0"
                         }`}>
-                            {property.is_published ? (
-                                <CheckCircle2 className="w-4 h-4 stroke-green-2" />
-                            ) : (
-                                <XCircle className="w-4 h-4 stroke-yellow-2" />
-                            )}
+                            <Globe className={`w-4 h-4 ${
+                                property.is_public ? "stroke-blue-2" : "stroke-gray-1"
+                            }`} />
                         </div>
                         <span className={`text-sm font-medium ${
-                            property.is_published ? "text-green-2" : "text-yellow-2"
+                            property.is_public ? "text-blue-2" : "text-gray-1"
                         }`}>
-                            {property.is_published ? "منتشر شده" : "پیش‌نویس"}
+                            {property.is_public ? "عمومی" : "غیرعمومی"}
                         </span>
                     </div>
 
@@ -80,6 +79,25 @@ export function PropertyBasicInfo({ property }: PropertyBasicInfoProps) {
                             property.is_featured ? "text-orange-2" : "text-gray-1"
                         }`}>
                             {property.is_featured ? "ویژه" : "عادی"}
+                        </span>
+                    </div>
+
+                    <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
+                        property.is_published ? "bg-green" : "bg-yellow"
+                    }`}>
+                        <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
+                            property.is_published ? "bg-green-0" : "bg-yellow-0"
+                        }`}>
+                            {property.is_published ? (
+                                <CheckCircle2 className="w-4 h-4 stroke-green-2" />
+                            ) : (
+                                <XCircle className="w-4 h-4 stroke-yellow-2" />
+                            )}
+                        </div>
+                        <span className={`text-sm font-medium ${
+                            property.is_published ? "text-green-2" : "text-yellow-2"
+                        }`}>
+                            {property.is_published ? "منتشر شده" : "پیش‌نویس"}
                         </span>
                     </div>
                     </div>

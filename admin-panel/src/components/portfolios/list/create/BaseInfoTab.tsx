@@ -651,6 +651,24 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             </ItemActions>
                                         </Item>
                                     </div>
+                                    
+                                    <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                                        <Item variant="default" size="default" className="py-5">
+                                            <ItemContent>
+                                                <ItemTitle className="text-green-2">منتشر شده</ItemTitle>
+                                                <ItemDescription>
+                                                    نمونه‌کار منتشر شده برای عموم قابل مشاهده است.
+                                                </ItemDescription>
+                                            </ItemContent>
+                                            <ItemActions>
+                                                <Switch
+                                                    checked={(formData?.status === "published")}
+                                                    disabled={!editMode}
+                                                    onCheckedChange={(checked) => handleInputChange?.("status", checked ? "published" : "draft")}
+                                                />
+                                            </ItemActions>
+                                        </Item>
+                                    </div>
                                 </div>
                             )}
 
@@ -705,6 +723,24 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                                     checked={(watch?.("is_featured" as any) ?? false) as boolean}
                                                     disabled={!editMode}
                                                     onCheckedChange={(checked) => setValue?.("is_featured" as any, checked)}
+                                                />
+                                            </ItemActions>
+                                        </Item>
+                                    </div>
+                                    
+                                    <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                                        <Item variant="default" size="default" className="py-5">
+                                            <ItemContent>
+                                                <ItemTitle className="text-green-2">منتشر شده</ItemTitle>
+                                                <ItemDescription>
+                                                    نمونه‌کار منتشر شده برای عموم قابل مشاهده است.
+                                                </ItemDescription>
+                                            </ItemContent>
+                                            <ItemActions>
+                                                <Switch
+                                                    checked={(watch?.("status" as any) === "published")}
+                                                    disabled={!editMode}
+                                                    onCheckedChange={(checked) => setValue?.("status" as any, checked ? "published" : "draft")}
                                                 />
                                             </ItemActions>
                                         </Item>

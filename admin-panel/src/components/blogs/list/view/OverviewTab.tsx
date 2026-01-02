@@ -6,9 +6,6 @@ import { ReadMore } from "@/components/elements/ReadMore";
 import {
   FolderOpen,
   Tag,
-  Image as ImageIcon,
-  Video,
-  Music,
   FileText,
 } from "lucide-react";
 
@@ -17,20 +14,6 @@ interface OverviewTabProps {
 }
 
 export function OverviewTab({ blog }: OverviewTabProps) {
-  const allMedia = blog.blog_media || [];
-  const imagesCount = allMedia.filter(
-    (item: any) => (item.media_detail || item.media)?.media_type === "image"
-  ).length;
-  const videosCount = allMedia.filter(
-    (item: any) => (item.media_detail || item.media)?.media_type === "video"
-  ).length;
-  const audiosCount = allMedia.filter(
-    (item: any) => (item.media_detail || item.media)?.media_type === "audio"
-  ).length;
-  const documentsCount = allMedia.filter(
-    (item: any) => (item.media_detail || item.media)?.media_type === "document"
-  ).length;
-
   const categoriesCount = blog.categories?.length || 0;
   const tagsCount = blog.tags?.length || 0;
 
@@ -107,39 +90,6 @@ export function OverviewTab({ blog }: OverviewTabProps) {
                 تگی انتخاب نشده است
               </p>
             )}
-        </CardWithIcon>
-
-        <CardWithIcon
-          icon={ImageIcon}
-          title="مدیا"
-          iconBgColor="bg-blue"
-          iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
-          headerClassName="pb-3"
-          titleExtra={<Badge variant="blue">{blog.media_count || 0} مورد</Badge>}
-          className="md:col-span-2"
-        >
-            <p className="text-font-s mb-4">
-              تعداد کل رسانه‌های آپلود شده
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex items-center gap-2 p-2 bg-blue rounded">
-                <ImageIcon className="w-4 h-4 stroke-blue-2" />
-                <span>{imagesCount} تصویر</span>
-              </div>
-              <div className="flex items-center gap-2 p-2 bg-purple rounded">
-                <Video className="w-4 h-4 stroke-purple-2" />
-                <span>{videosCount} ویدیو</span>
-              </div>
-              <div className="flex items-center gap-2 p-2 bg-pink rounded">
-                <Music className="w-4 h-4 stroke-pink-2" />
-                <span>{audiosCount} صدا</span>
-              </div>
-              <div className="flex items-center gap-2 p-2 bg-gray rounded">
-                <FileText className="w-4 h-4 stroke-gray-2" />
-                <span>{documentsCount} سند</span>
-              </div>
-            </div>
         </CardWithIcon>
 
       </div>
