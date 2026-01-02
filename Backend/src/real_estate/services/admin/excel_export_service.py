@@ -44,7 +44,6 @@ class PropertyExcelExportService:
             'Published',
             'Featured',
             'Public',
-            'Verified',
             'Active',
             'Agent',
             'Agency',
@@ -94,9 +93,8 @@ class PropertyExcelExportService:
             worksheet.write(row_num, 14, "Yes" if property_obj.is_published else "No", data_format)
             worksheet.write(row_num, 15, "Yes" if property_obj.is_featured else "No", data_format)
             worksheet.write(row_num, 16, "Yes" if property_obj.is_public else "No", data_format)
-            worksheet.write(row_num, 17, "Yes" if property_obj.is_verified else "No", data_format)
-            worksheet.write(row_num, 18, "Yes" if property_obj.is_active else "No", data_format)
-            worksheet.write(row_num, 19, property_obj.agent.full_name if property_obj.agent else "", data_format)
+            worksheet.write(row_num, 17, "Yes" if property_obj.is_active else "No", data_format)
+            worksheet.write(row_num, 18, property_obj.agent.full_name if property_obj.agent else "", data_format)
             worksheet.write(row_num, 20, property_obj.agency.name if property_obj.agency else "", data_format)
             
             # Convert timezone-aware datetime to naive for xlsxwriter

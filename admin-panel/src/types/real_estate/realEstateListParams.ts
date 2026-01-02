@@ -8,7 +8,6 @@ export interface PropertyListParams {
   is_published?: string | boolean;
   is_featured?: string | boolean;
   is_public?: string | boolean;
-  is_verified?: string | boolean;
   is_active?: string | boolean;
   
   created_after?: string;
@@ -55,7 +54,6 @@ export interface PropertyFilters {
   is_published?: boolean;
   is_featured?: boolean;
   is_public?: boolean;
-  is_verified?: boolean;
   is_active?: boolean;
   property_type?: number | string;
   state?: number | string;

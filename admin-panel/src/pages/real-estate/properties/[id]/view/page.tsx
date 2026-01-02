@@ -5,15 +5,17 @@ import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/components/admins/permissions";
-import { FileText, Image, Search, Edit2, FileDown } from "lucide-react";
+import { FileText, Image, Search, Edit2, FileDown, Settings } from "lucide-react";
 import { showError, showSuccess } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate";
-import { PropertySidebar } from "@/components/real-estate/list/view/PropertySidebar";
+import { RealtorCard } from "@/components/real-estate/list/view/RealtorCard";
 import { PropertyImageGallery } from "@/components/real-estate/list/view/PropertyImageGallery";
+import { PropertyBasicInfo } from "@/components/real-estate/list/view/PropertyBasicInfo";
 import { OverviewTab } from "@/components/real-estate/list/view/OverviewTab";
 import { MediaInfoTab } from "@/components/real-estate/list/view/MediaInfoTab";
 import { SEOInfoTab } from "@/components/real-estate/list/view/SEOInfoTab";
+import { ExtraAttributesInfoTab } from "@/components/real-estate/list/view/ExtraAttributesInfoTab";
 
 export default function PropertyViewPage() {
   const params = useParams();
@@ -115,12 +117,26 @@ export default function PropertyViewPage() {
         </>
       </PageHeader>
 
-      {/* گالری تصاویر حرفه‌ای */}
-      <PropertyImageGallery property={propertyData} />
+      {/* Top Section: Carousel + Basic Info */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">
+        {/* Right Side: Carousel (Gallery) - Takes more space */}
+        <div className="lg:col-span-7 xl:col-span-8 h-full">
+          <PropertyImageGallery property={propertyData} className="h-full" />
+        </div>
 
+        {/* Left Side: Basic Info Sidebar - Takes less space */}
+        <div className="lg:col-span-5 xl:col-span-4 h-full">
+          <PropertyBasicInfo property={propertyData} />
+        </div>
+      </div>
+
+      {/* Bottom Section: Existing Sidebar + Tabs - Preserved as requested */}
       <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
         <div className="lg:col-span-2">
-          <PropertySidebar property={propertyData} />
+          {/* User specifically asked not to touch "tab and its sidebar", defaulting to keeping it. 
+              The top sidebar has initial info, this might have more details. */}
+          {/* Realtor Card - Displays Agent or Admin info */}
+          <RealtorCard property={propertyData} />
         </div>
 
         <div className="lg:col-span-4">
@@ -138,15 +154,19 @@ export default function PropertyViewPage() {
                 <Search className="h-4 w-4" />
                 سئو
               </TabsTrigger>
+              <TabsTrigger value="advanced">
+                <Settings className="h-4 w-4" />
+                فیلدهای اضافی
+              </TabsTrigger>
             </TabsList>
 
             <OverviewTab property={propertyData} />
             <MediaInfoTab property={propertyData} />
             <SEOInfoTab property={propertyData} />
+            <ExtraAttributesInfoTab property={propertyData} />
           </Tabs>
         </div>
       </div>
     </div>
   );
 }
-

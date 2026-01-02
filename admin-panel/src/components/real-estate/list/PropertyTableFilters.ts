@@ -34,14 +34,6 @@ export const getPropertyFilterConfig = (
     showSearch: false,
   },
   {
-    columnId: "is_verified",
-    title: "تایید شده",
-    type: "faceted",
-    options: booleanFilterOptions,
-    placeholder: "تایید شده",
-    showSearch: false,
-  },
-  {
     columnId: "is_active",
     title: "فعال",
     type: "faceted",

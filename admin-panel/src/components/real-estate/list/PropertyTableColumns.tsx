@@ -111,40 +111,6 @@ export const usePropertyColumns = (
       minSize: 120,
     },
     {
-      accessorKey: "labels",
-      header: () => <div className="table-header-text">برچسب‌ها</div>,
-      cell: ({ row }) => {
-        const property = row.original;
-        const labels = property.labels || [];
-        
-        if (labels.length === 0) {
-          return (
-            <div className="table-cell-secondary">
-              بدون برچسب
-            </div>
-          );
-        }
-        
-        return (
-          <div className="flex flex-wrap gap-1">
-            {labels.slice(0, 2).map((label) => (
-              <Badge key={label.id} variant="purple" className="text-xs" title={label.title}>
-                {label.title.length > 15 ? `${label.title.substring(0, 15)}...` : label.title}
-              </Badge>
-            ))}
-            {labels.length > 2 && (
-              <Badge variant="purple" className="text-xs">
-                +{labels.length - 2}
-              </Badge>
-            )}
-          </div>
-        );
-      },
-      enableSorting: false,
-      enableHiding: true,
-      minSize: 150,
-    },
-    {
       accessorKey: "state",
       header: () => <div className="table-header-text">وضعیت</div>,
       cell: ({ row }) => {
@@ -201,13 +167,13 @@ export const usePropertyColumns = (
     },
     {
       accessorKey: "is_published",
-      header: () => <div className="table-header-text">منتشر شده</div>,
+      header: () => <div className="table-header-text">انتشار</div>,
       cell: ({ row }) => (
         <div className="table-badge-container">
           {row.original.is_published ? (
-            <Badge variant="green">بله</Badge>
+            <Badge variant="green">منتشر شده</Badge>
           ) : (
-            <Badge variant="yellow">خیر</Badge>
+            <Badge variant="yellow">پیش‌نویس</Badge>
           )}
         </div>
       ),
@@ -230,22 +196,6 @@ export const usePropertyColumns = (
       enableSorting: true,
       enableHiding: true,
       minSize: 100,
-    },
-    {
-      accessorKey: "is_verified",
-      header: () => <div className="table-header-text">تایید شده</div>,
-      cell: ({ row }) => (
-        <div className="table-badge-container">
-          {row.original.is_verified ? (
-            <Badge variant="green">بله</Badge>
-          ) : (
-            <Badge variant="gray">خیر</Badge>
-          )}
-        </div>
-      ),
-      enableSorting: true,
-      enableHiding: true,
-      minSize: 120,
     },
     {
       accessorKey: "created_at",

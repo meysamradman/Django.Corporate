@@ -16,10 +16,6 @@ class PropertyAdminFilter(django_filters.FilterSet):
         help_text="Filter by public visibility"
     )
     
-    is_verified = django_filters.BooleanFilter(
-        help_text="Filter by verified status"
-    )
-    
     is_active = django_filters.BooleanFilter(
         help_text="Filter by active status"
     )
@@ -226,7 +222,7 @@ class PropertyAdminFilter(django_filters.FilterSet):
     class Meta:
         model = Property
         fields = [
-            'is_published', 'is_featured', 'is_public', 'is_verified', 'is_active',
+            'is_published', 'is_featured', 'is_public', 'is_active',
             'created_after', 'created_before', 'published_after', 'published_before',
             'property_type', 'state', 'agent', 'agency',
             'city', 'province', 'region', 'region_code', 'neighborhood',

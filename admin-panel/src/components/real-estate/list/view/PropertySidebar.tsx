@@ -12,7 +12,6 @@ import {
   Clock,
   FileText,
   Zap,
-  ShieldCheck,
 } from "lucide-react";
 
 interface PropertySidebarProps {
@@ -57,70 +56,43 @@ export function PropertySidebar({ property }: PropertySidebarProps) {
 
           <div className="pb-6 pt-2 border-b -mx-6 px-6">
             <div className="grid grid-cols-2 gap-3">
-              <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
-                property.is_published ? "bg-green" : "bg-yellow"
-              }`}>
-                <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
-                  property.is_published ? "bg-green-0" : "bg-yellow-0"
+              <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${property.is_published ? "bg-green" : "bg-yellow"
                 }`}>
+                <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${property.is_published ? "bg-green-0" : "bg-yellow-0"
+                  }`}>
                   {property.is_published ? (
                     <CheckCircle2 className="w-4 h-4 stroke-green-2" />
                   ) : (
                     <XCircle className="w-4 h-4 stroke-yellow-2" />
                   )}
                 </div>
-                <span className={`text-sm font-medium ${
-                  property.is_published ? "text-green-2" : "text-yellow-2"
-                }`}>
+                <span className={`text-sm font-medium ${property.is_published ? "text-green-2" : "text-yellow-2"
+                  }`}>
                   {property.is_published ? "منتشر شده" : "پیش‌نویس"}
                 </span>
               </div>
-              <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
-                property.is_active ? "bg-blue" : "bg-red"
-              }`}>
-                <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
-                  property.is_active ? "bg-blue-0" : "bg-red-0"
+              <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${property.is_active ? "bg-blue" : "bg-red"
                 }`}>
-                  <Zap className={`w-4 h-4 ${
-                    property.is_active ? "stroke-blue-2" : "stroke-red-2"
-                  }`} />
+                <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${property.is_active ? "bg-blue-0" : "bg-red-0"
+                  }`}>
+                  <Zap className={`w-4 h-4 ${property.is_active ? "stroke-blue-2" : "stroke-red-2"
+                    }`} />
                 </div>
-                <span className={`text-sm font-medium ${
-                  property.is_active ? "text-blue-2" : "text-red-2"
-                }`}>
+                <span className={`text-sm font-medium ${property.is_active ? "text-blue-2" : "text-red-2"
+                  }`}>
                   {property.is_active ? "فعال" : "غیرفعال"}
                 </span>
               </div>
-              <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
-                property.is_featured ? "bg-orange" : "bg-gray"
-              }`}>
-                <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
-                  property.is_featured ? "bg-orange-0" : "bg-gray-0"
+              <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${property.is_featured ? "bg-orange" : "bg-gray"
                 }`}>
-                  <Star className={`w-4 h-4 ${
-                    property.is_featured ? "stroke-orange-2 fill-orange-2" : "stroke-gray-1"
-                  }`} />
+                <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${property.is_featured ? "bg-orange-0" : "bg-gray-0"
+                  }`}>
+                  <Star className={`w-4 h-4 ${property.is_featured ? "stroke-orange-2 fill-orange-2" : "stroke-gray-1"
+                    }`} />
                 </div>
-                <span className={`text-sm font-medium ${
-                  property.is_featured ? "text-orange-2" : "text-gray-1"
-                }`}>
+                <span className={`text-sm font-medium ${property.is_featured ? "text-orange-2" : "text-gray-1"
+                  }`}>
                   {property.is_featured ? "ویژه" : "عادی"}
-                </span>
-              </div>
-              <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
-                property.is_verified ? "bg-emerald" : "bg-gray"
-              }`}>
-                <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
-                  property.is_verified ? "bg-emerald-0" : "bg-gray-0"
-                }`}>
-                  <ShieldCheck className={`w-4 h-4 ${
-                    property.is_verified ? "stroke-emerald-2" : "stroke-gray-1"
-                  }`} />
-                </div>
-                <span className={`text-sm font-medium ${
-                  property.is_verified ? "text-emerald-2" : "text-gray-1"
-                }`}>
-                  {property.is_verified ? "تایید شده" : "تایید نشده"}
                 </span>
               </div>
             </div>
@@ -128,76 +100,76 @@ export function PropertySidebar({ property }: PropertySidebarProps) {
 
           <div className="pt-4 pb-4">
             <div className="space-y-5">
-            <div>
-              <h4 className="mb-4 text-font-p">اطلاعات پایه</h4>
-              <div className="space-y-0 [&>div:not(:last-child)]:border-b">
-                <div className="flex items-center justify-between gap-3 pb-3">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-font-s flex-shrink-0" />
-                    <label>عنوان:</label>
-                  </div>
-                  <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
-                    <TruncatedText
-                      text={property.title}
-                      maxLength={40}
-                      className="text-font-p"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between gap-3 py-3">
-                  <div className="flex items-center gap-2">
-                    <Hash className="w-4 h-4 text-font-s flex-shrink-0" />
-                    <label>شناسه:</label>
-                  </div>
-                  <p className="text-font-p text-left">
-                    #{property.id}
-                  </p>
-                </div>
-
-                {property.property_type && (
-                  <div className="flex items-center justify-between gap-3 py-3">
+              <div>
+                <h4 className="mb-4 text-font-p">اطلاعات پایه</h4>
+                <div className="space-y-0 [&>div:not(:last-child)]:border-b">
+                  <div className="flex items-center justify-between gap-3 pb-3">
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4 text-font-s flex-shrink-0" />
-                      <label>نوع ملک:</label>
+                      <label>عنوان:</label>
                     </div>
                     <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
                       <TruncatedText
-                        text={property.property_type.title || "-"}
-                        maxLength={35}
+                        text={property.title}
+                        maxLength={40}
                         className="text-font-p"
                       />
                     </div>
                   </div>
-                )}
 
-                <div className="flex items-center justify-between gap-3 py-3">
-                  <div className="flex items-center gap-2">
-                    <LinkIcon className="w-4 h-4 text-font-s flex-shrink-0" />
-                    <label>نامک:</label>
-                  </div>
-                  <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
-                    <TruncatedText
-                      text={property.slug || "-"}
-                      maxLength={35}
-                      className="font-mono text-font-p"
-                    />
-                  </div>
-                </div>
-
-                {property.created_at && (
-                  <div className="flex items-center justify-between gap-3 pt-3">
+                  <div className="flex items-center justify-between gap-3 py-3">
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-font-s flex-shrink-0" />
-                      <label>تاریخ ایجاد:</label>
+                      <Hash className="w-4 h-4 text-font-s flex-shrink-0" />
+                      <label>شناسه:</label>
                     </div>
                     <p className="text-font-p text-left">
-                      {formatDate(property.created_at)}
+                      #{property.id}
                     </p>
                   </div>
-                )}
+
+                  {property.property_type && (
+                    <div className="flex items-center justify-between gap-3 py-3">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-font-s flex-shrink-0" />
+                        <label>نوع ملک:</label>
+                      </div>
+                      <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
+                        <TruncatedText
+                          text={property.property_type.title || "-"}
+                          maxLength={35}
+                          className="text-font-p"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between gap-3 py-3">
+                    <div className="flex items-center gap-2">
+                      <LinkIcon className="w-4 h-4 text-font-s flex-shrink-0" />
+                      <label>نامک:</label>
+                    </div>
+                    <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
+                      <TruncatedText
+                        text={property.slug || "-"}
+                        maxLength={35}
+                        className="font-mono text-font-p"
+                      />
+                    </div>
+                  </div>
+
+                  {property.created_at && (
+                    <div className="flex items-center justify-between gap-3 pt-3">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-font-s flex-shrink-0" />
+                        <label>تاریخ ایجاد:</label>
+                      </div>
+                      <p className="text-font-p text-left">
+                        {formatDate(property.created_at)}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
             </div>
           </div>
         </CardContent>

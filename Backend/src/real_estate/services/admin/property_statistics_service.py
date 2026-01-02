@@ -44,7 +44,6 @@ class PropertyStatisticsService:
         published = Property.objects.filter(is_published=True, is_public=True).count()
         draft = Property.objects.filter(is_published=False).count()
         featured = Property.objects.filter(is_featured=True).count()
-        verified = Property.objects.filter(is_verified=True).count()
         active = Property.objects.filter(is_active=True).count()
         public = Property.objects.filter(is_public=True).count()
         
@@ -53,12 +52,10 @@ class PropertyStatisticsService:
             'published': published,
             'draft': draft,
             'featured': featured,
-            'verified': verified,
             'active': active,
             'public': public,
             'published_percentage': round((published / total * 100) if total > 0 else 0, 1),
             'featured_percentage': round((featured / total * 100) if total > 0 else 0, 1),
-            'verified_percentage': round((verified / total * 100) if total > 0 else 0, 1),
         }
     
     @staticmethod

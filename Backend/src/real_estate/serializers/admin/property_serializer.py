@@ -101,7 +101,7 @@ class PropertyLabelSimpleAdminSerializer(serializers.ModelSerializer):
 class PropertyFeatureSimpleAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyFeature
-        fields = ['id', 'public_id', 'title', 'category']
+        fields = ['id', 'public_id', 'title', 'group']
 
 
 class PropertyTagSimpleAdminSerializer(serializers.ModelSerializer):
@@ -147,7 +147,7 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
         model = Property
         fields = [
             'id', 'public_id', 'title', 'slug', 'short_description',
-            'is_published', 'is_featured', 'is_public', 'is_verified', 'is_active',
+            'is_published', 'is_featured', 'is_public', 'is_active',
             'main_image', 'property_type', 'state', 'agent', 'agency',
             'labels', 'labels_count', 'tags_count', 'features_count',
             'media_count', 'seo_status',
@@ -274,7 +274,7 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
         model = Property
         fields = [
             'id', 'public_id', 'title', 'slug', 'short_description', 'description',
-            'is_published', 'is_featured', 'is_public', 'is_verified', 'is_active',
+            'is_published', 'is_featured', 'is_public', 'is_active',
             'main_image', 'property_type', 'state', 'agent', 'agency',
             'labels', 'tags', 'features', 'media', 'property_media', 'floor_plans',
             'region', 'city', 'city_name', 'province', 'province_name',
@@ -286,6 +286,8 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
             'bedrooms', 'bathrooms', 'kitchens', 'living_rooms',
             'year_built', 'build_years', 'floors_in_building', 'floor_number',
             'parking_spaces', 'storage_rooms',
+            'document_type', 'has_document',  # ✅ Document fields
+            'extra_attributes',  # ✅ Extra attributes for advanced customization
             'views_count', 'favorites_count', 'inquiries_count',
             'published_at', 'created_at', 'updated_at',
             'meta_title', 'meta_description', 'og_title', 'og_description',
@@ -546,7 +548,8 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
             'bedrooms', 'bathrooms', 'kitchens', 'living_rooms',
             'year_built', 'build_years', 'floors_in_building', 'floor_number',
             'parking_spaces', 'storage_rooms', 'document_type', 'has_document',
-            'is_published', 'is_featured', 'is_public', 'is_verified',
+            'extra_attributes',
+            'is_published', 'is_featured', 'is_public',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
             'labels_ids', 'tags_ids', 'features_ids',
@@ -634,8 +637,7 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
                         license_number=license_num,
                         slug=agent_slug,
                         specialization='General',
-                        is_active=True,
-                        is_verified=True
+                        is_active=True
                     )
                 
                 attrs['agent'] = agent
@@ -818,8 +820,9 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
             'land_area', 'built_area',
             'bedrooms', 'bathrooms', 'kitchens', 'living_rooms',
             'year_built', 'build_years', 'floors_in_building', 'floor_number',
-            'parking_spaces', 'storage_rooms',
-            'is_published', 'is_featured', 'is_public', 'is_verified', 'is_active',
+            'parking_spaces', 'storage_rooms', 'document_type', 'has_document',
+            'extra_attributes',
+            'is_published', 'is_featured', 'is_public', 'is_active',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
             'labels_ids', 'tags_ids', 'features_ids', 'media_ids', 'main_image_id', 'media_covers',

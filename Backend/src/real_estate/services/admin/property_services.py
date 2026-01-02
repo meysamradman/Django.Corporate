@@ -76,8 +76,6 @@ class PropertyAdminService:
                 queryset = queryset.filter(is_public=filters['is_public'])
             if filters.get('is_featured') is not None:
                 queryset = queryset.filter(is_featured=filters['is_featured'])
-            if filters.get('is_verified') is not None:
-                queryset = queryset.filter(is_verified=filters['is_verified'])
             if filters.get('property_type_id'):
                 queryset = queryset.filter(property_type_id=filters['property_type_id'])
             if filters.get('state_id'):
@@ -312,7 +310,7 @@ class PropertyAdminService:
         return deleted_count
     
     @staticmethod
-    def bulk_update_status(property_ids, is_published=None, is_featured=None, is_verified=None):
+    def bulk_update_status(property_ids, is_published=None, is_featured=None):
         if not property_ids:
             raise ValidationError(PROPERTY_ERRORS["property_ids_required"])
         
@@ -323,8 +321,6 @@ class PropertyAdminService:
                 update_fields['published_at'] = timezone.now()
         if is_featured is not None:
             update_fields['is_featured'] = is_featured
-        if is_verified is not None:
-            update_fields['is_verified'] = is_verified
         
         if not update_fields:
             return False
@@ -496,20 +492,6 @@ class PropertyAdminStatusService:
         
         PropertyCacheManager.invalidate_property(property_id)
         PropertyCacheManager.invalidate_list()
-        
-        return property_obj
-    
-    @staticmethod
-    def toggle_verified(property_id):
-        try:
-            property_obj = Property.objects.get(id=property_id)
-        except Property.DoesNotExist:
-            raise Property.DoesNotExist(PROPERTY_ERRORS["property_not_found"])
-        
-        property_obj.is_verified = not property_obj.is_verified
-        property_obj.save(update_fields=['is_verified', 'updated_at'])
-        
-        PropertyCacheManager.invalidate_property(property_id)
         
         return property_obj
 

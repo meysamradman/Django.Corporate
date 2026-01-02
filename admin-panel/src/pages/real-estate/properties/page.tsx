@@ -99,7 +99,6 @@ export default function PropertyPage() {
       const filters: PropertyFilters = {};
       if (urlParams.get('is_published')) filters.is_published = urlParams.get('is_published') === 'true';
       if (urlParams.get('is_featured')) filters.is_featured = urlParams.get('is_featured') === 'true';
-      if (urlParams.get('is_verified')) filters.is_verified = urlParams.get('is_verified') === 'true';
       if (urlParams.get('is_active')) filters.is_active = urlParams.get('is_active') === 'true';
       if (urlParams.get('property_type')) filters.property_type = parseInt(urlParams.get('property_type') || '0');
       if (urlParams.get('state')) filters.state = parseInt(urlParams.get('state') || '0');
@@ -185,7 +184,6 @@ export default function PropertyPage() {
     order_desc: sorting.length > 0 ? sorting[0].desc : true,
     is_published: clientFilters.is_published as boolean | undefined,
     is_featured: clientFilters.is_featured as boolean | undefined,
-    is_verified: clientFilters.is_verified as boolean | undefined,
     is_active: clientFilters.is_active as boolean | undefined,
     property_type: clientFilters.property_type,
     state: clientFilters.state,
@@ -193,7 +191,7 @@ export default function PropertyPage() {
   };
 
   const { data: properties, isLoading, error } = useQuery({
-    queryKey: ['properties', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_published, queryParams.is_featured, queryParams.is_verified, queryParams.is_active, queryParams.property_type, queryParams.state, queryParams.city],
+    queryKey: ['properties', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_published, queryParams.is_featured, queryParams.is_active, queryParams.property_type, queryParams.state, queryParams.city],
     queryFn: async () => {
       const response = await realEstateApi.getPropertyList(queryParams);
       return response;
@@ -302,7 +300,6 @@ export default function PropertyPage() {
         order_desc: sorting.length > 0 ? sorting[0].desc : true,
         is_published: filters.is_published as boolean | undefined,
         is_featured: filters.is_featured as boolean | undefined,
-        is_verified: filters.is_verified as boolean | undefined,
         is_active: filters.is_active as boolean | undefined,
         property_type: filters.property_type,
         state: filters.state,
@@ -332,7 +329,6 @@ export default function PropertyPage() {
         order_desc: sorting.length > 0 ? sorting[0].desc : true,
         is_published: filters.is_published as boolean | undefined,
         is_featured: filters.is_featured as boolean | undefined,
-        is_verified: filters.is_verified as boolean | undefined,
         is_active: filters.is_active as boolean | undefined,
         property_type: filters.property_type,
         state: filters.state,
@@ -373,7 +369,6 @@ export default function PropertyPage() {
           order_desc: sorting.length > 0 ? sorting[0].desc : true,
           is_published: clientFilters.is_published as boolean | undefined,
           is_featured: clientFilters.is_featured as boolean | undefined,
-          is_verified: clientFilters.is_verified as boolean | undefined,
           is_active: clientFilters.is_active as boolean | undefined,
           property_type: clientFilters.property_type,
           state: clientFilters.state,
@@ -416,7 +411,6 @@ export default function PropertyPage() {
       return `
         <tr>
           <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${property.is_active ? 'بله' : 'خیر'}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${property.is_verified ? 'بله' : 'خیر'}</td>
           <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${property.is_featured ? 'بله' : 'خیر'}</td>
           <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${property.is_published ? 'بله' : 'خیر'}</td>
           <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${createdDate}</td>

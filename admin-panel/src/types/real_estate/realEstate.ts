@@ -17,9 +17,8 @@ export interface Property extends Base {
   is_published: boolean;
   is_featured: boolean;
   is_public: boolean;
-  is_verified: boolean;
   is_active: boolean;
-  
+
   main_image?: {
     id: number;
     url?: string;
@@ -27,7 +26,7 @@ export interface Property extends Base {
     title: string;
     alt_text: string;
   } | null;
-  
+
   property_type?: PropertyType | null;
   state?: PropertyState | null;
   agent?: PropertyAgent | null;
@@ -35,7 +34,7 @@ export interface Property extends Base {
   labels: PropertyLabel[];
   tags: PropertyTag[];
   features: PropertyFeature[];
-  
+
   // Simplified location fields
   province?: number | null;
   province_name?: string;
@@ -50,59 +49,59 @@ export interface Property extends Base {
   postal_code?: string | null;
   latitude?: number | null;
   longitude?: number | null;
-  
+
   price?: number | null;
   sale_price?: number | null;
   pre_sale_price?: number | null;
   price_per_sqm?: number | null;
-  
+
   monthly_rent?: number | null;
   rent_amount?: number | null;
   mortgage_amount?: number | null;
   security_deposit?: number | null;
-  
+
   land_area?: number | null;
   built_area?: number | null;
-  
+
   bedrooms?: number | null;
   bathrooms?: number | null;
   kitchens?: number | null;
   living_rooms?: number | null;
-  
+
   year_built?: number | null;
   build_years?: number | null;
   floors_in_building?: number | null;
   floor_number?: number | null;
-  
+
   parking_spaces?: number | null;
   storage_rooms?: number | null;
   document_type?: string | null;
   capacity?: number | null;
-  
+
   extra_attributes?: Record<string, any>;
   currency?: string;  // واحد پول
-  
+
   views_count?: number;
   favorites_count?: number;
   inquiries_count?: number;
-  
+
   published_at?: string | null;
-  
+
   media_count?: number;
   labels_count?: number;
   tags_count?: number;
   features_count?: number;
-  
+
   media?: PropertyMediaItem[];
   property_media?: PropertyMediaItem[];
   floor_plans?: FloorPlan[];
-  
+
   seo_status?: {
     score: number;
     total: number;
     status: string;
   };
-  
+
   meta_title?: string | null;
   meta_description?: string | null;
   og_title?: string | null;
@@ -113,7 +112,7 @@ export interface Property extends Base {
   robots_meta?: string | null;
   structured_data?: Record<string, any> | null;
   hreflang_data?: Record<string, any> | null;
-  
+
   seo_data?: PropertySEOMeta;
   seo_preview?: {
     google: {
@@ -173,8 +172,8 @@ export interface FloorPlan {
   updated_at: string;
 }
 
-export interface PropertyUpdateData extends Partial<Omit<Property, 
-  'property_type' | 'state' | 'agent' | 'agency' | 'labels' | 'tags' | 'features' | 
+export interface PropertyUpdateData extends Partial<Omit<Property,
+  'property_type' | 'state' | 'agent' | 'agency' | 'labels' | 'tags' | 'features' |
   'main_image' | 'og_image' | 'media' | 'property_media' | 'seo_data' | 'seo_preview' | 'seo_completeness'>> {
   property_type?: number | null;
   state?: number | null;

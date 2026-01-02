@@ -51,7 +51,6 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         'publish': 'real_estate.property.update',
         'unpublish': 'real_estate.property.update',
         'toggle_featured': 'real_estate.property.update',
-        'toggle_verified': 'real_estate.property.update',
         'set_main_image': 'real_estate.property.update',
         'add_media': 'real_estate.property.update',
         'remove_media': 'real_estate.property.update',
@@ -103,6 +102,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
+        
         return APIResponse.success(
             message=PROPERTY_SUCCESS["property_retrieved"],
             data=serializer.data,
@@ -317,7 +317,6 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         property_ids = request.data.get('ids', [])
         is_published = request.data.get('is_published')
         is_featured = request.data.get('is_featured')
-        is_verified = request.data.get('is_verified')
         
         if not property_ids:
             return APIResponse.error(
@@ -329,8 +328,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             success = PropertyAdminService.bulk_update_status(
                 property_ids=property_ids,
                 is_published=is_published,
-                is_featured=is_featured,
-                is_verified=is_verified
+                is_featured=is_featured
             )
             
             if success:
@@ -407,22 +405,6 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
     
-    @action(detail=True, methods=['post'])
-    def toggle_verified(self, request, pk=None):
-        try:
-            property_obj = PropertyAdminStatusService.toggle_verified(pk)
-            serializer = PropertyAdminDetailSerializer(property_obj)
-            
-            return APIResponse.success(
-                message=PROPERTY_SUCCESS["property_updated"],
-                data=serializer.data,
-                status_code=status.HTTP_200_OK
-            )
-        except Property.DoesNotExist:
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_not_found"],
-                status_code=status.HTTP_404_NOT_FOUND
-            )
     
     @action(detail=True, methods=['post'])
     def set_main_image(self, request, pk=None):

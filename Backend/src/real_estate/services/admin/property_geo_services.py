@@ -258,6 +258,5 @@ class PropertyGeoService:
             'built_area',
             'property_type__title',
             'state__title',
-            'is_featured',
-            'is_verified'
+            'is_featured'
         ))

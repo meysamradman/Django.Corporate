@@ -431,11 +431,6 @@ class Property(BaseModel, SEOMixin):
         verbose_name="Public",
         help_text="Designates whether this property is publicly visible"
     )
-    is_verified = models.BooleanField(
-        default=False,
-        verbose_name="Verified",
-        help_text="Whether property is verified"
-    )
     published_at = models.DateTimeField(
         null=True,
         blank=True,

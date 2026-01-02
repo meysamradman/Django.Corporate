@@ -48,7 +48,7 @@ export interface RealEstateAgency {
   updated_at: string;
   property_count?: number;
   agent_count?: number;
-  
+
   // SEO fields
   meta_title?: string;
   meta_description?: string;

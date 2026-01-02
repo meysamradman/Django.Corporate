@@ -14,17 +14,17 @@ export interface PropertyAgent extends Base {
   bio?: string | null;
   specialization?: string | null;
   profile_picture_url?: string | null;
-  
+
   agency?: RealEstateAgency | null;
-  
+
   is_verified: boolean;
   is_active: boolean;
-  
+
   rating?: number | null;
   total_sales?: number;
   total_reviews?: number;
   property_count?: number;
-  
+
   meta_title?: string | null;
   meta_description?: string | null;
   og_title?: string | null;

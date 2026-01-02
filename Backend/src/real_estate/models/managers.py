@@ -140,7 +140,7 @@ class PropertyQuerySet(models.QuerySet):
             'search_vector'  # Full-text search vector
         ).only(
             'id', 'public_id', 'title', 'slug', 'short_description',
-            'is_published', 'is_featured', 'is_public', 'is_verified', 'is_active',
+            'is_published', 'is_featured', 'is_public', 'is_active',
             'property_type_id', 'state_id', 'agent_id', 'agency_id',
             'city_id', 'region_id', 'province_id', 'neighborhood',
             'price', 'sale_price',
@@ -222,9 +222,6 @@ class PropertyQuerySet(models.QuerySet):
     
     def featured(self):
         return self.filter(is_featured=True)
-    
-    def verified(self):
-        return self.filter(is_verified=True)
     
     def by_city(self, city_id):
         return self.filter(city_id=city_id)
@@ -411,8 +408,8 @@ class PropertyFeatureQuerySet(models.QuerySet):
     def active(self):
         return self.filter(is_active=True)
     
-    def by_category(self, category):
-        return self.filter(category=category)
+    def by_group(self, group):
+        return self.filter(group=group)
     
     def with_counts(self):
         return self.annotate(

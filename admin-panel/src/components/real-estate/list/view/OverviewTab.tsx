@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { TabsContent } from "@/components/elements/Tabs";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import type { Property } from "@/types/real_estate/realEstate";
 import { Badge } from "@/components/elements/Badge";
 import { ReadMore } from "@/components/elements/ReadMore";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/elements/Accordion";
 import {
   Tag,
   Image as ImageIcon,
@@ -11,14 +13,31 @@ import {
   FileText,
   Building2,
   MapPin,
-  Check,
   Home,
   Info,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
+import { realEstateApi } from "@/api/real-estate";
+import { mediaService } from "@/components/media/services";
+import { PropertyFeatures } from "./PropertyFeatures";
 
 interface OverviewTabProps {
   property: Property;
+}
+
+interface FloorPlanImage {
+  id: number;
+  image: {
+    id: number;
+    url?: string;
+    file_url?: string;
+    title: string;
+    alt_text: string;
+  };
+  is_main: boolean;
+  order: number;
+  title?: string;
 }
 
 export function OverviewTab({ property }: OverviewTabProps) {
@@ -31,9 +50,33 @@ export function OverviewTab({ property }: OverviewTabProps) {
   const tagsCount = property.tags?.length || 0;
   const featuresCount = property.features?.length || 0;
 
+  // State for floor plan images (lazy loaded)
+  const [floorPlanImages, setFloorPlanImages] = useState<Record<number, FloorPlanImage[]>>({});
+  const [loadingImages, setLoadingImages] = useState<Record<number, boolean>>({});
+
   const formatPrice = (price: number | null | undefined) => {
     if (!price) return "-";
     return new Intl.NumberFormat('fa-IR').format(price);
+  };
+
+  const loadFloorPlanImages = async (floorPlanId: number) => {
+    // If already loaded, don't load again
+    if (floorPlanImages[floorPlanId]) return;
+
+    try {
+      setLoadingImages(prev => ({ ...prev, [floorPlanId]: true }));
+      const floorPlanDetail = await realEstateApi.getFloorPlanById(floorPlanId);
+      if (floorPlanDetail && floorPlanDetail.images) {
+        setFloorPlanImages(prev => ({
+          ...prev,
+          [floorPlanId]: floorPlanDetail.images || []
+        }));
+      }
+    } catch (error) {
+      console.error("Error loading floor plan images:", error);
+    } finally {
+      setLoadingImages(prev => ({ ...prev, [floorPlanId]: false }));
+    }
   };
 
   return (
@@ -48,27 +91,27 @@ export function OverviewTab({ property }: OverviewTabProps) {
           headerClassName="pb-3"
           titleExtra={<Badge variant="indigo">{labelsCount} مورد</Badge>}
         >
-            <p className="text-font-s mb-4">
-              برچسب‌های مرتبط با این ملک
+          <p className="text-font-s mb-4">
+            برچسب‌های مرتبط با این ملک
+          </p>
+          {property.labels && property.labels.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {property.labels.map((label) => (
+                <Badge
+                  key={label.id}
+                  variant="indigo"
+                  className="cursor-default"
+                >
+                  <Tag className="w-3 h-3 me-1" />
+                  {label.title}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <p className="text-font-s">
+              برچسبی انتخاب نشده است
             </p>
-            {property.labels && property.labels.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {property.labels.map((label) => (
-                  <Badge
-                    key={label.id}
-                    variant="indigo"
-                    className="cursor-default"
-                  >
-                    <Tag className="w-3 h-3 me-1" />
-                    {label.title}
-                  </Badge>
-                ))}
-              </div>
-            ) : (
-              <p className="text-font-s">
-                برچسبی انتخاب نشده است
-              </p>
-            )}
+          )}
         </CardWithIcon>
 
         <CardWithIcon
@@ -80,27 +123,27 @@ export function OverviewTab({ property }: OverviewTabProps) {
           headerClassName="pb-3"
           titleExtra={<Badge variant="purple">{tagsCount} مورد</Badge>}
         >
-            <p className="text-font-s mb-4">
-              تگ‌های مرتبط با این ملک
+          <p className="text-font-s mb-4">
+            تگ‌های مرتبط با این ملک
+          </p>
+          {property.tags && property.tags.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {property.tags.map((tag) => (
+                <Badge
+                  key={tag.id}
+                  variant="purple"
+                  className="cursor-default"
+                >
+                  <Tag className="w-3 h-3 me-1" />
+                  {tag.title}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <p className="text-font-s">
+              تگی انتخاب نشده است
             </p>
-            {property.tags && property.tags.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {property.tags.map((tag) => (
-                  <Badge
-                    key={tag.id}
-                    variant="purple"
-                    className="cursor-default"
-                  >
-                    <Tag className="w-3 h-3 me-1" />
-                    {tag.title}
-                  </Badge>
-                ))}
-              </div>
-            ) : (
-              <p className="text-font-s">
-                تگی انتخاب نشده است
-              </p>
-            )}
+          )}
         </CardWithIcon>
 
         <CardWithIcon
@@ -112,26 +155,26 @@ export function OverviewTab({ property }: OverviewTabProps) {
           headerClassName="pb-3"
           titleExtra={<Badge variant="teal">{featuresCount} مورد</Badge>}
         >
-            <p className="text-font-s mb-4">
-              ویژگی‌های این ملک
+          <p className="text-font-s mb-4">
+            ویژگی‌های این ملک
+          </p>
+          {property.features && property.features.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {property.features.map((feature) => (
+                <Badge
+                  key={feature.id}
+                  variant="teal"
+                  className="cursor-default"
+                >
+                  {feature.title}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <p className="text-font-s">
+              ویژگی‌ای انتخاب نشده است
             </p>
-            {property.features && property.features.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {property.features.map((feature) => (
-                  <Badge
-                    key={feature.id}
-                    variant="teal"
-                    className="cursor-default"
-                  >
-                    {feature.title}
-                  </Badge>
-                ))}
-              </div>
-            ) : (
-              <p className="text-font-s">
-                ویژگی‌ای انتخاب نشده است
-              </p>
-            )}
+          )}
         </CardWithIcon>
 
         <CardWithIcon
@@ -144,27 +187,27 @@ export function OverviewTab({ property }: OverviewTabProps) {
           titleExtra={<Badge variant="blue">{property.media_count || 0} مورد</Badge>}
           className="md:col-span-3"
         >
-            <p className="text-font-s mb-4">
-              تعداد کل رسانه‌های آپلود شده
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex items-center gap-2 p-2 bg-blue rounded">
-                <ImageIcon className="w-4 h-4 stroke-blue-2" />
-                <span>{imagesCount} تصویر</span>
-              </div>
-              <div className="flex items-center gap-2 p-2 bg-purple rounded">
-                <Video className="w-4 h-4 stroke-purple-2" />
-                <span>{videosCount} ویدیو</span>
-              </div>
-              <div className="flex items-center gap-2 p-2 bg-pink rounded">
-                <Music className="w-4 h-4 stroke-pink-2" />
-                <span>{audiosCount} صدا</span>
-              </div>
-              <div className="flex items-center gap-2 p-2 bg-gray rounded">
-                <FileText className="w-4 h-4 stroke-gray-2" />
-                <span>{documentsCount} سند</span>
-              </div>
+          <p className="text-font-s mb-4">
+            تعداد کل رسانه‌های آپلود شده
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex items-center gap-2 p-2 bg-blue rounded">
+              <ImageIcon className="w-4 h-4 stroke-blue-2" />
+              <span>{imagesCount} تصویر</span>
             </div>
+            <div className="flex items-center gap-2 p-2 bg-purple rounded">
+              <Video className="w-4 h-4 stroke-purple-2" />
+              <span>{videosCount} ویدیو</span>
+            </div>
+            <div className="flex items-center gap-2 p-2 bg-pink rounded">
+              <Music className="w-4 h-4 stroke-pink-2" />
+              <span>{audiosCount} صدا</span>
+            </div>
+            <div className="flex items-center gap-2 p-2 bg-gray rounded">
+              <FileText className="w-4 h-4 stroke-gray-2" />
+              <span>{documentsCount} سند</span>
+            </div>
+          </div>
         </CardWithIcon>
       </div>
 
@@ -307,63 +350,63 @@ export function OverviewTab({ property }: OverviewTabProps) {
       </CardWithIcon>
 
       {/* Additional Details Section */}
-      {(property.extra_attributes?.deposit || property.extra_attributes?.last_remodel_year || property.extra_attributes?.additional_rooms || 
+      {(property.extra_attributes?.deposit || property.extra_attributes?.last_remodel_year || property.extra_attributes?.additional_rooms ||
         property.extra_attributes?.pool_size || property.extra_attributes?.amenities || property.extra_attributes?.equipment) && (
-        <CardWithIcon
-          icon={Info}
-          title="جزئیات اضافی"
-          iconBgColor="bg-teal"
-          iconColor="stroke-teal-2"
-          borderColor="border-b-teal-1"
-          contentClassName="space-y-0"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Column 1 */}
-            <div className="space-y-4">
-              {property.extra_attributes?.deposit && (
-                <div className="flex justify-between items-start border-b pb-3">
-                  <span className="text-font-s text-gray-2 font-medium">ودیعه:</span>
-                  <span className="text-font-p text-right">{property.extra_attributes.deposit}</span>
-                </div>
-              )}
-              {property.extra_attributes?.last_remodel_year && (
-                <div className="flex justify-between items-start border-b pb-3">
-                  <span className="text-font-s text-gray-2 font-medium">سال آخرین بازسازی:</span>
-                  <span className="text-font-p text-right">{property.extra_attributes.last_remodel_year}</span>
-                </div>
-              )}
-              {property.extra_attributes?.additional_rooms && (
-                <div className="flex justify-between items-start border-b pb-3">
-                  <span className="text-font-s text-gray-2 font-medium">اتاق‌های اضافی:</span>
-                  <span className="text-font-p text-right">{property.extra_attributes.additional_rooms}</span>
-                </div>
-              )}
-            </div>
+          <CardWithIcon
+            icon={Info}
+            title="جزئیات اضافی"
+            iconBgColor="bg-teal"
+            iconColor="stroke-teal-2"
+            borderColor="border-b-teal-1"
+            contentClassName="space-y-0"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Column 1 */}
+              <div className="space-y-4">
+                {property.extra_attributes?.deposit && (
+                  <div className="flex justify-between items-start border-b pb-3">
+                    <span className="text-font-s text-gray-2 font-medium">ودیعه:</span>
+                    <span className="text-font-p text-right">{property.extra_attributes.deposit}</span>
+                  </div>
+                )}
+                {property.extra_attributes?.last_remodel_year && (
+                  <div className="flex justify-between items-start border-b pb-3">
+                    <span className="text-font-s text-gray-2 font-medium">سال آخرین بازسازی:</span>
+                    <span className="text-font-p text-right">{property.extra_attributes.last_remodel_year}</span>
+                  </div>
+                )}
+                {property.extra_attributes?.additional_rooms && (
+                  <div className="flex justify-between items-start border-b pb-3">
+                    <span className="text-font-s text-gray-2 font-medium">اتاق‌های اضافی:</span>
+                    <span className="text-font-p text-right">{property.extra_attributes.additional_rooms}</span>
+                  </div>
+                )}
+              </div>
 
-            {/* Column 2 */}
-            <div className="space-y-4">
-              {property.extra_attributes?.pool_size && (
-                <div className="flex justify-between items-start border-b pb-3">
-                  <span className="text-font-s text-gray-2 font-medium">اندازه استخر:</span>
-                  <span className="text-font-p text-right">{property.extra_attributes.pool_size}</span>
-                </div>
-              )}
-              {property.extra_attributes?.amenities && (
-                <div className="flex justify-between items-start border-b pb-3">
-                  <span className="text-font-s text-gray-2 font-medium">امکانات:</span>
-                  <span className="text-font-p text-right">{property.extra_attributes.amenities}</span>
-                </div>
-              )}
-              {property.extra_attributes?.equipment && (
-                <div className="flex justify-between items-start border-b pb-3">
-                  <span className="text-font-s text-gray-2 font-medium">تجهیزات:</span>
-                  <span className="text-font-p text-right">{property.extra_attributes.equipment}</span>
-                </div>
-              )}
+              {/* Column 2 */}
+              <div className="space-y-4">
+                {property.extra_attributes?.pool_size && (
+                  <div className="flex justify-between items-start border-b pb-3">
+                    <span className="text-font-s text-gray-2 font-medium">اندازه استخر:</span>
+                    <span className="text-font-p text-right">{property.extra_attributes.pool_size}</span>
+                  </div>
+                )}
+                {property.extra_attributes?.amenities && (
+                  <div className="flex justify-between items-start border-b pb-3">
+                    <span className="text-font-s text-gray-2 font-medium">امکانات:</span>
+                    <span className="text-font-p text-right">{property.extra_attributes.amenities}</span>
+                  </div>
+                )}
+                {property.extra_attributes?.equipment && (
+                  <div className="flex justify-between items-start border-b pb-3">
+                    <span className="text-font-s text-gray-2 font-medium">تجهیزات:</span>
+                    <span className="text-font-p text-right">{property.extra_attributes.equipment}</span>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </CardWithIcon>
-      )}
+          </CardWithIcon>
+        )}
 
       {/* Address Section with Google Maps */}
       {(property.address || property.city_name || property.province_name || property.postal_code || property.neighborhood) && (
@@ -432,28 +475,8 @@ export function OverviewTab({ property }: OverviewTabProps) {
         </CardWithIcon>
       )}
 
-      {/* Features Section with Checkboxes in 3 Columns */}
-      {property.features && property.features.length > 0 && (
-        <CardWithIcon
-          icon={Building2}
-          title="ویژگی‌ها"
-          iconBgColor="bg-teal"
-          iconColor="stroke-teal-2"
-          borderColor="border-b-teal-1"
-          contentClassName="space-y-0"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {property.features.map((feature) => (
-              <div key={feature.id} className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full border-2 border-gray-1 flex items-center justify-center bg-white">
-                  <Check className="w-3 h-3 text-green-2 stroke-[3]" />
-                </div>
-                <span className="text-font-p">{feature.title}</span>
-              </div>
-            ))}
-          </div>
-        </CardWithIcon>
-      )}
+      {/* Features Section - Separated as requested */}
+      <PropertyFeatures property={property} />
 
       {/* Floor Plans Section */}
       {property.floor_plans && property.floor_plans.length > 0 && (
@@ -463,41 +486,139 @@ export function OverviewTab({ property }: OverviewTabProps) {
           iconBgColor="bg-orange"
           iconColor="stroke-orange-2"
           borderColor="border-b-orange-1"
-          contentClassName="space-y-6"
+          contentClassName="space-y-0"
         >
-          <div className="space-y-6">
-            {property.floor_plans.map((floorPlan) => (
-              <div key={floorPlan.id} className="border rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <Home className="w-5 h-5 text-gray-2" />
-                  <h4 className="text-font-p font-semibold">{floorPlan.title}</h4>
-                </div>
-                <div className="flex flex-wrap items-center gap-4 text-font-s text-gray-2">
-                  <span>اندازه: {floorPlan.floor_size} {floorPlan.size_unit === 'sqft' ? 'فوت مربع' : 'متر مربع'}</span>
-                  {floorPlan.bedrooms !== null && floorPlan.bedrooms !== undefined && (
-                    <span className="flex items-center gap-1">
-                      <Building2 className="w-4 h-4" />
-                      {floorPlan.bedrooms} خواب
-                    </span>
-                  )}
-                  {floorPlan.bathrooms !== null && floorPlan.bathrooms !== undefined && (
-                    <span className="flex items-center gap-1">
-                      <Building2 className="w-4 h-4" />
-                      {floorPlan.bathrooms} حمام
-                    </span>
-                  )}
-                  {floorPlan.price && (
-                    <span className="text-font-p font-medium text-gray-1">
-                      قیمت: {formatPrice(floorPlan.price)} {floorPlan.currency || 'تومان'}
-                    </span>
-                  )}
-                </div>
-                {floorPlan.description && (
-                  <p className="text-font-s text-gray-2 mt-2">{floorPlan.description}</p>
-                )}
-              </div>
-            ))}
-          </div>
+          <Accordion
+            type="single"
+            collapsible
+            className="w-full"
+            onValueChange={(value) => {
+              // Load images when accordion opens
+              if (value) {
+                const floorPlanId = parseInt(value.replace('floor-plan-', ''));
+                if (floorPlanId && property.floor_plans?.some(fp => fp.id === floorPlanId)) {
+                  loadFloorPlanImages(floorPlanId);
+                }
+              }
+            }}
+          >
+            {property.floor_plans.map((floorPlan) => {
+              const images = floorPlanImages[floorPlan.id] || [];
+              const isLoading = loadingImages[floorPlan.id];
+
+              return (
+                <AccordionItem key={floorPlan.id} value={`floor-plan-${floorPlan.id}`} className="border-b last:border-b-0">
+                  <AccordionTrigger className="py-4 hover:no-underline">
+                    <div className="flex items-center justify-between w-full pr-4">
+                      <div className="flex items-center gap-3 flex-1">
+                        <Home className="w-5 h-5 text-orange-2 flex-shrink-0" />
+                        <div className="flex flex-col items-start gap-1">
+                          <h4 className="text-font-p font-semibold text-right">{floorPlan.title}</h4>
+                          <div className="flex flex-wrap items-center gap-4 text-font-s text-gray-2">
+                            <span>اندازه: {typeof floorPlan.floor_size === 'number' ? floorPlan.floor_size.toFixed(2) : floorPlan.floor_size} {floorPlan.size_unit === 'sqft' ? 'فوت مربع' : 'متر مربع'}</span>
+                            {floorPlan.bedrooms !== null && floorPlan.bedrooms !== undefined && (
+                              <span className="flex items-center gap-1">
+                                <Building2 className="w-4 h-4" />
+                                {floorPlan.bedrooms} خواب
+                              </span>
+                            )}
+                            {floorPlan.bathrooms !== null && floorPlan.bathrooms !== undefined && (
+                              <span className="flex items-center gap-1">
+                                <Building2 className="w-4 h-4" />
+                                {floorPlan.bathrooms} حمام
+                              </span>
+                            )}
+                            {floorPlan.price && (
+                              <span className="text-font-p font-medium text-gray-1">
+                                قیمت: {formatPrice(floorPlan.price)} {floorPlan.currency || 'IRR'}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-0 pb-4 pr-4">
+                    <div className="space-y-4">
+                      {/* Description */}
+                      {floorPlan.description && (
+                        <div className="text-font-s text-gray-2 bg-bg/50 rounded-lg p-4">
+                          <p className="text-justify leading-relaxed">{floorPlan.description}</p>
+                        </div>
+                      )}
+
+                      {/* Images */}
+                      {(images.length > 0 || isLoading || (floorPlan.main_image && (floorPlan.main_image.file_url || floorPlan.main_image.url))) && (
+                        <div className="space-y-3">
+                          <h5 className="text-font-s font-medium text-gray-1">تصاویر پلان:</h5>
+
+                          {isLoading ? (
+                            <div className="flex items-center justify-center py-8">
+                              <Loader2 className="w-6 h-6 animate-spin text-gray-2" />
+                            </div>
+                          ) : images.length > 0 ? (
+                            <div className="space-y-4">
+                              {images.map((imageItem, index) => {
+                                const imageUrl = imageItem.image?.file_url || imageItem.image?.url;
+                                const fullImageUrl = imageUrl ? mediaService.getMediaUrlFromObject({ file_url: imageUrl } as any) : null;
+
+                                return (
+                                  <div key={imageItem.id} className="space-y-2">
+                                    {fullImageUrl && (
+                                      <div className="rounded-lg overflow-hidden border bg-bg-2 relative w-full">
+                                        <img
+                                          src={fullImageUrl}
+                                          alt={imageItem.image?.alt_text || imageItem.title || floorPlan.title}
+                                          className="w-full h-auto object-contain"
+                                          loading={index === 0 ? "eager" : "lazy"}
+                                        />
+                                        {imageItem.is_main && (
+                                          <div className="absolute top-2 left-2">
+                                            <Badge variant="orange" className="text-xs">تصویر اصلی</Badge>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                    {imageItem.title && (
+                                      <p className="text-font-xs text-gray-2 text-center">{imageItem.title}</p>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : floorPlan.main_image && (floorPlan.main_image.file_url || floorPlan.main_image.url) ? (
+                            <div className="rounded-lg overflow-hidden border bg-bg-2 w-full">
+                              <img
+                                src={mediaService.getMediaUrlFromObject(floorPlan.main_image as any)}
+                                alt={floorPlan.main_image.alt_text || floorPlan.title}
+                                className="w-full h-auto object-contain"
+                                loading="lazy"
+                              />
+                            </div>
+                          ) : null}
+                        </div>
+                      )}
+
+                      {/* Additional Info */}
+                      {(floorPlan.floor_number !== null && floorPlan.floor_number !== undefined) || floorPlan.unit_type ? (
+                        <div className="flex flex-wrap gap-4 text-font-s text-gray-2 pt-2 border-t">
+                          {floorPlan.floor_number !== null && floorPlan.floor_number !== undefined && (
+                            <span>طبقه: {floorPlan.floor_number}</span>
+                          )}
+                          {floorPlan.unit_type && (
+                            <span>نوع واحد: {floorPlan.unit_type}</span>
+                          )}
+                          {floorPlan.is_available === false && (
+                            <span className="text-red-1">در دسترس نیست</span>
+                          )}
+                        </div>
+                      ) : null}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
         </CardWithIcon>
       )}
 
@@ -509,37 +630,37 @@ export function OverviewTab({ property }: OverviewTabProps) {
         borderColor="border-b-blue-1"
         contentClassName="space-y-6"
       >
-          <div>
-            <label className="text-font-s mb-3 block">
-              توضیحات کوتاه
-            </label>
-            <div className="text-font-p leading-relaxed p-4 bg-bg/50 rounded-lg" style={{ textAlign: 'justify' }}>
-              {property.short_description || (
-                <span className="text-font-s">
-                  توضیحی وارد نشده است
-                </span>
-              )}
-            </div>
+        <div>
+          <label className="text-font-s mb-3 block">
+            توضیحات کوتاه
+          </label>
+          <div className="text-font-p leading-relaxed p-4 bg-bg/50 rounded-lg" style={{ textAlign: 'justify' }}>
+            {property.short_description || (
+              <span className="text-font-s">
+                توضیحی وارد نشده است
+              </span>
+            )}
           </div>
+        </div>
 
-          <div>
-            <label className="text-font-s mb-3 block">
-              توضیحات کامل
-            </label>
-            <div className="p-4 bg-bg/50 rounded-lg" style={{ textAlign: 'justify' }}>
-              {property.description ? (
-                <ReadMore
-                  content={property.description}
-                  isHTML={true}
-                  maxHeight="200px"
-                />
-              ) : (
-                <span className="text-font-s">
-                  توضیحی وارد نشده است
-                </span>
-              )}
-            </div>
+        <div>
+          <label className="text-font-s mb-3 block">
+            توضیحات کامل
+          </label>
+          <div className="p-4 bg-bg/50 rounded-lg" style={{ textAlign: 'justify' }}>
+            {property.description ? (
+              <ReadMore
+                content={property.description}
+                isHTML={true}
+                maxHeight="200px"
+              />
+            ) : (
+              <span className="text-font-s">
+                توضیحی وارد نشده است
+              </span>
+            )}
           </div>
+        </div>
       </CardWithIcon>
     </TabsContent>
   );

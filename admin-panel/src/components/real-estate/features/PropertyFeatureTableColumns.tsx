@@ -89,11 +89,11 @@ export const usePropertyFeatureColumns = (
       minSize: 200,
     },
     {
-      accessorKey: "category",
+      accessorKey: "group",
       header: () => <div className="table-header-text">دسته‌بندی</div>,
       cell: ({ row }) => (
         <div className="table-cell-secondary">
-          {row.original.category || '-'}
+          {row.original.group || '-'}
         </div>
       ),
       enableSorting: true,

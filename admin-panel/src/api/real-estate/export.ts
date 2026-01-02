@@ -22,7 +22,7 @@ export const exportProperties = async (
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          if (key === 'is_published' || key === 'is_featured' || key === 'is_public' || key === 'is_verified' || key === 'is_active') {
+          if (key === 'is_published' || key === 'is_featured' || key === 'is_public' || key === 'is_active') {
             if (typeof value === 'boolean') {
               queryParams.append(key, value.toString());
             } else if (typeof value === 'string') {

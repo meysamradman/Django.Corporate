@@ -107,7 +107,7 @@ export default function PropertyFeatureViewPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-font-s">دسته‌بندی</label>
               <div className="px-3 py-2 rounded-md border border-br bg-bg/50 text-font-p">
-                {feature.category || '-'}
+                {feature.group || '-'}
               </div>
             </div>
           </div>

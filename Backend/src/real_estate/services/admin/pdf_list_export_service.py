@@ -186,7 +186,6 @@ class PropertyPDFListExportService:
             
             table_headers = [
                 process_persian_text(PDF_LABELS['active']),
-                process_persian_text(PDF_LABELS['verified']),
                 process_persian_text(PDF_LABELS['public']),
                 process_persian_text(PDF_LABELS['featured']),
                 process_persian_text(PDF_LABELS['published']),
@@ -214,7 +213,6 @@ class PropertyPDFListExportService:
                 
                 row = [
                     PDF_LABELS['yes'] if property_obj.is_active else PDF_LABELS['no'],
-                    PDF_LABELS['yes'] if property_obj.is_verified else PDF_LABELS['no'],
                     PDF_LABELS['yes'] if property_obj.is_public else PDF_LABELS['no'],
                     PDF_LABELS['yes'] if property_obj.is_featured else PDF_LABELS['no'],
                     PDF_LABELS['yes'] if property_obj.is_published else PDF_LABELS['no'],

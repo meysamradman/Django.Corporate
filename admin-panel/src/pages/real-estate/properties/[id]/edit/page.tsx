@@ -90,6 +90,7 @@ const SEOTab = lazy(() => import("@/components/real-estate/list/create/SEOTab"))
 const LocationTab = lazy(() => import("@/components/real-estate/list/create/LocationTab"));
 const DetailsTab = lazy(() => import("@/components/real-estate/list/create/DetailsTab"));
 const FloorPlansTab = lazy(() => import("@/components/real-estate/list/create/FloorPlansTab"));
+const ExtraAttributesTab = lazy(() => import("@/components/real-estate/list/create/ExtraAttributesTab"));
 
 export default function EditPropertyPage() {
   const navigate = useNavigate();
@@ -97,6 +98,7 @@ export default function EditPropertyPage() {
   const [activeTab, setActiveTab] = useState<string>("account");
   const [editMode, setEditMode] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [propertyMedia, setPropertyMedia] = useState<PropertyMedia>({
     featuredImage: null,
@@ -149,6 +151,7 @@ export default function EditPropertyPage() {
     floors_in_building: null as number | null,
     parking_spaces: null as number | null,
     storage_rooms: null as number | null,
+    extra_attributes: {} as Record<string, any>,
   });
 
   const [selectedLabels, setSelectedLabels] = useState<PropertyLabel[]>([]);
@@ -213,6 +216,7 @@ export default function EditPropertyPage() {
         floors_in_building: propertyData.floors_in_building ? Number(propertyData.floors_in_building) : null,
         parking_spaces: propertyData.parking_spaces ? Number(propertyData.parking_spaces) : null,
         storage_rooms: propertyData.storage_rooms ? Number(propertyData.storage_rooms) : null,
+        extra_attributes: propertyData.extra_attributes || {},
       });
 
       if (propertyData.labels) {
@@ -238,7 +242,7 @@ export default function EditPropertyPage() {
     }
   };
 
-  const handleInputChange = (field: string, value: string | Media | boolean | null | number) => {
+  const handleInputChange = (field: string, value: string | Media | boolean | null | number | Record<string, any>) => {
     if (field === "title" && typeof value === "string") {
       const generatedSlug = generateSlug(value);
 
@@ -391,7 +395,15 @@ export default function EditPropertyPage() {
         floors_in_building: formData.floors_in_building,
         parking_spaces: formData.parking_spaces,
         storage_rooms: formData.storage_rooms,
+        extra_attributes: formData.extra_attributes && Object.keys(formData.extra_attributes).length > 0
+          ? formData.extra_attributes
+          : undefined,
       };
+
+      // Debug: نمایش داده‌های ارسالی
+      console.log('📤 handleSave - formData.extra_attributes:', formData.extra_attributes);
+      console.log('📤 handleSave - updateData.extra_attributes:', updateData.extra_attributes);
+      console.log('📤 handleSave - Full updateData:', updateData);
 
       await realEstateApi.partialUpdateProperty(property.id, updateData);
       showSuccess("ملک با موفقیت ویرایش شد");
@@ -406,12 +418,12 @@ export default function EditPropertyPage() {
   const handleSaveDraft = async () => {
     if (!property) return;
 
-    setIsSaving(true);
+    setIsSavingDraft(true);
     try {
       const slugValidation = validateSlug(formData.slug, true);
       if (!slugValidation.isValid) {
         showError(new Error(slugValidation.error || "اسلاگ معتبر نیست"));
-        setIsSaving(false);
+        setIsSavingDraft(false);
         return;
       }
 
@@ -476,6 +488,9 @@ export default function EditPropertyPage() {
         floors_in_building: formData.floors_in_building,
         parking_spaces: formData.parking_spaces,
         storage_rooms: formData.storage_rooms,
+        extra_attributes: formData.extra_attributes && Object.keys(formData.extra_attributes).length > 0
+          ? formData.extra_attributes
+          : undefined,
       };
 
       await realEstateApi.partialUpdateProperty(property.id, updateData);
@@ -484,7 +499,7 @@ export default function EditPropertyPage() {
     } catch (error) {
       showError(error);
     } finally {
-      setIsSaving(false);
+      setIsSavingDraft(false);
     }
   };
 
@@ -533,6 +548,10 @@ export default function EditPropertyPage() {
             <TabsTrigger value="seo">
               <Search className="h-4 w-4" />
               سئو
+            </TabsTrigger>
+            <TabsTrigger value="advanced">
+              <Settings className="h-4 w-4" />
+              فیلدهای اضافی
             </TabsTrigger>
           </TabsList>
           <TabSkeleton />
@@ -605,6 +624,10 @@ export default function EditPropertyPage() {
           <TabsTrigger value="seo">
             <Search className="h-4 w-4" />
             سئو
+          </TabsTrigger>
+          <TabsTrigger value="advanced">
+            <Settings className="h-4 w-4" />
+            فیلدهای اضافی
           </TabsTrigger>
         </TabsList>
 
@@ -679,6 +702,15 @@ export default function EditPropertyPage() {
             />
           </Suspense>
         </TabsContent>
+        <TabsContent value="advanced">
+          <Suspense fallback={<TabSkeleton />}>
+            <ExtraAttributesTab
+              formData={formData}
+              handleInputChange={handleInputChange}
+              editMode={editMode}
+            />
+          </Suspense>
+        </TabsContent>
       </Tabs>
 
       {editMode && (
@@ -687,9 +719,9 @@ export default function EditPropertyPage() {
             onClick={handleSaveDraft}
             variant="outline"
             size="lg"
-            disabled={isSaving}
+            disabled={isSaving || isSavingDraft}
           >
-            {isSaving ? (
+            {isSavingDraft ? (
               <>
                 <Loader2 className="h-5 w-5 animate-spin" />
                 در حال ذخیره...
@@ -704,7 +736,7 @@ export default function EditPropertyPage() {
           <Button
             onClick={handleSave}
             size="lg"
-            disabled={isSaving}
+            disabled={isSaving || isSavingDraft}
           >
             {isSaving ? (
               <>

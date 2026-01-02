@@ -30,7 +30,7 @@ export const realEstateApi = {
       
       Object.entries(apiParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          if (key === 'is_published' || key === 'is_featured' || key === 'is_public' || key === 'is_verified' || key === 'is_active') {
+          if (key === 'is_published' || key === 'is_featured' || key === 'is_public' || key === 'is_active') {
             if (typeof value === 'boolean') {
               queryParams.append(key, value.toString());
             } else if (typeof value === 'string') {
@@ -160,7 +160,7 @@ export const realEstateApi = {
     return response.data;
   },
 
-  bulkUpdateStatus: async (ids: number[], status: { is_published?: boolean; is_featured?: boolean; is_public?: boolean; is_verified?: boolean; is_active?: boolean }): Promise<{ success: boolean }> => {
+  bulkUpdateStatus: async (ids: number[], status: { is_published?: boolean; is_featured?: boolean; is_public?: boolean; is_active?: boolean }): Promise<{ success: boolean }> => {
     const response = await api.post<{ success: boolean }>('/admin/property/bulk-update-status/', { ids, ...status });
     return response.data;
   },
@@ -177,11 +177,6 @@ export const realEstateApi = {
 
   toggleFeatured: async (id: number): Promise<Property> => {
     const response = await api.post<Property>('/admin/property/' + id + '/toggle-featured/');
-    return response.data;
-  },
-
-  toggleVerified: async (id: number): Promise<Property> => {
-    const response = await api.post<Property>('/admin/property/' + id + '/toggle-verified/');
     return response.data;
   },
 
@@ -219,7 +214,7 @@ export const realEstateApi = {
     return response.data;
   },
 
-  // ✅ NEW: Get field options for dropdowns (Complete)
+  // ✅ NEW: Get field options for dropdowns (Complete with Extra Attributes)
   getFieldOptions: async (): Promise<{
     bedrooms: [number, string][];
     bathrooms: [number, string][];
@@ -235,8 +230,39 @@ export const realEstateApi = {
       help_text: string;
       placeholder?: string;
     };
+    extra_attributes_options?: {
+      space_type?: [string, string][];
+      construction_status?: [string, string][];
+      property_condition?: [string, string][];
+      property_direction?: [string, string][];
+      city_position?: [string, string][];
+      unit_type?: [string, string][];
+    };
   }> => {
-    const response = await api.get('/admin/property/field-options/');
+    const response = await api.get<{
+      bedrooms: [number, string][];
+      bathrooms: [number, string][];
+      parking_spaces: [number, string][];
+      storage_rooms: [number, string][];
+      floor_number: [number, string][];
+      kitchens: [number, string][];
+      living_rooms: [number, string][];
+      document_type: [string, string][];
+      year_built: {
+        min: number;
+        max: number;
+        help_text: string;
+        placeholder?: string;
+      };
+      extra_attributes_options?: {
+        space_type?: [string, string][];
+        construction_status?: [string, string][];
+        property_condition?: [string, string][];
+        property_direction?: [string, string][];
+        city_position?: [string, string][];
+        unit_type?: [string, string][];
+      };
+    }>('/admin/property/field-options/');
     return response.data;
   },
 
@@ -444,7 +470,7 @@ export const realEstateApi = {
     await api.delete('/admin/property-label/' + id + '/');
   },
 
-  getFeatures: async (params?: { page?: number; size?: number; is_active?: boolean; category?: string }): Promise<PaginatedResponse<PropertyFeature>> => {
+  getFeatures: async (params?: { page?: number; size?: number; is_active?: boolean; group?: string }): Promise<PaginatedResponse<PropertyFeature>> => {
     let url = '/admin/property-feature/';
     if (params) {
       const queryParams = new URLSearchParams();

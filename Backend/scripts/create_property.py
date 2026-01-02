@@ -207,7 +207,6 @@ def create_sample_property():
             is_published=True,
             is_featured=True,
             is_public=True,
-            is_verified=True,
             meta_title="Sample Property",
             meta_description="A sample property with all media types for testing",
             og_title="Sample Property",
