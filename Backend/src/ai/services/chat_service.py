@@ -78,6 +78,7 @@ class AIChatService:
                         temperature=kwargs.get('temperature', 0.7),
                         max_tokens=kwargs.get('max_tokens', 2048),
                         system_message=kwargs.get('system_message'),
+                        image=kwargs.get('image'),
                     )
                 )
             finally:

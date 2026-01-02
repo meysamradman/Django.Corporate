@@ -1,6 +1,6 @@
 import { useRef, useState, lazy, Suspense, type ComponentType, type Ref } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader/PageHeader';
-import { ProtectedButton, useUIPermissions } from '@/components/admins/permissions';
+import { useUIPermissions } from '@/components/admins/permissions';
 import { Save, Loader2, Flag, Image as ImageIcon, Database, Shield } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 
@@ -48,7 +48,7 @@ export default function PanelSettingsPage() {
 
                 <TabsContent value="database">
                     {activeTab === "database" && (
-                        <Suspense fallback={<div className="p-8">Loading...</div>}>
+                        <Suspense fallback={<div />}>
                             <PanelDatabaseTab />
                         </Suspense>
                     )}
@@ -71,12 +71,11 @@ export default function PanelSettingsPage() {
                 </TabsContent>
             </Tabs>
             
-            {activeTab === "branding" && (
+            {activeTab === "branding" && canManagePanel && (  // 🔒 فقط Super Admin
                 <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
-                    <ProtectedButton 
+                    <button 
                         onClick={() => brandingFormRef.current?.handleSubmit()}
-                        permission="panel.manage"
-                        size="lg"
+                        className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-11 rounded-md px-8"
                         disabled={brandingFormRef.current?.isSubmitting || !brandingFormRef.current?.hasChanges}
                     >
                         {brandingFormRef.current?.isSubmitting ? (
@@ -90,7 +89,7 @@ export default function PanelSettingsPage() {
                                 ذخیره تغییرات
                             </>
                         )}
-                    </ProtectedButton>
+                    </button>
                 </div>
             )}
         </div>

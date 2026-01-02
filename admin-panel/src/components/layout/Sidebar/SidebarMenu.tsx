@@ -345,7 +345,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         icon: Settings,
         items: [
           { title: "تنظیمات پنل ادمین", isTitle: true },
-          { title: "تنظیمات پنل", url: "/panel", icon: LayoutDashboard, access: { module: "panel", actions: ["manage"] } },
+          { title: "تنظیمات پنل", url: "/panel", icon: LayoutDashboard, access: { requireSuperAdmin: true } },  // 🔒 فقط Super Admin
           { title: "تنظیمات هوش مصنوعی", isTitle: true },
           { title: "مدیریت Provider ها", url: "/ai/settings", icon: Cpu, access: { module: "ai", actions: ["manage"] } },
           { title: "انتخاب مدل‌ها", url: "/ai/models", icon: List, access: { module: "ai", actions: ["manage"], requireSuperAdmin: true } },

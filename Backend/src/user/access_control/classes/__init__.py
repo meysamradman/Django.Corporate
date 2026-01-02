@@ -50,7 +50,7 @@ __all__ = [
     "SimpleAdminPermission",
     "SuperAdminOnly",
     "IsAdminUser",
-    "IsSuperAdmin",
+    "IsSuperAdmin",  # ✅ اضافه شد
     "require_admin_roles",
     "require_module_access",
     "RequirePermission",

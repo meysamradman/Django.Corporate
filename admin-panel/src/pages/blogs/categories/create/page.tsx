@@ -11,14 +11,14 @@ import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/co
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { blogApi } from "@/api/blogs/blogs";
 import type { BlogCategory } from "@/types/blog/category/blogCategory";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
+import { TreeSelect } from "@/components/elements/TreeSelect";
 import type { Media } from "@/types/shared/media";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
 import { showError, showSuccess } from "@/core/toast";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
-import { UploadCloud, X, FolderTree, Image as ImageIcon, FolderOpen, Folder, Home, Loader2, Save, List, Settings } from "lucide-react";
+import { UploadCloud, X, FolderTree, Image as ImageIcon, Loader2, Save, List, Settings } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function CreateCategoryPage() {
@@ -38,78 +38,12 @@ export default function CreateCategoryPage() {
   const { data: categories, isLoading: isLoadingCategories } = useQuery({
     queryKey: ['blog-categories-all'],
     queryFn: async () => {
-      return await blogApi.getCategories({ size: 1000 });
+      const res = await blogApi.getCategories({ size: 1000 });
+      return res;
     },
     staleTime: 0,
     gcTime: 0,
   });
-
-  const getSelectedCategoryDisplay = () => {
-    if (!formData.parent_id) {
-      return {
-        name: "بدون والد (دسته‌بندی مادر)",
-        icon: Home,
-        level: 0,
-        badge: "پیش‌فرض"
-      };
-    }
-    const selected = categories?.data?.find(cat => cat.id === formData.parent_id);
-    if (!selected) return null;
-    
-    return {
-      name: selected.name,
-      icon: (selected.level || 1) === 1 ? FolderOpen : Folder,
-      level: selected.level || 1,
-      badge: null
-    };
-  };
-
-  const renderCategoryOption = (category: BlogCategory) => {
-    const level = category.level || 1;
-    const indentPx = (level - 1) * 24;
-    const Icon = level === 1 ? FolderOpen : Folder;
-    const isSelected = formData.parent_id === category.id;
-    
-    return (
-      <SelectItem 
-        key={category.id} 
-        value={category.id.toString()}
-        className="relative"
-      >
-        <div 
-          className="flex items-center gap-3 w-full justify-end" 
-          style={{ paddingRight: `${indentPx}px` }}
-        >
-          <div className="flex items-center gap-2 flex-1 min-w-0 justify-end text-right">
-            {level > 1 && (
-              <div className="flex items-center gap-1 shrink-0">
-                <div className="flex gap-0.5">
-                  {Array.from({ length: level - 1 }).map((_, idx) => (
-                    <div key={idx} className="w-1 h-1 rounded-full bg-font-s/30" />
-                  ))}
-                </div>
-              </div>
-            )}
-            <span className={`flex-1 truncate text-right ${isSelected ? 'font-medium text-foreground' : 'text-foreground'}`}>
-              {category.name}
-            </span>
-          </div>
-          {level > 1 && (
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-border" />
-          )}
-          <Icon 
-            className={`w-4 h-4 shrink-0 transition-colors ${
-              isSelected 
-                ? 'text-primary' 
-                : level === 1 
-                  ? 'text-primary/70' 
-                  : 'text-font-s'
-            }`} 
-          />
-        </div>
-      </SelectItem>
-    );
-  };
 
   const createCategoryMutation = useMutation({
     mutationFn: (data: Partial<BlogCategory>) => blogApi.createCategory(data),
@@ -126,7 +60,7 @@ export default function CreateCategoryPage() {
   const handleInputChange = (field: string, value: string | boolean | number | null) => {
     if (field === "name" && typeof value === "string") {
       const generatedSlug = generateSlug(value);
-      
+
       setFormData(prev => ({
         ...prev,
         [field]: value,
@@ -146,11 +80,6 @@ export default function CreateCategoryPage() {
     }
   };
 
-  const handleParentChange = (value: string) => {
-    const parentId = value && value !== "null" ? parseInt(value) : null;
-    setFormData(prev => ({ ...prev, parent_id: parentId }));
-  };
-
   const handleImageSelect = (media: Media | Media[] | null) => {
     const selected = Array.isArray(media) ? media[0] || null : media;
     setSelectedMedia(selected);
@@ -163,18 +92,18 @@ export default function CreateCategoryPage() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    
+
     const slugValidation = validateSlug(formData.slug, true);
     if (!slugValidation.isValid) {
       showError(slugValidation.error || "اسلاگ معتبر نیست");
       return;
     }
-    
+
     const formDataWithImage = {
       ...formData,
       ...(selectedMedia?.id && { image_id: selectedMedia.id })
     };
-    
+
     createCategoryMutation.mutate(formDataWithImage);
   };
 
@@ -182,7 +111,7 @@ export default function CreateCategoryPage() {
     return (
       <div className="space-y-6 pb-28 relative">
         <PageHeader title="ایجاد دسته‌بندی جدید">
-          <Button 
+          <Button
             variant="outline"
             onClick={() => navigate("/blogs/categories")}
           >
@@ -248,7 +177,7 @@ export default function CreateCategoryPage() {
   return (
     <div className="space-y-6 pb-28 relative">
       <PageHeader title="ایجاد دسته‌بندی جدید">
-        <Button 
+        <Button
           variant="outline"
           onClick={() => navigate("/blogs/categories")}
         >
@@ -261,188 +190,123 @@ export default function CreateCategoryPage() {
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-4 space-y-6">
             <div className="space-y-6">
-            <CardWithIcon
-              icon={FolderTree}
-              title="اطلاعات دسته‌بندی"
-              iconBgColor="bg-purple"
-              iconColor="stroke-purple-2"
-              borderColor="border-b-purple-1"
-              className="hover:shadow-lg transition-all duration-300"
-            >
+              <CardWithIcon
+                icon={FolderTree}
+                title="اطلاعات دسته‌بندی"
+                iconBgColor="bg-purple"
+                iconColor="stroke-purple-2"
+                borderColor="border-b-purple-1"
+                className="hover:shadow-lg transition-all duration-300"
+              >
                 <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    label="نام"
-                    htmlFor="name"
-                    required
-                  >
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange("name", e.target.value)}
-                      placeholder="نام دسته‌بندی"
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      label="نام"
+                      htmlFor="name"
                       required
+                    >
+                      <Input
+                        id="name"
+                        value={formData.name}
+                        onChange={(e) => handleInputChange("name", e.target.value)}
+                        placeholder="نام دسته‌بندی"
+                        required
+                      />
+                    </FormField>
+                    <FormField
+                      label="نامک"
+                      htmlFor="slug"
+                      required
+                    >
+                      <Input
+                        id="slug"
+                        value={formData.slug}
+                        onChange={(e) => handleInputChange("slug", e.target.value)}
+                        placeholder="نامک"
+                        required
+                      />
+                    </FormField>
+                  </div>
+
+                  <FormField
+                    label="دسته‌بندی والد"
+                    htmlFor="parent_id"
+                    description="دسته‌بندی‌های بدون والد، دسته‌بندی‌های مادر هستند."
+                  >
+                    <TreeSelect
+                      data={categories?.data || []}
+                      value={formData.parent_id || null}
+                      onChange={(value) => handleInputChange("parent_id", value ? parseInt(value) : null)}
+                      placeholder="انتخاب دسته‌بندی والد (اختیاری)"
+                      searchPlaceholder="جستجوی دسته‌بندی..."
+                      emptyText="دسته‌بندی یافت نشد"
                     />
                   </FormField>
+
                   <FormField
-                    label="نامک"
-                    htmlFor="slug"
-                    required
+                    label="توضیحات"
+                    htmlFor="description"
                   >
-                    <Input
-                      id="slug"
-                      value={formData.slug}
-                      onChange={(e) => handleInputChange("slug", e.target.value)}
-                      placeholder="نامک"
-                      required
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => handleInputChange("description", e.target.value)}
+                      placeholder="توضیحات دسته‌بندی"
+                      rows={4}
                     />
                   </FormField>
-                </div>
 
-                <FormField
-                  label="دسته‌بندی والد"
-                  htmlFor="parent_id"
-                  description="دسته‌بندی‌های بدون والد، دسته‌بندی‌های مادر هستند."
-                >
-                  <Select
-                    value={formData.parent_id?.toString() || "null"}
-                    onValueChange={handleParentChange}
-                  >
-                    <SelectTrigger className="w-full h-auto min-h-[2.5rem] py-2 !justify-start">
-                      <div className="flex items-center gap-3 w-full flex-1 min-w-0">
-                        {(() => {
-                          const display = getSelectedCategoryDisplay();
-                          if (!display) {
-                            return (
-                              <>
-                                <SelectValue placeholder="دسته‌بندی والد را انتخاب کنید" className="flex-1 text-right w-full" />
-                                <div className="p-1.5 rounded-md bg-bg/50 shrink-0">
-                                  <Home className="w-4 h-4 text-font-s" />
-                                </div>
-                              </>
-                            );
-                          }
-                          const Icon = display.icon;
-                          return (
-                            <>
-                              <SelectValue className="flex-1 text-right w-full">
-                                <span className="font-medium truncate text-right block">{display.name}</span>
-                              </SelectValue>
-                              {display.badge && (
-                                <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full font-medium shrink-0">
-                                  {display.badge}
-                                </span>
-                              )}
-                              <div className={`p-1.5 rounded-md shrink-0 ${
-                                display.level === 0 
-                                  ? 'bg-primary/10' 
-                                  : 'bg-bg/50'
-                              }`}>
-                                <Icon className={`w-4 h-4 ${
-                                  display.level === 0 
-                                    ? 'text-primary' 
-                                    : 'text-foreground'
-                                }`} />
-                              </div>
-                            </>
-                          );
-                        })()}
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px]">
-                      <SelectItem 
-                        value="null"
-                        className="font-medium"
-                      >
-                        <div className="flex items-center gap-3 w-full justify-end">
-                          <div className="flex items-center gap-2 flex-1 justify-end text-right">
-                            <span>بدون والد (دسته‌بندی مادر)</span>
-                            <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full font-medium">
-                              پیش‌فرض
-                            </span>
-                          </div>
-                          <div className="p-1.5 rounded-md bg-primary/10 shrink-0">
-                            <Home className="w-4 h-4 text-primary" />
-                          </div>
-                        </div>
-                      </SelectItem>
-                      {categories?.data && categories.data.length > 0 && (
-                        <>
-                          <div className="h-px bg-border/50 my-2 mx-2" />
-                          <div className="px-3 py-2 text-xs font-semibold text-font-s uppercase tracking-wide text-right">
-                            دسته‌بندی‌های موجود
-                          </div>
-                        </>
-                      )}
-                      {categories?.data?.map((category) => renderCategoryOption(category))}
-                    </SelectContent>
-                  </Select>
-                </FormField>
+                  <div className="mt-6 space-y-4">
+                    <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                      <Item variant="default" size="default" className="py-5">
+                        <ItemContent>
+                          <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
+                          <ItemDescription>
+                            با غیرفعال شدن، دسته‌بندی از لیست مدیریت نیز مخفی می‌شود.
+                          </ItemDescription>
+                        </ItemContent>
+                        <ItemActions>
+                          <Switch
+                            checked={formData.is_active}
+                            onCheckedChange={(checked) => handleInputChange("is_active", checked)}
+                          />
+                        </ItemActions>
+                      </Item>
+                    </div>
 
-                <FormField
-                  label="توضیحات"
-                  htmlFor="description"
-                >
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => handleInputChange("description", e.target.value)}
-                    placeholder="توضیحات دسته‌بندی"
-                    rows={4}
-                  />
-                </FormField>
-
-                <div className="mt-6 space-y-4">
-                  <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
-                    <Item variant="default" size="default" className="py-5">
-                      <ItemContent>
-                        <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
-                        <ItemDescription>
-                          با غیرفعال شدن، دسته‌بندی از لیست مدیریت نیز مخفی می‌شود.
-                        </ItemDescription>
-                      </ItemContent>
-                      <ItemActions>
-                        <Switch
-                          checked={formData.is_active}
-                          onCheckedChange={(checked) => handleInputChange("is_active", checked)}
-                        />
-                      </ItemActions>
-                    </Item>
+                    <div className="rounded-xl border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
+                      <Item variant="default" size="default" className="py-5">
+                        <ItemContent>
+                          <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>
+                          <ItemDescription>
+                            اگر غیرفعال باشد دسته‌بندی در سایت نمایش داده نمی‌شود.
+                          </ItemDescription>
+                        </ItemContent>
+                        <ItemActions>
+                          <Switch
+                            checked={formData.is_public}
+                            onCheckedChange={(checked) => handleInputChange("is_public", checked)}
+                          />
+                        </ItemActions>
+                      </Item>
+                    </div>
                   </div>
-                  
-                  <div className="rounded-xl border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
-                    <Item variant="default" size="default" className="py-5">
-                      <ItemContent>
-                        <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>
-                        <ItemDescription>
-                          اگر غیرفعال باشد دسته‌بندی در سایت نمایش داده نمی‌شود.
-                        </ItemDescription>
-                      </ItemContent>
-                      <ItemActions>
-                        <Switch
-                          checked={formData.is_public}
-                          onCheckedChange={(checked) => handleInputChange("is_public", checked)}
-                        />
-                      </ItemActions>
-                    </Item>
-                  </div>
-                </div>
 
                 </div>
-            </CardWithIcon>
+              </CardWithIcon>
             </div>
           </div>
 
           <div className="lg:col-span-2">
             <div className="w-full space-y-6 sticky top-20 transition-all duration-300 ease-in-out self-start">
-            <CardWithIcon
-              icon={ImageIcon}
-              title="تصویر شاخص"
-              iconBgColor="bg-blue"
-              iconColor="stroke-blue-2"
-              borderColor="border-b-blue-1"
-              className="hover:shadow-lg transition-all duration-300"
-            >
+              <CardWithIcon
+                icon={ImageIcon}
+                title="تصویر شاخص"
+                iconBgColor="bg-blue"
+                iconColor="stroke-blue-2"
+                borderColor="border-b-blue-1"
+                className="hover:shadow-lg transition-all duration-300"
+              >
                 {selectedMedia ? (
                   <div className="relative w-full aspect-video rounded-lg overflow-hidden group border">
                     <img
@@ -485,7 +349,7 @@ export default function CreateCategoryPage() {
                     </p>
                   </div>
                 )}
-            </CardWithIcon>
+              </CardWithIcon>
             </div>
           </div>
         </div>

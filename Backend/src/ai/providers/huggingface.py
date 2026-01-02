@@ -420,7 +420,36 @@ Return ONLY the JSON object, nothing else."""
                 "do_sample": True,
             }
         }
-        
+
+        # Handling Image for Multimodal Models (Vision Language Models - VLMs)
+        # Note: HuggingFace Inference API behavior varies by model. 
+        # Some accept keys like 'image' in the payload, others require specific formatting.
+        # This implementation attempts a common VLM pattern (inputs + image data).
+        if kwargs.get('image'):
+            import base64
+            image_file = kwargs['image']
+            if hasattr(image_file, 'read'):
+                image_content = image_file.read()
+                # Ensure we have bytes
+                if isinstance(image_content, str):
+                    image_content = image_content.encode('utf-8')
+                
+                base64_image = base64.b64encode(image_content).decode('utf-8')
+                
+                # Check for common VLM patterns or Idefics/LLaVA specific structures
+                # For many HF inference endpoints, 'image' or 'images' is a separate key or part of inputs.
+                # We'll try adding a top-level 'image' key which is common for some inference handlers.
+                # PRO TIP: For Idefics/LLaVA, prompt formatting is also critical (User: <image>... etc).
+                # We will attach the base64 image data.
+                payload['image'] = base64_image
+                # Some models might expect 'images' as a list
+                payload['images'] = [base64_image]
+                
+                # Update prompt to indicate image presence if not already implicit
+                if "<image>" not in full_prompt:
+                     # Prepend generic image token usage for VLMs
+                    payload["inputs"] = f"User: <image>\n{message}\nAssistant:"
+
         try:
             response = await self.client.post(url, json=payload, headers=headers)
             response.raise_for_status()
@@ -431,13 +460,18 @@ Return ONLY the JSON object, nothing else."""
                 generated_text = data[0].get('generated_text', '')
                 if generated_text:
                     if full_prompt in generated_text:
-                        generated_text = generated_text.replace(full_prompt, '').strip()
+                         generated_text = generated_text.replace(full_prompt, '').strip()
+                    # Also clean up potential echo of inputs if the model does that
+                    if payload["inputs"] in generated_text:
+                        generated_text = generated_text.replace(payload["inputs"], '').strip()
                     return generated_text.strip()
             elif isinstance(data, dict):
                 if 'generated_text' in data:
                     generated_text = data['generated_text']
                     if full_prompt in generated_text:
                         generated_text = generated_text.replace(full_prompt, '').strip()
+                    if payload["inputs"] in generated_text:
+                        generated_text = generated_text.replace(payload["inputs"], '').strip()
                     return generated_text.strip()
             
             raise Exception(AI_ERRORS["chat_failed"].format(error="No response received"))

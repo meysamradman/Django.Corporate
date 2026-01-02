@@ -27,7 +27,7 @@ export const downloadDatabaseExport = async (): Promise<void> => {
     try {
         const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
         const filename = `database_backup_${timestamp}.sql`;
-        
+
         const getCsrfToken = (): string | null => {
             if (typeof document === 'undefined') return null;
             try {
@@ -46,7 +46,7 @@ export const downloadDatabaseExport = async (): Promise<void> => {
 
         const csrfToken = getCsrfToken();
         const url = `${env.API_URL}${BASE_URL}/database-export/download/`;
-        
+
         const response = await fetch(url, {
             method: 'GET',
             credentials: 'include',
@@ -69,11 +69,11 @@ export const downloadDatabaseExport = async (): Promise<void> => {
         }
 
         const blob = await response.blob();
-        
+
         if (blob.size === 0) {
             throw new Error('Downloaded file is empty');
         }
-        
+
         const downloadUrl = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = downloadUrl;
@@ -82,7 +82,7 @@ export const downloadDatabaseExport = async (): Promise<void> => {
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(downloadUrl);
-        
+
         showSuccess('دانلود پشتیبان دیتابیس با موفقیت انجام شد');
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'خطا در دانلود پشتیبان دیتابیس';
@@ -91,9 +91,9 @@ export const downloadDatabaseExport = async (): Promise<void> => {
     }
 };
 
-export const getDatabaseExportInfo = async (): Promise<{ size: string; table_count: number }> => {
+export const getDatabaseExportInfo = async (): Promise<{ size: string; table_count: number; top_tables: { name: string; size: string }[] }> => {
     try {
-        const response = await api.get<{ size: string; table_count: number }>(`${BASE_URL}/database-export/info/`);
+        const response = await api.get<{ size: string; table_count: number; top_tables: { name: string; size: string }[] }>(`${BASE_URL}/database-export/info/`);
         if (!response || !response.data) {
             throw new Error("API response missing database info.");
         }

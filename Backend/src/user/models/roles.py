@@ -21,7 +21,7 @@ class AdminRole(BaseModel):
         ('ai_manager', 'AI Manager'),
         ('analytics_manager', 'Analytics Manager'),
         ('settings_manager', 'Settings Manager'),
-        ('panel_manager', 'Panel Manager'),
+        # 🔒 REMOVED: 'panel_manager' - Panel Settings فقط برای Super Admin
         ('user_manager', 'User Manager'),
     )
     

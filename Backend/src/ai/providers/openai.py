@@ -238,7 +238,32 @@ Write the content as plain text without special formatting."""
                 if role in ['user', 'assistant']:
                     messages.append({"role": role, "content": content})
         
-        messages.append({"role": "user", "content": message})
+        if kwargs.get('image'):
+            # Vision model request
+            import base64
+            
+            # Read and encode image
+            image_file = kwargs['image']
+            if hasattr(image_file, 'read'):
+                image_content = image_file.read()
+                if isinstance(image_content, str):
+                   image_content = image_content.encode('utf-8')
+                base64_image = base64.b64encode(image_content).decode('utf-8')
+            else:
+                base64_image = "" # Handle error or fallback
+
+            content = [
+                {"type": "text", "text": message},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{base64_image}"
+                    }
+                }
+            ]
+            messages.append({"role": "user", "content": content})
+        else:
+            messages.append({"role": "user", "content": message})
         
         payload = {
             "model": kwargs.get('model', self.content_model),

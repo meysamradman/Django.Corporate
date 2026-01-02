@@ -20,13 +20,14 @@ MANAGEMENT_PERMISSIONS = {
         'description': 'Full access to chatbot settings and FAQs',
         'is_standalone': True,
     },
-    'panel.manage': {
-        'module': 'panel',
-        'action': 'manage',
-        'display_name': 'Manage Panel Settings',
-        'description': 'Allow full access to panel settings (view, update, logo upload)',
-        'is_standalone': True,
-    },
+    # 🔒 REMOVED: 'panel.manage' - Panel Settings فقط برای Super Admin (غیرقابل تفویض)
+    # 'panel.manage': {
+    #     'module': 'panel',
+    #     'action': 'manage',
+    #     'display_name': 'Manage Panel Settings',
+    #     'description': 'Allow full access to panel settings (view, update, logo upload)',
+    #     'is_standalone': True,
+    # },
     'pages.manage': {
         'module': 'pages',
         'action': 'manage',

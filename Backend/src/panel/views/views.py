@@ -5,7 +5,7 @@ from django.core.cache import cache
 from django.http import StreamingHttpResponse, HttpResponse
 from django.conf import settings
 
-from src.user.access_control import PermissionRequiredMixin
+from src.user.access_control import IsSuperAdmin
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.panel.services import PanelSettingsService
 from src.panel.services.database_export_service import (
@@ -19,19 +19,10 @@ from src.panel.messages.messages import PANEL_SUCCESS, PANEL_ERRORS
 from src.panel.utils.cache import PanelCacheKeys, PanelCacheManager
 
 
-class AdminPanelSettingsViewSet(PermissionRequiredMixin, viewsets.ViewSet):
+class AdminPanelSettingsViewSet(viewsets.ViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
+    permission_classes = [IsSuperAdmin]  # 🔒 فقط Super Admin
     serializer_class = PanelSettingsSerializer
-    
-    permission_map = {
-        'list': 'panel.manage',
-        'update': 'panel.manage',
-        'partial_update': 'panel.manage',
-        'update_settings': 'panel.manage',
-        'get_database_export_info': 'panel.manage',
-        'download_database_export': 'panel.manage',
-    }
-    permission_denied_message = PANEL_ERRORS.get('permission_denied', 'شما اجازه دسترسی به این بخش را ندارید')
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     
     def get_serializer(self, *args, **kwargs):
@@ -102,6 +93,9 @@ class AdminPanelSettingsViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='database-export/info')
     def get_database_export_info(self, request):
+        """
+        دریافت اطلاعات کامل دیتابیس برای نمایش در پنل ادمین
+        """
         try:
             db_info = get_database_size_info()
             
@@ -118,6 +112,12 @@ class AdminPanelSettingsViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='database-export/download')
     def download_database_export(self, request):
+        """
+        دانلود بک اپ کامل دیتابیس (همه جداول)
+        فایل SQL فشرده با gzip برای حجم کم و سرعت بالا
+        قابل restore با gunzip + psql یا pgAdmin
+        """
+        # 🔒 Rate limiting check
         if not getattr(request.user, 'is_admin_full', False):
             from django.core.cache import cache
             export_rate_limit = settings.DATABASE_EXPORT_RATE_LIMIT
@@ -132,20 +132,29 @@ class AdminPanelSettingsViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             cache.set(cache_key, export_count + 1, export_rate_window)
         
         try:
+            # 🚀 Export کامل دیتابیس با gzip compression
             buffer = export_database_to_sql()
             filename = get_database_export_filename()
             
             buffer.seek(0)
-            file_content = buffer.read()
-            buffer_size = len(file_content)
             
-            response = HttpResponse(
-                file_content,
-                content_type='application/sql; charset=utf-8'
+            # 🚀 Streaming response برای فایل‌های بزرگ
+            def file_iterator(file_object, chunk_size=8192):
+                """Iterator برای ارسال فایل به صورت chunk"""
+                while True:
+                    chunk = file_object.read(chunk_size)
+                    if not chunk:
+                        break
+                    yield chunk
+            
+            # 🚀 Content-Type برای gzipped SQL file
+            response = StreamingHttpResponse(
+                file_iterator(buffer),
+                content_type='application/gzip'
             )
             response['Content-Disposition'] = f'attachment; filename="{filename}"'
-            response['Content-Length'] = str(buffer_size)
             response['X-Content-Type-Options'] = 'nosniff'
+            response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
             
             return response
             

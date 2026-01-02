@@ -7,6 +7,8 @@ from .classes import (
     SuperAdminOnly,
     RequirePermission,
     AdminPermissionCache,
+    IsAdminUser,  # ✅ اضافه شد
+    IsSuperAdmin,  # ✅ اضافه شد
     # Decorators
     require_admin_roles,
     require_module_access,
@@ -76,6 +78,8 @@ __all__ = [
     "SuperAdminOnly",
     "RequirePermission",
     "AdminPermissionCache",
+    "IsAdminUser",  # ✅ اضافه شد
+    "IsSuperAdmin",  # ✅ اضافه شد
     "require_admin_roles",
     "require_module_access",
     "AdminRoleView",

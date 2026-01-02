@@ -12,7 +12,6 @@ import { Shield, ShieldOff, Ban, Unlock, AlertCircle, CheckCircle2, Plus, Trash2
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/elements/Dialog';
 import { Label } from '@/components/elements/Label';
 import { Textarea } from '@/components/elements/Textarea';
-import { ProtectedButton } from '@/components/admins/permissions';
 
 export function IPManagementTab() {
   const queryClient = useQueryClient();
@@ -199,10 +198,10 @@ export function IPManagementTab() {
         <CardContent>
           <Dialog open={banIPDialog} onOpenChange={setBanIPDialog}>
             <DialogTrigger asChild>
-              <ProtectedButton variant="destructive" permission="panel.manage">
+              <Button variant="destructive">
                 <Ban className="h-4 w-4 mr-2" />
                 Ban کردن IP جدید
-              </ProtectedButton>
+              </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -238,14 +237,13 @@ export function IPManagementTab() {
                 <Button variant="outline" onClick={() => setBanIPDialog(false)}>
                   انصراف
                 </Button>
-                <ProtectedButton 
+                <Button 
                   variant="destructive" 
                   onClick={handleBan} 
                   disabled={banMutation.isPending}
-                  permission="panel.manage"
                 >
                   {banMutation.isPending ? 'در حال ban...' : 'Ban کردن'}
-                </ProtectedButton>
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -286,16 +284,15 @@ export function IPManagementTab() {
                     <TableCell>{banned.reason}</TableCell>
                     <TableCell>{banned.banned_at}</TableCell>
                     <TableCell className="text-right">
-                      <ProtectedButton
+                      <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleUnban(banned.ip)}
                         disabled={unbanMutation.isPending}
-                        permission="panel.manage"
                       >
                         <Unlock className="h-4 w-4 mr-1" />
                         رفع Ban
-                      </ProtectedButton>
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -317,24 +314,23 @@ export function IPManagementTab() {
         <CardContent className="space-y-4">
           {/* دکمه اضافه کردن IP فعلی */}
           {currentIP && !currentIP.is_whitelisted && (
-            <ProtectedButton
+            <Button
               variant="outline"
               onClick={() => addCurrentIPMutation.mutate()}
               disabled={addCurrentIPMutation.isPending}
-              permission="panel.manage"
             >
               <Plus className="h-4 w-4 mr-2" />
               اضافه کردن IP فعلی ({currentIP.ip}) به Whitelist
-            </ProtectedButton>
+            </Button>
           )}
 
           {/* دکمه اضافه کردن IP جدید */}
           <Dialog open={addWhitelistDialog} onOpenChange={setAddWhitelistDialog}>
             <DialogTrigger asChild>
-              <ProtectedButton variant="outline" permission="panel.manage">
+              <Button variant="outline">
                 <Plus className="h-4 w-4 mr-2" />
                 اضافه کردن IP جدید به Whitelist
-              </ProtectedButton>
+              </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -359,13 +355,12 @@ export function IPManagementTab() {
                 <Button variant="outline" onClick={() => setAddWhitelistDialog(false)}>
                   انصراف
                 </Button>
-                <ProtectedButton 
+                <Button 
                   onClick={handleAddToWhitelist} 
                   disabled={addToWhitelistMutation.isPending}
-                  permission="panel.manage"
                 >
                   {addToWhitelistMutation.isPending ? 'در حال اضافه...' : 'اضافه کردن'}
-                </ProtectedButton>
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -393,16 +388,15 @@ export function IPManagementTab() {
                   )}
                 </div>
                 {currentIP && currentIP.ip !== ip && (
-                  <ProtectedButton
+                  <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleRemoveFromWhitelist(ip)}
                     disabled={removeFromWhitelistMutation.isPending}
-                    permission="panel.manage"
                     className="text-red-1 hover:text-red-2 hover:bg-red-1/10"
                   >
                     <Trash2 className="h-4 w-4" />
-                  </ProtectedButton>
+                  </Button>
                 )}
                 </div>
               ))}

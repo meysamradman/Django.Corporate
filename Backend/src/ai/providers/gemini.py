@@ -225,9 +225,39 @@ class GeminiProvider(BaseProvider):
                         "parts": [{"text": content}]
                     })
         
+        user_parts = [{"text": message}]
+        
+        if kwargs.get('image'):
+            import base64
+            image_file = kwargs['image']
+            if hasattr(image_file, 'read'):
+                image_content = image_file.read()
+                # Gemini expects raw bytes for blob in 'inline_data'? 
+                # Actually, correct format for Gemini API (REST) is inlineData with base64
+                if isinstance(image_content, str):
+                    image_content = image_content.encode('utf-8')
+                base64_image = base64.b64encode(image_content).decode('utf-8')
+                
+                # Determine mime type
+                mime_type = "image/jpeg"
+                if hasattr(image_file, 'content_type'):
+                    mime_type = image_file.content_type
+                elif hasattr(image_file, 'name'):
+                    if image_file.name.lower().endswith('.png'):
+                        mime_type = "image/png"
+                    elif image_file.name.lower().endswith('.webp'):
+                        mime_type = "image/webp"
+
+                user_parts.append({
+                    "inline_data": {
+                        "mime_type": mime_type,
+                        "data": base64_image
+                    }
+                })
+
         contents.append({
             "role": "user",
-            "parts": [{"text": message}]
+            "parts": user_parts
         })
         
         payload = {

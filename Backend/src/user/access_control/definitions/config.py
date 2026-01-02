@@ -175,15 +175,16 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
             'restrictions': ['no_delete', 'audit_required']
         },
     ),
-    'panel_manager': _build_role_config(
-        'panel_manager',
-        level=6,
-        permissions={
-            'modules': ['panel'],
-            'actions': ['manage'],
-            'restrictions': ['no_user_management', 'no_system_settings']
-        },
-    ),
+    # 🔒 REMOVED: Panel Settings باید فقط برای Super Admin باشد
+    # 'panel_manager': _build_role_config(
+    #     'panel_manager',
+    #     level=6,
+    #     permissions={
+    #         'modules': ['panel'],
+    #         'actions': ['manage'],
+    #         'restrictions': ['no_user_management', 'no_system_settings']
+    #     },
+    # ),
     'analytics_manager': _build_role_config(
         'analytics_manager',
         level=5,

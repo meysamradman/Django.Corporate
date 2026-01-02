@@ -161,7 +161,7 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
     const check = (perm: string) => isSuperAdmin || permissionSet.has(perm);
     
     return {
-      canManagePanel: check(PERMISSIONS.PANEL.MANAGE),
+      canManagePanel: isSuperAdmin, // 🔒 فقط Super Admin - تنظیمات سیستم پنل
       canManagePages: check(PERMISSIONS.PAGES.MANAGE),
       canManageSettings: check(PERMISSIONS.SETTINGS.MANAGE),
       canManageAI: check(PERMISSIONS.AI.MANAGE),

@@ -140,11 +140,7 @@ ROLE_TEXT = {
         "display_name_short": "Settings",
         "description": "Controls global configuration, integrations, and security preferences.",
     },
-    "panel_manager": {
-        "display_name": "Panel Manager",
-        "display_name_short": "Panel",
-        "description": "Manages admin panel branding, appearance, and panel-level toggles.",
-    },
+    # 🔒 REMOVED: "panel_manager" - Panel Settings فقط برای Super Admin
     "user_manager": {
         "display_name": "User Manager",
         "display_name_short": "Users",

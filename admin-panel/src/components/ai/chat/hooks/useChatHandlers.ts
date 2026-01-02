@@ -67,6 +67,7 @@ export function useChatHandlers({
                 message: currentMessage,
                 provider_name: selectedProvider,
                 conversation_history: conversationHistory,
+                file: attachedFile,
             });
 
             if (response.metaData.status === 'success' && response.data?.reply) {
@@ -81,15 +82,15 @@ export function useChatHandlers({
             }
         } catch (error: any) {
             removeLastUserMessage(currentMessage);
-            
+
             let errorMessage = 'خطا در ارسال پیام. لطفاً دوباره تلاش کنید.';
-            
+
             if (error?.response?.message) {
                 errorMessage = error.response.message;
             } else if (error?.message) {
                 errorMessage = error.message;
             }
-            
+
             showError(errorMessage);
         } finally {
             setSending(false);

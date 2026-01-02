@@ -37,6 +37,13 @@ class BaseProvider(ABC):
         raise NotImplementedError("SEO content generation not supported by this provider")
     
     async def chat(self, message: str, conversation_history: Optional[list] = None, **kwargs) -> str:
+        """
+        Send a message to the chat model.
+        Args:
+            message: The user message.
+            conversation_history: List of previous messages.
+            **kwargs: Additional arguments, including 'image' (file-like object) for vision capabilities.
+        """
         raise NotImplementedError("Chat not supported by this provider")
     
     async def text_to_speech(self, text: str, **kwargs) -> BytesIO:

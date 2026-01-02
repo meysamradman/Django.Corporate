@@ -54,6 +54,7 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                 system_message=validated_data.get('system_message'),
                 temperature=validated_data.get('temperature', 0.7),
                 max_tokens=validated_data.get('max_tokens', 2048),
+                image=validated_data.get('image'),
                 admin=request.user,
             )
             

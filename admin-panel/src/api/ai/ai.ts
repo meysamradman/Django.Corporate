@@ -28,7 +28,7 @@ export const aiApi = {
 
         getAvailableProviders: async (capability?: string): Promise<ApiResponse<AvailableProvider[]>> => {
             try {
-                const endpoint = capability 
+                const endpoint = capability
                     ? `/admin/ai-providers/available/?capability=${capability}`
                     : '/admin/ai-providers/available/';
                 return await api.get<AvailableProvider[]>(endpoint);
@@ -98,8 +98,8 @@ export const aiApi = {
 
         getOpenRouterModels: async (provider?: string): Promise<ApiResponse<AIModelList[]>> => {
             try {
-                const params = new URLSearchParams({ 
-                    provider: 'openrouter', 
+                const params = new URLSearchParams({
+                    provider: 'openrouter',
                     capability: 'image',
                     use_cache: 'true'
                 });
@@ -113,8 +113,8 @@ export const aiApi = {
 
         getHuggingFaceModels: async (task?: string): Promise<ApiResponse<AIModelList[]>> => {
             try {
-                const params = new URLSearchParams({ 
-                    provider: 'huggingface', 
+                const params = new URLSearchParams({
+                    provider: 'huggingface',
                     capability: 'image',
                     use_cache: 'true'
                 });
@@ -156,8 +156,8 @@ export const aiApi = {
 
         getOpenRouterModels: async (provider?: string): Promise<ApiResponse<AIModelList[]>> => {
             try {
-                const params = new URLSearchParams({ 
-                    provider: 'openrouter', 
+                const params = new URLSearchParams({
+                    provider: 'openrouter',
                     capability: 'content',
                     use_cache: 'true'
                 });
@@ -171,8 +171,8 @@ export const aiApi = {
 
         getHuggingFaceModels: async (task?: string): Promise<ApiResponse<AIModelList[]>> => {
             try {
-                const params = new URLSearchParams({ 
-                    provider: 'huggingface', 
+                const params = new URLSearchParams({
+                    provider: 'huggingface',
                     capability: 'content',
                     use_cache: 'true'
                 });
@@ -237,8 +237,8 @@ export const aiApi = {
 
         getOpenRouterModels: async (provider?: string): Promise<ApiResponse<AIModelList[]>> => {
             try {
-                const params = new URLSearchParams({ 
-                    provider: 'openrouter', 
+                const params = new URLSearchParams({
+                    provider: 'openrouter',
                     capability: 'chat',
                     use_cache: 'true'
                 });
@@ -252,8 +252,8 @@ export const aiApi = {
 
         getHuggingFaceModels: async (task?: string): Promise<ApiResponse<AIModelList[]>> => {
             try {
-                const params = new URLSearchParams({ 
-                    provider: 'huggingface', 
+                const params = new URLSearchParams({
+                    provider: 'huggingface',
                     capability: 'chat',
                     use_cache: 'true'
                 });
@@ -273,6 +273,7 @@ export const aiApi = {
             system_message?: string;
             temperature?: number;
             max_tokens?: number;
+            file?: File | null;
         }): Promise<ApiResponse<{
             message: string;
             reply: string;
@@ -280,6 +281,34 @@ export const aiApi = {
             generation_time_ms: number;
         }>> => {
             const endpoint = '/admin/ai-chat/send-message/';
+
+            // If we have a file, we must use FormData
+            if (data.file) {
+                const formData = new FormData();
+                formData.append('message', data.message);
+                if (data.provider_name) formData.append('provider_name', data.provider_name);
+                if (data.model) formData.append('model', data.model);
+                if (data.system_message) formData.append('system_message', data.system_message);
+                if (data.temperature) formData.append('temperature', data.temperature.toString());
+                if (data.max_tokens) formData.append('max_tokens', data.max_tokens.toString());
+                formData.append('image', data.file); // Backend expects 'image'
+
+                if (data.conversation_history) {
+                    formData.append('conversation_history', JSON.stringify(data.conversation_history));
+                }
+
+                // API helper usually handles content-type for FormData automatically,
+                // but let's make sure our api wrapper supports it.
+                // Assuming api.post handles FormData correctly (most axios wrappers do)
+                return await api.post<{
+                    message: string;
+                    reply: string;
+                    provider_name: string;
+                    generation_time_ms: number;
+                }>(endpoint, formData as unknown as Record<string, unknown>);
+            }
+
+            // Normal JSON request
             return await api.post<{
                 message: string;
                 reply: string;

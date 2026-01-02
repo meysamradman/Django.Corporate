@@ -68,6 +68,21 @@ class AIChatRequestSerializer(serializers.Serializer):
         max_value=4096,
         help_text="Maximum number of tokens in response (100 to 4096)"
     )
+
+    image = serializers.ImageField(
+        required=False,
+        allow_null=True,
+        help_text="Image file for vision capabilities"
+    )
+
+    def validate_conversation_history(self, value):
+        if isinstance(value, str):
+            import json
+            try:
+                return json.loads(value)
+            except ValueError:
+                raise serializers.ValidationError("Invalid JSON string for conversation_history")
+        return value
     
     def validate_message(self, value):
         if not value or not value.strip():
