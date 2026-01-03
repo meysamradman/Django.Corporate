@@ -1,111 +1,32 @@
-{
-    "metaData": {
-        "status": "success",
-        "message": "Request successful",
-        "AppStatusCode": 200,
-        "timestamp": "2026-01-03T10:45:18.346470"
-    },
-    "pagination": {
-        "count": 4,
-        "next": null,
-        "previous": null,
-        "page_size": 10,
-        "current_page": 1,
-        "total_pages": 1
-    },
-    "data": [
-        {
-            "id": 6,
-            "public_id": "557410bb-95cb-418e-8afe-f82a2f99328e",
-            "title": "یسشی",
-            "slug": "یسشی",
-            "short_description": "",
-            "is_published": false,
-            "is_featured": true,
-            "is_public": true,
-            "is_active": true,
-            "main_image": {
-                "id": 31,
-                "url": "/media/image/2025/12/31/7b482e8f.png",
-                "file_url": "/media/image/2025/12/31/7b482e8f.png",
-                "title": "Screenshot 2025-12-21 140402",
-                "alt_text": ""
-            },
-            "primary_video": {
-                "id": 2,
-                "title": "Hailuo_Video_Create_a_10_second_cinematic_g_428070623869059075_2",
-                "cover_url": "/media/image/2025/12/31/247d4881.jpg",
-                "media_id": 4
-            },
-            "primary_audio": null,
-            "primary_document": null,
-            "property_type": {
-                "id": 1,
-                "public_id": "8d2548dd-2685-4786-acc0-f07f67002ec8",
-                "title": "Apartment",
-                "display_order": 1
-            },
-            "state": {
-                "id": 2,
-                "public_id": "e1ddeed4-24ff-4145-932f-98109e178886",
-                "title": "سیشسی"
-            },
-            "agent": {
-                "id": 1,
-                "public_id": "8c15c7c6-ef1d-435f-b1a8-30cdb295427e",
-                "first_name": "",
-                "last_name": "",
-                "full_name": "09124707989",
-                "phone": "09124707989",
-                "email": null,
-                "license_number": "SAMPLE-LIC-9340a5ba"
-            },
-            "agency": null,
-            "labels": [],
-            "labels_count": 0,
-            "tags_count": 0,
-            "features_count": 2,
-            "images_count": 3,
-            "videos_count": 1,
-            "audios_count": 0,
-            "documents_count": 0,
-            "media_count": 4,
-            "seo_status": {
-                "score": 3,
-                "total": 3,
-                "status": "complete"
-            },
-            "city_name": "بدره",
-            "province_name": "ایلام",
-            "district_name": null,
-            "region_name": null,
-            "price": 232,
-            "sale_price": null,
-            "pre_sale_price": 3213,
-            "price_per_sqm": null,
-            "monthly_rent": null,
-            "rent_amount": null,
-            "mortgage_amount": null,
-            "land_area": null,
-            "built_area": null,
-            "bedrooms": 10,
-            "bathrooms": 9,
-            "kitchens": 1,
-            "living_rooms": 1,
-            "year_built": null,
-            "build_years": null,
-            "floors_in_building": null,
-            "floor_number": null,
-            "parking_spaces": 15,
-            "storage_rooms": 8,
-            "document_type": "agricultural",
-            "has_document": true,
-            "views_count": 0,
-            "favorites_count": 0,
-            "inquiries_count": 0,
-            "meta_title": "یسشی",
-            "meta_description": "<p>سشی</p>",
-            "published_at": "2026-01-01T15:39:56.106398+03:30",
-            "created_at": "2025-12-31T07:01:23.457182+03:30",
-            "updated_at": "2026-01-03T13:56:57.478880+03:30"
-        },
+200 GET
+/api/admin/blog/1/
+268ms overall
+114ms on queries
+13 queries
+← 
+Details 
+SQL 
+Profiling 
+CProfile
+14:37:41.128
+200 GET
+/api/admin/blog/1/
+268ms overall
+114ms on queries
+13 queries
+At	Action	Tables	Num. Joins	Execution Time (ms)
++0:00:00.242689	SELECT	"name", "blog_categories", "blog_listings_categories"	1	1.618000
++0:00:00.235930	SELECT	"name", "blog_tags", "blog_listings_tags"	1	1.752000
++0:00:00.159598	SELECT	"blog_documents", "media_documents", "media_images", "media_images"	3	21.436000
++0:00:00.136161	SELECT	"blog_audios", "media_audios", "media_images", "media_images"	3	18.354000
++0:00:00.111361	SELECT	"blog_videos", "media_videos", "media_images", "media_images"	3	19.764000
++0:00:00.104827	SELECT	"media_images"	0	2.044000
++0:00:00.100252	SELECT	"blog_images"	0	1.315000
++0:00:00.084803	SELECT	"blog_images", "media_images"	1	11.906000
++0:00:00.067187	SELECT	"_prefetch_related_val_blog_id", "blog_tags", "blog_listings_tags"	1	14.974000
++0:00:00.062443	SELECT	"_prefetch_related_val_blog_id", "blog_categories", "blog_listings_categories"	1	1.388000
++0:00:00.041730	SELECT	"blog_listings", "media_images"	1	16.487000
++0:00:00.026676	SELECT	"users"	0	1.669000
++0:00:00.010705	SELECT	"django_session"	0	1.117000
+Page 1 of 1.
+previous | next

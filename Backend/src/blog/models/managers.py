@@ -18,39 +18,46 @@ class BlogQuerySet(models.QuerySet):
         )
     
     def for_admin_listing(self):
-        from src.blog.models.media import BlogImage, BlogVideo, BlogAudio, BlogDocument
+        """
+        Optimized for admin listing - High Performance
+        
+        ✅ Optimizations:
+        - select_related for og_image
+        - annotate with SQL-level counts using models.F
+        - prefetch categories and tags
+        - prefetch main images only
+        """
+        from src.blog.models.media import BlogImage
+        from django.db.models.functions import Coalesce
+        
         return self.select_related('og_image').prefetch_related(
             'categories',
             'tags',
             Prefetch(
                 'images',
-                queryset=BlogImage.objects.select_related('image').order_by('is_main', 'order', 'created_at'),
-                to_attr='all_images'
+                queryset=BlogImage.objects.select_related('image')
+                    .filter(is_main=True)
+                    .only('id', 'image_id', 'is_main', 'order', 'blog_id'),
+                to_attr='main_image_prefetch'
             ),
-            Prefetch(
-                'images',
-                queryset=BlogImage.objects.select_related('image').filter(is_main=True),
-                to_attr='main_images'
-            ),
-            Prefetch(
-                'videos',
-                queryset=BlogVideo.objects.select_related('video', 'video__cover_image').order_by('order', 'created_at')
-            ),
-            Prefetch(
-                'audios',
-                queryset=BlogAudio.objects.select_related('audio', 'audio__cover_image').order_by('order', 'created_at')
-            ),
-            Prefetch(
-                'documents',
-                queryset=BlogDocument.objects.select_related('document', 'document__cover_image').order_by('order', 'created_at')
-            )
         ).annotate(
-            total_media_count=Count('images', distinct=True) + 
-                             Count('videos', distinct=True) +
-                             Count('audios', distinct=True) +
-                             Count('documents', distinct=True),
+            # ✅ SQL-level counts for high performance
+            total_images_count=Count('images', distinct=True),
+            total_videos_count=Count('videos', distinct=True),
+            total_audios_count=Count('audios', distinct=True),
+            total_docs_count=Count('documents', distinct=True),
             categories_count=Count('categories', distinct=True),
             tags_count=Count('tags', distinct=True)
+        ).annotate(
+            # ✅ Coalesce to ensure we don't have NULL
+            total_media_count=Coalesce(
+                models.F('total_images_count') + 
+                models.F('total_videos_count') + 
+                models.F('total_audios_count') + 
+                models.F('total_docs_count'),
+                0,
+                output_field=models.PositiveIntegerField()
+            )
         )
     
     def for_public_listing(self):

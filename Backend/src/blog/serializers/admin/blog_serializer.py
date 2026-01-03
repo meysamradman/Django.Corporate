@@ -67,58 +67,52 @@ class BlogAdminListSerializer(serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
     categories = BlogCategorySimpleAdminSerializer(many=True, read_only=True)
     
-    media_count = serializers.SerializerMethodField()
+    images_count = serializers.IntegerField(source='total_images_count', read_only=True)
+    videos_count = serializers.IntegerField(source='total_videos_count', read_only=True)
+    audios_count = serializers.IntegerField(source='total_audios_count', read_only=True)
+    documents_count = serializers.IntegerField(source='total_docs_count', read_only=True)
+    media_count = serializers.IntegerField(source='total_media_count', read_only=True)
     categories_count = serializers.IntegerField(read_only=True)
     tags_count = serializers.IntegerField(read_only=True)
     
     seo_status = serializers.SerializerMethodField()
-    media = serializers.SerializerMethodField()
     
     class Meta:
         model = Blog
         fields = [
-            'id', 'public_id', 'status', 'title', 'slug',
-            'short_description', 'description','is_featured', 'is_public', 'is_active',
-            'main_image', 'categories_count', 'tags_count', 
-            'media_count', 'categories', 'seo_status', 'media',
-            'created_at', 'updated_at',
-            'meta_title', 'meta_description', 'og_title', 'og_description',
-            'robots_meta', 'canonical_url'
+            'id', 'public_id', 'status', 'title', 'slug', 'short_description',
+            'is_featured', 'is_public', 'is_active',
+            'main_image', 'categories', 'categories_count', 'tags_count',
+            'images_count', 'videos_count', 'audios_count', 'documents_count', 'media_count',
+            'seo_status',
+            'meta_title', 'meta_description',
+            'created_at', 'updated_at', # ✅ همیشه در انتها
         ]
     
-    def get_media(self, obj):
-        return []
-    
-    def get_media_count(self, obj):
-        if hasattr(obj, 'total_media_count'):
-            return obj.total_media_count
-        
-        try:
-            count = 0
-            if hasattr(obj, '_prefetched_objects_cache'):
-                cache = obj._prefetched_objects_cache
-                count += len(cache.get('images', []))
-                count += len(cache.get('videos', []))
-                count += len(cache.get('audios', []))
-                count += len(cache.get('documents', []))
-            else:
-                count = (
-                    obj.images.count() + 
-                    obj.videos.count() + 
-                    obj.audios.count() + 
-                    obj.documents.count()
-                )
-            return count
-        except:
-            return 0
-
     def get_main_image(self, obj):
-        return obj.get_main_image_details()
+        # ✅ Prefetch (main_image_prefetch) اولویت با
+        main_images = getattr(obj, 'main_image_prefetch', [])
+        if main_images:
+            img_obj = main_images[0]
+            if img_obj.image:
+                file_url = None
+                try:
+                    file_url = img_obj.image.file.url if img_obj.image.file else None
+                except Exception:
+                    pass
+                return {
+                    'id': img_obj.image.id,
+                    'url': file_url,
+                    'file_url': file_url,
+                    'title': img_obj.image.title,
+                    'alt_text': img_obj.image.alt_text
+                }
+        return None
     
     def get_seo_status(self, obj):
         has_meta_title = bool(obj.meta_title)
         has_meta_description = bool(obj.meta_description)
-        has_og_image = bool(obj.og_image)
+        has_og_image = bool(getattr(obj, 'og_image_id', None))
         
         score = sum([has_meta_title, has_meta_description, has_og_image])
         return {
@@ -126,6 +120,8 @@ class BlogAdminListSerializer(serializers.ModelSerializer):
             'total': 3,
             'status': 'complete' if score == 3 else 'incomplete' if score > 0 else 'missing'
         }
+
+
 
 
 class BlogAdminDetailSerializer(serializers.ModelSerializer):
