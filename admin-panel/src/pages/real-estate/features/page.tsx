@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";

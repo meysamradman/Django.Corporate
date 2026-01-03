@@ -536,7 +536,7 @@ export function MediaLibraryModal({
                         )}
                       >
                         <div className="flex items-center gap-1">
-                          {getMediaTypeIcon(item.media_type)}
+                          {getMediaTypeIcon(item.media_type || "")}
                           <p className="font-medium truncate text-static-w" title={displayName}>{displayName}</p>
                         </div>
                       </div>

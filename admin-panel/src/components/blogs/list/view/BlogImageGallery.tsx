@@ -161,9 +161,7 @@ export function BlogImageGallery({ blog, className }: BlogImageGalleryProps) {
                     <div
                       className="relative w-full h-full bg-bg cursor-pointer"
                       onClick={() => {
-                        if (mainApi?.clickAllowed()) {
-                          setIsLightboxOpen(true);
-                        }
+                        setIsLightboxOpen(true);
                       }}
                       title="کلیک برای نمایش تمام صفحه"
                     >

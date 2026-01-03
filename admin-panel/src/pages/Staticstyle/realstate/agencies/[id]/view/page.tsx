@@ -7,7 +7,6 @@ import { FileText, Edit2, FileDown } from "lucide-react";
 import { Card, CardContent } from "@/components/elements/Card";
 import { TruncatedText } from "@/components/elements/TruncatedText";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Badge } from "@/components/elements/Badge";
 import {
   CheckCircle2,
   XCircle,

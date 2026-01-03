@@ -17,7 +17,7 @@ export default function SettingsTab({
   editMode,
   fieldErrors = {},
 }: SettingsTabProps) {
-  const { register, formState: { errors }, setValue, watch } = form;
+  const { register, formState: { errors } } = form;
 
   return (
     <div className="space-y-6">

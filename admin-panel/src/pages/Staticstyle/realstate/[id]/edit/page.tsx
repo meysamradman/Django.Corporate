@@ -2,14 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
-import { Card, CardContent } from "@/components/elements/Card";
 import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { Textarea } from "@/components/elements/Textarea";
 import { Switch } from "@/components/elements/Switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { TipTapEditor } from "@/components/forms/TipTapEditor";
 import { 
   FileText, Edit2, Image, Search,
   Loader2, Save, List,

@@ -1,5 +1,5 @@
 import type { Base } from "@/types/shared/base";
-import type { PropertySEOMeta } from "../propertySeoMeta";
+import type { PropertySEOMeta } from "../realEstateSeoMeta";
 
 export interface PropertyTag extends Base {
   title: string;

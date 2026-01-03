@@ -24,13 +24,16 @@ class AdminSecurityMiddleware:
             admin_secret = getattr(settings, 'ADMIN_URL_SECRET', '')
             secret_login_path = f'/api/admin/{admin_secret}/auth/login/'
             secret_captcha_path = f'/api/admin/{admin_secret}/auth/captcha/'
-            
-            # ✅ استثنا: login با secret و captcha نیازی به چک‌های امنیتی ندارن
+
             if request.path == secret_login_path or request.path.startswith(secret_captcha_path):
                 return self.get_response(request)
             
-            # ✅ استثنا: logout و register هم نیازی به چک‌های امنیتی ندارن (بعد از login)
-            if '/auth/logout/' in request.path or '/auth/register/' in request.path:
+            # ✅ استثنا: logout، register، permissions/map و permissions/check نیازی به چک‌های امنیتی ندارن
+            # این endpointها باید قبل از login هم قابل دسترسی باشند
+            if ('/auth/logout/' in request.path or 
+                '/auth/register/' in request.path or 
+                '/permissions/map/' in request.path or 
+                '/permissions/check/' in request.path):
                 return self.get_response(request)
             
             client_ip = self._get_client_ip(request)

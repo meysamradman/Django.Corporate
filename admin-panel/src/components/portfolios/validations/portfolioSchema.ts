@@ -110,7 +110,7 @@ export const portfolioFormSchema = z.object({
     .optional(),
   
   extra_attributes: z
-    .record(z.any())
+    .record(z.string(), z.any())
     .optional()
     .default({}),
 });

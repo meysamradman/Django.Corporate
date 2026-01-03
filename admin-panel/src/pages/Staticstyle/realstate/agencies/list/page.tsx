@@ -8,8 +8,7 @@ import { Input } from "@/components/elements/Input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { Avatar, AvatarFallback } from "@/components/elements/Avatar";
 import { PaginationControls } from "@/components/shared/Pagination";
-import { Plus, Search, Phone, Mail, Award, Calendar, Edit, Trash2, Eye, Star, MapPin, Building2 } from "lucide-react";
-import { formatDate } from "@/core/utils/format";
+import { Plus, Search, Phone, Mail, Award, Edit, Trash2, Eye, Star, MapPin, Building2 } from "lucide-react";
 
 // نوع داده استاتیک برای آژانس‌های املاک
 interface AgencyItem {

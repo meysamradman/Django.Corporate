@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback } from "@/components/elements/Avatar";
 import { PaginationControls } from "@/components/shared/Pagination";
 import { Plus, Search, Phone, Mail, Award, Calendar, Edit, Trash2, Eye, Star } from "lucide-react";
-import { formatDate } from "@/core/utils/format";
 
 // نوع داده استاتیک برای مشاورین املاک
 interface AdvisorItem {

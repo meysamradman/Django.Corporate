@@ -259,8 +259,8 @@ export function OverviewTab({ agency }: OverviewTabProps) {
             </label>
             <div className="p-4 bg-bg/50 rounded-lg" style={{ textAlign: 'justify' }}>
               <ReadMore
-                text={agency.description}
-                maxLength={300}
+                content={agency.description || ""}
+                maxHeight="300px"
                 className="text-font-p leading-relaxed"
               />
             </div>

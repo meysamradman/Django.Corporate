@@ -104,7 +104,7 @@ export const GetMediaUrlFromObject = (media: Media | null): string => {
     }
     
     if (media.media_type === 'image' && (media.title || media.file_name)) {
-        const fileName = media.file_name || media.title;
+        const fileName = media.file_name || media.title || "";
         return buildMediaUrl(GetImageUrl(fileName));
     }
     

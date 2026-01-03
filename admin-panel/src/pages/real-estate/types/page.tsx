@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
@@ -10,7 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 import { Plus } from "lucide-react";
 import { ProtectedButton } from "@/core/permissions";
-import { showError, showSuccess, showWarning } from '@/core/toast';
+import { showError, showSuccess } from '@/core/toast';
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyType } from "@/types/real_estate/type/propertyType";
 import type { ColumnDef } from "@tanstack/react-table";

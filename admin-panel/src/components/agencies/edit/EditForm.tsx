@@ -349,11 +349,9 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                 <TabsContent value="seo">
                     <Suspense fallback={<TabContentSkeleton />}>
                         <AgencySEOTab
-                            agency={agencyData}
                             formData={formData}
                             editMode={editMode}
                             handleInputChange={handleInputChange}
-                            handleSaveProfile={handleSaveProfile}
                         />
                     </Suspense>
                 </TabsContent>

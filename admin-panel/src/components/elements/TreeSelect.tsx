@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Check, ChevronsUpDown, Folder, FolderOpen, Search, X } from "lucide-react"
+import { Check, ChevronsUpDown, Folder, FolderOpen } from "lucide-react"
 
 import { cn } from "@/core/utils/cn"
 import { Button } from "@/components/elements/Button"
@@ -21,7 +21,7 @@ export interface TreeSelectItem {
     id: string | number
     name: string
     parent_id?: string | number | null
-    level?: number
+    level?: number | null
     [key: string]: any
 }
 

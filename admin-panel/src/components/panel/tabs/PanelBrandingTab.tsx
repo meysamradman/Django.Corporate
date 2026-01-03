@@ -81,7 +81,6 @@ const PanelBrandingTab = forwardRef<PanelBrandingTabRef>((_props, ref) => {
 
             // Handle logo
             const currentLogo = panelSettings?.logo_detail || panelSettings?.logo;
-            const logoChanged = selectedLogo?.id !== currentLogo?.id;
             const logoWasRemoved = !selectedLogo && currentLogo;
             
             if (selectedLogo?.id) {
@@ -92,7 +91,6 @@ const PanelBrandingTab = forwardRef<PanelBrandingTabRef>((_props, ref) => {
 
             // Handle favicon
             const currentFavicon = panelSettings?.favicon_detail || panelSettings?.favicon;
-            const faviconChanged = selectedFavicon?.id !== currentFavicon?.id;
             const faviconWasRemoved = !selectedFavicon && currentFavicon;
             
             if (selectedFavicon?.id) {

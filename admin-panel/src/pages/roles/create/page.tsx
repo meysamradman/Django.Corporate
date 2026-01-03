@@ -54,9 +54,6 @@ const AIPermissionsCard = lazy(
   () => import("@/components/roles/form").then(mod => ({ default: mod.AIPermissionsCard }))
 );
 
-const AdminPermissionsCard = lazy(
-  () => import("@/components/roles/form").then(mod => ({ default: mod.AdminPermissionsCard }))
-);
 
 const ManagementPermissionsCard = lazy(
   () => import("@/components/roles/form").then(mod => ({ default: mod.ManagementPermissionsCard }))
@@ -494,12 +491,6 @@ export default function CreateRolePage() {
     }
     
     return filtered;
-  }, [organizedPermissions]);
-
-  // منابع Admin-only (admin) - ❌ حذف می‌شوند چون requires_superadmin هستند
-  const adminOnlyResources = useMemo(() => {
-    // ❌ حذف کامل - admin permissions نباید نمایش داده شوند
-    return [];
   }, [organizedPermissions]);
 
   // منابع Standard (محتوا و داده - CRUD)

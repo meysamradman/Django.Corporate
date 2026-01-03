@@ -12,6 +12,7 @@ interface AgencyFilters {
   date_from?: string;
   date_to?: string;
   date_range?: { from?: string; to?: string };
+  [key: string]: unknown;
 }
 import { showSuccess, showError } from '@/core/toast';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";

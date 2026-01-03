@@ -19,33 +19,25 @@ from src.core.security.ip_management import IPManagementViewSet
 
 app_name = 'user'
 
-# 🔒 Admin URL Secret (از settings می‌آد)
 ADMIN_SECRET = getattr(settings, 'ADMIN_URL_SECRET', 'x7K9mP2qL5nR8tY3vZ6wC4fH1jN0bM')
 
-# =============================================================================
-# 🍯 HONEYPOT: URLهای فیک برای گرفتن هکرها
-# =============================================================================
 urlpatterns = [
-    # این URLها معمول هستن که botها میزنن
+    # ========================================
+    # 🏺 Honeypot (Decoy URLs)
+    # ========================================
+    # فقط یک آدرس فریبنده استاندارد برای لاگ کردن تلاش‌های غیرمجاز
     path('admin/login/', FakeAdminLoginView.as_view(), name='admin-login-honeypot'),
-    path('admin/auth/login/', FakeAdminLoginView.as_view(), name='admin-auth-honeypot'),
-    path('admin/register/', FakeAdminLoginView.as_view(), name='admin-register-honeypot'),
-]
 
-# =============================================================================
-# 🔐 LOGIN: فقط این endpoint با secret محافظت می‌شه
-# =============================================================================
-urlpatterns += [
-    # ✅ Login با secret path (تا botها پیداش نکنن)
+    # ========================================
+    # 🔒 Secure Admin Auth (Protected by Secret)
+    # ========================================
+    # ورود و کپچا هر دو پشت آدرس سکرت هستند برای امنیت حداکثری
     path(f'admin/{ADMIN_SECRET}/auth/login/', AdminLoginView.as_view(), name='admin-login'),
-    path(f'admin/{ADMIN_SECRET}/auth/captcha/', include('src.core.security.captcha.urls', namespace='captcha')),
-]
+    path(f'admin/{ADMIN_SECRET}/auth/captcha/', include('src.core.security.captcha.urls', namespace='captcha-secret')),
 
-# =============================================================================
-# 🔓 ADMIN APIs: بدون secret، با Session Authentication محافظت می‌شن
-# =============================================================================
-urlpatterns += [
-    # این URLها با CSRFExemptSessionAuthentication محافظت می‌شن
+    # ========================================
+    # 🛡️ General Admin API Endpoints
+    # ========================================
     path('admin/auth/logout/', AdminLogoutView.as_view(), name='admin-logout'),
     path('admin/auth/register/', AdminRegisterView.as_view(), name='admin-register'),
     path('admin/management/', AdminManagementView.as_view(), name='admin-management'),
@@ -59,9 +51,12 @@ urlpatterns += [
     path('admin/users-management/bulk-delete/', UserManagementView.as_view(), {'action': 'bulk-delete'}, name='user-management-bulk-delete'),
     path('admin/permissions/map/', get_permission_map, name='admin-permissions-map'),
     path('admin/permissions/check/', check_permission, name='admin-permissions-check'),
+    path('admin/roles/bulk-delete/', AdminRoleView.as_view({'post': 'bulk_delete'}), name='admin-roles-bulk-delete'),
 ]
 
-# Router برای ViewSets (بدون secret)
+# ========================================
+# 🔑 Router-based API Endpoints
+# ========================================
 router = DefaultRouter()
 router.register(r'admin/roles', AdminRoleView, basename='admin-roles')
 router.register(r'admin/permissions', AdminPermissionView, basename='admin-permissions')
@@ -70,10 +65,11 @@ router.register(r'provinces', ProvinceViewSet, basename='provinces')
 router.register(r'cities', CityViewSet, basename='cities')
 
 urlpatterns += [
-    path('admin/roles/bulk-delete/', AdminRoleView.as_view({'post': 'bulk_delete'}), name='admin-roles-bulk-delete'),
     path('', include(router.urls)),
     
-    # User URLs (بدون تغییر)
+    # ========================================
+    # 👤 Regular User & Common Auth URLs
+    # ========================================
     path('user/login/', UserLoginView.as_view(), name='user-login'),
     path('user/register/', UserRegisterView.as_view(), name='user-register'),
     path('user/logout/', UserLogoutView.as_view(), name='user-logout'),

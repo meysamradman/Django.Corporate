@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { usePermission, AccessDenied } from "@/core/permissions";
 import { ClearAnalyticsButton } from "@/components/analytics/ClearAnalyticsButton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { Card, CardContent, CardHeader } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { BarChart3, FileText, MapPin } from "lucide-react";
 

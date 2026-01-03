@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/elements/Button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
+import { TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { 
@@ -92,7 +92,7 @@ export default function CreatePortfolioPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<string>("account");
-  const [editMode, setEditMode] = useState(true);
+  const [editMode, _setEditMode] = useState(true);
   const [portfolioMedia, setPortfolioMedia] = useState<PortfolioMedia>({
     featuredImage: null,
     imageGallery: [],

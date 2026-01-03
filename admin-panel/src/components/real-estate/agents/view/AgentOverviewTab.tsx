@@ -116,7 +116,7 @@ export function AgentOverviewTab({ agent }: AgentOverviewTabProps) {
             borderColor="border-b-indigo-1"
             headerClassName="pb-3"
           >
-            <ReadMore text={agent.bio} maxLength={200} />
+            <ReadMore content={agent.bio || ""} maxHeight="200px" />
           </CardWithIcon>
         )}
 

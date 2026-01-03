@@ -1,6 +1,5 @@
 import { useState, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/elements/Button";
@@ -92,7 +91,7 @@ export default function CreateBlogPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<string>("account");
-  const [editMode, setEditMode] = useState(true);
+  const [editMode, _setEditMode] = useState(true);
   const [blogMedia, setBlogMedia] = useState<BlogMedia>({
     featuredImage: null,
     imageGallery: [],

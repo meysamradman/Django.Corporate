@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { useNavigate, Link } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";

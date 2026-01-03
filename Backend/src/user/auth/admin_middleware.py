@@ -40,11 +40,9 @@ class AdminSessionExpiryMiddleware(MiddlewareMixin):
     SESSION_CHECK_CACHE_TTL = 5
     
     # Public endpoints که نیازی به session check ندارند
+    # توجه: captcha و login فقط با secret path قابل دسترسی هستند
     PUBLIC_ENDPOINTS = frozenset([
-        '/api/admin/login/',
         '/api/admin/logout/',
-        '/api/admin/auth/captcha/generate/',
-        '/api/admin/auth/captcha/verify/',
     ])
     
     def _is_public_endpoint(self, request):

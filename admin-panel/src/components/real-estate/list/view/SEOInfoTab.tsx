@@ -19,8 +19,8 @@ interface SEOInfoTabProps {
 }
 
 export function SEOInfoTab({ property }: SEOInfoTabProps) {
-  const ogImageUrl = property.og_image?.file_url || property.og_image?.url
-    ? mediaService.getMediaUrlFromObject({ file_url: property.og_image.file_url || property.og_image.url } as any)
+  const ogImageUrl = property.og_image?.file_url
+    ? mediaService.getMediaUrlFromObject({ file_url: property.og_image.file_url } as any)
     : "";
 
   const metaTitle = property.meta_title || property.title || "";

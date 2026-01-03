@@ -161,9 +161,7 @@ export function PropertyImageGallery({ property, className }: PropertyImageGalle
                     <div
                       className="relative w-full h-full bg-bg-2 cursor-pointer"
                       onClick={() => {
-                        if (mainApi?.clickAllowed()) {
-                          setIsLightboxOpen(true);
-                        }
+                        setIsLightboxOpen(true);
                       }}
                       title="کلیک برای نمایش تمام صفحه"
                     >

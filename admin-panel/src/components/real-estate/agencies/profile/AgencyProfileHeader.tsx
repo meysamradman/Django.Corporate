@@ -1,8 +1,7 @@
 import { Card, CardContent } from "@/components/elements/Card";
-import { CheckCircle2, XCircle, Phone, Clock, Building2, Star, MapPin } from "lucide-react";
+import { CheckCircle2, XCircle, Phone, Clock, Star, MapPin } from "lucide-react";
 import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import type { Media } from "@/types/shared/media";
-import { useState, useEffect, useCallback } from "react";
 import { useQueryClient } from '@tanstack/react-query';
 import { showSuccess, showError } from '@/core/toast';
 import { realEstateApi } from '@/api/real-estate/properties';
@@ -58,7 +57,7 @@ export function AgencyProfileHeader({ agency, selectedLogo, onLogoChange, agency
 
             // Update callback whether image is set or removed
             if (onLogoChange) {
-                const updatedLogo: Media | null = updatedAgency.logo ?? null;
+                const updatedLogo: Media | null = (updatedAgency.logo as unknown as Media) ?? null;
                 onLogoChange(updatedLogo);
             }
 

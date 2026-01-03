@@ -14,7 +14,7 @@ interface ConsultantFieldsProps {
   isEdit?: boolean;
 }
 
-export default function ConsultantFields({ form, isEdit = false }: ConsultantFieldsProps) {
+export default function ConsultantFields({ form }: ConsultantFieldsProps) {
   const { data: agenciesResponse, isLoading: agenciesLoading } = useQuery({
     queryKey: ['agencies-all'],
     queryFn: () => realEstateApi.getAgencies({ page: 1, size: 1000 }),

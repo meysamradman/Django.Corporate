@@ -14,6 +14,14 @@ export interface PropertyAgent extends Base {
   bio?: string | null;
   specialization?: string | null;
   profile_picture_url?: string | null;
+  profile_image?: { file_url: string } | null;
+
+  province?: number | null;
+  province_name?: string | null;
+  city?: number | null;
+  city_name?: string | null;
+  address?: string | null;
+  experience_years?: number | null;
 
   agency?: RealEstateAgency | null;
 

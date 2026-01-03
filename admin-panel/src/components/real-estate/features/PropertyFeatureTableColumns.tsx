@@ -1,4 +1,3 @@
-import { type ReactNode } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
 import { Edit, Trash2 } from "lucide-react";

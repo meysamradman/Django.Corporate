@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, type ChangeEvent } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { TabsContent } from "@/components/elements/Tabs";
 import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";

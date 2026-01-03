@@ -10,7 +10,7 @@ import { downloadDatabaseExport, getDatabaseExportInfo } from '@/api/panel/panel
 import { usePanelSettings } from '../hooks/usePanelSettings';
 
 export function PanelDatabaseTab() {
-    const { isLoading: isLoadingSettings } = usePanelSettings();
+    usePanelSettings();
     const [isDownloading, setIsDownloading] = useState(false);
     const [isLoadingDbInfo, setIsLoadingDbInfo] = useState(true);
 

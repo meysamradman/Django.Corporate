@@ -1,23 +1,18 @@
 import { Card } from "@/components/elements/Card";
 import { Input } from "@/components/elements/Input";
-import { Button } from "@/components/elements/Button";
 import { Textarea } from "@/components/elements/Textarea";
-import type { RealEstateAgency } from "@/types/real_estate/agency/realEstateAgency";
 import type { AgencyFormData } from "@/types/real_estate/agency/realEstateAgency";
 
 interface AgencySEOTabProps {
-    agency: RealEstateAgency;
     formData: AgencyFormData;
     editMode: boolean;
     handleInputChange: (field: string, value: string) => void;
-    handleSaveProfile: () => void;
 }
 
 export function AgencySEOTab({
-    formData,
-    editMode,
-    handleInputChange,
-    handleSaveProfile,
+    formData: _formData,
+    editMode: _editMode,
+    handleInputChange: _handleInputChange,
 }: AgencySEOTabProps) {
     return (
         <div className="space-y-6 mt-6">

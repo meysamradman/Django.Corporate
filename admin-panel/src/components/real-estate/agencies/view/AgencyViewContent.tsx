@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/elements/Skeleton';
 import { Building2, Mail, Phone, MapPin, Calendar, Star, CheckCircle, Edit } from 'lucide-react';
 import { ApiError } from '@/types/api/apiError';
 import { mediaService } from '@/components/media/services';
+import type { Media } from '@/types/shared/media';
 
 // Utility function for formatting dates
 const formatDate = (dateString: string) => {
@@ -80,7 +81,7 @@ export default function AgencyViewContent({ agencyId }: AgencyViewContentProps) 
                     <div className="flex-shrink-0">
                         {agencyData.logo?.file_url ? (
                             <img
-                                src={mediaService.getMediaUrlFromObject(agencyData.logo)}
+                                src={mediaService.getMediaUrlFromObject(agencyData.logo as unknown as Media)}
                                 alt={agencyData.name}
                                 className="w-32 h-32 rounded-lg object-cover border-4 border-blue-2"
                             />

@@ -1,5 +1,5 @@
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Settings, Globe, MapPin, Star } from "lucide-react";
+import { Settings, Globe, Star } from "lucide-react";
 import type { RealEstateAgency } from "@/types/real_estate/agency/realEstateAgency";
 
 const formatDate = (dateString: string) => {

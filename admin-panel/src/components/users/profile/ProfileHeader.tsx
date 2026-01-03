@@ -20,7 +20,7 @@ interface ProfileHeaderProps {
 export function ProfileHeader({ user, formData, onProfileImageChange }: ProfileHeaderProps) {
     const queryClient = useQueryClient();
 
-    const currentProfileImage = formData.profileImage || user?.profile?.profile_picture;
+    const currentProfileImage = formData.profileImage || user?.profile?.profile_picture || null;
 
     const handleProfileImageSelect = async (selectedMedia: Media | null) => {
         const profilePictureId = selectedMedia?.id || null;

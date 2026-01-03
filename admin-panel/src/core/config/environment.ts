@@ -3,40 +3,33 @@ const IS_PROD = import.meta.env.PROD;
 
 const getEnvVar = (key: string, devDefault?: string): string => {
   const value = import.meta.env[key]?.trim();
-  
+
   if (!value) {
     if (IS_PROD) {
       throw new Error(`🚨 CONFIGURATION ERROR: ${key} environment variable is required in production. Please set it in your .env file.`);
     }
-    
+
     if (devDefault !== undefined) {
       return devDefault;
     }
-    
+
     throw new Error(`🚨 DEVELOPMENT ERROR: ${key} environment variable is required. Please create a .env file based on .env.example`);
   }
-  
+
   return value;
 };
 
-let cachedAPI_URL: string | null = null;
-let cachedMEDIA_BASE_URL: string | null = null;
-
 export const env = {
   get API_URL(): string {
-    if (cachedAPI_URL === null) {
-      // بدون fallback - باید از .env بیاید
-      cachedAPI_URL = getEnvVar('VITE_API_URL');
-    }
-    return cachedAPI_URL;
+    return getEnvVar('VITE_API_URL');
   },
 
   get MEDIA_BASE_URL(): string {
-    if (cachedMEDIA_BASE_URL === null) {
-      // بدون fallback - باید از .env بیاید
-      cachedMEDIA_BASE_URL = getEnvVar('VITE_MEDIA_BASE_URL');
-    }
-    return cachedMEDIA_BASE_URL;
+    return getEnvVar('VITE_MEDIA_BASE_URL');
+  },
+
+  get ADMIN_URL_SECRET(): string {
+    return getEnvVar('VITE_ADMIN_URL_SECRET');
   },
 
   get IS_DEV(): boolean {

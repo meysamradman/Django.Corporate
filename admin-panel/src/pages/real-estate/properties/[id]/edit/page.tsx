@@ -95,7 +95,7 @@ export default function EditPropertyPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState<string>("account");
-  const [editMode, setEditMode] = useState(true);
+  const [editMode, _setEditMode] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isLoading, setIsLoading] = useState(true);

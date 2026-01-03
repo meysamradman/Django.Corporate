@@ -19,7 +19,7 @@ interface AgencyProfileHeaderProps {
     agencyId?: string;
 }
 
-export function AgencyProfileHeader({ agency, formData, onLogoChange, agencyId }: AgencyProfileHeaderProps) {
+export function AgencyProfileHeader({ agency, formData, onLogoChange }: AgencyProfileHeaderProps) {
     const queryClient = useQueryClient();
     const [isSaving, setIsSaving] = useState(false);
     

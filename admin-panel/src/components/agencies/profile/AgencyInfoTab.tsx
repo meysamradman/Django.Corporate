@@ -2,7 +2,7 @@ import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { Button } from "@/components/elements/Button";
 import { FormField } from "@/components/forms/FormField";
-import { Building2, Mail, Phone, MapPin, Calendar, Globe } from "lucide-react";
+import { Building2, Mail, MapPin } from "lucide-react";
 import type { RealEstateAgency } from "@/types/real_estate/agency/realEstateAgency";
 import type { AgencyFormData } from "@/types/real_estate/agency/realEstateAgency";
 import type { ProvinceCompact, CityCompact } from "@/types/shared/location";
@@ -27,7 +27,6 @@ interface AgencyInfoTabProps {
 }
 
 export function AgencyInfoTab({
-    agency,
     formData,
     editMode,
     setEditMode,
@@ -102,9 +101,9 @@ export function AgencyInfoTab({
     return (
         <div className="space-y-6 mt-6">
             <CardWithIcon
-                icon={<Building2 />}
+                icon={Building2}
                 title="اطلاعات اصلی آژانس"
-                actions={
+                titleExtra={
                     editMode ? (
                         <div className="flex gap-2">
                             <Button size="sm" variant="outline" onClick={() => { setEditMode(false); handleInputChange("cancel", ""); }} disabled={isSaving}>
@@ -122,7 +121,7 @@ export function AgencyInfoTab({
                 }
             >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField label="نام آژانس" icon={<Building2 />} error={fieldErrors.name} required>
+                    <FormField label="نام آژانس" error={fieldErrors.name} required>
                         <Input
                             value={formData.name}
                             onChange={(e) => handleInputChange("name", e.target.value)}
@@ -131,7 +130,7 @@ export function AgencyInfoTab({
                         />
                     </FormField>
 
-                    <FormField label="شماره پروانه" icon={<Building2 />} error={fieldErrors.license_number} required>
+                    <FormField label="شماره پروانه" error={fieldErrors.license_number} required>
                         <Input
                             value={formData.license_number}
                             onChange={(e) => handleInputChange("license_number", e.target.value)}
@@ -140,7 +139,7 @@ export function AgencyInfoTab({
                         />
                     </FormField>
 
-                    <FormField label="تاریخ انقضای پروانه" icon={<Calendar />}>
+                    <FormField label="تاریخ انقضای پروانه">
                         <Input
                             type="date"
                             value={formData.license_expire_date}
@@ -149,7 +148,7 @@ export function AgencyInfoTab({
                         />
                     </FormField>
 
-                    <FormField label="رتبه" icon={<Building2 />}>
+                    <FormField label="رتبه">
                         <Input
                             type="number"
                             step="0.1"
@@ -164,9 +163,9 @@ export function AgencyInfoTab({
                 </div>
             </CardWithIcon>
 
-            <CardWithIcon icon={<Mail />} title="اطلاعات تماس">
+            <CardWithIcon icon={Mail} title="اطلاعات تماس">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField label="ایمیل" icon={<Mail />} error={fieldErrors.email} required>
+                    <FormField label="ایمیل" error={fieldErrors.email} required>
                         <Input
                             type="email"
                             value={formData.email}
@@ -176,7 +175,7 @@ export function AgencyInfoTab({
                         />
                     </FormField>
 
-                    <FormField label="تلفن" icon={<Phone />} error={fieldErrors.phone} required>
+                    <FormField label="تلفن" error={fieldErrors.phone} required>
                         <Input
                             type="tel"
                             value={formData.phone}
@@ -186,7 +185,7 @@ export function AgencyInfoTab({
                         />
                     </FormField>
 
-                    <FormField label="وبسایت" icon={<Globe />} className="md:col-span-2">
+                    <FormField label="وبسایت" className="md:col-span-2">
                         <Input
                             type="url"
                             value={formData.website}
@@ -198,9 +197,9 @@ export function AgencyInfoTab({
                 </div>
             </CardWithIcon>
 
-            <CardWithIcon icon={<MapPin />} title="موقعیت مکانی">
+            <CardWithIcon icon={MapPin} title="موقعیت مکانی">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField label="استان" icon={<MapPin />}>
+                    <FormField label="استان">
                         <Select value={formData.province} onValueChange={handleProvinceChange} disabled={!editMode || loadingProvinces}>
                             <SelectTrigger>
                                 <SelectValue placeholder={loadingProvinces ? "در حال بارگذاری..." : "انتخاب استان"} />
@@ -215,7 +214,7 @@ export function AgencyInfoTab({
                         </Select>
                     </FormField>
 
-                    <FormField label="شهر" icon={<MapPin />}>
+                    <FormField label="شهر">
                         <Select value={formData.city} onValueChange={handleCityChange} disabled={!editMode || !formData.province || loadingCities}>
                             <SelectTrigger>
                                 <SelectValue placeholder={loadingCities ? "در حال بارگذاری..." : "انتخاب شهر"} />
@@ -241,7 +240,7 @@ export function AgencyInfoTab({
                 </div>
             </CardWithIcon>
 
-            <CardWithIcon icon={<Building2 />} title="وضعیت">
+            <CardWithIcon icon={Building2} title="وضعیت">
                 <div className="space-y-4">
                     <Item>
                         <ItemContent>

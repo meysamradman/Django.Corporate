@@ -1,8 +1,8 @@
 import type { Base } from "@/types/shared/base";
 
 export interface Media extends Base {
-    title: string;
-    media_type: string;
+    title?: string;
+    media_type?: string;
     file_url: string; 
     file_name?: string;
     original_file_name?: string;
@@ -10,8 +10,8 @@ export interface Media extends Base {
     mime_type?: string;
     cover_image?: Media | number | null;
     cover_image_url?: string;
-    alt_text: string;
-    is_active: boolean;
+    alt_text?: string;
+    is_active?: boolean;
 }
 
 export interface MediaFilter {

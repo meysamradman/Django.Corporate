@@ -171,9 +171,6 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
         setIsMediaModalOpen(false);
     };
 
-    const handleRemoveImage = () => {
-        setSelectedProfilePicture(null);
-    };
 
     const handleSave = async () => {
         if (isSaving) return;
@@ -316,9 +313,6 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                             editMode={editMode}
                             agencyData={agencyData}
                             handleInputChange={handleInputChange}
-                            selectedProfilePicture={selectedProfilePicture}
-                            onProfilePictureSelect={() => setIsMediaModalOpen(true)}
-                            onProfilePictureRemove={handleRemoveImage}
                         />
                     </Suspense>
                 </TabsContent>

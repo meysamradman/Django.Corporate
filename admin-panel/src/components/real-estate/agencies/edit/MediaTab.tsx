@@ -16,9 +16,6 @@ export default function MediaTab({
   setSelectedLogo,
   editMode
 }: MediaTabProps) {
-  const handleLogoSelect = (media: Media) => {
-    setSelectedLogo(media);
-  };
 
   const handleRemoveLogo = () => {
     setSelectedLogo(null);
@@ -64,7 +61,7 @@ export default function MediaTab({
             {media.media_type === 'image' ? (
               <img
                 src={mediaUrl}
-                alt={media.filename}
+                alt={media.file_name || ""}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -75,9 +72,9 @@ export default function MediaTab({
           </div>
 
           <div className="flex-1 min-w-0">
-            <h4 className="font-medium text-sm mb-1">{media.filename}</h4>
+            <h4 className="font-medium text-sm mb-1">{media.file_name || ""}</h4>
             <p className="text-xs text-muted-foreground mb-2">
-              {media.media_type} • {(media.file_size / 1024).toFixed(1)} KB
+              {media.media_type} • {media.file_size ? (media.file_size / 1024).toFixed(1) : 0} KB
             </p>
             <div className="flex gap-2">
               <Button

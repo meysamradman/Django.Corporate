@@ -150,7 +150,7 @@ class RateLimitHandler {
       );
 
       // پاک کردن محدودیت‌های منقضی شده
-      this.rateLimitInfo.forEach((info, endpoint) => {
+      this.rateLimitInfo.forEach((_info, endpoint) => {
         if (!this.isEndpointLimited(endpoint)) {
           this.rateLimitInfo.delete(endpoint);
         }

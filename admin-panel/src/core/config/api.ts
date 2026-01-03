@@ -4,7 +4,7 @@ import type { ApiResponse } from '@/types/api/apiResponse';
 import { ApiError } from '@/types/api/apiError';
 import { sessionManager } from '../auth/session';
 import { env } from './environment';
-import { rateLimitHandler, handleRateLimitError } from '../utils/rateLimitHandler';
+import { handleRateLimitError } from '../utils/rateLimitHandler';
 
 // 🔧 Rate Limit Handling: تعداد تلاش مجدد و تأخیر exponential backoff
 const MAX_RETRY_ATTEMPTS = 3;

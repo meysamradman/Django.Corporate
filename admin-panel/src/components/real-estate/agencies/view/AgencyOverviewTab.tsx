@@ -119,7 +119,7 @@ export function AgencyOverviewTab({ agency }: AgencyOverviewTabProps) {
             borderColor="border-b-indigo-1"
             headerClassName="pb-3"
           >
-            <ReadMore text={agency.description} maxLength={200} />
+            <ReadMore content={agency.description || ""} maxHeight="200px" />
           </CardWithIcon>
         )}
 

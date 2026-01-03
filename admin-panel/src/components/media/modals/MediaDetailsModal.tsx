@@ -200,7 +200,7 @@ export function MediaDetailsModal({
           <CoverImageManager
             currentCoverImage={newCoverImage}
             onCoverImageChange={handleCoverImageChange}
-            mediaType={media.media_type}
+            mediaType={media.media_type || ""}
           />
         ) : hasCoverImage ? (
           <div className="w-full h-32 rounded-lg overflow-hidden relative">

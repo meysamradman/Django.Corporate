@@ -40,7 +40,6 @@ import {
   Star,
   FilePlus,
   Building2,
-  UserCircle,
   Building,
 } from "lucide-react"
 import { useMemo, useCallback } from "react"

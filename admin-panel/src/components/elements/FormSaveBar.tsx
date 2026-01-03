@@ -29,7 +29,7 @@ export function FormSaveBar({
       </div>
       <div className="flex items-center gap-3">
         {showCancel && (
-          <Button variant="ghost" onClick={onCancel} disabled={disabled}>
+          <Button variant="outline" onClick={onCancel} disabled={disabled}>
             {cancelLabel}
           </Button>
         )}

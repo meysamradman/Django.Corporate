@@ -13,7 +13,7 @@ import { portfolioApi } from "@/api/portfolios/portfolios";
 import type { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
-import { Settings, Loader2, Save } from "lucide-react";
+import { Settings, Loader2, Save, List } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function CreateOptionPage() {

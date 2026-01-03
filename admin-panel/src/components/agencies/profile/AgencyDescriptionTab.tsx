@@ -24,7 +24,7 @@ export function AgencyDescriptionTab({
             <CardWithIcon
                 icon={FileText}
                 title="توضیحات آژانس"
-                actions={
+                titleExtra={
                     editMode && (
                         <div className="flex gap-2">
                             <Button size="sm" onClick={handleSaveProfile} disabled={isSaving}>

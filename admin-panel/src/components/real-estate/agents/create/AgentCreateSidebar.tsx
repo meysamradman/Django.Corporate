@@ -1,8 +1,6 @@
 import { Card, CardContent } from "@/components/elements/Card";
 import type { PropertyAgent } from "@/types/real_estate/agent/realEstateAgent";
 import {
-  Hash,
-  Link as LinkIcon,
   FileText,
   Zap,
   CheckCircle2,
