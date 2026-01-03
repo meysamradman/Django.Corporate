@@ -6,13 +6,10 @@ import { MapPin, Loader2 } from "lucide-react";
 import { Label } from "@/components/elements/Label";
 import { showError } from "@/core/toast";
 
-// مختصات شهرهای بزرگ ایران - اولویت: شهر > استان
-// Custom SVG marker icon that requires no external assets and looks great on Retina
-const createCustomIcon = (isSelected: boolean) => {
-  const color = isSelected ? "#3b82f6" : "#94A3B8"; // blue-100 or gray-100
-  const fillColor = isSelected ? "#1E3A8A" : "#94A3B8"; // blue-200 or gray-100
 
-  // Lucide MapPin style SVG
+const createCustomIcon = (isSelected: boolean) => {
+  const color = isSelected ? "#3b82f6" : "#94A3B8";
+
   const svgIcon = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48">
       <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
@@ -32,11 +29,10 @@ const createCustomIcon = (isSelected: boolean) => {
   `;
 
   return L.divIcon({
-    className: "custom-map-marker", // No default styles needed as we control everything in HTML
+    className: "custom-map-marker",
     html: `<div style="transform: translate(-50%, -100%); width: 48px; height: 48px;">${svgIcon}</div>`,
-    iconSize: [0, 0], // Size managed by inner div
-    iconAnchor: [0, 0], // Position managed by inner div translation
-    // We position the Tip exactly at [0,0] (which is lat/lng point) by translating -50% (center x) and -100% (bottom y)
+    iconSize: [0, 0],
+    iconAnchor: [0, 0],
   });
 };
 
@@ -74,7 +70,7 @@ function ChangeView({
         duration: 0.5
       });
     }
-  }, [map, center[0], center[1], zoom]); // Desctructure center to ensure primitive comparison
+  }, [map, center[0], center[1], zoom]);
 
   return null;
 }
@@ -159,13 +155,11 @@ export default function PropertyLocationMap({
   const [isMapReady, setIsMapReady] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
 
-  // Handle Pin Location Changes (High Zoom)
   useEffect(() => {
     if (latitude !== null && longitude !== null) {
       const lat = Number(latitude);
       const lng = Number(longitude);
 
-      console.log(`📍 Focusing on Pin:`, lat, lng);
       setMapCenter([lat, lng]);
       setMapZoom(15);
     }
@@ -179,9 +173,12 @@ export default function PropertyLocationMap({
       const lng = Number(viewLongitude);
 
       if (!isNaN(lat) && !isNaN(lng)) {
-        console.log(`🏙️ Navigating to City/View (DB):`, lat, lng);
         setMapCenter([lat, lng]);
-        setMapZoom(12);
+
+        // Dynamic Zoom: Province (~9), City (~13)
+        // If cityName is present, it's likely a city view
+        const zoom = cityName ? 13 : 9;
+        setMapZoom(zoom);
       }
       return;
     }
@@ -189,7 +186,6 @@ export default function PropertyLocationMap({
     // Case 2: No DB Coordinates, but we have a City Name -> Try to fetch dynamically
     if (cityName && (!viewLatitude || !viewLongitude)) {
       const normalizedCityName = cityName.replace(/^شهر\s+/, '').trim();
-      console.log(`🔍 DB Coords missing. Fetching from Nominatim for: ${normalizedCityName}`);
 
       const fetchCityCoords = async () => {
         try {
@@ -201,9 +197,8 @@ export default function PropertyLocationMap({
           if (data && data.length > 0) {
             const lat = parseFloat(data[0].lat);
             const lon = parseFloat(data[0].lon);
-            console.log(`✅ Found coordinates for ${normalizedCityName}:`, lat, lon);
             setMapCenter([lat, lon]);
-            setMapZoom(12);
+            setMapZoom(13);
           } else {
             // Fallback to province center if city not found
             console.warn(`⚠️ City not found in Nominatim: ${normalizedCityName}. Falling back to Province.`);
@@ -221,25 +216,12 @@ export default function PropertyLocationMap({
       return;
     }
 
-    // Case 3: Just Province selected (no city), or fallback
-    if (provinceName && !cityName) {
-      // We might not have province coords via props if we are here (logic in parent handles province coords usually),
-      // but just in case or if parent logic changes.
-      // Actually parent passes province coords in viewLatitude if only province selected.
-      // So this block might be redundant but safe.
-    }
+    if (provinceName && !cityName) { }
 
   }, [viewLatitude, viewLongitude, cityName, provinceName]);
 
-  const fallbackToProvince = () => {
-    // If we can't find city, usually we can't do much unless we have province coords.
-    // But parent passes province coords ONLY if city is not selected.
-    // If city IS selected but has no coords, parent passes null.
-    // So we can try to geocode province? Or just do nothing.
-    // Let's rely on user to pick point.
-  };
+  const fallbackToProvince = () => { };
 
-  // Fetch Nominatim reverse geocoding to get address string
   const fetchAddressFromNominatim = async (lat: number, lng: number): Promise<string> => {
     try {
       const response = await fetch(
@@ -274,65 +256,63 @@ export default function PropertyLocationMap({
     const addr = data.address;
     const parts: string[] = [];
 
-    // Priority order: City -> Province -> Country -> District/Region -> Neighborhood -> Street
-    // Start with city, then remove country for cleaner display
-
-    // City (شهر) - FIRST
-    if (addr.city || addr.town || addr.village) {
-      const city = addr.city || addr.town || addr.village;
-      // Clean city name - remove duplicates like "شهر تهران" if city is already "تهران"
-      let cleanCity = city;
-      if (city.includes('شهر تهران') && cityName === 'تهران') {
-        cleanCity = city.replace(/\s*شهر\s+تهران\s*/gi, '').trim();
-      }
-      parts.push(cleanCity);
-    }
-
-    // Province (استان) - Only add if different from city
     if (addr.state) {
       // Remove "استان" prefix if exists and add it back
       const province = addr.state.replace(/^استان\s+/, '').replace(/^استان\s+/, '');
-      const provinceText = `استان ${province}`;
+      parts.push(`استان ${province}`);
+    }
 
-      // Don't add province if it's the same as city (like تهران)
-      if (province !== 'تهران' || !parts.includes('تهران')) {
-        parts.push(provinceText);
+    if (addr.city || addr.town || addr.village || addr.hamlet) {
+      const city = addr.city || addr.town || addr.village || addr.hamlet;
+      let cleanCity = city;
+      if (city.includes('شهر تهران')) {
+        cleanCity = city.replace(/\s*شهر\s+تهران\s*/gi, 'تهران').trim();
+      }
+
+      // Inclusion logic: Always include city after province as requested
+      if (cleanCity) {
+        parts.push(cleanCity);
       }
     }
 
-    // Country (ایران) - Skip for cleaner display
-    // if (addr.country) {
-    //   parts.push(addr.country);
-    // }
+    // Neighborhood (محله) - THIRD
+    let neighborhood = addr.locality || addr.neighbourhood;
+    // If neighborhood looks like a Region, clear it so it can be handled in Region section
+    if (neighborhood && (neighborhood.includes('منطقه') || neighborhood.includes('District'))) {
+      neighborhood = null;
+    }
+    // If neighborhood still empty, try suburb but ONLY if it doesn't look like a Region
+    if (!neighborhood && addr.suburb && !addr.suburb.includes('منطقه') && !addr.suburb.includes('District')) {
+      neighborhood = addr.suburb;
+    }
 
-    // District/Region (منطقه)
-    if (addr.suburb || addr.neighbourhood || addr.city_district) {
-      let district = addr.suburb || addr.neighbourhood || addr.city_district;
+    if (neighborhood && !parts.includes(neighborhood)) {
+      parts.push(neighborhood);
+    }
 
-      // Clean up duplicates for Tehran
-      if (cityName === 'تهران') {
-        // Remove "شهر تهران" from district if present
-        district = district.replace(/\s*شهر\s+تهران\s*/gi, '').trim();
-        district = district.replace(/\s*تهران\s*/gi, '').trim();
-
-        // Try to extract region number
-        if (district.includes('منطقه')) {
-          const regionMatch = district.match(/منطقه\s+(\d+)/i);
-          if (regionMatch) {
-            district = `منطقه ${regionMatch[1]}`;
-          }
-        }
-      }
-
-      // Only add district if it's not empty after cleaning
-      if (district.trim()) {
-        parts.push(district);
+    let region = addr.city_district || '';
+    if (!region.includes('منطقه') && !region.includes('District')) {
+      if (addr.suburb && (addr.suburb.includes('منطقه') || addr.suburb.includes('District'))) {
+        region = addr.suburb;
+      } else if (addr.neighbourhood && (addr.neighbourhood.includes('منطقه') || addr.neighbourhood.includes('District'))) {
+        region = addr.neighbourhood;
       }
     }
 
-    // Neighborhood/Local area (محله/ناحیه)
-    if (addr.locality || addr.hamlet) {
-      parts.push(addr.locality || addr.hamlet);
+    if (region) {
+      let cleanRegion = region;
+      cleanRegion = cleanRegion.replace(/\s*شهر\s+تهران\s*/gi, '').trim();
+      cleanRegion = cleanRegion.replace(/\s*تهران\s*/gi, '').trim();
+      cleanRegion = cleanRegion.replace(/\s*ایران\s*/gi, '').trim();
+
+      const regionMatch = cleanRegion.match(/منطقه\s+(\d+)/i) || cleanRegion.match(/District\s+(\d+)/i);
+      if (regionMatch) {
+        cleanRegion = `منطقه ${regionMatch[1]}`;
+      }
+
+      if (cleanRegion.trim() && !parts.includes(cleanRegion)) {
+        parts.push(cleanRegion);
+      }
     }
 
     // Street (خیابان)
@@ -346,7 +326,6 @@ export default function PropertyLocationMap({
       parts.push(`پلاک ${addr.house_number}`);
     }
 
-    // If we have formatted parts, use them; otherwise fall back to display_name
     if (parts.length > 0) {
       // Clean final result to remove any remaining duplicates
       let finalAddress = parts.join(', ');
@@ -364,6 +343,12 @@ export default function PropertyLocationMap({
     }
 
     return data.display_name || `${latitude?.toFixed(6) || '0'}, ${longitude?.toFixed(6) || '0'}`;
+  };
+
+  // Helper to convert Farsi/Arabic digits to English
+  const toEnglishDigits = (str: string) => {
+    return str.replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString())
+      .replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d).toString());
   };
 
   const handlePositionChange = async (lat: number, lng: number) => {
@@ -449,28 +434,24 @@ export default function PropertyLocationMap({
             console.log('⚠️ No valid neighborhood found or neighborhood is city name');
           }
 
-          console.log('📍 All address parts:', addressParts);
-          console.log('🎯 Extracted neighborhood:', extractedNeighborhood);
 
           // Try to detect region for Tehran based on coordinates and address
-          if (cityName === 'تهران' && onRegionUpdate && address) {
-            console.log('🔍 Starting region detection for Tehran...');
-            console.log('📍 Address:', address);
+          if (onRegionUpdate && address) {
+            // Convert to English digits for reliable parsing
+            const normalizedAddress = toEnglishDigits(address);
 
-            let detectedRegion: number | null = null;
+            // Regex to find "منطقه X" where X is 1-22
+            const regionMatch = normalizedAddress.match(/منطقه\s*(\d+)/i) || normalizedAddress.match(/District\s*(\d+)/i);
 
-            // Simple region detection
-            if (address.includes('منطقه ۱۱')) {
-              detectedRegion = 11;
-            } else if (address.includes('منطقه ۶') || address.includes('دانشگاه')) {
-              detectedRegion = 6;
-            } else {
-              detectedRegion = 11; // Default for Tehran
-            }
-
-            if (detectedRegion && detectedRegion >= 1 && detectedRegion <= 22) {
-              onRegionUpdate(detectedRegion);
-              console.log('Final detected region:', detectedRegion);
+            if (regionMatch) {
+              const detectedRegion = parseInt(regionMatch[1]);
+              if (detectedRegion >= 1 && detectedRegion <= 22) {
+                onRegionUpdate(detectedRegion);
+                console.log('✅ Auto-detected region:', detectedRegion);
+              }
+            } else if (cityName === 'تهران') {
+              // Fallback for Tehran if logic above fails - though we should aim for better detection
+              onRegionUpdate(11);
             }
           }
         }

@@ -265,12 +265,6 @@ export function OverviewTab({ property }: OverviewTabProps) {
                 <span className="text-font-p text-right">{property.year_built}</span>
               </div>
             )}
-            {property.extra_attributes?.garage_size && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s text-gray-2 font-medium">اندازه پارکینگ:</span>
-                <span className="text-font-p text-right">{property.extra_attributes.garage_size}</span>
-              </div>
-            )}
           </div>
 
           {/* Column 2 */}
@@ -287,36 +281,6 @@ export function OverviewTab({ property }: OverviewTabProps) {
                 <span className="text-font-p text-right">{property.bedrooms === 0 ? 'استودیو' : `${property.bedrooms} اتاق`}</span>
               </div>
             )}
-            {property.extra_attributes?.garages && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s text-gray-2 font-medium">گاراژ:</span>
-                <span className="text-font-p text-right">{property.extra_attributes.garages}</span>
-              </div>
-            )}
-            {property.extra_attributes?.available_from && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s text-gray-2 font-medium">قابل استفاده از:</span>
-                <span className="text-font-p text-right">{property.extra_attributes.available_from}</span>
-              </div>
-            )}
-            {property.extra_attributes?.roofing && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s text-gray-2 font-medium">سقف:</span>
-                <span className="text-font-p text-right">{property.extra_attributes.roofing}</span>
-              </div>
-            )}
-            {property.extra_attributes?.basement && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s text-gray-2 font-medium">زیرزمین:</span>
-                <span className="text-font-p text-right">{property.extra_attributes.basement}</span>
-              </div>
-            )}
-            {property.extra_attributes?.structure_type && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s text-gray-2 font-medium">نوع سازه:</span>
-                <span className="text-font-p text-right">{property.extra_attributes.structure_type}</span>
-              </div>
-            )}
           </div>
 
           {/* Column 3 */}
@@ -327,98 +291,11 @@ export function OverviewTab({ property }: OverviewTabProps) {
                 <span className="text-font-p text-right">{formatPrice(property.land_area)} متر مربع</span>
               </div>
             )}
-            {property.extra_attributes?.property_id && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s text-gray-2 font-medium">شناسه ملک:</span>
-                <span className="text-font-p text-right">{property.extra_attributes.property_id}</span>
-              </div>
-            )}
-            {property.extra_attributes?.custom_id && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s text-gray-2 font-medium">شناسه سفارشی:</span>
-                <span className="text-font-p text-right">{property.extra_attributes.custom_id}</span>
-              </div>
-            )}
-            {property.extra_attributes?.rooms && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s text-gray-2 font-medium">اتاق:</span>
-                <span className="text-font-p text-right">{property.extra_attributes.rooms}</span>
-              </div>
-            )}
-            {property.extra_attributes?.floors_no && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s text-gray-2 font-medium">تعداد طبقات:</span>
-                <span className="text-font-p text-right">{property.extra_attributes.floors_no}</span>
-              </div>
-            )}
-            {property.extra_attributes?.extra_details && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s text-gray-2 font-medium">جزئیات اضافی:</span>
-                <span className="text-font-p text-right">{property.extra_attributes.extra_details}</span>
-              </div>
-            )}
           </div>
         </div>
       </CardWithIcon>
 
       {/* Additional Details Section */}
-      {(property.extra_attributes?.deposit || property.extra_attributes?.last_remodel_year || property.extra_attributes?.additional_rooms ||
-        property.extra_attributes?.pool_size || property.extra_attributes?.amenities || property.extra_attributes?.equipment) && (
-          <CardWithIcon
-            icon={Info}
-            title="جزئیات اضافی"
-            iconBgColor="bg-teal"
-            iconColor="stroke-teal-2"
-            borderColor="border-b-teal-1"
-            contentClassName="space-y-0"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Column 1 */}
-              <div className="space-y-4">
-                {property.extra_attributes?.deposit && (
-                  <div className="flex justify-between items-start border-b pb-3">
-                    <span className="text-font-s text-gray-2 font-medium">ودیعه:</span>
-                    <span className="text-font-p text-right">{property.extra_attributes.deposit}</span>
-                  </div>
-                )}
-                {property.extra_attributes?.last_remodel_year && (
-                  <div className="flex justify-between items-start border-b pb-3">
-                    <span className="text-font-s text-gray-2 font-medium">سال آخرین بازسازی:</span>
-                    <span className="text-font-p text-right">{property.extra_attributes.last_remodel_year}</span>
-                  </div>
-                )}
-                {property.extra_attributes?.additional_rooms && (
-                  <div className="flex justify-between items-start border-b pb-3">
-                    <span className="text-font-s text-gray-2 font-medium">اتاق‌های اضافی:</span>
-                    <span className="text-font-p text-right">{property.extra_attributes.additional_rooms}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Column 2 */}
-              <div className="space-y-4">
-                {property.extra_attributes?.pool_size && (
-                  <div className="flex justify-between items-start border-b pb-3">
-                    <span className="text-font-s text-gray-2 font-medium">اندازه استخر:</span>
-                    <span className="text-font-p text-right">{property.extra_attributes.pool_size}</span>
-                  </div>
-                )}
-                {property.extra_attributes?.amenities && (
-                  <div className="flex justify-between items-start border-b pb-3">
-                    <span className="text-font-s text-gray-2 font-medium">امکانات:</span>
-                    <span className="text-font-p text-right">{property.extra_attributes.amenities}</span>
-                  </div>
-                )}
-                {property.extra_attributes?.equipment && (
-                  <div className="flex justify-between items-start border-b pb-3">
-                    <span className="text-font-s text-gray-2 font-medium">تجهیزات:</span>
-                    <span className="text-font-p text-right">{property.extra_attributes.equipment}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardWithIcon>
-        )}
 
       {/* Address Section with Google Maps */}
       {(property.address || property.city_name || property.province_name || property.postal_code || property.neighborhood) && (

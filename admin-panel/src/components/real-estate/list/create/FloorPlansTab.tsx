@@ -11,6 +11,7 @@ import { realEstateApi } from "@/api/real-estate";
 import { MediaGallery } from "@/components/media/galleries/MediaGallery";
 import type { Media } from "@/types/shared/media";
 import { generateSlug } from "@/core/slug/generate";
+import { mediaService } from "@/components/media/services";
 
 interface FloorPlan {
   id?: number;
@@ -18,7 +19,7 @@ interface FloorPlan {
   slug: string;
   description: string;
   floor_size: number | null;
-  size_unit: "sqft" | "sqm";
+  size_unit: "sqm" | "sqft";
   bedrooms: number | null;
   bathrooms: number | null;
   price: number | null;
@@ -37,11 +38,11 @@ interface FloorPlansTabProps {
   onTempFloorPlansChange?: (plans: FloorPlan[]) => void;
 }
 
-export default function FloorPlansTab({ 
-  propertyId, 
-  editMode, 
-  tempFloorPlans = [], 
-  onTempFloorPlansChange 
+export default function FloorPlansTab({
+  propertyId,
+  editMode,
+  tempFloorPlans = [],
+  onTempFloorPlansChange
 }: FloorPlansTabProps) {
   const [floorPlans, setFloorPlans] = useState<FloorPlan[]>(tempFloorPlans);
   const [isLoading, setIsLoading] = useState(false);
@@ -66,23 +67,31 @@ export default function FloorPlansTab({
   // Media state for new floor plan
   const [selectedImages, setSelectedImages] = useState<Media[]>([]);
 
-  // سَنکرون کردن با tempFloorPlans
+  // Sync with tempFloorPlans
   useEffect(() => {
     if (!propertyId && tempFloorPlans) {
       setFloorPlans(tempFloorPlans);
     }
   }, [tempFloorPlans, propertyId]);
 
+  // Sync with parent state whenever floorPlans changes (for create mode)
+  useEffect(() => {
+    if (!propertyId && onTempFloorPlansChange) {
+      onTempFloorPlansChange(floorPlans);
+    }
+  }, [floorPlans, propertyId, onTempFloorPlansChange]);
+
   // Load floor plans if editing
   useEffect(() => {
     if (propertyId && editMode) {
       loadFloorPlans();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [propertyId, editMode]);
 
   const loadFloorPlans = async () => {
     if (!propertyId) return;
-    
+
     try {
       setIsLoading(true);
       const plans = await realEstateApi.getFloorPlans(propertyId);
@@ -110,15 +119,23 @@ export default function FloorPlansTab({
       return;
     }
 
+    // In create mode (no propertyId), we just add to the local list
     if (!propertyId) {
-      showError("ابتدا باید ملک را ذخیره کنید");
+      const tempId = floorPlans.length + 1;
+      const planWithImages = {
+        ...newFloorPlan,
+        id: -tempId, // Temporary ID for local identification
+        images: selectedImages
+      };
+      setFloorPlans(prev => [...prev, planWithImages]);
+      showSuccess("پلان موقت اضافه شد");
+      resetForm();
       return;
     }
 
     try {
       setIsLoading(true);
-      
-      // Prepare data
+
       const floorPlanData: any = {
         property_obj: propertyId,
         title: newFloorPlan.title,
@@ -134,40 +151,13 @@ export default function FloorPlansTab({
         unit_type: newFloorPlan.unit_type,
         display_order: newFloorPlan.display_order,
         is_available: newFloorPlan.is_available,
+        image_ids: selectedImages.map(img => img.id)
       };
 
-      // Add image IDs if selected
-      if (selectedImages.length > 0) {
-        floorPlanData.image_ids = selectedImages.map(img => img.id);
-      }
-
-      // Create floor plan via API
       const savedPlan = await realEstateApi.createFloorPlan(floorPlanData);
-      
-      // Add to local state
       setFloorPlans(prev => [...prev, savedPlan]);
-      
       showSuccess("پلان با موفقیت اضافه شد");
-      
-      // Reset form
-      setIsAdding(false);
-      setSelectedImages([]);
-      setNewFloorPlan({
-        title: "",
-        slug: "",
-        description: "",
-        floor_size: null,
-        size_unit: "sqm",
-        bedrooms: null,
-        bathrooms: null,
-        price: null,
-        currency: "IRR",
-        floor_number: null,
-        unit_type: "",
-        display_order: floorPlans.length,
-        is_available: true,
-        images: [],
-      });
+      resetForm();
     } catch (error) {
       console.error("Error saving floor plan:", error);
       showError(error);
@@ -176,23 +166,45 @@ export default function FloorPlansTab({
     }
   };
 
+  const resetForm = () => {
+    setIsAdding(false);
+    setSelectedImages([]);
+    setNewFloorPlan({
+      title: "",
+      slug: "",
+      description: "",
+      floor_size: null,
+      size_unit: "sqm",
+      bedrooms: null,
+      bathrooms: null,
+      price: null,
+      currency: "IRR",
+      floor_number: null,
+      unit_type: "",
+      display_order: floorPlans.length,
+      is_available: true,
+      images: [],
+    });
+  };
+
   const handleDeleteFloorPlan = async (id: number) => {
     if (!confirm("آیا از حذف این پلان اطمینان دارید؟")) {
       return;
     }
 
+    // Handle temporary plan deletion (negative IDs)
+    if (id < 0) {
+      setFloorPlans(prev => prev.filter(p => p.id !== id));
+      showSuccess("پلان موقت حذف شد");
+      return;
+    }
+
     try {
       setIsLoading(true);
-      
-      // Call API to delete
       if (propertyId) {
         await realEstateApi.deleteFloorPlan(id);
       }
-      
-      // Remove from local state
-      const updatedPlans = floorPlans.filter(plan => plan.id !== id);
-      setFloorPlans(updatedPlans);
-      
+      setFloorPlans(prev => prev.filter(plan => plan.id !== id));
       showSuccess("پلان با موفقیت حذف شد");
     } catch (error) {
       console.error("Error deleting floor plan:", error);
@@ -207,7 +219,6 @@ export default function FloorPlansTab({
     if (field === "floor_size" || field === "bedrooms" || field === "bathrooms" || field === "price" || field === "floor_number") {
       setNewFloorPlan(prev => ({ ...prev, [field]: value ? Number(value) : null }));
     } else if (field === "title") {
-      // Auto-generate slug from title
       const slug = generateSlug(value);
       setNewFloorPlan(prev => ({ ...prev, title: value, slug }));
     } else {
@@ -251,127 +262,41 @@ export default function FloorPlansTab({
         borderColor="border-b-blue-1"
       >
         <div className="space-y-6">
-          {!propertyId && floorPlans.length === 0 && (
-            <div className="flex items-start gap-3 p-4 bg-blue/10 border border-blue-1 rounded-lg">
-              <div className="flex-shrink-0 mt-0.5">
-                <Home className="h-5 w-5 text-blue-1" />
+          {/* Header Info for empty state */}
+          {!propertyId && floorPlans.length === 0 && !isAdding && (
+            <div className="flex items-start gap-4 p-5 bg-indigo-0/30 border border-indigo-1/10 rounded-2xl">
+              <div className="flex-shrink-0 w-10 h-10 bg-indigo rounded-xl flex items-center justify-center shadow-lg shadow-indigo/20">
+                <Home className="h-5 w-5 text-static-w" />
               </div>
               <div className="flex-1 space-y-1">
-                <p className="text-sm font-medium text-tx-1">
-                  افزودن پلان‌ها در حالت ایجاد
+                <p className="text-sm font-bold text-font-p">
+                  افزودن پلان‌های ملک
                 </p>
-                <p className="text-xs text-tx-2">
-                  می‌توانید پلان‌های طبقات را اضافه کنید. این پلان‌ها به صورت موقت ذخیره شده و پس از ذخیره ملک به آن اضافه خواهند شد.
+                <p className="text-[11px] text-font-s/70 leading-relaxed">
+                  در این بخش می‌توانید نقشه‌ها، رندرهای سه بعدی و مشخصات هر واحد یا طبقه را به صورت مجزا ثبت کنید.
                 </p>
               </div>
             </div>
           )}
 
-          {/* Existing Floor Plans */}
-          {floorPlans.length > 0 && (
-            <div className="space-y-4">
-              {floorPlans.map((plan) => (
-                <div
-                  key={plan.id}
-                  className="border border-br rounded-lg p-4 hover:border-blue-1 transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 space-y-3">
-                      <h4 className="font-medium text-tx-1 text-lg">{plan.title}</h4>
-                      
-                      {/* Floor Plan Details with Icons */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                        {/* Size */}
-                        <div className="flex items-center gap-2 text-sm text-tx-2">
-                          <div className="flex-shrink-0 w-8 h-8 bg-blue/10 rounded-full flex items-center justify-center">
-                            <Maximize2 className="h-4 w-4 text-blue-1" />
-                          </div>
-                          <div>
-                            <p className="text-xs text-tx-3">مساحت</p>
-                            <p className="font-medium text-tx-1">
-                              {plan.floor_size} {plan.size_unit === "sqm" ? "متر مربع" : "فوت مربع"}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Bedrooms */}
-                        {plan.bedrooms !== null && (
-                          <div className="flex items-center gap-2 text-sm text-tx-2">
-                            <div className="flex-shrink-0 w-8 h-8 bg-green/10 rounded-full flex items-center justify-center">
-                              <Bed className="h-4 w-4 text-green-1" />
-                            </div>
-                            <div>
-                              <p className="text-xs text-tx-3">اتاق خواب</p>
-                              <p className="font-medium text-tx-1">{plan.bedrooms} اتاق</p>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Bathrooms */}
-                        {plan.bathrooms !== null && (
-                          <div className="flex items-center gap-2 text-sm text-tx-2">
-                            <div className="flex-shrink-0 w-8 h-8 bg-teal-0 rounded-full flex items-center justify-center">
-                              <Bath className="h-4 w-4 text-teal-1" />
-                            </div>
-                            <div>
-                              <p className="text-xs text-tx-3">سرویس بهداشتی</p>
-                              <p className="font-medium text-tx-1">{plan.bathrooms} سرویس</p>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Price */}
-                        {plan.price !== null && (
-                          <div className="flex items-center gap-2 text-sm text-tx-2">
-                            <div className="flex-shrink-0 w-8 h-8 bg-orange/10 rounded-full flex items-center justify-center">
-                              <DollarSign className="h-4 w-4 text-orange-1" />
-                            </div>
-                            <div>
-                              <p className="text-xs text-tx-3">قیمت</p>
-                              <p className="font-medium text-tx-1">
-                                {plan.price.toLocaleString()} {plan.currency}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Additional Info */}
-                      {(plan.floor_number !== null || plan.unit_type) && (
-                        <div className="flex flex-wrap gap-2 pt-2">
-                          {plan.floor_number !== null && (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-bg rounded text-xs text-tx-2">
-                              <span className="font-medium">طبقه:</span> {plan.floor_number}
-                            </span>
-                          )}
-                          {plan.unit_type && (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-bg rounded text-xs text-tx-2">
-                              <span className="font-medium">نوع:</span> {plan.unit_type}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteFloorPlan(plan.id!)}
-                      className="flex-shrink-0"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Add New Floor Plan Form */}
+          {/* ADD ACTION / FORM SECTION */}
           {isAdding ? (
-            <div className="border border-blue-1 rounded-lg p-6 bg-blue/5 space-y-6">
-              <h4 className="font-medium text-tx-1 mb-4">افزودن پلان جدید</h4>
-              
+            <div className="border border-indigo-1/20 rounded-2xl p-6 bg-indigo-0/5 shadow-sm space-y-6 animate-in fade-in slide-in-from-top-4 duration-300">
+              <div className="flex items-center justify-between gap-4 mb-2">
+                <h4 className="font-black text-font-p flex items-center gap-2">
+                  <Plus className="w-5 h-5 text-indigo-1" />
+                  افزودن پلان جدید
+                </h4>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsAdding(false)}
+                  className="h-8 text-[11px] font-bold text-font-s hover:text-red-1 border-none hover:bg-red-0"
+                >
+                  انصراف
+                </Button>
+              </div>
+
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <FormFieldInput
                   label="عنوان پلان"
@@ -381,7 +306,7 @@ export default function FloorPlansTab({
                   placeholder="مثلاً: طبقه اول - نوع A"
                   required
                 />
-                
+
                 <FormFieldInput
                   label="نوع واحد"
                   id="floor_plan_unit_type"
@@ -403,7 +328,7 @@ export default function FloorPlansTab({
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <FormFieldInput
                   type="number"
-                  label="مساحت *"
+                  label="مساحت"
                   id="floor_plan_size"
                   value={newFloorPlan.floor_size || ""}
                   onChange={handleInputChange("floor_size")}
@@ -412,12 +337,12 @@ export default function FloorPlansTab({
                 />
 
                 <div className="space-y-2">
-                  <Label htmlFor="size_unit">واحد اندازه</Label>
+                  <Label htmlFor="size_unit" className="text-xs font-bold text-font-s/70">واحد اندازه</Label>
                   <Select
                     value={newFloorPlan.size_unit}
                     onValueChange={handleSelectChange("size_unit")}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full h-11 border-br bg-wt focus:ring-indigo/20">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -431,7 +356,7 @@ export default function FloorPlansTab({
                   type="number"
                   label="شماره طبقه"
                   id="floor_plan_number"
-                  value={newFloorPlan.floor_number || ""}
+                  value={newFloorPlan.floor_number !== null ? newFloorPlan.floor_number : ""}
                   onChange={handleInputChange("floor_number")}
                   placeholder="مثلاً: 1"
                 />
@@ -464,8 +389,7 @@ export default function FloorPlansTab({
                 />
               </div>
 
-              {/* Image Management Section with MediaGallery */}
-              <div className="space-y-4 pt-4 border-t border-br">
+              <div className="space-y-4 pt-6 border-t border-br">
                 <MediaGallery
                   mediaItems={selectedImages}
                   onMediaSelect={handleMediaSelect}
@@ -476,38 +400,139 @@ export default function FloorPlansTab({
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-br">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsAdding(false)}
-                  disabled={isLoading}
-                >
+              <div className="flex items-center justify-end gap-3 pt-6 border-t border-br">
+                <Button variant="outline" onClick={() => setIsAdding(false)} disabled={isLoading} className="h-11 px-6 font-bold text-font-s">
                   انصراف
                 </Button>
-                <Button
-                  onClick={handleSaveFloorPlan}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      در حال ذخیره...
-                    </>
-                  ) : (
-                    "ذخیره پلان"
-                  )}
+                <Button onClick={handleSaveFloorPlan} disabled={isLoading} className="h-11 px-8 font-black">
+                  {isLoading ? <><Loader2 className="h-4 w-4 animate-spin ml-2" /> در حال ذخیره...</> : "ذخیره و ثبت پلان"}
                 </Button>
               </div>
             </div>
           ) : (
-            <Button
-              variant="outline"
-              onClick={handleAddFloorPlan}
-              className="w-full"
-            >
-              <Plus className="h-4 w-4" />
-              افزودن پلان جدید
-            </Button>
+            <div onClick={handleAddFloorPlan} className="group cursor-pointer relative overflow-hidden h-24 border-2 border-dashed border-br rounded-2xl flex items-center justify-center bg-wt hover:bg-indigo-0/5 hover:border-indigo-1/30 transition-all duration-500">
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-0/0 via-indigo-0/5 to-indigo-0/0 opacity-0 group-hover:opacity-100 -translate-x-full group-hover:translate-x-full transition-all duration-1000" />
+              <div className="flex flex-col items-center gap-1 relative z-10">
+                <div className="w-10 h-10 rounded-full bg-indigo-0 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Plus className="w-6 h-6 text-indigo-1" />
+                </div>
+                <span className="text-[11px] font-black text-font-p tracking-tight">افزودن پلان جدید</span>
+              </div>
+            </div>
+          )}
+
+          {/* Existing Floor Plans */}
+          {floorPlans.length > 0 && (
+            <div className="space-y-4 mt-6">
+              <div className="flex items-center gap-3 mb-2 px-1">
+                <div className="w-2 h-2 rounded-full bg-indigo shadow-glow" />
+                <h5 className="text-[11px] font-black uppercase tracking-widest text-font-s opacity-60">پلان‌های ثبت شده</h5>
+              </div>
+              {floorPlans.map((plan, index) => (
+                <div key={plan.id || `temp-${index}`} className="relative border border-br rounded-2xl p-5 bg-wt hover:border-indigo-1/20 transition-all duration-300">
+                  <div className="flex flex-col lg:flex-row items-start gap-6">
+                    {/* Visual Preview (if images exist) */}
+                    {plan.images && plan.images.length > 0 && (
+                      <div className="w-full lg:w-48 aspect-[4/3] rounded-xl overflow-hidden border border-br bg-muted/5 flex-shrink-0">
+                        <img src={mediaService.getMediaUrlFromObject(plan.images[0])} alt={plan.title} className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0 space-y-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <h4 className="font-black text-font-p text-xl truncate">{plan.title}</h4>
+                          <p className="text-[11px] text-font-s/60 line-clamp-1 mt-1 font-medium">{plan.description}</p>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => handleDeleteFloorPlan(plan.id!)} className="h-9 w-9 p-0 text-red-1 border-none hover:bg-red-0 hover:text-red-1 rounded-xl shadow-sm transition-all duration-300" disabled={!editMode}>
+                          <Trash2 className="h-4.5 w-4.5" />
+                        </Button>
+                      </div>
+
+                      {/* Floor Plan Details - NEUTRAL STYLING */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {/* Size */}
+                        <div className="bg-bg p-3 rounded-2xl border border-br/50 group/detail transition-all">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 bg-wt rounded-xl flex items-center justify-center border border-br/30 shadow-sm">
+                              <Maximize2 className="h-4.5 w-4.5 text-font-s" />
+                            </div>
+                            <div>
+                              <p className="text-[9px] font-black text-font-s/40 uppercase tracking-tighter">مساحت</p>
+                              <p className="font-bold text-font-p text-sm">
+                                {plan.floor_size} {plan.size_unit === "sqm" ? "متر" : "فوت"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Bedrooms */}
+                        {plan.bedrooms !== null && (
+                          <div className="bg-bg p-3 rounded-2xl border border-br/50 group/detail transition-all">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 bg-wt rounded-xl flex items-center justify-center border border-br/30 shadow-sm">
+                                <Bed className="h-4.5 w-4.5 text-font-s" />
+                              </div>
+                              <div>
+                                <p className="text-[9px] font-black text-font-s/40 uppercase tracking-tighter">اتاق خواب</p>
+                                <p className="font-bold text-font-p text-sm">{plan.bedrooms} اتاق</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Bathrooms */}
+                        {plan.bathrooms !== null && (
+                          <div className="bg-bg p-3 rounded-2xl border border-br/50 group/detail transition-all">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 bg-wt rounded-xl flex items-center justify-center border border-br/30 shadow-sm">
+                                <Bath className="h-4.5 w-4.5 text-font-s" />
+                              </div>
+                              <div>
+                                <p className="text-[9px] font-black text-font-s/40 uppercase tracking-tighter">سرویس</p>
+                                <p className="font-bold text-font-p text-sm">{plan.bathrooms} مورد</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Price */}
+                        {plan.price !== null && (
+                          <div className="bg-bg p-3 rounded-2xl border border-br/50 group/detail transition-all">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 bg-wt rounded-xl flex items-center justify-center border border-br/30 shadow-sm">
+                                <DollarSign className="h-4.5 w-4.5 text-font-s" />
+                              </div>
+                              <div>
+                                <p className="text-[9px] font-black text-font-s/40 uppercase tracking-tighter">قیمت</p>
+                                <p className="font-bold text-font-p text-sm truncate">
+                                  {plan.price.toLocaleString()} {plan.currency}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Additional Badges info */}
+                      {(plan.floor_number !== null || plan.unit_type) && (
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {plan.floor_number !== null && (
+                            <span className="inline-flex items-center px-3 py-1.5 bg-muted/10 rounded-full text-xs font-bold text-font-s border border-br">
+                              <span className="opacity-50 ml-1">طبقه:</span> {plan.floor_number}
+                            </span>
+                          )}
+                          {plan.unit_type && (
+                            <span className="inline-flex items-center px-3 py-1.5 bg-bg rounded-full text-xs font-bold text-font-s border border-br">
+                              <span className="opacity-50 ml-1">نوع واحد:</span> {plan.unit_type}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </CardWithIcon>

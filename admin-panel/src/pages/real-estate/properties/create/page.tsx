@@ -563,7 +563,7 @@ export default function PropertyCreatePage() {
       if (isEditMode && id) {
         // در حالت ویرایش
         property = await realEstateApi.updateProperty(Number(id), updateData);
-        
+
         // اگر فایل جدید یا ID جدید داریم، اضافه کن
         if (allMediaFiles.length > 0 || allMediaIds.length > 0) {
           await realEstateApi.addMediaToProperty(Number(id), allMediaFiles, allMediaIds);
@@ -652,7 +652,7 @@ export default function PropertyCreatePage() {
           </TabsTrigger>
           <TabsTrigger value="extra">
             <FileJson className="h-4 w-4" />
-            ویژگی‌های ویژه
+            فیلدهای اضافی
           </TabsTrigger>
         </TabsList>
 

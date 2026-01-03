@@ -53,26 +53,19 @@ class PropertyQuerySet(models.QuerySet):
     
     def for_admin_listing(self):
         """
-        Optimized for admin listing - SEO fields are NOT loaded (defer)
-        Performance: ~40% faster by skipping heavy fields
+        Optimized for admin listing - High Performance (Divar Scale)
         
-        ✅ Optimized with:
-        - select_related for FK (property_type, state, agent, agency, city, etc.)
-        - prefetch_related for M2M (labels, tags, features)
-        - Prefetch for media with cover images
-        - Prefetch for agent profiles (to prevent N+1 without heavy JOIN)
-        - annotate for counts (labels_count, tags_count, features_count)
-        - defer for heavy fields (SEO, description, address)
-        - only for specific fields needed in listing
-        
-        ✅ N+1 Prevention:
-        - Uses Prefetch for admin_profile to avoid heavy LEFT JOIN in main query
-        - Main query stays fast with only essential JOINs
+        ✅ Optimizations:
+        - select_related for ALL single FKs used in list (including og_image)
+        - annotate(total_media_count) in SQL to avoid Python-level counts
+        - removed defer() on fields used by the Serializer (meta_title, meta_description)
+        - only() strictly limited to fields needed by the serializer
+        - Prefetch for agents to avoid heavy JOINs
         """
-        from django.db.models import Prefetch
+        from django.db.models import Prefetch, Count, PositiveIntegerField
+        from django.db.models.functions import Coalesce
         from src.real_estate.models.media import PropertyImage, PropertyVideo, PropertyAudio, PropertyDocument
         from src.user.models.admin_profile import AdminProfile
-        # ✅ Import models داخل متد برای جلوگیری از circular import
         from src.real_estate.models.label import PropertyLabel
         from src.real_estate.models.tag import PropertyTag
         from src.real_estate.models.feature import PropertyFeature
@@ -82,28 +75,17 @@ class PropertyQuerySet(models.QuerySet):
             'state',
             'agent',
             'agent__user',
-            # ⚠️ NOT agent__user__admin_profile - it makes main query 60% slower!
             'agent__agency',
             'agency',
             'city',
             'city__province',
             'province',
-            'region'
+            'region',
+            'og_image', # ✅ Needed for SEO status check
         ).prefetch_related(
-            # ✅ M2M relationships - simple prefetch (fastest)
-            Prefetch(
-                'labels',
-                queryset=PropertyLabel.objects.all()
-            ),
-            Prefetch(
-                'tags',
-                queryset=PropertyTag.objects.all()
-            ),
-            Prefetch(
-                'features',
-                queryset=PropertyFeature.objects.all()
-            ),
-            # ✅ Prefetch admin profiles separately to avoid heavy JOIN
+            Prefetch('labels', queryset=PropertyLabel.objects.all()),
+            Prefetch('tags', queryset=PropertyTag.objects.all()),
+            Prefetch('features', queryset=PropertyFeature.objects.all()),
             Prefetch(
                 'agent__user__admin_profile',
                 queryset=AdminProfile.objects.only('id', 'first_name', 'last_name', 'profile_picture_id')
@@ -112,43 +94,79 @@ class PropertyQuerySet(models.QuerySet):
                 'images',
                 queryset=PropertyImage.objects.select_related('image')
                     .filter(is_main=True)
-                    .only('id', 'image_id', 'is_main', 'order'),
+                    .only('id', 'image_id', 'is_main', 'order', 'property_id'),
                 to_attr='main_image_prefetch'
             ),
             Prefetch(
                 'videos',
-                queryset=PropertyVideo.objects.select_related('video', 'cover_image').order_by('order', 'created_at')
+                queryset=PropertyVideo.objects.select_related('video', 'cover_image')
+                    .only('id', 'video_id', 'cover_image_id', 'property_id')
+                    .order_by('order', 'created_at'),
+                to_attr='primary_video_prefetch'
             ),
             Prefetch(
                 'audios',
-                queryset=PropertyAudio.objects.select_related('audio', 'cover_image').order_by('order', 'created_at')
+                queryset=PropertyAudio.objects.select_related('audio', 'cover_image')
+                    .only('id', 'audio_id', 'cover_image_id', 'property_id')
+                    .order_by('order', 'created_at'),
+                to_attr='primary_audio_prefetch'
             ),
             Prefetch(
                 'documents',
-                queryset=PropertyDocument.objects.select_related('document', 'cover_image').order_by('order', 'created_at')
+                queryset=PropertyDocument.objects.select_related('document', 'cover_image')
+                    .only('id', 'document_id', 'cover_image_id', 'title', 'property_id')
+                    .order_by('order', 'created_at'),
+                to_attr='primary_document_prefetch'
+            ),
+
+        ).annotate(
+
+            # ✅ SQL-level counts for high performance
+            labels_count=Count('labels', distinct=True),
+            tags_count=Count('tags', distinct=True),
+            features_count=Count('features', distinct=True),
+            total_images_count=Count('images', distinct=True),
+            total_videos_count=Count('videos', distinct=True),
+            total_audios_count=Count('audios', distinct=True),
+            total_docs_count=Count('documents', distinct=True),
+        ).annotate(
+            # ✅ Coalesce to ensure we don't have NULL
+            total_media_count=Coalesce(
+                models.F('total_images_count') + 
+                models.F('total_videos_count') + 
+                models.F('total_audios_count') + 
+                models.F('total_docs_count'),
+                0,
+                output_field=models.PositiveIntegerField()
             )
         ).defer(
-            # ✅ SEO fields - only loaded on detail page
-            'meta_title', 'meta_description',
-            'og_title', 'og_description', 'og_image_id',
+
+            # ✅ Only heavy fields that are NOT used in the list serializer
+            'og_title', 'og_description',
             'canonical_url', 'robots_meta',
             'structured_data', 'hreflang_data',
-            # ✅ Heavy fields not needed in listing
-            'description',  # Full description
-            'address',  # Full address
-            'extra_attributes',  # JSON attributes
-            'search_vector'  # Full-text search vector
+            'description',
+            'address',
+            'extra_attributes',
+            'search_vector'
         ).only(
             'id', 'public_id', 'title', 'slug', 'short_description',
             'is_published', 'is_featured', 'is_public', 'is_active',
             'property_type_id', 'state_id', 'agent_id', 'agency_id',
             'city_id', 'region_id', 'province_id', 'neighborhood',
-            'price', 'sale_price',
-            'bedrooms', 'bathrooms', 'built_area', 'land_area',
-            'parking_spaces', 'year_built',
+            'price', 'sale_price', 'pre_sale_price', 'price_per_sqm',
+            'monthly_rent', 'rent_amount', 'mortgage_amount',
+            'land_area', 'built_area',
+            'bedrooms', 'bathrooms', 'kitchens', 'living_rooms',
+            'year_built', 'build_years', 'floors_in_building', 'floor_number',
+            'parking_spaces', 'storage_rooms', 'document_type', 'has_document',
             'views_count', 'favorites_count', 'inquiries_count',
-            'published_at', 'created_at', 'updated_at'
+            'published_at', 'created_at', 'updated_at',
+            'meta_title', 'meta_description', # ✅ Kept for serializer
+            'og_image_id', # ✅ Needed for SQL join, must be in only()
         )
+
+
     
     def for_public_listing(self):
         """

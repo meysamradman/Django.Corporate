@@ -10,9 +10,28 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/elements/Select";
-import { Badge } from "@/components/elements/Badge";
-import { Settings, Home, Building2, Calendar, ChevronDown, ChevronUp, Loader2, Compass, MapPin, X } from "lucide-react";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/elements/Dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/elements/AlertDialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
+import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
+import { Settings, Plus, Edit, Trash2, Loader2, Key, Building2, Compass, MapPin, Home, FileJson } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
+import { showError } from "@/core/toast";
+import { Skeleton } from "@/components/elements/Skeleton";
 
 interface ExtraAttributesTabProps {
     formData: any;
@@ -20,513 +39,387 @@ interface ExtraAttributesTabProps {
     editMode: boolean;
 }
 
-interface FieldMetadata {
-    key: string;
-    label: string;
-    type: 'select' | 'number' | 'text';
-    icon?: any;
-    options?: Array<{ value: string; label: string }>;
-    min?: number;
-    max?: number;
-    placeholder?: string;
-}
-
-// TypeScript interface for API response
-interface FieldOptionsResponse {
-    bedrooms: [number, string][];
-    bathrooms: [number, string][];
-    parking_spaces: [number, string][];
-    storage_rooms: [number, string][];
-    floor_number: [number, string][];
-    kitchens: [number, string][];
-    living_rooms: [number, string][];
-    document_type: [string, string][];
-    year_built: {
-        min: number;
-        max: number;
-        placeholder: string;
-        help_text: string;
-    };
-    extra_attributes_options?: {
-        space_type?: [string, string][];
-        construction_status?: [string, string][];
-        property_condition?: [string, string][];
-        property_direction?: [string, string][];
-        city_position?: [string, string][];
-        unit_type?: [string, string][];
-    };
-}
+const PREDEFINED_KEYS = [
+    'property_condition',
+    'property_direction',
+    'city_position',
+    'unit_type',
+    'construction_status',
+    'space_type'
+];
 
 export function ExtraAttributesTab({
     formData,
     handleInputChange,
     editMode,
 }: ExtraAttributesTabProps) {
-    const [showCommon, setShowCommon] = useState(true);
-    const [showPreSale, setShowPreSale] = useState(false);
-    const [showShortTerm, setShowShortTerm] = useState(false);
-    const [showCustom, setShowCustom] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    
-    // داده‌های دینامیک از بک‌اند
-    const [commonAttributes, setCommonAttributes] = useState<FieldMetadata[]>([]);
-    const [preSaleAttributes, setPreSaleAttributes] = useState<FieldMetadata[]>([]);
-    const [shortTermAttributes, setShortTermAttributes] = useState<FieldMetadata[]>([]);
-    
-    // فیلدهای دلخواه کاربر
-    const [customKey, setCustomKey] = useState("");
-    const [customValue, setCustomValue] = useState("");
+    const [fieldOptions, setFieldOptions] = useState<any>(null);
+
+    // Dialog states
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [editingKey, setEditingKey] = useState<string | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [keyToDelete, setKeyToDelete] = useState<string | null>(null);
+
+    const [fieldKey, setFieldKey] = useState("");
+    const [fieldValue, setFieldValue] = useState("");
+    const [saving, setSaving] = useState(false);
 
     const currentAttributes = formData?.extra_attributes || {};
 
-
-
-    // دریافت metadata از بک‌اند
     useEffect(() => {
         const fetchMetadata = async () => {
             try {
                 setIsLoading(true);
-                const options = await realEstateApi.getFieldOptions() as FieldOptionsResponse;
-                
-                // تبدیل داده‌های بک‌اند به فرمت مورد نیاز کامپوننت
-                const extraOptions = options.extra_attributes_options || {};
-                
-                // ✅ فیلدهای مشترک (همه نوع ملک)
-                const common: FieldMetadata[] = [];
-                if (extraOptions.property_condition) {
-                    common.push({
-                        key: 'property_condition',
-                        label: 'وضعیت ملک',
-                        type: 'select',
-                        icon: Building2,
-                        options: extraOptions.property_condition.map((item: any) => ({
-                            value: item[0],
-                            label: item[1]
-                        }))
-                    });
-                }
-                if (extraOptions.property_direction) {
-                    common.push({
-                        key: 'property_direction',
-                        label: 'جهت ملک',
-                        type: 'select',
-                        icon: Compass,
-                        options: extraOptions.property_direction.map((item: any) => ({
-                            value: item[0],
-                            label: item[1]
-                        }))
-                    });
-                }
-                if (extraOptions.city_position) {
-                    common.push({
-                        key: 'city_position',
-                        label: 'موقعیت در شهر',
-                        type: 'select',
-                        icon: MapPin,
-                        options: extraOptions.city_position.map((item: any) => ({
-                            value: item[0],
-                            label: item[1]
-                        }))
-                    });
-                }
-                if (extraOptions.unit_type) {
-                    common.push({
-                        key: 'unit_type',
-                        label: 'نوع واحد',
-                        type: 'select',
-                        icon: Home,
-                        options: extraOptions.unit_type.map((item: any) => ({
-                            value: item[0],
-                            label: item[1]
-                        }))
-                    });
-                }
-                setCommonAttributes(common);
-                
-                // ✅ فیلدهای پیش‌فروش (فقط برای پروژه‌های در حال ساخت)
-                const preSale: FieldMetadata[] = [];
-                if (extraOptions.construction_status) {
-                    preSale.push({
-                        key: 'construction_status',
-                        label: 'وضعیت ساخت',
-                        type: 'select',
-                        icon: Building2,
-                        options: extraOptions.construction_status.map((item: any) => ({
-                            value: item[0],
-                            label: item[1]
-                        }))
-                    });
-                }
-                setPreSaleAttributes(preSale);
-                
-                // ✅ فیلدهای اجاره کوتاه‌مدت (فقط برای مهمان‌پذیر)
-                const shortTerm: FieldMetadata[] = [];
-                if (extraOptions.space_type) {
-                    shortTerm.push({
-                        key: 'space_type',
-                        label: 'نوع کاربری فضا',
-                        type: 'select',
-                        icon: Home,
-                        options: extraOptions.space_type.map((item: any) => ({
-                            value: item[0],
-                            label: item[1]
-                        }))
-                    });
-                }
-                setShortTermAttributes(shortTerm);
-                
+                const options = await realEstateApi.getFieldOptions();
+                setFieldOptions(options.extra_attributes_options || {});
             } catch (error) {
                 console.error('Error fetching field metadata:', error);
             } finally {
                 setIsLoading(false);
             }
         };
-        
         fetchMetadata();
     }, []);
 
-    // بررسی ویژگی‌های موجود برای نمایش بخش‌ها
-    useEffect(() => {
-        // اگر فیلد پیش‌فروش داره → نمایش بخش پیش‌فروش
-        if (currentAttributes.construction_status) {
-            setShowPreSale(true);
+    const handleOpenDialog = (key?: string) => {
+        if (key && currentAttributes[key] !== undefined) {
+            setEditingKey(key);
+            setFieldKey(key);
+            setFieldValue(String(currentAttributes[key] || ""));
+        } else {
+            setEditingKey(null);
+            setFieldKey("");
+            setFieldValue("");
         }
-        // اگر فیلد اجاره کوتاه‌مدت داره → نمایش بخش اجاره کوتاه‌مدت
-        if (currentAttributes.space_type) {
-            setShowShortTerm(true);
-        }
-    }, []);
+        setDialogOpen(true);
+    };
 
-    // تابع برای به‌روزرسانی مقدار یک ویژگی
+    const handleCloseDialog = () => {
+        setDialogOpen(false);
+        setEditingKey(null);
+        setFieldKey("");
+        setFieldValue("");
+    };
+
+    const handleSave = () => {
+        if (!fieldKey.trim()) {
+            showError("نام فیلد الزامی است");
+            return;
+        }
+
+        if (!editingKey && currentAttributes[fieldKey.trim()]) {
+            showError("این نام فیلد قبلاً استفاده شده است");
+            return;
+        }
+
+        setSaving(true);
+        const newAttributes = {
+            ...currentAttributes,
+            [fieldKey.trim()]: fieldValue.trim() || null
+        };
+
+        if (editingKey && editingKey !== fieldKey.trim()) {
+            delete newAttributes[editingKey];
+        }
+
+        handleInputChange("extra_attributes", newAttributes);
+        setSaving(false);
+        handleCloseDialog();
+    };
+
+    const handleDeleteClick = (key: string) => {
+        setKeyToDelete(key);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDelete = () => {
+        if (!keyToDelete) return;
+        const newAttributes = { ...currentAttributes };
+        delete newAttributes[keyToDelete];
+        handleInputChange("extra_attributes", newAttributes);
+        setDeleteDialogOpen(false);
+        setKeyToDelete(null);
+    };
+
     const handleAttributeChange = (key: string, value: any) => {
         if (!editMode) return;
-        
-        const newAttributes = {
-            ...currentAttributes,
-            [key]: value
-        };
-        
-        handleInputChange("extra_attributes", newAttributes);
-    };
-    
-    // تابع برای اضافه کردن فیلد دلخواه
-    const handleAddCustomField = () => {
-        if (!editMode || !customKey.trim()) return;
-        
-        const newAttributes = {
-            ...currentAttributes,
-            [customKey.trim()]: customValue.trim() || null
-        };
-        
-        handleInputChange("extra_attributes", newAttributes);
-        setCustomKey("");
-        setCustomValue("");
-    };
-    
-    // تابع برای حذف یک فیلد
-    const handleRemoveField = (key: string) => {
-        if (!editMode) return;
-        
         const newAttributes = { ...currentAttributes };
-        delete newAttributes[key];
-        
+
+        if (value === "__none__" || value === "") {
+            delete newAttributes[key];
+        } else {
+            newAttributes[key] = value;
+        }
+
         handleInputChange("extra_attributes", newAttributes);
-    };
-
-    // رندر یک فیلد ویژگی
-    const renderAttributeField = (attr: FieldMetadata) => {
-        const value = currentAttributes[attr.key];
-        const Icon = attr.icon;
-
-        if (attr.type === 'select') {
-            return (
-                <div key={attr.key} className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                        {Icon && <Icon className="w-4 h-4" />}
-                        {attr.label}
-                    </Label>
-                    <Select
-                        value={value || ''}
-                        onValueChange={(val) => handleAttributeChange(attr.key, val)}
-                        disabled={!editMode}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="انتخاب کنید" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {attr.options?.map((opt) => (
-                                <SelectItem key={opt.value} value={opt.value}>
-                                    {opt.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-            );
-        }
-
-        if (attr.type === 'number') {
-            return (
-                <div key={attr.key} className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                        {Icon && <Icon className="w-4 h-4" />}
-                        {attr.label}
-                    </Label>
-                    <Input
-                        type="number"
-                        value={value || ''}
-                        onChange={(e) => {
-                            const val = e.target.value ? Number(e.target.value) : null;
-                            handleAttributeChange(attr.key, val);
-                        }}
-                        disabled={!editMode}
-                        min={attr.min}
-                        max={attr.max}
-                        placeholder={attr.placeholder || 'مثال: 0'}
-                    />
-                </div>
-            );
-        }
-
-        if (attr.type === 'text') {
-            return (
-                <div key={attr.key} className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                        {Icon && <Icon className="w-4 h-4" />}
-                        {attr.label}
-                    </Label>
-                    <Input
-                        type="text"
-                        value={value || ''}
-                        onChange={(e) => handleAttributeChange(attr.key, e.target.value)}
-                        disabled={!editMode}
-                        placeholder={attr.placeholder || ''}
-                    />
-                </div>
-            );
-        }
-
-        return null;
     };
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                <span className="mr-3 text-muted-foreground">در حال بارگذاری...</span>
+            <div className="space-y-6">
+                <CardWithIcon
+                    icon={Building2}
+                    title="مشخصات تکمیلی (استاندارد)"
+                    iconBgColor="bg-indigo-0"
+                    iconColor="stroke-indigo-1"
+                    borderColor="border-b-indigo-1"
+                >
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                            <div key={i} className="flex flex-col p-3 border border-br rounded-xl bg-wt/50">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <Skeleton className="w-9 h-9 rounded-lg" />
+                                    <div className="flex flex-col gap-1.5 flex-1">
+                                        <Skeleton className="h-2 w-12" />
+                                        <Skeleton className="h-3 w-20" />
+                                    </div>
+                                </div>
+                                <Skeleton className="h-9 w-full rounded-lg" />
+                            </div>
+                        ))}
+                    </div>
+                </CardWithIcon>
             </div>
         );
     }
 
+    // Filter out predefined keys for the custom attributes table
+    const customAttributes = Object.entries(currentAttributes).filter(([key]) => !PREDEFINED_KEYS.includes(key));
+
     return (
         <div className="space-y-6">
-            {/* توضیحات */}
+            {/* Standard Attributes Section */}
             <CardWithIcon
-                icon={Settings}
-                title="فیلدهای اضافی"
-                iconBgColor="bg-purple"
-                iconColor="stroke-purple-2"
-                borderColor="border-b-purple-1"
+                icon={Building2}
+                title="مشخصات تکمیلی (استاندارد)"
+                iconBgColor="bg-indigo"
+                iconColor="stroke-indigo-2"
+                borderColor="border-b-indigo-1"
+                headerClassName="pb-3"
             >
-                <div className="text-sm text-muted-foreground">
-                    این بخش برای ویژگی‌های اختصاصی ملک شماست. 
-                    <strong>تمام فیلدها اختیاری هستند</strong> و فقط بخش‌هایی که نیاز دارید را پر کنید.
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[
+                        { key: 'property_condition', label: 'وضعیت ملک', icon: Building2 },
+                        { key: 'property_direction', label: 'جهت ملک', icon: Compass },
+                        { key: 'city_position', label: 'موقعیت در شهر', icon: MapPin },
+                        { key: 'unit_type', label: 'نوع واحد', icon: Home },
+                        { key: 'construction_status', label: 'وضعیت ساخت', icon: Building2 },
+                        { key: 'space_type', label: 'نوع کاربری', icon: Home },
+                    ].map((field) => (
+                        <div
+                            key={field.key}
+                            className="group flex flex-col p-3 border border-br rounded-xl bg-wt hover:border-indigo-1/30 transition-all duration-200"
+                        >
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="w-9 h-9 rounded-lg bg-indigo-0 flex items-center justify-center group-hover:bg-indigo-1/10 transition-colors">
+                                    <field.icon className="w-4 h-4 text-indigo-1" />
+                                </div>
+                                <div className="flex flex-col min-w-0">
+                                    <label className="text-[10px] font-bold text-font-s/60 uppercase">
+                                        {field.label}
+                                    </label>
+                                    <span className="text-font-s font-semibold text-font-p truncate">
+                                        {fieldOptions?.[field.key]?.find((opt: any) => opt[0] === currentAttributes[field.key])?.[1] || "تنظیم نشده"}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <Select
+                                value={currentAttributes[field.key] || ''}
+                                onValueChange={(val) => handleAttributeChange(field.key, val)}
+                                disabled={!editMode}
+                            >
+                                <SelectTrigger className="w-full bg-muted/5 border-br hover:bg-muted/10 transition-all rounded-lg h-9 text-font-s px-3">
+                                    <SelectValue placeholder="انتخاب کنید..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="__none__" className="text-red-1 font-bold">
+                                        <div className="flex items-center gap-2">
+                                            <Trash2 className="w-3 h-3" />
+                                            <span>پاک کردن انتخاب</span>
+                                        </div>
+                                    </SelectItem>
+                                    {fieldOptions?.[field.key]?.map((opt: any) => (
+                                        <SelectItem key={opt[0]} value={opt[0]}>{opt[1]}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    ))}
                 </div>
             </CardWithIcon>
 
-            {/* اضافه کردن فیلد دلخواه */}
+            {/* Custom Attributes Table */}
+            <CardWithIcon
+                icon={FileJson}
+                title="سایر اطلاعات و فیلدهای اضافی"
+                iconBgColor="bg-purple"
+                iconColor="stroke-purple-2"
+                borderColor="border-b-purple-1"
+                headerClassName="pb-3"
+                titleExtra={
+                    editMode && (
+                        <Button
+                            onClick={() => handleOpenDialog()}
+                            size="sm"
+                            className="gap-2"
+                        >
+                            <Plus className="h-4 w-4" />
+                            افزودن فیلد جدید
+                        </Button>
+                    )
+                }
+            >
+                {customAttributes.length === 0 ? (
+                    <div className="text-center py-12">
+                        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-0 mb-3">
+                            <Settings className="h-6 w-6 text-purple-1" />
+                        </div>
+                        <p className="text-font-m font-medium text-font-p mb-1">فیلد اضافی ثبت نشده است</p>
+                        <p className="text-font-s text-font-s/60 mb-4">برای ثبت اطلاعات خاص، فیلد جدید اضافه کنید</p>
+                        {editMode && (
+                            <Button onClick={() => handleOpenDialog()} variant="outline" size="sm">
+                                <Plus className="h-4 w-4 ml-2" />
+                                افزودن فیلد
+                            </Button>
+                        )}
+                    </div>
+                ) : (
+                    <div className="border border-br overflow-hidden rounded-md bg-wt">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-table-header-bg border-b border-br hover:bg-table-header-bg">
+                                    <TableHead className="text-right font-bold text-font-p py-4 px-6">نام فیلد</TableHead>
+                                    <TableHead className="text-right font-bold text-font-p py-4 px-6">مقدار</TableHead>
+                                    {editMode && <TableHead className="w-[100px] text-center font-bold text-font-p py-4 px-6">عملیات</TableHead>}
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {customAttributes.map(([key, value]) => (
+                                    <TableRow key={key} className="hover:bg-purple-0/30 transition-colors border-b border-br last:border-b-0 group">
+                                        <TableCell className="text-right py-4 px-6">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-purple-0 flex items-center justify-center">
+                                                    <Key className="h-4 w-4 text-purple-1" />
+                                                </div>
+                                                <span className="font-semibold text-font-p">{key}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right py-4 px-6">
+                                            {editMode ? (
+                                                <Input
+                                                    type="text"
+                                                    value={value ? String(value) : ""}
+                                                    onChange={(e) => handleAttributeChange(key, e.target.value)}
+                                                    placeholder="مقدار را وارد کنید"
+                                                    className="max-w-md bg-wt h-9 border-br focus:border-purple-1"
+                                                />
+                                            ) : (
+                                                <span className="text-font-s text-font-p font-medium">
+                                                    {value ? String(value) : <span className="text-muted-foreground italic">خالی</span>}
+                                                </span>
+                                            )}
+                                        </TableCell>
+                                        {editMode && (
+                                            <TableCell className="py-4 px-6">
+                                                <div className="flex items-center justify-center">
+                                                    <DataTableRowActions
+                                                        row={{ original: { id: key } } as any}
+                                                        actions={[
+                                                            {
+                                                                label: "ویرایش نام",
+                                                                icon: <Edit className="h-4 w-4" />,
+                                                                onClick: () => handleOpenDialog(key),
+                                                            },
+                                                            {
+                                                                label: "حذف",
+                                                                icon: <Trash2 className="h-4 w-4" />,
+                                                                onClick: () => handleDeleteClick(key),
+                                                                isDestructive: true,
+                                                            },
+                                                        ]}
+                                                    />
+                                                </div>
+                                            </TableCell>
+                                        )}
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                )}
+            </CardWithIcon>
+
+            {/* Dialogs */}
             {editMode && (
-                <CardWithIcon
-                    icon={Settings}
-                    title="اضافه کردن فیلد دلخواه"
-                    iconBgColor="bg-indigo"
-                    iconColor="stroke-indigo-2"
-                    borderColor="border-b-indigo-1"
-                >
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowCustom(!showCustom)}
-                        className="mb-4 w-full flex items-center justify-between"
-                    >
-                        <span>اضافه کردن ویژگی جدید</span>
-                        {showCustom ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </Button>
-                    
-                    {showCustom && (
-                        <div className="space-y-4">
-                            <div className="text-sm text-muted-foreground mb-3">
-                                می‌توانید فیلدهای اختصاصی دیگری برای این ملک اضافه کنید.
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <>
+                    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                        <DialogContent className="sm:max-w-[500px]">
+                            <DialogHeader>
+                                <DialogTitle className="text-xl font-bold text-font-p">
+                                    {editingKey ? "ویرایش فیلد اضافی" : "افزودن فیلد اضافی جدید"}
+                                </DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-5 pt-4">
                                 <div className="space-y-2">
-                                    <Label>نام فیلد (انگلیسی)</Label>
+                                    <Label htmlFor="field_key" className="text-font-m font-semibold text-font-p">
+                                        نام فیلد (شناسه) <span className="text-red-1">*</span>
+                                    </Label>
                                     <Input
-                                        type="text"
-                                        value={customKey}
-                                        onChange={(e) => setCustomKey(e.target.value)}
+                                        id="field_key"
+                                        value={fieldKey}
+                                        onChange={(e) => setFieldKey(e.target.value)}
                                         placeholder="مثال: balcony_size"
+                                        className="bg-wt"
+                                        disabled={!!editingKey}
                                     />
+                                    {editingKey && (
+                                        <p className="text-xs text-muted-foreground mt-1">برای تغییر شناسه، فیلد را حذف و مجدداً بسازید.</p>
+                                    )}
                                 </div>
+
                                 <div className="space-y-2">
-                                    <Label>مقدار</Label>
+                                    <Label htmlFor="field_value" className="text-font-m font-semibold text-font-p">مقدار فیلد</Label>
                                     <Input
-                                        type="text"
-                                        value={customValue}
-                                        onChange={(e) => setCustomValue(e.target.value)}
+                                        id="field_value"
+                                        value={fieldValue}
+                                        onChange={(e) => setFieldValue(e.target.value)}
                                         placeholder="مثال: 15 متر"
+                                        className="bg-wt"
                                     />
                                 </div>
-                                <div className="flex items-end">
-                                    <Button
-                                        type="button"
-                                        onClick={handleAddCustomField}
-                                        disabled={!customKey.trim()}
-                                        className="w-full"
-                                    >
-                                        اضافه کردن
+
+                                <div className="flex justify-end gap-3 pt-6 border-t border-br mt-4">
+                                    <Button variant="outline" onClick={handleCloseDialog}>انصراف</Button>
+                                    <Button onClick={handleSave} disabled={saving}>
+                                        {saving ? (
+                                            <><Loader2 className="h-4 w-4 animate-spin ml-2" />در حال ذخیره...</>
+                                        ) : "ذخیره فیلد"}
                                     </Button>
                                 </div>
                             </div>
-                        </div>
-                    )}
-                </CardWithIcon>
-            )}
+                        </DialogContent>
+                    </Dialog>
 
-            {/* ویژگی‌های مشترک */}
-            {commonAttributes.length > 0 && (
-                <CardWithIcon
-                    icon={Building2}
-                    title="مشخصات عمومی"
-                    iconBgColor="bg-blue"
-                    iconColor="stroke-blue-2"
-                    borderColor="border-b-blue-1"
-                >
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowCommon(!showCommon)}
-                        className="mb-4 w-full flex items-center justify-between"
-                    >
-                        <span>ویژگی‌های عمومی (وضعیت، جهت، موقعیت، نوع واحد)</span>
-                        {showCommon ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </Button>
-                    
-                    {showCommon && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {commonAttributes.map(attr => renderAttributeField(attr))}
-                        </div>
-                    )}
-                </CardWithIcon>
-            )}
-
-            {/* ویژگی‌های پیش‌فروش */}
-            {preSaleAttributes.length > 0 && (
-                <CardWithIcon
-                    icon={Building2}
-                    title="مشخصات پیش‌فروش"
-                    iconBgColor="bg-green"
-                    iconColor="stroke-green-2"
-                    borderColor="border-b-green-1"
-                >
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowPreSale(!showPreSale)}
-                        className="mb-4 w-full flex items-center justify-between"
-                    >
-                        <span>ویژگی‌های پیش‌فروش (وضعیت ساخت)</span>
-                        {showPreSale ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </Button>
-                    
-                    {showPreSale && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {preSaleAttributes.map(attr => renderAttributeField(attr))}
-                        </div>
-                    )}
-                </CardWithIcon>
-            )}
-
-            {/* ویژگی‌های اجاره کوتاه‌مدت */}
-            {shortTermAttributes.length > 0 && (
-                <CardWithIcon
-                    icon={Home}
-                    title="مشخصات اجاره کوتاه‌مدت"
-                    iconBgColor="bg-orange"
-                    iconColor="stroke-orange-2"
-                    borderColor="border-b-orange-1"
-                >
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowShortTerm(!showShortTerm)}
-                        className="mb-4 w-full flex items-center justify-between"
-                    >
-                        <span>ویژگی‌های اجاره کوتاه‌مدت (نوع کاربری فضا)</span>
-                        {showShortTerm ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </Button>
-                    
-                    {showShortTerm && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {shortTermAttributes.map(attr => renderAttributeField(attr))}
-                        </div>
-                    )}
-                </CardWithIcon>
-            )}
-
-            {/* نمایش ویژگی‌های فعلی */}
-            {Object.keys(currentAttributes).length > 0 && (
-                <CardWithIcon
-                    icon={Settings}
-                    title="ویژگی‌های ذخیره شده"
-                    iconBgColor="bg-purple"
-                    iconColor="stroke-purple-2"
-                    borderColor="border-b-purple-1"
-                >
-                    <div className="space-y-2">
-                        <div className="text-sm text-muted-foreground mb-3">
-                            ویژگی‌هایی که برای این ملک ثبت شده‌اند:
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            {Object.entries(currentAttributes).map(([key, value]) => {
-                                // پیدا کردن لیبل فارسی
-                                const attr = [...commonAttributes, ...preSaleAttributes, ...shortTermAttributes]
-                                    .find(a => a.key === key);
-                                const label = attr?.label || key;
-                                
-                                // پیدا کردن label مقدار برای select ها
-                                let displayValue = String(value);
-                                if (attr?.type === 'select' && attr.options) {
-                                    const option = attr.options.find(o => o.value === value);
-                                    if (option) {
-                                        displayValue = option.label;
-                                    }
-                                }
-                                
-                                return (
-                                    <Badge key={key} variant="outline" className="flex items-center gap-2">
-                                        <span className="text-xs">
-                                            {label}: <strong>{displayValue}</strong>
-                                        </span>
-                                        {editMode && (
-                                            <button
-                                                type="button"
-                                                onClick={() => handleRemoveField(key)}
-                                                className="ml-1 hover:text-red-1"
-                                            >
-                                                <X className="w-3 h-3" />
-                                            </button>
-                                        )}
-                                    </Badge>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </CardWithIcon>
+                    <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle className="text-xl font-bold">تایید حذف فیلد</AlertDialogTitle>
+                                <AlertDialogDescription className="text-font-m">
+                                    آیا از حذف فیلد <strong>{keyToDelete}</strong> اطمینان دارید؟ این عمل غیرقابل بازگشت است.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter className="gap-2">
+                                <AlertDialogCancel>لغو</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDelete} className="bg-red-1 hover:bg-red-2 text-white">
+                                    بله، حذف شود
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </>
             )}
         </div>
     );

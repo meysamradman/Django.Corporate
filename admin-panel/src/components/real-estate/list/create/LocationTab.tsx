@@ -19,18 +19,6 @@ interface LocationTabProps {
 
 export default function LocationTab(props: LocationTabProps) {
     const { formData, handleInputChange, editMode, latitude, longitude, onLocationChange } = props;
-
-    // Debug Logging
-    useEffect(() => {
-        console.log('LocationTab Props Update:', {
-            lat: latitude,
-            lng: longitude,
-            city: formData?.city,
-            province: formData?.province,
-            address: formData?.address
-        });
-    }, [latitude, longitude, formData?.city, formData?.province, formData?.address]);
-
     const [provinces, setProvinces] = useState<any[]>([]);
     const [cities, setCities] = useState<RealEstateCity[]>([]);
     const [cityRegions, setCityRegions] = useState<RealEstateCityRegion[]>([]);
@@ -124,7 +112,6 @@ export default function LocationTab(props: LocationTabProps) {
         loadCities();
     }, [selectedProvinceId]);
 
-    // Load city regions when city changes
     useEffect(() => {
         if (!selectedCityId) {
             setCityRegions([]);
@@ -171,7 +158,6 @@ export default function LocationTab(props: LocationTabProps) {
 
         setPendingCityId(cityId);
 
-        // Set city name immediately if available
         if (cityId && cities.length > 0) {
             const city = cities.find(c => c.id === cityId);
             if (city) {
@@ -182,7 +168,7 @@ export default function LocationTab(props: LocationTabProps) {
             setCityName('');
             setPendingCityId(null);
         }
-        // If cities not loaded yet, pendingCityId will be used when cities are loaded
+
     }, [handleInputChange, cities]);
 
     const handleRegionChange = useCallback((value: string) => {
@@ -190,13 +176,9 @@ export default function LocationTab(props: LocationTabProps) {
         handleInputChange("region", regionId);
     }, [handleInputChange]);
 
-    // Calculate view coordinates for map
     const selectedCity = selectedCityId ? cities.find(c => c.id === selectedCityId) : null;
     const selectedProvince = selectedProvinceId ? provinces.find(p => p.id === selectedProvinceId) : null;
 
-    // Logic: 
-    // 1. If City is selected, use City coordinates (even if they are null - let Map component handle fetching)
-    // 2. If NO City selected, but Province is selected, use Province coordinates
     let viewLatitude = undefined;
     let viewLongitude = undefined;
 
@@ -239,7 +221,6 @@ export default function LocationTab(props: LocationTabProps) {
                                     </Select>
                                 </FormField>
 
-                                {/* City Selection */}
                                 <FormField label="شهر">
                                     <Select
                                         value={selectedCityId?.toString() || ""}
@@ -259,7 +240,15 @@ export default function LocationTab(props: LocationTabProps) {
                                     </Select>
                                 </FormField>
 
-                                {/* Region Selection - Only for major cities */}
+                                <FormField label="محله">
+                                    <Input
+                                        placeholder="محله را وارد کنید"
+                                        disabled={!editMode}
+                                        value={formData?.neighborhood || ""}
+                                        onChange={(e) => handleInputChange("neighborhood", e.target.value)}
+                                    />
+                                </FormField>
+
                                 {cityRegions.length > 0 && (
                                     <FormField label="منطقه (اختیاری - فقط شهرهای بزرگ)">
                                         <Select
@@ -280,20 +269,9 @@ export default function LocationTab(props: LocationTabProps) {
                                         </Select>
                                     </FormField>
                                 )}
-
-                                {/* Neighborhood */}
-                                <FormField label="محله">
-                                    <Input
-                                        placeholder="محله را وارد کنید"
-                                        disabled={!editMode}
-                                        value={formData?.neighborhood || ""}
-                                        onChange={(e) => handleInputChange("neighborhood", e.target.value)}
-                                    />
-                                </FormField>
                             </div>
                         </CardWithIcon>
 
-                        {/* Address */}
                         <CardWithIcon
                             title="آدرس کامل"
                             icon={MapPin}
@@ -310,7 +288,6 @@ export default function LocationTab(props: LocationTabProps) {
                     </div>
                 </div>
 
-                {/* Map Section */}
                 <div className="flex-1 min-w-0">
                     <CardWithIcon
                         title="انتخاب موقعیت روی نقشه"
@@ -340,8 +317,7 @@ export default function LocationTab(props: LocationTabProps) {
                                     handleInputChange("region_name", region.name);
                                     console.log(`✅ Auto-selected region: ${region.name} (ID: ${region.id})`);
                                 } else {
-                                    // Fallback: Set region name text if ID not found in DB
-                                    // This allows saving "Region X" even if it's not in the dropdown
+
                                     handleInputChange("region", null);
                                     handleInputChange("region_name", `منطقه ${regionCode}`);
                                     console.log(`⚠️ Region ID not found, set text: منطقه ${regionCode}`);

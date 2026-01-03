@@ -1,7 +1,6 @@
 import { TabsContent } from "@/components/elements/Tabs";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Settings, Home, Building2, Compass, MapPin } from "lucide-react";
-import { Badge } from "@/components/elements/Badge";
+import { Settings, Home, Building2, Compass, MapPin, Key, Info, Layers } from "lucide-react";
 import type { Property } from "@/types/real_estate/realEstate";
 import { useState, useEffect } from "react";
 import { realEstateApi } from "@/api/real-estate/properties";
@@ -14,15 +13,16 @@ export function ExtraAttributesInfoTab({ property }: ExtraAttributesInfoTabProps
   const extraAttributes = (property as any)?.extra_attributes || {};
   const attributeKeys = Object.keys(extraAttributes);
   const [valueLabels, setValueLabels] = useState<Record<string, Record<string, string>>>({});
+  const [isLoading, setIsLoading] = useState(true);
 
-  // دریافت labels از API برای تبدیل کد به فارسی
+  // Receiving labels from API to convert code to Farsi
   useEffect(() => {
     const fetchLabels = async () => {
       try {
+        setIsLoading(true);
         const options = await realEstateApi.getFieldOptions();
         const extraOptions = options.extra_attributes_options || {};
-        
-        // تبدیل به فرمت Record<string, Record<string, string>>
+
         const labels: Record<string, Record<string, string>> = {};
         (Object.keys(extraOptions) as Array<keyof typeof extraOptions>).forEach(key => {
           labels[key] = {};
@@ -33,16 +33,34 @@ export function ExtraAttributesInfoTab({ property }: ExtraAttributesInfoTabProps
             });
           }
         });
-        
+
         setValueLabels(labels);
       } catch (error) {
         console.error('Error fetching labels:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchLabels();
   }, []);
 
-  if (attributeKeys.length === 0) {
+  const getDisplayValue = (key: string, value: any): string => {
+    return valueLabels[key]?.[value] || String(value);
+  };
+
+  const attributeConfigs: Record<string, { label: string; icon: any; color: string }> = {
+    property_condition: { label: "وضعیت ملک", icon: Building2, color: "text-blue-1" },
+    property_direction: { label: "جهت ملک", icon: Compass, color: "text-orange-1" },
+    city_position: { label: "موقعیت در شهر", icon: MapPin, color: "text-red-1" },
+    unit_type: { label: "نوع واحد", icon: Layers, color: "text-green-1" },
+    construction_status: { label: "وضعیت ساخت", icon: Building2, color: "text-indigo-1" },
+    space_type: { label: "نوع کاربری فضا", icon: Home, color: "text-purple-1" },
+  };
+
+  const predefinedAttributes = attributeKeys.filter(k => attributeConfigs[k]);
+  const customAttributes = attributeKeys.filter(k => !attributeConfigs[k]);
+
+  if (attributeKeys.length === 0 && !isLoading) {
     return (
       <TabsContent value="advanced">
         <CardWithIcon
@@ -52,75 +70,48 @@ export function ExtraAttributesInfoTab({ property }: ExtraAttributesInfoTabProps
           iconColor="stroke-purple-2"
           borderColor="border-b-purple-1"
         >
-          <div className="text-center py-8 text-font-m text-font-s">
-            هیچ ویژگی اضافی برای این ملک ثبت نشده است
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-16 h-16 bg-muted/30 rounded-full flex items-center justify-center mb-4">
+              <Info className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <p className="text-font-m font-medium text-font-p">هیچ ویژگی اضافی ثبت نشده است</p>
+            <p className="text-font-s text-muted-foreground mt-1">این ملک فاقد پارامترهای اختصاصی JSON می‌باشد.</p>
           </div>
         </CardWithIcon>
       </TabsContent>
     );
   }
 
-  // نقشه برای نمایش لیبل‌های فارسی
-  const attributeLabels: Record<string, { label: string; icon: any }> = {
-    property_condition: { label: "وضعیت ملک", icon: Building2 },
-    property_direction: { label: "جهت ملک", icon: Compass },
-    city_position: { label: "موقعیت شهری", icon: MapPin },
-    unit_type: { label: "نوع واحد", icon: Home },
-    construction_status: { label: "وضعیت ساخت", icon: Building2 },
-    space_type: { label: "نوع کاربری فضا", icon: Home },
-  };
-
-  // تابع ساده برای تبدیل کد به لیبل
-  const getDisplayValue = (key: string, value: any): string => {
-    return valueLabels[key]?.[value] || String(value);
-  };
-
-  // جداسازی ویژگی‌های از پیش تعریف شده و دلخواه
-  const predefinedAttributes: Record<string, any> = {};
-  const customAttributes: Record<string, any> = {};
-
-  attributeKeys.forEach(key => {
-    if (attributeLabels[key]) {
-      predefinedAttributes[key] = extraAttributes[key];
-    } else {
-      customAttributes[key] = extraAttributes[key];
-    }
-  });
-
   return (
-    <TabsContent value="advanced" className="space-y-4">
-      {/* ویژگی‌های از پیش تعریف شده */}
-      {Object.keys(predefinedAttributes).length > 0 && (
+    <TabsContent value="advanced" className="space-y-6 mt-0 outline-none">
+      {/* Standard Section */}
+      {predefinedAttributes.length > 0 && (
         <CardWithIcon
-          icon={Settings}
-          title="ویژگی‌های استاندارد"
-          iconBgColor="bg-purple"
-          iconColor="stroke-purple-2"
-          borderColor="border-b-purple-1"
+          icon={Building2}
+          title="مشخصات و ویژگی‌های استاندارد"
+          iconBgColor="bg-indigo"
+          iconColor="stroke-indigo-2"
+          borderColor="border-b-indigo-1"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Object.entries(predefinedAttributes).map(([key, value]) => {
-              const config = attributeLabels[key];
-              const Icon = config?.icon || Settings;
-              
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {predefinedAttributes.map(key => {
+              const config = attributeConfigs[key];
+              const Icon = config.icon;
               return (
                 <div
                   key={key}
-                  className="flex items-start gap-3 p-4 border border-br bg-card-hover"
+                  className="group relative overflow-hidden flex flex-col p-4 border border-br rounded-xl bg-wt hover:shadow-md transition-all duration-300"
                 >
-                  <div className="flex-shrink-0 mt-1">
-                    <div className="w-8 h-8 bg-purple-0 flex items-center justify-center">
-                      <Icon className="h-4 w-4 stroke-purple-2" />
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className={`p-2 rounded-lg bg-muted/20 ${config.color} group-hover:scale-110 transition-transform`}>
+                      <Icon className="w-5 h-5" />
                     </div>
+                    <span className="text-font-s font-medium text-muted-foreground">{config.label}</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-font-s text-font-s mb-1">
-                      {config?.label || key}
-                    </div>
-                    <div className="text-font-m font-medium text-font-p">
-                      {getDisplayValue(key, value) || "-"}
-                    </div>
+                  <div className="text-font-m font-bold text-font-p mr-10">
+                    {getDisplayValue(key, extraAttributes[key])}
                   </div>
+                  <div className="absolute top-0 right-0 w-16 h-16 -mr-8 -mt-8 bg-muted/5 rounded-full" />
                 </div>
               );
             })}
@@ -128,63 +119,43 @@ export function ExtraAttributesInfoTab({ property }: ExtraAttributesInfoTabProps
         </CardWithIcon>
       )}
 
-      {/* ویژگی‌های دلخواه */}
-      {Object.keys(customAttributes).length > 0 && (
+      {/* Custom Attributes Section */}
+      {customAttributes.length > 0 && (
         <CardWithIcon
-          icon={Settings}
-          title="ویژگی‌های دلخواه"
-          iconBgColor="bg-blue"
-          iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
+          icon={Key}
+          title="سایر اطلاعات اختصاصی"
+          iconBgColor="bg-purple"
+          iconColor="stroke-purple-2"
+          borderColor="border-b-purple-1"
         >
-          <div className="flex flex-wrap gap-3">
-            {Object.entries(customAttributes).map(([key, value]) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {customAttributes.map(key => (
               <div
                 key={key}
-                className="inline-flex items-center gap-2 px-4 py-2 border border-br bg-card-hover"
+                className="flex items-center justify-between p-4 border border-br rounded-xl bg-wt hover:border-purple-1/30 transition-colors"
               >
-                <span className="text-font-s font-medium text-font-s">
-                  {key}:
-                </span>
-                <span className="text-font-m text-font-p">
-                  {value || "-"}
-                </span>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-purple-0 flex items-center justify-center">
+                    <Key className="w-4 h-4 text-purple-1" />
+                  </div>
+                  <span className="text-font-m font-semibold text-font-p">{key}</span>
+                </div>
+                <div className="bg-muted/30 px-3 py-1 rounded-lg text-font-s font-bold text-font-p">
+                  {String(extraAttributes[key])}
+                </div>
               </div>
             ))}
           </div>
         </CardWithIcon>
       )}
 
-      {/* نمایش همه ویژگی‌ها به صورت Badge */}
-      <CardWithIcon
-        icon={Settings}
-        title="خلاصه تمام ویژگی‌ها"
-        iconBgColor="bg-gray-1"
-        iconColor="stroke-wt"
-        borderColor="border-b-gray-1"
-      >
-        <div className="flex flex-wrap gap-2">
-          {attributeKeys.map(key => {
-            const config = attributeLabels[key];
-            const value = extraAttributes[key];
-            
-            return (
-              <Badge
-                key={key}
-                variant="outline"
-                className="px-3 py-1.5 text-font-s"
-              >
-                <span className="font-medium">
-                  {config?.label || key}:
-                </span>
-                <span className="mr-1">
-                  {getDisplayValue(key, value) || "-"}
-                </span>
-              </Badge>
-            );
-          })}
-        </div>
-      </CardWithIcon>
+      {/* Summary Footer */}
+      <div className="flex items-center gap-2 p-4 bg-blue-0/10 border border-blue-1/20 rounded-xl">
+        <Settings className="w-5 h-5 text-blue-1" />
+        <span className="text-font-s font-medium text-blue-2">
+          تمام {attributeKeys.length} خصوصیت فوق در فیلد JSON ذخیره شده و در وب‌سایت قابل فیلتر شدن هستند.
+        </span>
+      </div>
     </TabsContent>
   );
 }

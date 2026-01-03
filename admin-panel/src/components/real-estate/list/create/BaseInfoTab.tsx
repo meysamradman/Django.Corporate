@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, type ChangeEvent } from "react";
+import { useState, useEffect, type ChangeEvent } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { Label } from "@/components/elements/Label";
 import { Switch } from "@/components/elements/Switch";
@@ -178,10 +178,10 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     return (
         <div className="space-y-6">
             <div className="flex flex-col lg:flex-row gap-6">
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 flex flex-col gap-6">
                     <CardWithIcon
                         icon={FileText}
-                        title="اطلاعات پایه"
+                        title="محتوا و توضیحات"
                         iconBgColor="bg-blue"
                         iconColor="stroke-blue-2"
                         borderColor="border-b-blue-1"
@@ -233,7 +233,17 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                     placeholder="توضیحات کامل ملک را وارد کنید... (اختیاری)"
                                 />
                             </FormField>
+                        </div>
+                    </CardWithIcon>
 
+                    <CardWithIcon
+                        icon={Settings}
+                        title="طبقه‌بندی و مالکیت"
+                        iconBgColor="bg-blue"
+                        iconColor="stroke-blue-2"
+                        borderColor="border-b-blue-1"
+                    >
+                        <div className="space-y-6">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <Label className={errors?.property_type ? "text-red-1" : ""}>نوع ملک <span className="text-red-2">*</span></Label>
@@ -242,7 +252,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         value={formData?.property_type ? String(formData.property_type) : ""}
                                         onValueChange={handlePropertyTypeChange}
                                     >
-                                        <SelectTrigger className={errors?.property_type ? "border-red-1" : ""}>
+                                        <SelectTrigger className={errors?.property_type ? "border-red-1" : "h-11"}>
                                             <SelectValue placeholder={loadingTypes ? "در حال بارگذاری..." : "نوع ملک را انتخاب کنید"} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -263,7 +273,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         value={formData?.state ? String(formData.state) : ""}
                                         onValueChange={handleStateChange}
                                     >
-                                        <SelectTrigger className={errors?.state ? "border-red-1" : ""}>
+                                        <SelectTrigger className={errors?.state ? "border-red-1" : "h-11"}>
                                             <SelectValue placeholder={loadingStates ? "در حال بارگذاری..." : "وضعیت را انتخاب کنید"} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -286,7 +296,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         value={formData?.agent ? String(formData.agent) : "none"}
                                         onValueChange={handleAgentChange}
                                     >
-                                        <SelectTrigger className={errors?.agent ? "border-red-1" : ""}>
+                                        <SelectTrigger className={errors?.agent ? "border-red-1" : "h-11"}>
                                             <SelectValue placeholder={loadingAgents ? "در حال بارگذاری..." : "مشاور را انتخاب کنید"} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -308,7 +318,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         value={formData?.agency ? String(formData.agency) : "none"}
                                         onValueChange={handleAgencyChange}
                                     >
-                                        <SelectTrigger className={errors?.agency ? "border-red-1" : ""}>
+                                        <SelectTrigger className={errors?.agency ? "border-red-1" : "h-11"}>
                                             <SelectValue placeholder={loadingAgencies ? "در حال بارگذاری..." : "آژانس را انتخاب کنید"} />
                                         </SelectTrigger>
                                         <SelectContent>

@@ -148,10 +148,11 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'public_id', 'title', 'slug', 'short_description',
             'is_published', 'is_featured', 'is_public', 'is_active',
-            'main_image', 'property_type', 'state', 'agent', 'agency',
-            'labels', 'labels_count', 'tags_count', 'features_count',
-            'media_count', 'seo_status',
-            'city_name', 'province_name', 'district_name', 'region_name',
+            'main_image', 'primary_video', 'primary_audio', 'primary_document',
+            'property_type', 'state', 'agent', 'agency',
+            'labels', 'labels_count', 'tags_count', 'features_count', 
+            'images_count', 'videos_count', 'audios_count', 'documents_count', 'media_count',
+            'seo_status', 'city_name', 'province_name', 'district_name', 'region_name',
             'price', 'sale_price', 'pre_sale_price', 'price_per_sqm',
             'monthly_rent', 'rent_amount', 'mortgage_amount',
             'land_area', 'built_area',
@@ -159,73 +160,87 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
             'year_built', 'build_years', 'floors_in_building', 'floor_number',
             'parking_spaces', 'storage_rooms', 'document_type', 'has_document',
             'views_count', 'favorites_count', 'inquiries_count',
-            'published_at', 'created_at', 'updated_at',
             'meta_title', 'meta_description',
+            'published_at', 'created_at', 'updated_at', # ✅ همیشه در انتها
         ]
+
+    images_count = serializers.IntegerField(source='total_images_count', read_only=True)
+    videos_count = serializers.IntegerField(source='total_videos_count', read_only=True)
+    audios_count = serializers.IntegerField(source='total_audios_count', read_only=True)
+    documents_count = serializers.IntegerField(source='total_docs_count', read_only=True)
+
+    primary_video = serializers.SerializerMethodField()
+    primary_audio = serializers.SerializerMethodField()
+    primary_document = serializers.SerializerMethodField()
+
     
     def get_media_count(self, obj):
-        try:
-            count = 0
-            if hasattr(obj, '_prefetched_objects_cache'):
-                cache = obj._prefetched_objects_cache
-                count += len(cache.get('images', []))
-                count += len(cache.get('videos', []))
-                count += len(cache.get('audios', []))
-                count += len(cache.get('documents', []))
-            elif hasattr(obj, 'all_images'):
-                count += len(obj.all_images) if obj.all_images else 0
-                count += len(obj.videos.all()) if hasattr(obj, 'videos') else 0
-                count += len(obj.audios.all()) if hasattr(obj, 'audios') else 0
-                count += len(obj.documents.all()) if hasattr(obj, 'documents') else 0
-            else:
-                count = (
-                    obj.images.count() + 
-                    obj.videos.count() + 
-                    obj.audios.count() + 
-                    obj.documents.count()
-                )
-            return count
-        except:
-            return 0
+        # ✅ SQL Annotation استفاده از
+        return getattr(obj, 'total_media_count', 0)
     
     def get_main_image(self, obj):
-        if hasattr(obj, 'get_main_image_details'):
-            return obj.get_main_image_details()
-        
-        if hasattr(obj, 'all_images') and obj.all_images:
-            for img in obj.all_images:
-                if img.is_main and img.image:
-                    main_image = img.image
-                    try:
-                        file_url = main_image.file.url if main_image.file else None
-                    except Exception:
-                        file_url = None
-                    return {
-                        'id': main_image.id,
-                        'url': file_url,
-                        'file_url': file_url,
-                        'title': main_image.title,
-                        'alt_text': main_image.alt_text
-                    }
-            if obj.all_images and obj.all_images[0].image:
-                first_image = obj.all_images[0].image
+        # ✅ Prefetch (main_image_prefetch) اولویت با
+        main_images = getattr(obj, 'main_image_prefetch', [])
+        if main_images:
+            img_obj = main_images[0]
+            if img_obj.image:
+                file_url = None
                 try:
-                    file_url = first_image.file.url if first_image.file else None
+                    file_url = img_obj.image.file.url if img_obj.image.file else None
                 except Exception:
-                    file_url = None
+                    pass
                 return {
-                    'id': first_image.id,
+                    'id': img_obj.image.id,
                     'url': file_url,
                     'file_url': file_url,
-                    'title': first_image.title,
-                    'alt_text': first_image.alt_text
+                    'title': img_obj.image.title,
+                    'alt_text': img_obj.image.alt_text
                 }
         return None
+
+    def _get_media_preview(self, obj, attr_name, media_field):
+        items = getattr(obj, attr_name, [])
+        if items:
+            item = items[0]
+            media_obj = getattr(item, media_field)
+            if media_obj:
+                cover_url = None
+                try:
+                    if hasattr(item, 'cover_image') and item.cover_image:
+                        cover_url = item.cover_image.file.url
+                    elif hasattr(media_obj, 'cover_image') and media_obj.cover_image:
+                        cover_url = media_obj.cover_image.file.url
+                    elif hasattr(media_obj, 'file'):
+                        cover_url = media_obj.file.url # Fallback
+                except Exception:
+                    pass
+                
+                # Documents might have a custom title on the 'item' (PropertyDocument)
+                title = getattr(item, 'title', None) or getattr(media_obj, 'title', None)
+                
+                return {
+                    'id': item.id,
+                    'title': title,
+                    'cover_url': cover_url,
+                    'media_id': media_obj.id
+                }
+        return None
+
+
+    def get_primary_video(self, obj):
+        return self._get_media_preview(obj, 'primary_video_prefetch', 'video')
+
+    def get_primary_audio(self, obj):
+        return self._get_media_preview(obj, 'primary_audio_prefetch', 'audio')
+
+    def get_primary_document(self, obj):
+        return self._get_media_preview(obj, 'primary_document_prefetch', 'document')
     
     def get_seo_status(self, obj):
         has_meta_title = bool(obj.meta_title)
         has_meta_description = bool(obj.meta_description)
-        has_og_image = bool(obj.og_image)
+        # ✅ select_related('og_image') یا استفاده از ID برای جلوگیری از کوئری
+        has_og_image = bool(getattr(obj, 'og_image_id', None))
         
         score = sum([has_meta_title, has_meta_description, has_og_image])
         return {
@@ -235,16 +250,20 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
         }
     
     def get_city_name(self, obj):
-        return obj.city.name if obj.city else None
+        # Already select_related
+        return obj.city.name if obj.city_id and hasattr(obj, 'city') else None
     
     def get_province_name(self, obj):
-        return obj.province.name if obj.province else None
+        # Already select_related
+        return obj.province.name if obj.province_id and hasattr(obj, 'province') else None
     
     def get_district_name(self, obj):
-        return obj.region.name if obj.region else None
+        # Already select_related (region)
+        return obj.region.name if obj.region_id and hasattr(obj, 'region') else None
 
     def get_region_name(self, obj):
-        return obj.region.name if obj.region else None
+        # Already select_related
+        return obj.region.name if obj.region_id and hasattr(obj, 'region') else None
 
 
 class PropertyAdminDetailSerializer(serializers.ModelSerializer):
