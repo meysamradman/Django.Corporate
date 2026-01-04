@@ -21,7 +21,7 @@ const EditFormSkeleton = () => (
 
 const EditAdminForm = lazy(() => import("@/components/admins/edit/EditForm").then((mod) => ({ default: mod.EditAdminForm })));
 
-export default function MyConsultantProfilePage() {
+export default function MyAgentProfilePage() {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
 
@@ -54,3 +54,4 @@ export default function MyConsultantProfilePage() {
     </div>
   );
 }
+

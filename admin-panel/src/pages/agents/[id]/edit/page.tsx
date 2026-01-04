@@ -22,13 +22,13 @@ const EditFormSkeleton = () => (
 
 const EditAdminForm = lazy(() => import("@/components/admins/edit/EditForm").then((mod) => ({ default: mod.EditAdminForm })));
 
-export default function EditConsultantPage() {
+export default function EditAgentPage() {
   const params = useParams();
-  const consultantId = params?.id as string;
+  const agentId = params?.id as string;
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
 
-  if (!consultantId) {
+  if (!agentId) {
     return (
       <div className="space-y-6">
         <PageHeader title="ویرایش مشاور املاک" />
@@ -39,8 +39,8 @@ export default function EditConsultantPage() {
     );
   }
 
-  const isSelfRoute = consultantId === "me" || (user?.id && consultantId === String(user.id));
-  const canManageConsultants = Boolean(user?.is_superuser || user?.is_admin_full);
+  const isSelfRoute = agentId === "me" || (user?.id && agentId === String(user.id));
+  const canManageAgents = Boolean(user?.is_superuser || user?.is_admin_full);
 
   if (isLoading && !user) {
     return (
@@ -51,13 +51,13 @@ export default function EditConsultantPage() {
     );
   }
 
-  if (!isSelfRoute && !canManageConsultants) {
+  if (!isSelfRoute && !canManageAgents) {
     return (
       <div className="space-y-6">
         <PageHeader title="ویرایش مشاور املاک" />
         <div className="border p-6 text-center space-y-4">
           <p className="text-destructive">شما فقط می‌توانید پروفایل خود را ویرایش کنید.</p>
-          <Button onClick={() => navigate("/admins/me-consultant/edit")}>پروفایل من</Button>
+          <Button onClick={() => navigate("/agents/me/edit")}>پروفایل من</Button>
         </div>
       </div>
     );
@@ -68,8 +68,9 @@ export default function EditConsultantPage() {
       <PageHeader title="ویرایش مشاور املاک" />
 
       <Suspense fallback={<EditFormSkeleton />}>
-        <EditAdminForm adminId={consultantId} />
+        <EditAdminForm adminId={agentId} />
       </Suspense>
     </div>
   );
 }
+

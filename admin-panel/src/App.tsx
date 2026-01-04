@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { AuthProvider } from './core/auth/AuthContext';
 import { QueryProvider } from './components/providers/QueryProvider';
 import { PermissionProvider } from './core/permissions';
@@ -12,14 +12,14 @@ import { AuthLayout } from './layouts/AuthLayout';
 import Dashboard from './pages/Dashboard';
 import MediaPage from './pages/media/page';
 import AdminsPage from './pages/admins/page';
+import AgentsPage from './pages/agents/page';
 import AdminsCreatePage from './pages/admins/create/page';
 import AdminsEditPage from './pages/admins/[id]/edit/page';
 import AdminsViewPage from './pages/admins/[id]/view/page';
 import AdminsPermissionsPage from './pages/admins/permissions/page';
 import AdminsMePage from './pages/admins/me/edit/page';
-import ConsultantsEditPage from './pages/admins/consultants/[id]/edit/page';
-import ConsultantsViewPage from './pages/admins/consultants/[id]/view/page';
-import ConsultantsMePage from './pages/admins/me-consultant/edit/page';
+import AgentsEditPage from './pages/agents/[id]/edit/page';
+import AgentsMePage from './pages/agents/me/edit/page';
 import AdminsAgenciesPage from './pages/admins/agencies/page';
 import AdminsAgenciesCreatePage from './pages/admins/agencies/create/page';
 import AdminsAgenciesViewPage from './pages/admins/agencies/[id]/view/page';
@@ -109,6 +109,21 @@ import AgenciesListPageStatic from './pages/Staticstyle/realstate/agencies/list/
 import AgencyViewPageStatic from './pages/Staticstyle/realstate/agencies/[id]/view/page';
 import AgencyEditPageStatic from './pages/Staticstyle/realstate/agencies/[id]/edit/page';
 
+// Redirect components for old agent routes
+function AgentRedirectView() {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={`/agents/${id}/edit`} replace />;
+}
+
+function AgentRedirectEdit() {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={`/agents/${id}/edit`} replace />;
+}
+
+function AgentViewRedirect() {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={`/agents/${id}/edit`} replace />;
+}
 
 function App() {
   return (
@@ -143,10 +158,18 @@ function App() {
                     <Route path="me/edit" element={<AdminsMePage />} />
                     <Route path=":id/view" element={<AdminsViewPage />} />
                     <Route path=":id/edit" element={<AdminsEditPage />} />
-                    <Route path="consultants/:id/view" element={<ConsultantsViewPage />} />
-                    <Route path="consultants/:id/edit" element={<ConsultantsEditPage />} />
-                    <Route path="me-consultant/edit" element={<ConsultantsMePage />} />
                     <Route path="permissions" element={<AdminsPermissionsPage />} />
+                    {/* Redirect old agents routes to new location */}
+                    <Route path="agents" element={<Navigate to="/agents" replace />} />
+                    <Route path="agents/:id/view" element={<AgentRedirectView />} />
+                    <Route path="agents/:id/edit" element={<AgentRedirectEdit />} />
+                    <Route path="me-consultant/edit" element={<Navigate to="/agents/me/edit" replace />} />
+                  </Route>
+                  <Route path="agents">
+                    <Route index element={<AgentsPage />} />
+                    <Route path="me/edit" element={<AgentsMePage />} />
+                    <Route path=":id/view" element={<AgentViewRedirect />} />
+                    <Route path=":id/edit" element={<AgentsEditPage />} />
                   </Route>
                   <Route path="users">
                     <Route index element={<UsersPage />} />

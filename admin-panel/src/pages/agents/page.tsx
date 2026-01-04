@@ -7,7 +7,7 @@ import { DataTableDateRangeFilter } from "@/components/tables/DataTableDateRange
 import type { AdminWithProfile, AdminListParams, AdminFilters } from "@/types/auth/admin";
 import { useAuth } from "@/core/auth/AuthContext";
 import { adminApi } from "@/api/admins/admins";
-import { Edit, Trash2, Plus, Search, Building2, UserCog } from "lucide-react";
+import { Edit, Trash2, Plus, Search, Building2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { showSuccess, showError } from '@/core/toast';
@@ -36,7 +36,7 @@ import {
   AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
 
-export default function AdminsPage() {
+export default function AgentsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -49,13 +49,12 @@ export default function AdminsPage() {
   const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
   const [searchValue, setSearchValue] = useState("");
   const [clientFilters, setClientFilters] = useState<AdminFilters>({
-    user_role_type: 'admin', // فقط ادمین‌ها
+    user_role_type: 'consultant', // فقط مشاورین
   });
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     
-
     if (urlParams.get('page')) {
       const page = parseInt(urlParams.get('page')!, 10);
       setPagination(prev => ({ ...prev, pageIndex: page - 1 }));
@@ -77,15 +76,15 @@ export default function AdminsPage() {
       setSearchValue(urlParams.get('search')!);
     }
     
-    const newClientFilters: typeof clientFilters = {};
+    const newClientFilters: typeof clientFilters = {
+      user_role_type: 'consultant', // همیشه مشاور
+    };
     if (urlParams.get('is_active') !== null) {
       newClientFilters.is_active = urlParams.get('is_active') === 'true';
     }
     if (urlParams.get('is_superuser') !== null) {
       newClientFilters.is_superuser = urlParams.get('is_superuser') === 'true';
     }
-    // در صفحه ادمین‌ها، همیشه user_role_type = 'admin'
-    newClientFilters.user_role_type = 'admin';
     const dateFrom = urlParams.get('date_from');
     const dateTo = urlParams.get('date_to');
     if (dateFrom || dateTo) {
@@ -94,9 +93,7 @@ export default function AdminsPage() {
       (newClientFilters as any).date_range = { from: dateFrom || undefined, to: dateTo || undefined };
     }
     
-    if (Object.keys(newClientFilters).length > 0) {
-      setClientFilters(newClientFilters);
-    }
+    setClientFilters(newClientFilters);
   }, []);
 
   const { handleFilterChange: baseHandleFilterChange } = useTableFilters<AdminFilters>(
@@ -107,7 +104,7 @@ export default function AdminsPage() {
 
   const handleFilterChange = (filterId: keyof AdminFilters, value: unknown) => {
     if (filterId === 'user_role_type') {
-      // در صفحه ادمین‌ها، user_role_type همیشه admin است
+      // در صفحه مشاورین، user_role_type همیشه consultant است
       return;
     } else {
       baseHandleFilterChange(filterId as string, value);
@@ -134,11 +131,11 @@ export default function AdminsPage() {
     is_superuser: clientFilters.is_superuser,
     date_from: ((clientFilters as any).date_range?.from || clientFilters.date_from) as string | undefined,
     date_to: ((clientFilters as any).date_range?.to || clientFilters.date_to) as string | undefined,
-    user_role_type: 'admin', // همیشه ادمین
+    user_role_type: 'consultant', // همیشه مشاور
   };
 
   const { data: response, isLoading, error } = useQuery({
-    queryKey: ['admins', 'admins-only', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_superuser, queryParams.date_from, queryParams.date_to, (clientFilters as any).date_range],
+    queryKey: ['agents', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.is_superuser, queryParams.date_from, queryParams.date_to, (clientFilters as any).date_range],
     queryFn: async () => {
       return await adminApi.getAdminList(queryParams);
     },
@@ -151,6 +148,7 @@ export default function AdminsPage() {
   const deleteAdminMutation = useMutation({
     mutationFn: (adminId: number) => adminApi.deleteAdmin(adminId),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agents'] });
       queryClient.invalidateQueries({ queryKey: ['admins'] });
       showSuccess("با موفقیت حذف شد");
     },
@@ -162,6 +160,7 @@ export default function AdminsPage() {
   const bulkDeleteMutation = useMutation({
     mutationFn: (adminIds: number[]) => adminApi.bulkDeleteAdmins(adminIds),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agents'] });
       queryClient.invalidateQueries({ queryKey: ['admins'] });
       showSuccess("با موفقیت حذف شد");
     },
@@ -196,29 +195,15 @@ export default function AdminsPage() {
   const actions = useMemo(() => {
     const adminActions: CardItemAction<AdminWithProfile>[] = [];
     
-    // Add View action
     adminActions.push({
       label: "مشاهده",
       icon: <Edit className="h-4 w-4" />,
       onClick: (admin: AdminWithProfile) => {
-        // چک کنیم آیا پروفایل خودش هست
         const isOwnProfile = currentUserId === admin.id;
-        const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
-        
         if (isOwnProfile) {
-          // اگه پروفایل خودشه، به ME view میریم (در حال حاضر view جدا نداریم، پس به edit میریم)
-          if (isConsultant) {
-            navigate('/agents/me/edit');
-          } else {
-            navigate('/admins/me/edit');
-          }
+          navigate('/agents/me/edit');
         } else {
-          // اگه پروفایل دیگران، به route معمولی view میریم
-          if (isConsultant) {
-            navigate(`/agents/${admin.id}/edit`);
-          } else {
-            navigate(`/admins/${admin.id}/edit`);
-          }
+          navigate(`/agents/${admin.id}/edit`);
         }
       },
     });
@@ -227,24 +212,11 @@ export default function AdminsPage() {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (admin: AdminWithProfile) => {
-        // چک کنیم آیا پروفایل خودش هست
         const isOwnProfile = currentUserId === admin.id;
-        const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
-        
         if (isOwnProfile) {
-          // اگه پروفایل خودشه، به ME میریم
-          if (isConsultant) {
-            navigate('/agents/me/edit');
-          } else {
-            navigate('/admins/me/edit');
-          }
+          navigate('/agents/me/edit');
         } else {
-          // اگه پروفایل دیگران، به route معمولی میریم
-          if (isConsultant) {
-            navigate(`/agents/${admin.id}/edit`);
-          } else {
-            navigate(`/admins/${admin.id}/edit`);
-          }
+          navigate(`/agents/${admin.id}/edit`);
         }
       },
       isDisabled: (admin: AdminWithProfile) => {
@@ -308,7 +280,6 @@ export default function AdminsPage() {
     return null;
   };
 
-
   const handlePaginationChange = (updaterOrValue: TablePaginationState | ((prev: TablePaginationState) => TablePaginationState)) => {
     const newPagination = typeof updaterOrValue === 'function' 
       ? updaterOrValue(pagination) 
@@ -322,11 +293,10 @@ export default function AdminsPage() {
     window.history.replaceState({}, '', url.toString());
   };
 
-
   if (error) {
     return (
       <div className="space-y-6">
-        <PageHeader title="مدیریت ادمین‌ها" />
+        <PageHeader title="مدیریت مشاورین املاک" />
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
           <Button 
@@ -342,7 +312,7 @@ export default function AdminsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="مدیریت ادمین‌ها" description="لیست ادمین‌های سیستم">
+      <PageHeader title="مدیریت مشاورین املاک">
         {isSuperAdmin ? (
           <Button 
             size="sm" 
@@ -350,7 +320,7 @@ export default function AdminsPage() {
           >
             <Link to="/admins/create">
               <Plus />
-              افزودن ادمین
+              افزودن مشاور
             </Link>
           </Button>
         ) : null}
@@ -400,7 +370,7 @@ export default function AdminsPage() {
         </div>
 
         <div className="text-sm font-medium text-font-p">
-          {isLoading ? "در حال بارگذاری..." : `نمایش ${data.length} ادمین${response?.pagination?.count ? ` از ${response.pagination.count}` : ''}`}
+          {isLoading ? "در حال بارگذاری..." : `نمایش ${data.length} مشاور${response?.pagination?.count ? ` از ${response.pagination.count}` : ''}`}
         </div>
       </div>
 
@@ -411,7 +381,7 @@ export default function AdminsPage() {
         </div>
       ) : data.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-font-s">هیچ ادمینی یافت نشد</p>
+          <p className="text-font-s">هیچ مشاوری یافت نشد</p>
         </div>
       ) : (
         <>
@@ -422,8 +392,6 @@ export default function AdminsPage() {
               const avatarUrl = getAdminAvatarUrl(admin);
               const roleDisplay = getAdminRoleDisplay(admin);
               const createdDate = admin.created_at ? formatDate(admin.created_at) : "-";
-              // سوپرادمین همیشه admin هست
-              const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
 
               return (
                 <CardItem
@@ -443,17 +411,10 @@ export default function AdminsPage() {
                   content={
                     <>
                       <div className="mb-3">
-                        {isConsultant ? (
-                          <Badge variant="blue" className="flex items-center gap-1 text-xs w-fit">
-                            <Building2 className="size-3" />
-                            مشاور املاک
-                          </Badge>
-                        ) : (
-                          <Badge variant="purple" className="flex items-center gap-1 text-xs w-fit">
-                            <UserCog className="size-3" />
-                            ادمین
-                          </Badge>
-                        )}
+                        <Badge variant="blue" className="flex items-center gap-1 text-xs w-fit">
+                          <Building2 className="size-3" />
+                          مشاور املاک
+                        </Badge>
                       </div>
                       <div className="grid grid-cols-2 gap-4 mb-3">
                         <div className="text-right">
@@ -494,24 +455,11 @@ export default function AdminsPage() {
                     </>
                   }
                   onClick={(admin) => {
-                    // چک کنیم آیا پروفایل خودش هست
                     const isOwnProfile = currentUserId === admin.id;
-                    const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
-                    
                     if (isOwnProfile) {
-                      // اگه پروفایل خودشه، به ME view میریم (در حال حاضر view جدا نداریم، پس به edit میریم)
-                      if (isConsultant) {
-                        navigate('/agents/me/edit');
-                      } else {
-                        navigate('/admins/me/edit');
-                      }
+                      navigate('/agents/me/edit');
                     } else {
-                      // اگه پروفایل دیگران، به route معمولی view میریم
-                      if (isConsultant) {
-                        navigate(`/agents/${admin.id}/edit`);
-                      } else {
-                        navigate(`/admins/${admin.id}/edit`);
-                      }
+                      navigate(`/agents/${admin.id}/edit`);
                     }
                   }}
                 />
@@ -543,8 +491,8 @@ export default function AdminsPage() {
             <AlertDialogTitle>تایید حذف</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteConfirm.isBulk
-                ? getConfirm('bulkDelete', { item: 'ادمین', count: deleteConfirm.adminIds?.length || 0 })
-                : getConfirm('delete', { item: 'ادمین' })
+                ? getConfirm('bulkDelete', { item: 'مشاور', count: deleteConfirm.adminIds?.length || 0 })
+                : getConfirm('delete', { item: 'مشاور' })
               }
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -564,3 +512,4 @@ export default function AdminsPage() {
     </div>
   );
 }
+

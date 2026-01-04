@@ -191,9 +191,19 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         },
         items: [
           {
-            title: "لیست مشاورین و ادمین‌ها",
+            title: "لیست ادمین‌ها",
             url: "/admins",
             icon: ShieldUser,
+            access: {
+              module: "admin",
+              actions: ["read", "view"],
+              requireSuperAdmin: true  // فقط Super Admin
+            }
+          },
+          {
+            title: "لیست مشاورین املاک",
+            url: "/agents",
+            icon: Building2,
             access: {
               module: "admin",
               actions: ["read", "view"],

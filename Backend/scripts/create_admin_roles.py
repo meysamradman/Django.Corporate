@@ -58,6 +58,19 @@ if __name__ == '__main__':
         print(f'  Updated: {result.get("updated", 0)}')
         print(f'  Skipped: {result.get("skipped", 0)}')
         print(f'  Total Processed: {result.get("total_processed", 0)}')
+        
+        if result.get('demoted', 0) > 0:
+            print(f'\n  Demoted Roles: {result.get("demoted", 0)}')
+            if result.get('demoted_roles'):
+                for role_name in result.get('demoted_roles', []):
+                    print(f'    - {role_name}')
+        
+        if result.get('deleted', 0) > 0:
+            print(f'\n  Deleted Roles: {result.get("deleted", 0)}')
+            if result.get('deleted_roles'):
+                for role_name in result.get('deleted_roles', []):
+                    print(f'    - {role_name}')
+        
         print('='*50)
         print('[OK] Script completed successfully!')
         print('='*50)
