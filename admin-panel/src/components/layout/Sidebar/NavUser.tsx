@@ -2,6 +2,7 @@ import { useAuth } from '@/core/auth/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/elements/Avatar';
 import { mediaService } from '@/components/media/services';
 import { cn } from '@/core/utils/cn';
+import { getUserRoleDisplayText } from '@/core/permissions/config/roles';
 
 interface NavUserProps {
   className?: string;
@@ -38,11 +39,11 @@ export function NavUser({ className, showName = false, size = 'md' }: NavUserPro
   const getInitials = () => {
     const name = getDisplayName();
     const words = name.trim().split(' ');
-    
+
     if (words.length >= 2) {
       return `${words[0].charAt(0)}${words[1].charAt(0)}`;
     }
-    
+
     return name.charAt(0).toUpperCase();
   };
 
@@ -65,8 +66,8 @@ export function NavUser({ className, showName = false, size = 'md' }: NavUserPro
         size === 'md' && "h-10 w-10",
         size === 'lg' && "h-12 w-12"
       )}>
-        <AvatarImage 
-          src={profileImageUrl || undefined} 
+        <AvatarImage
+          src={profileImageUrl || undefined}
           alt={displayName}
           className="object-cover"
         />
@@ -79,7 +80,7 @@ export function NavUser({ className, showName = false, size = 'md' }: NavUserPro
           {initials}
         </AvatarFallback>
       </Avatar>
-      
+
       {showName && (
         <div className="flex flex-col min-w-0">
           <span className={cn(
@@ -96,7 +97,7 @@ export function NavUser({ className, showName = false, size = 'md' }: NavUserPro
             size === 'md' && "text-xs",
             size === 'lg' && "text-sm"
           )}>
-            {displayUser.is_superuser ? 'مدیر ارشد' : 'مدیر'}
+            {getUserRoleDisplayText(user)}
           </span>
         </div>
       )}

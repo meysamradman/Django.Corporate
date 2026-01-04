@@ -343,6 +343,12 @@ class UserManagementPermission(AdminRolePermission):
         if request.user.is_admin_full:
             return True
         
+        if getattr(request.user, 'is_superuser', False):
+            return True
+        
+        if self._is_accessing_own_profile(request, view):
+            return True
+        
         return self._check_admin_role_permissions(request.user, request.method, view)
 
 

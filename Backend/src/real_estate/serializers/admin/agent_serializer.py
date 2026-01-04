@@ -63,6 +63,7 @@ class PropertyAgentAdminDetailSerializer(serializers.ModelSerializer):
     province = serializers.IntegerField(source='user.admin_profile.province.id', read_only=True)
     province_name = serializers.CharField(source='user.admin_profile.province.name', read_only=True)
     property_count = serializers.IntegerField(read_only=True)
+    og_image = MediaAdminSerializer(read_only=True)
     
     class Meta:
         model = PropertyAgent
@@ -76,7 +77,7 @@ class PropertyAgentAdminDetailSerializer(serializers.ModelSerializer):
             'specialization', 'bio',
             'is_active', 'created_at', 'updated_at',
             'meta_title', 'meta_description', 'og_title', 'og_description',
-            'canonical_url', 'robots_meta'
+            'og_image', 'canonical_url', 'robots_meta'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
     
@@ -110,7 +111,7 @@ class PropertyAgentAdminCreateSerializer(serializers.ModelSerializer):
             'specialization', 'bio',
             'is_active',
             'meta_title', 'meta_description', 'og_title', 'og_description',
-            'canonical_url', 'robots_meta'
+            'og_image_id', 'canonical_url', 'robots_meta'
         ]
     
     def validate_slug(self, value):
@@ -159,7 +160,7 @@ class PropertyAgentAdminUpdateSerializer(serializers.ModelSerializer):
             'specialization', 'bio',
             'is_active',
             'meta_title', 'meta_description', 'og_title', 'og_description',
-            'canonical_url', 'robots_meta'
+            'og_image_id', 'canonical_url', 'robots_meta'
         ]
     
     def validate_slug(self, value):

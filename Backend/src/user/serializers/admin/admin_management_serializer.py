@@ -8,12 +8,12 @@ from src.media.models import ImageMedia
 from src.media.utils.validators import validate_image_file
 from src.user.utils.email_validator import validate_email_address
 from src.user.utils.mobile_validator import validate_mobile_number
-from src.user.access_control import BASE_ADMIN_PERMISSIONS
+from src.user.access_control import is_role_forbidden_for_consultant, BASE_ADMIN_PERMISSIONS
 from src.user.serializers.admin.admin_profile_serializer import AdminProfileSerializer
 from src.user.serializers.user.user_profile_serializer import UserProfileSerializer
 from src.user.serializers.admin.admin_profile_serializer import AdminProfileUpdateSerializer
 from src.real_estate.serializers.admin.agent_serializer import PropertyAgentAdminDetailSerializer
-
+from src.user.messages.role import ROLE_TEXT
 BASE_ADMIN_PERMISSIONS_SIMPLE = list(BASE_ADMIN_PERMISSIONS.keys())
 
 
@@ -51,7 +51,7 @@ class AdminListSerializer(serializers.ModelSerializer):
     
     def get_roles(self, obj):
         if obj.is_superuser:
-            return [{'name': 'super_admin', 'display_name': 'Super Admin'}]
+            return [{'name': 'super_admin', 'display_name': ROLE_TEXT.get('super_admin', {}).get('display_name', 'مدیر ارشد')}]
         
         assigned_roles = []
         try:
@@ -60,27 +60,24 @@ class AdminListSerializer(serializers.ModelSerializer):
                     ur for ur in obj._prefetched_objects_cache['admin_user_roles']
                     if ur.is_active
                 ]
-                assigned_roles = [
-                    {
-                        'id': ur.role.id,
-                        'name': ur.role.name,
-                        'display_name': ur.role.display_name
-                    } 
-                    for ur in user_role_assignments
-                ]
             elif hasattr(obj, 'admin_user_roles'):
                 user_role_assignments = obj.admin_user_roles.filter(
                     is_active=True
                 ).select_related('role')
-                assigned_roles = [
-                    {
-                        'id': ur.role.id,
-                        'name': ur.role.name,
-                        'display_name': ur.role.display_name
-                    } 
-                    for ur in user_role_assignments
-                ]
-        except:
+            else:
+                user_role_assignments = []
+
+            assigned_roles = []
+            for ur in user_role_assignments:
+                role_name = ur.role.name
+                display_name = ROLE_TEXT.get(role_name, {}).get('display_name', ur.role.display_name)
+                
+                assigned_roles.append({
+                    'id': ur.role.id,
+                    'name': role_name,
+                    'display_name': display_name
+                })
+        except Exception:
             pass
         
         return assigned_roles
@@ -165,11 +162,12 @@ class AdminDetailSerializer(serializers.ModelSerializer):
     user_role_type = serializers.SerializerMethodField()
     has_agent_profile = serializers.SerializerMethodField()
     agent_profile = serializers.SerializerMethodField()
+    roles = serializers.SerializerMethodField()
     
     class Meta:
         model = User
         fields = ['id', 'public_id', 'email', 'mobile', 'is_active', 'is_staff', 'is_superuser', 
-                 'created_at', 'updated_at', 'profile', 'full_name', 'permissions', 'user_role_type', 
+                 'created_at', 'updated_at', 'profile', 'full_name', 'permissions', 'roles', 'user_role_type', 
                  'has_agent_profile', 'agent_profile']
     
     def get_profile(self, obj):
@@ -197,6 +195,31 @@ class AdminDetailSerializer(serializers.ModelSerializer):
             elif profile.last_name:
                 return profile.last_name
         return user.mobile or user.email or f"User {user.id}"
+
+    def get_roles(self, obj):
+        if obj.is_superuser:
+            return [{'name': 'super_admin', 'display_name': ROLE_TEXT.get('super_admin', {}).get('display_name', 'مدیر ارشد')}]
+        
+        assigned_roles = []
+        try:
+            if hasattr(obj, 'admin_user_roles'):
+                user_role_assignments = obj.admin_user_roles.filter(
+                    is_active=True
+                ).select_related('role')
+                
+                for ur in user_role_assignments:
+                    role_name = ur.role.name
+                    display_name = ROLE_TEXT.get(role_name, {}).get('display_name', ur.role.display_name)
+                    
+                    assigned_roles.append({
+                        'id': ur.role.id,
+                        'name': role_name,
+                        'display_name': display_name
+                    })
+        except Exception:
+            pass
+        
+        return assigned_roles
     
     def get_user_role_type(self, obj):
         """تعیین اینکه کاربر admin است یا consultant"""
@@ -412,9 +435,10 @@ class AdminUpdateSerializer(serializers.Serializer):
                     if role_id:
                         try:
                             role = AdminRole.objects.get(id=role_id)
-                            if role.name == 'super_admin':
+                            is_forbidden, reason = is_role_forbidden_for_consultant(role)
+                            if is_forbidden:
                                 raise serializers.ValidationError({
-                                    'role_id': "مشاورین املاک نمی‌توانند نقش سوپرادمین داشته باشند"
+                                    'role_id': reason
                                 })
                         except AdminRole.DoesNotExist:
                             pass

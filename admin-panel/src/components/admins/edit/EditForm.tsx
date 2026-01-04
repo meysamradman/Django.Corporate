@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { showSuccess, showError } from '@/core/toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { User, KeyRound, Share2, Settings2 } from "lucide-react";
+import { User, KeyRound, Share2, Settings2, Building2 } from "lucide-react";
 import { ProfileHeader } from "@/components/admins/profile/ProfileHeader";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { adminApi } from "@/api/admins/admins";
@@ -31,6 +31,7 @@ const AccountTab = lazy(() => import("@/components/admins/profile/AccountTab").t
 const SecurityTab = lazy(() => import("@/components/admins/profile/SecurityTab").then((mod) => ({ default: mod.SecurityTab })));
 const SocialTab = lazy(() => import("@/components/admins/profile/SocialTab").then((mod) => ({ default: mod.SocialTab })));
 const AdvancedSettingsTab = lazy(() => import("@/components/admins/profile/AdvancedSettingsTab").then((mod) => ({ default: mod.AdvancedSettingsTab })));
+const ConsultantTab = lazy(() => import("@/components/admins/profile/ConsultantTab").then((mod) => ({ default: mod.ConsultantTab })));
 
 
 interface EditAdminFormProps {
@@ -44,7 +45,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     const { user, refreshUser } = useAuth();
-    
+
     const isMeRoute = adminId === "me";
     const isNumericId = !Number.isNaN(Number(adminId));
     const queryKey = ['admin', isMeRoute ? 'me' : adminId];
@@ -69,7 +70,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
         },
     });
 
-        const [editMode, setEditMode] = useState(false);
+    const [editMode, setEditMode] = useState(false);
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
@@ -83,6 +84,20 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
         bio: "",
         profileImage: null as any,
         birthDate: "",
+        // Consultant fields
+        license_number: "",
+        license_expire_date: "",
+        specialization: "",
+        agency_id: null as number | null,
+        agent_bio: "",
+        is_verified: false,
+        meta_title: "",
+        meta_description: "",
+        meta_keywords: "",
+        og_title: "",
+        og_description: "",
+        og_image: null as any,
+        og_image_id: null as number | null,
     });
     const [isSaving, setIsSaving] = useState(false);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -93,15 +108,15 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
 
     useEffect(() => {
         if (!adminData) return;
-        
+
         const isFirstLoad = previousAdminIdRef.current !== adminData.id;
         const editModeChanged = previousEditModeRef.current && !editMode;
-        
+
         if (isFirstLoad || editModeChanged) {
             setFormData(prev => {
                 const currentImageId = prev.profileImage?.id;
                 const newImageId = adminData.profile?.profile_picture?.id;
-                
+
                 return {
                     firstName: adminData.profile?.first_name || "",
                     lastName: adminData.profile?.last_name || "",
@@ -115,6 +130,20 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                     bio: adminData.profile?.bio || "",
                     profileImage: currentImageId === newImageId ? prev.profileImage : (adminData.profile?.profile_picture || null),
                     birthDate: adminData.profile?.birth_date || "",
+                    // Consultant fields
+                    license_number: adminData.agent_profile?.license_number || "",
+                    license_expire_date: adminData.agent_profile?.license_expire_date || "",
+                    specialization: adminData.agent_profile?.specialization || "",
+                    agency_id: (typeof adminData.agent_profile?.agency === 'object' ? adminData.agent_profile?.agency?.id : adminData.agent_profile?.agency) || null,
+                    agent_bio: adminData.agent_profile?.bio || "",
+                    is_verified: adminData.agent_profile?.is_verified || false,
+                    meta_title: adminData.agent_profile?.meta_title || "",
+                    meta_description: adminData.agent_profile?.meta_description || "",
+                    meta_keywords: adminData.agent_profile?.meta_keywords || "",
+                    og_title: adminData.agent_profile?.og_title || "",
+                    og_description: adminData.agent_profile?.og_description || "",
+                    og_image: adminData.agent_profile?.og_image || null,
+                    og_image_id: adminData.agent_profile?.og_image?.id || null,
                 };
             });
             setSelectedProvinceId(adminData.profile?.province?.id || null);
@@ -126,25 +155,25 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                 const newImageId = adminData.profile?.profile_picture?.id;
                 const newImageIsNull = !adminData.profile?.profile_picture;
                 const currentImageIsNull = !prev.profileImage;
-                
+
                 if (currentImageId !== newImageId) {
                     return {
                         ...prev,
                         profileImage: adminData.profile?.profile_picture || null,
                     };
                 }
-                
+
                 if (newImageIsNull && !currentImageIsNull) {
                     return {
                         ...prev,
                         profileImage: null,
                     };
                 }
-                
+
                 return prev;
             });
         }
-        
+
         previousEditModeRef.current = editMode;
     }, [adminData, editMode]);
 
@@ -153,12 +182,12 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
             setEditMode(false);
             return;
         }
-        
+
         setFormData(prev => {
             const newData = { ...prev, [field]: value };
             return newData;
         });
-        
+
         if (fieldErrors[field]) {
             setFieldErrors(prev => {
                 const newErrors = { ...prev };
@@ -182,10 +211,10 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
 
     const handleSaveProfile = async () => {
         if (isSaving) return;
-        
+
         setIsSaving(true);
         setFieldErrors({});
-        
+
         try {
             const profileData: Record<string, any> = {
                 profile: {
@@ -201,40 +230,58 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                     birth_date: formData.birthDate || null,
                 }
             };
-            
+
             if (formData.email) {
                 profileData.email = formData.email;
             }
-            
+
             if (formData.mobile) {
                 profileData.mobile = formData.mobile;
             }
-            
-            
-                                    if (!adminData) {
+
+            // Consultant fields
+            if (adminData?.user_role_type === 'consultant') {
+                profileData.agent_profile = {
+                    license_number: formData.license_number || null,
+                    license_expire_date: formData.license_expire_date || null,
+                    specialization: formData.specialization || null,
+                    agency_id: formData.agency_id || null,
+                    bio: formData.agent_bio || null,
+                    is_verified: formData.is_verified || false,
+                    meta_title: formData.meta_title || null,
+                    meta_description: formData.meta_description || null,
+                    meta_keywords: formData.meta_keywords || null,
+                    og_title: formData.og_title || null,
+                    og_description: formData.og_description || null,
+                    og_image_id: formData.og_image_id || null,
+                };
+            }
+
+
+            if (!adminData) {
                 showError('اطلاعات ادمین یافت نشد');
                 return;
             }
-            
+
             await adminApi.updateUserByType(adminData.id, profileData, 'admin');
             setEditMode(false);
-            
+
             await queryClient.invalidateQueries({ queryKey: ['admin', adminId] });
             await queryClient.refetchQueries({ queryKey: ['admin', adminId] });
-            
+
             await queryClient.invalidateQueries({ queryKey: ['admin-profile'] });
             await queryClient.invalidateQueries({ queryKey: ['current-admin-profile'] });
-            
+
             if (user?.id && (isMeRoute || Number(adminId) === user.id)) {
                 await refreshUser();
-                            }
-            
+            }
+
             showSuccess(msg.crud('updated', { item: 'پروفایل ادمین' }));
         } catch (error: any) {
             if (error?.response?.errors) {
                 const errorData = error.response.errors;
                 const newFieldErrors: Record<string, string> = {};
-                
+
                 if (errorData.mobile) {
                     newFieldErrors.mobile = msg.validation('mobileInvalid');
                 }
@@ -256,18 +303,18 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                 if (errorData.profile?.last_name) {
                     newFieldErrors.lastName = msg.validation('required', { field: 'نام خانوادگی' });
                 }
-                
+
                 if (errorData.detail) {
                     showError(errorData.detail);
                     return;
                 }
-                
+
                 if (Object.keys(newFieldErrors).length > 0) {
                     setFieldErrors(newFieldErrors);
                     return;
                 }
             }
-            
+
             const errorMessage = msg.error('serverError');
             showError(errorMessage);
         } finally {
@@ -284,8 +331,8 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
             error instanceof ApiError
                 ? error.response.message
                 : error instanceof Error
-                ? error.message
-                : "خطا در دریافت اطلاعات ادمین";
+                    ? error.message
+                    : "خطا در دریافت اطلاعات ادمین";
 
         return (
             <div className="rounded-lg border p-6 text-center space-y-4">
@@ -315,12 +362,12 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
             </div>
         );
     }
-    
+
     return (
         <div className="space-y-6">
-            <ProfileHeader 
-                admin={adminData} 
-                formData={formData} 
+            <ProfileHeader
+                admin={adminData}
+                formData={formData}
                 onProfileImageChange={(media) => handleInputChange("profileImage", media)}
                 adminId={adminId}
             />
@@ -343,6 +390,12 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                         <Settings2 className="w-4 h-4" />
                         تنظیمات پیشرفته
                     </TabsTrigger>
+                    {adminData.user_role_type === 'consultant' && (
+                        <TabsTrigger value="consultant">
+                            <Building2 className="w-4 h-4" />
+                            اطلاعات مشاور
+                        </TabsTrigger>
+                    )}
                 </TabsList>
 
                 <TabsContent value="account">
@@ -385,6 +438,22 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                         <AdvancedSettingsTab admin={adminData} />
                     </Suspense>
                 </TabsContent>
+
+                {adminData.user_role_type === 'consultant' && (
+                    <TabsContent value="consultant">
+                        <Suspense fallback={<TabContentSkeleton />}>
+                            <ConsultantTab
+                                admin={adminData}
+                                formData={formData}
+                                editMode={editMode}
+                                handleInputChange={handleInputChange}
+                                handleSaveProfile={handleSaveProfile}
+                                isSaving={isSaving}
+                                fieldErrors={fieldErrors}
+                            />
+                        </Suspense>
+                    </TabsContent>
+                )}
             </Tabs>
         </div>
     );

@@ -5,7 +5,7 @@ from django.core.cache import cache
 from django.http import StreamingHttpResponse, HttpResponse
 from django.conf import settings
 
-from src.user.access_control import IsSuperAdmin
+from src.user.access_control import IsSuperAdmin, SimpleAdminPermission
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.panel.services import PanelSettingsService
 from src.panel.services.database_export_service import (
@@ -21,7 +21,13 @@ from src.panel.utils.cache import PanelCacheKeys, PanelCacheManager
 
 class AdminPanelSettingsViewSet(viewsets.ViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
-    permission_classes = [IsSuperAdmin]  # 🔒 فقط Super Admin
+    authentication_classes = [CSRFExemptSessionAuthentication]
+    # permission_classes removed in favor of get_permissions
+
+    def get_permissions(self):
+        if self.action == 'list':
+            return [SimpleAdminPermission()]
+        return [IsSuperAdmin()]
     serializer_class = PanelSettingsSerializer
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     

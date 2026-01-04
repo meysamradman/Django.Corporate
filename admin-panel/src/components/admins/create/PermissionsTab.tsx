@@ -1,3 +1,4 @@
+import { useMemo, useEffect } from "react";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { FormField } from "@/components/forms/FormField";
 import { Switch } from "@/components/elements/Switch";
@@ -27,9 +28,36 @@ export default function PermissionsTab({
   const roleId = watch("role_id");
   const adminRoleType = watch("admin_role_type");
 
-  const filteredRoles = adminRoleType === "consultant"
-    ? roles.filter(role => role.name !== "super_admin")
-    : roles;
+  // ماژول‌های ممنوع برای مشاور طبق سناریو
+  const FORBIDDEN_MODULES = ['admin', 'users', 'settings', 'panel', 'ai', 'pages', 'real_estate_agents', 'real_estate_agencies'];
+
+  const filteredRoles = useMemo(() => {
+    if (adminRoleType !== "consultant") return roles;
+
+    return roles.filter(role => {
+      // ۱. حذف سوپرادمین
+      if (role.name === "super_admin") return false;
+
+      // ۲. حذف نقش‌هایی که به ماژول‌های ممنوع دسترسی دارند
+      const roleModules = role.permissions?.modules || [];
+      if (roleModules.includes('all')) return false;
+
+      return !FORBIDDEN_MODULES.some(m => roleModules.includes(m));
+    });
+  }, [roles, adminRoleType]);
+
+  useEffect(() => {
+    if (roleId && roleId !== "none") {
+      const isStillAvailable = filteredRoles.find(r => r.id.toString() === roleId);
+      if (!isStillAvailable) {
+        setValue("role_id", "none");
+      }
+    }
+
+    if (adminRoleType === "consultant" && isSuperuser) {
+      setValue("is_superuser", false);
+    }
+  }, [adminRoleType, filteredRoles, roleId, isSuperuser, setValue]);
 
   return (
     <div className="space-y-6">

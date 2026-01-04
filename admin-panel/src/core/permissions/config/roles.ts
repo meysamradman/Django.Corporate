@@ -185,10 +185,10 @@ export const getRoleDisplayName = (roleName: string, short: boolean = false): st
   if (persianName) {
     return persianName;
   }
-  
+
   const config = getRoleConfig(roleName);
   if (!config) return roleName;
-  
+
   return short ? config.display_name_short : config.display_name;
 };
 
@@ -203,32 +203,50 @@ export const getRoleColor = (roleName: string): string => {
 };
 
 export const isSuperAdmin = (user: any): boolean => {
-  return user?.is_super || 
-         user?.is_superuser || 
-         user?.roles?.some((role: any) => 
-           role === 'super_admin' || role?.name === 'super_admin'
-         );
+  return user?.is_super ||
+    user?.is_superuser ||
+    user?.roles?.some((role: any) =>
+      role === 'super_admin' || role?.name === 'super_admin'
+    );
 };
 
 export const getUserRoleDisplayText = (user: any): string => {
   if (!user) return 'بدون نقش';
-  
+
   const roles = user.roles || [];
-  
-  if (roles.length === 0) return 'بدون نقش';
-  
+  let roleText = 'بدون نقش';
+
   if (isSuperAdmin(user)) {
-    return getRoleDisplayName('super_admin', true);
+    roleText = getRoleDisplayName('super_admin', true);
+  } else if (roles.length > 0) {
+    const mainRole = roles[0];
+    // First check if the role object itself has a display_name (from backend)
+    if (typeof mainRole === 'object' && mainRole?.display_name) {
+      roleText = mainRole.display_name;
+    } else {
+      const roleName = typeof mainRole === 'string' ? mainRole : mainRole?.name;
+      if (roleName) {
+        roleText = getRoleDisplayName(roleName, true);
+      } else {
+        roleText = `${roles.length} نقش`;
+      }
+    }
   }
-  
-  const mainRole = roles[0];
-  const roleName = typeof mainRole === 'string' ? mainRole : mainRole?.name;
-  
-  if (roleName) {
-    return getRoleDisplayName(roleName, true);
+
+  // Append User Type if available
+  // user_role_type values: 'admin' | 'consultant'
+  let typeText = '';
+  if (user?.user_role_type === 'admin') {
+    typeText = 'ادمین';
+  } else if (user?.user_role_type === 'consultant') {
+    typeText = 'مشاور';
   }
-  
-  return `${roles.length} نقش`;
+
+  if (typeText) {
+    return `${roleText} | ${typeText}`;
+  }
+
+  return roleText;
 };
 
 export const getSystemRoles = (): RoleConfig[] => {

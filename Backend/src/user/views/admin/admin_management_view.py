@@ -3,9 +3,15 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework.views import APIView
 from rest_framework.exceptions import PermissionDenied, NotFound
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.core.responses.response import APIResponse
+from src.user.access_control import (
+    SimpleAdminPermission,
+    SuperAdminOnly,
+    UserManagementPermission
+)
 from src.user.serializers.admin.admin_management_serializer import (
     AdminListSerializer,
     AdminDetailSerializer,
@@ -30,8 +36,18 @@ class AdminManagementView(AdminAuthMixin, APIView):
     pagination_class = StandardLimitPagination
 
     def get_permissions(self):
+        # Allow access to 'me' action for simple admins (self-profile access)
+        # Check both kwarg and view action attribute
+        # Also check resolver_match which is more reliable in newer DRF versions
+        action = self.kwargs.get('action') or getattr(self, 'action', None)
+        
+        if not action and hasattr(self.request, 'resolver_match'):
+             action = self.request.resolver_match.kwargs.get('action')
 
-        if self.request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
+        if action == 'me':
+            return [IsAuthenticated()]
+
+        if self.request.method in ['POST', 'DELETE']:
             return [SuperAdminOnly()]
         return [UserManagementPermission()]
 
@@ -180,7 +196,7 @@ class AdminManagementView(AdminAuthMixin, APIView):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    def put(self, request, admin_id, **kwargs):
+    def put(self, request, admin_id=None, **kwargs):
         try:
             action = kwargs.get('action')
             if action == 'me':

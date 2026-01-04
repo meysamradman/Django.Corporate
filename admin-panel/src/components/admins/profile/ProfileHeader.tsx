@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/elements/Card";
-import { CheckCircle2, XCircle, Smartphone, Clock, Shield } from "lucide-react";
+import { CheckCircle2, XCircle, Smartphone, Clock, Shield, UserCog, Briefcase } from "lucide-react";
 import type { AdminWithProfile } from "@/types/auth/admin";
 import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import type { Media } from "@/types/shared/media";
@@ -23,7 +23,7 @@ interface ProfileHeaderProps {
 }
 
 export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }: ProfileHeaderProps) {
-    const [adminRoles, setAdminRoles] = useState<Role[]>([]);
+    const [adminRoles, setAdminRoles] = useState<Role[]>(admin?.roles || []);
     const queryClient = useQueryClient();
     const { refreshUser } = useAuth();
 
@@ -44,10 +44,12 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
     }, [admin.id]);
 
     useEffect(() => {
-        if (admin?.id) {
+        if (admin?.roles && admin.roles.length > 0) {
+            setAdminRoles(admin.roles);
+        } else if (admin?.id) {
             loadAdminRoles();
         }
-    }, [admin?.id, loadAdminRoles]);
+    }, [admin?.id, admin?.roles, loadAdminRoles]);
 
     const currentProfileImage: Media | null = formData.profileImage || admin?.profile?.profile_picture || null;
 
@@ -184,6 +186,18 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
                                     <span>{formData.mobile || admin.mobile}</span>
                                 </div>
                             )}
+                            <div className="flex items-center gap-2">
+                                <div className={`flex items-center justify-center w-9 h-9 rounded-full p-2 ${admin.user_role_type === 'consultant' ? "bg-amber" : "bg-cyan"}`}>
+                                    {admin.user_role_type === 'consultant' ? (
+                                        <Briefcase className="w-5 h-5 text-amber-1" />
+                                    ) : (
+                                        <UserCog className="w-5 h-5 text-cyan-1" />
+                                    )}
+                                </div>
+                                <span className={admin.user_role_type === 'consultant' ? "text-amber-1" : "text-cyan-1"}>
+                                    {admin.user_role_type === 'consultant' ? "مشاور املاک" : "ادمین سیستم"}
+                                </span>
+                            </div>
                             {adminRoles && adminRoles.length > 0 && (
                                 <div className="flex items-center gap-2">
                                     <div className="flex items-center justify-center w-9 h-9 rounded-full bg-orange p-2">

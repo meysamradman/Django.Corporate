@@ -19,40 +19,40 @@ import { Loader2, Save, User, UserCircle, ShieldCheck, Building2 } from "lucide-
 import type { Media } from "@/types/shared/media";
 
 const TabSkeleton = () => (
-  <div className="mt-0 space-y-6">
-    <div className="flex flex-col lg:flex-row gap-6">
-      <div className="flex-1 min-w-0">
-        <CardWithIcon
-          icon={User}
-          title="اطلاعات پایه"
-          iconBgColor="bg-blue"
-          iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
-        >
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-16" />
-                <Skeleton className="h-10 w-full" />
-              </div>
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-10 w-full" />
-              </div>
+    <div className="mt-0 space-y-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+            <div className="flex-1 min-w-0">
+                <CardWithIcon
+                    icon={User}
+                    title="اطلاعات پایه"
+                    iconBgColor="bg-blue"
+                    iconColor="stroke-blue-2"
+                    borderColor="border-b-blue-1"
+                >
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-16" />
+                                <Skeleton className="h-10 w-full" />
+                            </div>
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-10 w-full" />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-16" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </div>
+                </CardWithIcon>
             </div>
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          </div>
-        </CardWithIcon>
-      </div>
+        </div>
     </div>
-  </div>
 );
 
 const BaseInfoTab = lazy(() => import("@/components/admins/create/BaseInfoTab"));
@@ -93,7 +93,7 @@ export default function CreateAdminPage() {
                 bio: string | null;
                 notes: string | null;
             }> = {};
-            
+
             profileData.first_name = data.profile_first_name || null;
             profileData.last_name = data.profile_last_name || null;
             profileData.birth_date = data.profile_birth_date || null;
@@ -121,11 +121,11 @@ export default function CreateAdminPage() {
             if (Object.keys(profileData).length > 0) {
                 adminDataToSubmit.profile = profileData;
             }
-            
+
             if (selectedMedia?.id) {
                 adminDataToSubmit.profile_picture_id = selectedMedia.id;
             }
-            
+
             // اضافه کردن فیلدهای مشاور املاک
             if (data.admin_role_type === "consultant") {
                 if (data.license_number) adminDataToSubmit.license_number = data.license_number;
@@ -133,7 +133,7 @@ export default function CreateAdminPage() {
                 if (data.specialization) adminDataToSubmit.specialization = data.specialization;
                 if (data.agency_id) adminDataToSubmit.agency_id = data.agency_id;
                 if (typeof data.is_verified === 'boolean') adminDataToSubmit.is_verified = data.is_verified;
-                        
+
                 // فیلدهای SEO
                 if (data.meta_title) adminDataToSubmit.meta_title = data.meta_title;
                 if (data.meta_description) adminDataToSubmit.meta_description = data.meta_description;
@@ -141,7 +141,6 @@ export default function CreateAdminPage() {
                 if (data.og_title) adminDataToSubmit.og_title = data.og_title;
                 if (data.og_description) adminDataToSubmit.og_description = data.og_description;
                 if (data.og_image_id) adminDataToSubmit.og_image_id = data.og_image_id;
-                if (data.twitter_card) adminDataToSubmit.twitter_card = data.twitter_card;
             }
 
             return await adminApi.createAdmin(adminDataToSubmit as any);
@@ -154,7 +153,7 @@ export default function CreateAdminPage() {
         onError: (error: any) => {
             if (hasFieldErrors(error)) {
                 const fieldErrors = extractFieldErrors(error);
-                
+
                 Object.entries(fieldErrors).forEach(([field, message]) => {
                     const fieldMap: Record<string, any> = {
                         'mobile': 'mobile',
@@ -169,14 +168,14 @@ export default function CreateAdminPage() {
                         'profile.province_id': 'profile_province_id',
                         'profile.city_id': 'profile_city_id',
                     };
-                    
+
                     const formField = fieldMap[field] || field;
                     form.setError(formField as any, {
                         type: 'server',
                         message: message as string
                     });
                 });
-                
+
                 showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
             } else {
                 showError(error);
@@ -204,7 +203,7 @@ export default function CreateAdminPage() {
     const handleSubmit = async () => {
         const isValid = await form.trigger();
         if (!isValid) return;
-        
+
         const data = form.getValues();
         createAdminMutation.mutate(data);
     };
@@ -277,8 +276,8 @@ export default function CreateAdminPage() {
 
             {editMode && (
                 <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
-                    <Button 
-                        onClick={handleSubmit} 
+                    <Button
+                        onClick={handleSubmit}
                         size="lg"
                         disabled={createAdminMutation.isPending}
                     >

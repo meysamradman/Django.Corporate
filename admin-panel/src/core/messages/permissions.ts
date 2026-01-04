@@ -33,15 +33,15 @@ export const PERMISSION_TRANSLATIONS = {
     'ai': 'هوش مصنوعی',
     'chatbot': 'چت‌بات',
     'form': 'فرم',
-    
+
     'Portfolio Management': 'نمونه کار',
     'Blog Management': 'وبلاگ',
-    'Content Taxonomies': 'دسته‌بندی، برچسب و گزینه‌های وبلاگ/نمونه‌کار',
-    'Category Management': 'دسته‌بندی، برچسب و گزینه‌های وبلاگ/نمونه‌کار',
+    'Content Taxonomies': 'دسته‌بندی، تگ و گزینه‌های وبلاگ/نمونه‌کار',
+    'Category Management': 'دسته‌بندی، تگ و گزینه‌های وبلاگ/نمونه‌کار',
     'Blog Categories': 'دسته‌بندی‌های وبلاگ',
-    'Blog Tags': 'برچسب‌های وبلاگ',
+    'Blog Tags': 'تگ‌های وبلاگ',
     'Portfolio Categories': 'دسته‌بندی‌های نمونه‌کار',
-    'Portfolio Tags': 'برچسب‌های نمونه‌کار',
+    'Portfolio Tags': 'تگ‌های نمونه‌کار',
     'Portfolio Options': 'گزینه‌های نمونه‌کار',
     'Portfolio Option Values': 'مقادیر گزینه‌های نمونه‌کار',
     'AI Tools': 'ابزارهای هوش مصنوعی',
@@ -52,7 +52,7 @@ export const PERMISSION_TRANSLATIONS = {
     'Pages Management': 'مدیریت صفحات',
     'Portfolio': 'نمونه کار',
     'Blog': 'وبلاگ',
-    
+
     // Real Estate
     'Properties': 'املاک',
     'Agents': 'مشاوران',
@@ -61,7 +61,7 @@ export const PERMISSION_TRANSLATIONS = {
     'Property States': 'وضعیت‌های ملک',
     'Property Labels': 'برچسب‌های ملک',
     'Property Features': 'ویژگی‌های ملک',
-    'Property Tags': 'برچسب‌های ملک',
+    'Property Tags': 'تگ‌های ملک',
     'real_estate': 'املاک',
     'real_estate.property': 'املاک',
     'real_estate.agent': 'مشاوران',
@@ -70,8 +70,8 @@ export const PERMISSION_TRANSLATIONS = {
     'real_estate.state': 'وضعیت‌های ملک',
     'real_estate.label': 'برچسب‌های ملک',
     'real_estate.feature': 'ویژگی‌های ملک',
-    'real_estate.tag': 'برچسب‌های ملک',
-    
+    'real_estate.tag': 'تگ‌های ملک',
+
     // Media subtypes (from display_name)
     'Upload Images': 'آپلود تصاویر',
     'Upload Videos': 'آپلود ویدیوها',
@@ -98,7 +98,7 @@ export const PERMISSION_TRANSLATIONS = {
     'statistics_viewer': 'مشاهده‌گر آمار',
     'user_manager': 'مدیر کاربران',
     'analytics_manager': 'مدیر آمار و تحلیل‌ها',
-    
+
     'content_manager': 'مدیر محتوا',
     'blog_manager': 'مدیر وبلاگ',
     'portfolio_manager': 'مدیر نمونه‌کار',
@@ -119,10 +119,10 @@ export const PERMISSION_TRANSLATIONS = {
     'statistics_viewer': 'دسترسی فقط خواندنی به داشبورد آمار و گزارش‌ها.',
     'user_manager': 'مدیریت کاربران وب‌سایت. می‌تواند پروفایل‌ها را مشاهده و ویرایش کند اما دسترسی به ادمین‌ها ندارد.',
     'analytics_manager': 'مدیریت کامل آمار بازدید وب‌سایت و اپلیکیشن، تحلیل‌های ترافیک و گزارش‌های آماری.',
-    
-    'content_manager': 'مدیریت کامل محتوای وبلاگ و نمونه‌کار شامل دسته‌بندی‌ها، برچسب‌ها و گزینه‌ها.',
-    'blog_manager': 'مدیریت وبلاگ شامل پست‌ها، دسته‌بندی‌ها، برچسب‌ها و رسانه‌های مرتبط.',
-    'portfolio_manager': 'مدیریت نمونه‌کار شامل پروژه‌ها، دسته‌بندی‌ها، برچسب‌ها و گزینه‌های اختصاصی.',
+
+    'content_manager': 'مدیریت کامل محتوای وبلاگ و نمونه‌کار شامل دسته‌بندی‌ها، تگ‌ها و گزینه‌ها.',
+    'blog_manager': 'مدیریت وبلاگ شامل پست‌ها، دسته‌بندی‌ها، تگ‌ها و رسانه‌های مرتبط.',
+    'portfolio_manager': 'مدیریت نمونه‌کار شامل پروژه‌ها، دسته‌بندی‌ها، تگ‌ها و گزینه‌های اختصاصی.',
     'forms_manager': 'مدیریت فرم‌های تماس و فرم‌های سازنده همراه با فیلدها و اعتبارسنجی‌ها.',
     'pages_manager': 'مدیریت صفحات استاتیک مانند درباره ما، قوانین و صفحات لندینگ.',
     'email_manager': 'مدیریت صندوق ورودی، قالب‌ها و کمپین‌های ایمیل پنل ادمین.',
@@ -185,7 +185,7 @@ export const PERMISSION_TRANSLATIONS = {
     'Full access to all AI features (chat, content, image, audio)': 'دسترسی کامل به تمام امکانات هوش مصنوعی (چت، محتوا، تصویر، پادکست)',
     'Manage Personal API Key': 'مدیریت API شخصی',
     'Manage personal API Key for exclusive use': 'مدیریت کلید API شخصی برای استفاده اختصاصی',
-    
+
     'View Media Library': 'مشاهده رسانه',
     'View Media': 'مشاهده رسانه',
     'View Users': 'مشاهده کاربران',
@@ -233,7 +233,7 @@ export const PERMISSION_TRANSLATIONS = {
     'Can create admin roles': 'امکان ایجاد نقش‌های ادمین',
     'Can edit admin roles': 'امکان ویرایش نقش‌های ادمین',
     'Can delete admin roles': 'امکان حذف نقش‌های ادمین',
-    
+
     'statistics.manage': 'مدیریت آمار',
     'Manage Admins': 'مدیریت ادمین‌ها',
     'Allow full access to admin management (view, create, update, delete)': 'دسترسی کامل به مدیریت ادمین‌ها (مشاهده، ایجاد، ویرایش، حذف)',
@@ -250,12 +250,12 @@ export const PERMISSION_TRANSLATIONS = {
     'Update Portfolio': 'ویرایش نمونه کار',
     'Update Email Messages': 'ویرایش پیام‌های ایمیل',
     'Update Tickets': 'ویرایش تیکت‌ها',
-    
+
     'dashboard.read': 'مشاهده داشبورد',
     'media.read': 'مشاهده رسانه',
     'profile.read': 'مشاهده اطلاعات شخصی',
     'profile.update': 'ویرایش پروفایل شخصی',
-    
+
     'Can view': 'امکان مشاهده',
     'Can list': 'امکان لیست کردن',
     'Can create': 'امکان ایجاد',
@@ -275,7 +275,7 @@ export const PERMISSION_TRANSLATIONS = {
     'media files': 'فایل‌های رسانه',
     'portfolio items': 'آیتم‌های نمونه کار',
     'admin roles': 'نقش‌های ادمین',
-    
+
     // Media Upload
     'Upload Images': 'آپلود تصاویر',
     'Upload Videos': 'آپلود ویدیوها',
@@ -309,7 +309,7 @@ export const PERMISSION_TRANSLATIONS = {
     'Delete document files (dangerous - may break content)': 'حذف فایل‌های اسناد (خطرناک - ممکن است محتوا را خراب کند)',
     'Delete any media file (very dangerous - may break content)': 'حذف هر نوع فایل رسانه‌ای (بسیار خطرناک - ممکن است محتوا را خراب کند)',
     'Full access to media library (view, upload, update, delete all types)': 'دسترسی کامل به کتابخانه رسانه (مشاهده، آپلود، ویرایش، حذف همه انواع)',
-    
+
     // Real Estate
     'View Properties': 'مشاهده املاک',
     'Create Property': 'ایجاد ملک',
@@ -339,10 +339,10 @@ export const PERMISSION_TRANSLATIONS = {
     'Create Property Feature': 'ایجاد ویژگی ملک',
     'Update Property Feature': 'ویرایش ویژگی ملک',
     'Delete Property Feature': 'حذف ویژگی ملک',
-    'View Property Tags': 'مشاهده برچسب‌های ملک',
-    'Create Property Tag': 'ایجاد برچسب ملک',
-    'Update Property Tag': 'ویرایش برچسب ملک',
-    'Delete Property Tag': 'حذف برچسب ملک',
+    'View Property Tags': 'مشاهده تگ‌های ملک',
+    'Create Property Tag': 'ایجاد تگ ملک',
+    'Update Property Tag': 'ویرایش تگ ملک',
+    'Delete Property Tag': 'حذف تگ ملک',
     'Allow viewing property listings and details': 'امکان مشاهده لیست املاک و جزئیات',
     'Allow creating new properties': 'امکان ایجاد املاک جدید',
     'Allow updating properties': 'امکان ویرایش املاک',
@@ -371,19 +371,19 @@ export const PERMISSION_TRANSLATIONS = {
     'Allow creating property features': 'امکان ایجاد ویژگی ملک',
     'Allow updating property features': 'امکان ویرایش ویژگی‌های ملک',
     'Allow deleting property features': 'امکان حذف ویژگی‌های ملک',
-    'Allow viewing property tags': 'امکان مشاهده برچسب‌های ملک',
-    'Allow creating property tags': 'امکان ایجاد برچسب ملک',
-    'Allow updating property tags': 'امکان ویرایش برچسب‌های ملک',
-    'Allow deleting property tags': 'امکان حذف برچسب‌های ملک',
+    'Allow viewing property tags': 'امکان مشاهده تگ‌های ملک',
+    'Allow creating property tags': 'امکان ایجاد تگ ملک',
+    'Allow updating property tags': 'امکان ویرایش تگ‌های ملک',
+    'Allow deleting property tags': 'امکان حذف تگ‌های ملک',
   },
-  
+
   roleErrors: {
     'Cannot delete role. It is assigned to {count} users.': 'نقش به {count} کاربر اختصاص دارد. ابتدا نقش را از کاربران جدا کنید.',
     'Cannot delete {count} roles that are assigned to users': 'نقش‌ها به کاربران اختصاص دارند. ابتدا نقش‌ها را از کاربران جدا کنید.',
     'System roles cannot be deleted': 'نقش‌های سیستمی قابل حذف نیستند.',
     'No role IDs provided': 'شناسه‌های نقش برای حذف ارائه نشده است.',
   },
-  
+
   roleSuccess: {
     'Successfully deleted {deleted_count} admin roles': '{deleted_count} نقش با موفقیت حذف شدند.',
     'Role deleted successfully': 'نقش با موفقیت حذف شد.',
@@ -391,14 +391,14 @@ export const PERMISSION_TRANSLATIONS = {
 } as const;
 
 export function getPermissionTranslation(
-  text: string, 
+  text: string,
   type: 'resource' | 'action' | 'description' | 'role' | 'roleDescription' | 'roleError' | 'roleSuccess' = 'resource'
 ): string {
   if (!text) return text;
-  
+
   const normalizedText = text.trim();
   const translations = PERMISSION_TRANSLATIONS;
-  
+
   switch (type) {
     case 'resource':
       if (translations.resources[normalizedText as keyof typeof translations.resources]) {
@@ -433,7 +433,7 @@ export function getPermissionTranslation(
         const escapedKey = key.replace(/{count}|{deleted_count}/g, '(\\d+)');
         const regex = new RegExp(escapedKey);
         const match = normalizedText.match(regex);
-        
+
         if (match) {
           let result = value as string;
           if (match[1]) {
@@ -451,7 +451,7 @@ export function getPermissionTranslation(
         const escapedKey = key.replace(/{deleted_count}/g, '(\\d+)');
         const regex = new RegExp(escapedKey);
         const match = normalizedText.match(regex);
-        
+
         if (match) {
           let result = value as string;
           if (match[1]) {
@@ -462,9 +462,9 @@ export function getPermissionTranslation(
       }
       break;
   }
-  
+
   const lowerText = normalizedText.toLowerCase();
-  
+
   switch (type) {
     case 'resource':
       for (const [key, value] of Object.entries(translations.resources)) {
@@ -502,7 +502,7 @@ export function getPermissionTranslation(
       }
       break;
   }
-  
+
   if (normalizedText.length > 5) {
     switch (type) {
       case 'resource':
@@ -542,6 +542,6 @@ export function getPermissionTranslation(
         break;
     }
   }
-  
+
   return text;
 }

@@ -24,6 +24,8 @@ from .config import (
     validate_role_permissions,
     get_role_permissions_for_creation,
     get_all_role_configs,
+    CONSULTANT_RESTRICTIONS,
+    is_role_forbidden_for_consultant,
 )
 
 __all__ = [
@@ -53,4 +55,6 @@ __all__ = [
     "validate_role_permissions",
     "get_role_permissions_for_creation",
     "get_all_role_configs",
+    "CONSULTANT_RESTRICTIONS",
+    "is_role_forbidden_for_consultant",
 ]

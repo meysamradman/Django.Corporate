@@ -74,7 +74,7 @@ export function AccountTab({
     const { user, refreshUser } = useAuth();
 
     const userPermissionsObj = {
-        permissions: user?.permissions || [],
+        permissions: Array.isArray(user?.permissions) ? user.permissions : [],
         is_super: user?.is_superuser || false,
         is_superuser: user?.is_superuser || false
     };
@@ -269,7 +269,7 @@ export function AccountTab({
                                                     </ItemActions>
                                                 </Item>
                                             </div>
-                                            {user?.is_superuser && (
+                                            {user?.is_superuser && admin.user_role_type !== 'consultant' && !admin.agent_profile && (
                                                 <div className="rounded-xl border border-amber-1/40 bg-amber-0/30 hover:border-amber-1/60 transition-colors overflow-hidden">
                                                     <Item variant="default" size="default" className="py-4">
                                                         <ItemContent>

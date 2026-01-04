@@ -45,7 +45,8 @@ class AdminRoleView(viewsets.ViewSet):
     ordering = ['-created_at']
     
     def get_permissions(self):
-        """فقط Super Admin - تمام عملیات نقش‌ها"""
+        if self.action == 'user_roles' or self.action == 'permissions' or self.action == 'base_permissions':
+            return [SimpleAdminPermission()]
         return [SuperAdminOnly()]
     
     def get_queryset(self):
@@ -482,6 +483,13 @@ class AdminRoleView(viewsets.ViewSet):
                 )
             
             user = User.objects.get(id=user_id)
+            
+            # Privacy check
+            if str(user.id) != str(request.user.id) and not (request.user.is_superuser or getattr(request.user, 'is_admin_full', False)):
+                return APIResponse.error(
+                    message=AUTH_ERRORS["auth_not_authorized"],
+                    status_code=403
+                )
             
             assignments = AdminUserRole.objects.filter(
                 user=user,

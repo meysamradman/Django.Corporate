@@ -5,6 +5,14 @@ const createRule = (config: RouteRule): RouteRule => config;
 
 export const adminManagementRoutes: RouteRule[] = [
   createRule({
+    id: "admins-self-edit",
+    pattern: /^\/admins\/me\/edit\/?$/,
+    module: 'admin',
+    action: "update",
+    description: "ویرایش پروفایل من",
+    // همه ادمین‌ها می‌توانند پروفایل خودشون رو ویرایش کنند
+  }),
+  createRule({
     id: "admins-list",
     pattern: /^\/admins\/?$/,
     module: 'admin',
@@ -35,14 +43,6 @@ export const adminManagementRoutes: RouteRule[] = [
     action: "manage",
     description: "مدیریت دسترسی ادمین",
     requireSuperAdmin: true,  // فقط Super Admin
-  }),
-  createRule({
-    id: "admins-self-edit",
-    pattern: /^\/admins\/me\/edit\/?$/,
-    module: 'admin',
-    action: "update",
-    description: "ویرایش پروفایل من",
-    // همه ادمین‌ها می‌توانند پروفایل خودشون رو ویرایش کنند
   }),
 ];
 

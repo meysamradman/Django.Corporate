@@ -3,6 +3,7 @@ from typing import Dict, List, Set, Tuple, Optional
 from django.core.cache import cache
 from .registry import PermissionRegistry, Permission
 from .config import BASE_ADMIN_PERMISSIONS
+from .module_mappings import MODULE_MAPPINGS
 from src.user.utils.cache import UserCacheKeys, UserCacheManager
 from src.user.models import AdminUserRole
 
@@ -44,8 +45,6 @@ class PermissionValidator:
         user_modules, user_actions = PermissionValidator._get_user_modules_actions(user)
         
         # Check if user has module access
-        # For nested modules, check if perm.module matches any user_module or if user_module starts with perm.module
-        # e.g., perm.module='real_estate' matches user_module='real_estate.property'
         has_module = False
         if "all" in user_modules:
             has_module = True
@@ -226,6 +225,10 @@ class PermissionValidator:
                                     perm_action = perm.get('action')
                                     if perm_module:
                                         modules.add(perm_module)
+                                        # Expand mappings
+                                        if perm_module in MODULE_MAPPINGS:
+                                            modules.update(MODULE_MAPPINGS[perm_module])
+                                            
                                     if perm_action:
                                         if perm_action == 'read':
                                             actions.add('view')
@@ -242,7 +245,12 @@ class PermissionValidator:
                         role_actions = role_perms.get("actions", [])
                         
                         if isinstance(role_modules, list):
-                            modules.update(role_modules)
+                            for mod in role_modules:
+                                modules.add(mod)
+                                # Expand mappings
+                                if mod in MODULE_MAPPINGS:
+                                    modules.update(MODULE_MAPPINGS[mod])
+                                    
                         if isinstance(role_actions, list):
                             for action in role_actions:
                                 if action == 'read':

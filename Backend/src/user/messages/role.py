@@ -78,9 +78,9 @@ ROLE_ERRORS = {
 
 ROLE_TEXT = {
     "super_admin": {
-        "display_name": "Super Admin",
-        "display_name_short": "Super Admin",
-        "description": "Full system access with all permissions.",
+        "display_name": "سوپر ادمین",
+        "display_name_short": "سوپر ادمین",
+        "description": "دسترسی کامل به تمام سیستم.",
     },
     # NOTE: The following roles are app-specific (Corporate apps)
     # They are kept here for backward compatibility and display purposes
@@ -142,8 +142,23 @@ ROLE_TEXT = {
     },
     # 🔒 REMOVED: "panel_manager" - Panel Settings فقط برای Super Admin
     "user_manager": {
-        "display_name": "User Manager",
-        "display_name_short": "Users",
-        "description": "Manages regular website users and profiles without admin access.",
+        "display_name": "مدیر کاربران",
+        "display_name_short": "کاربران",
+        "description": "مدیریت کاربران عادی وبسایت.",
+    },
+    "property_agent": {
+        "display_name": "مشاور املاک",
+        "display_name_short": "مشاور",
+        "description": "مدیریت املاک و فایل‌های شخصی.",
+    },
+    "agency_manager": {
+        "display_name": "مدیر آژانس",
+        "display_name_short": "مدیر آژانس",
+        "description": "مدیریت آژانس املاک و مشاورین زیرمجموعه.",
+    },
+    "real_estate_manager": {
+        "display_name": "مدبر املاک",
+        "display_name_short": "مدیر املاک",
+        "description": "مدیریت کل سیستم املاک.",
     },
 }

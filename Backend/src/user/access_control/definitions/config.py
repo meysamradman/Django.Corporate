@@ -241,6 +241,58 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
     ),
 }
 
+CONSULTANT_RESTRICTIONS = {
+    'forbidden_roles': [
+        'super_admin',
+        'settings_manager',
+        'panel_manager',
+        'user_manager',
+        'ai_manager',
+        'pages_manager',
+        'agency_manager',
+    ],
+    'forbidden_modules': [
+        'admin',           # مدیریت ادمین‌ها
+        'users',           # مدیریت کاربران
+        'settings',        # تنظیمات عمومی
+        'panel',           # تنظیمات پنل
+        'ai',              # تنظیمات AI
+        'pages',           # صفحات (درباره ما، قوانین)
+        'real_estate_agents',   # مدیریت مشاورین
+        'real_estate_agencies', # مدیریت آژانس‌ها
+    ],
+    'can_be_superuser': False,
+}
+
+
+def is_role_forbidden_for_consultant(role) -> Tuple[bool, str]:
+
+    forbidden_roles = CONSULTANT_RESTRICTIONS['forbidden_roles']
+    forbidden_modules = CONSULTANT_RESTRICTIONS['forbidden_modules']
+
+    role_name = role.name if hasattr(role, 'name') else str(role)
+    if role_name in forbidden_roles:
+        display_name = getattr(role, 'display_name', role_name)
+        return True, f"نقش '{display_name}' برای مشاورین املاک مجاز نیست"
+
+    if hasattr(role, 'permissions') and role.permissions:
+        role_modules = role.permissions.get('modules', [])
+    elif hasattr(role, 'default_permissions') and role.default_permissions:
+        role_modules = role.default_permissions.get('modules', [])
+    else:
+        role_modules = []
+    
+    # اگر دسترسی کامل دارد
+    if 'all' in role_modules:
+        return True, "نقش‌های با دسترسی کامل برای مشاورین املاک مجاز نیست"
+    
+    # بررسی ماژول‌های ممنوع
+    for forbidden_module in forbidden_modules:
+        if forbidden_module in role_modules:
+            return True, f"نقش‌های با دسترسی به '{forbidden_module}' برای مشاورین املاک مجاز نیست"
+    
+    return False, ""
+
 AVAILABLE_MODULES = {
     'all': {
         'name': 'all',

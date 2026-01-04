@@ -12,6 +12,9 @@ from src.media.models import ImageMedia
 from src.media.utils.validators import validate_image_file
 from src.user.messages import AUTH_ERRORS
 from src.user.utils.national_id_validator import validate_national_id_format
+from src.user.access_control import is_role_forbidden_for_consultant
+
+
 
 
 class AdminRegisterSerializer(serializers.Serializer):
@@ -260,14 +263,15 @@ class AdminRegisterSerializer(serializers.Serializer):
                     'is_superuser': "مشاورین املاک نمی‌توانند دسترسی سوپرادمین داشته باشند"
                 })
             
-            # مشاور املاک نمی‌تواند نقش سوپرادمین داشته باشد
+            # مشاور املاک نمی‌تواند نقش‌های ممنوعه داشته باشد
             role_id = data.get('role_id')
             if role_id:
                 try:
                     role = AdminRole.objects.get(id=role_id)
-                    if role.name == 'super_admin':
+                    is_forbidden, reason = is_role_forbidden_for_consultant(role)
+                    if is_forbidden:
                         raise serializers.ValidationError({
-                            'role_id': "مشاورین املاک نمی‌توانند نقش سوپرادمین داشته باشند"
+                            'role_id': reason
                         })
                 except AdminRole.DoesNotExist:
                     pass

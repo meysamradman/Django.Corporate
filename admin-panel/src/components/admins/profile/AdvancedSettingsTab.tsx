@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Label } from "@/components/elements/Label";
 import { TabsContent } from "@/components/elements/Tabs";
@@ -38,12 +38,33 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
         is_super: user?.is_superuser || false,
         is_superuser: user?.is_superuser || false
     };
-    
+
     const canManagePermissions = user && (
         user.is_superuser ||
         hasPermission(userPermissionsObj, 'role.manage') ||
         hasPermission(userPermissionsObj, 'admin.manage')
     );
+
+    // ماژول‌های ممنوع برای مشاور طبق سناریو
+    const FORBIDDEN_MODULES = ['admin', 'users', 'settings', 'panel', 'ai', 'pages', 'real_estate_agents', 'real_estate_agencies'];
+
+    /**
+     * فیلتر نقش‌های در دسترس بر اساس نوع کاربر
+     */
+    const filteredAvailableRoles = useMemo(() => {
+        if (admin.user_role_type !== "consultant") return availableRoles;
+
+        return availableRoles.filter(role => {
+            // ۱. حذف سوپرادمین
+            if (role.name === "super_admin") return false;
+
+            // ۲. حذف نقش‌هایی که به ماژول‌های ممنوع دسترسی دارند
+            const roleModules = role.permissions?.modules || [];
+            if (roleModules.includes('all')) return false;
+
+            return !FORBIDDEN_MODULES.some(m => roleModules.includes(m));
+        });
+    }, [availableRoles, admin.user_role_type]);
 
     const loadAdminData = useCallback(async () => {
         try {
@@ -54,55 +75,93 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
             setAvailableRoles(rolesData);
 
             const adminRolesResponse = await adminApi.getAdminRoles(admin.id);
-            
-            const adminRolesData = Array.isArray(adminRolesResponse) 
+
+            const adminRolesData = Array.isArray(adminRolesResponse)
                 ? adminRolesResponse.map((assignment: any) => {
-                    if (assignment.role && typeof assignment.role === 'object' && assignment.role.id) {
-                        return {
-                            id: assignment.role.id,
-                            name: assignment.role.name,
-                            display_name: assignment.role.display_name || assignment.role.name,
-                            description: assignment.role.description,
-                            level: assignment.role.level,
-                            is_system_role: assignment.role.is_system_role,
-                            permissions: assignment.role.permissions,
-                            is_active: assignment.role.is_active
-                        };
-                    }
-                    if (assignment.id && assignment.name) {
+                    // Handle full role object
+                    if (assignment.id && (assignment.name || assignment.display_name)) {
                         return assignment;
                     }
-                    return null;
-                  }).filter((role: any) => role !== null)
+                    // Handle wrapper object with 'role' as object
+                    if (assignment.role && typeof assignment.role === 'object') {
+                        return {
+                            ...assignment.role,
+                            id: assignment.role.id || assignment.role.role_id,
+                            name: assignment.role.name || assignment.role_name,
+                            display_name: assignment.role.display_name || assignment.role_name
+                        };
+                    }
+                    // Handle wrapper object with 'role' as ID
+                    if (assignment.role) {
+                        return {
+                            id: Number(assignment.role),
+                            name: assignment.role_name || '',
+                            display_name: assignment.role_name || ''
+                        };
+                    }
+                    return {
+                        id: assignment.id || assignment.role_id || assignment.role,
+                        name: assignment.name || assignment.role_name || '',
+                        display_name: assignment.display_name || assignment.role_name || ''
+                    };
+                })
                 : [];
-            
+
             setAdminRoles(adminRolesData);
 
-            const initialAssignments: RoleAssignment[] = rolesData.map((role: Role) => {
-                const assigned = adminRolesData.some((adminRole: any) => {
-                    return adminRole && adminRole.id === role.id;
-                });
-                
+            // Calculate current roles list based on the same logic as useMemo to avoid stale closure issues
+            const currentRolesToDisplay = admin.user_role_type === "consultant"
+                ? rolesData.filter(role => {
+                    if (role.name === "super_admin") return false;
+                    const roleModules = role.permissions?.modules || [];
+                    if (roleModules.includes('all')) return false;
+                    return !FORBIDDEN_MODULES.some(m => roleModules.includes(m));
+                })
+                : rolesData;
+
+            const initialAssignments: RoleAssignment[] = currentRolesToDisplay.map((role: Role) => {
+                // Determine if this role is assigned
+                let isAssigned = false;
+
+                // 1. Explicit check for super_admin if user is a superuser
+                if (admin.is_superuser && role.name === 'super_admin') {
+                    isAssigned = true;
+                }
+                // 2. Search in the adminRolesData list
+                else {
+                    isAssigned = adminRolesData.some((adminRole: any) => {
+                        // Match by ID (preferred)
+                        const adminRoleId = adminRole?.id || adminRole?.role;
+                        if (adminRoleId && String(adminRoleId) === String(role.id)) return true;
+
+                        // Match by name as fallback
+                        const adminRoleName = adminRole?.name || adminRole?.role_name;
+                        if (adminRoleName && role.name && adminRoleName === role.name) return true;
+
+                        return false;
+                    });
+                }
+
                 return {
                     roleId: role.id,
-                    assigned: assigned
+                    assigned: isAssigned
                 };
             });
-            
+
             setRoleAssignments(initialAssignments);
-            
+
         } catch {
             setError(getPermissionTranslation('خطا در بارگذاری اطلاعات دسترسی‌ها', 'description'));
         } finally {
             setIsLoading(false);
         }
     }, [admin.id]);
-    
+
     useEffect(() => {
         setEditMode(false);
         loadAdminData();
     }, [admin.id, loadAdminData]);
-    
+
     useEffect(() => {
         if (!editMode) {
             loadAdminData();
@@ -111,13 +170,13 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
 
     const handleRoleAssignmentChange = (roleId: number, assigned: boolean) => {
         if (!editMode || !canManagePermissions) return;
-        
+
         setRoleAssignments(prev => {
             const existingAssignment = prev.find(a => a.roleId === roleId);
-            
+
             if (existingAssignment) {
-                return prev.map(assignment => 
-                    assignment.roleId === roleId 
+                return prev.map(assignment =>
+                    assignment.roleId === roleId
                         ? { roleId, assigned }
                         : assignment
                 );
@@ -129,7 +188,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
 
 
     const handleCancel = () => {
-        const originalAssignments = availableRoles.map((role: Role) => ({
+        const originalAssignments = filteredAvailableRoles.map((role: Role) => ({
             roleId: role.id,
             assigned: adminRoles.some((adminRole: any) => adminRole.id === role.id)
         }));
@@ -151,26 +210,26 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
 
         try {
             setIsSaving(true);
-            
+
             const currentAssignedRoleIds = adminRoles.map((role: any) => role.id);
-            
+
             const newAssignedRoleIds = roleAssignments
                 .filter(assignment => assignment.assigned === true)
                 .map(assignment => assignment.roleId);
-            
+
             const rolesToRemove = currentAssignedRoleIds.filter(
                 (roleId: number) => !newAssignedRoleIds.includes(roleId)
             );
-            
+
             const rolesToAdd = newAssignedRoleIds.filter(
-                (roleId: number) =>                 !currentAssignedRoleIds.includes(roleId)
+                (roleId: number) => !currentAssignedRoleIds.includes(roleId)
             );
-            
+
             const removeResults: { success: number[], failed: { id: number, error: string }[] } = {
                 success: [],
                 failed: []
             };
-            
+
             for (const roleId of rolesToRemove) {
                 try {
                     await adminApi.removeRoleFromAdmin(admin.id, roleId);
@@ -178,7 +237,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                 } catch (error: any) {
                     const failedRole = availableRoles.find(r => r.id === roleId);
                     const roleName = failedRole?.display_name || `Role ${roleId}`;
-                    
+
                     let errorMessage = 'خطای نامشخص';
                     if (error?.response?.data?.data?.validation_errors) {
                         errorMessage = JSON.stringify(error.response.data.data.validation_errors);
@@ -189,16 +248,16 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                     } else if (error?.message) {
                         errorMessage = error.message;
                     }
-                    
+
                     removeResults.failed.push({ id: roleId, error: `${roleName}: ${errorMessage}` });
                 }
             }
-            
+
             const assignResults: { success: number[], failed: { id: number, error: string }[] } = {
                 success: [],
                 failed: []
             };
-            
+
             for (const roleId of rolesToAdd) {
                 try {
                     await adminApi.assignRoleToAdmin(admin.id, roleId);
@@ -206,7 +265,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                 } catch (error: any) {
                     const failedRole = availableRoles.find(r => r.id === roleId);
                     const roleName = failedRole?.display_name || `Role ${roleId}`;
-                    
+
                     let errorMessage = 'خطای نامشخص';
                     if (error?.response?.data?.data?.validation_errors) {
                         errorMessage = JSON.stringify(error.response.data.data.validation_errors);
@@ -217,14 +276,14 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                     } else if (error?.message) {
                         errorMessage = error.message;
                     }
-                    
+
                     assignResults.failed.push({ id: roleId, error: `${roleName}: ${errorMessage}` });
                 }
             }
-            
+
             const totalFailed = removeResults.failed.length + assignResults.failed.length;
             const totalSuccess = removeResults.success.length + assignResults.success.length;
-            
+
             if (totalFailed === 0 && totalSuccess > 0) {
                 showSuccess(getPermissionTranslation("نقش‌های ادمین با موفقیت به‌روزرسانی شد", 'description'));
             } else if (totalSuccess === 0 && totalFailed > 0) {
@@ -249,24 +308,24 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                     }
                 );
             }
-            
+
             if (totalSuccess > 0) {
                 setEditMode(false);
-                
+
                 await new Promise(resolve => setTimeout(resolve, 500));
-                
+
                 setAdminRoles([]);
                 setRoleAssignments([]);
-                
+
                 await loadAdminData();
-                
+
                 await queryClient.invalidateQueries({ queryKey: ['permission-map'] });
-                
+
                 if (refreshUser && (user?.id === admin.id || rolesToAdd.length > 0 || rolesToRemove.length > 0)) {
                     await refreshUser();
                 }
             }
-            
+
         } catch (error) {
             showError(error, { customMessage: getPermissionTranslation('خطا در ذخیره تغییرات', 'description') });
         } finally {
@@ -277,46 +336,46 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
     return (
         <TabsContent value="advanced_settings">
             <div className="space-y-6">
-            <CardWithIcon
-                icon={Users}
-                title="اختصاص نقش‌ها"
-                iconBgColor="bg-blue"
-                iconColor="stroke-blue-2"
-                borderColor="border-b-blue-1"
-                className="hover:shadow-lg transition-all duration-300"
-                titleExtra={
-                    <div className="flex gap-2">
-                        {canManagePermissions ? (
-                            <>
-                                <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    onClick={() => editMode ? handleCancel() : setEditMode(true)}
-                                    disabled={isLoading || isSaving}
-                                >
-                                    <Edit2 className="w-4 h-4" />
-                                    {editMode ? getPermissionTranslation("لغو", 'action') : getPermissionTranslation("ویرایش نقش‌ها", 'resource')}
-                                </Button>
-                                {editMode && !admin.is_superuser && (
-                                    <Button 
-                                        size="sm" 
-                                        onClick={handleSave}
-                                        disabled={isSaving}
+                <CardWithIcon
+                    icon={Users}
+                    title="اختصاص نقش‌ها"
+                    iconBgColor="bg-blue"
+                    iconColor="stroke-blue-2"
+                    borderColor="border-b-blue-1"
+                    className="hover:shadow-lg transition-all duration-300"
+                    titleExtra={
+                        <div className="flex gap-2">
+                            {canManagePermissions ? (
+                                <>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => editMode ? handleCancel() : setEditMode(true)}
+                                        disabled={isLoading || isSaving}
                                     >
-                                        {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-                                        {getPermissionTranslation("ذخیره", 'action')}
+                                        <Edit2 className="w-4 h-4" />
+                                        {editMode ? getPermissionTranslation("لغو", 'action') : getPermissionTranslation("ویرایش نقش‌ها", 'resource')}
                                     </Button>
-                                )}
-                            </>
-                        ) : (
-                            <div className="flex items-center gap-2 text-font-s">
-                                <AlertTriangle className="w-4 h-4" />
-                                {getPermissionTranslation('فقط مشاهده (عدم دسترسی ویرایش)', 'description')}
-                            </div>
-                        )}
-                    </div>
-                }
-            >
+                                    {editMode && !admin.is_superuser && (
+                                        <Button
+                                            size="sm"
+                                            onClick={handleSave}
+                                            disabled={isSaving}
+                                        >
+                                            {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+                                            {getPermissionTranslation("ذخیره", 'action')}
+                                        </Button>
+                                    )}
+                                </>
+                            ) : (
+                                <div className="flex items-center gap-2 text-font-s">
+                                    <AlertTriangle className="w-4 h-4" />
+                                    {getPermissionTranslation('فقط مشاهده (عدم دسترسی ویرایش)', 'description')}
+                                </div>
+                            )}
+                        </div>
+                    }
+                >
                     {admin.is_superuser && (
                         <div className="mb-4 p-4 bg-green border border-green-1 rounded-lg">
                             <div className="flex items-center gap-2">
@@ -328,7 +387,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                             </p>
                         </div>
                     )}
-                    
+
                     {isLoading ? (
                         <div className="space-y-2">
                             {[...Array(5)].map((_, i) => (
@@ -340,16 +399,16 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                             <AlertTriangle className="w-5 h-5 me-2" />
                             {error}
                         </div>
-                    ) : availableRoles && availableRoles.length > 0 ? (
+                    ) : filteredAvailableRoles && filteredAvailableRoles.length > 0 ? (
                         <div className="space-y-4">
                             <div className="rounded-md border">
                                 <div className="p-4 space-y-3">
-                                    {availableRoles.map((role) => (
+                                    {filteredAvailableRoles.map((role) => (
                                         <div key={role.id} className="flex items-center justify-between p-3 border rounded-md hover:bg-bg/50">
                                             <div className="flex items-center gap-3">
                                                 <Checkbox
                                                     id={`role-${role.id}`}
-                                                    checked={roleAssignments.find(a => a.roleId === role.id)?.assigned ?? false}
+                                                    checked={roleAssignments.find(a => String(a.roleId) === String(role.id))?.assigned ?? false}
                                                     onCheckedChange={(checked) => {
                                                         handleRoleAssignmentChange(role.id, checked === true);
                                                     }}
@@ -377,7 +436,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                                     ))}
                                 </div>
                             </div>
-                            
+
                             {editMode && !admin.is_superuser && (
                                 <div className="mt-4 p-3 bg-bg rounded-lg">
                                     <div>
@@ -393,7 +452,7 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                             {getPermissionTranslation('نقشی موجود نیست', 'description')}
                         </div>
                     )}
-            </CardWithIcon>
+                </CardWithIcon>
             </div>
         </TabsContent>
     );
