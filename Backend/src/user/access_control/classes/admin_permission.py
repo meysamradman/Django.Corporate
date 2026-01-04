@@ -146,7 +146,7 @@ class AdminRolePermission(permissions.BasePermission):
             return True
         
         allowed_actions = permissions.get('actions', [])
-        has_action = 'all' in allowed_actions or action in allowed_actions
+        has_action = 'all' in allowed_actions or 'manage' in allowed_actions or action in allowed_actions
         
         if view_name == 'AdminRoleView':
             allowed_modules = permissions.get('modules', [])
@@ -306,7 +306,7 @@ class RequireModuleAccess(AdminRolePermission):
                     return False
         
         allowed_actions = permissions.get('actions', [])
-        if 'all' in allowed_actions:
+        if 'all' in allowed_actions or 'manage' in allowed_actions:
             return True
         
         return action in allowed_actions or (action == 'view' and 'read' in allowed_actions) or (action == 'read' and 'view' in allowed_actions)

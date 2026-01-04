@@ -130,6 +130,15 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
             'restrictions': ['no_blog_access', 'no_portfolio_access']
         },
     ),
+    'panel_manager': _build_role_config(
+        'panel_manager',
+        level=4,
+        permissions={
+            'modules': ['panel'],
+            'actions': ['manage'],
+            'restrictions': ['no_user_management', 'no_system_settings']
+        },
+    ),
     'chatbot_manager': _build_role_config(
         'chatbot_manager',
         level=4,
@@ -175,16 +184,6 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
             'restrictions': ['no_delete', 'audit_required']
         },
     ),
-    # 🔒 REMOVED: Panel Settings باید فقط برای Super Admin باشد
-    # 'panel_manager': _build_role_config(
-    #     'panel_manager',
-    #     level=6,
-    #     permissions={
-    #         'modules': ['panel'],
-    #         'actions': ['manage'],
-    #         'restrictions': ['no_user_management', 'no_system_settings']
-    #     },
-    # ),
     'analytics_manager': _build_role_config(
         'analytics_manager',
         level=5,
@@ -203,11 +202,20 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
             'restrictions': ['no_admin_users', 'no_delete', 'no_system_settings']
         },
     ),
+    'real_estate_manager': _build_role_config(
+        'real_estate_manager',
+        level=2,
+        permissions={
+            'modules': ['real_estate', 'real_estate_properties', 'real_estate_agents', 'real_estate_agencies', 'media', 'analytics'],
+            'actions': ['manage'],
+            'restrictions': ['no_user_management', 'no_system_settings']
+        },
+    ),
     'property_agent': _build_role_config(
         'property_agent',
         level=4,
         permissions={
-            'modules': ['real_estate', 'media'],
+            'modules': ['real_estate_properties', 'media'],
             'actions': ['create', 'read', 'update'],
             'restrictions': [
                 'no_delete',
@@ -221,7 +229,7 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
         'agency_manager',
         level=3,
         permissions={
-            'modules': ['real_estate', 'media', 'analytics'],
+            'modules': ['real_estate_properties', 'real_estate_agents', 'real_estate_agencies', 'media', 'analytics'],
             'actions': ['create', 'read', 'update', 'delete'],
             'restrictions': [
                 'agency_properties_only',
@@ -316,8 +324,23 @@ AVAILABLE_MODULES = {
     },
     'real_estate': {
         'name': 'real_estate',
-        'display_name': 'Real Estate Management',
-        'description': 'Manage properties, agents, agencies, and real estate listings.'
+        'display_name': 'Real Estate (Total)',
+        'description': 'Total access to properties, agents, and agencies.'
+    },
+    'real_estate_properties': {
+        'name': 'real_estate_properties',
+        'display_name': 'Real Estate: Properties',
+        'description': 'Manage property listings, features, and tags.'
+    },
+    'real_estate_agents': {
+        'name': 'real_estate_agents',
+        'display_name': 'Real Estate: Agents',
+        'description': 'Manage property agents and their profiles.'
+    },
+    'real_estate_agencies': {
+        'name': 'real_estate_agencies',
+        'display_name': 'Real Estate: Agencies',
+        'description': 'Manage real estate agency offices.'
     },
 }
 

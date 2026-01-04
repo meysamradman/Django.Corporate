@@ -58,12 +58,14 @@ class AdminRegisterService:
 
     @classmethod
     def register_admin_from_serializer(cls, validated_data, admin_user=None):
+        from django.db import transaction
+        
         mobile = validated_data.get('mobile')
         email = validated_data.get('email')
         password = validated_data.get('password')
-        
         user_type = validated_data.get('user_type', 'admin')
         
+        # Extended profile fields
         profile_fields = {
             'first_name': validated_data.get('first_name'),
             'last_name': validated_data.get('last_name'),
@@ -71,10 +73,7 @@ class AdminRegisterService:
             'national_id': validated_data.get('national_id'),
             'address': validated_data.get('address'),
             'phone': validated_data.get('phone'),
-            'department': validated_data.get('department'),
-            'position': validated_data.get('position'),
             'bio': validated_data.get('bio'),
-            'notes': validated_data.get('notes'),
             'province_id': validated_data.get('province_id'),
             'city_id': validated_data.get('city_id'),
         }
@@ -83,172 +82,109 @@ class AdminRegisterService:
         profile_picture_file = validated_data.get('profile_picture')
         role_id = validated_data.get('role_id')
         
-        if mobile and user_type == 'admin':
-            if not admin_user or not admin_user.is_staff:
-                raise AuthenticationFailed(AUTH_ERRORS["auth_not_authorized"])
-            
-            try:
-                validated_mobile = validate_mobile_number(mobile)
-            except Exception as e:
-                raise ValidationError(AUTH_ERRORS["auth_invalid_mobile"])
-            
-            is_superuser = validated_data.get('is_superuser', False)
-            
-            if User.objects.filter(mobile=validated_mobile).exists():
-                raise ValidationError(AUTH_ERRORS["auth_mobile_exists"])
-            
-            if email and User.objects.filter(email=email).exists():
-                raise ValidationError(AUTH_ERRORS["auth_email_exists"])
-            
-            admin = User.objects.create(
-                mobile=validated_mobile,
-                email=email,
-                user_type='admin',
-                is_staff=True,
-                is_superuser=is_superuser,
-                is_admin_active=True,
-                is_active=validated_data.get('is_active', True)
-            )
-            
-            national_id = profile_fields.get('national_id')
-            if national_id and national_id.strip():
-                existing_admin_profile = AdminProfile.objects.filter(
-                    national_id=national_id
-                ).first()
+        with transaction.atomic():
+            if mobile and user_type == 'admin':
+                if not admin_user or not admin_user.is_staff:
+                    raise AuthenticationFailed(AUTH_ERRORS["auth_not_authorized"])
                 
-                if not existing_admin_profile:
-                    existing_user_profile = UserProfile.objects.filter(
-                        national_id=national_id
-                    ).first()
-                    
-                    if existing_user_profile:
-                        profile_fields['national_id'] = None
-                else:
-                    profile_fields['national_id'] = None
-            
-            profile_data = {k: v for k, v in profile_fields.items() if v is not None}
-            
-            if 'province_id' in profile_data:
                 try:
-                    province = Province.objects.get(id=profile_data['province_id'])
-                    profile_data['province'] = province
-                    del profile_data['province_id']
-                except Province.DoesNotExist:
-                    del profile_data['province_id']
-            
-            if 'city_id' in profile_data:
-                try:
-                    city = City.objects.get(id=profile_data['city_id'])
-                    profile_data['city'] = city
-                    del profile_data['city_id']
-                except City.DoesNotExist:
-                    del profile_data['city_id']
-            
-            profile_picture_media_id = None
-            if profile_picture_file:
-                profile_picture_media_id = cls._handle_profile_picture_upload(profile_picture_file, admin.id)
-            elif profile_picture_id:
-                profile_picture_media_id = profile_picture_id
-            
-            if profile_picture_media_id:
-                profile_data['profile_picture_id'] = profile_picture_media_id
-            
-            admin_profile = AdminProfile.objects.create(
-                admin_user=admin,
-                **profile_data
-            )
-            
-        elif email and user_type == 'admin':
-            if not admin_user or not admin_user.is_staff:
-                raise AuthenticationFailed(AUTH_ERRORS["auth_not_authorized"])
-            
-            is_superuser = validated_data.get('is_superuser', False)
-            
-            if User.objects.filter(email=email).exists():
-                raise ValidationError(AUTH_ERRORS["auth_email_exists"])
-            
-            admin = User.objects.create(
-                email=email,
-                user_type='admin',
-                is_staff=True,
-                is_superuser=is_superuser,
-                is_admin_active=True,
-                is_active=validated_data.get('is_active', True)
-            )
-            
-            national_id = profile_fields.get('national_id')
-            if national_id and national_id.strip():
-                existing_admin_profile = AdminProfile.objects.filter(
-                    national_id=national_id
-                ).first()
+                    validated_mobile = validate_mobile_number(mobile)
+                except Exception:
+                    raise ValidationError(AUTH_ERRORS["auth_invalid_mobile"])
                 
-                if not existing_admin_profile:
-                    existing_user_profile = UserProfile.objects.filter(
-                        national_id=national_id
-                    ).first()
-                    
-                    if existing_user_profile:
-                        profile_fields['national_id'] = None
-                else:
-                    profile_fields['national_id'] = None
-            
-            profile_data = {k: v for k, v in profile_fields.items() if v is not None}
-            
-            if 'province_id' in profile_data:
-                try:
-                    province = Province.objects.get(id=profile_data['province_id'])
-                    profile_data['province'] = province
-                    del profile_data['province_id']
-                except Province.DoesNotExist:
-                    del profile_data['province_id']
-            
-            if 'city_id' in profile_data:
-                try:
-                    city = City.objects.get(id=profile_data['city_id'])
-                    profile_data['city'] = city
-                    del profile_data['city_id']
-                except City.DoesNotExist:
-                    del profile_data['city_id']
-            
-            profile_picture_media_id = None
-            if profile_picture_file:
-                profile_picture_media_id = cls._handle_profile_picture_upload(profile_picture_file, admin.id)
-            elif profile_picture_id:
-                profile_picture_media_id = profile_picture_id
-            
-            if profile_picture_media_id:
-                profile_data['profile_picture_id'] = profile_picture_media_id
-            
-            admin_profile = AdminProfile.objects.create(
-                admin_user=admin,
-                **profile_data
-            )
-            
-        else:
-            raise ValidationError(AUTH_ERRORS["auth_email_or_mobile_required"])
-
-        validate_register_password(password)
-        admin.set_password(password)
-        admin.save()
-        
-        # ایجاد PropertyAgent برای مشاورین املاک
-        admin_role_type = validated_data.get('admin_role_type', 'admin')
-        if admin_role_type == 'consultant':
-            cls._create_property_agent(admin, validated_data)
-        
-        if role_id and admin.user_type == 'admin':
-            try:
-                role = AdminRole.objects.get(id=role_id, is_active=True)
-                AdminUserRole.objects.create(
-                    user=admin, 
-                    role=role, 
-                    assigned_by=admin_user,
-                    is_active=True
+                is_superuser = validated_data.get('is_superuser', False)
+                
+                if User.objects.filter(mobile=validated_mobile).exists():
+                    raise ValidationError(AUTH_ERRORS["auth_mobile_exists"])
+                
+                if email and User.objects.filter(email=email).exists():
+                    raise ValidationError(AUTH_ERRORS["auth_email_exists"])
+                
+                admin = User.objects.create(
+                    mobile=validated_mobile,
+                    email=email,
+                    user_type='admin',
+                    is_staff=True,
+                    is_superuser=is_superuser,
+                    is_admin_active=True,
+                    is_active=validated_data.get('is_active', True)
                 )
-            except AdminRole.DoesNotExist:
-                pass
+            elif email and user_type == 'admin':
+                if not admin_user or not admin_user.is_staff:
+                    raise AuthenticationFailed(AUTH_ERRORS["auth_not_authorized"])
+                
+                is_superuser = validated_data.get('is_superuser', False)
+                
+                if User.objects.filter(email=email).exists():
+                    raise ValidationError(AUTH_ERRORS["auth_email_exists"])
+                
+                admin = User.objects.create(
+                    email=email,
+                    user_type='admin',
+                    is_staff=True,
+                    is_superuser=is_superuser,
+                    is_admin_active=True,
+                    is_active=validated_data.get('is_active', True)
+                )
+            else:
+                raise ValidationError(AUTH_ERRORS["auth_email_or_mobile_required"])
 
-        return admin
+            # Common profile creation logic
+            national_id = profile_fields.get('national_id')
+            if national_id and national_id.strip():
+                if AdminProfile.objects.filter(national_id=national_id).exists():
+                    profile_fields['national_id'] = None
+            
+            profile_data = {k: v for k, v in profile_fields.items() if v is not None}
+            
+            if 'province_id' in profile_data:
+                try:
+                    profile_data['province'] = Province.objects.get(id=profile_data.pop('province_id'))
+                except Province.DoesNotExist:
+                    pass
+            
+            if 'city_id' in profile_data:
+                try:
+                    profile_data['city'] = City.objects.get(id=profile_data.pop('city_id'))
+                except City.DoesNotExist:
+                    pass
+            
+            profile_picture_media_id = None
+            if profile_picture_file:
+                profile_picture_media_id = cls._handle_profile_picture_upload(profile_picture_file, admin.id)
+            elif profile_picture_id:
+                profile_picture_media_id = profile_picture_id
+            
+            if profile_picture_media_id:
+                profile_data['profile_picture_id'] = profile_picture_media_id
+            
+            AdminProfile.objects.create(
+                admin_user=admin,
+                **profile_data
+            )
+
+            validate_register_password(password)
+            admin.set_password(password)
+            admin.save()
+            
+            # handle consultation profile
+            admin_role_type = validated_data.get('admin_role_type', 'admin')
+            if admin_role_type == 'consultant':
+                cls._create_property_agent(admin, validated_data)
+            
+            if role_id:
+                try:
+                    role = AdminRole.objects.get(id=role_id, is_active=True)
+                    AdminUserRole.objects.create(
+                        user=admin, 
+                        role=role, 
+                        assigned_by=admin_user,
+                        is_active=True
+                    )
+                except AdminRole.DoesNotExist:
+                    pass
+
+            return admin
     
     @classmethod
     def _create_property_agent(cls, user, validated_data):

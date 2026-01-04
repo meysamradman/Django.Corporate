@@ -11,18 +11,22 @@ from src.core.models import BaseModel
 class AdminRole(BaseModel):
     ADMIN_ROLES = (
         ('super_admin', 'Super Admin'),
-        ('content_manager', 'Content Manager'),
         ('blog_manager', 'Blog Manager'),
         ('portfolio_manager', 'Portfolio Manager'),
         ('media_manager', 'Media Manager'),
         ('forms_manager', 'Forms Manager'),
         ('pages_manager', 'Pages Manager'),
+        ('panel_manager', 'Panel Manager'),
+        ('chatbot_manager', 'Chatbot Manager'),
+        ('ticket_manager', 'Ticket Manager'),
         ('email_manager', 'Email Manager'),
         ('ai_manager', 'AI Manager'),
         ('analytics_manager', 'Analytics Manager'),
         ('settings_manager', 'Settings Manager'),
-        # 🔒 REMOVED: 'panel_manager' - Panel Settings فقط برای Super Admin
         ('user_manager', 'User Manager'),
+        ('real_estate_manager', 'Real Estate Manager'),
+        ('property_agent', 'Property Agent'),
+        ('agency_manager', 'Agency Manager'),
     )
     
     name = models.CharField(

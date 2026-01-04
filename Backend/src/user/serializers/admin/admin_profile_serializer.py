@@ -11,6 +11,7 @@ from src.user.messages import AUTH_ERRORS
 from src.user.utils.mobile_validator import validate_mobile_number
 from src.user.utils.phone_validator import validate_phone_number_with_uniqueness
 from src.user.access_control import get_role_config, is_super_admin_role, PermissionHelper
+from src.real_estate.serializers.admin.agent_serializer import PropertyAgentAdminDetailSerializer
 
 
 class ProfilePictureSerializer(serializers.ModelSerializer):
@@ -174,6 +175,9 @@ class AdminCompleteProfileSerializer(serializers.ModelSerializer):
     roles = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
     is_super = serializers.SerializerMethodField()
+    has_agent_profile = serializers.SerializerMethodField()
+    agent_profile = serializers.SerializerMethodField()
+    user_role_type = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -185,7 +189,10 @@ class AdminCompleteProfileSerializer(serializers.ModelSerializer):
             'permissions',
             'roles',
             'full_name',
-            'is_super'
+            'is_super',
+            'has_agent_profile',
+            'agent_profile',
+            'user_role_type'
         ]
         read_only_fields = fields
 
@@ -199,6 +206,30 @@ class AdminCompleteProfileSerializer(serializers.ModelSerializer):
 
     def get_is_super(self, user):
         return user.is_superuser
+    
+    def get_has_agent_profile(self, user):
+        try:
+            return hasattr(user, 'real_estate_agent_profile') and user.real_estate_agent_profile is not None
+        except Exception:
+            return False
+            
+    def get_agent_profile(self, user):
+        try:
+            if hasattr(user, 'real_estate_agent_profile') and user.real_estate_agent_profile is not None:
+                return PropertyAgentAdminDetailSerializer(user.real_estate_agent_profile, context=self.context).data
+        except Exception:
+            pass
+        return None
+        
+    def get_user_role_type(self, user):
+        if user.is_superuser:
+            return 'admin'
+        try:
+            if hasattr(user, 'real_estate_agent_profile') and user.real_estate_agent_profile is not None:
+                return 'consultant'
+        except Exception:
+            pass
+        return 'admin'
     
     def get_roles(self, user):
         if user.is_superuser:

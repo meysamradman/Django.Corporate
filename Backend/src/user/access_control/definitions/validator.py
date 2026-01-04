@@ -233,6 +233,8 @@ class PermissionValidator:
                                         elif perm_action == 'view':
                                             actions.add('view')
                                             actions.add('read')
+                                        elif perm_action == 'manage':
+                                            actions.update(['view', 'read', 'create', 'update', 'delete', 'manage'])
                                         else:
                                             actions.add(perm_action)
                     else:
@@ -249,6 +251,8 @@ class PermissionValidator:
                                 elif action == 'view':
                                     actions.add('view')
                                     actions.add('read')
+                                elif action == 'manage':
+                                    actions.update(['view', 'read', 'create', 'update', 'delete', 'manage'])
                                 else:
                                     actions.add(action)
                 else:

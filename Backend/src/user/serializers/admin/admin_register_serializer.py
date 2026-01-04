@@ -43,10 +43,7 @@ class AdminRegisterSerializer(serializers.Serializer):
     national_id = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=20)
     address = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     phone = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=15)
-    department = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=100)
-    position = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=100)
     bio = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    notes = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     province_id = serializers.IntegerField(required=False, allow_null=True)
     city_id = serializers.IntegerField(required=False, allow_null=True)
     
@@ -241,7 +238,7 @@ class AdminRegisterSerializer(serializers.Serializer):
         # پردازش profile data
         profile_data = data.get('profile', {})
         if profile_data:
-            for field in ['first_name', 'last_name', 'birth_date', 'national_id', 'address', 'phone', 'department', 'position', 'bio', 'notes', 'province_id', 'city_id']:
+            for field in ['first_name', 'last_name', 'birth_date', 'national_id', 'address', 'phone', 'bio', 'province_id', 'city_id']:
                 if field in profile_data and field not in data:
                     data[field] = profile_data[field]
             
