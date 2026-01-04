@@ -64,15 +64,29 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_denied_message = PROPERTY_ERRORS["property_not_authorized"]
     
     def get_queryset(self):
+        user = self.request.user
+        queryset = Property.objects.all()
+
         if self.action == 'list':
-            return Property.objects.for_admin_listing()
+            queryset = Property.objects.for_admin_listing()
         elif self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
             # Ensure region and related location fields are loaded for updates
-            return Property.objects.for_detail().select_related(
+            queryset = Property.objects.for_detail().select_related(
                 'region__city__province__country'
             )
-        else:
-            return Property.objects.all()
+
+        # 🔒 Role-based filtering (Own Properties Only)
+        is_super = getattr(user, 'is_superuser', False) or getattr(user, 'is_admin_full', False)
+        if not is_super:
+            has_agent_role = hasattr(user, 'admin_user_roles') and user.admin_user_roles.filter(
+                role__name='property_agent',
+                is_active=True
+            ).exists()
+            
+            if has_agent_role:
+                queryset = queryset.filter(created_by=user)
+        
+        return queryset
     
     def get_serializer_class(self):
         if self.action == 'list':

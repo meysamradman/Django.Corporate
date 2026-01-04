@@ -16,6 +16,10 @@ import {
   Home,
   Info,
   Loader2,
+  Activity,
+  Eye,
+  Heart,
+  MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { realEstateApi } from "@/api/real-estate";
@@ -159,34 +163,42 @@ export function OverviewTab({ property }: OverviewTabProps) {
         </CardWithIcon>
 
         <CardWithIcon
-          icon={Building2}
-          title="ویژگی‌ها"
+          icon={Activity}
+          title="آمار و وضعیت"
           iconBgColor="bg-teal"
           iconColor="stroke-teal-2"
           borderColor="border-b-teal-1"
           headerClassName="pb-3"
-          titleExtra={<Badge variant="teal">{featuresCount} مورد</Badge>}
+          titleExtra={<Badge variant="teal">فعال</Badge>}
         >
           <p className="text-font-s mb-4">
-            ویژگی‌های این ملک
+            آمار بازدید و تعامل کاربران
           </p>
-          {property.features && property.features.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {property.features.map((feature) => (
-                <Badge
-                  key={feature.id}
-                  variant="teal"
-                  className="cursor-default"
-                >
-                  {feature.title}
-                </Badge>
-              ))}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-2 rounded-lg bg-bg-2/50 hover:bg-bg-2 transition-colors">
+              <div className="flex items-center gap-2 text-font-s">
+                <Eye className="w-4 h-4 text-gray-2" />
+                <span>بازدیدها</span>
+              </div>
+              <span className="font-medium text-font-p">{property.views_count || 0}</span>
             </div>
-          ) : (
-            <p className="text-font-s">
-              ویژگی‌ای انتخاب نشده است
-            </p>
-          )}
+
+            <div className="flex items-center justify-between p-2 rounded-lg bg-bg-2/50 hover:bg-bg-2 transition-colors">
+              <div className="flex items-center gap-2 text-font-s">
+                <Heart className="w-4 h-4 text-red-1" />
+                <span>علاقه‌مندی‌ها</span>
+              </div>
+              <span className="font-medium text-font-p">{property.favorites_count || 0}</span>
+            </div>
+
+            <div className="flex items-center justify-between p-2 rounded-lg bg-bg-2/50 hover:bg-bg-2 transition-colors">
+              <div className="flex items-center gap-2 text-font-s">
+                <MessageCircle className="w-4 h-4 text-blue-1" />
+                <span>درخواست‌ها</span>
+              </div>
+              <span className="font-medium text-font-p">{property.inquiries_count || 0}</span>
+            </div>
+          </div>
         </CardWithIcon>
 
         <CardWithIcon

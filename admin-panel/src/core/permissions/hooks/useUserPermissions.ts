@@ -81,7 +81,7 @@ const MODULE_NAMES = {
 // Auto-generate mapping from permissions API
 const generateModuleMapping = (permissionsData: any[]): Record<string, string> => {
   const mapping: Record<string, string> = {};
-  
+
   if (!permissionsData || !Array.isArray(permissionsData)) {
     return mapping;
   }
@@ -90,11 +90,11 @@ const generateModuleMapping = (permissionsData: any[]): Record<string, string> =
     group.permissions?.forEach((perm: any) => {
       const originalKey = perm.original_key || `${perm.resource}.${perm.action}`;
       const parts = originalKey.split('.');
-      
+
       if (parts.length > 2) {
         // Nested resource (e.g., 'blog.category.read' -> 'blog.category')
         const nestedResource = parts.slice(0, -1).join('.');
-        
+
         // Create frontend-to-backend mapping (e.g., 'blog_categories' -> 'blog.category')
         // Convert dot notation to underscore for frontend (legacy compatibility)
         const frontendName = nestedResource.replace(/\./g, '_');
@@ -334,10 +334,10 @@ export function useUserPermissions() {
   // Check module action without checking parent (strict checking for nested modules)
   const hasModuleActionStrict = useCallback((resource: string, action: ModuleAction | ModuleAction[]): boolean => {
     if (!resource) return false;
-    
+
     // Map frontend module name to backend module name if needed
     const backendResource = FRONTEND_TO_BACKEND_MODULE_MAP[resource] || resource;
-    
+
     const actionList = Array.isArray(action) ? action : (ACTION_SYNONYMS[action] || [action]);
     const isReadAction = actionList.every(act => READ_ACTIONS.has(act as ModuleAction));
 
@@ -377,7 +377,7 @@ export function useUserPermissions() {
       }
     }
 
-    const hasDirectPermission = actionList.some(act => 
+    const hasDirectPermission = actionList.some(act =>
       hasPermission(`${backendResource}.${act}`) || hasPermission(`${resource}.${act}`)
     );
     if (hasDirectPermission) {
@@ -389,10 +389,10 @@ export function useUserPermissions() {
 
   const hasModuleAction = useCallback((resource: string, action: ModuleAction | ModuleAction[]): boolean => {
     if (!resource) return false;
-    
+
     // Map frontend module name to backend module name if needed
     const backendResource = FRONTEND_TO_BACKEND_MODULE_MAP[resource] || resource;
-    
+
     const actionList = Array.isArray(action) ? action : (ACTION_SYNONYMS[action] || [action]);
     const isReadAction = actionList.every(act => READ_ACTIONS.has(act as ModuleAction));
 
@@ -454,7 +454,7 @@ export function useUserPermissions() {
       }
     }
 
-    const hasDirectPermission = actionList.some(act => 
+    const hasDirectPermission = actionList.some(act =>
       hasPermission(`${backendResource}.${act}`) || hasPermission(`${resource}.${act}`)
     );
     if (hasDirectPermission) {

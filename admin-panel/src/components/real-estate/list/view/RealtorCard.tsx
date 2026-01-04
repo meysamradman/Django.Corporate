@@ -29,13 +29,13 @@ export function RealtorCard({ property }: RealtorCardProps) {
     const isAgent = !!agent;
 
     // Data Mapping
-    const name = isAgent ? (agent.full_name || `${agent.first_name} ${agent.last_name}`) : "مدیر سایت";
-    const role = isAgent ? (agent.specialization || "مشاور املاک") : "مدیریت کل";
-    const phone = isAgent ? agent.phone : "021-12345678";
-    const mobile = isAgent ? null : "09123456789";
-    const email = isAgent ? agent.email : "info@example.com";
-    const website = isAgent ? (agent.canonical_url || "") : "www.example.com";
-    const agencyName = isAgent && agent.agency ? agent.agency.name : "آژانس مرکزی";
+    const name = isAgent ? (agent.full_name || `${agent.first_name} ${agent.last_name}`) : "مدیر سیستم";
+    const role = isAgent ? (agent.specialization || "مشاور املاک") : "ادمین کل";
+    const phone = isAgent ? agent.phone : property.created_by || "-"; // Fallback to created_by if available
+    const mobile = isAgent ? null : "-";
+    const email = isAgent ? agent.email : "-";
+    const website = isAgent ? (agent.canonical_url || "") : "";
+    const agencyName = isAgent && agent.agency ? agent.agency.name : "دپارتمان مرکزی";
     const license = isAgent ? agent.license_number : null;
     const isVerified = isAgent ? agent.is_verified : true; // Admins are verified
 
@@ -45,137 +45,112 @@ export function RealtorCard({ property }: RealtorCardProps) {
         : null;
 
     return (
-        <div className="w-full space-y-6 sticky top-20 transition-all duration-300 ease-in-out self-start">
-            <Card className="overflow-hidden">
-                <CardContent className="pt-0 pb-0">
-                    <div className="pb-2">
-                        {/* Image Container - aspect-video as requested */}
-                        <div className="relative w-full aspect-video rounded-xl overflow-hidden border shadow-md bg-bg-2">
-                            {profileUrl ? (
-                                <MediaImage
-                                    media={{ file_url: profileUrl } as any}
-                                    alt={name}
-                                    className="object-cover"
-                                    fill
-                                />
-                            ) : (
-                                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-1 to-blue-2 text-static-w">
-                                    {isAgent ? <User className="w-20 h-20 mb-2" /> : <ShieldCheck className="w-20 h-20 mb-2" />}
-                                    <span className="text-xl font-bold">{name?.[0]?.toUpperCase() || "A"}</span>
+        <div className="w-full space-y-6 sticky top-20 transition-all duration-300 ease-in-out self-start group">
+            <Card className="overflow-hidden border-br hover:shadow-xl transition-all duration-500 relative bg-card group-hover:-translate-y-1">
+                <CardContent className="p-0">
+                    {/* Header Image / Profile Background */}
+                    <div className="relative w-full aspect-[4/3] overflow-hidden">
+                        {profileUrl ? (
+                            <MediaImage
+                                media={{ file_url: profileUrl } as any}
+                                alt={name}
+                                className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
+                                fill
+                            />
+                        ) : (
+                            <div className={`w-full h-full flex flex-col items-center justify-center bg-gradient-to-br ${isAgent ? 'from-blue-1 via-blue-2 to-indigo-2' : 'from-gray-700 via-gray-800 to-black'} text-white`}>
+                                {isAgent ? <User className="w-24 h-24 mb-4 opacity-80" /> : <ShieldCheck className="w-24 h-24 mb-4 opacity-80" />}
+                                <span className="text-3xl font-bold tracking-wider opacity-50">{name?.[0]?.toUpperCase() || "A"}</span>
+                            </div>
+                        )}
+
+                        {/* Overlay Gradient */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6">
+                            <div className="flex items-center gap-2 mb-1">
+                                <h3 className="text-2xl font-bold text-white shadow-sm">{name}</h3>
+                                {isVerified && (
+                                    <CheckCircle2 className="w-5 h-5 text-blue-1 fill-white" />
+                                )}
+                            </div>
+                            <div className="flex items-center gap-2 text-white/90 text-sm">
+                                <span className={`px-2 py-0.5 rounded backdrop-blur-md border border-white/20 ${isAgent ? 'bg-blue-1/30' : 'bg-gray-500/30'}`}>
+                                    {role}
+                                </span>
+                                <span>•</span>
+                                <span className="opacity-80">{agencyName}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Contact Info Body */}
+                    <div className="p-6 space-y-6 bg-card">
+
+                        {/* Social Icons */}
+                        <div className="flex justify-center gap-4 border-b border-br pb-6">
+                            {[Facebook, Twitter, Linkedin, Instagram].map((Icon, i) => (
+                                <a key={i} href="#" className="p-2.5 rounded-xl bg-bg-2 text-gray-2 hover:bg-primary hover:text-white transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-lg hover:shadow-primary/30">
+                                    <Icon className="w-5 h-5" />
+                                </a>
+                            ))}
+                        </div>
+
+                        <div className="space-y-4">
+                            {/* Phone */}
+                            {phone && phone !== "-" && (
+                                <div className="flex items-center justify-between group/item p-3 rounded-xl hover:bg-bg-2 transition-colors border border-transparent hover:border-br">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-lg bg-blue-1/10 text-blue-1 group-hover/item:bg-blue-1 group-hover/item:text-white transition-colors">
+                                            <Phone className="w-4 h-4" />
+                                        </div>
+                                        <span className="text-font-s font-medium">تلفن تماس</span>
+                                    </div>
+                                    <span className="text-font-p font-bold font-mono text-lg" dir="ltr">{phone}</span>
+                                </div>
+                            )}
+
+                            {/* Mobile */}
+                            {mobile && mobile !== "-" && (
+                                <div className="flex items-center justify-between group/item p-3 rounded-xl hover:bg-bg-2 transition-colors border border-transparent hover:border-br">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-lg bg-blue-1/10 text-blue-1 group-hover/item:bg-blue-1 group-hover/item:text-white transition-colors">
+                                            <Smartphone className="w-4 h-4" />
+                                        </div>
+                                        <span className="text-font-s font-medium">موبایل</span>
+                                    </div>
+                                    <span className="text-font-p font-bold font-mono text-lg" dir="ltr">{mobile}</span>
+                                </div>
+                            )}
+
+                            {/* Email */}
+                            {email && email !== "-" && (
+                                <div className="flex items-center justify-between group/item p-3 rounded-xl hover:bg-bg-2 transition-colors border border-transparent hover:border-br">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-lg bg-blue-1/10 text-blue-1 group-hover/item:bg-blue-1 group-hover/item:text-white transition-colors">
+                                            <Mail className="w-4 h-4" />
+                                        </div>
+                                        <span className="text-font-s font-medium">ایمیل</span>
+                                    </div>
+                                    <TruncatedText text={email} maxLength={22} className="text-font-p font-medium text-sm" />
+                                </div>
+                            )}
+
+                            {/* License */}
+                            {license && (
+                                <div className="flex items-center justify-between pt-2 px-2">
+                                    <span className="text-xs text-font-s flex items-center gap-1">
+                                        <Award className="w-3 h-3" />
+                                        کد/پروانه:
+                                    </span>
+                                    <span className="text-xs font-mono text-font-p bg-bg-2 px-2 py-0.5 rounded border border-br">{license}</span>
                                 </div>
                             )}
                         </div>
-                    </div>
 
-                    <div className="pb-6 pt-2 border-b -mx-6 px-6">
-                        {/* Name & Agency Section */}
-                        <div className="text-center space-y-2 mb-4">
-                            <div className="flex items-center justify-center gap-2">
-                                <h3 className="text-xl font-bold text-font-p">{name}</h3>
-                                {isVerified && (
-                                    <CheckCircle2 className="w-5 h-5 text-blue-1 fill-blue-0" aria-label="تایید شده" />
-                                )}
-                            </div>
-
-                            <div className="flex flex-col items-center gap-1">
-                                <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                                    {role}
-                                </div>
-                                <div className="inline-flex items-center gap-1 text-sm text-font-s mt-1">
-                                    <Building2 className="w-3 h-3" />
-                                    <span>{agencyName}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Social Icons Row */}
-                        <div className="flex justify-center gap-3">
-                            <a href="#" className="p-2 rounded-lg bg-bg-2 hover:bg-primary/10 hover:text-primary transition-colors border border-br">
-                                <Facebook className="w-4 h-4" />
+                        <div className="pt-2">
+                            <a href="#" className="flex items-center justify-center w-full py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/25 hover:shadow-primary/40 text-base group/btn">
+                                <span>مشاهده کارتابل</span>
+                                <Building2 className="w-4 h-4 mr-2 group-hover/btn:translate-x-[-4px] transition-transform" />
                             </a>
-                            <a href="#" className="p-2 rounded-lg bg-bg-2 hover:bg-primary/10 hover:text-primary transition-colors border border-br">
-                                <Twitter className="w-4 h-4" />
-                            </a>
-                            <a href="#" className="p-2 rounded-lg bg-bg-2 hover:bg-primary/10 hover:text-primary transition-colors border border-br">
-                                <Linkedin className="w-4 h-4" />
-                            </a>
-                            <a href="#" className="p-2 rounded-lg bg-bg-2 hover:bg-primary/10 hover:text-primary transition-colors border border-br">
-                                <Instagram className="w-4 h-4" />
-                            </a>
-                        </div>
-                    </div>
-
-                    <div className="pt-4 pb-4">
-                        <div className="space-y-5">
-                            <div>
-                                <h4 className="mb-4 text-font-p">اطلاعات تماس</h4>
-                                <div className="space-y-0 [&>div:not(:last-child)]:border-b">
-                                    {/* Phone */}
-                                    {phone && (
-                                        <div className="flex items-center justify-between gap-3 pb-3">
-                                            <div className="flex items-center gap-2">
-                                                <Phone className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>تلفن:</label>
-                                            </div>
-                                            <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
-                                                <span className="text-font-p font-medium" dir="ltr">{phone}</span>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Mobile */}
-                                    {mobile && (
-                                        <div className="flex items-center justify-between gap-3 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <Smartphone className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>موبایل:</label>
-                                            </div>
-                                            <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
-                                                <span className="text-font-p font-medium" dir="ltr">{mobile}</span>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Email */}
-                                    {email && (
-                                        <div className="flex items-center justify-between gap-3 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <Mail className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>ایمیل:</label>
-                                            </div>
-                                            <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
-                                                <TruncatedText text={email} maxLength={25} className="text-font-p" />
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Website */}
-                                    {website && (
-                                        <div className="flex items-center justify-between gap-3 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <Globe className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>وب‌سایت:</label>
-                                            </div>
-                                            <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
-                                                <TruncatedText text={website} maxLength={25} className="text-font-p hover:text-primary cursor-pointer" />
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* License Number */}
-                                    {license && (
-                                        <div className="flex items-center justify-between gap-3 pt-3">
-                                            <div className="flex items-center gap-2">
-                                                <Award className="w-4 h-4 text-font-s flex-shrink-0" />
-                                                <label>شماره پروانه:</label>
-                                            </div>
-                                            <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
-                                                <span className="text-font-p font-mono text-sm">{license}</span>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </CardContent>

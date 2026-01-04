@@ -390,8 +390,36 @@ class AdminUpdateSerializer(serializers.Serializer):
 
     def validate(self, data):
         admin_user = self.context.get('admin_user')
+        user_id = self.context.get('user_id')
+        
+        # چک کردن دسترسی سوپرادمین برای تغییر فیلد سوپرادمین
         if data.get('is_superuser') is True and not admin_user.is_superuser:
             raise serializers.ValidationError({'is_superuser': AUTH_ERRORS["auth_only_superuser_set"]})
+
+        # اگر کاربر مورد نظر مشاور است، نباید سوپرادمین شود
+        if user_id:
+            try:
+                user = User.objects.get(id=user_id)
+                is_consultant = hasattr(user, 'real_estate_agent_profile') and user.real_estate_agent_profile is not None
+                
+                if is_consultant:
+                    if data.get('is_superuser') is True:
+                        raise serializers.ValidationError({
+                            'is_superuser': "مشاورین املاک نمی‌توانند دسترسی سوپرادمین داشته باشند"
+                        })
+                    
+                    role_id = data.get('role_id')
+                    if role_id:
+                        try:
+                            role = AdminRole.objects.get(id=role_id)
+                            if role.name == 'super_admin':
+                                raise serializers.ValidationError({
+                                    'role_id': "مشاورین املاک نمی‌توانند نقش سوپرادمین داشته باشند"
+                                })
+                        except AdminRole.DoesNotExist:
+                            pass
+            except User.DoesNotExist:
+                pass
 
         return data
     

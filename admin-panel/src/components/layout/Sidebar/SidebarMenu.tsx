@@ -210,14 +210,15 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
               requireSuperAdmin: true
             }
           },
-          { title: "آژانس‌ها", isTitle: true },
+          { title: "آژانس‌ها", isTitle: true, access: { roles: ["super_admin", "agency_manager"] } },
           {
             title: "لیست آژانس‌ها",
             url: "/admins/agencies",
             icon: Building,
             access: {
               module: "real_estate.agency",
-              allowReadOnly: true
+              allowReadOnly: true,
+              roles: ["super_admin", "agency_manager"]
             }
           },
           {
@@ -226,7 +227,8 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
             icon: Plus,
             access: {
               module: "real_estate.agency",
-              actions: ["create"]
+              actions: ["create"],
+              roles: ["super_admin", "agency_manager"]
             }
           },
         ],
@@ -234,10 +236,15 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
       {
         title: "کاربران",
         icon: Users,
-        access: { module: "users", allowReadOnly: true, readOnlyLabel: "فقط مشاهده" },
+        access: {
+          module: "users",
+          allowReadOnly: true,
+          readOnlyLabel: "فقط مشاهده",
+          roles: ["super_admin", "user_manager"]
+        },
         items: [
-          { title: "لیست کاربران", url: "/users", icon: Users, access: { module: "users", allowReadOnly: true } },
-          { title: "ایجاد کاربر", url: "/users/create", icon: UserPlus, access: { module: "users", actions: ["create"] } },
+          { title: "لیست کاربران", url: "/users", icon: Users, access: { module: "users", allowReadOnly: true, roles: ["super_admin", "user_manager"] } },
+          { title: "ایجاد کاربر", url: "/users/create", icon: UserPlus, access: { module: "users", actions: ["create"], roles: ["super_admin", "user_manager"] } },
         ],
       },
     ]
@@ -327,7 +334,8 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
           fallbackModules: ["real_estate"],
           actions: ["manage"],
           allowReadOnly: true,
-          readOnlyLabel: "فقط مشاهده"
+          readOnlyLabel: "فقط مشاهده",
+          roles: ["super_admin", "agency_manager", "content_manager"]
         },
         items: [
           { title: "گزارش آماری", url: "/analytics", icon: BarChart3, access: { module: "analytics", allowReadOnly: true } },
@@ -343,17 +351,17 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         title: "تنظیمات",
         icon: Settings,
         items: [
-          { title: "تنظیمات پنل ادمین", isTitle: true },
+          { title: "تنظیمات پنل ادمین", isTitle: true, access: { requireSuperAdmin: true } },
           { title: "تنظیمات پنل", url: "/panel", icon: LayoutDashboard, access: { requireSuperAdmin: true } },  // 🔒 فقط Super Admin
-          { title: "تنظیمات هوش مصنوعی", isTitle: true },
-          { title: "مدیریت Provider ها", url: "/ai/settings", icon: Cpu, access: { module: "ai", actions: ["manage"] } },
+          { title: "تنظیمات هوش مصنوعی", isTitle: true, access: { requireSuperAdmin: true } },
+          { title: "مدیریت Provider ها", url: "/ai/settings", icon: Cpu, access: { module: "ai", actions: ["manage"], roles: ["super_admin"] } },
           { title: "انتخاب مدل‌ها", url: "/ai/models", icon: List, access: { module: "ai", actions: ["manage"], requireSuperAdmin: true } },
-          { title: "تنظیمات وب‌سایت و اپلیکیشن", isTitle: true },
-          { title: "تنظیمات عمومی", url: "/settings", icon: Settings, access: { module: "settings", actions: ["manage"] } },
-          { title: "چت‌بات", url: "/chatbot", icon: Bot, access: { module: "chatbot", actions: ["manage"] } },
-          { title: "فرم‌ها", url: "/form-builder", icon: FileCheck, access: { module: "forms", allowReadOnly: true } },
-          { title: "درباره ما", url: "/page/about", icon: Info, access: { module: "pages", actions: ["manage"] } },
-          { title: "قوانین و مقررات", url: "/page/terms", icon: FileText, access: { module: "pages", actions: ["manage"] } },
+          { title: "تنظیمات وب‌سایت و اپلیکیشن", isTitle: true, access: { roles: ["super_admin", "agency_manager"] } },
+          { title: "تنظیمات عمومی", url: "/settings", icon: Settings, access: { module: "settings", actions: ["manage"], roles: ["super_admin", "agency_manager"] } },
+          { title: "چت‌بات", url: "/chatbot", icon: Bot, access: { module: "chatbot", actions: ["manage"], roles: ["super_admin", "agency_manager"] } },
+          { title: "فرم‌ها", url: "/form-builder", icon: FileCheck, access: { module: "forms", allowReadOnly: true, roles: ["super_admin", "agency_manager"] } },
+          { title: "درباره ما", url: "/page/about", icon: Info, access: { module: "pages", actions: ["manage"], roles: ["super_admin"] } },
+          { title: "قوانین و مقررات", url: "/page/terms", icon: FileText, access: { module: "pages", actions: ["manage"], roles: ["super_admin"] } },
         ],
       },
     ]
@@ -386,7 +394,7 @@ export const useMenuData = () => {
   const moduleFallbacksMap = useMemo(() => {
     const map: Record<string, string[]> = {};
     const frontendToBackendMap: Record<string, string> = {};
-    
+
     if (!permissionsData || !Array.isArray(permissionsData)) {
       return { fallbacks: map, mapping: frontendToBackendMap };
     }
@@ -396,19 +404,19 @@ export const useMenuData = () => {
       if (!baseResource) return;
 
       const nestedResources: string[] = [];
-      
+
       // Extract nested resources from permissions
       group.permissions?.forEach((perm: any) => {
         const originalKey = perm.original_key || `${perm.resource}.${perm.action}`;
         const parts = originalKey.split('.');
-        
+
         if (parts.length > 2) {
           // Nested resource (e.g., 'blog.category.read' -> 'blog.category')
           const nestedResource = parts.slice(0, -1).join('.');
-          
+
           if (nestedResource !== baseResource && !nestedResources.includes(nestedResource)) {
             nestedResources.push(nestedResource);
-            
+
             // Create frontend-to-backend mapping (e.g., 'blog_categories' -> 'blog.category')
             // Convert dot notation to underscore for frontend (legacy compatibility)
             const frontendName = nestedResource.replace(/\./g, '_');
@@ -492,48 +500,48 @@ export const useMenuData = () => {
 
     // Use auto-generated mapping from permissions API
     const FRONTEND_TO_BACKEND_MODULE_MAP = moduleFallbacksMap.mapping;
-    
+
     // Map primary module if needed
-    const mappedPrimaryModule = primaryModule 
+    const mappedPrimaryModule = primaryModule
       ? (FRONTEND_TO_BACKEND_MODULE_MAP[primaryModule] || primaryModule)
       : null;
-    
+
     // Check if primaryModule is a nested module (e.g., 'real_estate.type')
     // For nested modules, we should NOT use fallbackModules - only check the specific module
     const isNestedModule = mappedPrimaryModule && mappedPrimaryModule.includes('.');
-    
+
     // Auto-generate fallbackModules only if primaryModule is NOT a nested module
     // For nested modules, we want strict checking - only check that specific module
     const autoFallbackModules = !isNestedModule && primaryModule && moduleFallbacksMap.fallbacks[primaryModule]
       ? moduleFallbacksMap.fallbacks[primaryModule]
       : [];
-    
+
     // Combine provided fallbackModules with auto-generated ones (only if not nested)
-    const allFallbackModules = isNestedModule 
+    const allFallbackModules = isNestedModule
       ? [] // No fallbacks for nested modules - strict checking only
       : [...new Set([...fallbackModules, ...autoFallbackModules])];
-    
-    const mappedFallbackModules = allFallbackModules.map(module => 
+
+    const mappedFallbackModules = allFallbackModules.map(module =>
       FRONTEND_TO_BACKEND_MODULE_MAP[module] || module
     );
 
     const primaryProfile = mappedPrimaryModule ? getModuleAccessProfile(mappedPrimaryModule) : null;
     const fallbackProfiles = mappedFallbackModules.map(module => getModuleAccessProfile(module));
     const hasFallbackRead = fallbackProfiles.some(profile => profile.canRead);
-    
+
     // For nested modules, use strict checking (don't check parent)
     // For base modules, use normal checking (can check fallbacks)
     const hasPrimaryRead = mappedPrimaryModule
-      ? (isNestedModule 
-          ? hasModuleActionStrict(mappedPrimaryModule, 'read')
-          : (primaryProfile?.canRead ?? false))
+      ? (isNestedModule
+        ? hasModuleActionStrict(mappedPrimaryModule, 'read')
+        : (primaryProfile?.canRead ?? false))
       : false;
-    
+
     // Check if user has access to requested actions (use mapped primary module)
     const hasPrimaryActions = mappedPrimaryModule
-      ? (isNestedModule 
-          ? requestedActions.some(action => hasModuleActionStrict(mappedPrimaryModule, action))
-          : requestedActions.some(action => hasModuleAction(mappedPrimaryModule, action)))
+      ? (isNestedModule
+        ? requestedActions.some(action => hasModuleActionStrict(mappedPrimaryModule, action))
+        : requestedActions.some(action => hasModuleAction(mappedPrimaryModule, action)))
       : false;
 
     if (!primaryModule) {
@@ -548,12 +556,12 @@ export const useMenuData = () => {
 
     // If specific actions are requested (not just read), check them strictly
     const hasSpecificActions = access.actions && access.actions.length > 0 && !requestedActions.every(a => READ_ACTIONS.has(a));
-    
+
     if (hasSpecificActions) {
       // For items with specific actions (like "create"), check if user has that action
       if (!hasPrimaryActions) {
         // Check fallback modules (with mapping)
-        const hasFallbackActions = mappedFallbackModules.some(module => 
+        const hasFallbackActions = mappedFallbackModules.some(module =>
           requestedActions.some(action => hasModuleAction(module, action))
         );
         if (hasFallbackActions) {

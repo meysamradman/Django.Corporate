@@ -257,6 +257,24 @@ class AdminRegisterSerializer(serializers.Serializer):
         admin_role_type = data.get('admin_role_type', 'admin')
         
         if admin_role_type == 'consultant':
+            # مشاور املاک نمی‌تواند سوپرادمین باشد
+            if data.get('is_superuser') is True:
+                raise serializers.ValidationError({
+                    'is_superuser': "مشاورین املاک نمی‌توانند دسترسی سوپرادمین داشته باشند"
+                })
+            
+            # مشاور املاک نمی‌تواند نقش سوپرادمین داشته باشد
+            role_id = data.get('role_id')
+            if role_id:
+                try:
+                    role = AdminRole.objects.get(id=role_id)
+                    if role.name == 'super_admin':
+                        raise serializers.ValidationError({
+                            'role_id': "مشاورین املاک نمی‌توانند نقش سوپرادمین داشته باشند"
+                        })
+                except AdminRole.DoesNotExist:
+                    pass
+
             # برای مشاورین، license_number اجباری است
             if not data.get('license_number'):
                 raise serializers.ValidationError({

@@ -41,6 +41,20 @@ class RealEstateAgencyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSe
     pagination_class = StandardLimitPagination
     
     def get_queryset(self):
+        user = self.request.user
+        
+        # 🔒 Role-based filtering
+        is_super = getattr(user, 'is_superuser', False) or getattr(user, 'is_admin_full', False)
+        if not is_super:
+            has_agent_role = hasattr(user, 'admin_user_roles') and user.admin_user_roles.filter(
+                role__name='property_agent',
+                is_active=True
+            ).exists()
+            
+            if has_agent_role:
+                # مشاورین املاک اجازه مشاهده لیست آژانس‌ها یا مدیریت آن‌ها را ندارند
+                return RealEstateAgency.objects.none()
+
         if self.action == 'list':
             return RealEstateAgencyAdminService.get_agency_queryset()
         elif self.action in ['retrieve', 'update', 'partial_update']:

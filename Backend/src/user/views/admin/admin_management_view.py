@@ -285,6 +285,9 @@ class AdminManagementView(AdminAuthMixin, APIView):
         
         if self._has_role(user, 'user_manager'):
             return True
+
+        if self._has_role(user, 'property_agent'):
+            return False
         
         user_type = getattr(user, 'user_type', None)
         is_admin_active = getattr(user, 'is_admin_active', False)
