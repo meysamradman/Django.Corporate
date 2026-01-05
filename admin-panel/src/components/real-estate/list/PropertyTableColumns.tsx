@@ -26,7 +26,7 @@ export const usePropertyColumns = (
 ) => {
   const navigate = useNavigate();
   const { hasPermission } = usePermission();
-  
+
   const baseColumns: ColumnDef<Property>[] = [
     {
       id: "select",
@@ -59,20 +59,20 @@ export const usePropertyColumns = (
       header: () => <div className="table-header-text">عنوان</div>,
       cell: ({ row }) => {
         const property = row.original;
-        const imageUrl = property.main_image?.file_url 
+        const imageUrl = property.main_image?.file_url
           ? mediaService.getMediaUrlFromObject({ file_url: property.main_image.file_url } as any)
           : property.main_image?.url
-          ? mediaService.getMediaUrlFromObject({ file_url: property.main_image.url } as any)
-          : "";
-          
+            ? mediaService.getMediaUrlFromObject({ file_url: property.main_image.url } as any)
+            : "";
+
         const getInitial = () => {
           if (!property.title) return "؟";
           return property.title.charAt(0).toUpperCase();
         };
 
         return (
-          <ProtectedLink 
-            to={`/real-estate/properties/${property.id}/view`} 
+          <ProtectedLink
+            to={`/real-estate/properties/${property.id}/view`}
             permission="real_estate.property.update"
             className="flex items-center gap-3"
           >
@@ -149,11 +149,11 @@ export const usePropertyColumns = (
         const property = row.original;
         const price = property.price || property.sale_price || property.pre_sale_price || property.monthly_rent;
         const currency = property.currency || 'تومان';
-        
+
         if (!price) {
           return <div className="table-cell-secondary">-</div>;
         }
-        
+
         const formattedPrice = new Intl.NumberFormat('fa-IR').format(price);
         return (
           <div className="table-cell-primary">
@@ -164,6 +164,29 @@ export const usePropertyColumns = (
       enableSorting: true,
       enableHiding: true,
       minSize: 150,
+    },
+    {
+      accessorKey: "status",
+      header: () => <div className="table-header-text">وضعیت فرآیند</div>,
+      cell: ({ row }) => {
+        const status = row.original.status;
+        const statusMap: Record<string, { label: string; variant: any }> = {
+          active: { label: "فعال", variant: "green" },
+          pending: { label: "در حال معامله", variant: "yellow" },
+          sold: { label: "فروخته شده", variant: "red" },
+          rented: { label: "اجاره داده شده", variant: "blue" },
+          archived: { label: "بایگانی شده", variant: "gray" },
+        };
+        const config = statusMap[status] || { label: status, variant: "gray" };
+        return (
+          <div className="table-badge-container">
+            <Badge variant={config.variant}>{config.label}</Badge>
+          </div>
+        );
+      },
+      enableSorting: true,
+      enableHiding: true,
+      minSize: 120,
     },
     {
       accessorKey: "is_published",
@@ -216,7 +239,7 @@ export const usePropertyColumns = (
         const property = row.original;
         const isActive = property.is_active;
         const canUpdate = hasPermission("real_estate.property.update");
-        
+
         if (onToggleActive) {
           return (
             <div onClick={(e) => e.stopPropagation()}>
@@ -228,7 +251,7 @@ export const usePropertyColumns = (
             </div>
           );
         }
-        
+
         return (
           <div className="table-badge-container">
             {isActive ? (
@@ -257,14 +280,14 @@ export const usePropertyColumns = (
           {
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
-            onClick: (_property) => {},
+            onClick: (_property) => { },
             isDestructive: true,
             permission: "real_estate.property.delete",
           },
         ];
-        
+
         const rowActions = actions.length > 0 ? actions : defaultActions;
-        
+
         return <DataTableRowActions row={row} actions={rowActions} />;
       },
       enableSorting: false,

@@ -7,21 +7,28 @@ import { FormField } from "@/components/forms/FormField";
 import { Switch } from "@/components/elements/Switch";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
 import { showError, showSuccess } from "@/core/toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyState } from "@/types/real_estate/state/realEstateState";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
-import { FileText, Loader2, Save } from "lucide-react";
+import { FileText, Loader2, Save, Type } from "lucide-react";
 
 export default function CreatePropertyStatePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
+
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
+    usage_type: "sale",
     is_active: true,
+  });
+
+  const { data: fieldOptions } = useQuery({
+    queryKey: ['property-state-field-options'],
+    queryFn: () => realEstateApi.getStateFieldOptions(),
   });
 
   const createStateMutation = useMutation({
@@ -33,9 +40,9 @@ export default function CreatePropertyStatePage() {
     },
     onError: (error: any) => {
       const errorData = error?.response?.data?.data;
-      const errorMessage = errorData?.detail || 
-                          error?.response?.data?.metaData?.message ||
-                          "خطا در ایجاد وضعیت ملک";
+      const errorMessage = errorData?.detail ||
+        error?.response?.data?.metaData?.message ||
+        "خطا در ایجاد وضعیت ملک";
       showError(errorMessage);
     },
   });
@@ -43,7 +50,7 @@ export default function CreatePropertyStatePage() {
   const handleInputChange = (field: string, value: string | boolean) => {
     if (field === "title" && typeof value === "string") {
       const generatedSlug = generateSlug(value);
-      
+
       setFormData(prev => ({
         ...prev,
         [field]: value,
@@ -65,18 +72,18 @@ export default function CreatePropertyStatePage() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.title.trim()) {
       showError("عنوان الزامی است");
       return;
     }
-    
+
     const slugValidation = validateSlug(formData.slug, true);
     if (!slugValidation.isValid) {
       showError(slugValidation.error || "اسلاگ معتبر نیست");
       return;
     }
-    
+
     createStateMutation.mutate(formData);
   };
 
@@ -119,6 +126,30 @@ export default function CreatePropertyStatePage() {
                   placeholder="نامک"
                   required
                 />
+              </FormField>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                label="نوع کاربری (سیستمی)"
+                htmlFor="usage_type"
+                required
+              >
+                <Select
+                  value={formData.usage_type}
+                  onValueChange={(value) => handleInputChange("usage_type", value)}
+                >
+                  <SelectTrigger id="usage_type">
+                    <SelectValue placeholder="انتخاب نوع کاربری" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {fieldOptions?.usage_type.map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormField>
             </div>
 

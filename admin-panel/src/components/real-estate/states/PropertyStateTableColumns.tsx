@@ -17,7 +17,7 @@ export const usePropertyStateColumns = (
 ) => {
   const navigate = useNavigate();
   const { hasPermission } = usePermission();
-  
+
   const baseColumns: ColumnDef<PropertyState>[] = [
     {
       id: "select",
@@ -50,15 +50,15 @@ export const usePropertyStateColumns = (
       header: () => <div className="table-header-text">عنوان</div>,
       cell: ({ row }) => {
         const state = row.original;
-        
+
         const getInitial = () => {
           if (!state.title) return "؟";
           return state.title.charAt(0).toUpperCase();
         };
 
         return (
-          <ProtectedLink 
-            to={`/real-estate/states/${state.id}/edit`} 
+          <ProtectedLink
+            to={`/real-estate/states/${state.id}/edit`}
             permission="real_estate.state.update"
             className="flex items-center gap-3"
           >
@@ -76,6 +76,28 @@ export const usePropertyStateColumns = (
       enableSorting: true,
       enableHiding: true,
       minSize: 200,
+    },
+    {
+      accessorKey: "usage_type",
+      header: () => <div className="table-header-text">نوع کاربری (سیستمی)</div>,
+      cell: ({ row }) => {
+        const usageType = row.original.usage_type;
+        const usageMap: Record<string, string> = {
+          sale: "فروشی",
+          rent: "اجاره‌ای",
+          presale: "پیش‌فروش",
+          exchange: "تهاتر",
+          other: "سایر",
+        };
+        return (
+          <div className="table-cell-secondary">
+            {usageMap[usageType] || usageType}
+          </div>
+        );
+      },
+      enableSorting: true,
+      enableHiding: true,
+      minSize: 150,
     },
     {
       accessorKey: "created_at",
@@ -96,7 +118,7 @@ export const usePropertyStateColumns = (
         const state = row.original;
         const isActive = state.is_active;
         const canUpdate = hasPermission("real_estate.state.update");
-        
+
         if (onToggleActive) {
           return (
             <div onClick={(e) => e.stopPropagation()}>
@@ -108,7 +130,7 @@ export const usePropertyStateColumns = (
             </div>
           );
         }
-        
+
         return (
           <div className="table-badge-container">
             {isActive ? (
@@ -136,13 +158,13 @@ export const usePropertyStateColumns = (
           {
             label: "حذف",
             icon: <Trash2 className="h-4 w-4" />,
-            onClick: (_state) => {},
+            onClick: (_state) => { },
             isDestructive: true,
           },
         ];
-        
+
         const rowActions = actions.length > 0 ? actions : defaultActions;
-        
+
         return <DataTableRowActions row={row} actions={rowActions} />;
       },
       enableSorting: false,
@@ -152,7 +174,7 @@ export const usePropertyStateColumns = (
       maxSize: 60,
     },
   ];
-  
+
   return baseColumns;
 };
 

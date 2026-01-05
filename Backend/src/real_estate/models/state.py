@@ -3,6 +3,9 @@ from src.core.models import BaseModel
 from src.real_estate.models.managers import PropertyStateQuerySet
 
 
+from src.real_estate.models.constants import LISTING_TYPE_CHOICES
+
+
 class PropertyState(BaseModel):
     title = models.CharField(
         max_length=50,
@@ -18,6 +21,15 @@ class PropertyState(BaseModel):
         allow_unicode=True,
         verbose_name="URL Slug",
         help_text="URL-friendly identifier for the property state"
+    )
+    
+    usage_type = models.CharField(
+        max_length=20,
+        choices=LISTING_TYPE_CHOICES,
+        default='other',
+        db_index=True,
+        verbose_name="Usage Type",
+        help_text="System category for analytics (e.g. Sale vs Rent)"
     )
     
     objects = PropertyStateQuerySet.as_manager()

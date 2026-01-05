@@ -1,0 +1,288 @@
+html body[data-scroll-locked] {
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+}
+
+.toast {
+  color: var(--static-w) !important;
+  font-family: var(--font-persian), Tahoma, Arial, sans-serif !important;
+}
+
+.toast * {
+  color: var(--static-w) !important;
+}
+
+.toast [data-title] {
+  color: var(--static-w) !important;
+}
+
+.toast.toast-success {
+  background-color: var(--green-100) !important;
+  border-color: var(--green-100) !important;
+}
+
+.toast.toast-success * {
+  color: var(--static-w) !important;
+}
+
+.toast.toast-error {
+  background-color: var(--red-100) !important;
+  border-color: var(--red-100) !important;
+}
+
+.toast.toast-error * {
+  color: var(--static-w) !important;
+}
+
+.toast.toast-warning {
+  background-color: var(--amber-100) !important;
+  border-color: var(--amber-100) !important;
+}
+
+.toast.toast-warning * {
+  color: var(--static-w) !important;
+}
+
+.toast.toast-info {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+.toast.toast-info * {
+  color: var(--static-w) !important;
+}
+
+.toast.toast-loading {
+  background-color: var(--font-s) !important;
+  border-color: var(--font-s) !important;
+}
+
+.toast.toast-loading * {
+  color: var(--static-w) !important;
+}
+
+@layer base {
+  * {
+    @apply border-br;
+  }
+
+  html {
+    direction: rtl;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--bg);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    direction: rtl;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1 {
+    @apply text-2xl font-bold tracking-tight;
+    color: var(--font-p);
+  }
+
+  h2 {
+    @apply text-xl font-bold tracking-tight;
+    color: var(--font-p);
+  }
+
+  h3 {
+    @apply text-lg font-bold tracking-tight;
+    color: var(--font-p);
+  }
+
+  h4 {
+    @apply text-base font-semibold;
+    color: var(--font-s);
+  }
+
+  h5 {
+    @apply text-sm font-semibold;
+    color: var(--font-s);
+  }
+
+  h6 {
+    @apply text-xs font-semibold;
+    color: var(--font-s);
+  }
+
+  p {
+    @apply text-[16px] leading-relaxed;
+    color: var(--font-s);
+  }
+
+  a {
+    @apply text-[15px] leading-relaxed;
+    color: var(--font-s);
+  }
+
+  label {
+    @apply text-sm font-medium;
+    color: var(--font-p);
+  }
+
+  ul,
+  ol {
+    @apply text-sm leading-relaxed;
+    color: var(--font-s);
+  }
+
+  blockquote {
+    @apply border-l-4 border-br pl-4 text-sm italic;
+    color: var(--font-s);
+  }
+
+  table {
+    @apply text-sm;
+  }
+
+  th {
+    @apply font-semibold;
+    color: var(--font-p);
+  }
+
+  td {
+    color: var(--font-s);
+  }
+
+}
+
+@layer components {
+
+  .page-title {
+    @apply text-lg font-bold tracking-tight;
+    color: var(--font-p);
+  }
+
+  .table-avatar {
+    @apply h-9 w-9 !rounded-md;
+  }
+
+  .table-cell-wide {
+    @apply max-w-[200px] truncate;
+  }
+
+  .table-cell-extra-wide {
+    @apply max-w-[250px] truncate;
+  }
+
+  .table-cell-xxl {
+    @apply max-w-[300px] truncate;
+  }
+
+  .table-badge-container {
+    @apply flex w-[100px] items-center;
+  }
+
+}
+
+@layer utilities {
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-sidebar {
+    @apply fixed z-50;
+    inset-block: 0;
+    right: 0;
+    width: 20rem;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+  }
+}
+
+*:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+  border-left: 1px solid var(--br);
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--font-s) 30%, transparent);
+  border-radius: 6px;
+  border: 2px solid var(--bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--font-s) 50%, transparent);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--font-s) 30%, transparent) var(--bg);
+}
+
+/* RTL: scrollbar on left for main content area */
+main {
+  direction: rtl;
+}
+
+/* Content inside main should remain RTL for proper Persian text alignment */
+main>div {
+  direction: rtl;
+}
+
+/* Mobile: Adjust padding to compensate for scrollbar on left side */
+@media (max-width: 640px) {
+  main>div {
+    padding: 1rem calc(1rem + 5px) 1rem 1rem;
+  }
+}
+
+main::-webkit-scrollbar {
+  width: 12px;
+}
+
+main::-webkit-scrollbar-track {
+  background: var(--bg);
+  border-left: 1px solid var(--br);
+}
+
+main::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--font-s) 30%, transparent);
+  border-radius: 6px;
+  border: 2px solid var(--bg);
+}
+
+main::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--font-s) 50%, transparent);
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

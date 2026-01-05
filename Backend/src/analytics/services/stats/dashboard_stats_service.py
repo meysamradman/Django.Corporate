@@ -155,9 +155,9 @@ class DashboardStatsService:
             }
             
             # Financials (Total Listing Value for Sale)
-            # Assuming 'sale' state represents properties for sale
+            # Using new robust usage_type field
             stats['total_listing_value'] = Property.objects.filter(
-                state__slug='sale',
+                state__usage_type='sale',
                 is_published=True
             ).aggregate(total=Sum('price'))['total'] or 0
 

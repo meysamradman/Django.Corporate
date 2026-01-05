@@ -10,7 +10,7 @@ class PropertyStateAdminListSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyState
         fields = [
-            'id', 'public_id', 'title', 'slug',
+            'id', 'public_id', 'title', 'slug', 'usage_type',
             'is_active', 'property_count', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
@@ -22,7 +22,7 @@ class PropertyStateAdminDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyState
         fields = [
-            'id', 'public_id', 'title', 'slug',
+            'id', 'public_id', 'title', 'slug', 'usage_type',
             'is_active', 'property_count', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
@@ -31,7 +31,7 @@ class PropertyStateAdminDetailSerializer(serializers.ModelSerializer):
 class PropertyStateAdminCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyState
-        fields = ['title', 'slug', 'is_active']
+        fields = ['title', 'slug', 'usage_type', 'is_active']
     
     def validate_title(self, value):
         if PropertyState.objects.filter(title=value).exists():
@@ -53,7 +53,7 @@ class PropertyStateAdminCreateSerializer(serializers.ModelSerializer):
 class PropertyStateAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyState
-        fields = ['title', 'slug', 'is_active']
+        fields = ['title', 'slug', 'usage_type', 'is_active']
     
     def validate_title(self, value):
         # Check if we're updating an existing instance

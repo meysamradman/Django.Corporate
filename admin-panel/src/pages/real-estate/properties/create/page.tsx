@@ -163,6 +163,7 @@ export default function PropertyCreatePage() {
             features_ids: property.features?.map((feature: any) => feature.id) || [],
             main_image_id: property.main_image?.id || null,
             og_image_id: property.og_image?.id || null,
+            status: typeof (property as any).status === 'object' ? (property as any).status?.value : ((property as any).status || "active"),
           });
 
           // Set selected items
@@ -245,6 +246,7 @@ export default function PropertyCreatePage() {
     features_ids: [] as number[],
     main_image_id: null as number | null,
     og_image_id: null as number | null,
+    status: "active" as string,
   });
 
   // Errors state
@@ -546,6 +548,7 @@ export default function PropertyCreatePage() {
         security_deposit: formData.security_deposit !== null && formData.security_deposit !== undefined
           ? formData.security_deposit
           : undefined,
+        status: formData.status,
       };
 
       // جمع‌آوری فایل‌های مدیا و IDها مثل Portfolio

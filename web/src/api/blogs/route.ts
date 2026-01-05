@@ -1,51 +1,45 @@
-import { api, ApiResponse } from '@/lib/fetch';
+import { fetchApi } from "@/core/config/fetch";
+import { Blog } from "@/types/blog/blog";
+import { BlogCategory } from "@/types/blog/category/blogCategory";
+import { BlogTag } from "@/types/blog/tags/blogTag";
+import { PaginatedResponse } from "@/types/shared/pagination";
 
-export interface Blog {
-  id: number;
-  public_id: string;
-  title: string;
-  slug: string;
-  short_description?: string;
-  description?: string;
-  status: 'draft' | 'published';
-  is_featured: boolean;
-  is_public: boolean;
-  categories?: number[];
-  tags?: number[];
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface BlogListParams {
-  page?: number;
-  limit?: number;
-  offset?: number;
-  search?: string;
-  status?: string;
-  is_featured?: boolean;
-}
-
-export const blogsApi = {
-  // Get blogs list
-  getBlogs: async (params?: BlogListParams): Promise<ApiResponse<Blog[]>> => {
-    const queryParams = new URLSearchParams();
-    if (params?.page) queryParams.append('page', params.page.toString());
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-    if (params?.offset) queryParams.append('offset', params.offset.toString());
-    if (params?.search) queryParams.append('search', params.search);
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.is_featured !== undefined) queryParams.append('is_featured', params.is_featured.toString());
-
-    const queryString = queryParams.toString();
-    const endpoint = `/blog/${queryString ? `?${queryString}` : ''}`;
-
-    return api.get<Blog[]>(endpoint);
+export const blogApi = {
+  getBlogList: async (params?: Record<string, any>): Promise<PaginatedResponse<Blog>> => {
+    let url = '/public/blog/';
+    if (params) {
+      const queryParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) queryParams.append(key, String(value));
+      });
+      const queryString = queryParams.toString();
+      if (queryString) url += '?' + queryString;
+    }
+    const response = await fetchApi.get<Blog[]>(url);
+    return {
+      data: Array.isArray(response.data) ? response.data : [],
+      pagination: (response as any).pagination || { count: 0, current_page: 1, total_pages: 0, page_size: 10 }
+    };
   },
 
-  // Get single blog by slug
-  getBlog: async (slug: string): Promise<ApiResponse<Blog>> => {
-    return api.get<Blog>(`/blog/${slug}/`);
+  getBlogById: async (idOrSlug: string | number): Promise<Blog> => {
+    const response = await fetchApi.get<Blog>(`/public/blog/${idOrSlug}/`);
+    return response.data;
   },
+
+  getCategories: async (): Promise<PaginatedResponse<BlogCategory>> => {
+    const response = await fetchApi.get<BlogCategory[]>('/public/blog-category/');
+    return {
+      data: Array.isArray(response.data) ? response.data : [],
+      pagination: (response as any).pagination || { count: 0, current_page: 1, total_pages: 0, page_size: 10 }
+    };
+  },
+
+  getTags: async (): Promise<PaginatedResponse<BlogTag>> => {
+    const response = await fetchApi.get<BlogTag[]>('/public/blog-tag/');
+    return {
+      data: Array.isArray(response.data) ? response.data : [],
+      pagination: (response as any).pagination || { count: 0, current_page: 1, total_pages: 0, page_size: 10 }
+    };
+  }
 };
-

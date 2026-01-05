@@ -17,7 +17,8 @@ import {
     Image as ImageIcon,
     Video,
     Music,
-    FileText
+    FileText,
+    Activity
 } from "lucide-react";
 import { TruncatedText } from "@/components/elements/TruncatedText";
 
@@ -62,76 +63,114 @@ export function PropertyBasicInfo({ property }: PropertyBasicInfoProps) {
             <CardContent className="pt-0 pb-0">
                 {/* Status Cards */}
                 <div className="pb-6 pt-2 border-b -mx-6 px-6">
-                    <div className="grid grid-cols-4 gap-3">
-                    <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
-                        property.is_public ? "bg-blue" : "bg-gray"
-                    }`}>
-                        <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
-                            property.is_public ? "bg-blue-0" : "bg-gray-0"
-                        }`}>
-                            <Globe className={`w-4 h-4 ${
-                                property.is_public ? "stroke-blue-2" : "stroke-gray-1"
-                            }`} />
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className={`col-span-2 flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${(() => {
+                            const statusMap: Record<string, string> = {
+                                active: "bg-green",
+                                pending: "bg-yellow",
+                                sold: "bg-red",
+                                rented: "bg-blue",
+                                archived: "bg-gray",
+                            };
+                            return statusMap[property.status] || "bg-gray";
+                        })()}`}>
+                            <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${(() => {
+                                const statusMap: Record<string, string> = {
+                                    active: "bg-green-0",
+                                    pending: "bg-yellow-0",
+                                    sold: "bg-red-0",
+                                    rented: "bg-blue-0",
+                                    archived: "bg-gray-0",
+                                };
+                                return statusMap[property.status] || "bg-gray-0";
+                            })()}`}>
+                                <Activity className={`w-4 h-4 ${(() => {
+                                    const statusMap: Record<string, string> = {
+                                        active: "stroke-green-2",
+                                        pending: "stroke-yellow-2",
+                                        sold: "stroke-red-2",
+                                        rented: "stroke-blue-2",
+                                        archived: "stroke-gray-1",
+                                    };
+                                    return statusMap[property.status] || "stroke-gray-1";
+                                })()}`} />
+                            </div>
+                            <span className={`text-xs font-medium ${(() => {
+                                const statusMap: Record<string, string> = {
+                                    active: "text-green-2",
+                                    pending: "text-yellow-2",
+                                    sold: "text-red-2",
+                                    rented: "text-blue-2",
+                                    archived: "text-gray-1",
+                                };
+                                return statusMap[property.status] || "text-gray-1";
+                            })()}`}>
+                                {(() => {
+                                    const statusMap: Record<string, string> = {
+                                        active: "فعال",
+                                        pending: "در حال معامله",
+                                        sold: "فروخته شده",
+                                        rented: "اجاره داده شده",
+                                        archived: "بایگانی شده",
+                                    };
+                                    return statusMap[property.status] || property.status;
+                                })()}
+                            </span>
                         </div>
-                        <span className={`text-sm font-medium ${
-                            property.is_public ? "text-blue-2" : "text-gray-1"
-                        }`}>
-                            {property.is_public ? "عمومی" : "غیرعمومی"}
-                        </span>
-                    </div>
+                        <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${property.is_public ? "bg-blue" : "bg-gray"
+                            }`}>
+                            <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${property.is_public ? "bg-blue-0" : "bg-gray-0"
+                                }`}>
+                                <Globe className={`w-4 h-4 ${property.is_public ? "stroke-blue-2" : "stroke-gray-1"
+                                    }`} />
+                            </div>
+                            <span className={`text-sm font-medium ${property.is_public ? "text-blue-2" : "text-gray-1"
+                                }`}>
+                                {property.is_public ? "عمومی" : "غیرعمومی"}
+                            </span>
+                        </div>
 
-                    <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
-                        property.is_active ? "bg-blue" : "bg-red"
-                    }`}>
-                        <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
-                            property.is_active ? "bg-blue-0" : "bg-red-0"
-                        }`}>
-                            <Zap className={`w-4 h-4 ${
-                                property.is_active ? "stroke-blue-2" : "stroke-red-2"
-                            }`} />
+                        <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${property.is_active ? "bg-blue" : "bg-red"
+                            }`}>
+                            <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${property.is_active ? "bg-blue-0" : "bg-red-0"
+                                }`}>
+                                <Zap className={`w-4 h-4 ${property.is_active ? "stroke-blue-2" : "stroke-red-2"
+                                    }`} />
+                            </div>
+                            <span className={`text-sm font-medium ${property.is_active ? "text-blue-2" : "text-red-2"
+                                }`}>
+                                {property.is_active ? "فعال" : "غیرفعال"}
+                            </span>
                         </div>
-                        <span className={`text-sm font-medium ${
-                            property.is_active ? "text-blue-2" : "text-red-2"
-                        }`}>
-                            {property.is_active ? "فعال" : "غیرفعال"}
-                        </span>
-                    </div>
 
-                    <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
-                        property.is_featured ? "bg-orange" : "bg-gray"
-                    }`}>
-                        <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
-                            property.is_featured ? "bg-orange-0" : "bg-gray-0"
-                        }`}>
-                            <Star className={`w-4 h-4 ${
-                                property.is_featured ? "stroke-orange-2 fill-orange-2" : "stroke-gray-1"
-                            }`} />
+                        <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${property.is_featured ? "bg-orange" : "bg-gray"
+                            }`}>
+                            <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${property.is_featured ? "bg-orange-0" : "bg-gray-0"
+                                }`}>
+                                <Star className={`w-4 h-4 ${property.is_featured ? "stroke-orange-2 fill-orange-2" : "stroke-gray-1"
+                                    }`} />
+                            </div>
+                            <span className={`text-sm font-medium ${property.is_featured ? "text-orange-2" : "text-gray-1"
+                                }`}>
+                                {property.is_featured ? "ویژه" : "عادی"}
+                            </span>
                         </div>
-                        <span className={`text-sm font-medium ${
-                            property.is_featured ? "text-orange-2" : "text-gray-1"
-                        }`}>
-                            {property.is_featured ? "ویژه" : "عادی"}
-                        </span>
-                    </div>
 
-                    <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
-                        property.is_published ? "bg-green" : "bg-yellow"
-                    }`}>
-                        <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
-                            property.is_published ? "bg-green-0" : "bg-yellow-0"
-                        }`}>
-                            {property.is_published ? (
-                                <CheckCircle2 className="w-4 h-4 stroke-green-2" />
-                            ) : (
-                                <XCircle className="w-4 h-4 stroke-yellow-2" />
-                            )}
+                        <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${property.is_published ? "bg-green" : "bg-yellow"
+                            }`}>
+                            <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${property.is_published ? "bg-green-0" : "bg-yellow-0"
+                                }`}>
+                                {property.is_published ? (
+                                    <CheckCircle2 className="w-4 h-4 stroke-green-2" />
+                                ) : (
+                                    <XCircle className="w-4 h-4 stroke-yellow-2" />
+                                )}
+                            </div>
+                            <span className={`text-sm font-medium ${property.is_published ? "text-green-2" : "text-yellow-2"
+                                }`}>
+                                {property.is_published ? "منتشر شده" : "پیش‌نویس"}
+                            </span>
                         </div>
-                        <span className={`text-sm font-medium ${
-                            property.is_published ? "text-green-2" : "text-yellow-2"
-                        }`}>
-                            {property.is_published ? "منتشر شده" : "پیش‌نویس"}
-                        </span>
-                    </div>
                     </div>
                 </div>
 

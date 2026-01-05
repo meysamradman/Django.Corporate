@@ -34,7 +34,8 @@ export default function PropertyStatesPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { booleanFilterOptions } = usePropertyStateFilterOptions();
-  
+  const [usageTypeOptions, setUsageTypeOptions] = useState<{ label: string; value: string }[]>([]);
+
   const [pagination, setPagination] = useState<TablePaginationState>(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
@@ -81,13 +82,28 @@ export default function PropertyStatesPage() {
     isBulk: false,
   });
 
+  const [_fieldOptions, setFieldOptions] = useState<any>(null);
+
+  useState(() => {
+    const fetchOptions = async () => {
+      try {
+        const options = await realEstateApi.getStateFieldOptions();
+        setFieldOptions(options);
+        setUsageTypeOptions(options.usage_type.map(([value, label]) => ({ label, value })));
+      } catch (error) {
+        console.error("Error fetching state field options:", error);
+      }
+    };
+    fetchOptions();
+  });
+
   const { handleFilterChange } = useTableFilters(
     setClientFilters,
     setSearchValue,
     setPagination
   );
 
-  const stateFilterConfig = getPropertyStateFilterConfig(booleanFilterOptions);
+  const stateFilterConfig = getPropertyStateFilterConfig(booleanFilterOptions, usageTypeOptions);
 
   const queryParams = {
     search: searchValue,
@@ -199,17 +215,17 @@ export default function PropertyStatesPage() {
       permission: "real_estate.state.delete",
     },
   ];
-  
+
   const columns = usePropertyStateColumns(rowActions, handleToggleActive) as ColumnDef<PropertyState>[];
 
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
-    const newPagination = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(pagination) 
+    const newPagination = typeof updaterOrValue === 'function'
+      ? updaterOrValue(pagination)
       : updaterOrValue;
-    
+
     setPagination(newPagination);
-    
+
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
@@ -217,12 +233,12 @@ export default function PropertyStatesPage() {
   };
 
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(sorting) 
+    const newSorting = typeof updaterOrValue === 'function'
+      ? updaterOrValue(sorting)
       : updaterOrValue;
-    
+
     setSorting(newSorting);
-    
+
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -251,7 +267,7 @@ export default function PropertyStatesPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="مدیریت وضعیت‌های ملک">
-        <ProtectedButton 
+        <ProtectedButton
           permission="real_estate.state.create"
           size="sm"
           onClick={() => navigate('/real-estate/states/create')}
@@ -288,8 +304,8 @@ export default function PropertyStatesPage() {
         />
       </Suspense>
 
-      <AlertDialog 
-        open={deleteConfirm.open} 
+      <AlertDialog
+        open={deleteConfirm.open}
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
       >
         <AlertDialogContent>

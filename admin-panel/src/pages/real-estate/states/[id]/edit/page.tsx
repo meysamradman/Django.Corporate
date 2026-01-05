@@ -7,12 +7,13 @@ import { FormField } from "@/components/forms/FormField";
 import { Switch } from "@/components/elements/Switch";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
 import { showError, showSuccess, showInfo } from "@/core/toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyState } from "@/types/real_estate/state/realEstateState";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
-import { Circle, Loader2, Save } from "lucide-react";
+import { Circle, Loader2, Save, Type } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function EditPropertyStatePage() {
@@ -20,10 +21,11 @@ export default function EditPropertyStatePage() {
   const queryClient = useQueryClient();
   const { id } = useParams<{ id: string }>();
   const stateId = Number(id);
-  
+
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
+    usage_type: "",
     is_active: true,
   });
 
@@ -33,11 +35,17 @@ export default function EditPropertyStatePage() {
     enabled: !!stateId,
   });
 
+  const { data: fieldOptions } = useQuery({
+    queryKey: ['property-state-field-options'],
+    queryFn: () => realEstateApi.getStateFieldOptions(),
+  });
+
   useEffect(() => {
     if (state) {
       setFormData({
         title: state.title || "",
         slug: state.slug || "",
+        usage_type: state.usage_type || "",
         is_active: state.is_active,
       });
     }
@@ -53,9 +61,9 @@ export default function EditPropertyStatePage() {
     },
     onError: (error: any) => {
       const errorData = error?.response?.data?.data;
-      const errorMessage = errorData?.detail || 
-                          error?.response?.data?.metaData?.message ||
-                          "خطا در به‌روزرسانی وضعیت ملک";
+      const errorMessage = errorData?.detail ||
+        error?.response?.data?.metaData?.message ||
+        "خطا در به‌روزرسانی وضعیت ملک";
       showError(errorMessage);
     },
   });
@@ -63,7 +71,7 @@ export default function EditPropertyStatePage() {
   const handleInputChange = (field: string, value: string | boolean) => {
     if (field === "title" && typeof value === "string") {
       const generatedSlug = generateSlug(value);
-      
+
       setFormData(prev => ({
         ...prev,
         [field]: value,
@@ -85,34 +93,38 @@ export default function EditPropertyStatePage() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    
+
     if (!state) return;
-    
+
     const slugValidation = validateSlug(formData.slug, true);
     if (!slugValidation.isValid) {
       showError(slugValidation.error || "اسلاگ معتبر نیست");
       return;
     }
-    
+
     const submitData: Partial<PropertyState> = {};
-    
+
     if (formData.title !== state.title) {
       submitData.title = formData.title;
     }
-    
+
     if (formData.slug !== state.slug) {
       submitData.slug = formData.slug;
     }
-    
+
     if (formData.is_active !== state.is_active) {
       submitData.is_active = formData.is_active;
     }
-    
+
+    if (formData.usage_type !== state.usage_type) {
+      submitData.usage_type = formData.usage_type;
+    }
+
     if (Object.keys(submitData).length === 0) {
       showInfo("تغییری اعمال نشده است");
       return;
     }
-    
+
     updateStateMutation.mutate(submitData);
   };
 
@@ -139,8 +151,8 @@ export default function EditPropertyStatePage() {
     return (
       <div className="text-center py-8">
         <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
-        <Button 
-          onClick={() => navigate(-1)} 
+        <Button
+          onClick={() => navigate(-1)}
           className="mt-4"
         >
           بازگشت
@@ -188,6 +200,30 @@ export default function EditPropertyStatePage() {
                   placeholder="نامک"
                   required
                 />
+              </FormField>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                label="نوع کاربری (سیستمی)"
+                htmlFor="usage_type"
+                required
+              >
+                <Select
+                  value={formData.usage_type}
+                  onValueChange={(value) => handleInputChange("usage_type", value)}
+                >
+                  <SelectTrigger id="usage_type">
+                    <SelectValue placeholder="انتخاب نوع کاربری" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {fieldOptions?.usage_type.map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormField>
             </div>
 

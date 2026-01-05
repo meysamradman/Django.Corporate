@@ -1,0 +1,705 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+import { useBlogColumns } from "@/components/blogs/list/BlogTableColumns";
+import { useBlogFilterOptions, getBlogFilterConfig } from "@/components/blogs/list/BlogTableFilters";
+import { BlogFilters } from "@/types/blog/blogListParams";
+import { Edit, Trash2, Plus } from "lucide-react";
+import { Button } from "@/components/elements/Button";
+import { ProtectedButton } from "@/core/permissions";
+import Link from "next/link";
+import { toast } from '@/components/elements/Sonner';
+import { OnChangeFn, SortingState } from "@tanstack/react-table";
+import { TablePaginationState } from '@/types/shared/pagination';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
+
+const DataTable = dynamic(
+  () => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })),
+  { 
+    ssr: false
+  }
+);
+import { getConfirm, getCrud } from '@/core/messages';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/elements/AlertDialog";
+
+import { Blog } from "@/types/blog/blog";
+import { ColumnDef } from "@tanstack/react-table";
+import { blogApi } from "@/api/blogs/route";
+import { exportBlogs } from "@/api/blogs/export";
+import type { DataTableRowAction } from "@/types/shared/table";
+import { BlogCategory } from "@/types/blog/category/blogCategory";
+import { env } from '@/core/config/environment';
+
+const convertCategoriesToHierarchical = (categories: BlogCategory[]): any[] => {
+  const rootCategories = categories.filter(cat => !cat.parent_id);
+  
+  const buildTree = (category: BlogCategory): any => {
+    const children = categories.filter(cat => cat.parent_id === category.id);
+    
+    return {
+      id: category.id,
+      label: category.name,
+      value: category.id.toString(),
+      parent_id: category.parent_id,
+      children: children.map(buildTree)
+    };
+  };
+  
+  return rootCategories.map(buildTree);
+};
+
+export default function BlogPage() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { statusFilterOptions, booleanFilterOptions } = useBlogFilterOptions();
+  
+  const [categories, setCategories] = useState<BlogCategory[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
+  
+  const [pagination, setPagination] = useState<TablePaginationState>(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const page = parseInt(urlParams.get('page') || '1', 10);
+      const size = parseInt(urlParams.get('size') || '10', 10);
+      return {
+        pageIndex: Math.max(0, page - 1),
+        pageSize: size,
+      };
+    }
+    return {
+      pageIndex: 0,
+      pageSize: 10,
+    };
+  });
+  const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
+  const [rowSelection, setRowSelection] = useState({});
+  const [searchValue, setSearchValue] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('search') || '';
+    }
+    return '';
+  });
+  const [clientFilters, setClientFilters] = useState<BlogFilters>(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const filters: BlogFilters = {};
+      if (urlParams.get('status')) filters.status = urlParams.get('status') as string;
+      if (urlParams.get('is_featured')) filters.is_featured = urlParams.get('is_featured') === 'true';
+      if (urlParams.get('is_public')) filters.is_public = urlParams.get('is_public') === 'true';
+      if (urlParams.get('is_active')) filters.is_active = urlParams.get('is_active') === 'true';
+      if (urlParams.get('categories__in')) {
+        const categoryIds = urlParams.get('categories__in')?.split(',').map(Number);
+        if (categoryIds && categoryIds.length > 0) {
+          filters.categories = categoryIds.join(',') as any;
+        }
+      }
+      return filters;
+    }
+    return {    };
+  });
+
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    open: boolean;
+    blogId?: number;
+    blogIds?: number[];
+    isBulk: boolean;
+  }>({
+    open: false,
+    isBulk: false,
+  });
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await blogApi.getCategories({
+          page: 1,
+          size: 1000,
+          is_active: true,
+          is_public: true
+        });
+        
+        setCategories(response.data);
+        setCategoryOptions(convertCategoriesToHierarchical(response.data));
+      } catch (error) {
+      }
+    };
+    
+    fetchCategories();
+  }, []);
+
+  const blogFilterConfig = getBlogFilterConfig(
+    statusFilterOptions, 
+    booleanFilterOptions,
+    categoryOptions
+  );
+
+  const queryParams = {
+    search: searchValue,
+    page: pagination.pageIndex + 1,
+    size: pagination.pageSize,
+    order_by: sorting.length > 0 ? sorting[0].id : "created_at",
+    order_desc: sorting.length > 0 ? sorting[0].desc : true,
+    status: clientFilters.status as string,
+    is_featured: clientFilters.is_featured as boolean | undefined,
+    is_public: clientFilters.is_public as boolean | undefined,
+    is_active: clientFilters.is_active as boolean | undefined,
+    categories__in: clientFilters.categories ? clientFilters.categories.toString() : undefined,
+  };
+
+  const { data: blogs, isLoading, error } = useQuery({
+    queryKey: ['blogs', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.status, queryParams.is_featured, queryParams.is_public, queryParams.is_active, queryParams.categories__in],
+    queryFn: async () => {
+      const response = await blogApi.getBlogList(queryParams);
+      return response;
+    },
+    staleTime: 0,
+    retry: 1,
+  });
+
+  const data: Blog[] = blogs?.data || [];
+  const pageCount = blogs?.pagination?.total_pages || 1;
+
+  const deleteBlogMutation = useMutation({
+    mutationFn: (blogId: number) => blogApi.deleteBlog(blogId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] });
+      toast.success("با موفقیت حذف شد");
+    },
+    onError: (error) => {
+      toast.error("خطای سرور");
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (blogIds: number[]) => blogApi.bulkDeleteBlogs(blogIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] });
+      toast.success("با موفقیت حذف شد");
+      setRowSelection({});
+    },
+    onError: (error) => {
+      toast.error("خطای سرور");
+    },
+  });
+
+  const toggleActiveMutation = useMutation({
+    mutationFn: async ({ id, is_active }: { id: number; is_active: boolean }) => {
+      return blogApi.partialUpdateBlog(id, { is_active });
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] });
+      toast.success(`بلاگ با موفقیت ${data.is_active ? 'فعال' : 'غیرفعال'} شد`);
+    },
+    onError: (error) => {
+      toast.error("خطا در تغییر وضعیت");
+    },
+  });
+
+  const handleToggleActive = (blog: Blog) => {
+    toggleActiveMutation.mutate({
+      id: blog.id,
+      is_active: !blog.is_active,
+    });
+  };
+
+  const handleDeleteBlog = (blogId: number | string) => {
+    setDeleteConfirm({
+      open: true,
+      blogId: Number(blogId),
+      isBulk: false,
+    });
+  };
+
+  const handleDeleteSelected = (selectedIds: (string | number)[]) => {
+    setDeleteConfirm({
+      open: true,
+      blogIds: selectedIds.map(id => Number(id)),
+      isBulk: true,
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      if (deleteConfirm.isBulk && deleteConfirm.blogIds) {
+        await bulkDeleteMutation.mutateAsync(deleteConfirm.blogIds);
+      } else if (!deleteConfirm.isBulk && deleteConfirm.blogId) {
+        await deleteBlogMutation.mutateAsync(deleteConfirm.blogId);
+      }
+    } catch (error) {
+    }
+    setDeleteConfirm({ open: false, isBulk: false });
+  };
+
+  const rowActions: DataTableRowAction<Blog>[] = [
+    {
+      label: "ویرایش",
+      icon: <Edit className="h-4 w-4" />,
+      onClick: (blog) => router.push(`/blogs/${blog.id}/edit`),
+      permission: "blog.update",
+    },
+    {
+      label: "حذف",
+      icon: <Trash2 className="h-4 w-4" />,
+      onClick: (blog) => handleDeleteBlog(blog.id),
+      isDestructive: true,
+      permission: "blog.delete",
+    },
+  ];
+  
+  const columns = useBlogColumns(rowActions, handleToggleActive) as ColumnDef<Blog>[];
+
+  const handleExportExcel = async (filters: BlogFilters, search: string, exportAll: boolean = false) => {
+    try {
+      const exportParams: any = {
+        search: search || undefined,
+        order_by: sorting.length > 0 ? sorting[0].id : "created_at",
+        order_desc: sorting.length > 0 ? sorting[0].desc : true,
+        status: filters.status as string | undefined,
+        is_featured: filters.is_featured as boolean | undefined,
+        is_public: filters.is_public as boolean | undefined,
+        is_active: filters.is_active as boolean | undefined,
+        categories__in: filters.categories ? filters.categories.toString() : undefined,
+      };
+      
+      if (exportAll) {
+        exportParams.export_all = true;
+      } else {
+        exportParams.page = pagination.pageIndex + 1;
+        exportParams.size = pagination.pageSize;
+      }
+      
+      await exportBlogs(exportParams, 'excel');
+      toast.success(exportAll ? "فایل اکسل (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل اکسل (صفحه فعلی) با موفقیت دانلود شد");
+    } catch (error: any) {
+      const errorMessage = error?.response?.message || error?.message || "خطا در دانلود فایل اکسل";
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleExportPDF = async (filters: BlogFilters, search: string, exportAll: boolean = false) => {
+    try {
+      const exportParams: any = {
+        search: search || undefined,
+        order_by: sorting.length > 0 ? sorting[0].id : "created_at",
+        order_desc: sorting.length > 0 ? sorting[0].desc : true,
+        status: filters.status as string | undefined,
+        is_featured: filters.is_featured as boolean | undefined,
+        is_public: filters.is_public as boolean | undefined,
+        is_active: filters.is_active as boolean | undefined,
+        categories__in: filters.categories ? filters.categories.toString() : undefined,
+      };
+      
+      if (exportAll) {
+        exportParams.export_all = true;
+      } else {
+        exportParams.page = pagination.pageIndex + 1;
+        exportParams.size = pagination.pageSize;
+      }
+      
+      await exportBlogs(exportParams, 'pdf');
+      toast.success(exportAll ? "فایل PDF (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل PDF (صفحه فعلی) با موفقیت دانلود شد");
+    } catch (error: any) {
+      const errorMessage = error?.response?.message || error?.message || "خطا در دانلود فایل PDF";
+      toast.error(errorMessage);
+    }
+  };
+
+  const handlePrint = async (printAll: boolean = false) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error("لطفاً popup blocker را غیرفعال کنید");
+      return;
+    }
+
+    let printData = data;
+    const MAX_PRINT_ITEMS = env.BLOG_EXPORT_PRINT_MAX_ITEMS;
+    if (printAll) {
+      try {
+        const allParams = {
+          search: searchValue || undefined,
+          page: 1,
+          size: MAX_PRINT_ITEMS,
+          order_by: sorting.length > 0 ? sorting[0].id : "created_at",
+          order_desc: sorting.length > 0 ? sorting[0].desc : true,
+          status: clientFilters.status as string | undefined,
+          is_featured: clientFilters.is_featured as boolean | undefined,
+          is_public: clientFilters.is_public as boolean | undefined,
+          is_active: clientFilters.is_active as boolean | undefined,
+          categories__in: clientFilters.categories ? clientFilters.categories.toString() : undefined,
+        };
+        const response = await blogApi.getBlogList(allParams);
+        printData = response.data;
+        const totalCount = response.pagination?.count || 0;
+        if (totalCount > MAX_PRINT_ITEMS) {
+          toast.warning(`فقط ${MAX_PRINT_ITEMS} آیتم اول از ${totalCount} آیتم پرینت شد. لطفاً فیلترهای بیشتری اعمال کنید.`);
+        }
+      } catch (error: any) {
+        const errorMessage = error?.response?.message || error?.message || "خطا در دریافت داده‌ها برای پرینت";
+        toast.error(errorMessage);
+        printWindow.close();
+        return;
+      }
+    }
+
+    const formatDate = (dateString: string) => {
+      const date = new Date(dateString);
+      const year = date.getFullYear() - 621;
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+    };
+
+    const getStatusText = (status: string) => {
+      if (status === 'published') return 'منتشر شده';
+      if (status === 'draft') return 'پیش‌نویس';
+      if (status === 'archived') return 'بایگانی شده';
+      return status;
+    };
+
+    const tableRows = printData.map((blog) => {
+      const categories = blog.categories?.map(c => c.name).join(', ') || '-';
+      const tags = blog.tags?.map(t => t.name).join(', ') || '-';
+      const shortDescription = blog.short_description ? blog.short_description.substring(0, 80) : '-';
+      const statusText = getStatusText(blog.status);
+      const createdDate = blog.created_at ? formatDate(blog.created_at) : '-';
+      
+      return `
+        <tr>
+          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${statusText}</td>
+          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${createdDate}</td>
+          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${shortDescription}</td>
+          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${tags}</td>
+          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${categories}</td>
+          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${blog.is_active ? 'بله' : 'خیر'}</td>
+          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${blog.is_public ? 'بله' : 'خیر'}</td>
+          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${blog.is_featured ? 'بله' : 'خیر'}</td>
+          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${blog.id}</td>
+          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${blog.title || '-'}</td>
+        </tr>
+      `;
+    }).join('');
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html dir="rtl">
+        <head>
+          <meta charset="utf-8">
+          <title>پرینت لیست بلاگ‌ها ${printAll ? '(همه)' : '(صفحه فعلی)'}</title>
+          <style>
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            body {
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              direction: rtl;
+              background: white;
+              padding: 20px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 20px;
+              font-size: 10px;
+            }
+            th {
+              background-color: #f8fafc;
+              color: #0f172a;
+              font-weight: bold;
+              padding: 8px;
+              text-align: right;
+              border-bottom: 1px solid #e2e8f0;
+              font-size: 11px;
+            }
+            td {
+              padding: 8px;
+              color: #0f172a;
+              border-bottom: 0.5px solid #e2e8f0;
+              word-wrap: break-word;
+            }
+            tr:nth-child(even) {
+              background-color: #f8fafc;
+            }
+            tr:nth-child(odd) {
+              background-color: white;
+            }
+            @media print {
+              @page {
+                size: A4 landscape;
+                margin: 1cm;
+              }
+              body {
+                padding: 0;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <table>
+            <thead>
+              <tr>
+                <th>وضعیت</th>
+                <th>تاریخ ایجاد</th>
+                <th>خلاصه</th>
+                <th>تگ‌ها</th>
+                <th>دسته‌بندی‌ها</th>
+                <th>فعال</th>
+                <th>عمومی</th>
+                <th>ویژه</th>
+                <th>ID</th>
+                <th>عنوان</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function() {
+                window.close();
+              }, 100);
+            };
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
+  const handleFilterChange = (filterId: string | number, value: unknown) => {
+    const filterKey = filterId as string;
+    
+    if (filterKey === "search") {
+      setSearchValue(typeof value === 'string' ? value : '');
+      setPagination(prev => ({ ...prev, pageIndex: 0 }));
+      
+      const url = new URL(window.location.href);
+      if (value && typeof value === 'string') {
+        url.searchParams.set('search', value);
+      } else {
+        url.searchParams.delete('search');
+      }
+      url.searchParams.set('page', '1');
+      window.history.replaceState({}, '', url.toString());
+    } else {
+      setClientFilters(prev => ({
+        ...prev,
+        [filterKey]: value as string | boolean | number | undefined
+      }));
+      setPagination(prev => ({ ...prev, pageIndex: 0 }));
+      
+      const url = new URL(window.location.href);
+      if (value !== undefined && value !== null) {
+        if (typeof value === 'boolean') {
+          url.searchParams.set(filterKey, value.toString());
+        } else if (filterKey === 'categories' && value !== undefined) {
+          if (value === 'all' || value === '') {
+            url.searchParams.delete('categories');
+          } else {
+            url.searchParams.set(filterKey, String(value));
+          }
+        } else {
+          url.searchParams.set(filterKey, String(value));
+        }
+      } else {
+        url.searchParams.delete(filterKey);
+      }
+      url.searchParams.set('page', '1');
+      window.history.replaceState({}, '', url.toString());
+    }
+  };
+
+  const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
+    const newPagination = typeof updaterOrValue === 'function' 
+      ? updaterOrValue(pagination) 
+      : updaterOrValue;
+    
+    setPagination(newPagination);
+    
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', String(newPagination.pageIndex + 1));
+    url.searchParams.set('size', String(newPagination.pageSize));
+    window.history.replaceState({}, '', url.toString());
+  };
+
+  const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
+    const newSorting = typeof updaterOrValue === 'function' 
+      ? updaterOrValue(sorting) 
+      : updaterOrValue;
+    
+    setSorting(newSorting);
+    
+    const url = new URL(window.location.href);
+    if (newSorting.length > 0) {
+      url.searchParams.set('order_by', newSorting[0].id);
+      url.searchParams.set('order_desc', String(newSorting[0].desc));
+    } else {
+      url.searchParams.delete('order_by');
+      url.searchParams.delete('order_desc');
+    }
+    window.history.replaceState({}, '', url.toString());
+  };
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="page-title">مدیریت بلاگ‌ها</h1>
+        </div>
+        <div className="text-center py-8">
+          <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
+          <p className="text-sm text-font-s mb-4">
+            سرور با خطای 500 پاسخ داده است. لطفاً با مدیر سیستم تماس بگیرید.
+          </p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            className="mt-4"
+          >
+            تلاش مجدد
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => {
+              queryClient.invalidateQueries({ queryKey: ['blogs'] });
+              window.location.reload();
+            }}
+            className="mt-4 mr-2"
+          >
+            پاک کردن کش و تلاش مجدد
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="page-title">
+            مدیریت بلاگ‌ها
+          </h1>
+        </div>
+        <div className="flex items-center">
+          <ProtectedButton 
+            size="sm" 
+            permission="blog.create"
+            onClick={() => router.push("/blogs/create")}
+          >
+            <Plus className="h-4 w-4" />
+            افزودن بلاگ
+          </ProtectedButton>
+        </div>
+      </div>
+
+      <DataTable
+        columns={columns as any}
+        data={data}
+        pageCount={pageCount}
+        isLoading={isLoading}
+        onPaginationChange={handlePaginationChange}
+        onSortingChange={handleSortingChange}
+        onRowSelectionChange={setRowSelection}
+        clientFilters={clientFilters}
+        onFilterChange={handleFilterChange}
+        state={{
+          pagination,
+          sorting,
+          rowSelection,
+        }}
+        searchValue={searchValue}
+        pageSizeOptions={[10, 20, 50]}
+        deleteConfig={{
+          onDeleteSelected: handleDeleteSelected,
+          permission: "blog.delete",
+          denyMessage: "اجازه حذف بلاگ ندارید",
+        }}
+        exportConfigs={[
+          {
+            onExport: (filters, search) => handleExportExcel(filters as BlogFilters, search, false),
+            buttonText: "خروجی اکسل (صفحه فعلی)",
+            value: "excel",
+            variant: "outline",
+          },
+          {
+            onExport: (filters, search) => handleExportExcel(filters as BlogFilters, search, true),
+            buttonText: "خروجی اکسل (همه)",
+            value: "excel_all",
+            variant: "outline",
+          },
+          {
+            onExport: (filters, search) => handleExportPDF(filters as BlogFilters, search, false),
+            buttonText: "خروجی PDF (صفحه فعلی)",
+            value: "pdf",
+            variant: "outline",
+          },
+          {
+            onExport: (filters, search) => handleExportPDF(filters as BlogFilters, search, true),
+            buttonText: "خروجی PDF (همه)",
+            value: "pdf_all",
+            variant: "outline",
+          },
+          {
+            onExport: async () => {
+              await handlePrint(true);
+            },
+            buttonText: "پرینت (همه)",
+            value: "print_all",
+            variant: "outline",
+          },
+        ]}
+        onPrint={() => handlePrint(false)}
+        filterConfig={blogFilterConfig}
+      />
+
+      <AlertDialog 
+        open={deleteConfirm.open} 
+        onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>تایید حذف</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteConfirm.isBulk
+                ? getConfirm('bulkDelete', { item: 'بلاگ', count: deleteConfirm.blogIds?.length || 0 })
+                : getConfirm('delete', { item: 'بلاگ' })
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              لغو
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-static-w hover:bg-destructive/90"
+            >
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}

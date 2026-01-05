@@ -14,6 +14,7 @@ function Tabs({
       dir="rtl"
       data-slot="tabs"
       className={cn("flex flex-col", className)}
+      suppressHydrationWarning
       {...props}
     />
   )
@@ -30,6 +31,7 @@ function TabsList({
         "flex w-full items-center justify-start gap-8 border-b pb-0 mb-6",
         className
       )}
+      suppressHydrationWarning
       {...props}
     />
   )
@@ -44,14 +46,12 @@ function TabsTrigger({
       data-slot="tabs-trigger"
       className={cn(
         "inline-flex items-center gap-1.5 whitespace-nowrap px-0 py-3 text-base transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
-        // Default state (inactive)
         "text-font-s font-normal",
-        // Active state
         "data-[state=active]:text-font-p data-[state=active]:font-semibold data-[state=active]:border-b-2 data-[state=active]:border-static-b data-[state=active]:mb-[-2px]",
-        // Hover state
         "hover:text-font-p",
         className
       )}
+      suppressHydrationWarning
       {...props}
     />
   )
@@ -65,6 +65,7 @@ function TabsContent({
     <TabsPrimitive.Content
       data-slot="tabs-content"
       className={cn("flex-1 outline-none", className)}
+      suppressHydrationWarning
       {...props}
     />
   )

@@ -16,6 +16,7 @@ from src.real_estate.models.agency import RealEstateAgency
 from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.utils.cache import PropertyCacheKeys, PropertyCacheManager
 from src.real_estate.models.managers import PropertyQuerySet
+from src.real_estate.models.constants import PROPERTY_STATUS_CHOICES
 
 
 class Property(BaseModel, SEOMixin):
@@ -442,6 +443,15 @@ class Property(BaseModel, SEOMixin):
         blank=True,
         verbose_name="Closed At",
         help_text="Date and time when property was sold or rented"
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=PROPERTY_STATUS_CHOICES,
+        default='active',
+        db_index=True,
+        verbose_name="Listing Status",
+        help_text="Lifecycle status of the listing (Active -> Pending -> Sold)"
     )
     
     # Analytics fields - Keep db_index for views_count (sorting)

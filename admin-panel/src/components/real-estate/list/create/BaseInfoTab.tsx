@@ -56,6 +56,8 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const [loadingFeatures, setLoadingFeatures] = useState(true);
     const [loadingAgents, setLoadingAgents] = useState(true);
     const [loadingAgencies, setLoadingAgencies] = useState(true);
+    const [statusOptions, setStatusOptions] = useState<[string, string][]>([]);
+    const [loadingOptions, setLoadingOptions] = useState(true);
 
 
     useEffect(() => {
@@ -129,6 +131,18 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
             } finally {
                 setLoadingAgencies(false);
             }
+
+            try {
+                // Fetch Field Options (Status)
+                const optionsResponse = await realEstateApi.getFieldOptions();
+                if (optionsResponse.status) {
+                    setStatusOptions(optionsResponse.status);
+                }
+            } catch (error) {
+                console.error("Error fetching field options:", error);
+            } finally {
+                setLoadingOptions(false);
+            }
         };
 
         fetchData();
@@ -172,6 +186,10 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
 
     const handleAgencyChange = (value: string) => {
         handleInputChange("agency", value && value !== "none" ? Number(value) : null);
+    };
+
+    const handleStatusChange = (value: string) => {
+        handleInputChange("status", value);
     };
 
 
@@ -238,13 +256,14 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
 
                     <CardWithIcon
                         icon={Settings}
-                        title="طبقه‌بندی و مالکیت"
+                        title="طبقه‌بندی و وضعیت"
                         iconBgColor="bg-blue"
                         iconColor="stroke-blue-2"
                         borderColor="border-b-blue-1"
                     >
                         <div className="space-y-6">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-2">
+                                {/* Property Type */}
                                 <div className="space-y-2">
                                     <Label className={errors?.property_type ? "text-red-1" : ""}>نوع ملک <span className="text-red-2">*</span></Label>
                                     <Select
@@ -252,7 +271,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         value={formData?.property_type ? String(formData.property_type) : ""}
                                         onValueChange={handlePropertyTypeChange}
                                     >
-                                        <SelectTrigger className={errors?.property_type ? "border-red-1" : "h-11"}>
+                                        <SelectTrigger className={errors?.property_type ? "border-red-1" : "h-11 rounded-xl"}>
                                             <SelectValue placeholder={loadingTypes ? "در حال بارگذاری..." : "نوع ملک را انتخاب کنید"} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -263,18 +282,19 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {errors?.property_type && <span className="text-xs text-red-1">{errors.property_type}</span>}
+                                    {errors?.property_type && <span className="text-xs text-red-1 font-medium">{errors.property_type}</span>}
                                 </div>
 
+                                {/* Property State/Category */}
                                 <div className="space-y-2">
-                                    <Label className={errors?.state ? "text-red-1" : ""}>وضعیت ملک <span className="text-red-2">*</span></Label>
+                                    <Label className={errors?.state ? "text-red-1" : ""}>نوع واگذاری <span className="text-red-2">*</span></Label>
                                     <Select
                                         disabled={!editMode || loadingStates}
                                         value={formData?.state ? String(formData.state) : ""}
                                         onValueChange={handleStateChange}
                                     >
-                                        <SelectTrigger className={errors?.state ? "border-red-1" : "h-11"}>
-                                            <SelectValue placeholder={loadingStates ? "در حال بارگذاری..." : "وضعیت را انتخاب کنید"} />
+                                        <SelectTrigger className={errors?.state ? "border-red-1" : "h-11 rounded-xl"}>
+                                            <SelectValue placeholder={loadingStates ? "در حال بارگذاری..." : "مثلاً فروشی، اجاره‌ای..."} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {(propertyStates || []).map((state) => (
@@ -284,19 +304,40 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {errors?.state && <span className="text-xs text-red-1">{errors.state}</span>}
+                                    {errors?.state && <span className="text-xs text-red-1 font-medium">{errors.state}</span>}
                                 </div>
-                            </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* Transaction Status (Lifecycle) */}
                                 <div className="space-y-2">
-                                    <Label className={errors?.agent ? "text-red-1" : ""}>مشاور</Label>
+                                    <Label className={errors?.status ? "text-red-1" : ""}>وضعیت معامله <span className="text-red-2">*</span></Label>
+                                    <Select
+                                        disabled={!editMode || loadingOptions}
+                                        value={formData?.status || "active"}
+                                        onValueChange={handleStatusChange}
+                                    >
+                                        <SelectTrigger className={errors?.status ? "border-red-1" : "h-11 rounded-xl"}>
+                                            <SelectValue placeholder={loadingOptions ? "در حال بارگذاری..." : "انتخاب وضعیت..."} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {statusOptions.map(([value, label]) => (
+                                                <SelectItem key={value} value={value}>
+                                                    {label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors?.status && <span className="text-xs text-red-1 font-medium">{errors.status}</span>}
+                                </div>
+
+                                {/* Consultant */}
+                                <div className="space-y-2">
+                                    <Label className={errors?.agent ? "text-red-1" : ""}>مشاور مسئول</Label>
                                     <Select
                                         disabled={!editMode || loadingAgents}
                                         value={formData?.agent ? String(formData.agent) : "none"}
                                         onValueChange={handleAgentChange}
                                     >
-                                        <SelectTrigger className={errors?.agent ? "border-red-1" : "h-11"}>
+                                        <SelectTrigger className={errors?.agent ? "border-red-1" : "h-11 rounded-xl"}>
                                             <SelectValue placeholder={loadingAgents ? "در حال بارگذاری..." : "مشاور را انتخاب کنید"} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -308,17 +349,18 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {errors?.agent && <span className="text-xs text-red-1">{errors.agent}</span>}
+                                    {errors?.agent && <span className="text-xs text-red-1 font-medium">{errors.agent}</span>}
                                 </div>
 
+                                {/* Agency */}
                                 <div className="space-y-2">
-                                    <Label className={errors?.agency ? "text-red-1" : ""}>آژانس</Label>
+                                    <Label className={errors?.agency ? "text-red-1" : ""}>آژانس املاک</Label>
                                     <Select
                                         disabled={!editMode || loadingAgencies}
                                         value={formData?.agency ? String(formData.agency) : "none"}
                                         onValueChange={handleAgencyChange}
                                     >
-                                        <SelectTrigger className={errors?.agency ? "border-red-1" : "h-11"}>
+                                        <SelectTrigger className={errors?.agency ? "border-red-1" : "h-11 rounded-xl"}>
                                             <SelectValue placeholder={loadingAgencies ? "در حال بارگذاری..." : "آژانس را انتخاب کنید"} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -330,7 +372,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {errors?.agency && <span className="text-xs text-red-1">{errors.agency}</span>}
+                                    {errors?.agency && <span className="text-xs text-red-1 font-medium">{errors.agency}</span>}
                                 </div>
                             </div>
                         </div>
@@ -546,9 +588,12 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                             <div className="space-y-4 pt-4 border-t border-br">
                                 <div className="rounded-xl border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
                                     <Item variant="default" size="default" className="py-5">
+                                        <div className="ml-4 p-2 bg-blue rounded-lg">
+                                            <FolderOpen className="w-5 h-5 stroke-blue-2" />
+                                        </div>
                                         <ItemContent>
                                             <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>
-                                            <ItemDescription>
+                                            <ItemDescription className="text-xs">
                                                 اگر غیرفعال باشد ملک در سایت نمایش داده نمی‌شود.
                                             </ItemDescription>
                                         </ItemContent>
@@ -564,9 +609,12 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
 
                                 <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
                                     <Item variant="default" size="default" className="py-5">
+                                        <div className="ml-4 p-2 bg-green rounded-lg">
+                                            <Settings className="w-5 h-5 stroke-green-2" />
+                                        </div>
                                         <ItemContent>
                                             <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
-                                            <ItemDescription>
+                                            <ItemDescription className="text-xs">
                                                 با غیرفعال شدن، ملک از لیست مدیریت نیز مخفی می‌شود.
                                             </ItemDescription>
                                         </ItemContent>
@@ -582,9 +630,12 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
 
                                 <div className="rounded-xl border border-orange-1/40 bg-orange-0/30 hover:border-orange-1/60 transition-colors overflow-hidden">
                                     <Item variant="default" size="default" className="py-5">
+                                        <div className="ml-4 p-2 bg-orange rounded-lg">
+                                            <Tag className="w-5 h-5 stroke-orange-2" />
+                                        </div>
                                         <ItemContent>
                                             <ItemTitle className="text-orange-2">وضعیت ویژه</ItemTitle>
-                                            <ItemDescription>
+                                            <ItemDescription className="text-xs">
                                                 املاک ویژه در بخش‌های خاص سایت با اولویت نمایش داده می‌شوند.
                                             </ItemDescription>
                                         </ItemContent>
@@ -597,11 +648,15 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         </ItemActions>
                                     </Item>
                                 </div>
+
                                 <div className="rounded-xl border border-purple-1/40 bg-purple-0/30 hover:border-purple-1/60 transition-colors overflow-hidden">
                                     <Item variant="default" size="default" className="py-5">
+                                        <div className="ml-4 p-2 bg-purple rounded-lg">
+                                            <FileText className="w-5 h-5 stroke-purple-2" />
+                                        </div>
                                         <ItemContent>
                                             <ItemTitle className="text-purple-2">منتشر شده</ItemTitle>
-                                            <ItemDescription>
+                                            <ItemDescription className="text-xs">
                                                 ملک منتشر شده برای عموم قابل مشاهده است.
                                             </ItemDescription>
                                         </ItemContent>

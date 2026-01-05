@@ -76,6 +76,8 @@ class PropertyAdminService:
                 queryset = queryset.filter(is_public=filters['is_public'])
             if filters.get('is_featured') is not None:
                 queryset = queryset.filter(is_featured=filters['is_featured'])
+            if filters.get('status'):
+                queryset = queryset.filter(status=filters['status'])
             if filters.get('property_type_id'):
                 queryset = queryset.filter(property_type_id=filters['property_type_id'])
             if filters.get('state_id'):

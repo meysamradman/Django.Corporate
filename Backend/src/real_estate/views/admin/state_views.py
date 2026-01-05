@@ -31,6 +31,7 @@ class PropertyStateAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         'partial_update': 'real_estate.state.update',
         'destroy': 'real_estate.state.delete',
         'bulk_delete': 'real_estate.state.delete',
+        'field_options': 'real_estate.state.read',
     }
     permission_denied_message = STATE_ERRORS["state_not_authorized"]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -143,6 +144,19 @@ class PropertyStateAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
+    @action(detail=False, methods=['get'], url_path='field-options')
+    def field_options(self, request):
+        """
+        Returns field options for property state form
+        """
+        from src.real_estate.models.constants import get_listing_type_choices_list
+        return APIResponse.success(
+            data={
+                'usage_type': get_listing_type_choices_list()
+            },
+            status_code=status.HTTP_200_OK
+        )
+
     def destroy(self, request, *args, **kwargs):
         state_id = kwargs.get('pk')
         

@@ -17,7 +17,7 @@ export const realEstateApi = {
     let url = '/admin/property/';
     if (params) {
       const queryParams = new URLSearchParams();
-      
+
       const apiParams: Record<string, unknown> = { ...params };
       if (params.page && params.size) {
         const { limit, offset } = convertToLimitOffset(params.page, params.size);
@@ -27,7 +27,7 @@ export const realEstateApi = {
         delete apiParams.page;
         delete apiParams.size;
       }
-      
+
       Object.entries(apiParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           if (key === 'is_published' || key === 'is_featured' || key === 'is_public' || key === 'is_active') {
@@ -48,9 +48,9 @@ export const realEstateApi = {
         url += '?' + queryString;
       }
     }
-    
+
     const response = await api.get<Property[]>(url);
-    
+
     if (!response) {
       return {
         data: [],
@@ -64,10 +64,10 @@ export const realEstateApi = {
         }
       };
     }
-    
+
     const responseData = Array.isArray(response.data) ? response.data : [];
     const responsePagination = response.pagination;
-    
+
     const pagination: ApiPagination = {
       count: responsePagination?.count || responseData.length,
       next: responsePagination?.next || null,
@@ -76,14 +76,14 @@ export const realEstateApi = {
       current_page: responsePagination?.current_page || (params?.page || 1),
       total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
     };
-    
+
     if (pagination.current_page < 1) {
       pagination.current_page = 1;
     }
     if (pagination.current_page > pagination.total_pages) {
       pagination.current_page = pagination.total_pages;
     }
-    
+
     return {
       data: responseData,
       pagination: pagination
@@ -102,7 +102,7 @@ export const realEstateApi = {
 
   createPropertyWithMedia: async (data: Partial<PropertyUpdateData> & { media_ids?: number[] }, mediaFiles: File[]): Promise<Property> => {
     const formData = new FormData();
-    
+
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null && key !== 'media_ids' && key !== 'media_files') {
         if (Array.isArray(value)) {
@@ -114,15 +114,15 @@ export const realEstateApi = {
         }
       }
     });
-    
+
     mediaFiles.forEach((file) => {
       formData.append('media_files', file);
     });
-    
+
     if (data.media_ids && Array.isArray(data.media_ids) && data.media_ids.length > 0) {
       formData.append('media_ids', data.media_ids.join(','));
     }
-    
+
     const response = await api.post<Property>('/admin/property/', formData);
     return response.data;
   },
@@ -142,11 +142,11 @@ export const realEstateApi = {
     mediaFiles.forEach(file => {
       formData.append('media_files', file);
     });
-    
+
     if (mediaIds && mediaIds.length > 0) {
       formData.append('media_ids', mediaIds.join(','));
     }
-    
+
     const response = await api.post<Property>('/admin/property/' + propertyId + '/add-media/', formData);
     return response.data;
   },
@@ -238,6 +238,7 @@ export const realEstateApi = {
       city_position?: [string, string][];
       unit_type?: [string, string][];
     };
+    status?: [string, string][];
   }> => {
     const response = await api.get<{
       bedrooms: [number, string][];
@@ -262,6 +263,7 @@ export const realEstateApi = {
         city_position?: [string, string][];
         unit_type?: [string, string][];
       };
+      status?: [string, string][];
     }>('/admin/property/field-options/');
     return response.data;
   },
@@ -270,7 +272,7 @@ export const realEstateApi = {
     let url = '/admin/property-type/';
     if (params) {
       const queryParams = new URLSearchParams();
-      
+
       const apiParams: Record<string, unknown> = { ...params };
       if (params.page && params.size) {
         const { limit, offset } = convertToLimitOffset(params.page, params.size);
@@ -279,7 +281,7 @@ export const realEstateApi = {
         delete apiParams.page;
         delete apiParams.size;
       }
-      
+
       Object.entries(apiParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           queryParams.append(key, String(value));
@@ -290,11 +292,11 @@ export const realEstateApi = {
         url += '?' + queryString;
       }
     }
-    
+
     const response = await api.get<PropertyType[]>(url);
     const responseData = Array.isArray(response.data) ? response.data : [];
     const responsePagination = response.pagination;
-    
+
     const pagination: ApiPagination = {
       count: responsePagination?.count || responseData.length,
       next: responsePagination?.next || null,
@@ -303,7 +305,7 @@ export const realEstateApi = {
       current_page: responsePagination?.current_page || (params?.page || 1),
       total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
     };
-    
+
     return {
       data: responseData,
       pagination: pagination
@@ -338,7 +340,7 @@ export const realEstateApi = {
     let url = '/admin/property-state/';
     if (params) {
       const queryParams = new URLSearchParams();
-      
+
       const apiParams: Record<string, unknown> = { ...params };
       if (params.page && params.size) {
         const { limit, offset } = convertToLimitOffset(params.page, params.size);
@@ -347,7 +349,7 @@ export const realEstateApi = {
         delete apiParams.page;
         delete apiParams.size;
       }
-      
+
       Object.entries(apiParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           queryParams.append(key, String(value));
@@ -358,11 +360,11 @@ export const realEstateApi = {
         url += '?' + queryString;
       }
     }
-    
+
     const response = await api.get<PropertyState[]>(url);
     const responseData = Array.isArray(response.data) ? response.data : [];
     const responsePagination = response.pagination;
-    
+
     const pagination: ApiPagination = {
       count: responsePagination?.count || responseData.length,
       next: responsePagination?.next || null,
@@ -371,7 +373,7 @@ export const realEstateApi = {
       current_page: responsePagination?.current_page || (params?.page || 1),
       total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
     };
-    
+
     return {
       data: responseData,
       pagination: pagination
@@ -402,11 +404,20 @@ export const realEstateApi = {
     await api.delete('/admin/property-state/' + id + '/');
   },
 
+  getStateFieldOptions: async (): Promise<{
+    usage_type: [string, string][];
+  }> => {
+    const response = await api.get<{
+      usage_type: [string, string][];
+    }>('/admin/property-state/field-options/');
+    return response.data;
+  },
+
   getLabels: async (params?: { page?: number; size?: number; is_active?: boolean }): Promise<PaginatedResponse<PropertyLabel>> => {
     let url = '/admin/property-label/';
     if (params) {
       const queryParams = new URLSearchParams();
-      
+
       const apiParams: Record<string, unknown> = { ...params };
       if (params.page && params.size) {
         const { limit, offset } = convertToLimitOffset(params.page, params.size);
@@ -415,7 +426,7 @@ export const realEstateApi = {
         delete apiParams.page;
         delete apiParams.size;
       }
-      
+
       Object.entries(apiParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           queryParams.append(key, String(value));
@@ -426,11 +437,11 @@ export const realEstateApi = {
         url += '?' + queryString;
       }
     }
-    
+
     const response = await api.get<PropertyLabel[]>(url);
     const responseData = Array.isArray(response.data) ? response.data : [];
     const responsePagination = response.pagination;
-    
+
     const pagination: ApiPagination = {
       count: responsePagination?.count || responseData.length,
       next: responsePagination?.next || null,
@@ -439,7 +450,7 @@ export const realEstateApi = {
       current_page: responsePagination?.current_page || (params?.page || 1),
       total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
     };
-    
+
     return {
       data: responseData,
       pagination: pagination
@@ -474,7 +485,7 @@ export const realEstateApi = {
     let url = '/admin/property-feature/';
     if (params) {
       const queryParams = new URLSearchParams();
-      
+
       const apiParams: Record<string, unknown> = { ...params };
       if (params.page && params.size) {
         const { limit, offset } = convertToLimitOffset(params.page, params.size);
@@ -483,7 +494,7 @@ export const realEstateApi = {
         delete apiParams.page;
         delete apiParams.size;
       }
-      
+
       Object.entries(apiParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           queryParams.append(key, String(value));
@@ -494,11 +505,11 @@ export const realEstateApi = {
         url += '?' + queryString;
       }
     }
-    
+
     const response = await api.get<PropertyFeature[]>(url);
     const responseData = Array.isArray(response.data) ? response.data : [];
     const responsePagination = response.pagination;
-    
+
     const pagination: ApiPagination = {
       count: responsePagination?.count || responseData.length,
       next: responsePagination?.next || null,
@@ -507,7 +518,7 @@ export const realEstateApi = {
       current_page: responsePagination?.current_page || (params?.page || 1),
       total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
     };
-    
+
     return {
       data: responseData,
       pagination: pagination
@@ -541,7 +552,7 @@ export const realEstateApi = {
 
   createFloorPlan: async (data: any): Promise<any> => {
     const formData = new FormData();
-    
+
     // Add basic fields
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null && key !== 'image_files' && key !== 'image_ids') {
@@ -552,19 +563,19 @@ export const realEstateApi = {
         }
       }
     });
-    
+
     // Add image files if provided
     if (data.image_files && Array.isArray(data.image_files)) {
       data.image_files.forEach((file: File) => {
         formData.append('image_files', file);
       });
     }
-    
+
     // Add image IDs if provided
     if (data.image_ids && Array.isArray(data.image_ids) && data.image_ids.length > 0) {
       formData.append('image_ids', data.image_ids.join(','));
     }
-    
+
     const response = await api.post<any>('/admin/floor-plan/', formData);
     return response.data;
   },
@@ -581,15 +592,15 @@ export const realEstateApi = {
   // Floor Plan Media Management
   addFloorPlanImages: async (floorPlanId: number, imageFiles: File[], imageIds?: number[]): Promise<any> => {
     const formData = new FormData();
-    
+
     imageFiles.forEach(file => {
       formData.append('image_files', file);
     });
-    
+
     if (imageIds && imageIds.length > 0) {
       formData.append('image_ids', imageIds.join(','));
     }
-    
+
     const response = await api.post<any>('/admin/floor-plan/' + floorPlanId + '/add-images/', formData);
     return response.data;
   },
@@ -630,7 +641,7 @@ export const realEstateApi = {
     let url = '/admin/property-tag/';
     if (params) {
       const queryParams = new URLSearchParams();
-      
+
       const apiParams: Record<string, unknown> = { ...params };
       if (params.page && params.size) {
         const { limit, offset } = convertToLimitOffset(params.page, params.size);
@@ -639,7 +650,7 @@ export const realEstateApi = {
         delete apiParams.page;
         delete apiParams.size;
       }
-      
+
       Object.entries(apiParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           queryParams.append(key, String(value));
@@ -650,11 +661,11 @@ export const realEstateApi = {
         url += '?' + queryString;
       }
     }
-    
+
     const response = await api.get<PropertyTag[]>(url);
     const responseData = Array.isArray(response.data) ? response.data : [];
     const responsePagination = response.pagination;
-    
+
     const pagination: ApiPagination = {
       count: responsePagination?.count || responseData.length,
       next: responsePagination?.next || null,
@@ -663,7 +674,7 @@ export const realEstateApi = {
       current_page: responsePagination?.current_page || (params?.page || 1),
       total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
     };
-    
+
     return {
       data: responseData,
       pagination: pagination
@@ -698,7 +709,7 @@ export const realEstateApi = {
     let url = '/admin/property-agent/';
     if (params) {
       const queryParams = new URLSearchParams();
-      
+
       const apiParams: Record<string, unknown> = { ...params };
       if (params.page && params.size) {
         const { limit, offset } = convertToLimitOffset(params.page, params.size);
@@ -707,7 +718,7 @@ export const realEstateApi = {
         delete apiParams.page;
         delete apiParams.size;
       }
-      
+
       Object.entries(apiParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           queryParams.append(key, String(value));
@@ -718,11 +729,11 @@ export const realEstateApi = {
         url += '?' + queryString;
       }
     }
-    
+
     const response = await api.get<PropertyAgent[]>(url);
     const responseData = Array.isArray(response.data) ? response.data : [];
     const responsePagination = response.pagination;
-    
+
     const pagination: ApiPagination = {
       count: responsePagination?.count || responseData.length,
       next: responsePagination?.next || null,
@@ -731,7 +742,7 @@ export const realEstateApi = {
       current_page: responsePagination?.current_page || (params?.page || 1),
       total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
     };
-    
+
     return {
       data: responseData,
       pagination: pagination
@@ -766,7 +777,7 @@ export const realEstateApi = {
     let url = '/admin/real-estate-agency/';
     if (params) {
       const queryParams = new URLSearchParams();
-      
+
       const apiParams: Record<string, unknown> = { ...params };
       if (params.page && params.size) {
         const { limit, offset } = convertToLimitOffset(params.page, params.size);
@@ -775,7 +786,7 @@ export const realEstateApi = {
         delete apiParams.page;
         delete apiParams.size;
       }
-      
+
       Object.entries(apiParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           queryParams.append(key, String(value));
@@ -786,11 +797,11 @@ export const realEstateApi = {
         url += '?' + queryString;
       }
     }
-    
+
     const response = await api.get<RealEstateAgency[]>(url);
     const responseData = Array.isArray(response.data) ? response.data : [];
     const responsePagination = response.pagination;
-    
+
     const pagination: ApiPagination = {
       count: responsePagination?.count || responseData.length,
       next: responsePagination?.next || null,
@@ -799,7 +810,7 @@ export const realEstateApi = {
       current_page: responsePagination?.current_page || (params?.page || 1),
       total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
     };
-    
+
     return {
       data: responseData,
       pagination: pagination

@@ -64,7 +64,6 @@ export function OverviewTab({ property }: OverviewTabProps) {
 
   const labelsCount = property.labels?.length || 0;
   const tagsCount = property.tags?.length || 0;
-  const featuresCount = property.features?.length || 0;
 
   // State for floor plan images (lazy loaded)
   const [floorPlanImages, setFloorPlanImages] = useState<Record<number, FloorPlanImage[]>>({});
@@ -175,6 +174,24 @@ export function OverviewTab({ property }: OverviewTabProps) {
             آمار بازدید و تعامل کاربران
           </p>
           <div className="space-y-3">
+            <div className="flex items-center justify-between p-2 rounded-lg bg-bg-2/50 hover:bg-bg-2 transition-colors border border-br/50">
+              <div className="flex items-center gap-2 text-font-s">
+                <Activity className="w-4 h-4 text-teal-2" />
+                <span>وضعیت فرآیند</span>
+              </div>
+              {(() => {
+                const statusMap: Record<string, { label: string; variant: any }> = {
+                  active: { label: "فعال", variant: "green" },
+                  pending: { label: "در حال معامله", variant: "yellow" },
+                  sold: { label: "فروخته شده", variant: "red" },
+                  rented: { label: "اجاره داده شده", variant: "blue" },
+                  archived: { label: "بایگانی شده", variant: "gray" },
+                };
+                const config = statusMap[property.status] || { label: property.status, variant: "gray" };
+                return <Badge variant={config.variant}>{config.label}</Badge>;
+              })()}
+            </div>
+
             <div className="flex items-center justify-between p-2 rounded-lg bg-bg-2/50 hover:bg-bg-2 transition-colors">
               <div className="flex items-center gap-2 text-font-s">
                 <Eye className="w-4 h-4 text-gray-2" />

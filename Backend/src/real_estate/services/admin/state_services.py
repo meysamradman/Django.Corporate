@@ -17,6 +17,8 @@ class PropertyStateAdminService:
         if filters:
             if filters.get('is_active') is not None:
                 queryset = queryset.filter(is_active=filters['is_active'])
+            if filters.get('usage_type'):
+                queryset = queryset.filter(usage_type=filters['usage_type'])
         
         if search:
             queryset = queryset.filter(title__icontains=search)

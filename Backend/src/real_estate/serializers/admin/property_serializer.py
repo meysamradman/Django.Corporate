@@ -293,7 +293,7 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
         model = Property
         fields = [
             'id', 'public_id', 'title', 'slug', 'short_description', 'description',
-            'is_published', 'is_featured', 'is_public', 'is_active',
+            'is_published', 'is_featured', 'is_public', 'is_active', 'status', # ✅ Status Added
             'main_image', 'property_type', 'state', 'agent', 'agency',
             'labels', 'tags', 'features', 'media', 'property_media', 'floor_plans',
             'region', 'city', 'city_name', 'province', 'province_name',

@@ -1,9 +1,15 @@
 import django_filters
 from django.db.models import Q, Count
 from src.real_estate.models.property import Property
+from src.real_estate.models.constants import PROPERTY_STATUS_CHOICES
 
 
 class PropertyAdminFilter(django_filters.FilterSet):
+    status = django_filters.ChoiceFilter(
+        choices=PROPERTY_STATUS_CHOICES,
+        help_text="Filter by listing lifecycle status"
+    )
+    
     is_published = django_filters.BooleanFilter(
         help_text="Filter by published status"
     )
@@ -222,7 +228,7 @@ class PropertyAdminFilter(django_filters.FilterSet):
     class Meta:
         model = Property
         fields = [
-            'is_published', 'is_featured', 'is_public', 'is_active',
+            'is_published', 'is_featured', 'is_public', 'is_active', 'status',
             'created_after', 'created_before', 'published_after', 'published_before',
             'property_type', 'state', 'agent', 'agency',
             'city', 'province', 'region', 'region_code', 'neighborhood',

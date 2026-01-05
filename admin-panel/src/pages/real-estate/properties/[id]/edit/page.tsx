@@ -151,6 +151,7 @@ export default function EditPropertyPage() {
     parking_spaces: null as number | null,
     storage_rooms: null as number | null,
     extra_attributes: {} as Record<string, any>,
+    status: "active" as string,
   });
 
   const [selectedLabels, setSelectedLabels] = useState<PropertyLabel[]>([]);
@@ -216,6 +217,7 @@ export default function EditPropertyPage() {
         parking_spaces: propertyData.parking_spaces ? Number(propertyData.parking_spaces) : null,
         storage_rooms: propertyData.storage_rooms ? Number(propertyData.storage_rooms) : null,
         extra_attributes: propertyData.extra_attributes || {},
+        status: typeof propertyData.status === 'object' ? propertyData.status?.value : (propertyData.status || "active"),
       });
 
       if (propertyData.labels) {

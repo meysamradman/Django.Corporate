@@ -1,11 +1,17 @@
 import django_filters
 from django.db.models import Q, Count
 from src.real_estate.models.state import PropertyState
+from src.real_estate.models.constants import LISTING_TYPE_CHOICES
 
 
 class PropertyStateAdminFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method='filter_search', label='Search')
     is_active = django_filters.BooleanFilter(field_name='is_active', label='Active Status')
+    
+    usage_type = django_filters.ChoiceFilter(
+        choices=LISTING_TYPE_CHOICES,
+        label='System Type'
+    )
     
     usage = django_filters.ChoiceFilter(
         method='filter_usage',
@@ -53,7 +59,7 @@ class PropertyStateAdminFilter(django_filters.FilterSet):
     
     class Meta:
         model = PropertyState
-        fields = []
+        fields = ['usage_type']
     
     def filter_search(self, queryset, name, value):
         if not value:

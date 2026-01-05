@@ -79,10 +79,17 @@ class PropertyStatisticsService:
         states_count = PropertyState.objects.count()
         states_with_properties = PropertyState.objects.filter(properties__isnull=False).distinct().count()
         
+        # Breakdown by usage_type
+        usage_breakdown = list(PropertyState.objects.values('usage_type').annotate(
+            count=Count('id'),
+            with_properties=Count('properties', distinct=True)
+        ))
+        
         return {
             'total': states_count,
             'with_properties': states_with_properties,
             'without_properties': states_count - states_with_properties,
+            'usage_breakdown': usage_breakdown
         }
     
     @staticmethod

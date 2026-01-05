@@ -25,7 +25,7 @@ export function PersianDatePicker({
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(value ? new Date(value) : null);
   const [showYearSelector, setShowYearSelector] = useState(false);
-  const [yearRange, setYearRange] = useState({ start: 1300, end: 1420 }); // Persian years range
+  const [yearRange, setYearRange] = useState({ start: 1300, end: 1420 });
   const calendarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,7 +34,6 @@ export function PersianDatePicker({
     }
   }, [value]);
 
-  // Close calendar when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (calendarRef.current && !calendarRef.current.contains(event.target as Node)) {
@@ -55,14 +54,13 @@ export function PersianDatePicker({
   const toggleCalendar = () => {
     if (!disabled) {
       setIsOpen(!isOpen);
-      setShowYearSelector(false); // Reset year selector when closing
+      setShowYearSelector(false);
     }
   };
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
     if (onChange) {
-      // Send date in ISO format (YYYY-MM-DD) for backend compatibility
       const isoDate = date.toISOString().split('T')[0];
       onChange(isoDate);
     }
@@ -106,7 +104,6 @@ export function PersianDatePicker({
     setIsOpen(false);
   };
 
-  // Custom format function to remove "ام" from day
   const formatJalaliDate = (date: Date): string => {
     const day = format(date, 'd', { locale: faIR });
     const month = format(date, 'MMMM', { locale: faIR });
@@ -115,21 +112,17 @@ export function PersianDatePicker({
   };
 
   const renderCalendar = () => {
-    // Get the first day of the month and the last day of the month
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);
     
-    // Get all days to display in the calendar (including days from previous/next months)
     const days = eachDayOfInterval({
       start: monthStart,
       end: monthEnd
     });
     
-    // Get Persian month and year for display
     const persianMonthName = format(currentDate, 'MMMM', { locale: faIR });
     const persianYear = format(currentDate, 'yyyy', { locale: faIR });
     
-    // Weekday names in Persian
     const weekdayNames = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
     
     return (
@@ -137,7 +130,6 @@ export function PersianDatePicker({
         ref={calendarRef}
         className="absolute top-full mt-1 right-0 bg-card border rounded-md shadow-lg z-50 w-80"
       >
-        {/* Header with month/year navigation */}
         <div className="flex items-center justify-between p-3 border-b">
           <div className="flex gap-1">
             <Button
@@ -195,7 +187,6 @@ export function PersianDatePicker({
           </div>
         </div>
         
-        {/* Year selector */}
         {showYearSelector && (
           <div className="grid grid-cols-4 gap-2 p-3 border-b max-h-60 overflow-y-auto">
             {Array.from({ length: 16 }, (_, i) => yearRange.start + i).map((year) => (
@@ -228,7 +219,6 @@ export function PersianDatePicker({
           </div>
         )}
         
-        {/* Weekday headers */}
         <div className="grid grid-cols-7 gap-1 p-2">
           {weekdayNames.map((day) => (
             <div key={day} className="text-center font-medium p-1 text-font-s text-sm">
@@ -237,7 +227,6 @@ export function PersianDatePicker({
           ))}
         </div>
         
-        {/* Calendar days */}
         <div className="grid grid-cols-7 gap-1 p-2">
           {days.map((day, index) => {
             const isSelected = selectedDate && isSameDay(day, selectedDate);
@@ -265,7 +254,6 @@ export function PersianDatePicker({
           })}
         </div>
         
-        {/* Today button */}
         <div className="p-3 border-t">
           <Button
             variant="outline"

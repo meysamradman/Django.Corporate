@@ -39,10 +39,10 @@ import type { CategoryItem } from "@/types/shared/table";
 
 const convertPropertyTypesToHierarchical = (types: PropertyType[]): CategoryItem[] => {
   const rootTypes = types.filter(type => !type.parent_id);
-  
+
   const buildTree = (type: PropertyType): CategoryItem => {
     const children = types.filter(t => t.parent_id === type.id);
-    
+
     return {
       id: type.id,
       label: type.title,
@@ -51,7 +51,7 @@ const convertPropertyTypesToHierarchical = (types: PropertyType[]): CategoryItem
       children: children.map(buildTree)
     };
   };
-  
+
   return rootTypes.map(buildTree);
 };
 
@@ -59,16 +59,17 @@ export default function PropertyPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { booleanFilterOptions } = usePropertyFilterOptions();
-  
+
   const [_propertyTypes, setPropertyTypes] = useState<PropertyType[]>([]);
   const [propertyTypeOptions, setPropertyTypeOptions] = useState<CategoryItem[]>([]);
-  
+
   const [_states, setStates] = useState<PropertyState[]>([]);
   const [stateOptions, setStateOptions] = useState<{ label: string; value: string }[]>([]);
-  
+
   // ✅ فقط شهرهایی که ملک دارند
   const [cityOptions, setCityOptions] = useState<{ label: string; value: string }[]>([]);
-  
+  const [statusOptions, setStatusOptions] = useState<{ label: string; value: string }[]>([]);
+
   const [pagination, setPagination] = useState<TablePaginationState>(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
@@ -126,22 +127,28 @@ export default function PropertyPage() {
           realEstateApi.getStates({ page: 1, size: 1000, is_active: true }),
           realEstateApi.getCitiesWithProperties(), // ✅ فقط شهرهای دارای ملک
         ]);
-        
+
         setPropertyTypes(typesResponse.data);
         setPropertyTypeOptions(convertPropertyTypesToHierarchical(typesResponse.data));
-        
+
         setStates(statesResponse.data);
         setStateOptions(statesResponse.data.map((s: PropertyState) => ({ label: s.title, value: s.id.toString() })));
-        
+
         // ✅ تبدیل شهرها به فرمت options
-        setCityOptions(citiesResponse.map(city => ({ 
-          label: `${city.name} (${(city as any).property_count || 0} ملک)`, 
-          value: city.id.toString() 
+        setCityOptions(citiesResponse.map(city => ({
+          label: `${city.name} (${(city as any).property_count || 0} ملک)`,
+          value: city.id.toString()
         })));
+
+        // ✅ دریافت گزینه‌های وضعیت فرآیند
+        const fieldOptions = await realEstateApi.getFieldOptions();
+        if (fieldOptions.status) {
+          setStatusOptions(fieldOptions.status.map(([value, label]) => ({ label, value })));
+        }
       } catch (error) {
       }
     };
-    
+
     fetchOptions();
   }, []);
 
@@ -157,7 +164,7 @@ export default function PropertyPage() {
           property_type: numValue as number | undefined
         }));
         setPagination(prev => ({ ...prev, pageIndex: 0 }));
-        
+
         const url = new URL(window.location.href);
         if (numValue && numValue !== 0) {
           url.searchParams.set('property_type', String(numValue));
@@ -173,7 +180,8 @@ export default function PropertyPage() {
     booleanFilterOptions,
     propertyTypeOptions,
     stateOptions,
-    cityOptions
+    cityOptions,
+    statusOptions
   );
 
   const queryParams = {
@@ -289,7 +297,7 @@ export default function PropertyPage() {
       permission: "real_estate.property.delete",
     },
   ];
-  
+
   const columns = usePropertyColumns(rowActions, handleToggleActive) as ColumnDef<Property>[];
 
   const handleExportExcel = async (filters: PropertyFilters, search: string, exportAll: boolean = false) => {
@@ -305,14 +313,14 @@ export default function PropertyPage() {
         state: filters.state,
         city: filters.city,
       };
-      
+
       if (exportAll) {
         exportParams.export_all = true;
       } else {
         exportParams.page = pagination.pageIndex + 1;
         exportParams.size = pagination.pageSize;
       }
-      
+
       await exportProperties(exportParams, 'excel');
       showSuccess(exportAll ? "فایل اکسل (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل اکسل (صفحه فعلی) با موفقیت دانلود شد");
     } catch (error: any) {
@@ -334,14 +342,14 @@ export default function PropertyPage() {
         state: filters.state,
         city: filters.city,
       };
-      
+
       if (exportAll) {
         exportParams.export_all = true;
       } else {
         exportParams.page = pagination.pageIndex + 1;
         exportParams.size = pagination.pageSize;
       }
-      
+
       await exportProperties(exportParams, 'pdf');
       showSuccess(exportAll ? "فایل PDF (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل PDF (صفحه فعلی) با موفقیت دانلود شد");
     } catch (error: any) {
@@ -407,7 +415,7 @@ export default function PropertyPage() {
       const currency = property.currency || 'تومان';
       const priceText = price !== '-' ? `${new Intl.NumberFormat('fa-IR').format(price)} ${currency}` : '-';
       const createdDate = property.created_at ? formatDate(property.created_at) : '-';
-      
+
       return `
         <tr>
           <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${property.is_active ? 'بله' : 'خیر'}</td>
@@ -519,12 +527,12 @@ export default function PropertyPage() {
 
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
-    const newPagination = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(pagination) 
+    const newPagination = typeof updaterOrValue === 'function'
+      ? updaterOrValue(pagination)
       : updaterOrValue;
-    
+
     setPagination(newPagination);
-    
+
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
@@ -532,12 +540,12 @@ export default function PropertyPage() {
   };
 
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(sorting) 
+    const newSorting = typeof updaterOrValue === 'function'
+      ? updaterOrValue(sorting)
       : updaterOrValue;
-    
+
     setSorting(newSorting);
-    
+
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -558,13 +566,13 @@ export default function PropertyPage() {
           <p className="text-sm text-font-s mb-4">
             سرور با خطای 500 پاسخ داده است. لطفاً با مدیر سیستم تماس بگیرید.
           </p>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             className="mt-4"
           >
             تلاش مجدد
           </Button>
-          <Button 
+          <Button
             variant="outline"
             onClick={() => {
               queryClient.invalidateQueries({ queryKey: ['properties'] });
@@ -582,7 +590,7 @@ export default function PropertyPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="مدیریت املاک">
-        <ProtectedButton 
+        <ProtectedButton
           permission="real_estate.property.create"
           size="sm"
           onClick={() => navigate('/real-estate/properties/create')}
@@ -654,8 +662,8 @@ export default function PropertyPage() {
         />
       </Suspense>
 
-      <AlertDialog 
-        open={deleteConfirm.open} 
+      <AlertDialog
+        open={deleteConfirm.open}
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
       >
         <AlertDialogContent>

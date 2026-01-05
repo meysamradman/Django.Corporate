@@ -636,6 +636,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             get_property_direction_choices_list,
             get_city_position_choices_list,
             get_unit_type_choices_list,
+            get_property_status_choices_list,
         )
         
         # ✅ Static Choices از Model
@@ -647,6 +648,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             'floor_number': Property.FLOOR_CHOICES,
             'kitchens': Property.KITCHEN_CHOICES,
             'living_rooms': Property.LIVING_ROOM_CHOICES,
+            'status': get_property_status_choices_list(),
             
             # ✅ Document Type از Constants (CharField field)
             'document_type': get_document_type_choices_list(),

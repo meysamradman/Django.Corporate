@@ -12,21 +12,30 @@ export const usePropertyStateFilterOptions = () => {
 };
 
 export const getPropertyStateFilterConfig = (
-  booleanFilterOptions: { label: string; value: boolean }[]
+  booleanFilterOptions: { label: string; value: boolean }[],
+  usageTypeOptions: { label: string; value: string }[] = []
 ): FilterConfig[] => [
-  {
-    columnId: "is_active",
-    title: "فعال",
-    type: "faceted",
-    options: booleanFilterOptions,
-    placeholder: "فعال",
-    showSearch: false,
-  },
-  {
-    columnId: "date_range",
-    title: "بازه تاریخ",
-    type: "date_range",
-    placeholder: "انتخاب بازه تاریخ",
-  },
-];
+    {
+      columnId: "usage_type",
+      title: "نوع کاربری",
+      type: "faceted",
+      options: usageTypeOptions,
+      placeholder: "نوع کاربری",
+      showSearch: true,
+    },
+    {
+      columnId: "is_active",
+      title: "فعال",
+      type: "faceted",
+      options: booleanFilterOptions,
+      placeholder: "فعال",
+      showSearch: false,
+    },
+    {
+      columnId: "date_range",
+      title: "بازه تاریخ",
+      type: "date_range",
+      placeholder: "انتخاب بازه تاریخ",
+    },
+  ];
 

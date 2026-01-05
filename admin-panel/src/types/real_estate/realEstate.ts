@@ -18,6 +18,7 @@ export interface Property extends Base {
   is_featured: boolean;
   is_public: boolean;
   is_active: boolean;
+  status: string;
 
   main_image?: {
     id: number;
@@ -195,5 +196,6 @@ export interface PropertyUpdateData extends Partial<Omit<Property,
   media_covers?: { [mediaId: number]: number | null };
   og_image_id?: number | null;
   extra_attributes?: Record<string, any>;
+  status?: string;
 }
 
