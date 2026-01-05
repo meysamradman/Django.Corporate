@@ -122,7 +122,7 @@ export function PropertiesChart({ monthlyStats, statistics, isLoading }: Propert
             </div>
             <span>آمار املاک 6 ماه گذشته</span>
           </CardTitle>
-          <Badge variant="secondary" className="text-xs font-mono font-normal">
+          <Badge variant="gray" className="text-xs font-mono font-normal">
             {startMonth} - {endMonth} {currentYear}
           </Badge>
         </div>

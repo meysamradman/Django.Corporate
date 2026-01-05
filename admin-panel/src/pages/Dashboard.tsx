@@ -5,6 +5,8 @@ import { useStatistics, useSystemStats } from "@/hooks/dashboard/useStatistics";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { SummaryCards, SupportStats, QuickActionsWidget } from "@/components/dashboard/widgets";
 import { Skeleton } from "@/components/elements/Skeleton";
+import { useUserPermissions } from "@/core/permissions/hooks/useUserPermissions";
+import { PERMISSIONS } from "@/core/permissions/constants/permissions";
 
 // Lazy load components that use recharts (heavy library)
 const VisitorPieChart = lazy(() =>
@@ -24,6 +26,15 @@ export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useStatistics();
   const { data: systemStats, isLoading: systemLoading } = useSystemStats();
   const isLoading = statsLoading || systemLoading;
+
+  const { hasPermission } = useUserPermissions();
+
+  // Permission Checks
+  const canViewTraffic = hasPermission(PERMISSIONS.ANALYTICS.STATS_MANAGE);
+  const canViewTrends = hasPermission(PERMISSIONS.ANALYTICS.STATS_MANAGE);
+  const canViewRealEstate = hasPermission(PERMISSIONS.REAL_ESTATE.PROPERTY_READ);
+  const canViewSystem = hasPermission(PERMISSIONS.ANALYTICS.SYSTEM_READ);
+  const canViewSupport = hasPermission(PERMISSIONS.TICKET.READ);
 
   const { date, time, greeting } = useMemo(() => {
     const now = new Date();
@@ -55,8 +66,16 @@ export default function Dashboard() {
 
   const { user } = useAuth();
 
+  // Dynamic Layout Calculations
+  // If traffic chart (left sidebar) is hidden, the main content takes full width (col-span-12)
+  // Otherwise it takes 8 columns (col-span-8)
+  const mainContentClass = canViewTraffic
+    ? "lg:col-span-8"
+    : "lg:col-span-12";
+
   return (
     <div className="space-y-6">
+      {/* Welcome Card - Always Visible */}
       <CardWithIcon
         icon={LayoutDashboard}
         title={
@@ -90,35 +109,58 @@ export default function Dashboard() {
       >
         {null}
       </CardWithIcon>
-      <div className="grid lg:grid-cols-12 gap-6 items-stretch">
-        <div className="lg:col-span-4 order-2 lg:order-1 flex flex-col h-full">
-          <Suspense fallback={<Skeleton className="h-full w-full" />}>
-            <VisitorPieChart isLoading={isLoading} />
+
+      {/* Main Analytics Section */}
+      {(canViewTraffic || canViewTrends) && (
+        <div className="grid lg:grid-cols-12 gap-6 items-stretch">
+          {/* Traffic Source Chart (Left Side) */}
+          {canViewTraffic && (
+            <div className="lg:col-span-4 order-2 lg:order-1 flex flex-col h-full">
+              <Suspense fallback={<Skeleton className="h-full w-full" />}>
+                <VisitorPieChart isLoading={isLoading} />
+              </Suspense>
+            </div>
+          )}
+
+          {/* Main Trends & Summary Cards (Right Side) */}
+          {canViewTrends && (
+            <div className={`${mainContentClass} space-y-6 order-1 lg:order-2 flex flex-col`}>
+              <SummaryCards stats={stats} isLoading={statsLoading} />
+              <div className="flex-1 min-h-0">
+                <Suspense fallback={<Skeleton className="h-full w-full" />}>
+                  <VisitorTrendChart isLoading={isLoading} />
+                </Suspense>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Property Distribution Chart */}
+      {canViewRealEstate && (
+        <div className="grid grid-cols-1 gap-6">
+          <Suspense fallback={<Skeleton className="h-[350px] w-full" />}>
+            <PropertyDistributionChart stats={stats} isLoading={statsLoading} />
           </Suspense>
         </div>
+      )}
 
-        <div className="lg:col-span-8 space-y-6 order-1 lg:order-2 flex flex-col">
-          <SummaryCards stats={stats} isLoading={statsLoading} />
-          <div className="flex-1 min-h-0">
-            <Suspense fallback={<Skeleton className="h-full w-full" />}>
-              <VisitorTrendChart isLoading={isLoading} />
-            </Suspense>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6">
-        <Suspense fallback={<Skeleton className="h-[350px] w-full" />}>
-          <PropertyDistributionChart stats={stats} isLoading={statsLoading} />
-        </Suspense>
-      </div>
-
+      {/* Bottom Widgets */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+        {/* Quick Actions - Always Visible or minimal permission */}
         <QuickActionsWidget isLoading={isLoading} />
-        <SupportStats stats={stats} isLoading={statsLoading} />
-        <Suspense fallback={<Skeleton className="h-full w-full" />}>
-          <SystemStats systemStats={systemStats} isLoading={systemLoading} />
-        </Suspense>
+
+        {/* Support Stats */}
+        {canViewSupport && (
+          <SupportStats stats={stats} isLoading={statsLoading} />
+        )}
+
+        {/* System Stats */}
+        {canViewSystem && (
+          <Suspense fallback={<Skeleton className="h-full w-full" />}>
+            <SystemStats systemStats={systemStats} isLoading={systemLoading} />
+          </Suspense>
+        )}
       </div>
     </div>
   );
