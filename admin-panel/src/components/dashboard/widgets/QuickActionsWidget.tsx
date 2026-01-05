@@ -5,8 +5,8 @@ import {
     Image as ImageIcon,
     Settings,
     MessageSquare,
-    Mail,
-    Zap
+    Zap,
+    Building2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
@@ -23,18 +23,25 @@ interface QuickAction {
 
 const actions: QuickAction[] = [
     {
-        label: "نوشته جدید",
+        label: "ثبت ملک جدید",
         icon: PlusCircle,
-        href: "/blog/create",
+        href: "/real-estate/properties/create",
         color: "text-blue-1",
         bgColor: "bg-blue-0",
     },
     {
-        label: "مدیریت کاربران",
+        label: "مدیریت مشاورین",
         icon: Users,
-        href: "/users",
+        href: "/agents",
         color: "text-green-1",
         bgColor: "bg-green-0",
+    },
+    {
+        label: "مدیریت آژانس‌ها",
+        icon: Building2,
+        href: "/admins/agencies",
+        color: "text-amber-1",
+        bgColor: "bg-amber-0",
     },
     {
         label: "گالری تصاویر",
@@ -44,13 +51,6 @@ const actions: QuickAction[] = [
         bgColor: "bg-purple-0",
     },
     {
-        label: "پیام‌های جدید",
-        icon: Mail,
-        href: "/support/emails",
-        color: "text-pink-1",
-        bgColor: "bg-pink-0",
-    },
-    {
         label: "تیکت‌های باز",
         icon: MessageSquare,
         href: "/support/tickets",
@@ -58,11 +58,11 @@ const actions: QuickAction[] = [
         bgColor: "bg-teal-0",
     },
     {
-        label: "تنظیمات سیستم",
+        label: "تنظیمات آژانس",
         icon: Settings,
         href: "/settings/general",
-        color: "text-amber-1",
-        bgColor: "bg-amber-0",
+        color: "text-pink-1",
+        bgColor: "bg-pink-0",
     },
 ];
 

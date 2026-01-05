@@ -53,36 +53,45 @@ class ContentStatsService:
 
             month_data = {
                 'month': month_name,
-                'portfolios': 0,
-                'posts': 0,
-                'media': 0
+                'properties': 0,
+                'sale_properties': 0,
+                'rent_properties': 0,
+                'inquiries': 0,
+                'agents': 0
             }
 
-            # Portfolio Trend
-            if apps.is_installed('src.portfolio'):
-                from src.portfolio.models.portfolio import Portfolio
-                month_data['portfolios'] = Portfolio.objects.filter(
+            # Property Trend
+            if apps.is_installed('src.real_estate'):
+                from src.real_estate.models.property import Property
+                from src.real_estate.models.statistics import PropertyInquiry
+                from src.real_estate.models.agent import PropertyAgent
+                
+                month_data['properties'] = Property.objects.filter(
                     created_at__year=start_date.year,
                     created_at__month=start_date.month
                 ).count()
-
-            # Blog Trend
-            if apps.is_installed('src.blog'):
-                from src.blog.models.blog import Blog
-                month_data['posts'] = Blog.objects.filter(
+                
+                month_data['sale_properties'] = Property.objects.filter(
+                    state__slug='sale',
                     created_at__year=start_date.year,
                     created_at__month=start_date.month
                 ).count()
-
-            # Media Trend
-            if apps.is_installed('src.media'):
-                from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
-                month_data['media'] = (
-                    ImageMedia.objects.filter(created_at__year=start_date.year, created_at__month=start_date.month).count() +
-                    VideoMedia.objects.filter(created_at__year=start_date.year, created_at__month=start_date.month).count() +
-                    AudioMedia.objects.filter(created_at__year=start_date.year, created_at__month=start_date.month).count() +
-                    DocumentMedia.objects.filter(created_at__year=start_date.year, created_at__month=start_date.month).count()
-                )
+                
+                month_data['rent_properties'] = Property.objects.filter(
+                    state__slug='rent',
+                    created_at__year=start_date.year,
+                    created_at__month=start_date.month
+                ).count()
+                
+                month_data['inquiries'] = PropertyInquiry.objects.filter(
+                    created_at__year=start_date.year,
+                    created_at__month=start_date.month
+                ).count()
+                
+                month_data['agents'] = PropertyAgent.objects.filter(
+                    created_at__year=start_date.year,
+                    created_at__month=start_date.month
+                ).count()
             
             trends.append(month_data)
             

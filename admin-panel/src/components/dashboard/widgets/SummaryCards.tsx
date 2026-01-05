@@ -1,5 +1,5 @@
 import { useMemo, type ElementType } from "react";
-import { Users, ShieldUser, Mail, Ticket } from "lucide-react";
+import { Home, MessageSquare, Briefcase, Building2 } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { Card } from "@/components/elements/Card";
 import { cn } from "@/core/utils/cn";
@@ -24,71 +24,61 @@ interface SummaryCardsProps {
 }
 
 const CARD_COLORS = {
-  user: {
+  properties: {
     border: 'border-b-blue-1',
     iconBg: 'bg-blue-0',
     icon: 'text-blue-1',
   },
-  admin: {
-    border: 'border-b-green-1',
-    iconBg: 'bg-green-0',
-    icon: 'text-green-1',
-  },
-  content: {
-    border: 'border-b-amber-1',
-    iconBg: 'bg-amber-0',
-    icon: 'text-amber-1',
-  },
-  media: {
-    border: 'border-b-purple-1',
-    iconBg: 'bg-purple-0',
-    icon: 'text-purple-1',
-  },
-  emails: {
+  inquiries: {
     border: 'border-b-pink-1',
     iconBg: 'bg-pink-0',
     icon: 'text-pink-1',
   },
-  tickets: {
-    border: 'border-b-teal-1',
-    iconBg: 'bg-teal-0',
-    icon: 'text-teal-1',
+  agents: {
+    border: 'border-b-green-1',
+    iconBg: 'bg-green-0',
+    icon: 'text-green-1',
+  },
+  agencies: {
+    border: 'border-b-amber-1',
+    iconBg: 'bg-amber-0',
+    icon: 'text-amber-1',
   },
 };
 
 export function SummaryCards({ stats, isLoading = false }: SummaryCardsProps) {
   const allCards = useMemo<SummaryCard[]>(() => [
     {
-      id: 'users',
-      icon: Users,
-      label: 'کاربران',
-      value: stats?.total_users || 0,
-      colors: CARD_COLORS.user,
+      id: 'properties',
+      icon: Home,
+      label: 'کل املاک',
+      value: stats?.total_properties || 0,
+      colors: CARD_COLORS.properties,
       trend: null
     },
     {
-      id: 'admins',
-      icon: ShieldUser,
-      label: 'ادمین‌ها',
-      value: stats?.total_admins || 0,
-      colors: CARD_COLORS.admin,
+      id: 'inquiries',
+      icon: MessageSquare,
+      label: 'درخواست‌ها',
+      value: stats?.total_inquiries || 0,
+      colors: CARD_COLORS.inquiries,
+      trend: stats?.new_inquiries ? { value: stats.new_inquiries, label: 'جدید' } : null
+    },
+    {
+      id: 'agents',
+      icon: Briefcase,
+      label: 'مشاورین',
+      value: stats?.total_agents || 0,
+      colors: CARD_COLORS.agents,
       trend: null
     },
     {
-      id: 'emails',
-      icon: Mail,
-      label: 'ایمیل‌ها',
-      value: stats?.total_emails || 0,
-      colors: CARD_COLORS.emails,
-      trend: stats?.new_emails ? { value: stats.new_emails, label: 'جدید' } : null
-    },
-    {
-      id: 'tickets',
-      icon: Ticket,
-      label: 'تیکت‌ها',
-      value: stats?.total_tickets || 0,
-      colors: CARD_COLORS.tickets,
-      trend: stats?.open_tickets ? { value: stats.open_tickets, label: 'باز' } : null
+      id: 'agencies',
+      icon: Building2,
+      label: 'آژانس‌ها',
+      value: stats?.total_agencies || 0,
+      colors: CARD_COLORS.agencies,
+      trend: null
     },
   ], [stats]);
 

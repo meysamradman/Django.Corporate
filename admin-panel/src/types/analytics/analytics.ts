@@ -58,6 +58,18 @@ export interface DashboardStats {
   open_tickets: number;
   active_tickets: number;
   unanswered_tickets: number;
+  total_properties: number;
+  total_agencies: number;
+  total_agents: number;
+  total_inquiries: number;
+  new_inquiries: number;
+
+  // Advanced Real Estate Metrics
+  total_views: number;
+  total_favorites: number;
+  total_listing_value: number;
+  properties_by_type: Array<{ 'property_type__title': string; count: number }>;
+  properties_by_state: Array<{ 'state__title': string; count: number }>;
 }
 
 export interface SystemStats {
@@ -93,4 +105,15 @@ export interface SystemStats {
     vendor: string;
   };
   generated_at: string;
+}
+
+export interface TrendData {
+  month: string;
+  properties: number;
+  sale_properties: number;
+  rent_properties: number;
+  inquiries: number;
+  agents: number;
+  blog_posts?: number;
+  portfolio_items?: number;
 }

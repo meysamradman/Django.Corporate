@@ -21,17 +21,21 @@ import {
 } from "@/components/elements/Select";
 
 const chartConfig = {
-  portfolios: {
-    label: "نمونه کارها",
-    color: "hsl(var(--primary))",
+  sale_properties: {
+    label: "ثبت فروش",
+    color: "#f59e0b",
   },
-  posts: {
-    label: "وبلاگ",
-    color: "#2563eb",
+  rent_properties: {
+    label: "ثبت اجاره",
+    color: "#3b82f6",
   },
-  media: {
-    label: "رسانه‌ها",
+  inquiries: {
+    label: "درخواست‌ها",
     color: "#10b981",
+  },
+  properties: {
+    label: "کل املاک",
+    color: "hsl(var(--primary))",
   },
 } satisfies ChartConfig;
 
@@ -47,14 +51,15 @@ export const VisitorTrendChart: FC<{ isLoading?: boolean }> = ({
   }, [trendData]);
 
   const metrics = useMemo(() => {
-    if (!chartData.length) return { portfolios: 0, posts: 0, media: 0 };
+    if (!chartData.length) return { properties: 0, inquiries: 0, sale: 0, rent: 0 };
     return chartData.reduce(
       (acc, curr) => ({
-        portfolios: acc.portfolios + (Number(curr.portfolios) || 0),
-        posts: acc.posts + (Number(curr.posts) || 0),
-        media: acc.media + (Number(curr.media) || 0),
+        properties: acc.properties + (Number(curr.properties) || 0),
+        inquiries: acc.inquiries + (Number(curr.inquiries) || 0),
+        sale: acc.sale + (Number(curr.sale_properties) || 0),
+        rent: acc.rent + (Number(curr.rent_properties) || 0),
       }),
-      { portfolios: 0, posts: 0, media: 0 }
+      { properties: 0, inquiries: 0, sale: 0, rent: 0 }
     );
   }, [chartData]);
 
@@ -62,7 +67,7 @@ export const VisitorTrendChart: FC<{ isLoading?: boolean }> = ({
     return (
       <CardWithIcon
         icon={LineChart}
-        title="روند انتشار محتوا"
+        title="روند فعالیت املاک"
         iconBgColor="bg-primary/10"
         iconColor="stroke-primary"
         borderColor="border-b-primary"
@@ -76,7 +81,7 @@ export const VisitorTrendChart: FC<{ isLoading?: boolean }> = ({
   return (
     <CardWithIcon
       icon={LineChart}
-      title="روند انتشار محتوا"
+      title="روند فعالیت املاک"
       iconBgColor="bg-primary/10"
       iconColor="stroke-primary"
       borderColor="border-b-primary"
@@ -98,24 +103,30 @@ export const VisitorTrendChart: FC<{ isLoading?: boolean }> = ({
       <div className="space-y-6">
         <ChartStyle id="visitor-trend" config={chartConfig} />
 
-        <div className="grid grid-cols-3 gap-4 border-b border-br pb-4">
+        <div className="grid grid-cols-4 gap-4 border-b border-br pb-4">
           <div className="flex flex-col">
             <span className="text-2xl font-bold text-font-p">
-              {formatNumber(metrics.portfolios)}
+              {formatNumber(metrics.sale)}
             </span>
-            <span className="text-sm text-font-s mt-1">نمونه کارها</span>
+            <span className="text-xs text-font-s mt-1">املاک فروش</span>
           </div>
-          <div className="flex flex-col border-r border-l border-br px-4">
+          <div className="flex flex-col border-r border-br px-4">
             <span className="text-2xl font-bold text-font-p">
-              {formatNumber(metrics.posts)}
+              {formatNumber(metrics.rent)}
             </span>
-            <span className="text-sm text-font-s mt-1">وبلاگ</span>
+            <span className="text-xs text-font-s mt-1">املاک اجاره</span>
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col border-r border-br px-4">
             <span className="text-2xl font-bold text-font-p">
-              {formatNumber(metrics.media)}
+              {formatNumber(metrics.inquiries)}
             </span>
-            <span className="text-sm text-font-s mt-1">رسانه‌ها</span>
+            <span className="text-xs text-font-s mt-1">درخواست‌ها</span>
+          </div>
+          <div className="flex flex-col border-r border-br px-4">
+            <span className="text-2xl font-bold text-font-p">
+              {formatNumber(metrics.properties)}
+            </span>
+            <span className="text-xs text-font-s mt-1">کل ثبت‌ها</span>
           </div>
         </div>
 
@@ -126,41 +137,17 @@ export const VisitorTrendChart: FC<{ isLoading?: boolean }> = ({
         >
           <AreaChart data={chartData}>
             <defs>
-              <linearGradient id="fillPortfolios" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-portfolios)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-portfolios)"
-                  stopOpacity={0.1}
-                />
+              <linearGradient id="fillSale" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-sale_properties)" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="var(--color-sale_properties)" stopOpacity={0.1} />
               </linearGradient>
-              <linearGradient id="fillPosts" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-posts)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-posts)"
-                  stopOpacity={0.1}
-                />
+              <linearGradient id="fillRent" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-rent_properties)" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="var(--color-rent_properties)" stopOpacity={0.1} />
               </linearGradient>
-              <linearGradient id="fillMedia" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-media)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-media)"
-                  stopOpacity={0.1}
-                />
+              <linearGradient id="fillInquiries" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-inquiries)" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="var(--color-inquiries)" stopOpacity={0.1} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" className="stroke-br" />
@@ -183,23 +170,23 @@ export const VisitorTrendChart: FC<{ isLoading?: boolean }> = ({
             />
             <Area
               type="monotone"
-              dataKey="portfolios"
-              stroke="var(--color-portfolios)"
-              fill="url(#fillPortfolios)"
+              dataKey="sale_properties"
+              stroke="var(--color-sale_properties)"
+              fill="url(#fillSale)"
               strokeWidth={2}
             />
             <Area
               type="monotone"
-              dataKey="posts"
-              stroke="var(--color-posts)"
-              fill="url(#fillPosts)"
+              dataKey="rent_properties"
+              stroke="var(--color-rent_properties)"
+              fill="url(#fillRent)"
               strokeWidth={2}
             />
             <Area
               type="monotone"
-              dataKey="media"
-              stroke="var(--color-media)"
-              fill="url(#fillMedia)"
+              dataKey="inquiries"
+              stroke="var(--color-inquiries)"
+              fill="url(#fillInquiries)"
               strokeWidth={2}
             />
           </AreaChart>

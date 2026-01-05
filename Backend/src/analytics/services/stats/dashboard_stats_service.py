@@ -2,7 +2,7 @@ from django.apps import apps
 from django.core.cache import cache
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-from django.db.models import Q
+from django.db.models import Q, Sum, Count
 from src.analytics.utils.cache import AnalyticsCacheKeys, AnalyticsCacheManager
 
 User = get_user_model()
@@ -106,6 +106,51 @@ class DashboardStatsService:
             stats['in_progress_tickets'] = 0
             stats['active_tickets'] = 0
             stats['unanswered_tickets'] = 0
+
+        if apps.is_installed('src.real_estate'):
+            from src.real_estate.models.property import Property
+            from src.real_estate.models.agent import PropertyAgent
+            from src.real_estate.models.agency import RealEstateAgency
+            from src.real_estate.models.statistics import PropertyInquiry
+            
+            stats['total_properties'] = Property.objects.count()
+            stats['total_agencies'] = RealEstateAgency.objects.count()
+            stats['total_agents'] = PropertyAgent.objects.count()
+            stats['total_inquiries'] = PropertyInquiry.objects.count()
+            stats['new_inquiries'] = PropertyInquiry.objects.filter(status='new').count()
+
+            # --- Advanced Real Estate Metrics ---
+            
+            # Engagement
+            stats['total_views'] = Property.objects.aggregate(total=Sum('views_count'))['total'] or 0
+            stats['total_favorites'] = Property.objects.aggregate(total=Sum('favorites_count'))['total'] or 0
+            
+            # Financials (Total Listing Value for Sale)
+            # Assuming 'sale' state represents properties for sale
+            stats['total_listing_value'] = Property.objects.filter(
+                state__slug='sale',
+                is_published=True
+            ).aggregate(total=Sum('price'))['total'] or 0
+
+            # Distribution by Type
+            stats['properties_by_type'] = list(Property.objects.values(
+                'property_type__title'
+            ).annotate(
+                count=Count('id')
+            ).order_by('-count'))
+            
+            # Distribution by State (Listing Status)
+            stats['properties_by_state'] = list(Property.objects.values(
+                'state__title'
+            ).annotate(
+                count=Count('id')
+            ).order_by('-count'))
+        else:
+            stats['total_properties'] = 0
+            stats['total_agencies'] = 0
+            stats['total_agents'] = 0
+            stats['total_inquiries'] = 0
+            stats['new_inquiries'] = 0
         
         return stats
     

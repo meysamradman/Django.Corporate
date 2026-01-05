@@ -7,14 +7,17 @@ import { SummaryCards, SupportStats, QuickActionsWidget } from "@/components/das
 import { Skeleton } from "@/components/elements/Skeleton";
 
 // Lazy load components that use recharts (heavy library)
-const VisitorPieChart = lazy(() => 
+const VisitorPieChart = lazy(() =>
   import("@/components/dashboard/widgets").then(mod => ({ default: mod.VisitorPieChart }))
 );
-const VisitorTrendChart = lazy(() => 
+const VisitorTrendChart = lazy(() =>
   import("@/components/dashboard/widgets").then(mod => ({ default: mod.VisitorTrendChart }))
 );
-const SystemStats = lazy(() => 
+const SystemStats = lazy(() =>
   import("@/components/dashboard/widgets").then(mod => ({ default: mod.SystemStats }))
+);
+const PropertyDistributionChart = lazy(() =>
+  import("@/components/dashboard/widgets/PropertyDistributionChart").then(mod => ({ default: mod.PropertyDistributionChart }))
 );
 
 export default function Dashboard() {
@@ -102,6 +105,12 @@ export default function Dashboard() {
             </Suspense>
           </div>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
+        <Suspense fallback={<Skeleton className="h-[350px] w-full" />}>
+          <PropertyDistributionChart stats={stats} isLoading={statsLoading} />
+        </Suspense>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
