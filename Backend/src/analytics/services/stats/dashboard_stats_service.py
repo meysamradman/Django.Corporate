@@ -2,7 +2,7 @@ from django.apps import apps
 from django.core.cache import cache
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-from django.db.models import Q, Sum, Count
+from django.db.models import Q, Sum, Count, Avg
 from src.analytics.utils.cache import AnalyticsCacheKeys, AnalyticsCacheManager
 
 User = get_user_model()
