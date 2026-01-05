@@ -1,7 +1,7 @@
-import uuid
 from django.db import models
 from django.utils import timezone
-
+from django.conf import settings
+import uuid
 
 class BaseModel(models.Model):
     
@@ -37,14 +37,20 @@ class BaseModel(models.Model):
         verbose_name="Updated At",
         help_text="Date and time when the record was last updated"
     )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="%(app_label)s_%(class)s_created",
+        verbose_name="Created By",
+        help_text="User who created this record"
+    )
 
     class Meta:
         abstract = True
         ordering = ['-created_at']
         indexes = [
-            # Composite index for common query pattern (is_active filtering with date ordering)
-            # Note: public_id already has db_index=True and unique=True (automatic index)
-            # Note: is_active and created_at already have db_index=True, but composite index is beneficial
             models.Index(fields=['is_active', 'created_at']),
         ]
     

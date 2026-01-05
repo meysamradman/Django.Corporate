@@ -1,87 +1,37 @@
-import { useQuery } from "@tanstack/react-query";
-import { realEstateApi } from "@/api/real-estate/properties";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Badge } from "@/components/elements/Badge";
-import { Skeleton } from "@/components/elements/Skeleton";
-import { showError } from '@/core/toast';
+import { useQuery } from '@tanstack/react-query';
+import { realEstateApi } from '@/api/real-estate/properties';
 import {
-  Home,
-  CheckCircle2,
-  Star,
-  Users,
+  Activity,
   Building,
-  Award,
+  CheckCircle,
+  FileText,
+  Grid,
+  Home,
+  Layers,
+  MapPin,
+  Tag,
+  UserCheck,
+  Users,
   TrendingUp,
-  TrendingDown,
-} from "lucide-react";
-import { PropertiesChart } from "./PropertiesChart";
-import { formatNumber } from "@/core/utils/format";
+  TrendingDown
+} from 'lucide-react';
+import { PropertiesChart } from './PropertiesChart';
+import { FinancialStatsCards } from './FinancialStatsCards';
+import { TrafficSourceChart } from './TrafficSourceChart';
+import { TopAgentsList } from './TopAgentsList';
+import type { PropertyStatistics } from '@/types/real_estate/statistics';
+import { showError } from '@/core/toast';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { cn } from "@/core/utils/cn";
-import type { ReactNode } from 'react';
+import { formatNumber } from "@/core/utils/format";
+import type { ReactNode } from "react";
 
-interface PropertyStatistics {
-  generated_at: string;
-  properties: {
-    total: number;
-    published: number;
-    draft: number;
-    featured: number;
-    verified: number;
-    active: number;
-    public: number;
-    published_percentage: number;
-    featured_percentage: number;
-    verified_percentage: number;
-  };
-  types: {
-    total: number;
-    with_properties: number;
-    without_properties: number;
-  };
-  states: {
-    total: number;
-    with_properties: number;
-    without_properties: number;
-  };
-  labels: {
-    total: number;
-    with_properties: number;
-    without_properties: number;
-  };
-  features: {
-    total: number;
-    with_properties: number;
-    without_properties: number;
-  };
-  tags: {
-    total: number;
-    with_properties: number;
-    without_properties: number;
-  };
-  agents: {
-    total: number;
-    active: number;
-    verified: number;
-    with_properties: number;
-    active_percentage: number;
-    verified_percentage: number;
-  };
-  agencies: {
-    total: number;
-    active: number;
-    verified: number;
-    with_properties: number;
-    active_percentage: number;
-    verified_percentage: number;
-  };
-  recent_properties?: any[];
-}
-
+// --- LOCAL STATCARD COMPONENT ---
 interface StatCardProps {
   title: string;
   value: string | number;
   subtitle?: string;
+  description?: string;
   trend?: {
     value: number;
     isPositive: boolean;
@@ -90,44 +40,70 @@ interface StatCardProps {
   icon: ReactNode;
   iconColor?: string;
   iconBg?: string;
+  borderColor?: string;
+  isLoading?: boolean;
+  className?: string; // Add className prop support
 }
 
 function StatCard({
   title,
   value,
   subtitle,
+  description,
   trend,
   icon,
-  iconColor = "text-blue-1",
-  iconBg = "bg-blue/10",
-  borderColor = "border-b-blue-1"
-}: StatCardProps & { borderColor?: string }) {
+  iconColor = "text-blue-500", // standard tailwind colors
+  iconBg = "bg-blue-50",
+  borderColor = "border-b-blue-500",
+  isLoading = false,
+  className, // Destructure className
+}: StatCardProps) {
+  if (isLoading) {
+    return (
+      <Card className={cn("border-b-4", borderColor, className)}>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <div className="h-4 w-24 bg-gray-200 animate-pulse rounded" />
+          <div className="h-8 w-8 bg-gray-200 animate-pulse rounded-lg" />
+        </CardHeader>
+        <CardContent>
+          <div className="h-8 w-16 bg-gray-200 animate-pulse rounded mb-2" />
+          <div className="h-3 w-32 bg-gray-200 animate-pulse rounded" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className={cn(
-      "relative overflow-hidden border-b-4",
-      borderColor
+      "relative overflow-hidden border-b-4 transition-all hover:shadow-md",
+      borderColor,
+      className // Apply className here
     )}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-font-s">{title}</CardTitle>
-        <div className={`${iconBg} p-2 rounded-lg`}>
-          <div className={iconColor}>{icon}</div>
+        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <div className={cn("p-2 rounded-lg transition-colors", iconBg)}>
+          <div className={cn("h-4 w-4", iconColor)}>{icon}</div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-font-p mb-1">
+        <div className="text-2xl font-bold tracking-tight mb-1">
           {typeof value === 'number' ? formatNumber(value) : value}
         </div>
-        {subtitle && (
-          <p className="text-xs text-font-s mb-2">{subtitle}</p>
+
+        {(subtitle || description) && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {subtitle || description}
+          </p>
         )}
+
         {trend && (
-          <div className="flex items-center gap-1 text-xs">
+          <div className="flex items-center gap-1.5 text-xs font-medium mt-2">
             {trend.isPositive ? (
-              <TrendingUp className="h-3 w-3 text-green-1" />
+              <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
             ) : (
-              <TrendingDown className="h-3 w-3 text-red-1" />
+              <TrendingDown className="h-3.5 w-3.5 text-rose-500" />
             )}
-            <span className={trend.isPositive ? "text-green-1" : "text-red-1"}>
+            <span className={trend.isPositive ? "text-emerald-600" : "text-rose-600"}>
               {Math.abs(trend.value)}% {trend.label}
             </span>
           </div>
@@ -137,222 +113,241 @@ function StatCard({
   );
 }
 
+// --- MOCK DATA FOR UI VISUALIZATION ---
+const MOCK_STATS: PropertyStatistics = {
+  generated_at: new Date().toISOString(),
+  properties: {
+    total: 1250,
+    published: 980,
+    draft: 150,
+    featured: 85,
+    verified: 850,
+    active: 1100,
+    public: 1100,
+    published_percentage: 78.4,
+    featured_percentage: 6.8,
+    verified_percentage: 68.0,
+  },
+  types: { total: 12, with_properties: 8, without_properties: 4 },
+  states: { total: 32, with_properties: 15, without_properties: 17 },
+  labels: { total: 20, with_properties: 12, without_properties: 8 },
+  features: { total: 50, with_properties: 35, without_properties: 15 },
+  tags: { total: 100, with_properties: 65, without_properties: 35 },
+  agents: {
+    total: 45,
+    active: 38,
+    verified: 30,
+    with_properties: 32,
+    active_percentage: 84.4,
+    verified_percentage: 66.7,
+  },
+  agencies: {
+    total: 12,
+    active: 10,
+    verified: 8,
+    with_properties: 9,
+    active_percentage: 83.3,
+    verified_percentage: 66.7,
+  },
+  financials: {
+    total_sales_value: 154000000000, // 154 Billion Tomans
+    total_commissions: 3850000000,   // 3.85 Billion Tomans
+    total_sold_properties: 42,
+  },
+  traffic: {
+    web_views: 45200,
+    app_views: 12800,
+    total_views: 58000,
+  },
+  top_agents: [
+    { id: 1, name: "علی محمدی", avatar: null, rating: 4.8, total_sales: 45000000000, total_commissions: 1125000000, sold_count: 12 },
+    { id: 2, name: "سارا حسینی", avatar: null, rating: 4.9, total_sales: 38000000000, total_commissions: 950000000, sold_count: 10 },
+    { id: 3, name: "رضا رضایی", avatar: null, rating: 4.5, total_sales: 28000000000, total_commissions: 700000000, sold_count: 8 },
+    { id: 4, name: "مریم کریمی", avatar: null, rating: 4.7, total_sales: 22000000000, total_commissions: 550000000, sold_count: 7 },
+    { id: 5, name: "محمد احمدی", avatar: null, rating: 4.2, total_sales: 15000000000, total_commissions: 375000000, sold_count: 5 },
+  ]
+};
+
+const MOCK_MONTHLY_STATS = [
+  { month: "فروردین", published: 45, draft: 10, featured: 5, verified: 40 },
+  { month: "اردیبهشت", published: 60, draft: 15, featured: 8, verified: 55 },
+  { month: "خرداد", published: 85, draft: 20, featured: 12, verified: 80 },
+  { month: "تیر", published: 110, draft: 12, featured: 15, verified: 105 },
+  { month: "مرداد", published: 95, draft: 18, featured: 10, verified: 90 },
+  { month: "شهریور", published: 130, draft: 25, featured: 20, verified: 125 },
+];
+
 export function RealEstateStatisticsOverview() {
-  const { data: stats, isLoading, error } = useQuery<PropertyStatistics>({
-    queryKey: ['real-estate-statistics'],
-    queryFn: () => realEstateApi.getStatistics(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  // USE MOCK DATA DIRECTLY
+  const stats = MOCK_STATS;
+  const monthlyStats = MOCK_MONTHLY_STATS;
+  const isLoading = false;
 
-  const { data: monthlyData, isLoading: monthlyLoading } = useQuery({
-    queryKey: ['real-estate-monthly-stats'],
-    queryFn: () => realEstateApi.getMonthlyStats(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  // Handle errors
-  if (error) {
-    showError(error, { customMessage: "خطا در دریافت آمار املاک" });
-  }
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i} className="border-b-4 border-b-primary">
-              <CardContent className="pt-6">
-                <Skeleton className="h-4 w-24 mb-2" />
-                <Skeleton className="h-8 w-32" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !stats) {
-    return (
-      <div className="rounded-lg border p-6">
-        <div className="text-center py-8">
-          <p className="text-red-1 mb-4">خطا در بارگذاری آمار املاک</p>
-          <p className="text-font-s">
-            لطفاً دوباره تلاش کنید یا با مدیر سیستم تماس بگیرید.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const displayStats = stats || {
-    properties: {
-      total: 0,
-      published: 0,
-      draft: 0,
-      featured: 0,
-      verified: 0,
-      published_percentage: 0,
-      featured_percentage: 0,
-      verified_percentage: 0,
-    },
-    types: { total: 0, with_properties: 0, without_properties: 0 },
-    states: { total: 0, with_properties: 0, without_properties: 0 },
-    labels: { total: 0, with_properties: 0, without_properties: 0 },
-    features: { total: 0, with_properties: 0, without_properties: 0 },
-    tags: { total: 0, with_properties: 0, without_properties: 0 },
-    agents: {
-      total: 0,
-      active: 0,
-      verified: 0,
-      with_properties: 0,
-      active_percentage: 0,
-      verified_percentage: 0,
-    },
-    agencies: {
-      total: 0,
-      active: 0,
-      verified: 0,
-      with_properties: 0,
-      active_percentage: 0,
-      verified_percentage: 0,
-    },
-  };
-
-  const displayMonthlyData = monthlyData || {
-    monthly_stats: [
-      { month: "تیر", published: 120, draft: 45, featured: 25, verified: 20 },
-      { month: "مرداد", published: 135, draft: 50, featured: 30, verified: 25 },
-      { month: "شهریور", published: 128, draft: 48, featured: 28, verified: 22 },
-      { month: "مهر", published: 142, draft: 52, featured: 32, verified: 28 },
-      { month: "آبان", published: 158, draft: 55, featured: 35, verified: 30 },
-      { month: "آذر", published: 165, draft: 58, featured: 38, verified: 32 },
-    ],
-  };
-
-  const monthlyStats = displayMonthlyData.monthly_stats;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const error = null;
 
   return (
-    <div className="space-y-6">
-      {/* آمار کلی املاک */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4 text-font-p">آمار کلی املاک</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="کل املاک"
-            value={displayStats.properties.total}
-            icon={<Home className="h-5 w-5" />}
-            iconColor="text-blue-1"
-            iconBg="bg-blue-0"
-            borderColor="border-b-blue-1"
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Financial Overview - Top Relevance */}
+      <FinancialStatsCards data={stats?.financials} isLoading={isLoading} />
+
+      {/* Main Stats Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="کل املاک"
+          value={stats?.properties?.total || 0}
+          icon={<Home className="h-4 w-4 text-blue-500" />}
+          description="تعداد کل املاک ثبت شده"
+          isLoading={isLoading}
+          iconColor="text-blue-500"
+          iconBg="bg-blue-50"
+          borderColor="border-b-blue-500"
+        />
+        <StatCard
+          title="املاک منتشر شده"
+          value={stats?.properties?.published || 0}
+          icon={<CheckCircle className="h-4 w-4 text-green-500" />}
+          description={`${stats?.properties?.published_percentage || 0}٪ از کل املاک`}
+          isLoading={isLoading}
+          iconColor="text-green-500"
+          iconBg="bg-green-50"
+          borderColor="border-b-green-500"
+        />
+        <StatCard
+          title="پیش‌نویس‌ها"
+          value={stats?.properties?.draft || 0}
+          icon={<FileText className="h-4 w-4 text-amber-500" />}
+          description="املاک در انتظار انتشار"
+          isLoading={isLoading}
+          iconColor="text-amber-500"
+          iconBg="bg-amber-50"
+          borderColor="border-b-amber-500"
+        />
+        <StatCard
+          title="املاک ویژه"
+          value={stats?.properties?.featured || 0}
+          icon={<Activity className="h-4 w-4 text-purple-500" />}
+          description={`${stats?.properties?.featured_percentage || 0}٪ از کل املاک`}
+          isLoading={isLoading}
+          iconColor="text-purple-500"
+          iconBg="bg-purple-50"
+          borderColor="border-b-purple-500"
+        />
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid gap-4 md:grid-cols-3">
+        {/* Main Activity Chart - Takes 2/3 width */}
+        <div className="md:col-span-2">
+          <PropertiesChart
+            monthlyStats={monthlyStats || []}
+            statistics={stats}
+            isLoading={isLoading}
           />
-          <StatCard
-            title="منتشر شده"
-            value={displayStats.properties.published}
-            subtitle={`${displayStats.properties.published_percentage}% از کل`}
-            icon={<CheckCircle2 className="h-5 w-5" />}
-            iconColor="text-green-1"
-            iconBg="bg-green-0"
-            borderColor="border-b-green-1"
-          />
-          <StatCard
-            title="ویژه"
-            value={displayStats.properties.featured}
-            subtitle={`${displayStats.properties.featured_percentage}% از کل`}
-            icon={<Star className="h-5 w-5" />}
-            iconColor="text-orange-1"
-            iconBg="bg-orange-0"
-            borderColor="border-b-orange-1"
-          />
-          <StatCard
-            title="تأیید شده"
-            value={displayStats.properties.verified}
-            subtitle={`${displayStats.properties.verified_percentage}% از کل`}
-            icon={<Award className="h-5 w-5" />}
-            iconColor="text-purple-1"
-            iconBg="bg-purple-0"
-            borderColor="border-b-purple-1"
+        </div>
+        {/* Traffic Sources Chart - Takes 1/3 width */}
+        <div className="md:col-span-1">
+          <TrafficSourceChart
+            data={stats?.traffic}
+            isLoading={isLoading}
           />
         </div>
       </div>
 
-      {/* چارت آمار ماهانه */}
-      <PropertiesChart
-        monthlyStats={monthlyStats}
-        statistics={stats}
-        isLoading={isLoading || monthlyLoading}
-      />
+      {/* Agents & Agencies Section - Two Columns */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <TopAgentsList agents={stats?.top_agents} isLoading={isLoading} />
 
-      {/* آمار مشاورین و آژانس‌ها */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <CardWithIcon
-          icon={Users}
-          title="آمار مشاورین"
-          iconBgColor="bg-blue"
-          iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
-        >
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-font-s">کل مشاورین:</span>
-              <span className="text-font-p font-semibold">{displayStats.agents.total.toLocaleString('fa-IR')}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-font-s">فعال:</span>
-              <div className="flex items-center gap-2">
-                <span className="text-font-p font-semibold">{displayStats.agents.active.toLocaleString('fa-IR')}</span>
-                <Badge variant="blue">{displayStats.agents.active_percentage}%</Badge>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-font-s">تأیید شده:</span>
-              <div className="flex items-center gap-2">
-                <span className="text-font-p font-semibold">{displayStats.agents.verified.toLocaleString('fa-IR')}</span>
-                <Badge variant="green">{displayStats.agents.verified_percentage}%</Badge>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-font-s">دارای ملک:</span>
-              <span className="text-font-p font-semibold">{displayStats.agents.with_properties.toLocaleString('fa-IR')}</span>
-            </div>
+        <div className="space-y-4">
+          {/* Detailed Stats Cards for Agents/Agencies */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <StatCard
+              title="مشاورین فعال"
+              value={stats?.agents?.active || 0}
+              subtitle={`کل مشاورین: ${stats?.agents?.total || 0}`}
+              icon={<UserCheck className="h-5 w-5 text-blue-500" />}
+              isLoading={isLoading}
+              iconColor="text-blue-500"
+              iconBg="bg-blue-50"
+              borderColor="border-b-blue-500"
+            />
+            <StatCard
+              title="آژانس‌های فعال"
+              value={stats?.agencies?.active || 0}
+              subtitle={`کل آژانس‌ها: ${stats?.agencies?.total || 0}`}
+              icon={<Building className="h-5 w-5 text-indigo-500" />}
+              isLoading={isLoading}
+              iconColor="text-indigo-500"
+              iconBg="bg-indigo-50"
+              borderColor="border-b-indigo-500"
+            />
+            <StatCard
+              title="مشاورین دارای ملک"
+              value={stats?.agents?.with_properties || 0}
+              subtitle={`دارای حداقل یک ملک`}
+              icon={<Users className="h-5 w-5 text-cyan-500" />}
+              isLoading={isLoading}
+              iconColor="text-cyan-500"
+              iconBg="bg-cyan-50"
+              borderColor="border-b-cyan-500"
+            />
+            <StatCard
+              title="آژانس‌های دارای ملک"
+              value={stats?.agencies?.with_properties || 0}
+              subtitle={`دارای حداقل یک ملک`}
+              icon={<Layers className="h-5 w-5 text-violet-500" />}
+              isLoading={isLoading}
+              iconColor="text-violet-500"
+              iconBg="bg-violet-50"
+              borderColor="border-b-violet-500"
+            />
           </div>
-        </CardWithIcon>
-
-        <CardWithIcon
-          icon={Building}
-          title="آمار آژانس‌ها"
-          iconBgColor="bg-purple"
-          iconColor="stroke-purple-2"
-          borderColor="border-b-purple-1"
-        >
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-font-s">کل آژانس‌ها:</span>
-              <span className="text-font-p font-semibold">{displayStats.agencies.total.toLocaleString('fa-IR')}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-font-s">فعال:</span>
-              <div className="flex items-center gap-2">
-                <span className="text-font-p font-semibold">{displayStats.agencies.active.toLocaleString('fa-IR')}</span>
-                <Badge variant="purple">{displayStats.agencies.active_percentage}%</Badge>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-font-s">تأیید شده:</span>
-              <div className="flex items-center gap-2">
-                <span className="text-font-p font-semibold">{displayStats.agencies.verified.toLocaleString('fa-IR')}</span>
-                <Badge variant="green">{displayStats.agencies.verified_percentage}%</Badge>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-font-s">دارای ملک:</span>
-              <span className="text-font-p font-semibold">{displayStats.agencies.with_properties.toLocaleString('fa-IR')}</span>
-            </div>
-          </div>
-        </CardWithIcon>
+        </div>
       </div>
 
+      {/* Attribute Distribution - Grid 4 cols */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="انواع ملک استفاده شده"
+          value={stats?.types?.with_properties || 0}
+          subtitle={`از کل: ${stats?.types?.total || 0}`}
+          icon={<Grid className="h-5 w-5 text-slate-500" />}
+          isLoading={isLoading}
+          iconColor="text-slate-500"
+          iconBg="bg-slate-50"
+          borderColor="border-b-slate-500"
+        />
+        <StatCard
+          title="استان‌های پوشش داده شده"
+          value={stats?.states?.with_properties || 0}
+          subtitle={`از کل: ${stats?.states?.total || 0}`}
+          icon={<MapPin className="h-5 w-5 text-emerald-500" />}
+          isLoading={isLoading}
+          iconColor="text-emerald-500"
+          iconBg="bg-emerald-50"
+          borderColor="border-b-emerald-500"
+        />
+        <StatCard
+          title="برچسب‌های استفاده شده"
+          value={stats?.labels?.with_properties || 0}
+          subtitle={`از کل: ${stats?.labels?.total || 0}`}
+          icon={<Tag className="h-5 w-5 text-pink-500" />}
+          isLoading={isLoading}
+          iconColor="text-pink-500"
+          iconBg="bg-pink-50"
+          borderColor="border-b-pink-500"
+        />
+        <StatCard
+          title="ویژگی‌های استفاده شده"
+          value={stats?.features?.with_properties || 0}
+          subtitle={`از کل: ${stats?.features?.total || 0}`}
+          icon={<Activity className="h-5 w-5 text-orange-500" />}
+          isLoading={isLoading}
+          iconColor="text-orange-500"
+          iconBg="bg-orange-50"
+          borderColor="border-b-orange-500"
+        />
+      </div>
     </div>
   );
 }
-

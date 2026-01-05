@@ -1,6 +1,7 @@
 from django.core.cache import cache
 from django.utils import timezone
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
+from datetime import timedelta
 
 from src.real_estate.models.property import Property
 from src.real_estate.models.type import PropertyType
@@ -10,6 +11,7 @@ from src.real_estate.models.feature import PropertyFeature
 from src.real_estate.models.tag import PropertyTag
 from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.models.agency import RealEstateAgency
+from src.real_estate.models.statistics import PropertyStatistics, AgentStatistics
 from src.real_estate.utils.cache import PropertyCacheKeys
 
 
@@ -33,6 +35,9 @@ class PropertyStatisticsService:
             'tags': cls._get_tags_stats(),
             'agents': cls._get_agents_stats(),
             'agencies': cls._get_agencies_stats(),
+            'financials': cls._get_financial_stats(),
+            'traffic': cls._get_traffic_stats(),
+            'top_agents': cls._get_top_agents(),
         }
         
         cache.set(cache_key, stats, cls.CACHE_TIMEOUT)
@@ -138,11 +143,72 @@ class PropertyStatisticsService:
         return {
             'total': agencies_total,
             'active': agencies_active,
-            'verified': 0,  # RealEstateAgency model doesn't have is_verified field
+            'verified': 0,
             'with_properties': agencies_with_properties,
             'active_percentage': round((agencies_active / agencies_total * 100) if agencies_total > 0 else 0, 1),
-            'verified_percentage': 0,  # RealEstateAgency model doesn't have is_verified field
+            'verified_percentage': 0,
         }
+
+    @staticmethod
+    def _get_financial_stats():
+        """Get aggregate financial stats from AgentStatistics"""
+        # Aggregate all time
+        total_sales = AgentStatistics.objects.aggregate(
+            total=Sum('total_sales_value'),
+            commissions=Sum('total_commissions'),
+            sold_count=Sum('properties_sold')
+        )
+        
+        return {
+            'total_sales_value': total_sales['total'] or 0,
+            'total_commissions': total_sales['commissions'] or 0,
+            'total_sold_properties': total_sales['sold_count'] or 0,
+        }
+
+    @staticmethod
+    def _get_traffic_stats():
+        """Get Web vs App traffic stats for the last 30 days"""
+        last_30_days = timezone.now().date() - timedelta(days=30)
+        
+        stats = PropertyStatistics.objects.filter(date__gte=last_30_days).aggregate(
+            web=Sum('web_views'),
+            app=Sum('app_views'),
+            total=Sum('views')
+        )
+        
+        return {
+            'web_views': stats['web'] or 0,
+            'app_views': stats['app'] or 0,
+            'total_views': stats['total'] or 0,
+        }
+
+    @staticmethod
+    def _get_top_agents():
+        """Get top 5 performing agents"""
+        top_agents = AgentStatistics.objects.values(
+            'agent__id', 
+            'agent__user__admin_profile__first_name',
+            'agent__user__admin_profile__last_name',
+            'agent__profile_picture__file',
+            'agent__rating'
+        ).annotate(
+            total_sales=Sum('total_sales_value'),
+            total_commissions=Sum('total_commissions'),
+            sold_count=Sum('properties_sold')
+        ).order_by('-total_sales')[:5]
+        
+        return [
+            {
+                'id': agent['agent__id'],
+                'name': f"{agent['agent__user__admin_profile__first_name'] or ''} {agent['agent__user__admin_profile__last_name'] or ''}".strip() or "Unknown Agent",
+                'avatar': agent['agent__profile_picture__file'],
+                'rating': agent['agent__rating'],
+                'total_sales': agent['total_sales'] or 0,
+                'total_commissions': agent['total_commissions'] or 0,
+                'sold_count': agent['sold_count'] or 0
+            }
+            for agent in top_agents
+        ]
     
     @classmethod
     def clear_cache(cls):

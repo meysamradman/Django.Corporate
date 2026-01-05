@@ -82,6 +82,8 @@ export interface Property extends Base {
   currency?: string;  // واحد پول
 
   views_count?: number;
+  web_views_count?: number;
+  app_views_count?: number;
   favorites_count?: number;
   inquiries_count?: number;
 

@@ -8,11 +8,11 @@ export const formatNumber = (num: number | undefined | null): string => {
 
 export const formatFileSize = (bytes: number | undefined | null): string => {
   if (!bytes || bytes === 0) return '0 B';
-  
+
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 };
 
@@ -21,18 +21,23 @@ export const formatPercent = (value: number | undefined | null, decimals: number
   return `${value.toFixed(decimals)}%`;
 };
 
+export const formatPrice = (price: number | undefined | null): string => {
+  if (price === undefined || price === null) return '0 تومان';
+  return `${formatNumber(price)} تومان`;
+};
+
 export function formatDate(date: string | Date | undefined | null): string {
   if (!date) {
     return '-'
   }
-  
+
   try {
     const d = new Date(date)
-    
+
     if (isNaN(d.getTime())) {
       return '-'
     }
-    
+
     const day = format(d, 'd', { locale: faIR });
     const month = format(d, 'MMMM', { locale: faIR });
     const year = format(d, 'yyyy', { locale: faIR });
@@ -59,13 +64,13 @@ export function formatInputDate(date: string | Date | undefined | null): string 
   if (!date) {
     return ''
   }
-  
+
   try {
     const d = new Date(date)
     if (isNaN(d.getTime())) {
       return ''
     }
-    
+
     return d.toISOString().split('T')[0]
   } catch (error) {
     return ''
@@ -81,7 +86,7 @@ export function getPersianYear(date?: Date | string | null): string {
       return String(d.getFullYear() - 621)
     }
   }
-  
+
   try {
     const d = typeof date === 'string' ? new Date(date) : date
     if (isNaN(d.getTime())) {

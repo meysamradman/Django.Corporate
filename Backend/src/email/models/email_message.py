@@ -89,16 +89,6 @@ class EmailMessage(BaseModel):
     )
     
     # 5. Relationships
-    created_by = models.ForeignKey(
-        'user.User',
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-        related_name='created_email_messages',
-        db_index=True,
-        verbose_name="Created By",
-        help_text="User who created this message"
-    )
     replied_by = models.ForeignKey(
         'user.User',
         on_delete=models.SET_NULL,
@@ -157,6 +147,10 @@ class EmailMessage(BaseModel):
             models.Index(fields=['status', 'created_by', '-created_at']),
         ]
     
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._old_status = self.status
+
     def __str__(self):
         return f"{self.name} - {self.subject[:50]}"
     

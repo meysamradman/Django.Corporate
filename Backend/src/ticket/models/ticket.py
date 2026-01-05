@@ -97,6 +97,11 @@ class Ticket(BaseModel):
             models.Index(fields=['status', 'is_active']),
         ]
     
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._old_status = self.status
+        self._old_priority = self.priority
+
     def __str__(self):
         return f"Ticket #{self.id}: {self.subject}"
     

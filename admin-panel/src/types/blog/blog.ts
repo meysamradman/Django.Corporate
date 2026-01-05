@@ -59,7 +59,7 @@ export interface Blog extends Base {
     categories: BlogCategory[];
     tags: BlogTag[];
     blog_media?: BlogMedia[];
-    
+
     meta_title?: string | null;
     meta_description?: string | null;
     og_title?: string | null;
@@ -70,14 +70,20 @@ export interface Blog extends Base {
     robots_meta?: string | null;
     structured_data?: Record<string, any> | null;
     hreflang_data?: Record<string, any> | null;
-    
+
+    // Analytics
+    views_count?: number;
+    web_views_count?: number;
+    app_views_count?: number;
+    favorites_count?: number;
+
     seo?: BlogSEOMeta;
 }
 
 export interface BlogUpdateData extends Partial<Blog> {
-  categories_ids?: number[];
-  tags_ids?: number[];
-  media_ids?: number[];
-  main_image_id?: number | null;
-  media_covers?: { [mediaId: number]: number | null };
+    categories_ids?: number[];
+    tags_ids?: number[];
+    media_ids?: number[];
+    main_image_id?: number | null;
+    media_covers?: { [mediaId: number]: number | null };
 }

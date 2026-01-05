@@ -97,36 +97,13 @@ class DashboardStatsService:
             stats['total_posts_app_views'] = 0
             stats['total_posts_favorites'] = 0
         
-        if apps.is_installed('src.email'):
-            from src.email.models.email_message import EmailMessage
-            
-            stats['total_emails'] = EmailMessage.objects.count()
-            stats['new_emails'] = EmailMessage.objects.filter(status='new').count()
-            stats['unanswered_emails'] = EmailMessage.objects.filter(
-                ~Q(status='replied') & ~Q(status='draft')
-            ).count()
-        else:
-            stats['total_emails'] = 0
-            stats['new_emails'] = 0
-            stats['unanswered_emails'] = 0
+        if apps.is_installed('src.email') and apps.is_installed('src.ticket'):
+            stats['communication_performance'] = cls._get_communication_stats()
         
-        if apps.is_installed('src.ticket'):
-            from src.ticket.models.ticket import Ticket
-            
-            stats['total_tickets'] = Ticket.objects.count()
-            stats['open_tickets'] = Ticket.objects.filter(status='open').count()
-            stats['in_progress_tickets'] = Ticket.objects.filter(status='in_progress').count()
-            stats['active_tickets'] = stats['open_tickets'] + stats['in_progress_tickets']
-            stats['unanswered_tickets'] = Ticket.objects.filter(
-                last_replied_at__isnull=True
-            ).count()
-        else:
-            stats['total_tickets'] = 0
-            stats['open_tickets'] = 0
-            stats['in_progress_tickets'] = 0
-            stats['active_tickets'] = 0
-            stats['unanswered_tickets'] = 0
-
+        # 5. Admin Performance (Leaderboard)
+        if apps.is_installed('src.user'):
+            stats['admin_leaderboard'] = cls._get_admin_performance()
+        
         if apps.is_installed('src.real_estate'):
             from src.real_estate.models.property import Property
             from src.real_estate.models.agent import PropertyAgent
@@ -206,6 +183,74 @@ class DashboardStatsService:
         
         return stats
     
+    @classmethod
+    def _get_communication_stats(cls) -> dict:
+        """
+        Aggregates professional communication metrics from stats models
+        """
+        from src.email.models.statistics import EmailStatistics
+        from src.ticket.models.statistics import TicketStatistics
+        from src.email.models.email_message import EmailMessage
+        from src.ticket.models.ticket import Ticket
+        
+        last_7_days_email = EmailStatistics.objects.all()[:7]
+        last_7_days_ticket = TicketStatistics.objects.all()[:7]
+        
+        comm_stats = {
+            'email': {
+                'total': EmailMessage.objects.count(),
+                'new': EmailMessage.objects.filter(status='new').count(),
+                'daily_trend': [
+                    {'date': s.date.isoformat(), 'received': s.total_received, 'replied': s.total_replied}
+                    for s in reversed(last_7_days_email)
+                ],
+                'sources': EmailStatistics.objects.aggregate(
+                    total=Sum('total_received')
+                )['total'] or 0 # Example, can be more complex
+            },
+            'ticket': {
+                'total': Ticket.objects.count(),
+                'active': Ticket.objects.filter(status__in=['open', 'in_progress']).count(),
+                'daily_trend': [
+                    {
+                        'date': s.date.isoformat(), 
+                        'created': s.total_created, 
+                        'closed': s.total_closed,
+                        'avg_response': s.avg_response_time_minutes
+                    }
+                    for s in reversed(last_7_days_ticket)
+                ],
+                'avg_response_time': TicketStatistics.objects.aggregate(
+                    avg=Avg('avg_response_time_minutes')
+                )['avg'] or 0
+            }
+        }
+        return comm_stats
+
+    @classmethod
+    def _get_admin_performance(cls) -> list:
+        """
+        Calculates staff performance leaderboard for the current month
+        """
+        from src.user.models.statistics import AdminPerformanceStatistics
+        now = timezone.now()
+        
+        # Get top 10 admins by resolved tasks
+        stats = AdminPerformanceStatistics.objects.filter(
+            year=now.year, month=now.month
+        ).select_related('admin__admin_user').order_by('-tickets_resolved', '-emails_replied')[:10]
+        
+        leaderboard = []
+        for s in stats:
+            leaderboard.append({
+                'name': f"{s.admin.first_name} {s.admin.last_name}" if s.admin.first_name else s.admin.admin_user.email,
+                'resolved': s.tickets_resolved + s.emails_replied,
+                'content_created': s.properties_created + s.blogs_created + s.portfolios_created,
+                'avg_response': s.avg_response_time_minutes,
+                'logins': s.login_count
+            })
+        return leaderboard
+
     @classmethod
     def clear_cache(cls):
         AnalyticsCacheManager.invalidate_dashboard()

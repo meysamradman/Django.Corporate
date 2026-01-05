@@ -65,7 +65,7 @@ interface PropertiesChartProps {
 export function PropertiesChart({ monthlyStats, statistics, isLoading }: PropertiesChartProps) {
   if (isLoading) {
     return (
-      <Card className="border-b-4 border-b-primary">
+      <Card className="h-full border-none shadow-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-3">
             <div className="p-2.5 rounded-lg shadow-sm bg-primary/10">
@@ -76,7 +76,7 @@ export function PropertiesChart({ monthlyStats, statistics, isLoading }: Propert
           <Skeleton className="h-4 w-64 mt-1" />
         </CardHeader>
         <CardContent>
-          <Skeleton className="h-[400px] w-full" />
+          <Skeleton className="h-[300px] w-full" />
         </CardContent>
       </Card>
     );
@@ -84,7 +84,7 @@ export function PropertiesChart({ monthlyStats, statistics, isLoading }: Propert
 
   if (monthlyStats.length === 0) {
     return (
-      <Card className="border-b-4 border-b-primary">
+      <Card className="h-full border-none shadow-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-3">
             <div className="p-2.5 rounded-lg shadow-sm bg-primary/10">
@@ -95,7 +95,7 @@ export function PropertiesChart({ monthlyStats, statistics, isLoading }: Propert
           <CardDescription>داده‌ای برای نمایش وجود ندارد</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center h-[400px] text-font-s">
+          <div className="flex items-center justify-center h-[300px] text-font-s">
             داده‌ای برای نمایش وجود ندارد
           </div>
         </CardContent>
@@ -113,25 +113,25 @@ export function PropertiesChart({ monthlyStats, statistics, isLoading }: Propert
   const currentYear = getPersianYear();
 
   return (
-    <Card className="border-b-4 border-b-primary">
+    <Card className="h-full border-none shadow-md bg-gradient-to-br from-card to-accent/5">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg shadow-sm bg-primary/10">
-              <BarChart3 className="w-5 h-5 stroke-primary" />
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-3 text-lg font-bold text-font-p">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+              <BarChart3 className="w-5 h-5" />
             </div>
             <span>آمار املاک 6 ماه گذشته</span>
-          </div>
-          <Badge variant="outline" className="text-xs">
+          </CardTitle>
+          <Badge variant="secondary" className="text-xs font-mono font-normal">
             {startMonth} - {endMonth} {currentYear}
           </Badge>
-        </CardTitle>
+        </div>
         <CardDescription className="mt-1">
-          نمایش تفکیک شده املاک منتشر شده و پیش‌نویس
+          روند انتشار و ثبت ملک در سامانه
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[400px] w-full">
+        <ChartContainer config={chartConfig} className="h-[300px] w-full">
           <AreaChart
             accessibilityLayer
             data={chartDataWithTotal}
@@ -206,7 +206,7 @@ export function PropertiesChart({ monthlyStats, statistics, isLoading }: Propert
           </AreaChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="pt-0">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full items-stretch">
           <PropertyStatusDistribution statistics={statistics} />
 
