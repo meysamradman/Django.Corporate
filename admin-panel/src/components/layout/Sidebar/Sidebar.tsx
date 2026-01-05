@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { User, LogOut, ChevronDown } from "lucide-react";
+import { User, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -230,40 +230,47 @@ export function Sidebar({
               <DropdownMenuContent
                 align="start"
                 side="left"
-                className="w-56"
+                className="w-72 p-0 overflow-hidden border-br shadow-xl bg-white"
               >
-                <DropdownMenuLabel>
-                  <div className="flex flex-col">
-                    <span className="font-medium">
-                      {user?.full_name || user?.profile?.full_name ||
-                        (user?.profile?.first_name && user?.profile?.last_name
-                          ? `${user.profile.first_name} ${user.profile.last_name}`
-                          : user?.email || user?.mobile || "کاربر")}
-                    </span>
-                    <span className="text-xs text-font-s mt-1">
-                      {getUserRoleDisplayText(user)}
-                    </span>
+                <div className="flex items-center justify-between p-4 border-b border-br/60 bg-white">
+                  <div className="flex items-center gap-3">
+                    <NavUser size="sm" />
+                    <div className="flex flex-col">
+                      <span className="font-bold text-sm text-font-p leading-tight">
+                        {user?.profile?.full_name || user?.full_name || user?.mobile || "کاربر"}
+                      </span>
+                      <span className="text-[11px] text-font-s font-medium mt-1">
+                        {getUserRoleDisplayText(user).split('|')[0].trim()}
+                      </span>
+                    </div>
                   </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
+                  <div className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-md">
+                    {user?.user_role_type === 'consultant' ? 'مشاور' : 'ادمین'}
+                  </div>
+                </div>
 
-                <DropdownMenuItem
-                  onClick={handleProfileClick}
-                  className="cursor-pointer"
-                >
-                  <User className="h-4 w-4" />
-                  <span>پروفایل</span>
-                </DropdownMenuItem>
+                <div className="py-2">
+                  <DropdownMenuItem
+                    onClick={handleProfileClick}
+                    className="cursor-pointer group py-2.5 px-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <User className="h-5 w-5 text-font-s/70 group-hover:text-font-p transition-colors" />
+                      <span className="text-[13px] font-medium">پروفایل من</span>
+                    </div>
+                  </DropdownMenuItem>
+                </div>
 
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="mx-0" />
 
-                <DropdownMenuItem
-                  onClick={handleLogout}
-                  className="cursor-pointer text-destructive focus:text-destructive"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>خروج</span>
-                </DropdownMenuItem>
+                <div className="p-3">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full py-2 px-4 border border-br rounded-lg text-[13px] font-bold text-font-p hover:bg-gray-50 active:scale-[0.98] transition-all cursor-pointer shadow-sm"
+                  >
+                    خروج از حساب
+                  </button>
+                </div>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -400,7 +407,7 @@ function MenuItemsList({ items }: MenuItemsListProps) {
             {shouldShowSeparator && (
               <div className="h-px bg-br my-2 -mx-4" />
             )}
-              <CollapsibleTrigger asChild>
+            <CollapsibleTrigger asChild>
               <button
                 className={cn(
                   "flex items-center justify-between w-full px-3 py-2 text-sm font-semibold rounded-md transition-colors",
