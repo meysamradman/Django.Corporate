@@ -42,13 +42,34 @@ const chartConfig = {
 export const VisitorTrendChart: FC<{ isLoading?: boolean }> = ({
   isLoading: externalLoading,
 }) => {
+  const [timeRange, setTimeRange] = useState("year");
+  // MOCK DATA FOR UI REVIEW
+  const chartData = [
+    { month: "فروردین", sale_properties: 65, rent_properties: 40, inquiries: 120, properties: 105 },
+    { month: "اردیبهشت", sale_properties: 59, rent_properties: 45, inquiries: 135, properties: 104 },
+    { month: "خرداد", sale_properties: 80, rent_properties: 55, inquiries: 160, properties: 135 },
+    { month: "تیر", sale_properties: 81, rent_properties: 60, inquiries: 150, properties: 141 },
+    { month: "مرداد", sale_properties: 56, rent_properties: 50, inquiries: 140, properties: 106 },
+    { month: "شهریور", sale_properties: 55, rent_properties: 45, inquiries: 130, properties: 100 },
+    { month: "مهر", sale_properties: 40, rent_properties: 35, inquiries: 110, properties: 75 },
+    { month: "آبان", sale_properties: 70, rent_properties: 60, inquiries: 170, properties: 130 },
+    { month: "آذر", sale_properties: 85, rent_properties: 70, inquiries: 190, properties: 155 },
+    { month: "دی", sale_properties: 90, rent_properties: 75, inquiries: 210, properties: 165 },
+    { month: "بهمن", sale_properties: 100, rent_properties: 85, inquiries: 240, properties: 185 },
+    { month: "اسفند", sale_properties: 110, rent_properties: 90, inquiries: 260, properties: 200 },
+  ];
+  // END MOCK DATA
+
+  /*
   const { data: trendData, isLoading: trendLoading } = useContentTrend();
   const isLoading = externalLoading || trendLoading;
-  const [timeRange, setTimeRange] = useState("year");
-
   const chartData = useMemo(() => {
     return trendData || [];
   }, [trendData]);
+  */
+
+  // Override loading for mock
+  const isLoading = false;
 
   const metrics = useMemo(() => {
     if (!chartData.length) return { properties: 0, inquiries: 0, sale: 0, rent: 0 };

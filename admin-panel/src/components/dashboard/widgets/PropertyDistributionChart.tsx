@@ -31,6 +31,23 @@ const STATE_COLORS = [
 ];
 
 export const PropertyDistributionChart: FC<PropertyDistributionChartProps> = ({ stats, isLoading = false }) => {
+    // MOCK DATA FOR UI REVIEW
+    const typeData = [
+        { name: "آپارتمان", value: 145 },
+        { name: "ویلا", value: 89 },
+        { name: "زمین", value: 67 },
+        { name: "تجاری", value: 34 },
+        { name: "کلنگی", value: 12 },
+    ];
+
+    const stateData = [
+        { name: "فروش", value: 210 },
+        { name: "اجاره", value: 95 },
+        { name: "پیش‌فروش", value: 42 },
+    ];
+    // END MOCK DATA
+
+    /*
     const typeData = useMemo(() => {
         if (!stats?.properties_by_type) return [];
         return stats.properties_by_type.map((item) => ({
@@ -46,6 +63,7 @@ export const PropertyDistributionChart: FC<PropertyDistributionChartProps> = ({ 
             value: item.count,
         }));
     }, [stats]);
+    */
 
     if (isLoading) {
         return (
