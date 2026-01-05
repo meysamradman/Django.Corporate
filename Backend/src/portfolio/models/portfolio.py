@@ -95,6 +95,29 @@ class Portfolio(BaseModel, SEOMixin):
         help_text="Flexible attributes for custom fields (price, brand, specifications, etc.)"
     )
     
+    # Analytics fields
+    views_count = models.PositiveIntegerField(
+        default=0,
+        db_index=True,
+        verbose_name="Total Views",
+        help_text="Total number of views (Web + App)"
+    )
+    web_views_count = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Web Views",
+        help_text="Number of views from the website"
+    )
+    app_views_count = models.PositiveIntegerField(
+        default=0,
+        verbose_name="App Views",
+        help_text="Number of views from the application"
+    )
+    favorites_count = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Favorites Count",
+        help_text="Total number of favorites"
+    )
+    
     objects = PortfolioQuerySet.as_manager()
 
     class Meta(BaseModel.Meta, SEOMixin.Meta):

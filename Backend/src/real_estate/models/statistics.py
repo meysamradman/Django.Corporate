@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.postgres.indexes import BrinIndex
+from src.analytics.choices import ANALYTICS_SOURCE_CHOICES
 
 
 class PropertyStatistics(models.Model):
@@ -42,6 +43,22 @@ class PropertyStatistics(models.Model):
         verbose_name="Shares",
         help_text="Number of shares on this date"
     )
+    
+    # Source breakdown
+    web_views = models.IntegerField(
+        default=0,
+        verbose_name="Web Views",
+        help_text="Views from website on this date"
+    )
+    app_views = models.IntegerField(
+        default=0,
+        verbose_name="App Views",
+        help_text="Views from app on this date"
+    )
+    
+    # Distributions
+    countries = models.JSONField(default=dict, blank=True)
+    platforms = models.JSONField(default=dict, blank=True)
     
     class Meta:
         db_table = 'real_estate_property_statistics'
@@ -103,6 +120,27 @@ class AgentStatistics(models.Model):
         default=0,
         verbose_name="Total Commissions",
         help_text="Total commissions earned this month"
+    )
+    
+    # Advanced KPIs (Professional Scenario)
+    conversion_rate = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0,
+        verbose_name="Conversion Rate (%)",
+        help_text="Percentage of inquiries converted to deals"
+    )
+    avg_deal_time = models.IntegerField(
+        default=0,
+        verbose_name="Avg Deal Time (Days)",
+        help_text="Average days from listing to closing"
+    )
+    lead_to_contract_rate = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0,
+        verbose_name="Lead-to-Contract Rate (%)"
+    )
+    failure_rate = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0,
+        verbose_name="Deal Failure Rate (%)",
+        help_text="Percentage of cancelled/failed deals"
     )
     
     class Meta:
@@ -180,6 +218,20 @@ class AgencyStatistics(models.Model):
         help_text="Number of new clients acquired this month"
     )
     
+    # Advanced KPIs (Professional Scenario)
+    conversion_rate = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0,
+        verbose_name="Agency Conversion Rate (%)"
+    )
+    avg_deal_time = models.IntegerField(
+        default=0,
+        verbose_name="Avg Deal Time (Days)"
+    )
+    market_share_growth = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0,
+        verbose_name="Market Share Growth (%)"
+    )
+    
     class Meta:
         db_table = 'real_estate_agency_statistics'
         verbose_name = 'Agency Statistics'
@@ -209,6 +261,15 @@ class PropertyViewLog(models.Model):
         db_index=True,
         verbose_name="Property"
     )
+    source = models.CharField(
+        max_length=10,
+        choices=ANALYTICS_SOURCE_CHOICES,
+        default='web',
+        db_index=True,
+        verbose_name="Source"
+    )
+    site_id = models.CharField(max_length=50, default='default', db_index=True)
+    
     user = models.ForeignKey(
         'user.User',
         on_delete=models.SET_NULL,
@@ -221,9 +282,15 @@ class PropertyViewLog(models.Model):
     
     # Anonymous tracking
     ip_address = models.GenericIPAddressField(
+        db_index=True,
         verbose_name="IP Address",
         help_text="IP address of the viewer"
     )
+    country = models.CharField(max_length=5, blank=True, db_index=True)
+    device = models.CharField(max_length=20, blank=True, db_index=True)
+    browser = models.CharField(max_length=50, blank=True)
+    os = models.CharField(max_length=50, blank=True)
+    
     user_agent = models.TextField(
         blank=True,
         verbose_name="User Agent",
@@ -351,3 +418,99 @@ class PropertyInquiry(models.Model):
     
     def __str__(self):
         return f"{self.property.title} - {self.name} - {self.created_at}"
+
+
+class PropertyTypeStatistics(models.Model):
+    """
+    آمار تجمیعی روزانه بر اساس نوع ملک (آپارتمان، ویلا و ...)
+    برای تحلیل تقاضای بازار
+    """
+    property_type = models.ForeignKey(
+        'real_estate.PropertyType',
+        on_delete=models.CASCADE,
+        related_name='daily_stats',
+        db_index=True
+    )
+    date = models.DateField(db_index=True)
+    
+    views = models.PositiveIntegerField(default=0)
+    inquiries = models.PositiveIntegerField(default=0)
+    favorites = models.PositiveIntegerField(default=0)
+    
+    class Meta:
+        db_table = 'real_estate_property_type_stats'
+        unique_together = [['property_type', 'date']]
+        ordering = ['-date']
+        indexes = [
+            models.Index(fields=['property_type', '-date']),
+            BrinIndex(fields=['date']),
+        ]
+
+    def __str__(self):
+        return f"{self.property_type.title} - {self.date}"
+
+
+class PropertyStateStatistics(models.Model):
+    """
+    آمار تجمیعی روزانه بر اساس وضعیت ملک (فروشی، اجاره‌ای و ...)
+    برای تحلیل رفتار بازار
+    """
+    state = models.ForeignKey(
+        'real_estate.PropertyState',
+        on_delete=models.CASCADE,
+        related_name='daily_stats',
+        db_index=True
+    )
+    date = models.DateField(db_index=True)
+    
+    views = models.PositiveIntegerField(default=0)
+    inquiries = models.PositiveIntegerField(default=0)
+    favorites = models.PositiveIntegerField(default=0)
+    
+    class Meta:
+        db_table = 'real_estate_property_state_stats'
+        unique_together = [['state', 'date']]
+        ordering = ['-date']
+        indexes = [
+            models.Index(fields=['state', '-date']),
+            BrinIndex(fields=['date']),
+        ]
+
+    def __str__(self):
+        return f"{self.state.title} - {self.date}"
+
+
+class RegionalStatistics(models.Model):
+    """
+    آمار تجمیعی منطقه‌ای (استان، شهر، منطقه)
+    برای تحلیل مناطق پرطرفدار و قیمت‌های میانگین
+    """
+    province = models.ForeignKey('core.Province', on_delete=models.CASCADE)
+    city = models.ForeignKey('core.City', on_delete=models.CASCADE)
+    region = models.ForeignKey('real_estate.CityRegion', on_delete=models.CASCADE, null=True, blank=True)
+    
+    date = models.DateField(db_index=True)
+    
+    # Engagement
+    views = models.PositiveIntegerField(default=0)
+    inquiries = models.PositiveIntegerField(default=0)
+    
+    # Market Data (Snapshots)
+    avg_price_sale = models.BigIntegerField(default=0) # میانگین قیمت فروش
+    avg_rent_monthly = models.BigIntegerField(default=0) # میانگین اجاره ماهانه
+    total_active_listings = models.PositiveIntegerField(default=0)
+    
+    class Meta:
+        db_table = 'real_estate_regional_stats'
+        unique_together = [['province', 'city', 'region', 'date']]
+        ordering = ['-date']
+        indexes = [
+            models.Index(fields=['province', 'city', 'region', '-date']),
+            BrinIndex(fields=['date']),
+        ]
+
+    def __str__(self):
+        location = f"{self.province.name} > {self.city.name}"
+        if self.region:
+            location += f" (Region {self.region.code})"
+        return f"{location} - {self.date}"

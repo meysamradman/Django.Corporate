@@ -58,11 +58,21 @@ class DashboardStatsService:
             stats['total_portfolio_categories'] = PortfolioCategory.objects.count()
             stats['total_portfolio_tags'] = PortfolioTag.objects.count()
             stats['total_portfolio_options'] = PortfolioOption.objects.count()
+            
+            # Engagement
+            stats['total_portfolios_views'] = Portfolio.objects.aggregate(total=Sum('views_count'))['total'] or 0
+            stats['total_portfolios_web_views'] = Portfolio.objects.aggregate(total=Sum('web_views_count'))['total'] or 0
+            stats['total_portfolios_app_views'] = Portfolio.objects.aggregate(total=Sum('app_views_count'))['total'] or 0
+            stats['total_portfolios_favorites'] = Portfolio.objects.aggregate(total=Sum('favorites_count'))['total'] or 0
         else:
             stats['total_portfolios'] = 0
             stats['total_portfolio_categories'] = 0
             stats['total_portfolio_tags'] = 0
             stats['total_portfolio_options'] = 0
+            stats['total_portfolios_views'] = 0
+            stats['total_portfolios_web_views'] = 0
+            stats['total_portfolios_app_views'] = 0
+            stats['total_portfolios_favorites'] = 0
         
         if apps.is_installed('src.blog'):
             from src.blog.models.blog import Blog
@@ -72,10 +82,20 @@ class DashboardStatsService:
             stats['total_posts'] = Blog.objects.count()
             stats['total_blog_categories'] = BlogCategory.objects.count()
             stats['total_blog_tags'] = BlogTag.objects.count()
+            
+            # Engagement
+            stats['total_posts_views'] = Blog.objects.aggregate(total=Sum('views_count'))['total'] or 0
+            stats['total_posts_web_views'] = Blog.objects.aggregate(total=Sum('web_views_count'))['total'] or 0
+            stats['total_posts_app_views'] = Blog.objects.aggregate(total=Sum('app_views_count'))['total'] or 0
+            stats['total_posts_favorites'] = Blog.objects.aggregate(total=Sum('favorites_count'))['total'] or 0
         else:
             stats['total_posts'] = 0
             stats['total_blog_categories'] = 0
             stats['total_blog_tags'] = 0
+            stats['total_posts_views'] = 0
+            stats['total_posts_web_views'] = 0
+            stats['total_posts_app_views'] = 0
+            stats['total_posts_favorites'] = 0
         
         if apps.is_installed('src.email'):
             from src.email.models.email_message import EmailMessage
@@ -121,9 +141,41 @@ class DashboardStatsService:
 
             # --- Advanced Real Estate Metrics ---
             
-            # Engagement
+            # 1. Market Sentiment (Professional Insight)
+            from src.real_estate.services.analytics.market_analysis_service import MarketAnalysisService
+            stats['property_sentiment'] = MarketAnalysisService.get_market_sentiment()
+
+            # 2. Engagement
             stats['total_views'] = Property.objects.aggregate(total=Sum('views_count'))['total'] or 0
+            stats['total_web_views'] = Property.objects.aggregate(total=Sum('web_views_count'))['total'] or 0
+            stats['total_app_views'] = Property.objects.aggregate(total=Sum('app_views_count'))['total'] or 0
             stats['total_favorites'] = Property.objects.aggregate(total=Sum('favorites_count'))['total'] or 0
+            stats['total_inquiries'] = Property.objects.aggregate(total=Sum('inquiries_count'))['total'] or 0
+
+            # 3. Agency & Agent Performance (Professional Scenario)
+            from src.real_estate.models.statistics import AgentStatistics, AgencyStatistics
+            now = timezone.now()
+            
+            top_agents = AgentStatistics.objects.filter(year=now.year, month=now.month).order_by('-total_sales_value')[:5]
+            stats['top_agents'] = [
+                {
+                    'name': a.agent.full_name,
+                    'sales': a.properties_sold,
+                    'conversion': float(a.conversion_rate),
+                    'avg_time': a.avg_deal_time
+                } for a in top_agents
+            ]
+            
+            agency_summary = AgencyStatistics.objects.filter(year=now.year, month=now.month).aggregate(
+                total_sales=Sum('total_sales_value'),
+                avg_conv=Avg('conversion_rate'),
+                avg_time=Avg('avg_deal_time')
+            )
+            stats['business_performance'] = {
+                'total_revenue': agency_summary['total_sales'] or 0,
+                'avg_conversion': round(float(agency_summary['avg_conv'] or 0), 2),
+                'avg_closure_days': round(float(agency_summary['avg_time'] or 0), 1)
+            }
             
             # Financials (Total Listing Value for Sale)
             # Assuming 'sale' state represents properties for sale

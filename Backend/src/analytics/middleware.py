@@ -34,13 +34,22 @@ class AnalyticsMiddleware(MiddlewareMixin):
         return response
     
     def _detect_source(self, request):
+        # 1. Direct header identification (Highest priority)
+        custom_source = request.META.get('HTTP_X_SOURCE')
+        if custom_source:
+            valid_sources = ['web', 'app', 'desktop', 'bot', 'other']
+            return custom_source if custom_source in valid_sources else 'other'
+
+        # 2. Authorization indicators
         auth_header = request.META.get('HTTP_AUTHORIZATION', '')
         if auth_header.startswith('Bearer '):
             return 'app'
         
+        # 3. Legacy headers
         if request.META.get('HTTP_X_APP_SOURCE'):
             return 'app'
         
+        # 4. Agent indicators
         user_agent = request.META.get('HTTP_USER_AGENT', '').lower()
         app_indicators = ['flutter', 'dart', 'react-native', 'cordova', 'ionic', 'capacitor']
         
@@ -57,6 +66,9 @@ class AnalyticsMiddleware(MiddlewareMixin):
             ip_address = TrackingService._get_ip(request)
             country = get_country_from_ip(ip_address)
             
+            # Multi-site detection
+            site_id = request.META.get('HTTP_X_SITE_ID') or request.get_host()
+            
             device, browser, os_name = self._parse_user_agent(
                 request.META.get('HTTP_USER_AGENT', '')
             )
@@ -67,6 +79,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
                 'session_key': request.session.session_key,
                 'path': request.path,
                 'method': request.method,
+                'site_id': site_id,
                 'ip_address': ip_address,
                 'country': country,
                 'device': device,

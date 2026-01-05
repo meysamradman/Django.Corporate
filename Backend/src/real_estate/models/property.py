@@ -437,13 +437,29 @@ class Property(BaseModel, SEOMixin):
         verbose_name="Published At",
         help_text="Date and time when property was published"
     )
+    closed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Closed At",
+        help_text="Date and time when property was sold or rented"
+    )
     
     # Analytics fields - Keep db_index for views_count (sorting)
     views_count = models.IntegerField(
         default=0,
         db_index=True,
-        verbose_name="Views Count",
-        help_text="Total number of views"
+        verbose_name="Total Views",
+        help_text="Total number of views (Web + App)"
+    )
+    web_views_count = models.IntegerField(
+        default=0,
+        verbose_name="Web Views",
+        help_text="Number of views from the website"
+    )
+    app_views_count = models.IntegerField(
+        default=0,
+        verbose_name="App Views",
+        help_text="Number of views from the application"
     )
     favorites_count = models.IntegerField(
         default=0,

@@ -2,7 +2,7 @@ from .portfolio import Portfolio
 from .option import PortfolioOption
 from .tag import PortfolioTag
 from .category import PortfolioCategory
-from .seo import SEOMixin
+from .statistics import PortfolioStatistics, PortfolioViewLog
 from .managers import (
     PortfolioQuerySet,
     PortfolioCategoryQuerySet,
@@ -16,6 +16,8 @@ __all__ = [
     'PortfolioOption',
     'PortfolioTag',
     'SEOMixin',
+    'PortfolioStatistics',
+    'PortfolioViewLog',
     'PortfolioQuerySet',
     'PortfolioCategoryQuerySet',
     'PortfolioTagQuerySet',

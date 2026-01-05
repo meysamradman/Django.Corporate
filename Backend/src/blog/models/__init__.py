@@ -1,7 +1,7 @@
 from .blog import Blog
 from .tag import BlogTag
 from .category import BlogCategory
-from .seo import SEOMixin
+from .statistics import BlogStatistics, BlogViewLog
 from .managers import (
     BlogQuerySet,
     BlogCategoryQuerySet,
@@ -13,6 +13,8 @@ __all__ = [
     'BlogCategory',
     'BlogTag',
     'SEOMixin',
+    'BlogStatistics',
+    'BlogViewLog',
     'BlogQuerySet',
     'BlogCategoryQuerySet',
     'BlogTagQuerySet',

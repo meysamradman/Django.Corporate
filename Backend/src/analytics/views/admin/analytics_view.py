@@ -16,63 +16,14 @@ class PageViewsAnalyticsView(APIView):
     permission_classes = [analytics_permission]
     
     def get(self, request):
-        cache_key = 'analytics:dashboard'
+        from src.analytics.services.stats import WebsiteTrafficService
+        
+        site_id = request.query_params.get('site_id', 'default')
+        cache_key = f'analytics:dashboard:{site_id}'
         data = cache.get(cache_key)
         
         if not data:
-            today = timezone.now().date()
-            last_30 = today - timedelta(days=30)
-            
-            stats_30d = DailyStats.objects.filter(date__gte=last_30).aggregate(
-                total=Sum('total_visits'),
-                unique=Sum('unique_visitors'),
-                web=Sum('web_visits'),
-                app=Sum('app_visits'),
-                mobile=Sum('mobile_visits'),
-                desktop=Sum('desktop_visits'),
-            )
-            
-            today_stats = PageView.objects.filter(date=today).aggregate(
-                total=Count('id'),
-                unique=Count('session_id', distinct=True),
-                web=Count('id', filter=Q(source='web')),
-                app=Count('id', filter=Q(source='app')),
-            )
-            
-            top_pages = list(
-                PageView.objects.filter(date__gte=last_30)
-                .values('path')
-                .annotate(count=Count('id'))
-                .order_by('-count')[:10]
-            )
-            
-            top_countries = list(
-                PageView.objects.filter(date__gte=last_30)
-                .exclude(country='')
-                .values('country')
-                .annotate(count=Count('id'))
-                .order_by('-count')[:10]
-            )
-            
-            data = {
-                'today': {
-                    'total': today_stats['total'] or 0,
-                    'unique': today_stats['unique'] or 0,
-                    'web': today_stats['web'] or 0,
-                    'app': today_stats['app'] or 0,
-                },
-                'last_30_days': {
-                    'total': stats_30d['total'] or 0,
-                    'unique': stats_30d['unique'] or 0,
-                    'web': stats_30d['web'] or 0,
-                    'app': stats_30d['app'] or 0,
-                    'mobile': stats_30d['mobile'] or 0,
-                    'desktop': stats_30d['desktop'] or 0,
-                },
-                'top_pages': top_pages,
-                'top_countries': top_countries,
-            }
-            
+            data = WebsiteTrafficService.get_dashboard_stats(site_id=site_id)
             cache.set(cache_key, data, timeout=300)
         
         return APIResponse.success(

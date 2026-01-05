@@ -8,6 +8,7 @@ from .content_stats_service import ContentStatsService
 from .email_stats_service import EmailStatsService
 from .ticket_stats_service import TicketStatsService
 from .system_stats_service import SystemStatsService
+from .website_traffic_service import WebsiteTrafficService
 
 __all__ = [
     'DashboardStatsService',
@@ -15,6 +16,7 @@ __all__ = [
     'UserStatsService',
     'ContentStatsService',
     'EmailStatsService',
-    'TicketStatsService',
+    'ticket_stats_service',
     'SystemStatsService',
+    'WebsiteTrafficService',
 ]

@@ -1,15 +1,12 @@
 from django.db import models
 from src.core.models import BaseModel
+from src.analytics.choices import ANALYTICS_SOURCE_CHOICES, DEVICE_CHOICES
 
 
 class PageView(BaseModel):
 
-    
-    SOURCE_CHOICES = [
-        ('web', 'Website'),
-        ('app', 'Application'),
-    ]
-    source = models.CharField(max_length=10, choices=SOURCE_CHOICES, db_index=True)
+    source = models.CharField(max_length=10, choices=ANALYTICS_SOURCE_CHOICES, db_index=True)
+    site_id = models.CharField(max_length=50, default='default', db_index=True)
     
     path = models.CharField(max_length=500, db_index=True)
     
@@ -25,11 +22,6 @@ class PageView(BaseModel):
     ip = models.GenericIPAddressField()
     country = models.CharField(max_length=2, db_index=True, blank=True)
     
-    DEVICE_CHOICES = [
-        ('mobile', 'Mobile'),
-        ('desktop', 'Desktop'),
-        ('tablet', 'Tablet'),
-    ]
     device = models.CharField(max_length=10, choices=DEVICE_CHOICES, db_index=True)
     
     date = models.DateField(auto_now_add=True, db_index=True)

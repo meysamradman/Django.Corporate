@@ -13,6 +13,12 @@ class DailyStats(models.Model):
     
     mobile_visits = models.PositiveIntegerField(default=0)
     desktop_visits = models.PositiveIntegerField(default=0)
+    tablet_visits = models.PositiveIntegerField(default=0)
+    
+    # Platform/Source distributions
+    sources_distribution = models.JSONField(default=dict, blank=True)
+    
+    site_id = models.CharField(max_length=50, default='default', db_index=True)
     
     top_pages = models.JSONField(default=dict)
     top_countries = models.JSONField(default=dict)
