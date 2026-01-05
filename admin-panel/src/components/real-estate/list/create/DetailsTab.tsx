@@ -4,6 +4,7 @@ import { FormFieldInput } from "@/components/forms/FormField";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Home, DollarSign, Car, Box, Info, Layers, Key, Utensils, Sofa } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
+import { msg } from "@/core/messages";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { Label } from "@/components/elements/Label";
 
@@ -129,7 +130,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             <SelectContent>
                                 {fieldOptions?.floor_number?.map((item: [number, string]) => (
                                     <SelectItem key={item[0]} value={item[0].toString()}>
-                                        {item[1]}
+                                        {(msg.realEstate().facilities.floor_number as any)[item[0]] || item[1]}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -186,7 +187,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             <SelectContent>
                                 {fieldOptions?.bedrooms?.map((item: [number, string]) => (
                                     <SelectItem key={item[0]} value={item[0].toString()}>
-                                        {item[1]}
+                                        {(msg.realEstate().facilities.bedrooms as any)[item[0]] || item[1]}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -211,7 +212,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             <SelectContent>
                                 {fieldOptions?.bathrooms?.map((item: [number, string]) => (
                                     <SelectItem key={item[0]} value={item[0].toString()}>
-                                        {item[1]}
+                                        {(msg.realEstate().facilities.bathrooms as any)[item[0]] || item[1]}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -236,7 +237,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             <SelectContent>
                                 {fieldOptions?.parking_spaces?.map((item: [number, string]) => (
                                     <SelectItem key={item[0]} value={item[0].toString()}>
-                                        {item[1]}
+                                        {(msg.realEstate().facilities.parking_spaces as any)[item[0]] || item[1]}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -261,7 +262,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             <SelectContent>
                                 {fieldOptions?.storage_rooms?.map((item: [number, string]) => (
                                     <SelectItem key={item[0]} value={item[0].toString()}>
-                                        {item[1]}
+                                        {(msg.realEstate().facilities.storage_rooms as any)[item[0]] || item[1]}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -286,7 +287,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             <SelectContent>
                                 {fieldOptions?.kitchens?.map((item: [number, string]) => (
                                     <SelectItem key={item[0]} value={item[0].toString()}>
-                                        {item[1]}
+                                        {(msg.realEstate().facilities.kitchens as any)[item[0]] || item[1]}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -310,7 +311,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             <SelectContent>
                                 {fieldOptions?.living_rooms?.map((item: [number, string]) => (
                                     <SelectItem key={item[0]} value={item[0].toString()}>
-                                        {item[1]}
+                                        {(msg.realEstate().facilities.living_rooms as any)[item[0]] || item[1]}
                                     </SelectItem>
                                 ))}
                             </SelectContent>

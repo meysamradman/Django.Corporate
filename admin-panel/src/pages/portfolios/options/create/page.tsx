@@ -12,7 +12,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import type { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { validateSlug } from '@/core/slug/validate';
+import { portfolioOptionFormSchema, portfolioOptionFormDefaults } from '@/components/portfolios/validations/optionSchema';
 import { Settings, Loader2, Save, List } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
@@ -20,13 +20,8 @@ export default function CreateOptionPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [formData, setFormData] = useState({
-    name: "",
-    slug: "",
-    is_active: true,
-    is_public: true,
-    description: "",
-  });
+  const [formData, setFormData] = useState(portfolioOptionFormDefaults);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const createOptionMutation = useMutation({
     mutationFn: (data: Partial<PortfolioOption>) => portfolioApi.createOption(data),
@@ -73,13 +68,25 @@ export default function CreateOptionPage() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     
-    const slugValidation = validateSlug(formData.slug, true);
-    if (!slugValidation.isValid) {
-      showError(slugValidation.error || "اسلاگ معتبر نیست");
-      return;
-    }
+    setErrors({});
     
-    createOptionMutation.mutate(formData);
+    try {
+      const validatedData = portfolioOptionFormSchema.parse(formData);
+      createOptionMutation.mutate(validatedData);
+    } catch (error: any) {
+      if (error.errors || error.issues) {
+        const fieldErrors: Record<string, string> = {};
+        const errorsToProcess = error.errors || error.issues || [];
+        errorsToProcess.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      } else {
+        showError("خطا در اعتبارسنجی فرم");
+      }
+    }
   };
 
   if (isInitialLoading) {
@@ -146,10 +153,11 @@ export default function CreateOptionPage() {
                 label="نام"
                 htmlFor="name"
                 required
+                error={errors.name}
               >
                 <Input
                   id="name"
-                  value={formData.name}
+                  value={formData.name || ""}
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   placeholder="نام گزینه"
                   required
@@ -159,10 +167,11 @@ export default function CreateOptionPage() {
                 label="نامک"
                 htmlFor="slug"
                 required
+                error={errors.slug}
               >
                 <Input
                   id="slug"
-                  value={formData.slug}
+                  value={formData.slug || ""}
                   onChange={(e) => handleInputChange("slug", e.target.value)}
                   placeholder="نامک"
                   required
@@ -173,10 +182,11 @@ export default function CreateOptionPage() {
             <FormField
               label="توضیحات"
               htmlFor="description"
+              error={errors.description}
             >
               <Textarea
                 id="description"
-                value={formData.description}
+                value={formData.description || ""}
                 onChange={(e) => handleInputChange("description", e.target.value)}
                 placeholder="توضیحات گزینه"
                 rows={4}

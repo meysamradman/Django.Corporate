@@ -54,7 +54,7 @@ export default function AgentsPage() {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    
+
     if (urlParams.get('page')) {
       const page = parseInt(urlParams.get('page')!, 10);
       setPagination(prev => ({ ...prev, pageIndex: page - 1 }));
@@ -63,7 +63,7 @@ export default function AgentsPage() {
       const size = parseInt(urlParams.get('size')!, 10);
       setPagination(prev => ({ ...prev, pageSize: size }));
     }
-    
+
     if (urlParams.get('order_by') && urlParams.get('order_desc') !== null) {
       const orderBy = urlParams.get('order_by')!;
       const orderDesc = urlParams.get('order_desc') === 'true';
@@ -71,11 +71,11 @@ export default function AgentsPage() {
     } else {
       setSorting(initSortingFromURL());
     }
-    
+
     if (urlParams.get('search')) {
       setSearchValue(urlParams.get('search')!);
     }
-    
+
     const newClientFilters: typeof clientFilters = {
       user_role_type: 'consultant', // همیشه مشاور
     };
@@ -92,7 +92,7 @@ export default function AgentsPage() {
       newClientFilters.date_to = dateTo || undefined;
       (newClientFilters as any).date_range = { from: dateFrom || undefined, to: dateTo || undefined };
     }
-    
+
     setClientFilters(newClientFilters);
   }, []);
 
@@ -194,7 +194,7 @@ export default function AgentsPage() {
 
   const actions = useMemo(() => {
     const adminActions: CardItemAction<AdminWithProfile>[] = [];
-    
+
     adminActions.push({
       label: "مشاهده",
       icon: <Edit className="h-4 w-4" />,
@@ -207,7 +207,7 @@ export default function AgentsPage() {
         }
       },
     });
-    
+
     adminActions.push({
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
@@ -225,7 +225,7 @@ export default function AgentsPage() {
         return !isSuperAdmin && !isOwnProfile;
       },
     });
-    
+
     adminActions.push({
       label: "حذف",
       icon: <Trash2 className="h-4 w-4" />,
@@ -233,17 +233,17 @@ export default function AgentsPage() {
       isDestructive: true,
       isDisabled: () => !isSuperAdmin,
     });
-    
+
     return adminActions;
   }, [navigate, currentUserId, isSuperAdmin]);
 
   const getAdminFullName = (admin: AdminWithProfile) => {
     const profile = admin.profile;
-    return admin.full_name || 
-           `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() ||
-           admin.email || 
-           admin.mobile || 
-           '';
+    return admin.full_name ||
+      `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() ||
+      admin.email ||
+      admin.mobile ||
+      '';
   };
 
   const getAdminInitial = (admin: AdminWithProfile) => {
@@ -255,7 +255,7 @@ export default function AgentsPage() {
 
   const getAdminAvatarUrl = (admin: AdminWithProfile) => {
     const profile = admin.profile;
-    return profile?.profile_picture 
+    return profile?.profile_picture
       ? mediaService.getMediaUrlFromObject(profile.profile_picture)
       : null;
   };
@@ -281,12 +281,12 @@ export default function AgentsPage() {
   };
 
   const handlePaginationChange = (updaterOrValue: TablePaginationState | ((prev: TablePaginationState) => TablePaginationState)) => {
-    const newPagination = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(pagination) 
+    const newPagination = typeof updaterOrValue === 'function'
+      ? updaterOrValue(pagination)
       : updaterOrValue;
-    
+
     setPagination(newPagination);
-    
+
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
@@ -299,8 +299,8 @@ export default function AgentsPage() {
         <PageHeader title="مدیریت مشاورین املاک" />
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             className="mt-4"
           >
             تلاش مجدد
@@ -314,8 +314,8 @@ export default function AgentsPage() {
     <div className="space-y-6">
       <PageHeader title="مدیریت مشاورین املاک">
         {isSuperAdmin ? (
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             asChild
           >
             <Link to="/admins/create">
@@ -482,8 +482,8 @@ export default function AgentsPage() {
         </>
       )}
 
-      <AlertDialog 
-        open={deleteConfirm.open} 
+      <AlertDialog
+        open={deleteConfirm.open}
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
       >
         <AlertDialogContent>

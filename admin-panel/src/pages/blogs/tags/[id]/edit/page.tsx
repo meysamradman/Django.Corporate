@@ -12,7 +12,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { blogApi } from "@/api/blogs/blogs";
 import type { BlogTag } from "@/types/blog/tags/blogTag";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { validateSlug } from '@/core/slug/validate';
+import { blogTagFormSchema } from '@/components/blogs/validations/tagSchema';
 import { Loader2, Save, Tag } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
@@ -29,6 +29,7 @@ export default function EditTagPage() {
     is_public: true,
     description: "",
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: tag, isLoading, error } = useQuery({
     queryKey: ['blog-tag', tagId],
@@ -87,13 +88,25 @@ export default function EditTagPage() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     
-    const slugValidation = validateSlug(formData.slug, true);
-    if (!slugValidation.isValid) {
-      showError(slugValidation.error || "اسلاگ معتبر نیست");
-      return;
-    }
+    setErrors({});
     
-    updateTagMutation.mutate(formData);
+    try {
+      const validatedData = blogTagFormSchema.parse(formData);
+      updateTagMutation.mutate(validatedData);
+    } catch (error: any) {
+      if (error.errors || error.issues) {
+        const fieldErrors: Record<string, string> = {};
+        const errorsToProcess = error.errors || error.issues || [];
+        errorsToProcess.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      } else {
+        showError("خطا در اعتبارسنجی فرم");
+      }
+    }
   };
 
   if (isLoading) {
@@ -164,6 +177,7 @@ export default function EditTagPage() {
                 label="نام"
                 htmlFor="name"
                 required
+                error={errors.name}
               >
                 <Input
                   id="name"
@@ -177,6 +191,7 @@ export default function EditTagPage() {
                 label="نامک"
                 htmlFor="slug"
                 required
+                error={errors.slug}
               >
                 <Input
                   id="slug"
@@ -191,6 +206,7 @@ export default function EditTagPage() {
             <FormField
               label="توضیحات"
               htmlFor="description"
+              error={errors.description}
             >
               <Textarea
                 id="description"

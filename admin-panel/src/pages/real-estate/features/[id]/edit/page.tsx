@@ -15,6 +15,7 @@ import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
 import { Settings, Loader2, Save, Star, Image as ImageIcon, UploadCloud, X } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
+import { propertyFeatureFormSchema } from '@/components/real-estate/validations/featureSchema';
 
 export default function EditPropertyFeaturePage() {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ export default function EditPropertyFeaturePage() {
     group: "",
     is_active: true,
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: feature, isLoading, error } = useQuery({
     queryKey: ['property-feature', featureId],
@@ -90,32 +92,54 @@ export default function EditPropertyFeaturePage() {
     
     if (!feature) return;
     
-    const submitData: Partial<PropertyFeature> = {};
+    setErrors({});
     
-    if (formData.title !== feature.title) {
-      submitData.title = formData.title;
+    try {
+      const validatedData = propertyFeatureFormSchema.parse({
+        ...formData,
+        image_id: selectedMedia?.id || null,
+      });
+      
+      const submitData: Partial<PropertyFeature> = {};
+      
+      if (validatedData.title !== feature.title) {
+        submitData.title = validatedData.title;
+      }
+      
+      if (validatedData.group !== (feature.group || "")) {
+        submitData.group = validatedData.group || null;
+      }
+      
+      if (validatedData.is_active !== feature.is_active) {
+        submitData.is_active = validatedData.is_active;
+      }
+      
+      const currentImageId = feature.image?.id || null;
+      const newImageId = validatedData.image_id || null;
+      if (currentImageId !== newImageId) {
+        (submitData as any).image_id = newImageId;
+      }
+      
+      if (Object.keys(submitData).length === 0) {
+        showInfo("تغییری اعمال نشده است");
+        return;
+      }
+      
+      updateFeatureMutation.mutate(submitData);
+    } catch (error: any) {
+      if (error.errors || error.issues) {
+        const fieldErrors: Record<string, string> = {};
+        const errorsToProcess = error.errors || error.issues || [];
+        errorsToProcess.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      } else {
+        showError("خطا در اعتبارسنجی فرم");
+      }
     }
-    
-    if (formData.group !== (feature.group || "")) {
-      submitData.group = formData.group || null;
-    }
-    
-    if (formData.is_active !== feature.is_active) {
-      submitData.is_active = formData.is_active;
-    }
-    
-    const currentImageId = feature.image?.id || null;
-    const newImageId = selectedMedia?.id || null;
-    if (currentImageId !== newImageId) {
-      (submitData as any).image_id = newImageId;
-    }
-    
-    if (Object.keys(submitData).length === 0) {
-      showInfo("تغییری اعمال نشده است");
-      return;
-    }
-    
-    updateFeatureMutation.mutate(submitData);
   };
 
   if (isLoading) {
@@ -171,6 +195,7 @@ export default function EditPropertyFeaturePage() {
                     label="عنوان"
                     htmlFor="title"
                     required
+                    error={errors.title}
                   >
                     <Input
                       id="title"
@@ -183,6 +208,7 @@ export default function EditPropertyFeaturePage() {
                   <FormField
                     label="دسته‌بندی"
                     htmlFor="group"
+                    error={errors.group}
                   >
                     <Input
                       id="group"

@@ -3,7 +3,7 @@ import { Input } from "@/components/elements/Input";
 import { Textarea } from "@/components/elements/Textarea";
 import { FormField } from "@/components/forms/FormField";
 import type { UseFormReturn } from "react-hook-form";
-import type { AgencyFormValues } from "@/pages/admins/agencies/create/page";
+import type { AgencyFormValues } from "@/components/real-estate/validations/agencySchema";
 import { Search, Globe } from "lucide-react";
 
 interface SEOTabProps {

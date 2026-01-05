@@ -14,6 +14,7 @@ import type { Media } from "@/types/shared/media";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
 import { Star, Loader2, Save, Image as ImageIcon, UploadCloud, X } from "lucide-react";
+import { propertyFeatureFormSchema, propertyFeatureFormDefaults } from '@/components/real-estate/validations/featureSchema';
 
 export default function CreatePropertyFeaturePage() {
   const navigate = useNavigate();
@@ -22,11 +23,8 @@ export default function CreatePropertyFeaturePage() {
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
   
-  const [formData, setFormData] = useState({
-    title: "",
-    group: "",
-    is_active: true,
-  });
+  const [formData, setFormData] = useState(propertyFeatureFormDefaults);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const createFeatureMutation = useMutation({
     mutationFn: (data: Partial<PropertyFeature>) => realEstateApi.createFeature(data),
@@ -64,17 +62,34 @@ export default function CreatePropertyFeaturePage() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title.trim()) {
-      showError("عنوان الزامی است");
-      return;
+    setErrors({});
+    
+    try {
+      const validatedData = propertyFeatureFormSchema.parse({
+        ...formData,
+        image_id: selectedMedia?.id || null,
+      });
+      
+      const formDataWithImage = {
+        ...validatedData,
+        ...(validatedData.image_id && { image_id: validatedData.image_id })
+      };
+      
+      createFeatureMutation.mutate(formDataWithImage);
+    } catch (error: any) {
+      if (error.errors || error.issues) {
+        const fieldErrors: Record<string, string> = {};
+        const errorsToProcess = error.errors || error.issues || [];
+        errorsToProcess.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      } else {
+        showError("خطا در اعتبارسنجی فرم");
+      }
     }
-    
-    const formDataWithImage = {
-      ...formData,
-      ...(selectedMedia?.id && { image_id: selectedMedia.id })
-    };
-    
-    createFeatureMutation.mutate(formDataWithImage);
   };
 
   return (
@@ -97,10 +112,11 @@ export default function CreatePropertyFeaturePage() {
                     label="عنوان"
                     htmlFor="title"
                     required
+                    error={errors.title}
                   >
                     <Input
                       id="title"
-                      value={formData.title}
+                      value={formData.title || ""}
                       onChange={(e) => handleInputChange("title", e.target.value)}
                       placeholder="عنوان ویژگی ملک"
                       required
@@ -109,10 +125,11 @@ export default function CreatePropertyFeaturePage() {
                   <FormField
                     label="دسته‌بندی"
                     htmlFor="group"
+                    error={errors.group}
                   >
                     <Input
                       id="group"
-                      value={formData.group}
+                      value={formData.group || ""}
                       onChange={(e) => handleInputChange("group", e.target.value)}
                       placeholder="دسته‌بندی ویژگی"
                     />

@@ -11,18 +11,15 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { validateSlug } from '@/core/slug/validate';
 import { Tag, Loader2, Save } from "lucide-react";
+import { propertyLabelFormSchema, propertyLabelFormDefaults } from '@/components/real-estate/validations/labelSchema';
 
 export default function CreatePropertyLabelPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
-  const [formData, setFormData] = useState({
-    title: "",
-    slug: "",
-    is_active: true,
-  });
+  const [formData, setFormData] = useState(propertyLabelFormDefaults);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const createLabelMutation = useMutation({
     mutationFn: (data: Partial<PropertyLabel>) => realEstateApi.createLabel(data),
@@ -66,18 +63,25 @@ export default function CreatePropertyLabelPage() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title.trim()) {
-      showError("عنوان الزامی است");
-      return;
-    }
+    setErrors({});
     
-    const slugValidation = validateSlug(formData.slug, true);
-    if (!slugValidation.isValid) {
-      showError(slugValidation.error || "اسلاگ معتبر نیست");
-      return;
+    try {
+      const validatedData = propertyLabelFormSchema.parse(formData);
+      createLabelMutation.mutate(validatedData);
+    } catch (error: any) {
+      if (error.errors || error.issues) {
+        const fieldErrors: Record<string, string> = {};
+        const errorsToProcess = error.errors || error.issues || [];
+        errorsToProcess.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      } else {
+        showError("خطا در اعتبارسنجی فرم");
+      }
     }
-    
-    createLabelMutation.mutate(formData);
   };
 
   return (
@@ -98,10 +102,11 @@ export default function CreatePropertyLabelPage() {
                 label="عنوان"
                 htmlFor="title"
                 required
+                error={errors.title}
               >
                 <Input
                   id="title"
-                  value={formData.title}
+                  value={formData.title || ""}
                   onChange={(e) => handleInputChange("title", e.target.value)}
                   placeholder="عنوان برچسب ملک"
                   required
@@ -111,10 +116,11 @@ export default function CreatePropertyLabelPage() {
                 label="نامک"
                 htmlFor="slug"
                 required
+                error={errors.slug}
               >
                 <Input
                   id="slug"
-                  value={formData.slug}
+                  value={formData.slug || ""}
                   onChange={(e) => handleInputChange("slug", e.target.value)}
                   placeholder="نامک"
                   required

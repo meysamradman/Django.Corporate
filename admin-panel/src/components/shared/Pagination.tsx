@@ -13,7 +13,7 @@ const generatePaginationRange = (currentPage: number, totalPages: number, siblin
   if (totalPages <= 0) {
     return [];
   }
-  
+
   if (totalPages === 1) {
     return [1];
   }
@@ -106,7 +106,7 @@ export function PaginationControls({
   }
 
   const validCurrentPage = Math.max(1, Math.min(currentPage, totalPages));
-  
+
   const paginationRange = generatePaginationRange(validCurrentPage, totalPages, siblingCount);
 
   return (
@@ -163,11 +163,10 @@ export function PaginationControls({
               <button
                 key={pageNumber}
                 onClick={() => onPageChange(pageNumber as number)}
-                className={`px-2 py-1 text-sm rounded-md cursor-pointer ${
-                  isActive 
-                    ? "bg-bg text-font-p" 
+                className={`px-2 py-1 text-sm rounded-md cursor-pointer ${isActive
+                    ? "bg-bg text-font-p"
                     : "text-font-s hover:text-font-p"
-                }`}
+                  }`}
               >
                 {pageNumber}
               </button>

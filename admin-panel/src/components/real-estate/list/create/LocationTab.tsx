@@ -15,10 +15,11 @@ interface LocationTabProps {
     latitude?: number | null;
     longitude?: number | null;
     onLocationChange?: (latitude: number | null, longitude: number | null) => void;
+    errors?: Record<string, string>;
 }
 
 export default function LocationTab(props: LocationTabProps) {
-    const { formData, handleInputChange, editMode, latitude, longitude, onLocationChange } = props;
+    const { formData, handleInputChange, editMode, latitude, longitude, onLocationChange, errors } = props;
     const [provinces, setProvinces] = useState<any[]>([]);
     const [cities, setCities] = useState<RealEstateCity[]>([]);
     const [cityRegions, setCityRegions] = useState<RealEstateCityRegion[]>([]);
@@ -202,7 +203,7 @@ export default function LocationTab(props: LocationTabProps) {
                         >
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {/* Province Selection */}
-                                <FormField label="استان">
+                                <FormField label="استان" required error={errors?.province}>
                                     <Select
                                         value={selectedProvinceId?.toString() || ""}
                                         onValueChange={handleProvinceChange}
@@ -221,7 +222,7 @@ export default function LocationTab(props: LocationTabProps) {
                                     </Select>
                                 </FormField>
 
-                                <FormField label="شهر">
+                                <FormField label="شهر" required error={errors?.city}>
                                     <Select
                                         value={selectedCityId?.toString() || ""}
                                         onValueChange={handleCityChange}
@@ -278,6 +279,8 @@ export default function LocationTab(props: LocationTabProps) {
                         >
                             <FormFieldTextarea
                                 label="آدرس"
+                                required
+                                error={errors?.address}
                                 placeholder="آدرس کامل را وارد کنید"
                                 disabled={!editMode}
                                 rows={3}

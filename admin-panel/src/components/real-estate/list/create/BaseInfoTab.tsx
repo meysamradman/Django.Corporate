@@ -7,6 +7,7 @@ import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { FolderOpen, Tag, X, Settings, FileText } from "lucide-react";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
 import { realEstateApi } from "@/api/real-estate";
+import { cn } from "@/core/utils/cn";
 import { FormFieldInput, FormFieldTextarea, FormField } from "@/components/forms/FormField";
 
 import type { PropertyType } from "@/types/real_estate/type/propertyType";
@@ -261,120 +262,126 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                         iconColor="stroke-blue-2"
                         borderColor="border-b-blue-1"
                     >
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-2">
-                                {/* Property Type */}
-                                <div className="space-y-2">
-                                    <Label className={errors?.property_type ? "text-red-1" : ""}>نوع ملک <span className="text-red-2">*</span></Label>
-                                    <Select
-                                        disabled={!editMode || loadingTypes}
-                                        value={formData?.property_type ? String(formData.property_type) : ""}
-                                        onValueChange={handlePropertyTypeChange}
-                                    >
-                                        <SelectTrigger className={errors?.property_type ? "border-red-1" : "h-11 rounded-xl"}>
-                                            <SelectValue placeholder={loadingTypes ? "در حال بارگذاری..." : "نوع ملک را انتخاب کنید"} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {(propertyTypes || []).map((type) => (
-                                                <SelectItem key={type.id} value={String(type.id)}>
-                                                    {type.title}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {errors?.property_type && <span className="text-xs text-red-1 font-medium">{errors.property_type}</span>}
-                                </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* Property Type */}
+                            <FormField
+                                label="نوع ملک"
+                                required
+                                error={errors?.property_type}
+                            >
+                                <Select
+                                    disabled={!editMode || loadingTypes}
+                                    value={formData?.property_type ? String(formData.property_type) : ""}
+                                    onValueChange={handlePropertyTypeChange}
+                                >
+                                    <SelectTrigger className={cn("h-11", errors?.property_type && "border-red-1")}>
+                                        <SelectValue placeholder={loadingTypes ? "در حال بارگذاری..." : "نوع ملک را انتخاب کنید"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {(propertyTypes || []).map((type) => (
+                                            <SelectItem key={type.id} value={String(type.id)}>
+                                                {type.title}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </FormField>
 
-                                {/* Property State/Category */}
-                                <div className="space-y-2">
-                                    <Label className={errors?.state ? "text-red-1" : ""}>نوع واگذاری <span className="text-red-2">*</span></Label>
-                                    <Select
-                                        disabled={!editMode || loadingStates}
-                                        value={formData?.state ? String(formData.state) : ""}
-                                        onValueChange={handleStateChange}
-                                    >
-                                        <SelectTrigger className={errors?.state ? "border-red-1" : "h-11 rounded-xl"}>
-                                            <SelectValue placeholder={loadingStates ? "در حال بارگذاری..." : "مثلاً فروشی، اجاره‌ای..."} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {(propertyStates || []).map((state) => (
-                                                <SelectItem key={state.id} value={String(state.id)}>
-                                                    {state.title}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {errors?.state && <span className="text-xs text-red-1 font-medium">{errors.state}</span>}
-                                </div>
+                            {/* Property State/Category */}
+                            <FormField
+                                label="نوع واگذاری"
+                                required
+                                error={errors?.state}
+                            >
+                                <Select
+                                    disabled={!editMode || loadingStates}
+                                    value={formData?.state ? String(formData.state) : ""}
+                                    onValueChange={handleStateChange}
+                                >
+                                    <SelectTrigger className={cn("h-11", errors?.state && "border-red-1")}>
+                                        <SelectValue placeholder={loadingStates ? "در حال بارگذاری..." : "مثلاً فروشی، اجاره‌ای..."} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {(propertyStates || []).map((state) => (
+                                            <SelectItem key={state.id} value={String(state.id)}>
+                                                {state.title}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </FormField>
 
-                                {/* Transaction Status (Lifecycle) */}
-                                <div className="space-y-2">
-                                    <Label className={errors?.status ? "text-red-1" : ""}>وضعیت معامله <span className="text-red-2">*</span></Label>
-                                    <Select
-                                        disabled={!editMode || loadingOptions}
-                                        value={formData?.status || "active"}
-                                        onValueChange={handleStatusChange}
-                                    >
-                                        <SelectTrigger className={errors?.status ? "border-red-1" : "h-11 rounded-xl"}>
-                                            <SelectValue placeholder={loadingOptions ? "در حال بارگذاری..." : "انتخاب وضعیت..."} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {statusOptions.map(([value, label]) => (
-                                                <SelectItem key={value} value={value}>
-                                                    {label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {errors?.status && <span className="text-xs text-red-1 font-medium">{errors.status}</span>}
-                                </div>
+                            {/* Transaction Status (Lifecycle) */}
+                            <FormField
+                                label="وضعیت معامله"
+                                required
+                                error={errors?.status}
+                            >
+                                <Select
+                                    disabled={!editMode || loadingOptions}
+                                    value={formData?.status || "active"}
+                                    onValueChange={handleStatusChange}
+                                >
+                                    <SelectTrigger className={cn("h-11", errors?.status && "border-red-1")}>
+                                        <SelectValue placeholder={loadingOptions ? "در حال بارگذاری..." : "انتخاب وضعیت..."} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {statusOptions.map(([value, label]) => (
+                                            <SelectItem key={value} value={value}>
+                                                {label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </FormField>
 
-                                {/* Consultant */}
-                                <div className="space-y-2">
-                                    <Label className={errors?.agent ? "text-red-1" : ""}>مشاور مسئول</Label>
-                                    <Select
-                                        disabled={!editMode || loadingAgents}
-                                        value={formData?.agent ? String(formData.agent) : "none"}
-                                        onValueChange={handleAgentChange}
-                                    >
-                                        <SelectTrigger className={errors?.agent ? "border-red-1" : "h-11 rounded-xl"}>
-                                            <SelectValue placeholder={loadingAgents ? "در حال بارگذاری..." : "مشاور را انتخاب کنید"} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="none">هیچکدام</SelectItem>
-                                            {(agents || []).map((agent) => (
-                                                <SelectItem key={agent.id} value={String(agent.id)}>
-                                                    {agent.first_name} {agent.last_name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {errors?.agent && <span className="text-xs text-red-1 font-medium">{errors.agent}</span>}
-                                </div>
+                            {/* Consultant */}
+                            <FormField
+                                label="مشاور مسئول"
+                                error={errors?.agent}
+                            >
+                                <Select
+                                    disabled={!editMode || loadingAgents}
+                                    value={formData?.agent ? String(formData.agent) : "none"}
+                                    onValueChange={handleAgentChange}
+                                >
+                                    <SelectTrigger className={cn("h-11", errors?.agent && "border-red-1")}>
+                                        <SelectValue placeholder={loadingAgents ? "در حال بارگذاری..." : "مشاور را انتخاب کنید"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">هیچکدام</SelectItem>
+                                        {(agents || []).map((agent) => (
+                                            <SelectItem key={agent.id} value={String(agent.id)}>
+                                                {agent.first_name} {agent.last_name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </FormField>
 
-                                {/* Agency */}
-                                <div className="space-y-2">
-                                    <Label className={errors?.agency ? "text-red-1" : ""}>آژانس املاک</Label>
-                                    <Select
-                                        disabled={!editMode || loadingAgencies}
-                                        value={formData?.agency ? String(formData.agency) : "none"}
-                                        onValueChange={handleAgencyChange}
-                                    >
-                                        <SelectTrigger className={errors?.agency ? "border-red-1" : "h-11 rounded-xl"}>
-                                            <SelectValue placeholder={loadingAgencies ? "در حال بارگذاری..." : "آژانس را انتخاب کنید"} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="none">هیچکدام</SelectItem>
-                                            {(agencies || []).map((agency) => (
-                                                <SelectItem key={agency.id} value={String(agency.id)}>
-                                                    {agency.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {errors?.agency && <span className="text-xs text-red-1 font-medium">{errors.agency}</span>}
-                                </div>
-                            </div>
+                            {/* Agency */}
+                            <FormField
+                                label="آژانس املاک"
+                                error={errors?.agency}
+                            >
+                                <Select
+                                    disabled={!editMode || loadingAgencies}
+                                    value={formData?.agency ? String(formData.agency) : "none"}
+                                    onValueChange={handleAgencyChange}
+                                >
+                                    <SelectTrigger className={cn("h-11", errors?.agency && "border-red-1")}>
+                                        <SelectValue placeholder={loadingAgencies ? "در حال بارگذاری..." : "آژانس را انتخاب کنید"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">هیچکدام</SelectItem>
+                                        {(agencies || []).map((agency) => (
+                                            <SelectItem key={agency.id} value={String(agency.id)}>
+                                                {agency.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </FormField>
                         </div>
                     </CardWithIcon>
                 </div>

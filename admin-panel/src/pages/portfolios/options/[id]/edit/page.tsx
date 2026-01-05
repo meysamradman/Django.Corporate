@@ -11,7 +11,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import type { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { validateSlug } from '@/core/slug/validate';
+import { portfolioOptionFormSchema } from '@/components/portfolios/validations/optionSchema';
 import { Loader2, Save, List, Settings } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
@@ -29,6 +29,7 @@ export default function EditOptionPage() {
     is_public: true,
     description: "",
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: option, isLoading, error } = useQuery({
     queryKey: ['option', optionId],
@@ -86,13 +87,25 @@ export default function EditOptionPage() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     
-    const slugValidation = validateSlug(formData.slug, true);
-    if (!slugValidation.isValid) {
-      showError(slugValidation.error || "اسلاگ معتبر نیست");
-      return;
-    }
+    setErrors({});
     
-    updateOptionMutation.mutate(formData);
+    try {
+      const validatedData = portfolioOptionFormSchema.parse(formData);
+      updateOptionMutation.mutate(validatedData);
+    } catch (error: any) {
+      if (error.errors || error.issues) {
+        const fieldErrors: Record<string, string> = {};
+        const errorsToProcess = error.errors || error.issues || [];
+        errorsToProcess.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      } else {
+        showError("خطا در اعتبارسنجی فرم");
+      }
+    }
   };
 
   if (isLoading) {
@@ -188,6 +201,7 @@ export default function EditOptionPage() {
                 label="نام"
                 htmlFor="name"
                 required
+                error={errors.name}
               >
                 <Input
                   id="name"
@@ -201,6 +215,7 @@ export default function EditOptionPage() {
                 label="نامک"
                 htmlFor="slug"
                 required
+                error={errors.slug}
               >
                 <Input
                   id="slug"
@@ -215,6 +230,7 @@ export default function EditOptionPage() {
             <FormField
               label="توضیحات"
               htmlFor="description"
+              error={errors.description}
             >
               <Textarea
                 id="description"

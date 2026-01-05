@@ -13,7 +13,7 @@ import type { BlogCategory } from "@/types/blog/category/blogCategory";
 import { TreeSelect } from "@/components/elements/TreeSelect";
 import type { Media } from "@/types/shared/media";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { validateSlug } from '@/core/slug/validate';
+import { blogCategoryFormSchema, blogCategoryFormDefaults } from '@/components/blogs/validations/categorySchema';
 import { showError, showSuccess } from "@/core/toast";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
@@ -25,14 +25,8 @@ export default function CreateCategoryPage() {
   const queryClient = useQueryClient();
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    slug: "",
-    parent_id: null as number | null,
-    is_active: true,
-    is_public: true,
-    description: "",
-  });
+  const [formData, setFormData] = useState(blogCategoryFormDefaults);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: categories, isLoading: isLoadingCategories } = useQuery({
     queryKey: ['blog-categories-all'],
@@ -92,18 +86,34 @@ export default function CreateCategoryPage() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    const slugValidation = validateSlug(formData.slug, true);
-    if (!slugValidation.isValid) {
-      showError(slugValidation.error || "اسلاگ معتبر نیست");
-      return;
+    setErrors({});
+
+    try {
+      const validatedData = blogCategoryFormSchema.parse({
+        ...formData,
+        image_id: selectedMedia?.id || null,
+      });
+
+      const formDataWithImage = {
+        ...validatedData,
+        ...(validatedData.image_id && { image_id: validatedData.image_id })
+      };
+
+      createCategoryMutation.mutate(formDataWithImage);
+    } catch (error: any) {
+      if (error.errors || error.issues) {
+        const fieldErrors: Record<string, string> = {};
+        const errorsToProcess = error.errors || error.issues || [];
+        errorsToProcess.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      } else {
+        showError("خطا در اعتبارسنجی فرم");
+      }
     }
-
-    const formDataWithImage = {
-      ...formData,
-      ...(selectedMedia?.id && { image_id: selectedMedia.id })
-    };
-
-    createCategoryMutation.mutate(formDataWithImage);
   };
 
   if (isLoadingCategories) {
@@ -185,10 +195,11 @@ export default function CreateCategoryPage() {
                       label="نام"
                       htmlFor="name"
                       required
+                      error={errors.name}
                     >
                       <Input
                         id="name"
-                        value={formData.name}
+                        value={formData.name || ""}
                         onChange={(e) => handleInputChange("name", e.target.value)}
                         placeholder="نام دسته‌بندی"
                         required
@@ -198,10 +209,11 @@ export default function CreateCategoryPage() {
                       label="نامک"
                       htmlFor="slug"
                       required
+                      error={errors.slug}
                     >
                       <Input
                         id="slug"
-                        value={formData.slug}
+                        value={formData.slug || ""}
                         onChange={(e) => handleInputChange("slug", e.target.value)}
                         placeholder="نامک"
                         required
@@ -227,10 +239,11 @@ export default function CreateCategoryPage() {
                   <FormField
                     label="توضیحات"
                     htmlFor="description"
+                    error={errors.description}
                   >
                     <Textarea
                       id="description"
-                      value={formData.description}
+                      value={formData.description || ""}
                       onChange={(e) => handleInputChange("description", e.target.value)}
                       placeholder="توضیحات دسته‌بندی"
                       rows={4}

@@ -12,19 +12,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyState } from "@/types/real_estate/state/realEstateState";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { validateSlug } from '@/core/slug/validate';
+import { propertyStateFormSchema, propertyStateFormDefaults } from "@/components/real-estate/validations/stateSchema";
 import { FileText, Loader2, Save, Type } from "lucide-react";
 
 export default function CreatePropertyStatePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [formData, setFormData] = useState({
-    title: "",
-    slug: "",
-    usage_type: "sale",
-    is_active: true,
-  });
+  const [formData, setFormData] = useState(propertyStateFormDefaults);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: fieldOptions } = useQuery({
     queryKey: ['property-state-field-options'],
@@ -73,18 +69,28 @@ export default function CreatePropertyStatePage() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title.trim()) {
-      showError("عنوان الزامی است");
-      return;
-    }
+    setErrors({});
 
-    const slugValidation = validateSlug(formData.slug, true);
-    if (!slugValidation.isValid) {
-      showError(slugValidation.error || "اسلاگ معتبر نیست");
-      return;
+    try {
+      const validatedData = propertyStateFormSchema.parse(formData);
+      createStateMutation.mutate(validatedData);
+    } catch (error: any) {
+      if (error.errors) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+        if (Object.keys(fieldErrors).length > 0) {
+          const firstError = Object.values(fieldErrors)[0];
+          showError(firstError);
+        }
+      } else {
+        showError("خطا در اعتبارسنجی فرم");
+      }
     }
-
-    createStateMutation.mutate(formData);
   };
 
   return (
@@ -105,10 +111,11 @@ export default function CreatePropertyStatePage() {
                 label="عنوان"
                 htmlFor="title"
                 required
+                error={errors.title}
               >
                 <Input
                   id="title"
-                  value={formData.title}
+                  value={formData.title || ""}
                   onChange={(e) => handleInputChange("title", e.target.value)}
                   placeholder="عنوان وضعیت ملک"
                   required
@@ -118,10 +125,11 @@ export default function CreatePropertyStatePage() {
                 label="نامک"
                 htmlFor="slug"
                 required
+                error={errors.slug}
               >
                 <Input
                   id="slug"
-                  value={formData.slug}
+                  value={formData.slug || ""}
                   onChange={(e) => handleInputChange("slug", e.target.value)}
                   placeholder="نامک"
                   required
@@ -134,9 +142,10 @@ export default function CreatePropertyStatePage() {
                 label="نوع کاربری (سیستمی)"
                 htmlFor="usage_type"
                 required
+                error={errors.usage_type}
               >
                 <Select
-                  value={formData.usage_type}
+                  value={formData.usage_type || "sale"}
                   onValueChange={(value) => handleInputChange("usage_type", value)}
                 >
                   <SelectTrigger id="usage_type">

@@ -12,7 +12,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyState } from "@/types/real_estate/state/realEstateState";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { validateSlug } from '@/core/slug/validate';
+import { propertyStateFormSchema } from "@/components/real-estate/validations/stateSchema";
 import { Circle, Loader2, Save, Type } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
@@ -28,6 +28,7 @@ export default function EditPropertyStatePage() {
     usage_type: "",
     is_active: true,
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: state, isLoading, error } = useQuery({
     queryKey: ['property-state', stateId],
@@ -96,36 +97,52 @@ export default function EditPropertyStatePage() {
 
     if (!state) return;
 
-    const slugValidation = validateSlug(formData.slug, true);
-    if (!slugValidation.isValid) {
-      showError(slugValidation.error || "اسلاگ معتبر نیست");
-      return;
+    setErrors({});
+
+    try {
+      const validatedData = propertyStateFormSchema.parse(formData);
+      
+      const submitData: Partial<PropertyState> = {};
+
+      if (validatedData.title !== state.title) {
+        submitData.title = validatedData.title;
+      }
+
+      if (validatedData.slug !== state.slug) {
+        submitData.slug = validatedData.slug;
+      }
+
+      if (validatedData.is_active !== state.is_active) {
+        submitData.is_active = validatedData.is_active;
+      }
+
+      if (validatedData.usage_type !== state.usage_type) {
+        submitData.usage_type = validatedData.usage_type;
+      }
+
+      if (Object.keys(submitData).length === 0) {
+        showInfo("تغییری اعمال نشده است");
+        return;
+      }
+
+      updateStateMutation.mutate(submitData);
+    } catch (error: any) {
+      if (error.errors) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+        if (Object.keys(fieldErrors).length > 0) {
+          const firstError = Object.values(fieldErrors)[0];
+          showError(firstError);
+        }
+      } else {
+        showError("خطا در اعتبارسنجی فرم");
+      }
     }
-
-    const submitData: Partial<PropertyState> = {};
-
-    if (formData.title !== state.title) {
-      submitData.title = formData.title;
-    }
-
-    if (formData.slug !== state.slug) {
-      submitData.slug = formData.slug;
-    }
-
-    if (formData.is_active !== state.is_active) {
-      submitData.is_active = formData.is_active;
-    }
-
-    if (formData.usage_type !== state.usage_type) {
-      submitData.usage_type = formData.usage_type;
-    }
-
-    if (Object.keys(submitData).length === 0) {
-      showInfo("تغییری اعمال نشده است");
-      return;
-    }
-
-    updateStateMutation.mutate(submitData);
   };
 
   if (isLoading) {
@@ -179,6 +196,7 @@ export default function EditPropertyStatePage() {
                 label="عنوان"
                 htmlFor="title"
                 required
+                error={errors.title}
               >
                 <Input
                   id="title"
@@ -192,6 +210,7 @@ export default function EditPropertyStatePage() {
                 label="نامک"
                 htmlFor="slug"
                 required
+                error={errors.slug}
               >
                 <Input
                   id="slug"
@@ -208,6 +227,7 @@ export default function EditPropertyStatePage() {
                 label="نوع کاربری (سیستمی)"
                 htmlFor="usage_type"
                 required
+                error={errors.usage_type}
               >
                 <Select
                   value={formData.usage_type}

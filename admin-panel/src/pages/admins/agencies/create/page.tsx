@@ -12,8 +12,8 @@ import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Loader2, Save, Building2, UserCircle } from "lucide-react";
 import type { Media } from "@/types/shared/media";
-import * as z from "zod";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
+import { agencyFormSchema, agencyFormDefaults, type AgencyFormValues } from '@/components/real-estate/validations/agencySchema';
 
 
 const TabSkeleton = () => (
@@ -48,31 +48,6 @@ const TabSkeleton = () => (
 const BaseInfoTab = lazy(() => import("@/components/real-estate/agencies/edit/BaseInfoTab"));
 const ProfileTab = lazy(() => import("@/components/real-estate/agencies/create/ProfileTab"));
 
-const agencySchema = z.object({
-    name: z.string().min(1, "نام آژانس لازم است"),
-    slug: z.string().optional().nullable(),
-    phone: z.string().min(1, "شماره موبایل لازم است"),
-    email: z.string().email("ایمیل معتبر وارد کنید").optional().or(z.literal("")),
-    website: z.string().url("وب‌سایت معتبر وارد کنید").optional().or(z.literal("")),
-    license_number: z.string().optional().nullable(),
-    license_expire_date: z.string().optional().nullable(),
-    city: z.number().int().optional().nullable(),
-    province: z.number().int().optional().nullable(),
-    description: z.string().optional().nullable(),
-    address: z.string().optional().nullable(),
-    is_active: z.boolean().optional(),
-    rating: z.number().min(0).max(5).optional(),
-    total_reviews: z.number().min(0).optional(),
-    meta_title: z.string().optional().nullable(),
-    meta_description: z.string().optional().nullable(),
-    og_title: z.string().optional().nullable(),
-    og_description: z.string().optional().nullable(),
-    canonical_url: z.string().optional().nullable(),
-    robots_meta: z.string().optional().nullable(),
-});
-
-export type AgencyFormValues = z.infer<typeof agencySchema>;
-
 export default function AdminsAgenciesCreatePage() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -81,27 +56,8 @@ export default function AdminsAgenciesCreatePage() {
     const [selectedLogo, setSelectedLogo] = useState<Media | null>(null);
 
     const form = useForm<AgencyFormValues>({
-        resolver: zodResolver(agencySchema) as any,
-        defaultValues: {
-            name: "",
-            slug: "",
-            phone: "",
-            email: "",
-            website: "",
-            license_number: "",
-            license_expire_date: "",
-            city: null,
-            province: null,
-            description: "",
-            address: "",
-            is_active: true,
-            rating: 0,
-            total_reviews: 0,
-            meta_title: "",
-            meta_description: "",
-            og_title: "",
-            og_description: "",
-        },
+        resolver: zodResolver(agencyFormSchema) as any,
+        defaultValues: agencyFormDefaults,
         mode: "onSubmit",
     });
 

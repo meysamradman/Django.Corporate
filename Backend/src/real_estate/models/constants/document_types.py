@@ -12,9 +12,7 @@ DOCUMENT_TYPE_CHOICES = {
 }
 
 def get_document_type_label(code: str) -> str:
-
     return DOCUMENT_TYPE_CHOICES.get(code, code)
 
 def get_document_type_choices_list():
-
     return [(code, label) for code, label in DOCUMENT_TYPE_CHOICES.items()]

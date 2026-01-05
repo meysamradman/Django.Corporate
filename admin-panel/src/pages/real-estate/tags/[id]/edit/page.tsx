@@ -13,7 +13,7 @@ import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
 import { Hash, Loader2, Save } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { validateSlug } from '@/core/slug/validate';
+import { propertyTagFormSchema } from '@/components/real-estate/validations/tagSchema';
 
 export default function EditPropertyTagPage() {
   const navigate = useNavigate();
@@ -28,6 +28,7 @@ export default function EditPropertyTagPage() {
     is_active: true,
     is_public: true,
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: tag, isLoading, error } = useQuery({
     queryKey: ['property-tag', tagId],
@@ -91,40 +92,53 @@ export default function EditPropertyTagPage() {
     
     if (!tag) return;
     
-    const slugValidation = validateSlug(formData.slug, true);
-    if (!slugValidation.isValid) {
-      showError(slugValidation.error || "اسلاگ معتبر نیست");
-      return;
+    setErrors({});
+    
+    try {
+      const validatedData = propertyTagFormSchema.parse(formData);
+      
+      const submitData: Partial<PropertyTag> = {};
+      
+      if (validatedData.title !== tag.title) {
+        submitData.title = validatedData.title;
+      }
+      
+      if (validatedData.slug !== tag.slug) {
+        submitData.slug = validatedData.slug;
+      }
+      
+      if (validatedData.description !== (tag.description || "")) {
+        submitData.description = validatedData.description || "";
+      }
+      
+      if (validatedData.is_active !== (tag.is_active ?? true)) {
+        submitData.is_active = validatedData.is_active;
+      }
+      
+      if (validatedData.is_public !== (tag.is_public ?? true)) {
+        submitData.is_public = validatedData.is_public;
+      }
+      
+      if (Object.keys(submitData).length === 0) {
+        showInfo("تغییری اعمال نشده است");
+        return;
+      }
+      
+      updateTagMutation.mutate(submitData);
+    } catch (error: any) {
+      if (error.errors || error.issues) {
+        const fieldErrors: Record<string, string> = {};
+        const errorsToProcess = error.errors || error.issues || [];
+        errorsToProcess.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      } else {
+        showError("خطا در اعتبارسنجی فرم");
+      }
     }
-    
-    const submitData: Partial<PropertyTag> = {};
-    
-    if (formData.title !== tag.title) {
-      submitData.title = formData.title;
-    }
-    
-    if (formData.slug !== tag.slug) {
-      submitData.slug = formData.slug;
-    }
-    
-    if (formData.description !== (tag.description || "")) {
-      submitData.description = formData.description || "";
-    }
-    
-    if (formData.is_active !== (tag.is_active ?? true)) {
-      submitData.is_active = formData.is_active;
-    }
-    
-    if (formData.is_public !== (tag.is_public ?? true)) {
-      submitData.is_public = formData.is_public;
-    }
-    
-    if (Object.keys(submitData).length === 0) {
-      showInfo("تغییری اعمال نشده است");
-      return;
-    }
-    
-    updateTagMutation.mutate(submitData);
   };
 
   if (isLoading) {
@@ -178,6 +192,7 @@ export default function EditPropertyTagPage() {
                 label="عنوان"
                 htmlFor="title"
                 required
+                error={errors.title}
               >
                 <Input
                   id="title"
@@ -191,6 +206,7 @@ export default function EditPropertyTagPage() {
                 label="نامک"
                 htmlFor="slug"
                 required
+                error={errors.slug}
               >
                 <Input
                   id="slug"

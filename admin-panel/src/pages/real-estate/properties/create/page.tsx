@@ -10,8 +10,8 @@ import {
 } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { validateSlug } from '@/core/slug/validate';
 import { showError, showSuccess } from '@/core/toast';
+import { propertyFormSchema } from '@/components/real-estate/validations/propertySchema';
 import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
 import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
@@ -396,159 +396,179 @@ export default function PropertyCreatePage() {
     setIsLoading(true);
     setErrors({}); // Clear previous errors
     try {
-      // Basic Frontend Validation (optional, can relay on backend)
-      if (!formData.title?.trim()) {
-        setErrors(prev => ({ ...prev, title: "عنوان ملک الزامی است" }));
-        showError("لطفا خطاهای فرم را برطرف کنید");
-        setActiveTab("account");
-        setIsLoading(false);
-        return;
+      // Prepare data for validation
+      const dataToValidate = {
+        ...formData,
+        labels_ids: selectedLabels.map(label => label.id),
+        tags_ids: selectedTags.map(tag => tag.id),
+        features_ids: selectedFeatures.map(feature => feature.id),
+      };
+      
+      // Step 1: Validate Account Tab fields first
+      const accountErrors: Record<string, string> = {};
+      
+      try {
+        propertyFormSchema.pick({
+          title: true,
+          slug: true,
+          property_type: true,
+          state: true,
+          status: true,
+        }).parse({
+          title: dataToValidate.title,
+          slug: dataToValidate.slug,
+          property_type: dataToValidate.property_type,
+          state: dataToValidate.state,
+          status: dataToValidate.status,
+        });
+      } catch (accountError: any) {
+        if (accountError.errors || accountError.issues) {
+          const errorsToProcess = accountError.errors || accountError.issues || [];
+          errorsToProcess.forEach((err: any) => {
+            if (err.path && err.path.length > 0) {
+              const fieldName = err.path[0];
+              if (!accountErrors[fieldName]) {
+                accountErrors[fieldName] = err.message;
+              }
+            }
+          });
+          setErrors(accountErrors);
+          setActiveTab("account");
+          setIsLoading(false);
+          return;
+        }
       }
-
-      if (!formData.title?.trim()) {
-        showError("عنوان ملک الزامی است");
-        setActiveTab("account");
-        return;
+      
+      // Step 2: Validate Location Tab fields
+      const locationErrors: Record<string, string> = {};
+      
+      try {
+        propertyFormSchema.pick({
+          province: true,
+          city: true,
+          address: true,
+        }).parse({
+          province: dataToValidate.province,
+          city: dataToValidate.city,
+          address: dataToValidate.address,
+        });
+      } catch (locationError: any) {
+        if (locationError.errors || locationError.issues) {
+          const errorsToProcess = locationError.errors || locationError.issues || [];
+          errorsToProcess.forEach((err: any) => {
+            if (err.path && err.path.length > 0) {
+              const fieldName = err.path[0];
+              if (!locationErrors[fieldName]) {
+                locationErrors[fieldName] = err.message;
+              }
+            }
+          });
+          setErrors(locationErrors);
+          setActiveTab("location");
+          setIsLoading(false);
+          return;
+        }
       }
+      
+      // Step 3: Validate all fields together (for optional fields)
+      const validatedData = propertyFormSchema.parse(dataToValidate);
 
-      const slugValidation = validateSlug(formData.slug, true);
-      if (!slugValidation.isValid) {
-        showError(slugValidation.error || "اسلاگ معتبر نیست");
-        setActiveTab("account");
-        return;
-      }
-
-      if (!formData.property_type) {
-        showError("نوع ملک الزامی است");
-        setActiveTab("account");
-        return;
-      }
-
-      if (!formData.address?.trim()) {
-        setErrors(prev => ({ ...prev, address: "آدرس الزامی است" }));
-        showError("لطفا خطاهای فرم را برطرف کنید");
-        setActiveTab("location"); // Address is in Location tab now
-        setIsLoading(false);
-        return;
-      }
-
-      // Location Validation
-      if (!formData.province) {
-        setErrors(prev => ({ ...prev, province: "استان الزامی است" }));
-        showError("استان و شهر الزامی هستند");
-        setActiveTab("location");
-        setIsLoading(false);
-        return;
-      }
-
-      if (!formData.city) {
-        setErrors(prev => ({ ...prev, city: "شهر الزامی است" }));
-        showError("استان و شهر الزامی هستند");
-        setActiveTab("location");
-        setIsLoading(false);
-        return;
-      }
-
-
-      const labelIds = selectedLabels.map(label => label.id);
-      const tagIds = selectedTags.map(tag => tag.id);
-      const featureIds = selectedFeatures.map(feature => feature.id);
 
       const updateData: any = {
-        title: formData.title,
-        slug: formData.slug,
-        short_description: formData.short_description,
-        description: formData.description,
-        labels_ids: labelIds,
-        tags_ids: tagIds,
-        features_ids: featureIds,
-        meta_title: formData.meta_title || undefined,
-        meta_description: formData.meta_description || undefined,
-        og_title: formData.og_title || undefined,
-        og_description: formData.og_description || undefined,
-        og_image_id: formData.og_image?.id || undefined,
-        canonical_url: formData.canonical_url || undefined,
-        robots_meta: formData.robots_meta || undefined,
-        is_public: formData.is_public,
-        is_active: formData.is_active,
-        is_published: formData.is_published,
-        is_featured: formData.is_featured,
-        property_type: formData.property_type || undefined,
-        state: formData.state || undefined,
-        agent: formData.agent || undefined,
-        agency: formData.agency || undefined,
+        title: validatedData.title,
+        slug: validatedData.slug,
+        short_description: validatedData.short_description,
+        description: validatedData.description,
+        labels_ids: validatedData.labels_ids,
+        tags_ids: validatedData.tags_ids,
+        features_ids: validatedData.features_ids,
+        meta_title: validatedData.meta_title || undefined,
+        meta_description: validatedData.meta_description || undefined,
+        og_title: validatedData.og_title || undefined,
+        og_description: validatedData.og_description || undefined,
+        og_image_id: validatedData.og_image_id || undefined,
+        canonical_url: validatedData.canonical_url || undefined,
+        robots_meta: validatedData.robots_meta || undefined,
+        is_public: validatedData.is_public,
+        is_active: validatedData.is_active,
+        is_published: validatedData.is_published,
+        is_featured: validatedData.is_featured,
+        property_type: validatedData.property_type || undefined,
+        state: validatedData.state || undefined,
+        agent: validatedData.agent || undefined,
+        agency: validatedData.agency || undefined,
         // Use region instead of district for PropertyUpdateData interface
-        province: formData.province || undefined,
-        city: formData.city || undefined,
-        region: formData.district || undefined,
+        province: validatedData.province || undefined,
+        city: validatedData.city || undefined,
+        region: validatedData.district || undefined,
         region_name: formData.region_name || undefined,
         district_name: formData.district_name || undefined,
-        address: formData.address || undefined,
-        latitude: formData.latitude !== null && formData.latitude !== undefined
-          ? formData.latitude
+        address: validatedData.address || undefined,
+        latitude: validatedData.latitude !== null && validatedData.latitude !== undefined
+          ? validatedData.latitude
           : undefined,
-        longitude: formData.longitude !== null && formData.longitude !== undefined
-          ? formData.longitude
+        longitude: validatedData.longitude !== null && validatedData.longitude !== undefined
+          ? validatedData.longitude
           : undefined,
-        land_area: formData.land_area !== null && formData.land_area !== undefined
-          ? formData.land_area
+        land_area: validatedData.land_area !== null && validatedData.land_area !== undefined
+          ? validatedData.land_area
           : undefined,
-        built_area: formData.built_area !== null && formData.built_area !== undefined
-          ? formData.built_area
+        built_area: validatedData.built_area !== null && validatedData.built_area !== undefined
+          ? validatedData.built_area
           : undefined,
-        bedrooms: formData.bedrooms !== null && formData.bedrooms !== undefined
-          ? formData.bedrooms
+        bedrooms: validatedData.bedrooms !== null && validatedData.bedrooms !== undefined
+          ? validatedData.bedrooms
           : undefined,
-        bathrooms: formData.bathrooms !== null && formData.bathrooms !== undefined
-          ? formData.bathrooms
+        bathrooms: validatedData.bathrooms !== null && validatedData.bathrooms !== undefined
+          ? validatedData.bathrooms
           : undefined,
-        kitchens: formData.kitchens !== null && formData.kitchens !== undefined
-          ? formData.kitchens
+        kitchens: validatedData.kitchens !== null && validatedData.kitchens !== undefined
+          ? validatedData.kitchens
           : undefined,
-        living_rooms: formData.living_rooms !== null && formData.living_rooms !== undefined
-          ? formData.living_rooms
+        living_rooms: validatedData.living_rooms !== null && validatedData.living_rooms !== undefined
+          ? validatedData.living_rooms
           : undefined,
-        year_built: formData.year_built !== null && formData.year_built !== undefined
-          ? formData.year_built
+        year_built: validatedData.year_built !== null && validatedData.year_built !== undefined
+          ? validatedData.year_built
           : undefined,
-        build_years: formData.build_years !== null && formData.build_years !== undefined
-          ? formData.build_years
+        build_years: validatedData.build_years !== null && validatedData.build_years !== undefined
+          ? validatedData.build_years
           : undefined,
-        floors_in_building: formData.floors_in_building !== null && formData.floors_in_building !== undefined
-          ? formData.floors_in_building
+        floors_in_building: validatedData.floors_in_building !== null && validatedData.floors_in_building !== undefined
+          ? validatedData.floors_in_building
           : undefined,
-        floor_number: formData.floor_number !== null && formData.floor_number !== undefined
-          ? formData.floor_number
+        floor_number: validatedData.floor_number !== null && validatedData.floor_number !== undefined
+          ? validatedData.floor_number
           : undefined,
-        parking_spaces: formData.parking_spaces !== null && formData.parking_spaces !== undefined
-          ? formData.parking_spaces
+        parking_spaces: validatedData.parking_spaces !== null && validatedData.parking_spaces !== undefined
+          ? validatedData.parking_spaces
           : undefined,
-        storage_rooms: formData.storage_rooms !== null && formData.storage_rooms !== undefined
-          ? formData.storage_rooms
+        storage_rooms: validatedData.storage_rooms !== null && validatedData.storage_rooms !== undefined
+          ? validatedData.storage_rooms
           : undefined,
-        document_type: formData.document_type || undefined,
-        price: formData.price !== null && formData.price !== undefined
-          ? formData.price
+        document_type: validatedData.document_type || undefined,
+        price: validatedData.price !== null && validatedData.price !== undefined
+          ? validatedData.price
           : 0,
-        sale_price: formData.sale_price !== null && formData.sale_price !== undefined
-          ? formData.sale_price
+        sale_price: validatedData.sale_price !== null && validatedData.sale_price !== undefined
+          ? validatedData.sale_price
           : undefined,
-        pre_sale_price: formData.pre_sale_price !== null && formData.pre_sale_price !== undefined
-          ? formData.pre_sale_price
+        pre_sale_price: validatedData.pre_sale_price !== null && validatedData.pre_sale_price !== undefined
+          ? validatedData.pre_sale_price
           : undefined,
-        monthly_rent: formData.monthly_rent !== null && formData.monthly_rent !== undefined
-          ? formData.monthly_rent
+        monthly_rent: validatedData.monthly_rent !== null && validatedData.monthly_rent !== undefined
+          ? validatedData.monthly_rent
           : undefined,
-        mortgage_amount: formData.mortgage_amount !== null && formData.mortgage_amount !== undefined
-          ? formData.mortgage_amount
+        mortgage_amount: validatedData.mortgage_amount !== null && validatedData.mortgage_amount !== undefined
+          ? validatedData.mortgage_amount
           : 0,
-        rent_amount: formData.rent_amount !== null && formData.rent_amount !== undefined
-          ? formData.rent_amount
+        rent_amount: validatedData.rent_amount !== null && validatedData.rent_amount !== undefined
+          ? validatedData.rent_amount
           : 0,
-        security_deposit: formData.security_deposit !== null && formData.security_deposit !== undefined
-          ? formData.security_deposit
+        security_deposit: validatedData.security_deposit !== null && validatedData.security_deposit !== undefined
+          ? validatedData.security_deposit
           : undefined,
-        status: formData.status,
+        status: validatedData.status,
       };
 
       // جمع‌آوری فایل‌های مدیا و IDها مثل Portfolio
@@ -588,6 +608,35 @@ export default function PropertyCreatePage() {
       navigate(`/real-estate/properties/${property.id}/view`);
     } catch (error: any) {
       console.error("Error creating property:", error);
+      
+      // Handle Zod validation errors (for optional fields that failed)
+      if (error.errors || error.issues) {
+        const fieldErrors: Record<string, string> = {};
+        const errorsToProcess = error.errors || error.issues || [];
+        
+        errorsToProcess.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            const fieldName = err.path[0];
+            // Only keep the first error for each field
+            if (!fieldErrors[fieldName]) {
+              fieldErrors[fieldName] = err.message;
+            }
+            
+            // Determine which tab to switch to based on field
+            if (['title', 'slug', 'property_type', 'state', 'status'].includes(fieldName)) {
+              setActiveTab("account");
+            } else if (['province', 'city', 'address', 'latitude', 'longitude', 'postal_code', 'neighborhood'].includes(fieldName)) {
+              setActiveTab("location");
+            } else if (['land_area', 'built_area', 'bedrooms', 'bathrooms', 'price', 'sale_price', 'monthly_rent', 'mortgage_amount'].includes(fieldName)) {
+              setActiveTab("details");
+            }
+          }
+        });
+        setErrors(fieldErrors);
+        setIsLoading(false);
+        return;
+      }
+      
       if (error.response && error.response.status === 400) {
         // Backend validation errors
         const backendErrors = error.response.data;
@@ -605,13 +654,10 @@ export default function PropertyCreatePage() {
         });
 
         setErrors(newErrors);
-        showError("لطفا خطاهای فرم را برطرف کنید");
-
-        // Log keys to help debug which tab to switch to
-        console.log("Validation keys:", Object.keys(newErrors));
-
+        setIsLoading(false);
       } else {
         showError("خطا در ایجاد ملک");
+        setIsLoading(false);
       }
     } finally {
       setIsLoading(false);
@@ -691,6 +737,7 @@ export default function PropertyCreatePage() {
               onLocationChange={useCallback((latitude: number | null, longitude: number | null) => {
                 setFormData(prev => ({ ...prev, latitude, longitude }));
               }, [])}
+              errors={errors}
             />
           </Suspense>
         </TabsContent>

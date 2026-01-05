@@ -6,7 +6,7 @@ import { FormField } from "@/components/forms/FormField";
 import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import type { Media } from "@/types/shared/media";
 import type { UseFormReturn } from "react-hook-form";
-import type { AgencyFormValues } from "@/pages/admins/agencies/create/page";
+import type { AgencyFormValues } from "@/components/real-estate/validations/agencySchema";
 import { Building2, MapPin } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import type { ProvinceCompact, CityCompact } from "@/types/shared/location";

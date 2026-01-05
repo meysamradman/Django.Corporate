@@ -14,8 +14,7 @@ import { useNavigate } from "react-router-dom";
 import type { Media } from "@/types/shared/media";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { validateSlug } from '@/core/slug/validate';
-import * as z from "zod";
+import { agencyFormSchema, agencyFormDefaults, type AgencyFormValues } from '@/components/real-estate/validations/agencySchema';
 
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
@@ -34,32 +33,6 @@ const TabContentSkeleton = () => (
 
 const BaseInfoTab = lazy(() => import("@/components/real-estate/agencies/edit/BaseInfoTab"));
 const SEOTab = lazy(() => import("@/components/real-estate/agencies/edit/SEOTab"));
-
-const agencySchema = z.object({
-    name: z.string().min(1, "نام آژانس لازم است"),
-    slug: z.string().optional().nullable(),
-    phone: z.string().min(1, "شماره موبایل لازم است"),
-    email: z.string().email("ایمیل معتبر وارد کنید").optional().or(z.literal("")),
-    website: z.string().url("وب‌سایت معتبر وارد کنید").optional().or(z.literal("")),
-    license_number: z.string().optional().nullable(),
-    license_expire_date: z.string().optional().nullable(),
-    city: z.number().int().optional().nullable(),
-    province: z.number().int().optional().nullable(),
-    description: z.string().optional().nullable(),
-    address: z.string().optional().nullable(),
-    is_active: z.boolean().optional(),
-    is_verified: z.boolean().optional(),
-    rating: z.number().min(0).max(5).optional(),
-    total_reviews: z.number().min(0).optional(),
-    meta_title: z.string().optional().nullable(),
-    meta_description: z.string().optional().nullable(),
-    og_title: z.string().optional().nullable(),
-    og_description: z.string().optional().nullable(),
-    canonical_url: z.string().optional().nullable(),
-    robots_meta: z.string().optional().nullable(),
-});
-
-export type AgencyFormValues = z.infer<typeof agencySchema>;
 
 interface EditAgencyFormProps {
     agencyId: string;
@@ -96,30 +69,8 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
     });
 
     const form = useForm<AgencyFormValues>({
-        resolver: zodResolver(agencySchema) as any,
-        defaultValues: {
-            name: "",
-            slug: "",
-            phone: "",
-            email: "",
-            website: "",
-            license_number: "",
-            license_expire_date: "",
-            city: null,
-            province: null,
-            description: "",
-            address: "",
-            is_active: true,
-            is_verified: false,
-            rating: 0,
-            total_reviews: 0,
-            meta_title: "",
-            meta_description: "",
-            og_title: "",
-            og_description: "",
-            canonical_url: "",
-            robots_meta: "",
-        },
+        resolver: zodResolver(agencyFormSchema) as any,
+        defaultValues: agencyFormDefaults,
         mode: "onSubmit",
     });
 
@@ -212,12 +163,6 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                 profileData.profile_picture_id = null;
             }
 
-            const slugValidation = validateSlug(data.slug || "", true);
-            if (!slugValidation.isValid) {
-                showError(slugValidation.error || "نامک معتبر نیست");
-                setIsSaving(false);
-                return;
-            }
 
             if (!agencyData) {
                 showError('اطلاعات آژانس یافت نشد');

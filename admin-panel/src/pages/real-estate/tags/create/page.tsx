@@ -11,19 +11,15 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { validateSlug } from '@/core/slug/validate';
 import { Hash, Loader2, Save } from "lucide-react";
+import { propertyTagFormSchema, propertyTagFormDefaults } from '@/components/real-estate/validations/tagSchema';
 
 export default function CreatePropertyTagPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
-  const [formData, setFormData] = useState({
-    title: "",
-    slug: "",
-    is_active: true,
-    is_public: true,
-  });
+  const [formData, setFormData] = useState(propertyTagFormDefaults);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const createTagMutation = useMutation({
     mutationFn: (data: Partial<PropertyTag>) => realEstateApi.createTag(data),
@@ -67,18 +63,25 @@ export default function CreatePropertyTagPage() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title.trim()) {
-      showError("عنوان الزامی است");
-      return;
-    }
+    setErrors({});
     
-    const slugValidation = validateSlug(formData.slug, true);
-    if (!slugValidation.isValid) {
-      showError(slugValidation.error || "اسلاگ معتبر نیست");
-      return;
+    try {
+      const validatedData = propertyTagFormSchema.parse(formData);
+      createTagMutation.mutate(validatedData);
+    } catch (error: any) {
+      if (error.errors || error.issues) {
+        const fieldErrors: Record<string, string> = {};
+        const errorsToProcess = error.errors || error.issues || [];
+        errorsToProcess.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      } else {
+        showError("خطا در اعتبارسنجی فرم");
+      }
     }
-    
-    createTagMutation.mutate(formData);
   };
 
   return (
@@ -99,10 +102,11 @@ export default function CreatePropertyTagPage() {
                 label="عنوان"
                 htmlFor="title"
                 required
+                error={errors.title}
               >
                 <Input
                   id="title"
-                  value={formData.title}
+                  value={formData.title || ""}
                   onChange={(e) => handleInputChange("title", e.target.value)}
                   placeholder="عنوان تگ ملک"
                   required
@@ -112,10 +116,11 @@ export default function CreatePropertyTagPage() {
                 label="نامک"
                 htmlFor="slug"
                 required
+                error={errors.slug}
               >
                 <Input
                   id="slug"
-                  value={formData.slug}
+                  value={formData.slug || ""}
                   onChange={(e) => handleInputChange("slug", e.target.value)}
                   placeholder="نامک"
                   required

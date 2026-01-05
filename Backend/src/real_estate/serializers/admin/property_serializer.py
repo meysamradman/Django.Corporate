@@ -24,6 +24,7 @@ from src.real_estate.models.constants import (
     PROPERTY_DIRECTION_CHOICES,
     CITY_POSITION_CHOICES,
     UNIT_TYPE_CHOICES,
+    PROPERTY_STATUS_CHOICES,
 )
 
 _MEDIA_LIST_LIMIT = getattr(settings, 'REAL_ESTATE_MEDIA_LIST_LIMIT', 5)
@@ -147,7 +148,7 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
         model = Property
         fields = [
             'id', 'public_id', 'title', 'slug', 'short_description',
-            'is_published', 'is_featured', 'is_public', 'is_active',
+            'is_published', 'is_featured', 'is_public', 'is_active', 'status', # ✅ Status added
             'main_image', 'primary_video', 'primary_audio', 'primary_document',
             'property_type', 'state', 'agent', 'agency',
             'labels', 'labels_count', 'tags_count', 'features_count', 
@@ -558,7 +559,7 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
         model = Property
         fields = [
             'title', 'slug', 'short_description', 'description',
-            'agent', 'agency', 'property_type', 'state',
+            'agent', 'agency', 'property_type', 'state', 'status', # ✅ Status added
             'province', 'city', 'region', 'neighborhood',
             'address', 'postal_code', 'latitude', 'longitude',
             'price', 'sale_price', 'pre_sale_price',
@@ -784,7 +785,6 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         help_text="Mapping of media_id to cover_image_id for property-specific covers. Format: {media_id: cover_image_id}"
     )
     
-    # ✅ FIX: Allow null for optional numeric fields
     parking_spaces = serializers.IntegerField(
         required=False,
         allow_null=True,
@@ -811,6 +811,35 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         max_value=100,
         help_text="تعداد طبقات ساختمان (اختیاری)"
     )
+
+    # ✅ Making relational fields writeable (overriding detail-only versions)
+    property_type = serializers.PrimaryKeyRelatedField(
+        queryset=PropertyType.objects.all(), 
+        required=False,
+        help_text="نوع ملک"
+    )
+    state = serializers.PrimaryKeyRelatedField(
+        queryset=PropertyState.objects.all(), 
+        required=False,
+        help_text="وضعیت ملک (فروشی، اجاره و ...)"
+    )
+    agent = serializers.PrimaryKeyRelatedField(
+        queryset=PropertyAgent.objects.all(), 
+        required=False, 
+        allow_null=True,
+        help_text="مشاور"
+    )
+    agency = serializers.PrimaryKeyRelatedField(
+        queryset=RealEstateAgency.objects.all(), 
+        required=False, 
+        allow_null=True,
+        help_text="آژانس"
+    )
+    status = serializers.ChoiceField(
+        choices=PROPERTY_STATUS_CHOICES,
+        required=False,
+        help_text="وضعیت معامله"
+    )
     
     city = serializers.PrimaryKeyRelatedField(
         queryset=City.objects.all(),
@@ -831,7 +860,7 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         model = Property
         fields = [
             'title', 'slug', 'short_description', 'description',
-            'agent', 'agency', 'property_type', 'state',
+            'agent', 'agency', 'property_type', 'state', 'status', # ✅ Status added
             'region', 'city', 'province', 'country', 'neighborhood',
             'address', 'postal_code', 'latitude', 'longitude',
             'price', 'sale_price', 'pre_sale_price',

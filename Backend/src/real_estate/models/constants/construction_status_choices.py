@@ -1,7 +1,3 @@
-"""
-Construction Status Choices for Properties
-"""
-
 CONSTRUCTION_STATUS_CHOICES = {
     "old_building": "ساختمان قدیمی",
     "new_building": "نوساز",
@@ -13,10 +9,8 @@ CONSTRUCTION_STATUS_CHOICES = {
 
 
 def get_construction_status_label(code: str) -> str:
-    """Get label for construction status code"""
     return CONSTRUCTION_STATUS_CHOICES.get(code, code)
 
 
 def get_construction_status_choices_list():
-    """Get construction status choices as list of tuples"""
     return [(code, label) for code, label in CONSTRUCTION_STATUS_CHOICES.items()]

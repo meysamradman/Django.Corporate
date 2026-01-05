@@ -14,8 +14,8 @@ import type { PropertyType } from "@/types/real_estate/type/propertyType";
 import type { Media } from "@/types/shared/media";
 import { TreeSelect } from "@/components/elements/TreeSelect";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { validateSlug } from '@/core/slug/validate';
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
+import { propertyTypeFormSchema } from '@/components/real-estate/validations/typeSchema';
 import { mediaService } from "@/components/media/services";
 import { Loader2, Save, FolderTree, Image as ImageIcon, UploadCloud, X } from "lucide-react";
 
@@ -97,23 +97,34 @@ export default function CreatePropertyTypePage() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title.trim()) {
-      showError("عنوان الزامی است");
-      return;
+    try {
+      const validatedData = propertyTypeFormSchema.parse({
+        ...formData,
+        image_id: selectedMedia?.id || null,
+      });
+
+      const formDataWithImage = {
+        ...validatedData,
+        ...(validatedData.image_id && { image_id: validatedData.image_id })
+      };
+
+      createTypeMutation.mutate(formDataWithImage);
+    } catch (error: any) {
+      if (error.errors) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        if (Object.keys(fieldErrors).length > 0) {
+          const firstError = Object.values(fieldErrors)[0];
+          showError(firstError as string);
+        }
+      } else {
+        showError("خطا در اعتبارسنجی فرم");
+      }
     }
-
-    const slugValidation = validateSlug(formData.slug, true);
-    if (!slugValidation.isValid) {
-      showError(slugValidation.error || "اسلاگ معتبر نیست");
-      return;
-    }
-
-    const formDataWithImage = {
-      ...formData,
-      ...(selectedMedia?.id && { image_id: selectedMedia.id })
-    };
-
-    createTypeMutation.mutate(formDataWithImage);
   };
 
   // Map types to match TreeSelect expected format (title -> name)

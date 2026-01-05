@@ -11,8 +11,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { validateSlug } from '@/core/slug/validate';
 import { Tag, Loader2, Save } from "lucide-react";
+import { propertyLabelFormSchema } from '@/components/real-estate/validations/labelSchema';
 import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function EditPropertyLabelPage() {
@@ -26,6 +26,7 @@ export default function EditPropertyLabelPage() {
     slug: "",
     is_active: true,
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: label, isLoading, error } = useQuery({
     queryKey: ['property-label', labelId],
@@ -88,32 +89,45 @@ export default function EditPropertyLabelPage() {
     
     if (!label) return;
     
-    const slugValidation = validateSlug(formData.slug, true);
-    if (!slugValidation.isValid) {
-      showError(slugValidation.error || "اسلاگ معتبر نیست");
-      return;
+    setErrors({});
+    
+    try {
+      const validatedData = propertyLabelFormSchema.parse(formData);
+      
+      const submitData: Partial<PropertyLabel> = {};
+      
+      if (validatedData.title !== label.title) {
+        submitData.title = validatedData.title;
+      }
+      
+      if (validatedData.slug !== label.slug) {
+        submitData.slug = validatedData.slug;
+      }
+      
+      if (validatedData.is_active !== label.is_active) {
+        submitData.is_active = validatedData.is_active;
+      }
+      
+      if (Object.keys(submitData).length === 0) {
+        showInfo("تغییری اعمال نشده است");
+        return;
+      }
+      
+      updateLabelMutation.mutate(submitData);
+    } catch (error: any) {
+      if (error.errors || error.issues) {
+        const fieldErrors: Record<string, string> = {};
+        const errorsToProcess = error.errors || error.issues || [];
+        errorsToProcess.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      } else {
+        showError("خطا در اعتبارسنجی فرم");
+      }
     }
-    
-    const submitData: Partial<PropertyLabel> = {};
-    
-    if (formData.title !== label.title) {
-      submitData.title = formData.title;
-    }
-    
-    if (formData.slug !== label.slug) {
-      submitData.slug = formData.slug;
-    }
-    
-    if (formData.is_active !== label.is_active) {
-      submitData.is_active = formData.is_active;
-    }
-    
-    if (Object.keys(submitData).length === 0) {
-      showInfo("تغییری اعمال نشده است");
-      return;
-    }
-    
-    updateLabelMutation.mutate(submitData);
   };
 
   if (isLoading) {
@@ -167,6 +181,7 @@ export default function EditPropertyLabelPage() {
                 label="عنوان"
                 htmlFor="title"
                 required
+                error={errors.title}
               >
                 <Input
                   id="title"
@@ -180,6 +195,7 @@ export default function EditPropertyLabelPage() {
                 label="نامک"
                 htmlFor="slug"
                 required
+                error={errors.slug}
               >
                 <Input
                   id="slug"

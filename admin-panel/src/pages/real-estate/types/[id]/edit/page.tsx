@@ -14,8 +14,8 @@ import type { PropertyType } from "@/types/real_estate/type/propertyType";
 import type { Media } from "@/types/shared/media";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { validateSlug } from '@/core/slug/validate';
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
+import { propertyTypeFormSchema } from '@/components/real-estate/validations/typeSchema';
 import { mediaService } from "@/components/media/services";
 import { Building, Loader2, Save, FolderTree, Home, FolderOpen, Folder, Image as ImageIcon, UploadCloud, X } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
@@ -197,50 +197,66 @@ export default function EditPropertyTypePage() {
     
     if (!type) return;
     
-    const slugValidation = validateSlug(formData.slug, true);
-    if (!slugValidation.isValid) {
-      showError(slugValidation.error || "اسلاگ معتبر نیست");
-      return;
+    try {
+      const validatedData = propertyTypeFormSchema.parse({
+        ...formData,
+        image_id: selectedMedia?.id || null,
+      });
+      
+      const submitData: Partial<PropertyType> = {};
+      
+      if (validatedData.title !== type.title) {
+        submitData.title = validatedData.title;
+      }
+      
+      if (validatedData.slug !== type.slug) {
+        submitData.slug = validatedData.slug;
+      }
+      
+      if (validatedData.parent_id !== ((type as any).parent_id || null)) {
+        submitData.parent_id = validatedData.parent_id;
+      }
+      
+      if (validatedData.description !== (type.description || "")) {
+        submitData.description = validatedData.description || "";
+      }
+      
+      if (validatedData.display_order !== type.display_order) {
+        submitData.display_order = validatedData.display_order;
+      }
+      
+      if (validatedData.is_active !== type.is_active) {
+        submitData.is_active = validatedData.is_active;
+      }
+      
+      const currentImageId = type.image?.id || null;
+      const newImageId = validatedData.image_id || null;
+      if (currentImageId !== newImageId) {
+        (submitData as any).image_id = newImageId;
+      }
+      
+      if (Object.keys(submitData).length === 0) {
+        showInfo("تغییری اعمال نشده است");
+        return;
+      }
+      
+      updateTypeMutation.mutate(submitData);
+    } catch (error: any) {
+      if (error.errors) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        if (Object.keys(fieldErrors).length > 0) {
+          const firstError = Object.values(fieldErrors)[0];
+          showError(firstError as string);
+        }
+      } else {
+        showError("خطا در اعتبارسنجی فرم");
+      }
     }
-    
-    const submitData: Partial<PropertyType> = {};
-    
-    if (formData.title !== type.title) {
-      submitData.title = formData.title;
-    }
-    
-    if (formData.slug !== type.slug) {
-      submitData.slug = formData.slug;
-    }
-    
-    if (formData.parent_id !== ((type as any).parent_id || null)) {
-      submitData.parent_id = formData.parent_id;
-    }
-    
-    if (formData.description !== (type.description || "")) {
-      submitData.description = formData.description || "";
-    }
-    
-    if (formData.display_order !== type.display_order) {
-      submitData.display_order = formData.display_order;
-    }
-    
-    if (formData.is_active !== type.is_active) {
-      submitData.is_active = formData.is_active;
-    }
-    
-    const currentImageId = type.image?.id || null;
-    const newImageId = selectedMedia?.id || null;
-    if (currentImageId !== newImageId) {
-      (submitData as any).image_id = newImageId;
-    }
-    
-    if (Object.keys(submitData).length === 0) {
-      showInfo("تغییری اعمال نشده است");
-      return;
-    }
-    
-    updateTypeMutation.mutate(submitData);
   };
 
   if (isLoading) {

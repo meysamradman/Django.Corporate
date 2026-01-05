@@ -14,7 +14,7 @@ import type { BlogCategory } from "@/types/blog/category/blogCategory";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import type { Media } from "@/types/shared/media";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { validateSlug } from '@/core/slug/validate';
+import { blogCategoryFormSchema } from '@/components/blogs/validations/categorySchema';
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
 import { UploadCloud, X, FolderTree, Image as ImageIcon, FolderOpen, Folder, Home, Loader2, Save } from "lucide-react";
@@ -36,6 +36,7 @@ export default function EditCategoryPage() {
     is_public: true,
     description: "",
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: category, isLoading, error } = useQuery({
     queryKey: ['blog-category', categoryId],
@@ -204,50 +205,66 @@ export default function EditCategoryPage() {
     
     if (!category) return;
     
-    const slugValidation = validateSlug(formData.slug, true);
-    if (!slugValidation.isValid) {
-      showError(slugValidation.error || "اسلاگ معتبر نیست");
-      return;
+    setErrors({});
+    
+    try {
+      const validatedData = blogCategoryFormSchema.parse({
+        ...formData,
+        image_id: selectedMedia?.id || null,
+      });
+      
+      const submitData: Partial<BlogCategory> = {};
+      
+      if (validatedData.name !== category.name) {
+        submitData.name = validatedData.name;
+      }
+      
+      if (validatedData.slug !== category.slug) {
+        submitData.slug = validatedData.slug;
+      }
+      
+      if (validatedData.parent_id !== (category.parent_id || null)) {
+        submitData.parent_id = validatedData.parent_id;
+      }
+      
+      if (validatedData.is_active !== category.is_active) {
+        submitData.is_active = validatedData.is_active;
+      }
+      
+      if (validatedData.is_public !== category.is_public) {
+        submitData.is_public = validatedData.is_public;
+      }
+      
+      if (validatedData.description !== (category.description || "")) {
+        submitData.description = validatedData.description || "";
+      }
+      
+      const currentImageId = category.image?.id || null;
+      const newImageId = validatedData.image_id || null;
+      if (currentImageId !== newImageId) {
+        submitData.image_id = newImageId;
+      }
+      
+      if (Object.keys(submitData).length === 0) {
+        showInfo("تغییری اعمال نشده است");
+        return;
+      }
+      
+      updateCategoryMutation.mutate(submitData);
+    } catch (error: any) {
+      if (error.errors || error.issues) {
+        const fieldErrors: Record<string, string> = {};
+        const errorsToProcess = error.errors || error.issues || [];
+        errorsToProcess.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      } else {
+        showError("خطا در اعتبارسنجی فرم");
+      }
     }
-    
-    const submitData: Partial<BlogCategory> = {};
-    
-    if (formData.name !== category.name) {
-      submitData.name = formData.name;
-    }
-    
-    if (formData.slug !== category.slug) {
-      submitData.slug = formData.slug;
-    }
-    
-    if (formData.parent_id !== (category.parent_id || null)) {
-      submitData.parent_id = formData.parent_id;
-    }
-    
-    if (formData.is_active !== category.is_active) {
-      submitData.is_active = formData.is_active;
-    }
-    
-    if (formData.is_public !== category.is_public) {
-      submitData.is_public = formData.is_public;
-    }
-    
-    if (formData.description !== (category.description || "")) {
-      submitData.description = formData.description || "";
-    }
-    
-    const currentImageId = category.image?.id || null;
-    const newImageId = selectedMedia?.id || null;
-    if (currentImageId !== newImageId) {
-      submitData.image_id = newImageId;
-    }
-    
-    if (Object.keys(submitData).length === 0) {
-      showInfo("تغییری اعمال نشده است");
-      return;
-    }
-    
-    updateCategoryMutation.mutate(submitData);
   };
 
   if (isLoading) {
@@ -339,6 +356,7 @@ export default function EditCategoryPage() {
                     label="نام"
                     htmlFor="name"
                     required
+                    error={errors.name}
                   >
                     <Input
                       id="name"
@@ -352,6 +370,7 @@ export default function EditCategoryPage() {
                     label="نامک"
                     htmlFor="slug"
                     required
+                    error={errors.slug}
                   >
                     <Input
                       id="slug"
@@ -448,6 +467,7 @@ export default function EditCategoryPage() {
                 <FormField
                   label="توضیحات"
                   htmlFor="description"
+                  error={errors.description}
                 >
                   <Textarea
                     id="description"

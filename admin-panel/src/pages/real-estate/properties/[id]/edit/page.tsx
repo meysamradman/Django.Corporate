@@ -15,8 +15,8 @@ import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
 import { realEstateApi } from "@/api/real-estate";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { validateSlug } from '@/core/slug/validate';
 import { showError, showSuccess } from '@/core/toast';
+import { propertyFormSchema } from '@/components/real-estate/validations/propertySchema';
 import type { PropertyMedia } from "@/types/real_estate/realEstateMedia";
 import { collectMediaIds, collectMediaCovers, parsePropertyMedia } from "@/components/real-estate/utils/propertyMediaUtils";
 import type { PropertyUpdateData } from "@/types/real_estate/realEstate";
@@ -157,6 +157,7 @@ export default function EditPropertyPage() {
   const [selectedLabels, setSelectedLabels] = useState<PropertyLabel[]>([]);
   const [selectedTags, setSelectedTags] = useState<PropertyTag[]>([]);
   const [selectedFeatures, setSelectedFeatures] = useState<PropertyFeature[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [property, setProperty] = useState<Property | null>(null);
 
   useEffect(() => {
@@ -317,87 +318,156 @@ export default function EditPropertyPage() {
     if (!property) return;
 
     setIsSaving(true);
+    setErrors({});
     try {
-      const slugValidation = validateSlug(formData.slug, true);
-      if (!slugValidation.isValid) {
-        showError(new Error(slugValidation.error || "اسلاگ معتبر نیست"));
-        setIsSaving(false);
-        return;
+      const dataToValidate = {
+        ...formData,
+        labels_ids: selectedLabels.map(label => label.id),
+        tags_ids: selectedTags.map(tag => tag.id),
+        features_ids: selectedFeatures.map(feature => feature.id),
+      };
+      
+      // Step 1: Validate Account Tab fields first
+      try {
+        propertyFormSchema.pick({
+          title: true,
+          slug: true,
+          property_type: true,
+          state: true,
+          status: true,
+        }).parse({
+          title: dataToValidate.title,
+          slug: dataToValidate.slug,
+          property_type: dataToValidate.property_type,
+          state: dataToValidate.state,
+          status: dataToValidate.status,
+        });
+      } catch (accountError: any) {
+        if (accountError.errors || accountError.issues) {
+          const accountErrors: Record<string, string> = {};
+          const errorsToProcess = accountError.errors || accountError.issues || [];
+          errorsToProcess.forEach((err: any) => {
+            if (err.path && err.path.length > 0) {
+              const fieldName = err.path[0];
+              if (!accountErrors[fieldName]) {
+                accountErrors[fieldName] = err.message;
+              }
+            }
+          });
+          setErrors(accountErrors);
+          setActiveTab("account");
+          setIsSaving(false);
+          return;
+        }
       }
+      
+      // Step 2: Validate Location Tab fields
+      try {
+        propertyFormSchema.pick({
+          province: true,
+          city: true,
+          address: true,
+        }).parse({
+          province: dataToValidate.province,
+          city: dataToValidate.city,
+          address: dataToValidate.address,
+        });
+      } catch (locationError: any) {
+        if (locationError.errors || locationError.issues) {
+          const locationErrors: Record<string, string> = {};
+          const errorsToProcess = locationError.errors || locationError.issues || [];
+          errorsToProcess.forEach((err: any) => {
+            if (err.path && err.path.length > 0) {
+              const fieldName = err.path[0];
+              if (!locationErrors[fieldName]) {
+                locationErrors[fieldName] = err.message;
+              }
+            }
+          });
+          setErrors(locationErrors);
+          setActiveTab("location");
+          setIsSaving(false);
+          return;
+        }
+      }
+      
+      // Step 3: Validate all fields together (for optional fields)
+      const validatedData = propertyFormSchema.parse(dataToValidate);
 
-      let formattedSlug = formatSlug(formData.slug);
+      let formattedSlug = formatSlug(validatedData.slug);
 
-      const labelIds = selectedLabels.map(label => label.id);
-      const tagIds = selectedTags.map(tag => tag.id);
-      const featureIds = selectedFeatures.map(feature => feature.id);
+      const labelIds = validatedData.labels_ids;
+      const tagIds = validatedData.tags_ids;
+      const featureIds = validatedData.features_ids;
 
       const allMediaIds = collectMediaIds(propertyMedia);
       const mainImageId = propertyMedia.featuredImage?.id || null;
       const mediaCovers = collectMediaCovers(propertyMedia);
 
       const updateData: PropertyUpdateData = {
-        title: formData.title,
+        title: validatedData.title,
         slug: formattedSlug,
-        short_description: formData.short_description,
-        description: formData.description,
+        short_description: validatedData.short_description,
+        description: validatedData.description,
         labels_ids: labelIds,
         tags_ids: tagIds,
         features_ids: featureIds,
         media_ids: allMediaIds,
         main_image_id: mainImageId,
         media_covers: Object.keys(mediaCovers).length > 0 ? mediaCovers : undefined,
-        meta_title: formData.meta_title || undefined,
-        meta_description: formData.meta_description || undefined,
-        og_title: formData.og_title || undefined,
-        og_description: formData.og_description || undefined,
-        og_image_id: formData.og_image?.id || undefined,
-        canonical_url: formData.canonical_url || undefined,
-        robots_meta: formData.robots_meta || undefined,
-        is_public: formData.is_public,
-        is_active: formData.is_active,
-        is_published: formData.is_published,
-        is_featured: formData.is_featured,
-        property_type: formData.property_type || property.property_type?.id || undefined,
-        state: formData.state || property.state?.id || undefined,
-        agent: formData.agent || property.agent?.id || undefined,
-        agency: formData.agency || property.agency?.id || undefined,
-        province: formData.province || undefined,
-        city: formData.city || undefined,
+        meta_title: validatedData.meta_title || undefined,
+        meta_description: validatedData.meta_description || undefined,
+        og_title: validatedData.og_title || undefined,
+        og_description: validatedData.og_description || undefined,
+        og_image_id: validatedData.og_image_id || undefined,
+        canonical_url: validatedData.canonical_url || undefined,
+        robots_meta: validatedData.robots_meta || undefined,
+        is_public: validatedData.is_public,
+        is_active: validatedData.is_active,
+        is_published: validatedData.is_published,
+        is_featured: validatedData.is_featured,
+        property_type: validatedData.property_type || property.property_type?.id || undefined,
+        state: validatedData.state || property.state?.id || undefined,
+        agent: validatedData.agent || property.agent?.id || undefined,
+        agency: validatedData.agency || property.agency?.id || undefined,
+        province: validatedData.province || undefined,
+        city: validatedData.city || undefined,
         // Only send district - city, province, country are auto-filled from district in backend
         // If district doesn't exist, send region_name and district_name to create it
-        region: formData.region || undefined,
+        region: validatedData.district || undefined,
         region_name: formData.region_name || undefined,
-        address: formData.address || property.address || undefined,
+        address: validatedData.address || property.address || undefined,
         // Add neighborhood - map fills it, backend needs it
-        neighborhood: formData.neighborhood || undefined,
-        latitude: formData.latitude !== null && formData.latitude !== undefined
-          ? formData.latitude
+        neighborhood: validatedData.neighborhood || undefined,
+        latitude: validatedData.latitude !== null && validatedData.latitude !== undefined
+          ? validatedData.latitude
           : (property.latitude ? Number(property.latitude) : undefined),
-        longitude: formData.longitude !== null && formData.longitude !== undefined
-          ? formData.longitude
+        longitude: validatedData.longitude !== null && validatedData.longitude !== undefined
+          ? validatedData.longitude
           : (property.longitude ? Number(property.longitude) : undefined),
-        land_area: formData.land_area !== null && formData.land_area !== undefined
-          ? formData.land_area
+        land_area: validatedData.land_area !== null && validatedData.land_area !== undefined
+          ? validatedData.land_area
           : (property.land_area ? Number(property.land_area) : undefined),
-        built_area: formData.built_area !== null && formData.built_area !== undefined
-          ? formData.built_area
+        built_area: validatedData.built_area !== null && validatedData.built_area !== undefined
+          ? validatedData.built_area
           : (property.built_area ? Number(property.built_area) : undefined),
-        bedrooms: formData.bedrooms !== null && formData.bedrooms !== undefined
-          ? formData.bedrooms
+        bedrooms: validatedData.bedrooms !== null && validatedData.bedrooms !== undefined
+          ? validatedData.bedrooms
           : (property.bedrooms || undefined),
-        bathrooms: formData.bathrooms !== null && formData.bathrooms !== undefined
-          ? formData.bathrooms
+        bathrooms: validatedData.bathrooms !== null && validatedData.bathrooms !== undefined
+          ? validatedData.bathrooms
           : (property.bathrooms || undefined),
         // Price and details fields
-        price: formData.price,
-        mortgage_amount: formData.mortgage_amount,
-        rent_amount: formData.rent_amount,
-        year_built: formData.year_built,
-        floors_in_building: formData.floors_in_building,
-        parking_spaces: formData.parking_spaces,
-        storage_rooms: formData.storage_rooms,
-        extra_attributes: formData.extra_attributes && Object.keys(formData.extra_attributes).length > 0
-          ? formData.extra_attributes
+        price: validatedData.price,
+        mortgage_amount: validatedData.mortgage_amount,
+        rent_amount: validatedData.rent_amount,
+        year_built: validatedData.year_built,
+        floors_in_building: validatedData.floors_in_building,
+        parking_spaces: validatedData.parking_spaces,
+        storage_rooms: validatedData.storage_rooms,
+        status: validatedData.status,
+        extra_attributes: validatedData.extra_attributes && Object.keys(validatedData.extra_attributes).length > 0
+          ? validatedData.extra_attributes
           : undefined,
       };
 
@@ -409,8 +479,49 @@ export default function EditPropertyPage() {
       await realEstateApi.partialUpdateProperty(property.id, updateData);
       showSuccess("ملک با موفقیت ویرایش شد");
       navigate("/real-estate/properties");
-    } catch (error) {
-      showError(error);
+    } catch (error: any) {
+      console.error("Error updating property:", error);
+      
+      // Handle Zod validation errors
+      if (error.errors || error.issues) {
+        const fieldErrors: Record<string, string> = {};
+        const errorsToProcess = error.errors || error.issues || [];
+        
+        errorsToProcess.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            const fieldName = err.path[0];
+            // Only keep the first error for each field
+            if (!fieldErrors[fieldName]) {
+              fieldErrors[fieldName] = err.message;
+            }
+          }
+        });
+        setErrors(fieldErrors);
+        setIsSaving(false);
+        return;
+      }
+      
+      if (error.response && error.response.status === 400) {
+        // Backend validation errors
+        const backendErrors = error.response.data;
+        const newErrors: Record<string, string> = {};
+
+        // Map backend errors to frontend fields
+        Object.keys(backendErrors).forEach(key => {
+          const err = backendErrors[key];
+          if (Array.isArray(err)) {
+            newErrors[key] = err[0];
+          } else if (typeof err === 'string') {
+            newErrors[key] = err;
+          }
+        });
+
+        setErrors(newErrors);
+        setIsSaving(false);
+      } else {
+        showError(error);
+        setIsSaving(false);
+      }
     } finally {
       setIsSaving(false);
     }
@@ -420,85 +531,195 @@ export default function EditPropertyPage() {
     if (!property) return;
 
     setIsSavingDraft(true);
+    setErrors({});
     try {
-      const slugValidation = validateSlug(formData.slug, true);
-      if (!slugValidation.isValid) {
-        showError(new Error(slugValidation.error || "اسلاگ معتبر نیست"));
-        setIsSavingDraft(false);
-        return;
+      const dataToValidate = {
+        ...formData,
+        labels_ids: selectedLabels.map(label => label.id),
+        tags_ids: selectedTags.map(tag => tag.id),
+        features_ids: selectedFeatures.map(feature => feature.id),
+      };
+      
+      // Step 1: Validate Account Tab fields first
+      try {
+        propertyFormSchema.pick({
+          title: true,
+          slug: true,
+          property_type: true,
+          state: true,
+          status: true,
+        }).parse({
+          title: dataToValidate.title,
+          slug: dataToValidate.slug,
+          property_type: dataToValidate.property_type,
+          state: dataToValidate.state,
+          status: dataToValidate.status,
+        });
+      } catch (accountError: any) {
+        if (accountError.errors || accountError.issues) {
+          const accountErrors: Record<string, string> = {};
+          const errorsToProcess = accountError.errors || accountError.issues || [];
+          errorsToProcess.forEach((err: any) => {
+            if (err.path && err.path.length > 0) {
+              const fieldName = err.path[0];
+              if (!accountErrors[fieldName]) {
+                accountErrors[fieldName] = err.message;
+              }
+            }
+          });
+          setErrors(accountErrors);
+          setActiveTab("account");
+          setIsSavingDraft(false);
+          return;
+        }
       }
+      
+      // Step 2: Validate Location Tab fields
+      try {
+        propertyFormSchema.pick({
+          province: true,
+          city: true,
+          address: true,
+        }).parse({
+          province: dataToValidate.province,
+          city: dataToValidate.city,
+          address: dataToValidate.address,
+        });
+      } catch (locationError: any) {
+        if (locationError.errors || locationError.issues) {
+          const locationErrors: Record<string, string> = {};
+          const errorsToProcess = locationError.errors || locationError.issues || [];
+          errorsToProcess.forEach((err: any) => {
+            if (err.path && err.path.length > 0) {
+              const fieldName = err.path[0];
+              if (!locationErrors[fieldName]) {
+                locationErrors[fieldName] = err.message;
+              }
+            }
+          });
+          setErrors(locationErrors);
+          setActiveTab("location");
+          setIsSavingDraft(false);
+          return;
+        }
+      }
+      
+      // Step 3: Validate all fields together (for optional fields)
+      const validatedData = propertyFormSchema.parse(dataToValidate);
 
-      let formattedSlug = formatSlug(formData.slug);
+      let formattedSlug = formatSlug(validatedData.slug);
 
-      const labelIds = selectedLabels.map(label => label.id);
-      const tagIds = selectedTags.map(tag => tag.id);
-      const featureIds = selectedFeatures.map(feature => feature.id);
+      const labelIds = validatedData.labels_ids;
+      const tagIds = validatedData.tags_ids;
+      const featureIds = validatedData.features_ids;
 
       const allMediaIds = collectMediaIds(propertyMedia);
       const mainImageId = propertyMedia.featuredImage?.id || null;
       const mediaCovers = collectMediaCovers(propertyMedia);
 
       const updateData: PropertyUpdateData = {
-        title: formData.title,
+        title: validatedData.title,
         slug: formattedSlug,
-        short_description: formData.short_description,
-        description: formData.description,
+        short_description: validatedData.short_description,
+        description: validatedData.description,
         labels_ids: labelIds,
         tags_ids: tagIds,
         features_ids: featureIds,
         media_ids: allMediaIds,
         main_image_id: mainImageId,
         media_covers: Object.keys(mediaCovers).length > 0 ? mediaCovers : undefined,
-        meta_title: formData.meta_title || undefined,
-        meta_description: formData.meta_description || undefined,
-        og_title: formData.og_title || undefined,
-        og_description: formData.og_description || undefined,
-        og_image_id: formData.og_image?.id || undefined,
-        canonical_url: formData.canonical_url || undefined,
-        robots_meta: formData.robots_meta || undefined,
-        is_public: formData.is_public,
-        is_active: formData.is_active,
+        meta_title: validatedData.meta_title || undefined,
+        meta_description: validatedData.meta_description || undefined,
+        og_title: validatedData.og_title || undefined,
+        og_description: validatedData.og_description || undefined,
+        og_image_id: validatedData.og_image_id || undefined,
+        canonical_url: validatedData.canonical_url || undefined,
+        robots_meta: validatedData.robots_meta || undefined,
+        is_public: validatedData.is_public,
+        is_active: validatedData.is_active,
         is_published: false,
-        is_featured: formData.is_featured,
-        property_type: formData.property_type || undefined,
-        state: formData.state || undefined,
-        agent: formData.agent || undefined,
-        agency: formData.agency || undefined,
-        province: formData.province || undefined,
-        city: formData.city || undefined,
+        is_featured: validatedData.is_featured,
+        property_type: validatedData.property_type || undefined,
+        state: validatedData.state || undefined,
+        agent: validatedData.agent || undefined,
+        agency: validatedData.agency || undefined,
+        province: validatedData.province || undefined,
+        city: validatedData.city || undefined,
         // Only send district - city, province, country are auto-filled from district in backend
         // If district doesn't exist, send region_name and district_name to create it
-        region: formData.region || undefined,
+        region: validatedData.district || undefined,
         region_name: formData.region_name || undefined,
         // Add neighborhood - map fills it, backend needs it
-        neighborhood: formData.neighborhood || undefined,
+        neighborhood: validatedData.neighborhood || undefined,
         // Send lat/lng even if null (to clear it) or number.
         // If undefined, it won't update.
-        // formData.latitude is initialized to null or number.
-        latitude: formData.latitude,
-        longitude: formData.longitude,
-        land_area: formData.land_area,
-        built_area: formData.built_area,
-        bedrooms: formData.bedrooms,
-        bathrooms: formData.bathrooms,
+        // validatedData.latitude is initialized to null or number.
+        latitude: validatedData.latitude,
+        longitude: validatedData.longitude,
+        land_area: validatedData.land_area,
+        built_area: validatedData.built_area,
+        bedrooms: validatedData.bedrooms,
+        bathrooms: validatedData.bathrooms,
         // Price and details fields
-        price: formData.price,
-        mortgage_amount: formData.mortgage_amount,
-        rent_amount: formData.rent_amount,
-        year_built: formData.year_built,
-        floors_in_building: formData.floors_in_building,
-        parking_spaces: formData.parking_spaces,
-        storage_rooms: formData.storage_rooms,
-        extra_attributes: formData.extra_attributes && Object.keys(formData.extra_attributes).length > 0
-          ? formData.extra_attributes
+        price: validatedData.price,
+        mortgage_amount: validatedData.mortgage_amount,
+        rent_amount: validatedData.rent_amount,
+        year_built: validatedData.year_built,
+        floors_in_building: validatedData.floors_in_building,
+        parking_spaces: validatedData.parking_spaces,
+        storage_rooms: validatedData.storage_rooms,
+        status: validatedData.status,
+        extra_attributes: validatedData.extra_attributes && Object.keys(validatedData.extra_attributes).length > 0
+          ? validatedData.extra_attributes
           : undefined,
       };
 
       await realEstateApi.partialUpdateProperty(property.id, updateData);
       showSuccess("پیش‌نویس با موفقیت ذخیره شد");
       navigate("/real-estate/properties");
-    } catch (error) {
-      showError(error);
+    } catch (error: any) {
+      console.error("Error saving draft:", error);
+      
+      // Handle Zod validation errors
+      if (error.errors || error.issues) {
+        const fieldErrors: Record<string, string> = {};
+        const errorsToProcess = error.errors || error.issues || [];
+        
+        errorsToProcess.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            const fieldName = err.path[0];
+            // Only keep the first error for each field
+            if (!fieldErrors[fieldName]) {
+              fieldErrors[fieldName] = err.message;
+            }
+          }
+        });
+        setErrors(fieldErrors);
+        setIsSavingDraft(false);
+        return;
+      }
+      
+      if (error.response && error.response.status === 400) {
+        // Backend validation errors
+        const backendErrors = error.response.data;
+        const newErrors: Record<string, string> = {};
+
+        // Map backend errors to frontend fields
+        Object.keys(backendErrors).forEach(key => {
+          const err = backendErrors[key];
+          if (Array.isArray(err)) {
+            newErrors[key] = err[0];
+          } else if (typeof err === 'string') {
+            newErrors[key] = err;
+          }
+        });
+
+        setErrors(newErrors);
+        setIsSavingDraft(false);
+      } else {
+        showError(error);
+        setIsSavingDraft(false);
+      }
     } finally {
       setIsSavingDraft(false);
     }
@@ -604,6 +825,7 @@ export default function EditPropertyPage() {
               onFeatureToggle={handleFeatureToggle}
               onFeatureRemove={handleFeatureRemove}
               propertyId={id}
+              errors={errors}
             />
           </Suspense>
         </TabsContent>
@@ -616,6 +838,7 @@ export default function EditPropertyPage() {
               latitude={formData.latitude}
               longitude={formData.longitude}
               onLocationChange={handleLocationChange}
+              errors={errors}
             />
           </Suspense>
         </TabsContent>
@@ -625,7 +848,7 @@ export default function EditPropertyPage() {
               formData={formData}
               handleInputChange={handleInputChange}
               editMode={editMode}
-              errors={{}}
+              errors={errors}
             />
           </Suspense>
         </TabsContent>
