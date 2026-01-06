@@ -10,7 +10,7 @@ import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Loader2, Save, Building2, UserCircle } from "lucide-react";
+import { Loader2, Save, Building2, UserCircle, Search } from "lucide-react";
 import type { Media } from "@/types/shared/media";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { agencyFormSchema, agencyFormDefaults, type AgencyFormValues } from '@/components/real-estate/validations/agencySchema';
@@ -47,11 +47,12 @@ const TabSkeleton = () => (
 
 const BaseInfoTab = lazy(() => import("@/components/real-estate/agencies/edit/BaseInfoTab"));
 const ProfileTab = lazy(() => import("@/components/real-estate/agencies/create/ProfileTab"));
+const SEOTab = lazy(() => import("@/components/real-estate/agencies/edit/SEOTab"));
 
 export default function AdminsAgenciesCreatePage() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-    const [activeTab, setActiveTab] = useState<string>("base-info");
+    const [activeTab, setActiveTab] = useState<string>("account");
     const [editMode] = useState(true);
     const [selectedLogo, setSelectedLogo] = useState<Media | null>(null);
 
@@ -102,7 +103,7 @@ export default function AdminsAgenciesCreatePage() {
             // No need to send slug explicitly
 
             if (selectedLogo?.id) {
-                agencyData.logo_id = selectedLogo.id;
+                agencyData.profile_picture = selectedLogo.id;
             }
 
             return await realEstateApi.createAgency(agencyData as any);
@@ -153,17 +154,21 @@ export default function AdminsAgenciesCreatePage() {
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList>
-                    <TabsTrigger value="base-info">
-                        <Building2 className="w-4 h-4" />
+                    <TabsTrigger value="account">
+                        <Building2 className="h-4 w-4" />
                         اطلاعات پایه
                     </TabsTrigger>
                     <TabsTrigger value="profile">
-                        <UserCircle className="w-4 h-4" />
+                        <UserCircle className="h-4 w-4" />
                         پروفایل
+                    </TabsTrigger>
+                    <TabsTrigger value="seo">
+                        <Search className="h-4 w-4" />
+                        سئو
                     </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="base-info">
+                <TabsContent value="account">
                     <Suspense fallback={<TabSkeleton />}>
                         <BaseInfoTab
                             form={form as any}
@@ -179,6 +184,15 @@ export default function AdminsAgenciesCreatePage() {
                             form={form as any}
                             selectedMedia={selectedLogo}
                             setSelectedMedia={setSelectedLogo}
+                            editMode={editMode}
+                        />
+                    </Suspense>
+                </TabsContent>
+
+                <TabsContent value="seo">
+                    <Suspense fallback={<TabSkeleton />}>
+                        <SEOTab
+                            form={form as any}
                             editMode={editMode}
                         />
                     </Suspense>

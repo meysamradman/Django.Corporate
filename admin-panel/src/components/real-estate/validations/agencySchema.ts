@@ -89,10 +89,6 @@ export const agencyFormSchema = z.object({
         .default(true)
         .optional(),
 
-    is_verified: z
-        .boolean()
-        .default(false)
-        .optional(),
 
     rating: z
         .number()
@@ -164,7 +160,6 @@ export const agencyFormDefaults: Partial<AgencyFormValues> = {
     description: "",
     address: "",
     is_active: true,
-    is_verified: false,
     rating: 0,
     total_reviews: 0,
     meta_title: "",

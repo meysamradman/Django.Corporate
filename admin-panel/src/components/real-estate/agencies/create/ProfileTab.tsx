@@ -7,7 +7,7 @@ import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import type { Media } from "@/types/shared/media";
 import type { UseFormReturn } from "react-hook-form";
 import type { AgencyFormValues } from "@/components/real-estate/validations/agencySchema";
-import { Building2, MapPin } from "lucide-react";
+import { MapPin, FileText } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import type { ProvinceCompact, CityCompact } from "@/types/shared/location";
 import { locationApi } from "@/api/shared/location/location";
@@ -44,7 +44,7 @@ export default function ProfileTab({
       try {
         const provincesData = await locationApi.getProvincesCompact();
         setProvinces(provincesData);
-        
+
         const currentProvince = watch("province");
         if (currentProvince) {
           setSelectedProvinceId(Number(currentProvince));
@@ -98,8 +98,8 @@ export default function ProfileTab({
           <CardWithIcon
             icon={MapPin}
             title="موقعیت جغرافیایی"
-            iconBgColor="bg-green"
-            iconColor="stroke-green-2"
+            iconBgColor="bg-green-1/10"
+            iconColor="stroke-green-1"
             borderColor="border-b-green-1"
             className="hover:shadow-lg transition-all duration-300"
           >
@@ -168,10 +168,10 @@ export default function ProfileTab({
           </CardWithIcon>
 
           <CardWithIcon
-            icon={Building2}
+            icon={FileText}
             title="اطلاعات تکمیلی"
-            iconBgColor="bg-blue"
-            iconColor="stroke-blue-2"
+            iconBgColor="bg-blue-1/10"
+            iconColor="stroke-blue-1"
             borderColor="border-b-blue-1"
             className="hover:shadow-lg transition-all duration-300"
           >

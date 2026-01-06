@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { showSuccess, showError } from '@/core/toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { Building2, Search, Loader2, Save } from "lucide-react";
+import { Building2, Search, Loader2, Save, UserCircle } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate/properties";
 import { msg } from '@/core/messages';
@@ -32,6 +32,7 @@ const TabContentSkeleton = () => (
 );
 
 const BaseInfoTab = lazy(() => import("@/components/real-estate/agencies/edit/BaseInfoTab"));
+const ProfileTab = lazy(() => import("@/components/real-estate/agencies/create/ProfileTab"));
 const SEOTab = lazy(() => import("@/components/real-estate/agencies/edit/SEOTab"));
 
 interface EditAgencyFormProps {
@@ -90,7 +91,6 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
             description: agencyData.description || "",
             address: agencyData.address || "",
             is_active: agencyData.is_active ?? true,
-            is_verified: agencyData.is_verified ?? false,
             rating: agencyData.rating || 0,
             total_reviews: agencyData.total_reviews || 0,
             meta_title: agencyData.meta_title || "",
@@ -146,7 +146,6 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                 description: data.description || null,
                 address: data.address || null,
                 is_active: data.is_active,
-                is_verified: data.is_verified,
                 rating: data.rating || 0,
                 total_reviews: data.total_reviews || 0,
                 meta_title: data.meta_title || null,
@@ -158,9 +157,9 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
             };
 
             if (selectedProfilePicture?.id) {
-                profileData.profile_picture_id = selectedProfilePicture.id;
+                profileData.profile_picture = selectedProfilePicture.id;
             } else if (selectedProfilePicture === null) {
-                profileData.profile_picture_id = null;
+                profileData.profile_picture = null;
             }
 
 
@@ -245,6 +244,10 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                         <Building2 className="h-4 w-4" />
                         اطلاعات پایه
                     </TabsTrigger>
+                    <TabsTrigger value="profile">
+                        <UserCircle className="h-4 w-4" />
+                        پروفایل
+                    </TabsTrigger>
                     <TabsTrigger value="seo">
                         <Search className="h-4 w-4" />
                         سئو
@@ -258,6 +261,17 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                             editMode={editMode}
                             agencyData={agencyData}
                             handleInputChange={handleInputChange}
+                        />
+                    </Suspense>
+                </TabsContent>
+
+                <TabsContent value="profile" className="mt-0">
+                    <Suspense fallback={<TabContentSkeleton />}>
+                        <ProfileTab
+                            form={form as any}
+                            selectedMedia={selectedProfilePicture}
+                            setSelectedMedia={setSelectedProfilePicture}
+                            editMode={editMode}
                         />
                     </Suspense>
                 </TabsContent>

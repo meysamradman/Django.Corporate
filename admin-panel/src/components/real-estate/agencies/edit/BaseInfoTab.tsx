@@ -7,6 +7,7 @@ import { Building2 } from "lucide-react";
 import { filterNumericOnly } from "@/core/filters/numeric";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
 import { Switch } from "@/components/elements/Switch";
+import { PersianDatePicker } from "@/components/elements/PersianDatePicker";
 
 interface BaseInfoTabProps {
   form: UseFormReturn<AgencyFormValues>;
@@ -97,11 +98,11 @@ export default function BaseInfoTab({
             htmlFor="license_expire_date"
             error={errors.license_expire_date?.message || fieldErrors.license_expire_date}
           >
-            <Input
-              id="license_expire_date"
-              type="date"
+            <PersianDatePicker
+              value={watch("license_expire_date") || ""}
+              onChange={(value) => setValue("license_expire_date", value)}
               disabled={!editMode}
-              {...register("license_expire_date")}
+              placeholder="انتخاب تاریخ انقضا"
             />
           </FormField>
 
