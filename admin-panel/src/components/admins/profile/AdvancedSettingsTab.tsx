@@ -45,7 +45,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
         hasPermission(userPermissionsObj, 'admin.manage')
     );
 
-    // ماژول‌های ممنوع برای مشاور طبق سناریو
     const FORBIDDEN_MODULES = ['admin', 'users', 'settings', 'panel', 'ai', 'pages', 'real_estate_agents', 'real_estate_agencies'];
 
     /**
@@ -55,10 +54,8 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
         if (admin.user_role_type !== "consultant") return availableRoles;
 
         return availableRoles.filter(role => {
-            // ۱. حذف سوپرادمین
             if (role.name === "super_admin") return false;
 
-            // ۲. حذف نقش‌هایی که به ماژول‌های ممنوع دسترسی دارند
             const roleModules = role.permissions?.modules || [];
             if (roleModules.includes('all')) return false;
 
@@ -78,11 +75,9 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
 
             const adminRolesData = Array.isArray(adminRolesResponse)
                 ? adminRolesResponse.map((assignment: any) => {
-                    // Handle full role object
                     if (assignment.id && (assignment.name || assignment.display_name)) {
                         return assignment;
                     }
-                    // Handle wrapper object with 'role' as object
                     if (assignment.role && typeof assignment.role === 'object') {
                         return {
                             ...assignment.role,
@@ -91,7 +86,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                             display_name: assignment.role.display_name || assignment.role_name
                         };
                     }
-                    // Handle wrapper object with 'role' as ID
                     if (assignment.role) {
                         return {
                             id: Number(assignment.role),
@@ -109,7 +103,6 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
 
             setAdminRoles(adminRolesData);
 
-            // Calculate current roles list based on the same logic as useMemo to avoid stale closure issues
             const currentRolesToDisplay = admin.user_role_type === "consultant"
                 ? rolesData.filter(role => {
                     if (role.name === "super_admin") return false;
@@ -120,21 +113,16 @@ export function AdvancedSettingsTab({ admin }: AdvancedSettingsTabProps) {
                 : rolesData;
 
             const initialAssignments: RoleAssignment[] = currentRolesToDisplay.map((role: Role) => {
-                // Determine if this role is assigned
                 let isAssigned = false;
 
-                // 1. Explicit check for super_admin if user is a superuser
                 if (admin.is_superuser && role.name === 'super_admin') {
                     isAssigned = true;
                 }
-                // 2. Search in the adminRolesData list
                 else {
                     isAssigned = adminRolesData.some((adminRole: any) => {
-                        // Match by ID (preferred)
                         const adminRoleId = adminRole?.id || adminRole?.role;
                         if (adminRoleId && String(adminRoleId) === String(role.id)) return true;
 
-                        // Match by name as fallback
                         const adminRoleName = adminRole?.name || adminRole?.role_name;
                         if (adminRoleName && role.name && adminRoleName === role.name) return true;
 

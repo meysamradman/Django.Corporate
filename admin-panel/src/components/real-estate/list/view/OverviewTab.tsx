@@ -88,7 +88,6 @@ export function OverviewTab({ property }: OverviewTabProps) {
         }));
       }
     } catch (error) {
-      console.error("Error loading floor plan images:", error);
     } finally {
       setLoadingImages(prev => ({ ...prev, [floorPlanId]: false }));
     }

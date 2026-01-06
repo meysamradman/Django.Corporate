@@ -14,7 +14,6 @@ import {
   Loader2, Save, List, Settings,
 } from "lucide-react";
 
-// نوع داده استاتیک برای آژانس‌های املاک
 interface AgencyItem {
   id: number;
   name: string;
@@ -30,7 +29,6 @@ interface AgencyItem {
   description?: string;
 }
 
-// داده استاتیک نمونه
 const getStaticAgencyData = (id: string): AgencyItem | null => {
   const staticData: AgencyItem[] = [
     {
@@ -264,7 +262,6 @@ export default function AgencyEditPage() {
 
   const handleSave = () => {
     setIsSaving(true);
-    console.log("Saving data:", formData);
     setTimeout(() => {
       setIsSaving(false);
       navigate("/staticstyle/realstate/agencies/list");
@@ -273,7 +270,6 @@ export default function AgencyEditPage() {
 
   const handleSaveDraft = () => {
     setIsSaving(true);
-    console.log("Saving draft:", formData);
     setTimeout(() => {
       setIsSaving(false);
       navigate("/staticstyle/realstate/agencies/list");

@@ -29,7 +29,6 @@ export default function BaseInfoTab({ formData, handleInputChange, editMode }: B
                 const data = await realEstateApi.getProvinces();
                 setProvinces(data || []);
             } catch (e) {
-                console.error("Error loading provinces:", e);
                 setProvinces([]);
             } finally {
                 setLoadingLocation(false);
@@ -56,7 +55,6 @@ export default function BaseInfoTab({ formData, handleInputChange, editMode }: B
                 const data = await realEstateApi.getProvinceCities(selectedProvinceId);
                 setCities(data || []);
             } catch (e) {
-                console.error("Error loading cities:", e);
                 setCities([]);
             } finally {
                 setLoadingLocation(false);

@@ -102,7 +102,6 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
 
             const queryKeyForInvalidate = isMeRoute ? 'me' : (adminId || String(admin?.id));
 
-            // Update callback whether image is set or removed
             if (onProfileImageChange) {
                 const updatedImage: Media | null = updatedAdmin.profile?.profile_picture ?? null;
                 onProfileImageChange(updatedImage);

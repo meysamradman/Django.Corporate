@@ -1,12 +1,6 @@
-/**
- * 🔧 Rate Limit Handler
- * 
- * مدیریت خطاهای 429 (Too Many Requests) و نمایش پیام مناسب به کاربر
- */
-
 interface RateLimitInfo {
   isRateLimited: boolean;
-  retryAfter?: number; // به ثانیه
+  retryAfter?: number;
   lastError?: Date;
   errorCount: number;
 }
@@ -19,21 +13,16 @@ class RateLimitHandler {
     this.loadFromStorage();
   }
 
-  /**
-   * بررسی اینکه آیا یک endpoint محدود شده است
-   */
   isEndpointLimited(endpoint: string): boolean {
     const info = this.rateLimitInfo.get(endpoint);
     if (!info || !info.isRateLimited) return false;
 
-    // بررسی اینکه آیا زمان retry تمام شده
     if (info.retryAfter && info.lastError) {
       const now = Date.now();
       const lastErrorTime = info.lastError.getTime();
       const retryAfterMs = info.retryAfter * 1000;
 
       if (now - lastErrorTime > retryAfterMs) {
-        // زمان retry تمام شده - ریست کن
         this.clearLimit(endpoint);
         return false;
       }
@@ -42,9 +31,6 @@ class RateLimitHandler {
     return true;
   }
 
-  /**
-   * ثبت خطای 429 برای یک endpoint
-   */
   recordRateLimit(endpoint: string, retryAfter: number = 60) {
     const existing = this.rateLimitInfo.get(endpoint);
     
@@ -57,47 +43,28 @@ class RateLimitHandler {
 
     this.rateLimitInfo.set(endpoint, info);
     this.saveToStorage();
-
-    console.warn(
-      `⚠️ Rate limit hit for ${endpoint}. Retry after ${retryAfter}s. Error count: ${info.errorCount}`
-    );
   }
 
-  /**
-   * پاک کردن محدودیت برای یک endpoint
-   */
   clearLimit(endpoint: string) {
     this.rateLimitInfo.delete(endpoint);
     this.saveToStorage();
   }
 
-  /**
-   * پاک کردن تمام محدودیت‌ها
-   */
   clearAllLimits() {
     this.rateLimitInfo.clear();
     this.saveToStorage();
   }
 
-  /**
-   * دریافت اطلاعات محدودیت برای یک endpoint
-   */
   getLimitInfo(endpoint: string): RateLimitInfo | undefined {
     return this.rateLimitInfo.get(endpoint);
   }
 
-  /**
-   * دریافت تمام endpoint های محدود شده
-   */
   getAllLimitedEndpoints(): string[] {
     return Array.from(this.rateLimitInfo.keys()).filter(endpoint =>
       this.isEndpointLimited(endpoint)
     );
   }
 
-  /**
-   * محاسبه زمان باقی‌مانده تا retry
-   */
   getRetryAfterSeconds(endpoint: string): number | null {
     const info = this.rateLimitInfo.get(endpoint);
     if (!info || !info.lastError || !info.retryAfter) return null;
@@ -111,9 +78,6 @@ class RateLimitHandler {
     return remainingMs > 0 ? Math.ceil(remainingMs / 1000) : 0;
   }
 
-  /**
-   * ذخیره در localStorage
-   */
   private saveToStorage() {
     try {
       const data = Array.from(this.rateLimitInfo.entries()).map(([endpoint, info]) => ({
@@ -126,13 +90,9 @@ class RateLimitHandler {
 
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
     } catch (error) {
-      console.error('Error saving rate limit info to localStorage:', error);
     }
   }
 
-  /**
-   * بارگذاری از localStorage
-   */
   private loadFromStorage() {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
@@ -149,21 +109,16 @@ class RateLimitHandler {
         ])
       );
 
-      // پاک کردن محدودیت‌های منقضی شده
       this.rateLimitInfo.forEach((_info, endpoint) => {
         if (!this.isEndpointLimited(endpoint)) {
           this.rateLimitInfo.delete(endpoint);
         }
       });
     } catch (error) {
-      console.error('Error loading rate limit info from localStorage:', error);
       this.rateLimitInfo.clear();
     }
   }
 
-  /**
-   * دریافت پیام کاربرپسند برای نمایش
-   */
   getUserFriendlyMessage(endpoint: string): string {
     const retryAfter = this.getRetryAfterSeconds(endpoint);
     
@@ -180,10 +135,8 @@ class RateLimitHandler {
   }
 }
 
-// Export singleton instance
 export const rateLimitHandler = new RateLimitHandler();
 
-// Export برای استفاده در axios interceptor
 export const handleRateLimitError = (endpoint: string, retryAfter?: number) => {
   rateLimitHandler.recordRateLimit(endpoint, retryAfter);
   return rateLimitHandler.getUserFriendlyMessage(endpoint);

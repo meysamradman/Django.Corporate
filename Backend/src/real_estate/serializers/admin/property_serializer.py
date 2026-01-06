@@ -468,7 +468,6 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
         return "ایران"
     
     def get_floor_plans(self, obj):
-        """Get all floor plans for this property (مثل Portfolio Media)"""
         from src.real_estate.serializers.admin.floor_plan_serializer import FloorPlanAdminListSerializer
         
         # Get active floor plans with images prefetched
@@ -907,7 +906,6 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         return super().to_internal_value(data)
 
     def to_representation(self, instance):
-        """Ensure latitude/longitude are returned as numbers for frontend"""
         data = super().to_representation(instance)
 
         # Convert latitude and longitude to float for frontend

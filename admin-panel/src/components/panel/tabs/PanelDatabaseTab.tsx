@@ -23,7 +23,6 @@ export function PanelDatabaseTab() {
                 const info = await getDatabaseExportInfo();
                 setDbInfo(info);
             } catch (error) {
-                console.error('Failed to fetch DB info', error);
             } finally {
                 setIsLoadingDbInfo(false);
             }

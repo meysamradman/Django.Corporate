@@ -8,7 +8,6 @@ import { Skeleton } from "@/components/elements/Skeleton";
 import { useUserPermissions } from "@/core/permissions/hooks/useUserPermissions";
 import { PERMISSIONS } from "@/core/permissions/constants/permissions";
 
-// Lazy load components that use recharts (heavy library)
 const VisitorPieChart = lazy(() =>
   import("@/components/dashboard/widgets").then(mod => ({ default: mod.VisitorPieChart }))
 );
@@ -29,7 +28,6 @@ export default function Dashboard() {
 
   const { hasPermission } = useUserPermissions();
 
-  // Permission Checks
   const canViewTraffic = hasPermission(PERMISSIONS.ANALYTICS.STATS_MANAGE);
   const canViewTrends = hasPermission(PERMISSIONS.ANALYTICS.STATS_MANAGE);
   const canViewRealEstate = hasPermission(PERMISSIONS.REAL_ESTATE.PROPERTY_READ);
@@ -66,9 +64,6 @@ export default function Dashboard() {
 
   const { user } = useAuth();
 
-  // Dynamic Layout Calculations
-  // If traffic chart (left sidebar) is hidden, the main content takes full width (col-span-12)
-  // Otherwise it takes 8 columns (col-span-8)
   const mainContentClass = canViewTraffic
     ? "lg:col-span-8"
     : "lg:col-span-12";

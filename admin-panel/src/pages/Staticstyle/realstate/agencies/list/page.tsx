@@ -165,9 +165,6 @@ export default function AgenciesListPage() {
       <PageHeader title="مدیریت آژانس‌های املاک">
         <Button 
           size="sm"
-          onClick={() => {
-            console.log("افزودن آژانس جدید");
-          }}
         >
           <Plus className="h-4 w-4" />
           افزودن آژانس
@@ -326,7 +323,6 @@ export default function AgenciesListPage() {
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          console.log("حذف:", agency.id);
                         }}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />

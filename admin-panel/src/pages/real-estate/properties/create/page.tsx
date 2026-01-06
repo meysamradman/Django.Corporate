@@ -96,7 +96,6 @@ export default function PropertyCreatePage() {
   const [activeTab, setActiveTab] = useState<string>("account");
   const [isEditMode, setIsEditMode] = useState(false);
 
-  // Load property data if editing
   useEffect(() => {
     if (id) {
       setIsEditMode(true);
@@ -104,7 +103,6 @@ export default function PropertyCreatePage() {
         try {
           setIsLoading(true);
           const property = await realEstateApi.getPropertyById(Number(id));
-          console.log('Loaded property data:', property);
           setFormData({
             title: property.title || "",
             slug: property.slug || "",
@@ -148,7 +146,6 @@ export default function PropertyCreatePage() {
             floor_number: property.floor_number || null,
             parking_spaces: property.parking_spaces || null,
             storage_rooms: property.storage_rooms || null,
-            // usage_type حذف شد - از property_type استفاده می‌شود
             document_type: (property as any).document_type || null,
             price: property.price || null,
             sale_price: property.sale_price || null,
@@ -166,18 +163,10 @@ export default function PropertyCreatePage() {
             status: typeof (property as any).status === 'object' ? (property as any).status?.value : ((property as any).status || "active"),
           });
 
-          // Set selected items
           setSelectedLabels(property.labels || []);
           setSelectedTags(property.tags || []);
           setSelectedFeatures(property.features || []);
-
-          console.log('Set selected items:', {
-            labels: property.labels,
-            tags: property.tags,
-            features: property.features
-          });
         } catch (error) {
-          console.error("Error loading property:", error);
           showError("خطا در بارگذاری اطلاعات ملک");
         } finally {
           setIsLoading(false);
@@ -187,7 +176,6 @@ export default function PropertyCreatePage() {
     }
   }, [id]);
 
-  // Form data state
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
@@ -231,7 +219,6 @@ export default function PropertyCreatePage() {
     floor_number: null as number | null,
     parking_spaces: null as number | null,
     storage_rooms: null as number | null,
-    // usage_type: "residential" as string, // حذف شد
     document_type: null as string | null,
     price: null as number | null,
     sale_price: null as number | null,
@@ -249,14 +236,11 @@ export default function PropertyCreatePage() {
     status: "active" as string,
   });
 
-  // Errors state
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Floor Plans state - برای ذخیره موقت پلان‌ها قبل از ایجاد ملک
   const [tempFloorPlans, setTempFloorPlans] = useState<any[]>([]);
 
 
-  // Selected items state
   const [selectedLabels, setSelectedLabels] = useState<PropertyLabel[]>([]);
   const [selectedTags, setSelectedTags] = useState<PropertyTag[]>([]);
   const [selectedFeatures, setSelectedFeatures] = useState<PropertyFeature[]>([]);
@@ -268,7 +252,6 @@ export default function PropertyCreatePage() {
     pdfDocuments: []
   });
 
-  // Handle form input changes
   const handleInputChange = useCallback((field: string, value: string | any | boolean | null | number) => {
     if (field === "title" && typeof value === "string") {
       const generatedSlug = generateSlug(value);
@@ -292,9 +275,7 @@ export default function PropertyCreatePage() {
     }
   }, []);
 
-  // Handle location changes
 
-  // Handle label/tag/feature changes
   const handleLabelToggle = useCallback((label: PropertyLabel) => {
     setSelectedLabels(prev => {
       const exists = prev.find(l => l.id === label.id);
@@ -391,12 +372,10 @@ export default function PropertyCreatePage() {
     });
   }, []);
 
-  // Handle form submission
   const handleSubmit = useCallback(async () => {
     setIsLoading(true);
     setErrors({}); // Clear previous errors
     try {
-      // Prepare data for validation
       const dataToValidate = {
         ...formData,
         labels_ids: selectedLabels.map(label => label.id),
@@ -404,7 +383,6 @@ export default function PropertyCreatePage() {
         features_ids: selectedFeatures.map(feature => feature.id),
       };
       
-      // Step 1: Validate Account Tab fields first
       const accountErrors: Record<string, string> = {};
       
       try {
@@ -439,7 +417,6 @@ export default function PropertyCreatePage() {
         }
       }
       
-      // Step 2: Validate Location Tab fields
       const locationErrors: Record<string, string> = {};
       
       try {
@@ -470,7 +447,6 @@ export default function PropertyCreatePage() {
         }
       }
       
-      // Step 3: Validate all fields together (for optional fields)
       const validatedData = propertyFormSchema.parse(dataToValidate);
 
 
@@ -497,7 +473,6 @@ export default function PropertyCreatePage() {
         state: validatedData.state || undefined,
         agent: validatedData.agent || undefined,
         agency: validatedData.agency || undefined,
-        // Use region instead of district for PropertyUpdateData interface
         province: validatedData.province || undefined,
         city: validatedData.city || undefined,
         region: validatedData.district || undefined,
@@ -571,45 +546,33 @@ export default function PropertyCreatePage() {
         status: validatedData.status,
       };
 
-      // جمع‌آوری فایل‌های مدیا و IDها مثل Portfolio
       const { allMediaFiles, allMediaIds } = collectMediaFilesAndIds(
         propertyMedia,
         formData.og_image
       );
 
-      // اضافه کردن media_ids به updateData
       if (allMediaIds.length > 0) {
         updateData.media_ids = allMediaIds;
       }
 
       let property;
       if (isEditMode && id) {
-        // در حالت ویرایش
         property = await realEstateApi.updateProperty(Number(id), updateData);
 
-        // اگر فایل جدید یا ID جدید داریم، اضافه کن
         if (allMediaFiles.length > 0 || allMediaIds.length > 0) {
           await realEstateApi.addMediaToProperty(Number(id), allMediaFiles, allMediaIds);
         }
       } else {
-        // در حالت ایجاد
         if (allMediaFiles.length > 0) {
-          // اگر فایل داریم، از createPropertyWithMedia استفاده کن
           property = await realEstateApi.createPropertyWithMedia(updateData, allMediaFiles);
         } else {
-          // اگر فقط ID داریم یا هیچکدام، از createProperty استفاده کن
-          // توجه: media_ids قبلاً در updateData اضافه شده و در backend پردازش می‌شود
           property = await realEstateApi.createProperty(updateData);
-          // نیازی به فراخوانی addMediaToProperty نیست چون backend در create پردازش می‌کند
         }
       }
 
       showSuccess(isEditMode ? "ملک با موفقیت ویرایش شد" : "ملک با موفقیت ایجاد شد");
       navigate(`/real-estate/properties/${property.id}/view`);
     } catch (error: any) {
-      console.error("Error creating property:", error);
-      
-      // Handle Zod validation errors (for optional fields that failed)
       if (error.errors || error.issues) {
         const fieldErrors: Record<string, string> = {};
         const errorsToProcess = error.errors || error.issues || [];
@@ -617,12 +580,10 @@ export default function PropertyCreatePage() {
         errorsToProcess.forEach((err: any) => {
           if (err.path && err.path.length > 0) {
             const fieldName = err.path[0];
-            // Only keep the first error for each field
             if (!fieldErrors[fieldName]) {
               fieldErrors[fieldName] = err.message;
             }
             
-            // Determine which tab to switch to based on field
             if (['title', 'slug', 'property_type', 'state', 'status'].includes(fieldName)) {
               setActiveTab("account");
             } else if (['province', 'city', 'address', 'latitude', 'longitude', 'postal_code', 'neighborhood'].includes(fieldName)) {
@@ -638,12 +599,9 @@ export default function PropertyCreatePage() {
       }
       
       if (error.response && error.response.status === 400) {
-        // Backend validation errors
         const backendErrors = error.response.data;
         const newErrors: Record<string, string> = {};
 
-        // Map backend errors to frontend fields
-        // Backend format might be { field: ["error1", "error2"] }
         Object.keys(backendErrors).forEach(key => {
           const err = backendErrors[key];
           if (Array.isArray(err)) {

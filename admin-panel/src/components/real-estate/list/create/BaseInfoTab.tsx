@@ -64,83 +64,67 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch Property Types
                 const typesResponse = await realEstateApi.getTypes({ page: 1, size: 100, is_active: true });
                 setPropertyTypes(typesResponse.data || []);
             } catch (error) {
-                console.error("Error fetching property types:", error);
             } finally {
                 setLoadingTypes(false);
             }
 
             try {
-                // Fetch Property States
                 const statesResponse = await realEstateApi.getStates({ page: 1, size: 100, is_active: true });
                 setPropertyStates(statesResponse.data || []);
             } catch (error) {
-                console.error("Error fetching property states:", error);
             } finally {
                 setLoadingStates(false);
             }
 
             try {
-                // Fetch Labels
                 const labelsResponse = await realEstateApi.getLabels({ page: 1, size: 100, is_active: true });
                 setLabels(labelsResponse.data || []);
             } catch (error) {
-                console.error("Error fetching labels:", error);
             } finally {
                 setLoadingLabels(false);
             }
 
             try {
-                // Fetch Tags
                 const tagsResponse = await realEstateApi.getTags({ page: 1, size: 100, is_active: true, is_public: true });
                 setTags(tagsResponse.data || []);
             } catch (error) {
-                console.error("Error fetching tags:", error);
             } finally {
                 setLoadingTags(false);
             }
 
             try {
-                // Fetch Features
                 const featuresResponse = await realEstateApi.getFeatures({ page: 1, size: 100, is_active: true });
                 setFeatures(featuresResponse.data || []);
             } catch (error) {
-                console.error("Error fetching features:", error);
             } finally {
                 setLoadingFeatures(false);
             }
 
             try {
-                // Fetch Agents
                 const agentsResponse = await realEstateApi.getAgents({ page: 1, size: 100, is_active: true });
                 setAgents(agentsResponse.data || []);
             } catch (error) {
-                console.error("Error fetching agents:", error);
             } finally {
                 setLoadingAgents(false);
             }
 
             try {
-                // Fetch Agencies
                 const agenciesResponse = await realEstateApi.getAgencies({ page: 1, size: 100, is_active: true });
                 setAgencies(agenciesResponse.data || []);
             } catch (error) {
-                console.error("Error fetching agencies:", error);
             } finally {
                 setLoadingAgencies(false);
             }
 
             try {
-                // Fetch Field Options (Status)
                 const optionsResponse = await realEstateApi.getFieldOptions();
                 if (optionsResponse.status) {
                     setStatusOptions(optionsResponse.status);
                 }
             } catch (error) {
-                console.error("Error fetching field options:", error);
             } finally {
                 setLoadingOptions(false);
             }

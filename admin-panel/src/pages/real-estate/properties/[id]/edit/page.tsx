@@ -141,7 +141,6 @@ export default function EditPropertyPage() {
     built_area: null as number | null,
     bedrooms: null as number | null,
     bathrooms: null as number | null,
-    // Price and details fields
     price: null as number | null,
     price_per_sqm: null as number | null,
     mortgage_amount: null as number | null,
@@ -194,7 +193,6 @@ export default function EditPropertyPage() {
         agency: propertyData.agency?.id || null,
         province: propertyData.province || null,
         city: propertyData.city || null,
-        // Map backend 'district' to frontend 'region'
         region: propertyData.district || null,
         district: propertyData.district || null,
         country: propertyData.country || null,
@@ -208,7 +206,6 @@ export default function EditPropertyPage() {
         built_area: propertyData.built_area ? Number(propertyData.built_area) : null,
         bedrooms: propertyData.bedrooms || null,
         bathrooms: propertyData.bathrooms || null,
-        // Price and details fields
         price: propertyData.price ? Number(propertyData.price) : null,
         price_per_sqm: propertyData.price_per_sqm ? Number(propertyData.price_per_sqm) : null,
         mortgage_amount: propertyData.mortgage_amount ? Number(propertyData.mortgage_amount) : null,
@@ -327,7 +324,6 @@ export default function EditPropertyPage() {
         features_ids: selectedFeatures.map(feature => feature.id),
       };
       
-      // Step 1: Validate Account Tab fields first
       try {
         propertyFormSchema.pick({
           title: true,
@@ -361,7 +357,6 @@ export default function EditPropertyPage() {
         }
       }
       
-      // Step 2: Validate Location Tab fields
       try {
         propertyFormSchema.pick({
           province: true,
@@ -391,7 +386,6 @@ export default function EditPropertyPage() {
         }
       }
       
-      // Step 3: Validate all fields together (for optional fields)
       const validatedData = propertyFormSchema.parse(dataToValidate);
 
       let formattedSlug = formatSlug(validatedData.slug);
@@ -432,12 +426,9 @@ export default function EditPropertyPage() {
         agency: validatedData.agency || property.agency?.id || undefined,
         province: validatedData.province || undefined,
         city: validatedData.city || undefined,
-        // Only send district - city, province, country are auto-filled from district in backend
-        // If district doesn't exist, send region_name and district_name to create it
         region: validatedData.district || undefined,
         region_name: formData.region_name || undefined,
         address: validatedData.address || property.address || undefined,
-        // Add neighborhood - map fills it, backend needs it
         neighborhood: validatedData.neighborhood || undefined,
         latitude: validatedData.latitude !== null && validatedData.latitude !== undefined
           ? validatedData.latitude
@@ -457,7 +448,6 @@ export default function EditPropertyPage() {
         bathrooms: validatedData.bathrooms !== null && validatedData.bathrooms !== undefined
           ? validatedData.bathrooms
           : (property.bathrooms || undefined),
-        // Price and details fields
         price: validatedData.price,
         mortgage_amount: validatedData.mortgage_amount,
         rent_amount: validatedData.rent_amount,
@@ -471,18 +461,10 @@ export default function EditPropertyPage() {
           : undefined,
       };
 
-      // Debug: نمایش داده‌های ارسالی
-      console.log('📤 handleSave - formData.extra_attributes:', formData.extra_attributes);
-      console.log('📤 handleSave - updateData.extra_attributes:', updateData.extra_attributes);
-      console.log('📤 handleSave - Full updateData:', updateData);
-
       await realEstateApi.partialUpdateProperty(property.id, updateData);
       showSuccess("ملک با موفقیت ویرایش شد");
       navigate("/real-estate/properties");
     } catch (error: any) {
-      console.error("Error updating property:", error);
-      
-      // Handle Zod validation errors
       if (error.errors || error.issues) {
         const fieldErrors: Record<string, string> = {};
         const errorsToProcess = error.errors || error.issues || [];
@@ -490,7 +472,6 @@ export default function EditPropertyPage() {
         errorsToProcess.forEach((err: any) => {
           if (err.path && err.path.length > 0) {
             const fieldName = err.path[0];
-            // Only keep the first error for each field
             if (!fieldErrors[fieldName]) {
               fieldErrors[fieldName] = err.message;
             }
@@ -502,11 +483,9 @@ export default function EditPropertyPage() {
       }
       
       if (error.response && error.response.status === 400) {
-        // Backend validation errors
         const backendErrors = error.response.data;
         const newErrors: Record<string, string> = {};
 
-        // Map backend errors to frontend fields
         Object.keys(backendErrors).forEach(key => {
           const err = backendErrors[key];
           if (Array.isArray(err)) {
@@ -540,7 +519,6 @@ export default function EditPropertyPage() {
         features_ids: selectedFeatures.map(feature => feature.id),
       };
       
-      // Step 1: Validate Account Tab fields first
       try {
         propertyFormSchema.pick({
           title: true,
@@ -574,7 +552,6 @@ export default function EditPropertyPage() {
         }
       }
       
-      // Step 2: Validate Location Tab fields
       try {
         propertyFormSchema.pick({
           province: true,
@@ -604,7 +581,6 @@ export default function EditPropertyPage() {
         }
       }
       
-      // Step 3: Validate all fields together (for optional fields)
       const validatedData = propertyFormSchema.parse(dataToValidate);
 
       let formattedSlug = formatSlug(validatedData.slug);
@@ -645,22 +621,15 @@ export default function EditPropertyPage() {
         agency: validatedData.agency || undefined,
         province: validatedData.province || undefined,
         city: validatedData.city || undefined,
-        // Only send district - city, province, country are auto-filled from district in backend
-        // If district doesn't exist, send region_name and district_name to create it
         region: validatedData.district || undefined,
         region_name: formData.region_name || undefined,
-        // Add neighborhood - map fills it, backend needs it
         neighborhood: validatedData.neighborhood || undefined,
-        // Send lat/lng even if null (to clear it) or number.
-        // If undefined, it won't update.
-        // validatedData.latitude is initialized to null or number.
         latitude: validatedData.latitude,
         longitude: validatedData.longitude,
         land_area: validatedData.land_area,
         built_area: validatedData.built_area,
         bedrooms: validatedData.bedrooms,
         bathrooms: validatedData.bathrooms,
-        // Price and details fields
         price: validatedData.price,
         mortgage_amount: validatedData.mortgage_amount,
         rent_amount: validatedData.rent_amount,
@@ -678,9 +647,6 @@ export default function EditPropertyPage() {
       showSuccess("پیش‌نویس با موفقیت ذخیره شد");
       navigate("/real-estate/properties");
     } catch (error: any) {
-      console.error("Error saving draft:", error);
-      
-      // Handle Zod validation errors
       if (error.errors || error.issues) {
         const fieldErrors: Record<string, string> = {};
         const errorsToProcess = error.errors || error.issues || [];
@@ -688,7 +654,6 @@ export default function EditPropertyPage() {
         errorsToProcess.forEach((err: any) => {
           if (err.path && err.path.length > 0) {
             const fieldName = err.path[0];
-            // Only keep the first error for each field
             if (!fieldErrors[fieldName]) {
               fieldErrors[fieldName] = err.message;
             }
@@ -700,11 +665,9 @@ export default function EditPropertyPage() {
       }
       
       if (error.response && error.response.status === 400) {
-        // Backend validation errors
         const backendErrors = error.response.data;
         const newErrors: Record<string, string> = {};
 
-        // Map backend errors to frontend fields
         Object.keys(backendErrors).forEach(key => {
           const err = backendErrors[key];
           if (Array.isArray(err)) {

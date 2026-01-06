@@ -10,7 +10,6 @@ import { Avatar, AvatarFallback } from "@/components/elements/Avatar";
 import { PaginationControls } from "@/components/shared/Pagination";
 import { Plus, Search, Phone, Mail, Award, Calendar, Edit, Trash2, Eye, Star } from "lucide-react";
 
-// نوع داده استاتیک برای مشاورین املاک
 interface AdvisorItem {
   id: number;
   name: string;
@@ -24,7 +23,6 @@ interface AdvisorItem {
   is_active: boolean;
 }
 
-// داده‌های استاتیک نمونه
 const staticAdvisorData: AdvisorItem[] = [
   {
     id: 1,
@@ -108,9 +106,7 @@ export default function AdvisorsListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
 
-  // فیلتر کردن داده‌ها
   const filteredData = staticAdvisorData.filter((item) => {
-    // جستجو
     if (searchValue) {
       const searchLower = searchValue.toLowerCase();
       const matchesSearch =
@@ -121,12 +117,10 @@ export default function AdvisorsListPage() {
       if (!matchesSearch) return false;
     }
 
-    // فیلتر وضعیت
     if (statusFilter !== "all" && item.status !== statusFilter) {
       return false;
     }
 
-    // فیلتر ویژه
     if (featuredFilter !== "all") {
       const isFeatured = featuredFilter === "true";
       if (item.is_featured !== isFeatured) {
@@ -137,7 +131,6 @@ export default function AdvisorsListPage() {
     return true;
   });
 
-  // Pagination
   const totalPages = Math.ceil(filteredData.length / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
@@ -157,9 +150,6 @@ export default function AdvisorsListPage() {
       <PageHeader title="مدیریت مشاورین املاک">
         <Button 
           size="sm"
-          onClick={() => {
-            console.log("افزودن مشاور جدید");
-          }}
         >
           <Plus className="h-4 w-4" />
           افزودن مشاور
@@ -314,7 +304,6 @@ export default function AdvisorsListPage() {
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          console.log("حذف:", advisor.id);
                         }}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />

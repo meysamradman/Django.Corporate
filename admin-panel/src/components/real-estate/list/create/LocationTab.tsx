@@ -25,23 +25,19 @@ export default function LocationTab(props: LocationTabProps) {
     const [cityRegions, setCityRegions] = useState<RealEstateCityRegion[]>([]);
     const [loading, setLoading] = useState(false);
 
-    // Selected values
     const selectedProvinceId = formData?.province;
     const selectedCityId = formData?.city;
     const selectedRegionId = formData?.region;
 
-    // Derived values for map - with proper state management
     const [provinceName, setProvinceName] = useState<string>('');
     const [cityName, setCityName] = useState<string>('');
     const [pendingCityId, setPendingCityId] = useState<number | null>(null);
 
-    // Update province name when provinces or selected province changes
     useEffect(() => {
         const province = provinces.find(p => p.id === selectedProvinceId);
         setProvinceName(province?.name || '');
     }, [provinces, selectedProvinceId]);
 
-    // Update city name when cities are loaded and city is selected or pending
     useEffect(() => {
         const cityIdToCheck = selectedCityId || pendingCityId;
 
@@ -51,7 +47,6 @@ export default function LocationTab(props: LocationTabProps) {
                 setCityName(city.name);
                 setPendingCityId(null);
             } else {
-                // City not found in current cities, maybe province changed
                 setCityName('');
                 if (pendingCityId === cityIdToCheck) {
                     setPendingCityId(null);
@@ -63,7 +58,6 @@ export default function LocationTab(props: LocationTabProps) {
     }, [cities, selectedCityId, pendingCityId]);
 
 
-    // Load provinces on mount
     useEffect(() => {
         const loadProvinces = async () => {
             try {
@@ -71,7 +65,6 @@ export default function LocationTab(props: LocationTabProps) {
                 const data = await realEstateApi.getProvinces();
                 setProvinces(data);
 
-                // Set province name if province is already selected
                 if (selectedProvinceId) {
                     const province = data.find(p => p.id === selectedProvinceId);
                     if (province) {
@@ -79,7 +72,6 @@ export default function LocationTab(props: LocationTabProps) {
                     }
                 }
             } catch (error) {
-                console.error('Error loading provinces:', error);
             } finally {
                 setLoading(false);
             }
@@ -88,7 +80,6 @@ export default function LocationTab(props: LocationTabProps) {
         loadProvinces();
     }, []);
 
-    // Load cities when province changes
     useEffect(() => {
         if (!selectedProvinceId) {
             setCities([]);
@@ -102,7 +93,6 @@ export default function LocationTab(props: LocationTabProps) {
                 const data = await realEstateApi.getProvinceCities(selectedProvinceId);
                 setCities(data);
             } catch (error) {
-                console.error('Error loading cities:', error);
                 setCities([]);
                 setCityName('');
             } finally {
@@ -125,7 +115,6 @@ export default function LocationTab(props: LocationTabProps) {
                 const regions = await realEstateApi.getCityRegionsByCity(selectedCityId);
                 setCityRegions(regions);
             } catch (error) {
-                console.error('Error loading city regions:', error);
                 setCityRegions([]);
             } finally {
                 setLoading(false);
@@ -138,21 +127,17 @@ export default function LocationTab(props: LocationTabProps) {
     const handleProvinceChange = useCallback((value: string) => {
         const provinceId = value ? Number(value) : null;
         handleInputChange("province", provinceId);
-        // Reset dependent fields
         handleInputChange("city", null);
         handleInputChange("region", null);
         handleInputChange("latitude", null);
         handleInputChange("longitude", null);
-        // Reset names and pending state
         setCityName('');
         setPendingCityId(null);
-        // Province name will be updated by useEffect
     }, [handleInputChange]);
 
     const handleCityChange = useCallback((value: string) => {
         const cityId = value ? Number(value) : null;
         handleInputChange("city", cityId);
-        // Reset dependent field
         handleInputChange("region", null);
         handleInputChange("latitude", null);
         handleInputChange("longitude", null);
@@ -313,17 +298,13 @@ export default function LocationTab(props: LocationTabProps) {
                                 handleInputChange("neighborhood", neighborhood);
                             }, [handleInputChange])}
                             onRegionUpdate={useCallback((regionCode: number) => {
-                                // Find the region by Code (since map returns region number)
                                 const region = cityRegions.find(r => r.code === regionCode);
                                 if (region) {
                                     handleInputChange("region", region.id);
                                     handleInputChange("region_name", region.name);
-                                    console.log(`✅ Auto-selected region: ${region.name} (ID: ${region.id})`);
                                 } else {
-
                                     handleInputChange("region", null);
                                     handleInputChange("region_name", `منطقه ${regionCode}`);
-                                    console.log(`⚠️ Region ID not found, set text: منطقه ${regionCode}`);
                                 }
                             }, [cityRegions, handleInputChange])}
                             disabled={!editMode || !selectedCityId}

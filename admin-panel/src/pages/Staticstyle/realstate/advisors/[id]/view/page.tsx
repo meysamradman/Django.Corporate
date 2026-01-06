@@ -21,7 +21,6 @@ import {
   User,
 } from "lucide-react";
 
-// نوع داده استاتیک برای مشاورین املاک
 interface AdvisorItem {
   id: number;
   name: string;
@@ -37,7 +36,6 @@ interface AdvisorItem {
   address?: string;
 }
 
-// داده استاتیک نمونه
 const getStaticAdvisorData = (id: string): AdvisorItem | null => {
   const staticData: AdvisorItem[] = [
     {
@@ -102,7 +100,6 @@ const getStaticAdvisorData = (id: string): AdvisorItem | null => {
   return item || null;
 };
 
-// کامپوننت Sidebar
 function AdvisorSidebar({ advisor }: { advisor: AdvisorItem }) {
   const formatDate = (dateString: string) => {
     if (!dateString) return "نامشخص";
@@ -365,7 +362,6 @@ export default function AdvisorViewPage() {
         <>
           <Button
             variant="outline"
-            onClick={() => console.log("Export PDF for", advisorItem.id)}
           >
             <FileDown className="h-4 w-4" />
             خروجی PDF

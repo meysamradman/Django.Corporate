@@ -145,7 +145,6 @@ export const REAL_ESTATE_MESSAGES = {
         }
     },
     validation: {
-        // Basic Info
         titleRequired: 'عنوان ملک الزامی است',
         titleMinLength: 'عنوان باید حداقل ۳ کاراکتر باشد',
         titleMaxLength: 'عنوان نمی‌تواند بیشتر از ۲۰۰ کاراکتر باشد',
@@ -153,13 +152,11 @@ export const REAL_ESTATE_MESSAGES = {
         slugInvalid: 'نامک فقط می‌تواند شامل حروف فارسی، انگلیسی، اعداد و خط تیره باشد',
         shortDescMaxLength: 'توضیحات کوتاه نمی‌تواند بیشتر از ۳۰۰ کاراکتر باشد',
 
-        // Classification
         propertyTypeRequired: 'نوع ملک الزامی است',
         stateRequired: 'وضعیت ملک الزامی است',
         statusRequired: 'وضعیت معامله الزامی است',
         statusInvalid: 'وضعیت معامله نامعتبر است',
 
-        // Location
         provinceRequired: 'استان الزامی است',
         cityRequired: 'شهر الزامی است',
         addressRequired: 'آدرس الزامی است',
@@ -169,13 +166,11 @@ export const REAL_ESTATE_MESSAGES = {
         longitudeInvalid: 'طول جغرافیایی معتبر نیست (باید بین -180 تا 180 باشد)',
         neighborhoodMaxLength: 'نام محله نمی‌تواند بیشتر از ۱۲۰ کاراکتر باشد',
 
-        // Area
         landAreaMin: 'مساحت زمین نمی‌تواند منفی باشد',
         landAreaMax: 'مساحت زمین نمی‌تواند بیشتر از ۱۰۰۰۰۰ متر مربع باشد',
         builtAreaMin: 'زیربنا نمی‌تواند منفی باشد',
         builtAreaMax: 'زیربنا نمی‌تواند بیشتر از ۱۰۰۰۰۰ متر مربع باشد',
 
-        // Room Counts
         bedroomsMin: 'تعداد خواب نمی‌تواند منفی باشد',
         bedroomsMax: 'تعداد خواب نمی‌تواند بیشتر از ۲۰ باشد',
         bathroomsMin: 'تعداد سرویس بهداشتی نمی‌تواند منفی باشد',
@@ -189,14 +184,12 @@ export const REAL_ESTATE_MESSAGES = {
         storageRoomsMin: 'تعداد انباری نمی‌تواند منفی باشد',
         storageRoomsMax: 'تعداد انباری نمی‌تواند بیشتر از ۱۰ باشد',
 
-        // Building Details
         yearBuiltMin: 'سال ساخت نمی‌تواند کمتر از ۱۳۰۰ باشد',
         yearBuiltMax: 'سال ساخت نمی‌تواند بیشتر از سال جاری باشد',
         floorsInBuildingMin: 'تعداد طبقات ساختمان نمی‌تواند کمتر از ۱ باشد',
         floorsInBuildingMax: 'تعداد طبقات ساختمان نمی‌تواند بیشتر از ۱۰۰ باشد',
         floorNumberInvalid: 'شماره طبقه نامعتبر است',
 
-        // Pricing
         priceMin: 'قیمت نمی‌تواند منفی باشد',
         priceMax: 'قیمت نمی‌تواند بیشتر از ۹۹۹,۹۹۹,۹۹۹,۹۹۹ باشد',
         salePriceMin: 'قیمت فروش نمی‌تواند منفی باشد',
@@ -212,39 +205,32 @@ export const REAL_ESTATE_MESSAGES = {
         securityDepositMin: 'ودیعه نمی‌تواند منفی باشد',
         securityDepositMax: 'ودیعه نمی‌تواند بیشتر از ۹۹۹,۹۹۹,۹۹۹,۹۹۹ باشد',
 
-        // Document
         documentTypeInvalid: 'نوع سند نامعتبر است',
 
-        // State (وضعیت ملک)
         stateTitleRequired: 'عنوان وضعیت ملک الزامی است',
         stateTitleMinLength: 'عنوان باید حداقل ۳ کاراکتر باشد',
         stateTitleMaxLength: 'عنوان نمی‌تواند بیشتر از ۲۰۰ کاراکتر باشد',
         stateUsageTypeRequired: 'نوع کاربری الزامی است',
 
-        // Type (نوع ملک)
         typeTitleRequired: 'عنوان نوع ملک الزامی است',
         typeTitleMinLength: 'عنوان باید حداقل ۳ کاراکتر باشد',
         typeTitleMaxLength: 'عنوان نمی‌تواند بیشتر از ۲۰۰ کاراکتر باشد',
         typeDescriptionMaxLength: 'توضیحات نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد',
 
-        // Tag (تگ ملک)
         tagTitleRequired: 'عنوان تگ ملک الزامی است',
         tagTitleMinLength: 'عنوان باید حداقل ۳ کاراکتر باشد',
         tagTitleMaxLength: 'عنوان نمی‌تواند بیشتر از ۲۰۰ کاراکتر باشد',
         tagDescriptionMaxLength: 'توضیحات نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد',
 
-        // Label (برچسب ملک)
         labelTitleRequired: 'عنوان برچسب ملک الزامی است',
         labelTitleMinLength: 'عنوان باید حداقل ۳ کاراکتر باشد',
         labelTitleMaxLength: 'عنوان نمی‌تواند بیشتر از ۲۰۰ کاراکتر باشد',
 
-        // Feature (ویژگی ملک)
         featureTitleRequired: 'عنوان ویژگی ملک الزامی است',
         featureTitleMinLength: 'عنوان باید حداقل ۳ کاراکتر باشد',
         featureTitleMaxLength: 'عنوان نمی‌تواند بیشتر از ۲۰۰ کاراکتر باشد',
         featureGroupMaxLength: 'دسته‌بندی نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد',
 
-        // Agency (آژانس)
         agencyNameRequired: 'نام آژانس الزامی است',
         agencyNameMinLength: 'نام آژانس باید حداقل ۳ کاراکتر باشد',
         agencyNameMaxLength: 'نام آژانس نمی‌تواند بیشتر از ۲۰۰ کاراکتر باشد',

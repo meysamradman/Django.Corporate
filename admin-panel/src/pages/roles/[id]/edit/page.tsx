@@ -25,7 +25,6 @@ import {
 } from "@/components/roles/form";
 import { getResourceIcon } from "@/components/roles/form/utils";
 
-// استخراج permissions از API به صورت داینامیک
 const getAnalyticsPermissions = (permissions: any[]): string[] => {
   if (!permissions || !Array.isArray(permissions)) return [];
   
@@ -219,15 +218,12 @@ export default function EditRolePage() {
       const resource = (toggledPerm as any)?.resource || '';
       const action = (toggledPerm as any)?.action || '';
       
-      // ساخت original_key اگر وجود نداشت
       const permKey = originalKey || `${resource}.${action}`;
       
-      // منطق برای admin.manage
       if (permKey === 'admin.manage' || (resource === 'admin' && action?.toLowerCase() === 'manage')) {
         if (isCurrentlySelected) {
           newPermissions = prev.filter(id => id !== permissionId);
         } else {
-          // حذف همه permissions جزئی admin
           const adminPermissionIds = allPermissions
             .filter((p: any) => {
               const pKey = (p as any).original_key || `${(p as any).resource || ''}.${(p as any).action || ''}`;
@@ -238,7 +234,6 @@ export default function EditRolePage() {
           newPermissions = [...prev.filter(id => !adminPermissionIds.includes(id)), permissionId];
         }
       } 
-      // اگر یکی از permissions جزئی admin انتخاب شد و admin.manage فعال است، جلوگیری کن
       else if ((permKey.startsWith('admin.') && permKey !== 'admin.manage') || 
                (resource === 'admin' && action?.toLowerCase() !== 'manage')) {
         const adminManagePerm = allPermissions.find((p: any) => {
@@ -255,12 +250,10 @@ export default function EditRolePage() {
           ? prev.filter(id => id !== permissionId)
           : [...prev, permissionId];
       }
-      // منطق برای analytics.manage یا analytics.stats.manage
       else if (permKey === 'analytics.manage' || permKey === 'analytics.stats.manage') {
         if (isCurrentlySelected) {
           newPermissions = prev.filter(id => id !== permissionId);
         } else {
-          // حذف همه permissions جزئی analytics
           const analyticsPermissionIds = allPermissions
             .filter((p: any) => {
               const pKey = (p as any).original_key || `${(p as any).resource || ''}.${(p as any).action || ''}`;
@@ -271,7 +264,6 @@ export default function EditRolePage() {
           newPermissions = [...prev.filter(id => !analyticsPermissionIds.includes(id)), permissionId];
         }
       }
-      // اگر یکی از permissions جزئی analytics انتخاب شد و analytics.manage فعال است، جلوگیری کن
       else if ((permKey.startsWith('analytics.') && permKey !== 'analytics.manage' && permKey !== 'analytics.stats.manage') ||
                (resource === 'analytics' && action?.toLowerCase() !== 'manage')) {
         const analyticsManagePerm = allPermissions.find((p: any) => {
@@ -289,7 +281,6 @@ export default function EditRolePage() {
           ? prev.filter(id => id !== permissionId)
           : [...prev, permissionId];
       }
-      // منطق برای ai.manage
       else if (originalKey === 'ai.manage') {
         if (isCurrentlySelected) {
           newPermissions = prev.filter(id => id !== permissionId);
@@ -300,7 +291,6 @@ export default function EditRolePage() {
           newPermissions = [...prev.filter(id => !aiPermissionIds.includes(id)), permissionId];
         }
       } 
-      // اگر یکی از permissions جزئی ai انتخاب شد و ai.manage فعال است، جلوگیری کن
       else if (originalKey.startsWith('ai.')) {
         const aiManagePerm = allPermissions.find((p: any) => (p as any).original_key === 'ai.manage');
         const isAiManageSelected = aiManagePerm && prev.includes(aiManagePerm.id);
@@ -313,7 +303,6 @@ export default function EditRolePage() {
           ? prev.filter(id => id !== permissionId)
           : [...prev, permissionId];
       } 
-      // بقیه permissions
       else {
         newPermissions = prev.includes(permissionId)
           ? prev.filter(id => id !== permissionId)
@@ -404,7 +393,6 @@ export default function EditRolePage() {
 
   const organizedPermissions = useMemo(() => getOrganizedPermissions(), [permissions]);
   
-  // استخراج permissions از API به صورت داینامیک
   const analyticsUsedPermissions = useMemo(() => {
     return getAnalyticsPermissions(permissions || []);
   }, [permissions]);
@@ -413,22 +401,17 @@ export default function EditRolePage() {
     return getAIPermissions(permissions || []);
   }, [permissions]);
   
-  // تشخیص منابع Standalone (is_standalone: True)
   const isStandaloneResource = (resource: any) => {
     const perms = resource.permissions || [];
     return perms.some((p: any) => p.is_standalone === true);
   };
 
-  // تشخیص منابع Admin-only (requires_superadmin: True)
   const isAdminOnlyResource = (resource: any) => {
     const perms = resource.permissions || [];
-    // اگر همه permissions نیاز به superadmin داشته باشند، admin-only است
     if (perms.length === 0) return false;
     return perms.every((p: any) => p.requires_superadmin === true);
   };
 
-  // منابع Standalone (settings, forms, chatbot, panel, pages)
-  // توجه: analytics و ai جداگانه نمایش داده می‌شوند
   const standaloneResources = useMemo(() => {
     return organizedPermissions.filter((r: any) => {
       // حذف analytics و ai (جداگانه نمایش داده می‌شوند)
@@ -438,19 +421,16 @@ export default function EditRolePage() {
       if (r.resource === 'ai' || r.resource?.startsWith('ai.')) {
         return false;
       }
-      // فقط resources با is_standalone: true
       return isStandaloneResource(r);
     });
   }, [organizedPermissions]);
 
-  // منابع Analytics
   const analyticsResources = useMemo(() => {
     const filtered = organizedPermissions.filter((r: any) => {
       // بررسی: resource name می‌تواند 'analytics' یا 'analytics.stats' و غیره باشد
       return r.resource === 'analytics' || r.resource?.startsWith('analytics.');
     });
     
-    // اگر چند resource analytics داریم، همه را در یک resource merge کنیم
     if (filtered.length > 1) {
       // حذف permissions تکراری بر اساس id
       const permissionMap = new Map<number, any>();
@@ -473,14 +453,11 @@ export default function EditRolePage() {
     return filtered;
   }, [organizedPermissions]);
 
-  // منابع AI
   const aiResources = useMemo(() => {
     const filtered = organizedPermissions.filter((r: any) => {
-      // بررسی: resource name می‌تواند 'ai' یا 'ai.chat' و غیره باشد
       return r.resource === 'ai' || r.resource?.startsWith('ai.');
     });
     
-    // اگر چند resource ai داریم، همه را در یک resource merge کنیم
     if (filtered.length > 1) {
       // حذف permissions تکراری بر اساس id
       const permissionMap = new Map<number, any>();
@@ -503,10 +480,8 @@ export default function EditRolePage() {
     return filtered;
   }, [organizedPermissions]);
 
-  // منابع Admin-only (admin)
   const adminOnlyResources = useMemo(() => {
     return organizedPermissions.filter((r: any) => {
-      // admin resource که همه permissions آن requires_superadmin هستند
       if (r.resource === 'admin' && isAdminOnlyResource(r)) {
         return true;
       }
@@ -514,32 +489,24 @@ export default function EditRolePage() {
     });
   }, [organizedPermissions]);
 
-  // منابع CRUD استاندارد (blog, portfolio, media, users, email, ticket, real_estate)
   const standardResources = useMemo(() => {
     return organizedPermissions.filter((r: any) => {
-      // حذف analytics و ai (جداگانه نمایش داده می‌شوند)
-      // بررسی: resource name می‌تواند 'analytics' یا 'analytics.stats' و غیره باشد
       if (r.resource === 'analytics' || r.resource?.startsWith('analytics.')) {
         return false;
       }
       if (r.resource === 'ai' || r.resource?.startsWith('ai.')) {
         return false;
       }
-      // حذف standalone resources (در بخش standalone نمایش داده می‌شوند)
-      // توجه: اگر یک resource دارای is_standalone باشد، باید در بخش standalone نمایش داده شود
       if (isStandaloneResource(r)) {
         return false;
       }
-      // حذف admin-only resources (در بخش admin-only نمایش داده می‌شوند)
       if (isAdminOnlyResource(r)) {
         return false;
       }
-      // بقیه resources در جدول CRUD نمایش داده می‌شوند
       return true;
     });
   }, [organizedPermissions]);
 
-  // بررسی: مطمئن شویم که همه permissions نمایش داده می‌شوند
   const allDisplayedResources = useMemo(() => {
     const displayed = [
       ...standaloneResources,
@@ -551,7 +518,6 @@ export default function EditRolePage() {
     return displayed;
   }, [standaloneResources, analyticsResources, aiResources, adminOnlyResources, standardResources]);
 
-  // بررسی: اگر تعداد resources نمایش داده شده با organizedPermissions متفاوت باشد، هشدار بده
   useEffect(() => {
     if (organizedPermissions.length > 0) {
       const displayedResourceNames = new Set(allDisplayedResources.map((r: any) => r.resource));
@@ -560,23 +526,6 @@ export default function EditRolePage() {
       const missing = Array.from(allResourceNames).filter(name => !displayedResourceNames.has(name));
       
       if (missing.length > 0) {
-        console.warn('⚠️ برخی permissions نمایش داده نشده‌اند:', {
-          total: organizedPermissions.length,
-          displayed: allDisplayedResources.length,
-          missing: missing.map(name => {
-            const resource = organizedPermissions.find((r: any) => r.resource === name);
-            return {
-              resource: name,
-              display_name: resource?.display_name,
-              permissions: resource?.permissions?.map((p: any) => ({
-                id: p.id,
-                action: p.action,
-                is_standalone: p.is_standalone,
-                requires_superadmin: p.requires_superadmin
-              }))
-            };
-          })
-        });
       }
     }
   }, [organizedPermissions, allDisplayedResources]);

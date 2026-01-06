@@ -94,7 +94,7 @@ export default function AdvisorsListPage() {
     {
       label: "حذف",
       icon: <Trash2 className="h-4 w-4" />,
-      onClick: (agent) => console.log("حذف:", agent.id),
+      onClick: (agent) => {},
       isDestructive: true,
     },
   ], [navigate]);

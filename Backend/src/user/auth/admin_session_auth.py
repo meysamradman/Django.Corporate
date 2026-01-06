@@ -50,52 +50,37 @@ class CSRFExemptSessionAuthentication(BaseAuthentication):
         return (user, None)
     
     def _get_user_from_session(self, session_key):
-        import logging
-        logger = logging.getLogger(__name__)
-        
         try:
-            logger.info(f'[SessionAuth] 🔍 Checking session: {session_key[:20]}...')
             user_id = self.session_manager.get_admin_session(session_key)
             
             if user_id:
-                logger.info(f'[SessionAuth] ✅ Found user_id in Redis: {user_id}')
                 try:
                     user = User.objects.get(id=user_id)
-                    logger.info(f'[SessionAuth] ✅ User found: {user.id}')
                     return user
                 except User.DoesNotExist:
-                    logger.warning(f'[SessionAuth] ❌ User {user_id} not found - deleting session')
                     self.session_manager.delete_admin_session(session_key)
                     return None
             
-            logger.info(f'[SessionAuth] ⚠️ No user_id in Redis, checking Django Session...')
             try:
                 session = Session.objects.get(session_key=session_key)
                 
                 if session.expire_date < timezone.now():
-                    logger.warning(f'[SessionAuth] ❌ Session expired! Expire: {session.expire_date}, Now: {timezone.now()}')
                     session.delete()
                     return None
                 
-                logger.info(f'[SessionAuth] ✅ Session valid, expire_date: {session.expire_date}')
                 session_data = session.get_decoded()
                 user_id = session_data.get('_auth_user_id')
                 
                 if user_id:
-                    logger.info(f'[SessionAuth] ✅ Found user_id in session data: {user_id}')
                     user = User.objects.get(id=user_id)
                     self.session_manager.set_admin_session(session_key, user_id, self.session_timeout)
-                    logger.info(f'[SessionAuth] ✅ Session refreshed in Redis')
                     return user
             except Session.DoesNotExist:
-                logger.warning(f'[SessionAuth] ❌ Session not found in database')
                 pass
             
         except Exception as e:
-            logger.error(f'[SessionAuth] ❌ Error: {str(e)}', exc_info=True)
             pass
         
-        logger.warning(f'[SessionAuth] ❌ No user found for session: {session_key[:20]}...')
         return None
     
     def _is_valid_admin_user(self, user):

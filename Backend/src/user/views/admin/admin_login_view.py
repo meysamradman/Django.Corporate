@@ -17,13 +17,10 @@ from src.user.access_control import BASE_ADMIN_PERMISSIONS
 from src.user.services.admin.admin_session_service import AdminSessionService
 from rest_framework.exceptions import AuthenticationFailed, ValidationError
 from django.core.exceptions import ValidationError as DjangoValidationError
-import logging
 
 BASE_ADMIN_PERMISSIONS_SIMPLE = list(BASE_ADMIN_PERMISSIONS.keys())
 from src.user.models import AdminUserRole
 import os
-
-logger = logging.getLogger(__name__)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -34,7 +31,6 @@ class AdminLoginView(APIView):
     parser_classes = [JSONParser]
 
     def get(self, request):
-        # پاک کردن session موجود (برای جلوگیری از session جدید)
         self._cleanup_session(request)
         
         csrf_token = get_token(request)
@@ -43,7 +39,6 @@ class AdminLoginView(APIView):
             data={'csrf_token': csrf_token}
         )
         
-        # پاک کردن cookie اگر session موجود بود
         if hasattr(request, '_session_cleaned') and request._session_cleaned:
             response.delete_cookie(
                 'sessionid',
@@ -59,7 +54,6 @@ class AdminLoginView(APIView):
         return response
     
     def _cleanup_session(self, request):
-        """پاک کردن session موجود برای جلوگیری از session جدید"""
         session_key = request.session.session_key
         if session_key:
             try:
@@ -73,7 +67,6 @@ class AdminLoginView(APIView):
                 pass
 
     def post(self, request):
-        # پاک کردن session موجود قبل از login
         self._cleanup_session(request)
         
         ip = self._get_client_ip(request)
@@ -109,7 +102,6 @@ class AdminLoginView(APIView):
             )
             
             if admin:
-                # ✅ چک کامل و یکپارچه (بدون redundant)
                 if not (admin.user_type == 'admin' and 
                         admin.is_staff and 
                         getattr(admin, 'is_admin_active', False)):
@@ -164,7 +156,6 @@ class AdminLoginView(APIView):
                     }
                 )
                 
-                # Set session cookie
                 session_timeout = settings.ADMIN_SESSION_TIMEOUT_SECONDS
                 response.set_cookie(
                     'sessionid',
@@ -178,7 +169,6 @@ class AdminLoginView(APIView):
                 )
                 
                 csrf_token = get_token(request)
-                # ✅ CSRF cookie باید همزمان با session منقضی شود (3 روز)
                 csrf_max_age = settings.ADMIN_SESSION_TIMEOUT_SECONDS
                 response.set_cookie(
                     'csrftoken',
@@ -208,17 +198,13 @@ class AdminLoginView(APIView):
                 status_code=400
             )
         except Exception as e:
-            logger.error(
-                f'[AdminLogin] Unexpected error - Mobile: {mobile}, IP: {ip}, Error: {str(e)}',
-                exc_info=True
-            )
+            pass
             return APIResponse.error(
                 message=AUTH_ERRORS["auth_invalid_credentials"],
                 status_code=500
             )
     
     def _get_client_ip(self, request):
-        """دریافت IP کاربر"""
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
             ip = x_forwarded_for.split(',')[0].strip()

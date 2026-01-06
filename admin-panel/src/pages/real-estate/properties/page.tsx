@@ -66,7 +66,6 @@ export default function PropertyPage() {
   const [_states, setStates] = useState<PropertyState[]>([]);
   const [stateOptions, setStateOptions] = useState<{ label: string; value: string }[]>([]);
 
-  // ✅ فقط شهرهایی که ملک دارند
   const [cityOptions, setCityOptions] = useState<{ label: string; value: string }[]>([]);
   const [statusOptions, setStatusOptions] = useState<{ label: string; value: string }[]>([]);
 
@@ -125,7 +124,7 @@ export default function PropertyPage() {
         const [typesResponse, statesResponse, citiesResponse] = await Promise.all([
           realEstateApi.getTypes({ page: 1, size: 1000, is_active: true }),
           realEstateApi.getStates({ page: 1, size: 1000, is_active: true }),
-          realEstateApi.getCitiesWithProperties(), // ✅ فقط شهرهای دارای ملک
+          realEstateApi.getCitiesWithProperties(),
         ]);
 
         setPropertyTypes(typesResponse.data);
@@ -134,13 +133,11 @@ export default function PropertyPage() {
         setStates(statesResponse.data);
         setStateOptions(statesResponse.data.map((s: PropertyState) => ({ label: s.title, value: s.id.toString() })));
 
-        // ✅ تبدیل شهرها به فرمت options
         setCityOptions(citiesResponse.map(city => ({
           label: `${city.name} (${(city as any).property_count || 0} ملک)`,
           value: city.id.toString()
         })));
 
-        // ✅ دریافت گزینه‌های وضعیت فرآیند
         const fieldOptions = await realEstateApi.getFieldOptions();
         if (fieldOptions.status) {
           setStatusOptions(fieldOptions.status.map(([value, label]) => ({ label, value })));

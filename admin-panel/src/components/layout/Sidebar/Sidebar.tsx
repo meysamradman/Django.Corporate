@@ -325,10 +325,8 @@ function MenuItemsList({ items }: MenuItemsListProps) {
     return groups;
   }, [items]);
 
-  // همه گروه‌ها همیشه باز هستند
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
 
-  // وقتی groupedItems تغییر می‌کند، همه گروه‌ها را باز کن
   useEffect(() => {
     const allKeys = new Set<string>();
     groupedItems.forEach((group, idx) => {

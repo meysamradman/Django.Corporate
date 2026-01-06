@@ -56,7 +56,6 @@ export function ExtraAttributesTab({
     const [isLoading, setIsLoading] = useState(true);
     const [fieldOptions, setFieldOptions] = useState<any>(null);
 
-    // Dialog states
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingKey, setEditingKey] = useState<string | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -75,7 +74,6 @@ export function ExtraAttributesTab({
                 const options = await realEstateApi.getFieldOptions();
                 setFieldOptions(options.extra_attributes_options || {});
             } catch (error) {
-                console.error('Error fetching field metadata:', error);
             } finally {
                 setIsLoading(false);
             }
@@ -185,7 +183,6 @@ export function ExtraAttributesTab({
         );
     }
 
-    // Filter out predefined keys for the custom attributes table
     const customAttributes = Object.entries(currentAttributes).filter(([key]) => !PREDEFINED_KEYS.includes(key));
 
     return (

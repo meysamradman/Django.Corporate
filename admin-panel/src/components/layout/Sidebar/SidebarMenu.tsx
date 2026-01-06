@@ -400,7 +400,6 @@ export const useMenuData = () => {
 
   const { data: featureFlagsRaw = {} } = useFeatureFlags();
 
-  // Auto-generate fallbackModules and mapping from permissions API
   const moduleFallbacksMap = useMemo(() => {
     const map: Record<string, string[]> = {};
     const frontendToBackendMap: Record<string, string> = {};
@@ -415,20 +414,16 @@ export const useMenuData = () => {
 
       const nestedResources: string[] = [];
 
-      // Extract nested resources from permissions
       group.permissions?.forEach((perm: any) => {
         const originalKey = perm.original_key || `${perm.resource}.${perm.action}`;
         const parts = originalKey.split('.');
 
         if (parts.length > 2) {
-          // Nested resource (e.g., 'blog.category.read' -> 'blog.category')
           const nestedResource = parts.slice(0, -1).join('.');
 
           if (nestedResource !== baseResource && !nestedResources.includes(nestedResource)) {
             nestedResources.push(nestedResource);
 
-            // Create frontend-to-backend mapping (e.g., 'blog_categories' -> 'blog.category')
-            // Convert dot notation to underscore for frontend (legacy compatibility)
             const frontendName = nestedResource.replace(/\./g, '_');
             if (!frontendToBackendMap[frontendName]) {
               frontendToBackendMap[frontendName] = nestedResource;
@@ -508,25 +503,18 @@ export const useMenuData = () => {
       ? (access.actions.map(a => a as ModuleAction))
       : ["read"];
 
-    // Use auto-generated mapping from permissions API
     const FRONTEND_TO_BACKEND_MODULE_MAP = moduleFallbacksMap.mapping;
 
-    // Map primary module if needed
     const mappedPrimaryModule = primaryModule
       ? (FRONTEND_TO_BACKEND_MODULE_MAP[primaryModule] || primaryModule)
       : null;
 
-    // Check if primaryModule is a nested module (e.g., 'real_estate.type')
-    // For nested modules, we should NOT use fallbackModules - only check the specific module
     const isNestedModule = mappedPrimaryModule && mappedPrimaryModule.includes('.');
 
-    // Auto-generate fallbackModules only if primaryModule is NOT a nested module
-    // For nested modules, we want strict checking - only check that specific module
     const autoFallbackModules = !isNestedModule && primaryModule && moduleFallbacksMap.fallbacks[primaryModule]
       ? moduleFallbacksMap.fallbacks[primaryModule]
       : [];
 
-    // Combine provided fallbackModules with auto-generated ones (only if not nested)
     const allFallbackModules = isNestedModule
       ? [] // No fallbacks for nested modules - strict checking only
       : [...new Set([...fallbackModules, ...autoFallbackModules])];
@@ -539,15 +527,12 @@ export const useMenuData = () => {
     const fallbackProfiles = mappedFallbackModules.map(module => getModuleAccessProfile(module));
     const hasFallbackRead = fallbackProfiles.some(profile => profile.canRead);
 
-    // For nested modules, use strict checking (don't check parent)
-    // For base modules, use normal checking (can check fallbacks)
     const hasPrimaryRead = mappedPrimaryModule
       ? (isNestedModule
         ? hasModuleActionStrict(mappedPrimaryModule, 'read')
         : (primaryProfile?.canRead ?? false))
       : false;
 
-    // Check if user has access to requested actions (use mapped primary module)
     const hasPrimaryActions = mappedPrimaryModule
       ? (isNestedModule
         ? requestedActions.some(action => hasModuleActionStrict(mappedPrimaryModule, action))
@@ -564,13 +549,10 @@ export const useMenuData = () => {
       return { visible: hideIfNoAccess ? hasFallbackRead : true };
     }
 
-    // If specific actions are requested (not just read), check them strictly
     const hasSpecificActions = access.actions && access.actions.length > 0 && !requestedActions.every(a => READ_ACTIONS.has(a));
 
     if (hasSpecificActions) {
-      // For items with specific actions (like "create"), check if user has that action
       if (!hasPrimaryActions) {
-        // Check fallback modules (with mapping)
         const hasFallbackActions = mappedFallbackModules.some(module =>
           requestedActions.some(action => hasModuleAction(module, action))
         );
@@ -590,7 +572,6 @@ export const useMenuData = () => {
         };
       }
     } else {
-      // For items that only need read access
       if (!hasPrimaryRead) {
         if (hasFallbackRead) {
           return {

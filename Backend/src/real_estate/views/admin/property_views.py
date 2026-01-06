@@ -38,7 +38,6 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     ordering = ['-is_featured', '-published_at', '-created_at']
     pagination_class = StandardLimitPagination
     
-    # ✅ تعریف یکجا برای همه permissions
     permission_map = {
         'list': 'real_estate.property.read',
         'retrieve': 'real_estate.property.read',
@@ -70,12 +69,10 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         if self.action == 'list':
             queryset = Property.objects.for_admin_listing()
         elif self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
-            # Ensure region and related location fields are loaded for updates
             queryset = Property.objects.for_detail().select_related(
                 'region__city__province__country'
             )
 
-        # 🔒 Role-based filtering (Own Properties Only)
         is_super = getattr(user, 'is_superuser', False) or getattr(user, 'is_admin_full', False)
         if not is_super:
             has_agent_role = hasattr(user, 'admin_user_roles') and user.admin_user_roles.filter(
@@ -160,9 +157,6 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         return media_ids
     
     def create(self, request, *args, **kwargs):
-        print(f"CREATE REQUEST DATA: {request.data}")
-        print(f"CREATE FILES: {request.FILES}")
-
         media_ids = self._extract_media_ids(request)
         media_files = request.FILES.getlist('media_files')
         
@@ -177,9 +171,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         
         serializer = self.get_serializer(data=request.data)
         
-        # Debug validation errors
         if not serializer.is_valid():
-            print(f"❌ VALIDATION ERRORS: {serializer.errors}")
             return APIResponse.error(
                 message=PROPERTY_ERRORS["property_validation_failed"],
                 errors=serializer.errors,
@@ -213,9 +205,6 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        print(f"UPDATE REQUEST DATA: {request.data}")
-        print(f"UPDATE FILES: {request.FILES}")
-
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         
@@ -639,7 +628,6 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             get_property_status_choices_list,
         )
         
-        # ✅ Static Choices از Model
         options = {
             'bedrooms': Property.BEDROOM_CHOICES,
             'bathrooms': Property.BATHROOM_CHOICES,
@@ -650,10 +638,8 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             'living_rooms': Property.LIVING_ROOM_CHOICES,
             'status': get_property_status_choices_list(),
             
-            # ✅ Document Type از Constants (CharField field)
             'document_type': get_document_type_choices_list(),
             
-            # ✅ Extra Attributes Options از Constants (JSONField options)
             'extra_attributes_options': {
                 'space_type': get_space_type_choices_list(),
                 'construction_status': get_construction_status_choices_list(),

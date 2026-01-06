@@ -64,29 +64,24 @@ export default function FloorPlansTab({
     images: [],
   });
 
-  // Media state for new floor plan
   const [selectedImages, setSelectedImages] = useState<Media[]>([]);
 
-  // Sync with tempFloorPlans
   useEffect(() => {
     if (!propertyId && tempFloorPlans) {
       setFloorPlans(tempFloorPlans);
     }
   }, [tempFloorPlans, propertyId]);
 
-  // Sync with parent state whenever floorPlans changes (for create mode)
   useEffect(() => {
     if (!propertyId && onTempFloorPlansChange) {
       onTempFloorPlansChange(floorPlans);
     }
   }, [floorPlans, propertyId, onTempFloorPlansChange]);
 
-  // Load floor plans if editing
   useEffect(() => {
     if (propertyId && editMode) {
       loadFloorPlans();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [propertyId, editMode]);
 
   const loadFloorPlans = async () => {
@@ -97,7 +92,6 @@ export default function FloorPlansTab({
       const plans = await realEstateApi.getFloorPlans(propertyId);
       setFloorPlans(plans || []);
     } catch (error) {
-      console.error("Error loading floor plans:", error);
       showError("خطا در بارگذاری پلان‌های طبقات");
     } finally {
       setIsLoading(false);
@@ -119,7 +113,6 @@ export default function FloorPlansTab({
       return;
     }
 
-    // In create mode (no propertyId), we just add to the local list
     if (!propertyId) {
       const tempId = floorPlans.length + 1;
       const planWithImages = {
@@ -159,7 +152,6 @@ export default function FloorPlansTab({
       showSuccess("پلان با موفقیت اضافه شد");
       resetForm();
     } catch (error) {
-      console.error("Error saving floor plan:", error);
       showError(error);
     } finally {
       setIsLoading(false);
@@ -192,7 +184,6 @@ export default function FloorPlansTab({
       return;
     }
 
-    // Handle temporary plan deletion (negative IDs)
     if (id < 0) {
       setFloorPlans(prev => prev.filter(p => p.id !== id));
       showSuccess("پلان موقت حذف شد");
@@ -207,7 +198,6 @@ export default function FloorPlansTab({
       setFloorPlans(prev => prev.filter(plan => plan.id !== id));
       showSuccess("پلان با موفقیت حذف شد");
     } catch (error) {
-      console.error("Error deleting floor plan:", error);
       showError(error);
     } finally {
       setIsLoading(false);

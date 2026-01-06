@@ -1,6 +1,3 @@
-"""
-Analytics Statistics Services - سرویس‌های آماری
-"""
 from .dashboard_stats_service import DashboardStatsService
 from .admins_stats_service import AdminStatsService
 from .users_stats_service import UserStatsService

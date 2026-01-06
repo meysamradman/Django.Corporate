@@ -26,7 +26,6 @@ import { cn } from "@/core/utils/cn";
 import { formatNumber } from "@/core/utils/format";
 import type { ReactNode } from "react";
 
-// --- LOCAL STATCARD COMPONENT ---
 interface StatCardProps {
   title: string;
   value: string | number;
@@ -113,7 +112,6 @@ function StatCard({
   );
 }
 
-// --- MOCK DATA FOR UI VISUALIZATION ---
 const MOCK_STATS: PropertyStatistics = {
   generated_at: new Date().toISOString(),
   properties: {
@@ -178,12 +176,10 @@ const MOCK_MONTHLY_STATS = [
 ];
 
 export function RealEstateStatisticsOverview() {
-  // USE MOCK DATA DIRECTLY
   const stats = MOCK_STATS;
   const monthlyStats = MOCK_MONTHLY_STATS;
   const isLoading = false;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const error = null;
 
   return (

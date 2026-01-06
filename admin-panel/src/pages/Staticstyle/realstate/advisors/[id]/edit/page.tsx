@@ -264,7 +264,6 @@ export default function AdvisorEditPage() {
 
   const handleSave = () => {
     setIsSaving(true);
-    console.log("Saving data:", formData);
     setTimeout(() => {
       setIsSaving(false);
       navigate("/staticstyle/realstate/advisors/list");
@@ -273,7 +272,6 @@ export default function AdvisorEditPage() {
 
   const handleSaveDraft = () => {
     setIsSaving(true);
-    console.log("Saving draft:", formData);
     setTimeout(() => {
       setIsSaving(false);
       navigate("/staticstyle/realstate/advisors/list");

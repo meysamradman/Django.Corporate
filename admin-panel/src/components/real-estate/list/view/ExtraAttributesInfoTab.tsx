@@ -36,7 +36,6 @@ export function ExtraAttributesInfoTab({ property }: ExtraAttributesInfoTabProps
 
         setValueLabels(labels);
       } catch (error) {
-        console.error('Error fetching labels:', error);
       } finally {
         setIsLoading(false);
       }

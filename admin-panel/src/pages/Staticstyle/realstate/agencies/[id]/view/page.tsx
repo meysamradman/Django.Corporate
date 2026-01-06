@@ -22,7 +22,6 @@ import {
   MapPin,
 } from "lucide-react";
 
-// نوع داده استاتیک برای آژانس‌های املاک
 interface AgencyItem {
   id: number;
   name: string;
@@ -38,7 +37,6 @@ interface AgencyItem {
   description?: string;
 }
 
-// داده استاتیک نمونه
 const getStaticAgencyData = (id: string): AgencyItem | null => {
   const staticData: AgencyItem[] = [
     {
@@ -103,7 +101,6 @@ const getStaticAgencyData = (id: string): AgencyItem | null => {
   return item || null;
 };
 
-// کامپوننت Sidebar
 function AgencySidebar({ agency }: { agency: AgencyItem }) {
   const formatDate = (dateString: string) => {
     if (!dateString) return "نامشخص";
@@ -378,7 +375,6 @@ export default function AgencyViewPage() {
         <>
           <Button
             variant="outline"
-            onClick={() => console.log("Export PDF for", agencyItem.id)}
           >
             <FileDown className="h-4 w-4" />
             خروجی PDF

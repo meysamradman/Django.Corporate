@@ -53,7 +53,6 @@ export function ConsultantTab({
 
     const agencies = agenciesResponse?.data || [];
 
-    // Get agent profile from admin data
     const agentProfile = admin.agent_profile;
 
     if (!agentProfile && admin.user_role_type !== 'consultant') {

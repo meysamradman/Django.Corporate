@@ -91,7 +91,6 @@ export default function PropertyStatesPage() {
         setFieldOptions(options);
         setUsageTypeOptions(options.usage_type.map(([value, label]) => ({ label, value })));
       } catch (error) {
-        console.error("Error fetching state field options:", error);
       }
     };
     fetchOptions();

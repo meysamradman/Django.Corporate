@@ -67,7 +67,6 @@ export const propertyFormSchema = z.object({
         .nullable()
         .optional(),
 
-    // Location fields
     province: z
         .number({ message: msg.realEstate().validation.provinceRequired })
         .int()
@@ -120,7 +119,6 @@ export const propertyFormSchema = z.object({
         .nullable()
         .optional(),
 
-    // Details
     land_area: z
         .number()
         .min(0, { message: msg.realEstate().validation.landAreaMin })
@@ -223,7 +221,6 @@ export const propertyFormSchema = z.object({
         .nullable()
         .optional(),
 
-    // Pricing
     price: z
         .number()
         .int()
@@ -280,7 +277,6 @@ export const propertyFormSchema = z.object({
         .nullable()
         .optional(),
 
-    // SEO fields
     meta_title: z
         .string()
         .max(70, { message: msg.validation("metaTitleMaxLength") })
@@ -321,7 +317,6 @@ export const propertyFormSchema = z.object({
         .optional()
         .or(z.literal("")),
 
-    // Settings
     is_public: z
         .boolean()
         .default(true)
@@ -347,7 +342,6 @@ export const propertyFormSchema = z.object({
         .optional()
         .default({}),
 
-    // Relations
     labels_ids: z
         .array(z.number())
         .default([]),

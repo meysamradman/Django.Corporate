@@ -253,7 +253,6 @@ class Property(BaseModel, SEOMixin):
     
     @classmethod
     def get_current_shamsi_year(cls):
-        """دریافت سال شمسی فعلی"""
         try:
             import jdatetime
             return jdatetime.datetime.now().year
@@ -681,12 +680,10 @@ class Property(BaseModel, SEOMixin):
     
     @property
     def country_code(self):
-        """کد کشور (همیشه ایران)"""
         return "IR"
     
     @property
     def country_name(self):
-        """نام کشور (همیشه ایران)"""
         return "ایران"
     
     def __str__(self):

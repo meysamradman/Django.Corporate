@@ -42,7 +42,6 @@ interface LocationMarkerProps {
   disabled?: boolean;
 }
 
-// Component to change map view when location changes
 function ChangeView({
   center,
   zoom
@@ -55,16 +54,11 @@ function ChangeView({
   useEffect(() => {
     if (!map) return;
 
-    // Ensure center is valid numbers
     if (center && Array.isArray(center) && center.length === 2 &&
       !isNaN(center[0]) && !isNaN(center[1])) {
 
-      console.log("🗺️ ChangeView Triggered. Move from:", map.getCenter(), "to:", center);
-
-      // Invalidate size to ensure map is rendered correctly
       map.invalidateSize();
 
-      // Use setView for reliable instant movement
       map.setView(center, zoom, {
         animate: true,
         duration: 0.5
@@ -75,7 +69,6 @@ function ChangeView({
   return null;
 }
 
-// Component to handle map click events
 function MapClickHandler({
   onMapClick,
   disabled
@@ -165,9 +158,7 @@ export default function PropertyLocationMap({
     }
   }, [latitude, longitude]);
 
-  // Handle View/City Navigation Changes (City/Province Zoom)
   useEffect(() => {
-    // Case 1: We have explicit Coordinates from DB (viewLatitude/viewLongitude)
     if (viewLatitude !== null && viewLongitude !== null && viewLatitude !== undefined && viewLongitude !== undefined) {
       const lat = Number(viewLatitude);
       const lng = Number(viewLongitude);
@@ -175,15 +166,12 @@ export default function PropertyLocationMap({
       if (!isNaN(lat) && !isNaN(lng)) {
         setMapCenter([lat, lng]);
 
-        // Dynamic Zoom: Province (~9), City (~13)
-        // If cityName is present, it's likely a city view
         const zoom = cityName ? 13 : 9;
         setMapZoom(zoom);
       }
       return;
     }
 
-    // Case 2: No DB Coordinates, but we have a City Name -> Try to fetch dynamically
     if (cityName && (!viewLatitude || !viewLongitude)) {
       const normalizedCityName = cityName.replace(/^شهر\s+/, '').trim();
 
@@ -200,12 +188,9 @@ export default function PropertyLocationMap({
             setMapCenter([lat, lon]);
             setMapZoom(13);
           } else {
-            // Fallback to province center if city not found
-            console.warn(`⚠️ City not found in Nominatim: ${normalizedCityName}. Falling back to Province.`);
             fallbackToProvince();
           }
         } catch (e) {
-          console.error("Error fetching city coords:", e);
           fallbackToProvince();
         } finally {
           setIsGeocoding(false);
@@ -234,21 +219,17 @@ export default function PropertyLocationMap({
       );
       const data = await response.json();
 
-      // Process and format the address
       return formatAddress(data);
     } catch (error) {
-      console.error('Error fetching address from Nominatim:', error);
       return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
     }
   };
 
-  // Format address to be more readable and standardized
   const formatAddress = (data: any): string => {
     if (!data) {
       return `${latitude?.toFixed(6) || '0'}, ${longitude?.toFixed(6) || '0'}`;
     }
 
-    // If no address details, return display_name or coordinates
     if (!data.address) {
       return data.display_name || `${latitude?.toFixed(6) || '0'}, ${longitude?.toFixed(6) || '0'}`;
     }
@@ -257,7 +238,6 @@ export default function PropertyLocationMap({
     const parts: string[] = [];
 
     if (addr.state) {
-      // Remove "استان" prefix if exists and add it back
       const province = addr.state.replace(/^استان\s+/, '').replace(/^استان\s+/, '');
       parts.push(`استان ${province}`);
     }
@@ -269,19 +249,15 @@ export default function PropertyLocationMap({
         cleanCity = city.replace(/\s*شهر\s+تهران\s*/gi, 'تهران').trim();
       }
 
-      // Inclusion logic: Always include city after province as requested
       if (cleanCity) {
         parts.push(cleanCity);
       }
     }
 
-    // Neighborhood (محله) - THIRD
     let neighborhood = addr.locality || addr.neighbourhood;
-    // If neighborhood looks like a Region, clear it so it can be handled in Region section
     if (neighborhood && (neighborhood.includes('منطقه') || neighborhood.includes('District'))) {
       neighborhood = null;
     }
-    // If neighborhood still empty, try suburb but ONLY if it doesn't look like a Region
     if (!neighborhood && addr.suburb && !addr.suburb.includes('منطقه') && !addr.suburb.includes('District')) {
       neighborhood = addr.suburb;
     }
@@ -315,25 +291,20 @@ export default function PropertyLocationMap({
       }
     }
 
-    // Street (خیابان)
     if (addr.road || addr.pedestrian || addr.path) {
       const street = addr.road || addr.pedestrian || addr.path;
       parts.push(`خیابان ${street}`);
     }
 
-    // House number (پلاک)
     if (addr.house_number) {
       parts.push(`پلاک ${addr.house_number}`);
     }
 
     if (parts.length > 0) {
-      // Clean final result to remove any remaining duplicates
       let finalAddress = parts.join(', ');
 
-      // Remove duplicate "تهران" occurrences
       const tehranMatches = finalAddress.match(/تهران/g);
       if (tehranMatches && tehranMatches.length > 1) {
-        // Keep only the first occurrence
         finalAddress = finalAddress.replace(/تهران/g, (match, offset, string) => {
           return offset === string.indexOf('تهران') ? match : '';
         }).replace(/,\s*,/g, ',').replace(/^,\s*|,?\s*$/g, '');
@@ -345,7 +316,6 @@ export default function PropertyLocationMap({
     return data.display_name || `${latitude?.toFixed(6) || '0'}, ${longitude?.toFixed(6) || '0'}`;
   };
 
-  // Helper to convert Farsi/Arabic digits to English
   const toEnglishDigits = (str: string) => {
     return str.replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString())
       .replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d).toString());
@@ -354,7 +324,6 @@ export default function PropertyLocationMap({
   const handlePositionChange = async (lat: number, lng: number) => {
     onLocationChange(lat, lng);
 
-    // Get address from Nominatim
     if (onAddressUpdate) {
       setIsGeocoding(true);
 
@@ -363,17 +332,13 @@ export default function PropertyLocationMap({
         if (address) {
           onAddressUpdate(address);
 
-          // Extract neighborhood from formatted address
           let extractedNeighborhood = '';
 
-          // Split by comma and find the most relevant neighborhood part
           const addressParts = address.split(', ');
 
-          // Priority: look for parts that contain neighborhood indicators
           for (const part of addressParts) {
             const trimmedPart = part.trim();
 
-            // Skip system parts
             if (trimmedPart.startsWith('ایران') ||
               trimmedPart.startsWith('استان') ||
               trimmedPart.startsWith('شهر') ||
@@ -382,7 +347,6 @@ export default function PropertyLocationMap({
               continue;
             }
 
-            // Check for neighborhood indicators
             if (trimmedPart.includes('ناحیه') ||
               trimmedPart.includes('کوی') ||
               trimmedPart.includes('محله') ||
@@ -391,7 +355,6 @@ export default function PropertyLocationMap({
               trimmedPart.includes('چهارراه') ||
               trimmedPart.includes('تقاطع')) {
 
-              // Clean and extract
               let cleanPart = trimmedPart.replace(/\d{5}-\d{5}/g, '').trim();
               cleanPart = cleanPart.replace(/\d{5}/g, '').trim();
               cleanPart = cleanPart.replace(/\s+/g, ' ').trim();
@@ -403,12 +366,10 @@ export default function PropertyLocationMap({
             }
           }
 
-          // Fallback: use the most relevant remaining part
           if (!extractedNeighborhood) {
             for (const part of addressParts) {
               const trimmedPart = part.trim();
 
-              // Skip all system parts
               if (trimmedPart.startsWith('ایران') ||
                 trimmedPart.startsWith('استان') ||
                 trimmedPart.startsWith('شهر') ||
@@ -426,37 +387,27 @@ export default function PropertyLocationMap({
             }
           }
 
-          // If we extracted a neighborhood and have a callback, use it
           if (extractedNeighborhood && extractedNeighborhood !== cityName && onNeighborhoodUpdate) {
             onNeighborhoodUpdate(extractedNeighborhood);
-            console.log('✅ Auto-filled neighborhood:', extractedNeighborhood);
-          } else {
-            console.log('⚠️ No valid neighborhood found or neighborhood is city name');
           }
 
 
-          // Try to detect region for Tehran based on coordinates and address
           if (onRegionUpdate && address) {
-            // Convert to English digits for reliable parsing
             const normalizedAddress = toEnglishDigits(address);
 
-            // Regex to find "منطقه X" where X is 1-22
             const regionMatch = normalizedAddress.match(/منطقه\s*(\d+)/i) || normalizedAddress.match(/District\s*(\d+)/i);
 
             if (regionMatch) {
               const detectedRegion = parseInt(regionMatch[1]);
               if (detectedRegion >= 1 && detectedRegion <= 22) {
                 onRegionUpdate(detectedRegion);
-                console.log('✅ Auto-detected region:', detectedRegion);
               }
             } else if (cityName === 'تهران') {
-              // Fallback for Tehran if logic above fails - though we should aim for better detection
               onRegionUpdate(11);
             }
           }
         }
       } catch (error) {
-        console.error("Error in reverse geocoding:", error);
         showError("خطا در یافتن آدرس از موقعیت جغرافیایی");
       } finally {
         setIsGeocoding(false);

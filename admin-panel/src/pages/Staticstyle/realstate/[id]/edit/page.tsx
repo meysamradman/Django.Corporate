@@ -161,12 +161,9 @@ export default function RealEstateEditPage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // در آینده می‌تواند به API ارسال شود
-      console.log("ذخیره داده‌ها:", formData);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // شبیه‌سازی API
+      await new Promise(resolve => setTimeout(resolve, 1000));
       navigate("/staticstyle/realstate/list");
     } catch (error) {
-      console.error("خطا در ذخیره:", error);
     } finally {
       setIsSaving(false);
     }
@@ -175,12 +172,9 @@ export default function RealEstateEditPage() {
   const handleSaveDraft = async () => {
     setIsSaving(true);
     try {
-      // در آینده می‌تواند به API ارسال شود
-      console.log("ذخیره پیش‌نویس:", formData);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // شبیه‌سازی API
+      await new Promise(resolve => setTimeout(resolve, 1000));
       navigate("/staticstyle/realstate/list");
     } catch (error) {
-      console.error("خطا در ذخیره پیش‌نویس:", error);
     } finally {
       setIsSaving(false);
     }

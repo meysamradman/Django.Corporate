@@ -214,7 +214,6 @@ export const realEstateApi = {
     return response.data;
   },
 
-  // ✅ NEW: Get field options for dropdowns (Complete with Extra Attributes)
   getFieldOptions: async (): Promise<{
     bedrooms: [number, string][];
     bathrooms: [number, string][];
@@ -535,7 +534,6 @@ export const realEstateApi = {
     return response.data;
   },
 
-  // ✅ Floor Plans APIs
   getFloorPlans: async (propertyId?: number): Promise<any[]> => {
     let url = '/admin/floor-plan/';
     if (propertyId) {
@@ -553,7 +551,6 @@ export const realEstateApi = {
   createFloorPlan: async (data: any): Promise<any> => {
     const formData = new FormData();
 
-    // Add basic fields
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null && key !== 'image_files' && key !== 'image_ids') {
         if (typeof value === 'object' && !(value instanceof File)) {
@@ -564,14 +561,12 @@ export const realEstateApi = {
       }
     });
 
-    // Add image files if provided
     if (data.image_files && Array.isArray(data.image_files)) {
       data.image_files.forEach((file: File) => {
         formData.append('image_files', file);
       });
     }
 
-    // Add image IDs if provided
     if (data.image_ids && Array.isArray(data.image_ids) && data.image_ids.length > 0) {
       formData.append('image_ids', data.image_ids.join(','));
     }
@@ -589,7 +584,6 @@ export const realEstateApi = {
     await api.delete('/admin/floor-plan/' + id + '/');
   },
 
-  // Floor Plan Media Management
   addFloorPlanImages: async (floorPlanId: number, imageFiles: File[], imageIds?: number[]): Promise<any> => {
     const formData = new FormData();
 
@@ -851,7 +845,6 @@ export const realEstateApi = {
     return exportProperties(filters, format);
   },
 
-  // Real Estate Location APIs
   getProvinces: async (): Promise<RealEstateProvince[]> => {
     const response = await api.get<RealEstateProvince[]>('/admin/real-estate-provinces/');
     return response.data || [];
@@ -862,7 +855,6 @@ export const realEstateApi = {
     return response.data || [];
   },
 
-  // ✅ NEW: Get cities that have properties (for filters)
   getCitiesWithProperties: async (provinceId?: number): Promise<RealEstateCity[]> => {
     let url = '/admin/real-estate-cities/?has_properties=true';
     if (provinceId) {
@@ -872,7 +864,6 @@ export const realEstateApi = {
     return response.data || [];
   },
 
-  // Simplified location APIs
   getCityRegions: async (cityId?: number): Promise<RealEstateCityRegion[]> => {
     let url = '/admin/real-estate-city-regions/';
     if (cityId) {

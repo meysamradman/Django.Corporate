@@ -17,7 +17,6 @@ import { formatDate } from "@/core/utils/format";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
 
-// نوع داده استاتیک برای املاک
 interface RealEstateItem {
   id: number;
   title: string;
@@ -32,7 +31,6 @@ interface RealEstateItem {
   is_active: boolean;
 }
 
-// داده‌های استاتیک نمونه
 const staticRealEstateData: RealEstateItem[] = [
   {
     id: 1,
@@ -101,7 +99,6 @@ const staticRealEstateData: RealEstateItem[] = [
   },
 ];
 
-// تعریف ستون‌های جدول
 const getRealEstateColumns = (
   actions: DataTableRowAction<RealEstateItem>[],
   navigate: (path: string) => void,
@@ -351,7 +348,6 @@ const getRealEstateColumns = (
   },
 ];
 
-// فیلترهای استاتیک
 const getRealEstateFilterConfig = (): FilterConfig[] => [
   {
     columnId: "status",
@@ -414,9 +410,7 @@ export default function RealEstateListPage() {
     is_active: undefined,
   });
 
-  // فیلتر کردن داده‌های استاتیک بر اساس فیلترها و جستجو
   const filteredData = staticRealEstateData.filter((item) => {
-    // جستجو
     if (searchValue) {
       const searchLower = searchValue.toLowerCase();
       const matchesSearch =
@@ -425,22 +419,18 @@ export default function RealEstateListPage() {
       if (!matchesSearch) return false;
     }
 
-    // فیلتر وضعیت
     if (clientFilters.status && item.status !== clientFilters.status) {
       return false;
     }
 
-    // فیلتر نوع
     if (clientFilters.type && item.type !== clientFilters.type) {
       return false;
     }
 
-    // فیلتر ویژه
     if (clientFilters.is_featured !== undefined && item.is_featured !== clientFilters.is_featured) {
       return false;
     }
 
-    // فیلتر فعال
     if (clientFilters.is_active !== undefined && item.is_active !== clientFilters.is_active) {
       return false;
     }
@@ -448,7 +438,6 @@ export default function RealEstateListPage() {
     return true;
   });
 
-  // مرتب‌سازی داده‌ها
   const sortedData = [...filteredData].sort((a, b) => {
     if (sorting.length === 0) return 0;
     const sort = sorting[0];
@@ -461,7 +450,6 @@ export default function RealEstateListPage() {
     return 0;
   });
 
-  // Pagination
   const paginatedData = sortedData.slice(
     pagination.pageIndex * pagination.pageSize,
     (pagination.pageIndex + 1) * pagination.pageSize
@@ -470,8 +458,6 @@ export default function RealEstateListPage() {
 
 
   const handleToggleActive = (item: RealEstateItem) => {
-    console.log("تغییر وضعیت فعال:", item.id, !item.is_active);
-    // در آینده می‌تواند به API ارسال شود
   };
 
   const columns = getRealEstateColumns([], navigate, handleToggleActive);
@@ -510,10 +496,6 @@ export default function RealEstateListPage() {
       <PageHeader title="مدیریت املاک">
         <Button 
           size="sm"
-          onClick={() => {
-            console.log("افزودن ملک جدید");
-            // در آینده می‌تواند به صفحه ایجاد هدایت کند
-          }}
         >
           <Plus className="h-4 w-4" />
           افزودن ملک

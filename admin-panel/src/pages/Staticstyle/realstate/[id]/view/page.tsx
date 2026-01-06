@@ -26,7 +26,6 @@ import {
   Bed,
 } from "lucide-react";
 
-// نوع داده استاتیک برای املاک
 interface RealEstateItem {
   id: number;
   title: string;
@@ -51,7 +50,6 @@ interface RealEstateItem {
   slug?: string;
 }
 
-// داده استاتیک نمونه
 const getStaticRealEstateData = (id: string): RealEstateItem | null => {
   const staticData: RealEstateItem[] = [
     {
@@ -113,7 +111,6 @@ const getStaticRealEstateData = (id: string): RealEstateItem | null => {
   return item || null;
 };
 
-// کامپوننت Sidebar
 function RealEstateSidebar({ realEstate }: { realEstate: RealEstateItem }) {
   const [isPublic, setIsPublic] = useState(realEstate.is_public ?? true);
   const [isActive, setIsActive] = useState(realEstate.is_active ?? true);
@@ -316,7 +313,6 @@ function RealEstateSidebar({ realEstate }: { realEstate: RealEstateItem }) {
   );
 }
 
-// کامپوننت Overview Tab
 function OverviewTab({ realEstate }: { realEstate: RealEstateItem }) {
   const typeLabels: Record<string, string> = {
     apartment: "آپارتمان",
@@ -453,7 +449,6 @@ function OverviewTab({ realEstate }: { realEstate: RealEstateItem }) {
   );
 }
 
-// کامپوننت Media Tab
 function MediaTab({ realEstate: _realEstate }: { realEstate: RealEstateItem }) {
   return (
     <TabsContent value="media" className="mt-0 space-y-6">
@@ -475,7 +470,6 @@ function MediaTab({ realEstate: _realEstate }: { realEstate: RealEstateItem }) {
   );
 }
 
-// کامپوننت SEO Tab
 function SEOTab({ realEstate }: { realEstate: RealEstateItem }) {
   const metaTitle = realEstate.meta_title || realEstate.title || "";
   const metaDescription = realEstate.meta_description || realEstate.short_description || "";
@@ -669,9 +663,6 @@ export default function RealEstateViewPage() {
         <>
           <Button
             variant="outline"
-            onClick={() => {
-              console.log("خروجی PDF");
-            }}
           >
             <FileDown className="h-4 w-4" />
             خروجی PDF

@@ -19,7 +19,6 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
     const [fieldOptions, setFieldOptions] = useState<any>(null);
     const [isLoadingOptions, setIsLoadingOptions] = useState(false);
 
-    // Load field options from API
     useEffect(() => {
         const loadFieldOptions = async () => {
             try {
@@ -27,7 +26,6 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                 const options = await realEstateApi.getFieldOptions();
                 setFieldOptions(options);
             } catch (error) {
-                console.error('Failed to load field options:', error);
             } finally {
                 setIsLoadingOptions(false);
             }
@@ -35,7 +33,6 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
         loadFieldOptions();
     }, []);
 
-    // Generic handler for numeric inputs
     const handleNumericChange = (field: string) => (e: ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
         if (val === "") {
@@ -48,7 +45,6 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
         }
     };
 
-    // Dropdown handler for select fields
     const handleSelectChange = (field: string) => (value: string) => {
         const num = value === "" ? null : Number(value);
         handleInputChange(field, num);

@@ -1,7 +1,6 @@
 from datetime import datetime
 from django.db.models import Q
 from django.core.cache import cache
-from django.db.models import Q
 from rest_framework.exceptions import NotFound, ValidationError, AuthenticationFailed
 from src.user.messages import AUTH_ERRORS, PROTECTED_ADMIN_ID
 from src.user.utils import validate_identifier, validate_register_password
@@ -12,7 +11,6 @@ from src.user.services.admin.admin_profile_service import AdminProfileService
 
 
 def _clear_permission_cache(user_id):
-    """Helper function to clear permission cache (lazy import to avoid circular dependency)"""
     try:
         from src.user.access_control import AdminPermissionCache, PermissionValidator, PermissionHelper
         AdminPermissionCache.clear_user_cache(user_id)
@@ -25,7 +23,6 @@ def _clear_permission_cache(user_id):
 class AdminManagementService:
     @staticmethod
     def get_admins_list(search=None, is_active=None, is_superuser=None, user_role_type=None, date_from=None, date_to=None, request=None):
-        # بهینه‌سازی: select_related برای جلوگیری از N+1 queries
         queryset = User.objects.select_related(
             'admin_profile',
             'real_estate_agent_profile'
@@ -34,7 +31,6 @@ class AdminManagementService:
             'admin_user_roles__role'
         ).filter(user_type='admin', is_staff=True, is_admin_active=True)
         
-        # فیلترهای پایه
         filters = {}
         if is_active is not None:
             filters['is_active'] = is_active
@@ -44,21 +40,17 @@ class AdminManagementService:
         if filters:
             queryset = queryset.filter(**filters)
         
-        # فیلتر بر اساس user_role_type (admin یا consultant)
         if user_role_type and user_role_type != 'all':
             if user_role_type == 'consultant':
-                # مشاورین: کسانی که PropertyAgent دارند ولی superuser نیستند
                 queryset = queryset.filter(
                     real_estate_agent_profile__isnull=False,
                     is_superuser=False
                 )
             elif user_role_type == 'admin':
-                # ادمین‌ها: کسانی که PropertyAgent ندارند یا superuser هستند
                 queryset = queryset.filter(
                     Q(real_estate_agent_profile__isnull=True) | Q(is_superuser=True)
                 )
         
-        # فیلتر جستجو
         if search:
             queryset = queryset.filter(
                 Q(mobile__icontains=search) |
@@ -67,7 +59,6 @@ class AdminManagementService:
                 Q(admin_profile__last_name__icontains=search)
             ).distinct()
         
-        # Date filters
         if date_from:
             try:
                 date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()

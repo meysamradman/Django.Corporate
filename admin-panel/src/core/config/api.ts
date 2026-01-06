@@ -78,16 +78,10 @@ axiosInstance.interceptors.response.use(
         
         // Exponential backoff: 1s, 2s, 4s
         const delay = RETRY_DELAY_BASE * Math.pow(2, originalRequest._retry - 1);
-        
-        console.warn(
-          `⚠️ Rate limit hit (429) for ${endpoint}. Retrying in ${delay}ms... (Attempt ${originalRequest._retry}/${MAX_RETRY_ATTEMPTS})`
-        );
 
         // منتظر بمون و دوباره امتحان کن
         await new Promise(resolve => setTimeout(resolve, delay));
         return axiosInstance(originalRequest);
-      } else {
-        console.error(`🚫 Rate limit exceeded after max retries for ${endpoint}. Giving up.`);
       }
     }
 
