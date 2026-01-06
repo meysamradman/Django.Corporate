@@ -26,7 +26,7 @@ function TabsList({
     <TabsPrimitive.List
       data-slot="tabs-list"
       className={cn(
-        "flex w-full items-center justify-start gap-8 border-b pb-0 mb-6",
+        "flex w-full items-center justify-start gap-8 border-b pb-0 mb-6 overflow-x-auto overflow-y-hidden scrollbar-hide",
         className
       )}
       suppressHydrationWarning

@@ -202,7 +202,7 @@ export default function AdminsPage() {
       icon: <Edit className="h-4 w-4" />,
       onClick: (admin: AdminWithProfile) => {
         // چک کنیم آیا پروفایل خودش هست
-        const isOwnProfile = currentUserId === admin.id;
+        const isOwnProfile = currentUserId !== undefined && Number(currentUserId) === Number(admin.id);
         const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
         
         if (isOwnProfile) {
@@ -228,7 +228,7 @@ export default function AdminsPage() {
       icon: <Edit className="h-4 w-4" />,
       onClick: (admin: AdminWithProfile) => {
         // چک کنیم آیا پروفایل خودش هست
-        const isOwnProfile = currentUserId === admin.id;
+        const isOwnProfile = currentUserId !== undefined && Number(currentUserId) === Number(admin.id);
         const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
         
         if (isOwnProfile) {
@@ -249,7 +249,7 @@ export default function AdminsPage() {
       },
       isDisabled: (admin: AdminWithProfile) => {
         if (!currentUserId) return true;
-        const isOwnProfile = currentUserId === admin.id;
+        const isOwnProfile = Number(currentUserId) === Number(admin.id);
         return !isSuperAdmin && !isOwnProfile;
       },
     });
@@ -495,7 +495,7 @@ export default function AdminsPage() {
                   }
                   onClick={(admin) => {
                     // چک کنیم آیا پروفایل خودش هست
-                    const isOwnProfile = currentUserId === admin.id;
+                    const isOwnProfile = currentUserId !== undefined && Number(currentUserId) === Number(admin.id);
                     const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
                     
                     if (isOwnProfile) {

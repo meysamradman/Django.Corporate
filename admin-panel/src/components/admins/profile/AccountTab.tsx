@@ -6,14 +6,13 @@ import { TabsContent } from "@/components/elements/Tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { FormField } from "@/components/forms/FormField";
 import {
-    User, Mail, Phone, MapPin, Fingerprint, Globe, Map, Edit2, Smartphone, Calendar
+    User, Mail, Phone, Fingerprint, Edit2, Smartphone, Clock
 } from "lucide-react";
 import type { AdminWithProfile } from "@/types/auth/admin";
 import type { ProvinceCompact, CityCompact } from "@/types/shared/location";
 import { locationApi } from "@/api/shared/location/location";
 import { useState, useEffect } from "react";
 import { PersianDatePicker } from "@/components/elements/PersianDatePicker";
-import { formatDate } from "@/core/utils/format";
 import { filterNumericOnly } from "@/core/filters/numeric";
 import { Switch } from "@/components/elements/Switch";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
@@ -223,7 +222,7 @@ export function AccountTab({
     return (
         <TabsContent value="account">
             <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
-                <div className="lg:col-span-2 space-y-6">
+                <div className="lg:col-span-2 space-y-6 lg:sticky lg:top-6 h-fit transition-all duration-300">
                     <CardWithIcon
                         icon={User}
                         title="اطلاعات ادمین"
@@ -236,7 +235,7 @@ export function AccountTab({
                         <div className="space-y-5">
                             <div>
                                 <div className="space-y-0 [&>div:not(:last-child)]:border-b">
-                                    <div className="flex items-center justify-between gap-3 pb-3">
+                                    <div className="flex items-center justify-between gap-3 py-3">
                                         <div className="flex items-center gap-2">
                                             <User className="w-4 h-4 text-font-s flex-shrink-0" />
                                             <label>نام کامل:</label>
@@ -250,46 +249,7 @@ export function AccountTab({
                                             </span>
                                         </div>
                                     </div>
-                                    {canManagePermissions && (
-                                        <div className="py-3 space-y-3">
-                                            <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
-                                                <Item variant="default" size="default" className="py-4">
-                                                    <ItemContent>
-                                                        <ItemTitle className="text-green-2 text-sm">وضعیت فعال</ItemTitle>
-                                                        <ItemDescription className="text-xs">
-                                                            حساب کاربری این ادمین را فعال یا غیرفعال کنید.
-                                                        </ItemDescription>
-                                                    </ItemContent>
-                                                    <ItemActions>
-                                                        <Switch
-                                                            checked={isActive}
-                                                            onCheckedChange={handleActiveStatusChange}
-                                                            disabled={updateActiveStatusMutation.isPending}
-                                                        />
-                                                    </ItemActions>
-                                                </Item>
-                                            </div>
-                                            {user?.is_superuser && admin.user_role_type !== 'consultant' && !admin.agent_profile && (
-                                                <div className="rounded-xl border border-amber-1/40 bg-amber-0/30 hover:border-amber-1/60 transition-colors overflow-hidden">
-                                                    <Item variant="default" size="default" className="py-4">
-                                                        <ItemContent>
-                                                            <ItemTitle className="text-amber-2 text-sm">سوپر ادمین</ItemTitle>
-                                                            <ItemDescription className="text-xs">
-                                                                دسترسی کامل به تمام بخش‌های سیستم.
-                                                            </ItemDescription>
-                                                        </ItemContent>
-                                                        <ItemActions>
-                                                            <Switch
-                                                                checked={isSuperuser}
-                                                                onCheckedChange={handleSuperuserStatusChange}
-                                                                disabled={updateSuperuserStatusMutation.isPending}
-                                                            />
-                                                        </ItemActions>
-                                                    </Item>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
+
                                     <div className="flex items-center justify-between gap-3 py-3">
                                         <div className="flex items-center gap-2">
                                             <Smartphone className="w-4 h-4 text-font-s flex-shrink-0" />
@@ -313,66 +273,69 @@ export function AccountTab({
                                         </div>
                                         <p className="text-font-p text-left">{formData.phone || "وارد نشده"}</p>
                                     </div>
-                                    <div className="flex items-center justify-between gap-3 pt-3">
+                                    <div className="flex items-center justify-between gap-3 py-3">
                                         <div className="flex items-center gap-2">
                                             <Fingerprint className="w-4 h-4 text-font-s flex-shrink-0" />
                                             <label>کد ملی:</label>
                                         </div>
                                         <p className="text-font-p text-left">{formData.nationalId || "وارد نشده"}</p>
                                     </div>
-                                </div>
-                            </div>
-                            <div className="relative my-6">
-                                <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-br/50"></div>
-                                </div>
-                                <div className="relative flex justify-center">
-                                    <div className="bg-card px-3 py-1 rounded-full border border-br/50 shadow-sm">
-                                        <div className="h-1 w-12 bg-gradient-to-r from-transparent via-primary/30 to-transparent rounded-full"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="mt-2">
-                                <div className="space-y-0 [&>div:not(:last-child)]:border-b">
-                                    <div className="flex items-center justify-between gap-3 pb-3">
-                                        <div className="flex items-center gap-2">
-                                            <Calendar className="w-4 h-4 text-font-s flex-shrink-0" />
-                                            <label>تاریخ تولد:</label>
+
+                                    {admin.created_at && (
+                                        <div className="flex items-center justify-between gap-3 py-3">
+                                            <div className="flex items-center gap-2">
+                                                <Clock className="w-4 h-4 text-font-s flex-shrink-0" />
+                                                <label>تاریخ ایجاد:</label>
+                                            </div>
+                                            <p className="text-font-p text-left">
+                                                {new Date(admin.created_at).toLocaleDateString("fa-IR")}
+                                            </p>
                                         </div>
-                                        <p className="text-font-p text-left">
-                                            {formData.birthDate ? formatDate(formData.birthDate) : "وارد نشده"}
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center justify-between gap-3 py-3">
-                                        <div className="flex items-center gap-2">
-                                            <Globe className="w-4 h-4 text-font-s flex-shrink-0" />
-                                            <label>کشور:</label>
+                                    )}
+
+                                    {canManagePermissions && (
+                                        <div className="py-4 space-y-3">
+                                            <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-md">
+                                                <Item variant="default" size="default" className="py-3">
+                                                    <ItemContent>
+                                                        <ItemTitle className="text-green-2 text-sm font-bold">وضعیت فعال</ItemTitle>
+                                                        <ItemDescription className="text-xs">
+                                                            حساب کاربری این ادمین را فعال یا غیرفعال کنید.
+                                                        </ItemDescription>
+                                                    </ItemContent>
+                                                    <ItemActions>
+                                                        <Switch
+                                                            checked={isActive}
+                                                            onCheckedChange={handleActiveStatusChange}
+                                                            disabled={updateActiveStatusMutation.isPending}
+                                                        />
+                                                    </ItemActions>
+                                                </Item>
+                                            </div>
+
+                                            {user?.is_superuser && admin.user_role_type !== 'consultant' && !admin.agent_profile && (
+                                                <div className="rounded-xl border border-amber-1/40 bg-amber-0/30 hover:border-amber-1/60 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-md">
+                                                    <Item variant="default" size="default" className="py-3">
+                                                        <ItemContent>
+                                                            <ItemTitle className="text-amber-2 text-sm font-bold">سوپر ادمین</ItemTitle>
+                                                            <ItemDescription className="text-xs font-medium">
+                                                                دسترسی کامل به تمام بخش‌های سیستم.
+                                                            </ItemDescription>
+                                                        </ItemContent>
+                                                        <ItemActions>
+                                                            <Switch
+                                                                checked={isSuperuser}
+                                                                onCheckedChange={handleSuperuserStatusChange}
+                                                                disabled={updateSuperuserStatusMutation.isPending}
+                                                            />
+                                                        </ItemActions>
+                                                    </Item>
+                                                </div>
+                                            )}
+
+
                                         </div>
-                                        <p className="text-font-p text-left">ایران</p>
-                                    </div>
-                                    <div className="flex items-center justify-between gap-3 py-3">
-                                        <div className="flex items-center gap-2">
-                                            <Map className="w-4 h-4 text-font-s flex-shrink-0" />
-                                            <label>استان:</label>
-                                        </div>
-                                        <p className="text-font-p text-left">{formData.province || "وارد نشده"}</p>
-                                    </div>
-                                    <div className="flex items-center justify-between gap-3 py-3">
-                                        <div className="flex items-center gap-2">
-                                            <MapPin className="w-4 h-4 text-font-s flex-shrink-0" />
-                                            <label>شهر:</label>
-                                        </div>
-                                        <p className="text-font-p text-left">{formData.city || "وارد نشده"}</p>
-                                    </div>
-                                    <div className="flex items-center justify-between gap-3 pt-3">
-                                        <div className="flex items-center gap-2">
-                                            <MapPin className="w-4 h-4 text-font-s flex-shrink-0" />
-                                            <label>آدرس:</label>
-                                        </div>
-                                        <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
-                                            <span className="text-font-p">{formData.address || "وارد نشده"}</span>
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

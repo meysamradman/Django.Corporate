@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/elements/Card";
-import { CheckCircle2, XCircle, Smartphone, Clock, Shield, UserCog, Briefcase } from "lucide-react";
+import { Smartphone, UserCog, Briefcase, Shield } from "lucide-react";
 import type { AdminWithProfile } from "@/types/auth/admin";
 import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import type { Media } from "@/types/shared/media";
@@ -153,30 +153,6 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
                             }
                         </h2>
                         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-font-s mt-3">
-                            <div className="flex items-center gap-2">
-                                <div className={`flex items-center justify-center w-9 h-9 rounded-full p-2 ${admin.is_active ? "bg-green" : "bg-yellow"
-                                    }`}>
-                                    {admin.is_active ? (
-                                        <CheckCircle2 className="w-5 h-5 text-green-1" />
-                                    ) : (
-                                        <XCircle className="w-5 h-5 text-yellow-1" />
-                                    )}
-                                </div>
-                                <span className={admin.is_active ? "text-green-1" : "text-yellow-1"}>
-                                    {admin.is_active ? "فعال" : "غیرفعال"}
-                                </span>
-                            </div>
-                            {admin.created_at && (
-                                <div className="flex items-center gap-2">
-                                    <div className="flex items-center justify-center w-9 h-9 rounded-full bg-blue p-2">
-                                        <Clock className="w-5 h-5 text-blue-1" />
-                                    </div>
-                                    <span>
-                                        ایجاد شده در{" "}
-                                        {new Date(admin.created_at).toLocaleDateString("fa-IR")}
-                                    </span>
-                                </div>
-                            )}
                             {(formData.mobile || admin.mobile) && (
                                 <div className="flex items-center gap-2">
                                     <div className="flex items-center justify-center w-9 h-9 rounded-full bg-purple p-2">
@@ -185,6 +161,7 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
                                     <span>{formData.mobile || admin.mobile}</span>
                                 </div>
                             )}
+
                             <div className="flex items-center gap-2">
                                 <div className={`flex items-center justify-center w-9 h-9 rounded-full p-2 ${admin.user_role_type === 'consultant' ? "bg-amber" : "bg-cyan"}`}>
                                     {admin.user_role_type === 'consultant' ? (

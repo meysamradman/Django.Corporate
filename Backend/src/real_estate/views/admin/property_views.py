@@ -74,6 +74,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
 
         is_super = getattr(user, 'is_superuser', False) or getattr(user, 'is_admin_full', False)
+        
         if not is_super:
             has_agent_role = hasattr(user, 'admin_user_roles') and user.admin_user_roles.filter(
                 role__name='property_agent',

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { showSuccess, showError } from '@/core/toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { User, KeyRound, Share2, Settings2, Building2 } from "lucide-react";
+import { User, KeyRound, Share2, Settings2, Building2, Home } from "lucide-react";
 import { ProfileHeader } from "@/components/admins/profile/ProfileHeader";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { adminApi } from "@/api/admins/admins";
@@ -11,6 +11,7 @@ import { useAuth } from "@/core/auth/AuthContext";
 import { ApiError } from "@/types/api/apiError";
 import { Button } from "@/components/elements/Button";
 import { useNavigate } from "react-router-dom";
+import { usePermission } from "@/core/permissions";
 
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
@@ -32,6 +33,8 @@ const SecurityTab = lazy(() => import("@/components/admins/profile/SecurityTab")
 const SocialTab = lazy(() => import("@/components/admins/profile/SocialTab").then((mod) => ({ default: mod.SocialTab })));
 const AdvancedSettingsTab = lazy(() => import("@/components/admins/profile/AdvancedSettingsTab").then((mod) => ({ default: mod.AdvancedSettingsTab })));
 const ConsultantTab = lazy(() => import("@/components/admins/profile/ConsultantTab").then((mod) => ({ default: mod.ConsultantTab })));
+const AgentPropertiesTab = lazy(() => import("@/components/admins/profile/AgentPropertiesTab").then((mod) => ({ default: mod.AgentPropertiesTab })));
+const AdminPropertiesTab = lazy(() => import("@/components/admins/profile/AdminPropertiesTab").then((mod) => ({ default: mod.AdminPropertiesTab })));
 
 
 interface EditAdminFormProps {
@@ -45,6 +48,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     const { user, refreshUser } = useAuth();
+    const { hasPermission } = usePermission();
 
     const isMeRoute = adminId === "me";
     const isNumericId = !Number.isNaN(Number(adminId));
@@ -378,6 +382,24 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                         <User className="w-4 h-4" />
                         حساب کاربری
                     </TabsTrigger>
+                    {adminData.user_role_type === 'consultant' && (
+                        <TabsTrigger value="consultant">
+                            <Building2 className="w-4 h-4" />
+                            اطلاعات مشاور
+                        </TabsTrigger>
+                    )}
+                    {adminData.user_role_type === 'consultant' && adminData.agent_profile?.id && hasPermission("real_estate.property.read") && (
+                        <TabsTrigger value="agent-properties">
+                            <Home className="w-4 h-4" />
+                            املاک مشاور
+                        </TabsTrigger>
+                    )}
+                    {adminData.user_role_type !== 'consultant' && hasPermission("real_estate.property.read") && (
+                        <TabsTrigger value="properties">
+                            <Home className="w-4 h-4" />
+                            املاک
+                        </TabsTrigger>
+                    )}
                     <TabsTrigger value="security">
                         <KeyRound className="w-4 h-4" />
                         گذرواژه
@@ -390,12 +412,6 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                         <Settings2 className="w-4 h-4" />
                         تنظیمات پیشرفته
                     </TabsTrigger>
-                    {adminData.user_role_type === 'consultant' && (
-                        <TabsTrigger value="consultant">
-                            <Building2 className="w-4 h-4" />
-                            اطلاعات مشاور
-                        </TabsTrigger>
-                    )}
                 </TabsList>
 
                 <TabsContent value="account">
@@ -415,6 +431,36 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                         />
                     </Suspense>
                 </TabsContent>
+
+                {adminData.user_role_type === 'consultant' && (
+                    <TabsContent value="consultant">
+                        <Suspense fallback={<TabContentSkeleton />}>
+                            <ConsultantTab
+                                admin={adminData}
+                                formData={formData}
+                                editMode={editMode}
+                                handleInputChange={handleInputChange}
+                                handleSaveProfile={handleSaveProfile}
+                                isSaving={isSaving}
+                                fieldErrors={fieldErrors}
+                            />
+                        </Suspense>
+                    </TabsContent>
+                )}
+                {adminData.user_role_type === 'consultant' && adminData.agent_profile?.id && hasPermission("real_estate.property.read") && (
+                    <TabsContent value="agent-properties">
+                        <Suspense fallback={<TabContentSkeleton />}>
+                            <AgentPropertiesTab admin={adminData} />
+                        </Suspense>
+                    </TabsContent>
+                )}
+                {adminData.user_role_type !== 'consultant' && hasPermission("real_estate.property.read") && (
+                    <TabsContent value="properties">
+                        <Suspense fallback={<TabContentSkeleton />}>
+                            <AdminPropertiesTab admin={adminData} />
+                        </Suspense>
+                    </TabsContent>
+                )}
 
                 <TabsContent value="security">
                     <Suspense fallback={<TabContentSkeleton />}>
@@ -438,22 +484,6 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                         <AdvancedSettingsTab admin={adminData} />
                     </Suspense>
                 </TabsContent>
-
-                {adminData.user_role_type === 'consultant' && (
-                    <TabsContent value="consultant">
-                        <Suspense fallback={<TabContentSkeleton />}>
-                            <ConsultantTab
-                                admin={adminData}
-                                formData={formData}
-                                editMode={editMode}
-                                handleInputChange={handleInputChange}
-                                handleSaveProfile={handleSaveProfile}
-                                isSaving={isSaving}
-                                fieldErrors={fieldErrors}
-                            />
-                        </Suspense>
-                    </TabsContent>
-                )}
             </Tabs>
         </div>
     );

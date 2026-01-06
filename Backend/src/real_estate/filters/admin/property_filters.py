@@ -82,6 +82,11 @@ class PropertyAdminFilter(django_filters.FilterSet):
         help_text="Filter by agency ID"
     )
     
+    created_by = django_filters.NumberFilter(
+        field_name='created_by__id',
+        help_text="Filter by creator (admin user) ID"
+    )
+    
     city = django_filters.NumberFilter(
         field_name='city__id',
         help_text="Filter by city ID"
@@ -230,7 +235,7 @@ class PropertyAdminFilter(django_filters.FilterSet):
         fields = [
             'is_published', 'is_featured', 'is_public', 'is_active', 'status',
             'created_after', 'created_before', 'published_after', 'published_before',
-            'property_type', 'state', 'agent', 'agency',
+            'property_type', 'state', 'agent', 'agency', 'created_by',
             'city', 'province', 'region', 'region_code', 'neighborhood',
             'min_price', 'max_price', 'min_area', 'max_area',
             'bedrooms', 'bathrooms',

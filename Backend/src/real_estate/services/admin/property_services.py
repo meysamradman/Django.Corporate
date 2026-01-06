@@ -205,7 +205,7 @@ class PropertyAdminService:
                 validated_data['canonical_url'] = None
         
         with transaction.atomic():
-            property_obj = Property.objects.create(**validated_data)
+            property_obj = Property.objects.create(created_by=created_by, **validated_data)
             
             if labels_ids:
                 property_obj.labels.set(labels_ids)
@@ -261,6 +261,14 @@ class PropertyAdminService:
         with transaction.atomic():
             for field, value in validated_data.items():
                 setattr(property_obj, field, value)
+            
+            if updated_by:
+                # Note: updated_by isn't a field in BaseModel currently, 
+                # but it's good practice to handle it if it were.
+                # However, created_by usually stays fixed.
+                # If there's an updated_by field in a future migration, it would go here.
+                pass
+                
             property_obj.save()
             
             if labels_ids is not None:

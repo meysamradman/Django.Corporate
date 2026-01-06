@@ -192,6 +192,23 @@ export default function AgentsPage() {
   const currentUserId = user?.id;
   const isSuperAdmin = user?.is_superuser || false;
 
+  const handleEditAdmin = (admin: AdminWithProfile) => {
+    const userId = user?.id ? Number(user.id) : null;
+    const targetId = admin?.id ? Number(admin.id) : null;
+    const isOwnProfile = userId !== null && targetId !== null && userId === targetId;
+
+    // چک کنیم که یوزر فعلی واقعاً مشاور هست یا نه
+    const currentUserIsAgent = user?.user_role_type === 'consultant' || user?.has_agent_profile;
+
+    if (isOwnProfile && currentUserIsAgent) {
+      // فقط اگه هم پروفایل خودش باشه هم یوزر فعلی مشاور باشه
+      navigate('/agents/me/edit');
+    } else {
+      // در غیر این صورت به route معمولی میریم
+      navigate(`/agents/${admin.id}/edit`);
+    }
+  };
+
   const actions = useMemo(() => {
     const adminActions: CardItemAction<AdminWithProfile>[] = [];
 
@@ -199,12 +216,7 @@ export default function AgentsPage() {
       label: "مشاهده",
       icon: <Edit className="h-4 w-4" />,
       onClick: (admin: AdminWithProfile) => {
-        const isOwnProfile = currentUserId === admin.id;
-        if (isOwnProfile) {
-          navigate('/agents/me/edit');
-        } else {
-          navigate(`/agents/${admin.id}/edit`);
-        }
+        handleEditAdmin(admin);
       },
     });
 
@@ -212,12 +224,7 @@ export default function AgentsPage() {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (admin: AdminWithProfile) => {
-        const isOwnProfile = currentUserId === admin.id;
-        if (isOwnProfile) {
-          navigate('/agents/me/edit');
-        } else {
-          navigate(`/agents/${admin.id}/edit`);
-        }
+        handleEditAdmin(admin);
       },
       isDisabled: (admin: AdminWithProfile) => {
         if (!currentUserId) return true;
@@ -454,14 +461,7 @@ export default function AgentsPage() {
                       )}
                     </>
                   }
-                  onClick={(admin) => {
-                    const isOwnProfile = currentUserId === admin.id;
-                    if (isOwnProfile) {
-                      navigate('/agents/me/edit');
-                    } else {
-                      navigate(`/agents/${admin.id}/edit`);
-                    }
-                  }}
+                  onClick={(admin) => handleEditAdmin(admin)}
                 />
               );
             })}
