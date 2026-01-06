@@ -97,7 +97,7 @@ export function PersianDatePicker({
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
-  
+
   // Get previous month's last days
   const prevMonth = subMonths(currentDate, 1);
   const prevMonthEnd = endOfMonth(prevMonth);
@@ -105,7 +105,7 @@ export function PersianDatePicker({
     start: startOfMonth(prevMonth),
     end: prevMonthEnd
   });
-  
+
   // Get next month's first days
   const nextMonth = addMonths(currentDate, 1);
   const nextMonthStart = startOfMonth(nextMonth);
@@ -113,29 +113,29 @@ export function PersianDatePicker({
     start: nextMonthStart,
     end: addMonths(nextMonthStart, 1)
   });
-  
+
   // Get first day weekday (0 = Saturday, 6 = Friday)
   const firstDayWeekday = monthStart.getDay();
-  
+
   // Build calendar grid: 6 rows × 7 columns = 42 days
   const allDays: Date[] = [];
-  
+
   // Add previous month's trailing days
   if (firstDayWeekday > 0) {
     const trailingDays = prevMonthDays.slice(-firstDayWeekday);
     allDays.push(...trailingDays);
   }
-  
+
   // Add current month's days
   allDays.push(...days);
-  
+
   // Add next month's leading days to complete 42 days
   const remainingDays = 42 - allDays.length;
   if (remainingDays > 0) {
     const leadingDays = nextMonthDays.slice(0, remainingDays);
     allDays.push(...leadingDays);
   }
-  
+
   const persianMonthName = format(currentDate, 'MMMM', { locale: faIR });
   const persianYear = format(currentDate, 'yyyy', { locale: faIR });
   const weekdayNames = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
@@ -150,14 +150,14 @@ export function PersianDatePicker({
             placeholder={placeholder}
             readOnly
             disabled={disabled}
-            className="flex h-9 w-full rounded-md border border-input bg-card pr-3 pl-10 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-font-s focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+            className="flex h-9 w-full rounded-md border border-input bg-card pr-3 pl-10 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-font-s focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-100 disabled:bg-muted/10 disabled:text-font-p/80 cursor-pointer"
           />
           <div className="absolute left-0 top-0 h-full flex items-center justify-center px-2 pointer-events-none">
             <Calendar className="h-4 w-4 text-font-s" />
           </div>
         </div>
       </PopoverTrigger>
-      
+
       <PopoverContent
         align="start"
         side="bottom"
@@ -196,7 +196,7 @@ export function PersianDatePicker({
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-          
+
           <div className="flex items-center gap-1.5">
             <Button
               variant="outline"
@@ -212,7 +212,7 @@ export function PersianDatePicker({
               {persianMonthName}
             </span>
           </div>
-          
+
           <div className="flex gap-1">
             <Button
               variant="outline"
@@ -236,7 +236,7 @@ export function PersianDatePicker({
             </Button>
           </div>
         </div>
-        
+
         {/* Year Selector */}
         {showYearSelector && (
           <div className="grid grid-cols-4 gap-2 p-3 border-b border-input max-h-[240px] overflow-y-auto">
@@ -277,7 +277,7 @@ export function PersianDatePicker({
             </div>
           </div>
         )}
-        
+
         {/* Weekday Headers */}
         <div className="grid grid-cols-7 gap-1 px-2 pt-2">
           {weekdayNames.map((day) => (
@@ -289,7 +289,7 @@ export function PersianDatePicker({
             </div>
           ))}
         </div>
-        
+
         {/* Calendar Days */}
         <div className="grid grid-cols-7 gap-1 p-2">
           {allDays.map((day, index) => {
@@ -297,7 +297,7 @@ export function PersianDatePicker({
             const isCurrentMonth = isSameMonth(day, currentDate);
             const isToday = isSameDay(day, new Date());
             const dayNumber = format(day, 'd', { locale: faIR });
-            
+
             return (
               <button
                 key={`${day.getTime()}-${index}`}
@@ -322,7 +322,7 @@ export function PersianDatePicker({
             );
           })}
         </div>
-        
+
         {/* Today Button */}
         <div className="p-2 border-t border-input">
           <Button

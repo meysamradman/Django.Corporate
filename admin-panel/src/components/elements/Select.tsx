@@ -36,7 +36,7 @@ function SelectTrigger({
       data-size={size}
       dir="rtl"
       className={cn(
-        "border-br data-[placeholder]:text-font-s [&_svg:not([class*='text-'])]:text-font-s focus-visible:border-primary focus-visible:ring-primary/20 aria-invalid:ring-red-1/20 aria-invalid:border-red-1 flex w-auto items-center justify-between gap-2 rounded-md border bg-wt px-3 py-2 text-base whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 text-right min-w-[120px] md:text-sm",
+        "border-br data-[placeholder]:text-font-s [&_svg:not([class*='text-'])]:text-font-s focus-visible:border-primary focus-visible:ring-primary/20 aria-invalid:ring-red-1/20 aria-invalid:border-red-1 flex w-auto items-center justify-between gap-2 rounded-md border bg-wt px-3 py-2 text-base whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-100 disabled:bg-muted/10 disabled:text-font-p/80 data-[size=default]:h-9 data-[size=sm]:h-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 text-right min-w-[120px] md:text-sm",
         className
       )}
       {...props}
@@ -63,7 +63,7 @@ function SelectContent({
         className={cn(
           "bg-card text-font-p data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border shadow-md",
           position === "popper" &&
-            "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+          "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
           className
         )}
         position={position}
@@ -76,7 +76,7 @@ function SelectContent({
           className={cn(
             "p-1",
             position === "popper" &&
-              "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1"
+            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1"
           )}
         >
           {children}
