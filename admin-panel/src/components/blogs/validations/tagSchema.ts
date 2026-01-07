@@ -39,7 +39,7 @@ export const blogTagFormSchema = z.object({
         .optional(),
 });
 
-export type BlogTagFormValues = z.infer<typeof blogTagFormSchema>;
+export type BlogTagFormValues = z.input<typeof blogTagFormSchema>;
 
 export const blogTagFormDefaults: BlogTagFormValues = {
     name: "",
@@ -47,5 +47,5 @@ export const blogTagFormDefaults: BlogTagFormValues = {
     description: "",
     is_active: true,
     is_public: true,
-} as BlogTagFormValues;
+};
 

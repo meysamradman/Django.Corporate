@@ -39,7 +39,7 @@ export const propertyTagFormSchema = z.object({
         .optional(),
 });
 
-export type PropertyTagFormValues = z.infer<typeof propertyTagFormSchema>;
+export type PropertyTagFormValues = z.input<typeof propertyTagFormSchema>;
 
 export const propertyTagFormDefaults: PropertyTagFormValues = {
     title: "",
@@ -47,5 +47,5 @@ export const propertyTagFormDefaults: PropertyTagFormValues = {
     description: "",
     is_active: true,
     is_public: true,
-} as PropertyTagFormValues;
+};
 

@@ -27,12 +27,12 @@ export const propertyFeatureFormSchema = z.object({
         .optional(),
 });
 
-export type PropertyFeatureFormValues = z.infer<typeof propertyFeatureFormSchema>;
+export type PropertyFeatureFormValues = z.input<typeof propertyFeatureFormSchema>;
 
 export const propertyFeatureFormDefaults: PropertyFeatureFormValues = {
     title: "",
     group: "",
     is_active: true,
     image_id: null,
-} as PropertyFeatureFormValues;
+};
 

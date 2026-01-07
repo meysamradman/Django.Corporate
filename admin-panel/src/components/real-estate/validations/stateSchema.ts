@@ -32,12 +32,12 @@ export const propertyStateFormSchema = z.object({
         .optional(),
 });
 
-export type PropertyStateFormValues = z.infer<typeof propertyStateFormSchema>;
+export type PropertyStateFormValues = z.input<typeof propertyStateFormSchema>;
 
 export const propertyStateFormDefaults: PropertyStateFormValues = {
     title: "",
     slug: "",
     usage_type: "sale",
     is_active: true,
-} as PropertyStateFormValues;
+};
 

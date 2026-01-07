@@ -608,7 +608,7 @@ export default function EditRolePage() {
       if (hasFieldErrors(error)) {
         const fieldErrors = extractFieldErrors(error);
         Object.entries(fieldErrors).forEach(([field, message]) => {
-          setError(field as any, {
+          setError(field as keyof RoleFormData, {
             type: 'server',
             message: message as string
           });

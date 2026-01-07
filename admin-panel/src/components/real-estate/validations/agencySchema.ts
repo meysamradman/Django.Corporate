@@ -147,7 +147,7 @@ export const agencyFormSchema = z.object({
 
 export type AgencyFormValues = z.input<typeof agencyFormSchema>;
 
-export const agencyFormDefaults: Partial<AgencyFormValues> = {
+export const agencyFormDefaults: AgencyFormValues = {
     name: "",
     slug: "",
     phone: "",

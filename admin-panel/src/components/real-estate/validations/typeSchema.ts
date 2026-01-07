@@ -55,7 +55,7 @@ export const propertyTypeFormSchema = z.object({
         .optional(),
 });
 
-export type PropertyTypeFormValues = z.infer<typeof propertyTypeFormSchema>;
+export type PropertyTypeFormValues = z.input<typeof propertyTypeFormSchema>;
 
 export const propertyTypeFormDefaults: PropertyTypeFormValues = {
     title: "",
@@ -65,5 +65,5 @@ export const propertyTypeFormDefaults: PropertyTypeFormValues = {
     display_order: 0,
     is_active: true,
     image_id: null,
-} as PropertyTypeFormValues;
+};
 

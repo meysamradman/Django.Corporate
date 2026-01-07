@@ -361,8 +361,8 @@ export const propertyFormDefaults: PropertyFormValues = {
     slug: "",
     short_description: "",
     description: "",
-    property_type: undefined as any, // Will be set by user, required field
-    state: undefined as any, // Will be set by user, required field
+    property_type: undefined!, // Will be set by user, required field
+    state: undefined!, // Will be set by user, required field
     status: "active",
     agent: null,
     agency: null,

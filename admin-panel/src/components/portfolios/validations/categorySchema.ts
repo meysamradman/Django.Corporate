@@ -53,7 +53,7 @@ export const portfolioCategoryFormSchema = z.object({
         .optional(),
 });
 
-export type PortfolioCategoryFormValues = z.infer<typeof portfolioCategoryFormSchema>;
+export type PortfolioCategoryFormValues = z.input<typeof portfolioCategoryFormSchema>;
 
 export const portfolioCategoryFormDefaults: PortfolioCategoryFormValues = {
     name: "",
@@ -63,5 +63,5 @@ export const portfolioCategoryFormDefaults: PortfolioCategoryFormValues = {
     is_active: true,
     is_public: true,
     image_id: null,
-} as PortfolioCategoryFormValues;
+};
 

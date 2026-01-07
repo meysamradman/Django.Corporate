@@ -134,7 +134,7 @@ export const userFormSchema = z.object({
 
 export type UserFormValues = z.input<typeof userFormSchema>;
 
-export const userFormDefaults: Partial<UserFormValues> = {
+export const userFormDefaults: UserFormValues = {
   mobile: "",
   email: "",
   password: "",

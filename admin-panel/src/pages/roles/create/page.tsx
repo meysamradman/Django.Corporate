@@ -318,7 +318,7 @@ export default function CreateRolePage() {
         const fieldErrors = extractFieldErrors(error);
         
         Object.entries(fieldErrors).forEach(([field, message]) => {
-          setError(field as any, {
+          setError(field as keyof RoleFormValues, {
             type: 'server',
             message: message as string
           });
@@ -720,7 +720,7 @@ export default function CreateRolePage() {
         <Suspense fallback={<RoleBasicInfoFormSkeleton />}>
           <RoleBasicInfoForm
             form={form}
-            onSubmit={onSubmit as any}
+            onSubmit={onSubmit}
             isSubmitting={createRoleMutation.isPending}
             submitButtonText="ایجاد"
             hideSubmitButton={true}

@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent } from "react";
-import type { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn, Path } from "react-hook-form";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
 import type { Media } from "@/types/shared/media";
@@ -145,9 +145,9 @@ export default function SEOTab(props: SEOTabProps) {
                                                 maxLength={70}
                                                 disabled={!editMode}
                                                 description="حداکثر 70 کاراکتر توصیه می‌شود"
-                                                {...(register as any)?.("meta_title", {
+                                                {...(register ? register("meta_title" as Path<PortfolioFormValues>, {
                                                     onChange: handleMetaTitleChange
-                                                })}
+                                                }) : {})}
                                             />
                                         ) : (
                                             <FormFieldInput
@@ -175,9 +175,9 @@ export default function SEOTab(props: SEOTabProps) {
                                                 maxLength={160}
                                                 disabled={!editMode}
                                                 description="بین 120 تا 160 کاراکتر توصیه می‌شود"
-                                                {...(register as any)?.("meta_description", {
+                                                {...(register ? register("meta_description" as Path<PortfolioFormValues>, {
                                                     onChange: handleMetaDescriptionChange
-                                                })}
+                                                }) : {})}
                                             />
                                         ) : (
                                             <FormFieldTextarea
@@ -205,9 +205,9 @@ export default function SEOTab(props: SEOTabProps) {
                                             placeholder="https://example.com/portfolio/item"
                                             type="url"
                                             disabled={!editMode}
-                                            {...(register as any)?.("canonical_url", {
+                                            {...(register ? register("canonical_url" as Path<PortfolioFormValues>, {
                                                 onChange: handleCanonicalUrlChange
-                                            })}
+                                            }) : {})}
                                         />
                                     ) : (
                                         <FormFieldInput
@@ -229,9 +229,9 @@ export default function SEOTab(props: SEOTabProps) {
                                             error={(formState.errors as any)?.robots_meta?.message}
                                             placeholder="index,follow"
                                             disabled={!editMode}
-                                            {...(register as any)?.("robots_meta", {
+                                            {...(register ? register("robots_meta" as Path<PortfolioFormValues>, {
                                                 onChange: handleRobotsMetaChange
-                                            })}
+                                            }) : {})}
                                         />
                                     ) : (
                                         <FormFieldInput
@@ -265,9 +265,9 @@ export default function SEOTab(props: SEOTabProps) {
                                             placeholder="عنوان برای اشتراک‌گذاری در شبکه‌های اجتماعی"
                                             maxLength={70}
                                             disabled={!editMode}
-                                            {...(register as any)?.("og_title", {
+                                            {...(register ? register("og_title" as Path<PortfolioFormValues>, {
                                                 onChange: handleOgTitleChange
-                                            })}
+                                            }) : {})}
                                         />
                                     ) : (
                                         <FormFieldInput
@@ -293,9 +293,9 @@ export default function SEOTab(props: SEOTabProps) {
                                             rows={5}
                                             maxLength={160}
                                             disabled={!editMode}
-                                            {...(register as any)?.("og_description", {
+                                            {...(register ? register("og_description" as Path<PortfolioFormValues>, {
                                                 onChange: handleOgDescriptionChange
-                                            })}
+                                            }) : {})}
                                         />
                                     ) : (
                                         <FormFieldTextarea

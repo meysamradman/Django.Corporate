@@ -53,7 +53,7 @@ export const blogCategoryFormSchema = z.object({
         .optional(),
 });
 
-export type BlogCategoryFormValues = z.infer<typeof blogCategoryFormSchema>;
+export type BlogCategoryFormValues = z.input<typeof blogCategoryFormSchema>;
 
 export const blogCategoryFormDefaults: BlogCategoryFormValues = {
     name: "",
@@ -63,5 +63,5 @@ export const blogCategoryFormDefaults: BlogCategoryFormValues = {
     is_active: true,
     is_public: true,
     image_id: null,
-} as BlogCategoryFormValues;
+};
 

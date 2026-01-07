@@ -28,11 +28,11 @@ export const propertyLabelFormSchema = z.object({
         .optional(),
 });
 
-export type PropertyLabelFormValues = z.infer<typeof propertyLabelFormSchema>;
+export type PropertyLabelFormValues = z.input<typeof propertyLabelFormSchema>;
 
 export const propertyLabelFormDefaults: PropertyLabelFormValues = {
     title: "",
     slug: "",
     is_active: true,
-} as PropertyLabelFormValues;
+};
 

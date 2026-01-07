@@ -247,7 +247,7 @@ export const adminFormSchema = z.object({
 
 export type AdminFormValues = z.input<typeof adminFormSchema>;
 
-export const adminFormDefaults: Partial<AdminFormValues> = {
+export const adminFormDefaults: AdminFormValues = {
   mobile: "",
   email: "",
   password: "",

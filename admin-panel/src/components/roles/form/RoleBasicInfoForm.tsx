@@ -1,4 +1,4 @@
-import type { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn, Path } from "react-hook-form";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
 import { Button } from "@/components/elements/Button";
@@ -39,7 +39,7 @@ export function RoleBasicInfoForm<T extends { name: string; description?: string
           required
           error={errors.name?.message as string}
           placeholder="نام نقش را وارد کنید"
-          {...register("name" as any)}
+          {...register("name" as Path<T>)}
         />
 
         <FormFieldTextarea
@@ -49,7 +49,7 @@ export function RoleBasicInfoForm<T extends { name: string; description?: string
           placeholder="توضیحات نقش را وارد کنید (حداکثر ۳۰۰ کاراکتر)"
           rows={3}
           maxLength={300}
-          {...register("description" as any)}
+          {...register("description" as Path<T>)}
         />
 
         {!hideSubmitButton && (

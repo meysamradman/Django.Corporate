@@ -39,7 +39,7 @@ export const portfolioTagFormSchema = z.object({
         .optional(),
 });
 
-export type PortfolioTagFormValues = z.infer<typeof portfolioTagFormSchema>;
+export type PortfolioTagFormValues = z.input<typeof portfolioTagFormSchema>;
 
 export const portfolioTagFormDefaults: PortfolioTagFormValues = {
     name: "",
@@ -47,5 +47,5 @@ export const portfolioTagFormDefaults: PortfolioTagFormValues = {
     description: "",
     is_active: true,
     is_public: true,
-} as PortfolioTagFormValues;
+};
 
