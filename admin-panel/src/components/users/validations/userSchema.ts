@@ -150,4 +150,4 @@ export const userFormDefaults: UserFormValues = {
   profile_bio: "",
   profile_picture: null,
   is_active: true,
-};
+} as UserFormValues;

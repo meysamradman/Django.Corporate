@@ -111,4 +111,4 @@ export const blogFormDefaults: BlogFormValues = {
   og_image: null,
   canonical_url: "",
   robots_meta: "",
-};
+} as BlogFormValues;

@@ -63,5 +63,5 @@ export const blogCategoryFormDefaults: BlogCategoryFormValues = {
     is_active: true,
     is_public: true,
     image_id: null,
-};
+} as BlogCategoryFormValues;
 

@@ -65,5 +65,5 @@ export const propertyTypeFormDefaults: PropertyTypeFormValues = {
     display_order: 0,
     is_active: true,
     image_id: null,
-};
+} as PropertyTypeFormValues;
 

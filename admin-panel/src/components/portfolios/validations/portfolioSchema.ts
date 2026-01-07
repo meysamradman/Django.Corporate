@@ -126,4 +126,4 @@ export const portfolioFormDefaults: PortfolioFormValues = {
   og_image: null,
   canonical_url: "",
   robots_meta: "",
-};
+} as PortfolioFormValues;

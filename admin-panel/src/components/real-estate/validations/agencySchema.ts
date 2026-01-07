@@ -168,5 +168,5 @@ export const agencyFormDefaults: AgencyFormValues = {
     og_description: "",
     canonical_url: "",
     robots_meta: "",
-};
+} as AgencyFormValues;
 

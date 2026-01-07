@@ -26,4 +26,4 @@ export const roleFormDefaults: RoleFormValues = {
   name: "",
   description: "",
   permission_ids: [],
-};
+} as RoleFormValues;

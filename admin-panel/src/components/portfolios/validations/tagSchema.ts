@@ -47,5 +47,5 @@ export const portfolioTagFormDefaults: PortfolioTagFormValues = {
     description: "",
     is_active: true,
     is_public: true,
-};
+} as PortfolioTagFormValues;
 

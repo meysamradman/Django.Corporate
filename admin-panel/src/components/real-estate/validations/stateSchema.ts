@@ -39,5 +39,5 @@ export const propertyStateFormDefaults: PropertyStateFormValues = {
     slug: "",
     usage_type: "sale",
     is_active: true,
-};
+} as PropertyStateFormValues;
 

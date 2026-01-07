@@ -28,7 +28,7 @@ export const entityFormSchema = z.object({
   // ...
 });
 
-export type EntityFormValues = z.infer<typeof entityFormSchema>;
+export type EntityFormValues = z.input<typeof entityFormSchema>;
 
 // ✅ بهتر: همه فیلدها را تعریف کنید (نه Partial)
 export const entityFormDefaults: EntityFormValues = {
@@ -906,12 +906,12 @@ canonical_url: z.string()
 
 #### 5️⃣ استفاده صحیح از defaults:
 ```typescript
-export const entityFormDefaults: Partial<EntityFormValues> = {
+export const entityFormDefaults: EntityFormValues = {
   name: "",
   selectedTags: [],  // مطابق با .default([])
   is_active: true,   // مطابق با .default(true)
   description: "",    // optional، پس می‌تواند "" باشد
-};
+} as EntityFormValues;
 ```
 
 #### 6️⃣ بدون `as any`:
@@ -950,15 +950,16 @@ export const schema = z.object({
   is_active: z.boolean().default(true), // با default
 });
 
-export type EntityFormValues = z.infer<typeof schema>;
+// ✅ همیشه از z.input برای فرم‌ها استفاده کنید
+export type EntityFormValues = z.input<typeof schema>;
 
-export const defaults: Partial<EntityFormValues> = {
+export const defaults: EntityFormValues = {
   name: "",
   description: "",
   tags: [],
   image: null,
   is_active: true,
-};
+} as EntityFormValues;
 ```
 
 #### ⚠️ چیزهایی که باید اجتناب کنید:
@@ -986,10 +987,10 @@ export const blogFormDefaults = {
 } as any;
 
 // ✅ درست
-export const blogFormDefaults: Partial<BlogFormValues> = {
+export const blogFormDefaults: BlogFormValues = {
   name: "",
   // ...
-};
+} as BlogFormValues;
 ```
 
 **❌ اشتباه 3: ترکیب `.default()` و `.optional()`**
@@ -1014,7 +1015,7 @@ extra_attributes: z.record(z.string(), z.any()).default({}),
 - [ ] فیلدهای با `.default()` در defaults هم مقدار دارند
 - [ ] فیلدهای `.optional()` در defaults می‌توانند undefined یا "" باشند
 - [ ] از `.optional().or(z.literal(""))` فقط برای URL استفاده شده
-- [ ] `defaultValues` از type `FormValues` است (نه `Partial<FormValues>` و نه `as any`)
+- [ ] `defaultValues` از type `FormValues` است با `as FormValues` در انتها (نه `Partial<FormValues>` و نه `as any`)
 - [ ] `resolver` بدون `as any` استفاده شده
 - [ ] همه فیلدهای required در defaults تعریف شده‌اند
 - [ ] از `.default().optional()` استفاده نشده
@@ -1026,18 +1027,104 @@ extra_attributes: z.record(z.string(), z.any()).default({}),
 
 **راه حل:**
 ```typescript
-// ✅ درست - استفاده از z.input
+// ✅ درست - استفاده از z.input برای فرم‌ها
 export type BlogFormValues = z.input<typeof blogFormSchema>;
 
 // ❌ اشتباه - z.infer ممکن است با zodResolver مشکل داشته باشد
-export type BlogFormValues = z.infer<typeof blogFormSchema>;
+// export type BlogFormValues = z.infer<typeof blogFormSchema>; // ❌ استفاده نکنید
 ```
 
-**چرا؟**
-- `z.input` → type ورودی schema (قبل از validation)
-- `z.output` → type خروجی schema (بعد از validation و اعمال defaults)
+**چرا `z.input`؟**
+- `z.input` → type ورودی schema (قبل از validation) - برای فرم‌ها
+- `z.output` → type خروجی schema (بعد از validation و اعمال defaults) - برای API responses
 - `z.infer` → معمولاً همان `z.output` است
 - `zodResolver` از `z.input` استفاده می‌کند، پس باید type ما هم `z.input` باشد
+
+**مثال تفاوت:**
+```typescript
+const schema = z.object({
+  tags: z.array(z.any()).default([]),
+  age: z.string().transform(val => parseInt(val)), // string → number
+});
+
+// z.input → { tags?: any[], age: string }  ← برای فرم (قبل از parse)
+// z.infer → { tags: any[], age: number }    ← بعد از parse
+```
+
+**📊 مقایسه سه Schema:**
+| معیار | blogFormSchema | propertyFormSchema | portfolioFormSchema |
+|-------|----------------|-------------------|---------------------|
+| Type Definition | `z.input<>` ✅ | `z.input<>` ✅ | `z.input<>` ✅ |
+| Default Values | کامل ✅ | کامل ✅ | کامل ✅ |
+| Type Casting | `as BlogFormValues` ✅ | `as PropertyFormValues` ✅ | `as PortfolioFormValues` ✅ |
+| Match با Schema | ✅ | ✅ | ✅ |
+
+**✅ همه Schema ها یکسان و درست هستند!**
+
+**🏆 Pattern نهایی (Best Practice):**
+
+1️⃣ **Schema Definition:**
+```typescript
+export const entityFormSchema = z.object({
+  // Required fields
+  name: z.string().min(1, { message: "..." }),
+  
+  // Arrays با default
+  tags_ids: z.array(z.number()).default([]),
+  
+  // Booleans با default
+  is_active: z.boolean().default(true),
+  
+  // Optional strings
+  description: z.string().optional(),
+  
+  // Nullable/optional
+  image: z.any().nullable().optional(),
+});
+```
+
+2️⃣ **Type Definition:**
+```typescript
+// ✅ همیشه از z.input برای فرم‌ها استفاده کنید
+export type EntityFormValues = z.input<typeof entityFormSchema>;
+```
+
+3️⃣ **Default Values:**
+```typescript
+export const entityFormDefaults: EntityFormValues = {
+  name: "",
+  tags_ids: [],           // مطابق با .default([])
+  is_active: true,       // مطابق با .default(true)
+  description: "",        // optional
+  image: null,           // nullable
+} as EntityFormValues;   // ✅ استفاده از as برای type safety
+```
+
+4️⃣ **useForm:**
+```typescript
+const form = useForm<EntityFormValues>({
+  resolver: zodResolver(entityFormSchema),  // ✅ بدون as any
+  defaultValues: entityFormDefaults,         // ✅ بدون as any
+  mode: "onSubmit",
+});
+```
+
+**⚠️ نکته مهم: کی از `as` استفاده کنیم؟**
+- ✅ **فقط در defaults:** برای type safety و جلوگیری از خطاهای TypeScript
+- ❌ **در resolver نباید:** `zodResolver` خودش type-safe است
+
+```typescript
+// ✅ اینجا OK است
+export const defaults: EntityFormValues = {
+  // ...
+} as EntityFormValues;
+
+// ❌ اشتباه - در resolver
+resolver: zodResolver(schema) as any,  // ❌
+
+// ✅ درست
+resolver: zodResolver(schema),  // ✅
+```
 
 ---
 

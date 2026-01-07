@@ -63,5 +63,5 @@ export const portfolioCategoryFormDefaults: PortfolioCategoryFormValues = {
     is_active: true,
     is_public: true,
     image_id: null,
-};
+} as PortfolioCategoryFormValues;
 

@@ -285,4 +285,4 @@ export const adminFormDefaults: AdminFormValues = {
   profile_bio: "",
   profile_notes: "",
   profile_picture: null,
-};
+} as AdminFormValues;

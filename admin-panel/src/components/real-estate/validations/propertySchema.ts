@@ -275,26 +275,22 @@ export const propertyFormSchema = z.object({
     meta_title: z
         .string()
         .max(70, { message: msg.validation("metaTitleMaxLength") })
-        .optional()
-        .or(z.literal("")),
+        .optional(),
 
     meta_description: z
         .string()
         .max(160, { message: msg.validation("metaDescMaxLength") })
-        .optional()
-        .or(z.literal("")),
+        .optional(),
 
     og_title: z
         .string()
         .max(70, { message: msg.validation("ogTitleMaxLength") })
-        .optional()
-        .or(z.literal("")),
+        .optional(),
 
     og_description: z
         .string()
         .max(160, { message: msg.validation("ogDescMaxLength") })
-        .optional()
-        .or(z.literal("")),
+        .optional(),
 
     og_image: z
         .any()
@@ -361,8 +357,8 @@ export const propertyFormDefaults: PropertyFormValues = {
     slug: "",
     short_description: "",
     description: "",
-    property_type: undefined!, // Will be set by user, required field
-    state: undefined!, // Will be set by user, required field
+    property_type: undefined!, // Required field, will be set by user
+    state: undefined!, // Required field, will be set by user
     status: "active",
     agent: null,
     agency: null,
@@ -411,4 +407,4 @@ export const propertyFormDefaults: PropertyFormValues = {
     features_ids: [],
     main_image_id: null,
     og_image_id: null,
-};
+} as PropertyFormValues;

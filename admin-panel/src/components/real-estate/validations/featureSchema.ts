@@ -34,5 +34,5 @@ export const propertyFeatureFormDefaults: PropertyFeatureFormValues = {
     group: "",
     is_active: true,
     image_id: null,
-};
+} as PropertyFeatureFormValues;
 

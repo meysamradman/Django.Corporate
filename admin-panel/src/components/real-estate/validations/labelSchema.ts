@@ -34,5 +34,5 @@ export const propertyLabelFormDefaults: PropertyLabelFormValues = {
     title: "",
     slug: "",
     is_active: true,
-};
+} as PropertyLabelFormValues;
 
