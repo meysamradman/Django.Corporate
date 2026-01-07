@@ -1,25 +1,10 @@
-import { useState, lazy, Suspense } from "react";
-import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/elements/Button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
-import {
-  FileText, Image,
-  Loader2, Save, Search, Settings
-} from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { blogApi } from "@/api/blogs/blogs";
-import { blogFormSchema, blogFormDefaults, type BlogFormValues } from "@/components/blogs/validations/blogSchema";
-import { extractFieldErrors, hasFieldErrors } from '@/core/toast';
-import { showSuccess, showError } from '@/core/toast';
-import { msg } from '@/core/messages';
-import { env } from "@/core/config/environment";
-import type { Blog } from "@/types/blog/blog";
-import type { BlogMedia } from "@/types/blog/blogMedia";
-import { collectMediaFilesAndIds } from "@/components/blogs/utils/blogMediaUtils";
+import { lazy, Suspense } from "react";
+import { FileText, Settings } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { useBlogForm } from "@/components/blogs/hooks/useBlogForm";
+import { BlogFormLayout } from "@/components/blogs/layouts/BlogFormLayout";
+import { TabsContent } from "@/components/elements/Tabs";
 
 const TabSkeleton = () => (
   <div className="mt-0 space-y-6">
@@ -88,207 +73,55 @@ const MediaTab = lazy(() => import("@/components/blogs/list/create/MediaTab"));
 const SEOTab = lazy(() => import("@/components/blogs/list/create/SEOTab"));
 
 export default function CreateBlogPage() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<string>("account");
-  const [editMode, _setEditMode] = useState(true);
-  const [blogMedia, setBlogMedia] = useState<BlogMedia>({
-    featuredImage: null,
-    imageGallery: [],
-    videoGallery: [],
-    audioGallery: [],
-    pdfDocuments: []
-  });
+  const {
+    form,
+    activeTab,
+    setActiveTab,
+    blogMedia,
+    setBlogMedia,
+    handleSubmit,
+    isPending,
+  } = useBlogForm({ isEditMode: false });
 
-  const form = useForm<BlogFormValues>({
-    resolver: zodResolver(blogFormSchema),
-    defaultValues: blogFormDefaults,
-    mode: "onSubmit",
-  });
-
-  const createBlogMutation = useMutation({
-    mutationFn: async (data: BlogFormValues & { status: "draft" | "published" }) => {
-      const { allMediaFiles, allMediaIds } = collectMediaFilesAndIds(
-        blogMedia,
-        data.featuredImage
-      );
-
-      const uploadMax = env.BLOG_MEDIA_UPLOAD_MAX;
-      const totalMedia = allMediaFiles.length + allMediaIds.length;
-      if (totalMedia > uploadMax) {
-        throw new Error(`حداکثر ${uploadMax} فایل مدیا در هر بار آپلود مجاز است. شما ${totalMedia} فایل انتخاب کرده‌اید.`);
-      }
-
-      const blogData: any = {
-        title: data.name,
-        slug: data.slug,
-        short_description: data.short_description || "",
-        description: data.description || "",
-        status: data.status as "draft" | "published",
-        is_featured: data.is_featured ?? false,
-        is_public: data.is_public ?? true,
-        is_active: data.is_active ?? true,
-        meta_title: data.meta_title || undefined,
-        meta_description: data.meta_description || undefined,
-        og_title: data.og_title || undefined,
-        og_description: data.og_description || undefined,
-        og_image: data.og_image?.id || undefined,
-        canonical_url: data.canonical_url || undefined,
-        robots_meta: data.robots_meta || undefined,
-        categories_ids: data.selectedCategories ? data.selectedCategories.map((cat: any) => typeof cat === 'number' ? cat : cat.id) : [],
-        tags_ids: data.selectedTags ? data.selectedTags.map(tag => tag.id) : [],
-      };
-
-      if (allMediaIds.length > 0) {
-        blogData.media_ids = allMediaIds;
-      }
-
-      let blog: Blog;
-      if (allMediaFiles.length > 0) {
-        blog = await blogApi.createBlogWithMedia(blogData, allMediaFiles);
-      } else {
-        blog = await blogApi.createBlog(blogData);
-      }
-
-      return blog;
-    },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['blogs'] });
-
-      // ✅ از msg.crud استفاده کنید
-      const successMessage = variables.status === "draft"
-        ? msg.crud('saved', { item: 'بلاگ درافت' })
-        : msg.crud('created', { item: 'بلاگ' });
-      showSuccess(successMessage);
-
-      navigate("/blogs");
-    },
-    onError: (error: any) => {
-
-      if (hasFieldErrors(error)) {
-        const fieldErrors = extractFieldErrors(error);
-
-        Object.entries(fieldErrors).forEach(([field, message]) => {
-          const fieldMap: Record<string, any> = {
-            'title': 'name',
-            'categories_ids': 'selectedCategories',
-            'tags_ids': 'selectedTags',
-          };
-
-          const formField = fieldMap[field] || field;
-          form.setError(formField as keyof BlogFormValues, {
-            type: 'server',
-            message: message as string
-          });
-        });
-
-        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
-      } else {
-        showError(error);
-      }
-    },
-  });
-
-  const handleSave = form.handleSubmit(async (data) => {
-    createBlogMutation.mutate({
-      ...data,
-      status: "published" as const
-    });
-  });
-
-  const handleSaveDraft = form.handleSubmit(async (data) => {
-    createBlogMutation.mutate({
-      ...data,
-      status: "draft" as const
-    });
-  });
+  const handleSave = handleSubmit("published");
+  const handleSaveDraft = handleSubmit("draft");
 
   return (
-    <div className="space-y-6 pb-28 relative">
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList>
-          <TabsTrigger value="account">
-            <FileText className="h-4 w-4" />
-            اطلاعات پایه
-          </TabsTrigger>
-          <TabsTrigger value="media">
-            <Image className="h-4 w-4" />
-            مدیا
-          </TabsTrigger>
-          <TabsTrigger value="seo">
-            <Search className="h-4 w-4" />
-            سئو
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="account">
-          <Suspense fallback={<TabSkeleton />}>
-            <BaseInfoTab
-              form={form}
-              editMode={editMode}
-            />
-          </Suspense>
-        </TabsContent>
-        <TabsContent value="media">
-          <Suspense fallback={<TabSkeleton />}>
-            <MediaTab
-              form={form}
-              blogMedia={blogMedia}
-              setBlogMedia={setBlogMedia}
-              editMode={editMode}
-            />
-          </Suspense>
-        </TabsContent>
-        <TabsContent value="seo">
-          <Suspense fallback={<TabSkeleton />}>
-            <SEOTab
-              form={form}
-              editMode={editMode}
-            />
-          </Suspense>
-        </TabsContent>
-      </Tabs>
-
-      {editMode && (
-        <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
-          <Button
-            onClick={handleSaveDraft}
-            variant="outline"
-            size="lg"
-            disabled={createBlogMutation.isPending}
-          >
-            {createBlogMutation.isPending ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                در حال ذخیره...
-              </>
-            ) : (
-              <>
-                <Save className="h-5 w-5" />
-                ذخیره پیش‌نویس
-              </>
-            )}
-          </Button>
-          <Button
-            onClick={handleSave}
-            size="lg"
-            disabled={createBlogMutation.isPending}
-          >
-            {createBlogMutation.isPending ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                در حال ذخیره...
-              </>
-            ) : (
-              <>
-                <Save className="h-5 w-5" />
-                ذخیره
-              </>
-            )}
-          </Button>
-        </div>
-      )}
-    </div>
+    <BlogFormLayout
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      onSubmit={handleSave}
+      onSaveDraft={handleSaveDraft}
+      isPending={isPending}
+      isSubmitting={form.formState.isSubmitting}
+      isEditMode={false}
+    >
+      <TabsContent value="account">
+        <Suspense fallback={<TabSkeleton />}>
+          <BaseInfoTab
+            form={form}
+            editMode={true}
+          />
+        </Suspense>
+      </TabsContent>
+      <TabsContent value="media">
+        <Suspense fallback={<TabSkeleton />}>
+          <MediaTab
+            form={form}
+            blogMedia={blogMedia}
+            setBlogMedia={setBlogMedia}
+            editMode={true}
+          />
+        </Suspense>
+      </TabsContent>
+      <TabsContent value="seo">
+        <Suspense fallback={<TabSkeleton />}>
+          <SEOTab
+            form={form}
+            editMode={true}
+          />
+        </Suspense>
+      </TabsContent>
+    </BlogFormLayout>
   );
 }

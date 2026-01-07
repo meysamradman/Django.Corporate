@@ -35,7 +35,7 @@ class PropertyFeatureAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
     filterset_class = PropertyFeatureAdminFilter
     search_fields = ['title', 'group']
     ordering_fields = ['group', 'created_at', 'title']
-    ordering = ['group', 'title']
+    ordering = ['-created_at']
     pagination_class = StandardLimitPagination
     
     def get_queryset(self):

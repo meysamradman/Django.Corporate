@@ -1,344 +1,243 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Button } from "@/components/elements/Button";
-import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
-import { Switch } from "@/components/elements/Switch";
-import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
-import { showError, showSuccess, extractFieldErrors, hasFieldErrors } from "@/core/toast";
-import { msg } from "@/core/messages";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { FolderTree, Image as ImageIcon, Settings } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
-import type { PropertyType } from "@/types/real_estate/type/propertyType";
-import type { Media } from "@/types/shared/media";
+import { useTaxonomyForm } from "@/components/real-estate/hooks/useTaxonomyForm";
+import { TaxonomyFormLayout } from "@/components/real-estate/layouts/TaxonomyFormLayout";
+import { propertyTypeFormSchema, propertyTypeFormDefaults } from '@/components/real-estate/validations/typeSchema';
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
 import { TreeSelect } from "@/components/elements/TreeSelect";
-import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
-import { propertyTypeFormSchema, propertyTypeFormDefaults, type PropertyTypeFormValues } from '@/components/real-estate/validations/typeSchema';
+import { formatSlug } from '@/core/slug/generate';
 import { mediaService } from "@/components/media/services";
-import { Loader2, Save, FolderTree, Image as ImageIcon, UploadCloud, X, Settings } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
+import { Button } from "@/components/elements/Button";
+import { UploadCloud, X } from "lucide-react";
+import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
+import { TabsContent } from "@/components/elements/Tabs";
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
+import { Switch } from "@/components/elements/Switch";
 
 export default function CreatePropertyTypePage() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<string>("account");
-
-  const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
 
-  const form = useForm<PropertyTypeFormValues>({
-    resolver: zodResolver(propertyTypeFormSchema),
+  const {
+    form,
+    activeTab,
+    setActiveTab,
+    selectedMedia,
+    handleImageSelect,
+    handleRemoveImage,
+    handleSubmit,
+    isPending,
+  } = useTaxonomyForm({
+    isEditMode: false,
+    schema: propertyTypeFormSchema,
     defaultValues: propertyTypeFormDefaults,
-    mode: "onSubmit",
+    createMutationFn: (data) => realEstateApi.createType(data),
+    updateMutationFn: (id, data) => realEstateApi.partialUpdateType(id, data),
+    invalidateQueryKeys: [['property-types']],
+    onSuccessRedirect: "/real-estate/types",
+    itemLabel: "نوع ملک",
   });
 
   const { register, formState: { errors, isSubmitting }, watch, setValue } = form;
-  const titleValue = watch("title");
 
   const { data: types } = useQuery({
     queryKey: ['property-types-all'],
-    queryFn: async () => {
-      const res = await realEstateApi.getTypes({ size: 1000 });
-      return res;
-    },
-    staleTime: 0,
-    gcTime: 0,
+    queryFn: () => realEstateApi.getTypes({ size: 1000 }),
   });
 
-  // Auto-generate slug from title
-  useEffect(() => {
-    if (titleValue) {
-      const generatedSlug = generateSlug(titleValue);
-      setValue("slug", generatedSlug, { shouldValidate: false });
-    }
-  }, [titleValue, setValue]);
-
-  const createTypeMutation = useMutation({
-    mutationFn: (data: Partial<PropertyType>) => realEstateApi.createType(data),
-    onSuccess: () => {
-      // ✅ از msg.crud استفاده کنید
-      showSuccess(msg.crud("created", { item: "نوع ملک" }));
-      queryClient.invalidateQueries({ queryKey: ['property-types'] });
-      navigate("/real-estate/types");
-    },
-    onError: (error: any) => {
-      // ✅ Field Errors → Inline + Toast کلی
-      if (hasFieldErrors(error)) {
-        const fieldErrors = extractFieldErrors(error);
-        
-        Object.entries(fieldErrors).forEach(([field, message]) => {
-          const fieldMap: Record<string, any> = {
-            'title': 'title',
-            'slug': 'slug',
-            'description': 'description',
-            'parent_id': 'parent_id',
-            'display_order': 'display_order',
-            'is_active': 'is_active',
-            'image_id': 'image_id',
-          };
-          
-          const formField = fieldMap[field] || field;
-          form.setError(formField as keyof PropertyTypeFormValues, {
-            type: 'server',
-            message: message as string
-          });
-        });
-        
-        // Toast کلی برای راهنمایی کاربر
-        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
-      } 
-      // ✅ General Errors → فقط Toast
-      else {
-        // showError خودش تصمیم می‌گیرد (بک‌اند یا frontend)
-        showError(error);
-      }
-    },
-  });
-
-
-  const handleImageSelect = (media: Media | Media[] | null) => {
-    const selected = Array.isArray(media) ? media[0] || null : media;
-    setSelectedMedia(selected);
-    setValue("image_id", selected?.id || null, { shouldValidate: false });
-    setIsMediaModalOpen(false);
-  };
-
-  const handleRemoveImage = () => {
-    setSelectedMedia(null);
-    setValue("image_id", null, { shouldValidate: false });
-  };
-
-  const handleSubmit = form.handleSubmit(async (data) => {
-    createTypeMutation.mutate(data);
-  });
-
-  // Map types to match TreeSelect expected format (title -> name)
   const treeData = types?.data?.map(t => ({
     ...t,
     name: t.title
   })) || [];
 
+  const tabs = [
+    { value: "account", label: "اطلاعات پایه", icon: FolderTree },
+    { value: "media", label: "مدیا", icon: ImageIcon },
+    { value: "settings", label: "تنظیمات", icon: Settings },
+  ];
+
   return (
-    <div className="space-y-6 pb-28 relative">
-      <form id="type-create-form" onSubmit={handleSubmit} noValidate>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList>
-            <TabsTrigger value="account">
-              <FolderTree className="h-4 w-4" />
-              اطلاعات پایه
-            </TabsTrigger>
-            <TabsTrigger value="media">
-              <ImageIcon className="h-4 w-4" />
-              مدیا
-            </TabsTrigger>
-            <TabsTrigger value="settings">
-              <Settings className="h-4 w-4" />
-              تنظیمات
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="account">
-            <div className="space-y-6">
-              <CardWithIcon
-                icon={FolderTree}
-                title="اطلاعات نوع ملک"
-                iconBgColor="bg-purple"
-                iconColor="stroke-purple-2"
-                borderColor="border-b-purple-1"
-                className="hover:shadow-lg transition-all duration-300"
-              >
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormFieldInput
-                      label="عنوان"
-                      id="title"
-                      required
-                      error={errors.title?.message}
-                      placeholder="عنوان نوع ملک"
-                      {...register("title")}
-                    />
-                    <FormFieldInput
-                      label="نامک"
-                      id="slug"
-                      required
-                      error={errors.slug?.message}
-                      placeholder="نامک"
-                      {...register("slug", {
-                        onChange: (e) => {
-                          const formattedSlug = formatSlug(e.target.value);
-                          e.target.value = formattedSlug;
-                          setValue("slug", formattedSlug);
-                        }
-                      })}
-                    />
-                  </div>
-
-                  <FormField
-                    label="نوع والد"
-                    htmlFor="parent_id"
-                    description="نوع‌های بدون والد، نوع‌های مادر هستند."
-                    error={errors.parent_id?.message}
-                  >
-                    <TreeSelect
-                      data={treeData}
-                      value={watch("parent_id") || null}
-                      onChange={(value) => setValue("parent_id", value ? parseInt(value) : null)}
-                      placeholder="انتخاب نوع والد (اختیاری)"
-                      searchPlaceholder="جستجوی نوع ملک..."
-                      emptyText="نوع ملکی یافت نشد"
-                    />
-                  </FormField>
-
-                  <FormFieldTextarea
-                    label="توضیحات"
-                    id="description"
-                    error={errors.description?.message}
-                    placeholder="توضیحات نوع ملک"
-                    rows={4}
-                    {...register("description")}
-                  />
-                </div>
-              </CardWithIcon>
+    <TaxonomyFormLayout
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      onSubmit={handleSubmit}
+      isPending={isPending}
+      isSubmitting={isSubmitting}
+      isEditMode={false}
+      tabs={tabs}
+      itemLabel="نوع ملک"
+      formId="type-create-form"
+    >
+      <TabsContent value="account">
+        <CardWithIcon
+          icon={FolderTree}
+          title="اطلاعات نوع ملک"
+          iconBgColor="bg-purple"
+          iconColor="stroke-purple-2"
+          borderColor="border-b-purple-1"
+        >
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormFieldInput
+                label="عنوان"
+                id="title"
+                required
+                error={errors.title?.message}
+                placeholder="عنوان نوع ملک"
+                {...register("title")}
+              />
+              <FormFieldInput
+                label="نامک"
+                id="slug"
+                required
+                error={errors.slug?.message}
+                placeholder="نامک"
+                {...register("slug", {
+                  onChange: (e) => {
+                    const formattedSlug = formatSlug(e.target.value);
+                    e.target.value = formattedSlug;
+                    setValue("slug", formattedSlug);
+                  }
+                })}
+              />
             </div>
-          </TabsContent>
 
-          <TabsContent value="media">
-            <div className="space-y-6">
-              <CardWithIcon
-                icon={ImageIcon}
-                title="تصویر نوع ملک"
-                iconBgColor="bg-blue"
-                iconColor="stroke-blue-2"
-                borderColor="border-b-blue-1"
-                className="hover:shadow-lg transition-all duration-300"
-              >
-                {selectedMedia ? (
-                  <div className="relative w-full aspect-video overflow-hidden group border">
-                    <img
-                      src={mediaService.getMediaUrlFromObject(selectedMedia)}
-                      alt={selectedMedia.alt_text || "تصویر نوع ملک"}
-                      className="w-full h-full object-cover"
+            <FormField
+              label="نوع والد"
+              htmlFor="parent_id"
+              description="نوع‌های بدون والد، نوع‌های مادر هستند."
+              error={errors.parent_id?.message}
+            >
+              <TreeSelect
+                data={treeData}
+                value={watch("parent_id") || null}
+                onChange={(value) => setValue("parent_id", value ? parseInt(value) : null)}
+                placeholder="انتخاب نوع والد (اختیاری)"
+                searchPlaceholder="جستجوی نوع ملک..."
+                emptyText="نوع ملکی یافت نشد"
+              />
+            </FormField>
+
+            <FormFieldTextarea
+              label="توضیحات"
+              id="description"
+              error={errors.description?.message}
+              placeholder="توضیحات نوع ملک"
+              rows={4}
+              {...register("description")}
+            />
+          </div>
+        </CardWithIcon>
+      </TabsContent>
+
+      <TabsContent value="media">
+        <CardWithIcon
+          icon={ImageIcon}
+          title="تصویر نوع ملک"
+          iconBgColor="bg-blue"
+          iconColor="stroke-blue-2"
+          borderColor="border-b-blue-1"
+        >
+          {selectedMedia ? (
+            <div className="relative w-full aspect-video overflow-hidden group border">
+              <img
+                src={mediaService.getMediaUrlFromObject(selectedMedia)}
+                alt={selectedMedia.alt_text || "تصویر نوع ملک"}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-static-b/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsMediaModalOpen(true)}
+                  className="mx-1"
+                  type="button"
+                >
+                  تغییر تصویر
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleRemoveImage}
+                  className="mx-1"
+                  type="button"
+                >
+                  <X className="w-4 h-4" />
+                  حذف
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div
+              onClick={() => setIsMediaModalOpen(true)}
+              className="relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed cursor-pointer hover:border-primary transition-colors"
+            >
+              <UploadCloud className="w-12 h-12 text-font-s" />
+              <p className="mt-4 text-lg font-semibold">انتخاب تصویر</p>
+              <p className="mt-1 text-sm text-font-s text-center">
+                برای انتخاب از کتابخانه کلیک کنید
+              </p>
+            </div>
+          )}
+        </CardWithIcon>
+      </TabsContent>
+
+      <TabsContent value="settings">
+        <CardWithIcon
+          icon={Settings}
+          title="تنظیمات"
+          iconBgColor="bg-purple"
+          iconColor="stroke-purple-2"
+          borderColor="border-b-purple-1"
+        >
+          <div className="space-y-6">
+            <FormFieldInput
+              label="ترتیب نمایش"
+              id="display_order"
+              type="number"
+              error={errors.display_order?.message}
+              placeholder="ترتیب نمایش"
+              {...register("display_order", {
+                valueAsNumber: true,
+              })}
+            />
+
+            <div className="mt-6 space-y-4">
+              <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                <Item variant="default" size="default" className="py-5">
+                  <ItemContent>
+                    <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
+                    <ItemDescription>
+                      با غیرفعال شدن، نوع ملک از لیست مدیریت نیز مخفی می‌شود.
+                    </ItemDescription>
+                  </ItemContent>
+                  <ItemActions>
+                    <Switch
+                      checked={watch("is_active")}
+                      onCheckedChange={(checked) => setValue("is_active", checked)}
                     />
-                    <div className="absolute inset-0 bg-static-b/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsMediaModalOpen(true)}
-                        className="mx-1"
-                        type="button"
-                      >
-                        تغییر تصویر
-                      </Button>
-
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={handleRemoveImage}
-                        className="mx-1"
-                        type="button"
-                      >
-                        <X className="w-4 h-4" />
-                        حذف
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div
-                    onClick={() => setIsMediaModalOpen(true)}
-                    className="relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed cursor-pointer hover:border-primary transition-colors"
-                  >
-                    <UploadCloud className="w-12 h-12 text-font-s" />
-                    <p className="mt-4 text-lg font-semibold">انتخاب تصویر</p>
-                    <p className="mt-1 text-sm text-font-s text-center">
-                      برای انتخاب از کتابخانه کلیک کنید
-                    </p>
-                  </div>
-                )}
-              </CardWithIcon>
+                  </ItemActions>
+                </Item>
+              </div>
             </div>
-          </TabsContent>
-
-          <TabsContent value="settings">
-            <div className="space-y-6">
-              <CardWithIcon
-                icon={Settings}
-                title="تنظیمات"
-                iconBgColor="bg-purple"
-                iconColor="stroke-purple-2"
-                borderColor="border-b-purple-1"
-                className="hover:shadow-lg transition-all duration-300"
-              >
-                <div className="space-y-6">
-                  <FormFieldInput
-                    label="ترتیب نمایش"
-                    id="display_order"
-                    type="number"
-                    error={errors.display_order?.message}
-                    placeholder="ترتیب نمایش"
-                    {...register("display_order", {
-                      valueAsNumber: true,
-                    })}
-                  />
-
-                  <div className="mt-6 space-y-4">
-                    <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
-                      <Item variant="default" size="default" className="py-5">
-                        <ItemContent>
-                          <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
-                          <ItemDescription>
-                            با غیرفعال شدن، نوع ملک از لیست مدیریت نیز مخفی می‌شود.
-                          </ItemDescription>
-                        </ItemContent>
-                        <ItemActions>
-                          <Switch
-                            checked={watch("is_active")}
-                            onCheckedChange={(checked) => setValue("is_active", checked)}
-                          />
-                        </ItemActions>
-                      </Item>
-                    </div>
-                  </div>
-                </div>
-              </CardWithIcon>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </form>
+          </div>
+        </CardWithIcon>
+      </TabsContent>
 
       <MediaLibraryModal
         isOpen={isMediaModalOpen}
         onClose={() => setIsMediaModalOpen(false)}
-        onSelect={handleImageSelect}
+        onSelect={(media) => {
+          handleImageSelect(media);
+          setIsMediaModalOpen(false);
+        }}
         selectMultiple={false}
         initialFileType="image"
         showTabs={true}
         context="media_library"
       />
-
-      <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
-        <Button
-          type="submit"
-          form="type-create-form"
-          size="lg"
-          disabled={createTypeMutation.isPending || isSubmitting}
-        >
-          {createTypeMutation.isPending || isSubmitting ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin" />
-              در حال ایجاد...
-            </>
-          ) : (
-            <>
-              <Save className="h-5 w-5" />
-              ایجاد نوع ملک
-            </>
-          )}
-        </Button>
-      </div>
-    </div>
+    </TaxonomyFormLayout>
   );
 }
-

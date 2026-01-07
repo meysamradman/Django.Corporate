@@ -43,7 +43,7 @@ class BlogTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     def get_queryset(self):
         if self.action == 'list':
-            return BlogTag.objects.with_counts().order_by('-blog_count', 'name')
+            return BlogTag.objects.with_counts()
         elif self.action in ['retrieve', 'update', 'partial_update']:
             return BlogTag.objects.with_counts()
         else:

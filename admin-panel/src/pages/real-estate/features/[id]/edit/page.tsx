@@ -1,348 +1,201 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Button } from "@/components/elements/Button";
-import { FormFieldInput } from "@/components/forms/FormField";
-import { Switch } from "@/components/elements/Switch";
-import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
-import { showError, showSuccess, showInfo, extractFieldErrors, hasFieldErrors } from "@/core/toast";
-import { msg } from "@/core/messages";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useParams } from "react-router-dom";
+import { FileText, Image as ImageIcon, Settings, Star, UploadCloud, X } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
-import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
-import type { Media } from "@/types/shared/media";
-import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
+import { useTaxonomyForm } from "@/components/real-estate/hooks/useTaxonomyForm";
+import { TaxonomyFormLayout } from "@/components/real-estate/layouts/TaxonomyFormLayout";
+import { propertyFeatureFormSchema, propertyFeatureFormDefaults } from '@/components/real-estate/validations/featureSchema';
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { FormFieldInput } from "@/components/forms/FormField";
 import { mediaService } from "@/components/media/services";
-import { Settings, Loader2, Save, Star, Image as ImageIcon, UploadCloud, X, FileText } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
-import { Skeleton } from "@/components/elements/Skeleton";
-import { propertyFeatureFormSchema, propertyFeatureFormDefaults, type PropertyFeatureFormValues } from '@/components/real-estate/validations/featureSchema';
+import { Button } from "@/components/elements/Button";
+import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
+import { TabsContent } from "@/components/elements/Tabs";
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
+import { Switch } from "@/components/elements/Switch";
 
 export default function EditPropertyFeaturePage() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { id } = useParams<{ id: string }>();
-  const featureId = Number(id);
-  const [activeTab, setActiveTab] = useState<string>("account");
-  
-  const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
 
-  const form = useForm<PropertyFeatureFormValues>({
-    resolver: zodResolver(propertyFeatureFormSchema),
+  const {
+    form,
+    activeTab,
+    setActiveTab,
+    selectedMedia,
+    handleImageSelect,
+    handleRemoveImage,
+    handleSubmit,
+    isLoading,
+    isPending,
+  } = useTaxonomyForm({
+    id,
+    isEditMode: true,
+    schema: propertyFeatureFormSchema,
     defaultValues: propertyFeatureFormDefaults,
-    mode: "onSubmit",
+    fetchQueryKey: ['property-feature', Number(id)],
+    fetchQueryFn: () => realEstateApi.getFeatureById(Number(id)),
+    createMutationFn: (data) => realEstateApi.createFeature(data),
+    updateMutationFn: (id, data) => realEstateApi.partialUpdateFeature(id, data),
+    invalidateQueryKeys: [['property-features'], ['property-feature', Number(id)]],
+    onSuccessRedirect: "/real-estate/features",
+    itemLabel: "ویژگی ملک",
+    autoSlug: false,
   });
 
   const { register, formState: { errors, isSubmitting }, watch, setValue } = form;
 
-  const { data: feature, isLoading, error } = useQuery({
-    queryKey: ['property-feature', featureId],
-    queryFn: () => realEstateApi.getFeatureById(featureId),
-    enabled: !!featureId,
-  });
-
-  // Reset form with feature data
-  useEffect(() => {
-    if (feature) {
-      form.reset({
-        title: feature.title || "",
-        group: feature.group || "",
-        is_active: feature.is_active ?? true,
-        image_id: feature.image?.id || null,
-      });
-      
-      if (feature.image) {
-        setSelectedMedia(feature.image);
-      }
-    }
-  }, [feature, form]);
-
-  const updateFeatureMutation = useMutation({
-    mutationFn: (data: Partial<PropertyFeature>) => realEstateApi.partialUpdateFeature(featureId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['property-feature', featureId] });
-      queryClient.invalidateQueries({ queryKey: ['property-features'] });
-      // ✅ از msg.crud استفاده کنید
-      showSuccess(msg.crud("updated", { item: "ویژگی ملک" }));
-      navigate("/real-estate/features");
-    },
-    onError: (error: any) => {
-      // ✅ Field Errors → Inline + Toast کلی
-      if (hasFieldErrors(error)) {
-        const fieldErrors = extractFieldErrors(error);
-        
-        Object.entries(fieldErrors).forEach(([field, message]) => {
-          form.setError(field as keyof PropertyFeatureFormValues, {
-            type: 'server',
-            message: message as string
-          });
-        });
-        
-        // Toast کلی برای راهنمایی کاربر
-        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
-      } 
-      // ✅ General Errors → فقط Toast
-      else {
-        // showError خودش تصمیم می‌گیرد (بک‌اند یا frontend)
-        showError(error);
-      }
-    },
-  });
-
-  const handleImageSelect = (media: Media | Media[] | null) => {
-    const selected = Array.isArray(media) ? media[0] || null : media;
-    setSelectedMedia(selected);
-    setValue("image_id", selected?.id || null, { shouldValidate: false });
-    setIsMediaModalOpen(false);
-  };
-
-  const handleRemoveImage = () => {
-    setSelectedMedia(null);
-    setValue("image_id", null, { shouldValidate: false });
-  };
-
-  const handleSubmit = form.handleSubmit(async (data) => {
-    if (!feature) return;
-    
-    // ✅ حفظ منطق: فقط فیلدهایی که تغییر کرده‌اند را ارسال کن
-    const submitData: Partial<PropertyFeature> = {};
-    
-    if (data.title !== feature.title) {
-      submitData.title = data.title;
-    }
-    
-    if (data.group !== (feature.group || "")) {
-      submitData.group = data.group || null;
-    }
-    
-    if (data.is_active !== (feature.is_active ?? true)) {
-      submitData.is_active = data.is_active;
-    }
-    
-    const currentImageId = feature.image?.id || null;
-    const newImageId = data.image_id || null;
-    if (currentImageId !== newImageId) {
-      (submitData as any).image_id = newImageId;
-    }
-    
-    if (Object.keys(submitData).length === 0) {
-      showInfo("تغییری اعمال نشده است");
-      return;
-    }
-    
-    updateFeatureMutation.mutate(submitData);
-  });
+  const tabs = [
+    { value: "account", label: "اطلاعات پایه", icon: FileText },
+    { value: "media", label: "مدیا", icon: ImageIcon },
+    { value: "settings", label: "تنظیمات", icon: Settings },
+  ];
 
   if (isLoading) {
     return (
       <div className="space-y-6 pb-28 relative">
-
-        <CardWithIcon
-          icon={Settings}
-          title="اطلاعات ویژگی ملک"
-          iconBgColor="bg-blue"
-          iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
-        >
-          <div className="space-y-6">
-            <Skeleton className="h-10 w-full" />
-          </div>
-        </CardWithIcon>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
-        <Button 
-          onClick={() => navigate(-1)} 
-          className="mt-4"
-        >
-          بازگشت
-        </Button>
+        <div className="h-40 w-full bg-card animate-pulse rounded-lg" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 pb-28 relative">
-      <form id="feature-edit-form" onSubmit={handleSubmit} noValidate>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList>
-            <TabsTrigger value="account">
-              <FileText className="h-4 w-4" />
-              اطلاعات پایه
-            </TabsTrigger>
-            <TabsTrigger value="media">
-              <ImageIcon className="h-4 w-4" />
-              مدیا
-            </TabsTrigger>
-            <TabsTrigger value="settings">
-              <Settings className="h-4 w-4" />
-              تنظیمات
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="account">
-            <div className="space-y-6">
-              <CardWithIcon
-                icon={Star}
-                title="اطلاعات ویژگی ملک"
-                iconBgColor="bg-yellow"
-                iconColor="stroke-yellow-2"
-                borderColor="border-b-yellow-1"
-                className="hover:shadow-lg transition-all duration-300"
-              >
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormFieldInput
-                      label="عنوان"
-                      id="title"
-                      required
-                      error={errors.title?.message}
-                      placeholder="عنوان ویژگی ملک"
-                      {...register("title")}
-                    />
-                    <FormFieldInput
-                      label="دسته‌بندی"
-                      id="group"
-                      error={errors.group?.message}
-                      placeholder="دسته‌بندی ویژگی"
-                      {...register("group")}
-                    />
-                  </div>
-                </div>
-              </CardWithIcon>
+    <TaxonomyFormLayout
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      onSubmit={handleSubmit}
+      isPending={isPending}
+      isSubmitting={isSubmitting}
+      isEditMode={true}
+      tabs={tabs}
+      itemLabel="ویژگی ملک"
+      formId="feature-edit-form"
+    >
+      <TabsContent value="account">
+        <CardWithIcon
+          icon={Star}
+          title="اطلاعات ویژگی ملک"
+          iconBgColor="bg-yellow"
+          iconColor="stroke-yellow-2"
+          borderColor="border-b-yellow-1"
+        >
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormFieldInput
+                label="عنوان"
+                id="title"
+                required
+                error={errors.title?.message}
+                placeholder="عنوان ویژگی ملک"
+                {...register("title")}
+              />
+              <FormFieldInput
+                label="دسته‌بندی"
+                id="group"
+                error={errors.group?.message}
+                placeholder="دسته‌بندی ویژگی"
+                {...register("group")}
+              />
             </div>
-          </TabsContent>
+          </div>
+        </CardWithIcon>
+      </TabsContent>
 
-          <TabsContent value="media">
-            <div className="space-y-6">
-              <CardWithIcon
-                icon={ImageIcon}
-                title="تصویر/آیکون ویژگی"
-                iconBgColor="bg-blue"
-                iconColor="stroke-blue-2"
-                borderColor="border-b-blue-1"
-                className="hover:shadow-lg transition-all duration-300"
-              >
-                {selectedMedia ? (
-                  <div className="relative w-full aspect-square overflow-hidden group border">
-                    <img
-                      src={mediaService.getMediaUrlFromObject(selectedMedia)}
-                      alt={selectedMedia.alt_text || "تصویر ویژگی"}
-                      className="w-full h-full object-cover"
+      <TabsContent value="media">
+        <CardWithIcon
+          icon={ImageIcon}
+          title="تصویر/آیکون ویژگی"
+          iconBgColor="bg-blue"
+          iconColor="stroke-blue-2"
+          borderColor="border-b-blue-1"
+        >
+          {selectedMedia ? (
+            <div className="relative w-full aspect-square overflow-hidden group border">
+              <img
+                src={mediaService.getMediaUrlFromObject(selectedMedia)}
+                alt={selectedMedia.alt_text || "تصویر ویژگی"}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-static-b/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsMediaModalOpen(true)}
+                  className="mx-1"
+                  type="button"
+                >
+                  تغییر تصویر
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleRemoveImage}
+                  className="mx-1"
+                  type="button"
+                >
+                  <X className="w-4 h-4" />
+                  حذف
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div
+              onClick={() => setIsMediaModalOpen(true)}
+              className="relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed cursor-pointer hover:border-primary transition-colors"
+            >
+              <UploadCloud className="w-12 h-12 text-font-s" />
+              <p className="mt-4 text-lg font-semibold">انتخاب تصویر/آیکون</p>
+              <p className="mt-1 text-sm text-font-s text-center">
+                برای انتخاب از کتابخانه کلیک کنید
+              </p>
+            </div>
+          )}
+        </CardWithIcon>
+      </TabsContent>
+
+      <TabsContent value="settings">
+        <CardWithIcon
+          icon={Settings}
+          title="تنظیمات"
+          iconBgColor="bg-yellow"
+          iconColor="stroke-yellow-2"
+          borderColor="border-b-yellow-1"
+        >
+          <div className="space-y-6">
+            <div className="mt-6 space-y-4">
+              <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                <Item variant="default" size="default" className="py-5">
+                  <ItemContent>
+                    <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
+                    <ItemDescription>
+                      با غیرفعال شدن، ویژگی ملک از لیست مدیریت نیز مخفی می‌شود.
+                    </ItemDescription>
+                  </ItemContent>
+                  <ItemActions>
+                    <Switch
+                      checked={watch("is_active")}
+                      onCheckedChange={(checked) => setValue("is_active", checked)}
                     />
-                    <div className="absolute inset-0 bg-static-b/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsMediaModalOpen(true)}
-                        className="mx-1"
-                        type="button"
-                      >
-                        تغییر تصویر
-                      </Button>
-
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={handleRemoveImage}
-                        className="mx-1"
-                        type="button"
-                      >
-                        <X className="w-4 h-4" />
-                        حذف
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div
-                    onClick={() => setIsMediaModalOpen(true)}
-                    className="relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed cursor-pointer hover:border-primary transition-colors"
-                  >
-                    <UploadCloud className="w-12 h-12 text-font-s" />
-                    <p className="mt-4 text-lg font-semibold">انتخاب تصویر/آیکون</p>
-                    <p className="mt-1 text-sm text-font-s text-center">
-                      برای انتخاب از کتابخانه کلیک کنید
-                    </p>
-                  </div>
-                )}
-              </CardWithIcon>
+                  </ItemActions>
+                </Item>
+              </div>
             </div>
-          </TabsContent>
-
-          <TabsContent value="settings">
-            <div className="space-y-6">
-              <CardWithIcon
-                icon={Settings}
-                title="تنظیمات"
-                iconBgColor="bg-yellow"
-                iconColor="stroke-yellow-2"
-                borderColor="border-b-yellow-1"
-                className="hover:shadow-lg transition-all duration-300"
-              >
-                <div className="space-y-6">
-                  <div className="mt-6 space-y-4">
-                    <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
-                      <Item variant="default" size="default" className="py-5">
-                        <ItemContent>
-                          <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
-                          <ItemDescription>
-                            با غیرفعال شدن، ویژگی ملک از لیست مدیریت نیز مخفی می‌شود.
-                          </ItemDescription>
-                        </ItemContent>
-                        <ItemActions>
-                          <Switch
-                            checked={watch("is_active")}
-                            onCheckedChange={(checked) => setValue("is_active", checked)}
-                          />
-                        </ItemActions>
-                      </Item>
-                    </div>
-                  </div>
-                </div>
-              </CardWithIcon>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </form>
+          </div>
+        </CardWithIcon>
+      </TabsContent>
 
       <MediaLibraryModal
         isOpen={isMediaModalOpen}
         onClose={() => setIsMediaModalOpen(false)}
-        onSelect={handleImageSelect}
+        onSelect={(media) => {
+          handleImageSelect(media);
+          setIsMediaModalOpen(false);
+        }}
         selectMultiple={false}
         initialFileType="image"
         showTabs={true}
         context="media_library"
       />
-
-      <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
-        <Button
-          type="submit"
-          form="feature-edit-form"
-          size="lg"
-          disabled={updateFeatureMutation.isPending || isSubmitting}
-        >
-          {updateFeatureMutation.isPending || isSubmitting ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin" />
-              در حال به‌روزرسانی...
-            </>
-          ) : (
-            <>
-              <Save className="h-5 w-5" />
-              به‌روزرسانی ویژگی ملک
-            </>
-          )}
-        </Button>
-      </div>
-    </div>
+    </TaxonomyFormLayout>
   );
 }

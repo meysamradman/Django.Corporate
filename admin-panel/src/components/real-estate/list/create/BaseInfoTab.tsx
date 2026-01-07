@@ -57,8 +57,8 @@ type BaseInfoTabProps = BaseInfoTabFormProps | BaseInfoTabManualProps;
 
 export default function BaseInfoTab(props: BaseInfoTabProps) {
     const isFormApproach = 'form' in props;
-    const { register, formState: { errors }, watch, setValue } = isFormApproach 
-        ? props.form 
+    const { register, formState: { errors }, watch, setValue } = isFormApproach
+        ? props.form
         : { register: null, formState: { errors: {} as any }, watch: null, setValue: null };
     const formData = isFormApproach ? null : (props as any).formData;
     const handleInputChange = isFormApproach ? null : (props as any).handleInputChange;
@@ -439,7 +439,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                             >
                                 <Select
                                     disabled={!editMode || loadingOptions}
-                                    value={isFormApproach ? (watch?.("status") || "active") : (formData?.status || "active")}
+                                    value={isFormApproach ? (watch?.("status") || "") : (formData?.status || "")}
                                     onValueChange={handleStatusChange}
                                 >
                                     <SelectTrigger className={cn("h-11", (isFormApproach ? errors.status?.message : errors?.status) && "border-red-1")}>
@@ -460,24 +460,24 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                 label="مشاور مسئول"
                                 error={errors?.agent}
                             >
-                                    <Select
-                                        disabled={!editMode || loadingAgents}
-                                        value={isFormApproach ? (watch?.("agent") ? String(watch("agent")) : "none") : (formData?.agent ? String(formData.agent) : "none")}
-                                        onValueChange={handleAgentChange}
-                                    >
-                                        <SelectTrigger className={cn("h-11", (isFormApproach ? errors.agent?.message : errors?.agent) && "border-red-1")}>
-                                            <SelectValue placeholder={loadingAgents ? "در حال بارگذاری..." : "مشاور را انتخاب کنید"} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="none">هیچکدام</SelectItem>
-                                            {(agents || []).map((agent) => (
-                                                <SelectItem key={agent.id} value={String(agent.id)}>
-                                                    {agent.first_name} {agent.last_name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </FormField>
+                                <Select
+                                    disabled={!editMode || loadingAgents}
+                                    value={isFormApproach ? (watch?.("agent") ? String(watch("agent")) : "none") : (formData?.agent ? String(formData.agent) : "none")}
+                                    onValueChange={handleAgentChange}
+                                >
+                                    <SelectTrigger className={cn("h-11", (isFormApproach ? errors.agent?.message : errors?.agent) && "border-red-1")}>
+                                        <SelectValue placeholder={loadingAgents ? "در حال بارگذاری..." : "مشاور را انتخاب کنید"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">هیچکدام</SelectItem>
+                                        {(agents || []).map((agent) => (
+                                            <SelectItem key={agent.id} value={String(agent.id)}>
+                                                {agent.first_name} {agent.last_name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </FormField>
 
                             {/* Agency */}
                             <FormField
@@ -528,7 +528,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                 <div className="space-y-2">
                                     {formSelectedLabels.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
-                                            {formSelectedLabels.map((label) => (
+                                            {formSelectedLabels.map((label: PropertyLabel) => (
                                                 <span
                                                     key={label.id}
                                                     className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-purple text-purple-2 transition hover:shadow-sm"
@@ -593,7 +593,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                 <div className="space-y-2">
                                     {formSelectedTags.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
-                                            {formSelectedTags.map((tag) => (
+                                            {formSelectedTags.map((tag: PropertyTag) => (
                                                 <span
                                                     key={tag.id}
                                                     className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-indigo text-indigo-2 transition hover:shadow-sm"
@@ -658,7 +658,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                 <div className="space-y-2">
                                     {formSelectedFeatures.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
-                                            {formSelectedFeatures.map((feature) => (
+                                            {formSelectedFeatures.map((feature: PropertyFeature) => (
                                                 <span
                                                     key={feature.id}
                                                     className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-teal text-teal-2"

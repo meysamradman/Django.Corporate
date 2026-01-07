@@ -47,7 +47,7 @@ class PortfolioPublicService:
                 Q(tags__name__icontains=search)
             ).distinct()
         
-        queryset = queryset.order_by('-is_featured', '-created_at')
+        queryset = queryset.order_by('-created_at')
         cache.set(cache_key, queryset, 300)
         return queryset
     

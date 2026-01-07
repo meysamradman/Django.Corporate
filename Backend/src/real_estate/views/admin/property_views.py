@@ -35,7 +35,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     filterset_class = PropertyAdminFilter
     search_fields = ['title', 'short_description', 'description', 'address', 'meta_title', 'meta_description']
     ordering_fields = ['created_at', 'updated_at', 'title', 'price', 'published_at', 'views_count']
-    ordering = ['-is_featured', '-published_at', '-created_at']
+    ordering = ['-created_at']
     pagination_class = StandardLimitPagination
     
     permission_map = {

@@ -32,25 +32,25 @@ export function showError(
     return error;
   }
 
-  let errorMessage = getNetworkError('unknown');
+  let errorMessage = customMessage || getNetworkError('unknown');
   let statusCode: number | undefined;
 
   if (error instanceof ApiError) {
     statusCode = error.response.AppStatusCode;
-    
+
     if (isSilentError(statusCode) || silent) {
       return errorMessage;
     }
 
-    if (customMessage) {
-      errorMessage = customMessage;
-    } else if (shouldUseBackendMessage(statusCode) && error.response.message) {
-      errorMessage = error.response.message;
-    } else {
-      errorMessage = getHttpError(statusCode);
+    if (!customMessage) {
+      if (shouldUseBackendMessage(statusCode) && error.response.message) {
+        errorMessage = error.response.message;
+      } else {
+        errorMessage = getHttpError(statusCode);
+      }
     }
   } else if (error instanceof Error) {
-    errorMessage = error.message || getNetworkError('network');
+    errorMessage = customMessage || error.message || getNetworkError('network');
   }
 
   if (showToast && typeof window !== 'undefined') {

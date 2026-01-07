@@ -29,29 +29,26 @@ class AdminPerformanceService:
         """
         stats = cls._get_monthly_stats(admin_profile)
         
-        update_fields = []
+        update_data = {
+            'updated_at': timezone.now()
+        }
+        
         if task_type == 'ticket':
-            stats.tickets_resolved = F('tickets_resolved') + 1
-            update_fields.append('tickets_resolved')
+            update_data['tickets_resolved'] = F('tickets_resolved') + 1
         elif task_type == 'email':
-            stats.emails_replied = F('emails_replied') + 1
-            update_fields.append('emails_replied')
+            update_data['emails_replied'] = F('emails_replied') + 1
             
         if response_time_minutes is not None:
-            # Update running average for the month
-            current_count = stats.tickets_resolved if task_type == 'ticket' else stats.emails_replied
-            # Note: F expression makes it hard to calculate avg in memory, 
-            # so we refresh first for accuracy if avg is needed
+            # We refresh to get current values for average calculation
             stats.refresh_from_db()
             current_avg = stats.avg_response_time_minutes
-            total_tasks = stats.tickets_resolved + stats.emails_replied
+            total_tasks = stats.tickets_resolved + stats.emails_replied + 1 # +1 for the current one
             
             if total_tasks > 0:
                 new_avg = ((current_avg * (total_tasks - 1)) + response_time_minutes) / total_tasks
-                stats.avg_response_time_minutes = int(new_avg)
-                update_fields.append('avg_response_time_minutes')
+                update_data['avg_response_time_minutes'] = int(new_avg)
 
-        stats.save(update_fields=update_fields)
+        AdminPerformanceStatistics.objects.filter(pk=stats.pk).update(**update_data)
 
     @classmethod
     def track_content_creation(cls, admin_profile, content_type):
@@ -68,8 +65,10 @@ class AdminPerformanceService:
         
         field_name = field_map.get(content_type)
         if field_name:
-            setattr(stats, field_name, F(field_name) + 1)
-            stats.save(update_fields=[field_name])
+            AdminPerformanceStatistics.objects.filter(pk=stats.pk).update(
+                **{field_name: F(field_name) + 1},
+                updated_at=timezone.now()
+            )
 
     @classmethod
     def track_login(cls, admin_profile):
@@ -77,5 +76,7 @@ class AdminPerformanceService:
         Tracks admin login
         """
         stats = cls._get_monthly_stats(admin_profile)
-        stats.login_count = F('login_count') + 1
-        stats.save(update_fields=['login_count'])
+        AdminPerformanceStatistics.objects.filter(pk=stats.pk).update(
+            login_count=F('login_count') + 1,
+            updated_at=timezone.now()
+        )

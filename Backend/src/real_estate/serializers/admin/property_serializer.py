@@ -503,6 +503,7 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
     # Relaxed constraints for optional fields during creation
     land_area = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
     built_area = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    description = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     
     # ✅ OPTIMIZED: Room fields with validation
     bedrooms = serializers.IntegerField(

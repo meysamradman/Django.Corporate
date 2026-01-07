@@ -26,7 +26,7 @@ class PortfolioCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewS
     filterset_class = PortfolioCategoryAdminFilter
     search_fields = ['name', 'description']
     ordering_fields = ['path', 'created_at', 'name']
-    ordering = ['path']
+    ordering = ['-created_at']
     pagination_class = StandardLimitPagination
     
     permission_map = {

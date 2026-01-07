@@ -43,7 +43,7 @@ class PortfolioTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     def get_queryset(self):
         if self.action == 'list':
-            return PortfolioTag.objects.with_counts().order_by('-portfolio_count', 'name')
+            return PortfolioTag.objects.with_counts()
         elif self.action in ['retrieve', 'update', 'partial_update']:
             return PortfolioTag.objects.with_counts()
         else:

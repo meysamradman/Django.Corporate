@@ -22,7 +22,7 @@ class BlogPublicViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = BlogPublicFilter
     search_fields = ['title', 'short_description', 'description', 'categories__name', 'tags__name']
     ordering_fields = ['title', 'created_at', 'is_featured']
-    ordering = ['-is_featured', '-created_at']
+    ordering = ['-created_at']
     lookup_field = 'slug'
     pagination_class = StandardLimitPagination
 

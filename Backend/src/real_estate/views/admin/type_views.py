@@ -26,7 +26,7 @@ class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     filterset_class = PropertyTypeAdminFilter
     search_fields = ['title', 'description']
     ordering_fields = ['path', 'created_at', 'title']
-    ordering = ['path']
+    ordering = ['-created_at']
     pagination_class = StandardLimitPagination
     
     permission_map = {

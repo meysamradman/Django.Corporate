@@ -25,7 +25,7 @@ class Property(BaseModel, SEOMixin):
     title = models.CharField(max_length=100, db_index=True, verbose_name="Title")
     slug = models.SlugField(max_length=120, unique=True, db_index=True, allow_unicode=True, verbose_name="URL Slug")
     short_description = models.CharField(max_length=300, blank=True, verbose_name="Short Description")
-    description = models.TextField(verbose_name="Description")
+    description = models.TextField(blank=True, null=True, verbose_name="Description")
     
     # Foreign Keys - db_index removed (covered by partial indexes)
     agent = models.ForeignKey(
@@ -502,7 +502,7 @@ class Property(BaseModel, SEOMixin):
         db_table = 'real_estate_properties'
         verbose_name = 'Property'
         verbose_name_plural = 'Properties'
-        ordering = ['-is_featured', '-published_at', '-created_at']
+        ordering = ['-created_at']
         indexes = [
 
             models.Index(

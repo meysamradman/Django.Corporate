@@ -47,8 +47,7 @@ export const propertyFormSchema = z.object({
         .refine(
             (val) => ["active", "pending", "sold", "rented", "archived"].includes(val),
             { message: msg.realEstate().validation.statusInvalid }
-        )
-        .default("active"),
+        ),
 
     agent: z
         .number()
@@ -67,14 +66,12 @@ export const propertyFormSchema = z.object({
     province: z
         .number({ message: msg.realEstate().validation.provinceRequired })
         .int()
-        .positive({ message: msg.realEstate().validation.provinceRequired })
-        .nullable(),
+        .positive({ message: msg.realEstate().validation.provinceRequired }),
 
     city: z
         .number({ message: msg.realEstate().validation.cityRequired })
         .int()
-        .positive({ message: msg.realEstate().validation.cityRequired })
-        .nullable(),
+        .positive({ message: msg.realEstate().validation.cityRequired }),
 
     district: z
         .number()
@@ -359,11 +356,11 @@ export const propertyFormDefaults: PropertyFormValues = {
     description: "",
     property_type: undefined!, // Required field, will be set by user
     state: undefined!, // Required field, will be set by user
-    status: "active",
+    status: undefined!, // To force choice if needed, or set to ""
     agent: null,
     agency: null,
-    province: null,
-    city: null,
+    province: undefined!,
+    city: undefined!,
     district: null,
     address: "",
     postal_code: "",

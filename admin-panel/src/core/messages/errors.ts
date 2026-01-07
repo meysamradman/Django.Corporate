@@ -8,6 +8,7 @@ export const ERROR_MESSAGES = {
   timeout: 'زمان اتصال به پایان رسید',
   database: 'خطای پایگاه داده',
   unknown: 'خطای نامشخص',
+  checkForm: 'لطفاً خطاهای فرم را بررسی کنید',
 } as const;
 
 export const HTTP_ERROR_MESSAGES: Record<number, string> = {
@@ -46,9 +47,9 @@ export const getHttpError = (code: number): string => {
   return HTTP_ERROR_MESSAGES[code] || NETWORK_ERROR_MESSAGES.unknown;
 };
 
-export const shouldUseBackendMessage = (statusCode: number): boolean => 
+export const shouldUseBackendMessage = (statusCode: number): boolean =>
   BACKEND_MESSAGE_CODES.includes(statusCode as any);
 
-export const isSilentError = (statusCode: number): boolean => 
+export const isSilentError = (statusCode: number): boolean =>
   SILENT_STATUS_CODES.includes(statusCode as any);
 

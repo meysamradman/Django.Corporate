@@ -26,7 +26,7 @@ class BlogCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     filterset_class = BlogCategoryAdminFilter
     search_fields = ['name', 'description']
     ordering_fields = ['path', 'created_at', 'name']
-    ordering = ['path']
+    ordering = ['-created_at']
     pagination_class = StandardLimitPagination
     
     permission_map = {

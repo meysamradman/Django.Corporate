@@ -146,7 +146,7 @@ class PropertyAdminService:
                 ordering_field = f'-{order_by}'
             queryset = queryset.order_by(ordering_field)
         else:
-            queryset = queryset.order_by('-is_featured', '-published_at', '-created_at')
+            queryset = queryset.order_by('-created_at')
         
         return queryset
     

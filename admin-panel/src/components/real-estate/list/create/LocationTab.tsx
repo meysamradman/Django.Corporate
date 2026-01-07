@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FormField, FormFieldTextarea, FormFieldInput } from "@/components/forms/FormField";
 import { Input } from "@/components/elements/Input";
 import { MapPin, Loader2 } from "lucide-react";
-import PropertyLocationMap from "@/components/real-estate/PropertyLocationMap";
+import PropertyLocationMap from "@/components/real-estate/layouts/PropertyLocationMap";
 import { realEstateApi } from "@/api/real-estate";
 import type { RealEstateCity, RealEstateCityRegion } from "@/types/real_estate/location";
 import type { PropertyFormValues } from "@/components/real-estate/validations/propertySchema";
@@ -36,8 +36,8 @@ type LocationTabProps = LocationTabFormProps | LocationTabManualProps;
 
 export default function LocationTab(props: LocationTabProps) {
     const isFormApproach = 'form' in props;
-    const { register, formState: { errors }, watch, setValue } = isFormApproach 
-        ? props.form 
+    const { register, formState: { errors }, watch, setValue } = isFormApproach
+        ? props.form
         : { register: null, formState: { errors: {} as any }, watch: null, setValue: null };
     const formData = isFormApproach ? null : (props as any).formData;
     const handleInputChange = isFormApproach ? null : (props as any).handleInputChange;

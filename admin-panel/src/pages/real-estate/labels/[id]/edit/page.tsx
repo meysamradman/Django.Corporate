@@ -1,266 +1,134 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Button } from "@/components/elements/Button";
-import { FormFieldInput } from "@/components/forms/FormField";
-import { Switch } from "@/components/elements/Switch";
-import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
-import { showError, showSuccess, showInfo, extractFieldErrors, hasFieldErrors } from "@/core/toast";
-import { msg } from "@/core/messages";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { FileText, Settings, Tag } from "lucide-react";
+import { useParams } from "react-router-dom";
 import { realEstateApi } from "@/api/real-estate";
-import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
-import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { Tag, Loader2, Save, Settings, FileText } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
-import { propertyLabelFormSchema, propertyLabelFormDefaults, type PropertyLabelFormValues } from '@/components/real-estate/validations/labelSchema';
-import { Skeleton } from "@/components/elements/Skeleton";
+import { useTaxonomyForm } from "@/components/real-estate/hooks/useTaxonomyForm";
+import { TaxonomyFormLayout } from "@/components/real-estate/layouts/TaxonomyFormLayout";
+import { propertyLabelFormSchema, propertyLabelFormDefaults } from '@/components/real-estate/validations/labelSchema';
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { FormFieldInput } from "@/components/forms/FormField";
+import { formatSlug } from '@/core/slug/generate';
+import { TabsContent } from "@/components/elements/Tabs";
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
+import { Switch } from "@/components/elements/Switch";
 
 export default function EditPropertyLabelPage() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { id } = useParams<{ id: string }>();
-  const labelId = Number(id);
-  const [activeTab, setActiveTab] = useState<string>("account");
 
-  const form = useForm<PropertyLabelFormValues>({
-    resolver: zodResolver(propertyLabelFormSchema),
+  const {
+    form,
+    activeTab,
+    setActiveTab,
+    handleSubmit,
+    isLoading,
+    isPending,
+  } = useTaxonomyForm({
+    id,
+    isEditMode: true,
+    schema: propertyLabelFormSchema,
     defaultValues: propertyLabelFormDefaults,
-    mode: "onSubmit",
+    fetchQueryKey: ['property-label', Number(id)],
+    fetchQueryFn: () => realEstateApi.getLabelById(Number(id)),
+    createMutationFn: (data) => realEstateApi.createLabel(data),
+    updateMutationFn: (id, data) => realEstateApi.partialUpdateLabel(id, data),
+    invalidateQueryKeys: [['property-labels'], ['property-label', Number(id)]],
+    onSuccessRedirect: "/real-estate/labels",
+    itemLabel: "برچسب ملک",
   });
 
   const { register, formState: { errors, isSubmitting }, watch, setValue } = form;
-  const titleValue = watch("title");
 
-  // Auto-generate slug from title
-  useEffect(() => {
-    if (titleValue) {
-      const generatedSlug = generateSlug(titleValue);
-      setValue("slug", generatedSlug, { shouldValidate: false });
-    }
-  }, [titleValue, setValue]);
-
-  const { data: label, isLoading, error } = useQuery({
-    queryKey: ['property-label', labelId],
-    queryFn: () => realEstateApi.getLabelById(labelId),
-    enabled: !!labelId,
-  });
-
-  // Reset form with label data
-  useEffect(() => {
-    if (label) {
-      form.reset({
-        title: label.title || "",
-        slug: label.slug || "",
-        is_active: label.is_active ?? true,
-      });
-    }
-  }, [label, form]);
-
-  const updateLabelMutation = useMutation({
-    mutationFn: (data: Partial<PropertyLabel>) => realEstateApi.partialUpdateLabel(labelId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['property-label', labelId] });
-      queryClient.invalidateQueries({ queryKey: ['property-labels'] });
-      // ✅ از msg.crud استفاده کنید
-      showSuccess(msg.crud("updated", { item: "برچسب ملک" }));
-      navigate("/real-estate/labels");
-    },
-    onError: (error: any) => {
-      // ✅ Field Errors → Inline + Toast کلی
-      if (hasFieldErrors(error)) {
-        const fieldErrors = extractFieldErrors(error);
-        
-        Object.entries(fieldErrors).forEach(([field, message]) => {
-          form.setError(field as keyof PropertyLabelFormValues, {
-            type: 'server',
-            message: message as string
-          });
-        });
-        
-        // Toast کلی برای راهنمایی کاربر
-        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
-      } 
-      // ✅ General Errors → فقط Toast
-      else {
-        // showError خودش تصمیم می‌گیرد (بک‌اند یا frontend)
-        showError(error);
-      }
-    },
-  });
-
-  const handleSubmit = form.handleSubmit(async (data) => {
-    if (!label) return;
-    
-    // ✅ حفظ منطق: فقط فیلدهایی که تغییر کرده‌اند را ارسال کن
-    const submitData: Partial<PropertyLabel> = {};
-    
-    if (data.title !== label.title) {
-      submitData.title = data.title;
-    }
-    
-    if (data.slug !== label.slug) {
-      submitData.slug = data.slug;
-    }
-    
-    if (data.is_active !== (label.is_active ?? true)) {
-      submitData.is_active = data.is_active;
-    }
-    
-    if (Object.keys(submitData).length === 0) {
-      showInfo("تغییری اعمال نشده است");
-      return;
-    }
-    
-    updateLabelMutation.mutate(submitData);
-  });
+  const tabs = [
+    { value: "account", label: "اطلاعات پایه", icon: FileText },
+    { value: "settings", label: "تنظیمات", icon: Settings },
+  ];
 
   if (isLoading) {
     return (
       <div className="space-y-6 pb-28 relative">
-
-        <CardWithIcon
-          icon={Tag}
-          title="اطلاعات برچسب ملک"
-          iconBgColor="bg-blue"
-          iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
-        >
-          <div className="space-y-6">
-            <Skeleton className="h-10 w-full" />
-          </div>
-        </CardWithIcon>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
-        <Button 
-          onClick={() => navigate(-1)} 
-          className="mt-4"
-        >
-          بازگشت
-        </Button>
+        <div className="h-40 w-full bg-card animate-pulse rounded-lg" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 pb-28 relative">
-      <form id="label-edit-form" onSubmit={handleSubmit} noValidate>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList>
-            <TabsTrigger value="account">
-              <FileText className="h-4 w-4" />
-              اطلاعات پایه
-            </TabsTrigger>
-            <TabsTrigger value="settings">
-              <Settings className="h-4 w-4" />
-              تنظیمات
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="account">
-            <div className="space-y-6">
-              <CardWithIcon
-                icon={Tag}
-                title="اطلاعات برچسب ملک"
-                iconBgColor="bg-orange"
-                iconColor="stroke-orange-2"
-                borderColor="border-b-orange-1"
-                className="hover:shadow-lg transition-all duration-300"
-              >
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormFieldInput
-                      label="عنوان"
-                      id="title"
-                      required
-                      error={errors.title?.message}
-                      placeholder="عنوان برچسب ملک"
-                      {...register("title")}
-                    />
-                    <FormFieldInput
-                      label="نامک"
-                      id="slug"
-                      required
-                      error={errors.slug?.message}
-                      placeholder="نامک"
-                      {...register("slug", {
-                        onChange: (e) => {
-                          const formattedSlug = formatSlug(e.target.value);
-                          e.target.value = formattedSlug;
-                          setValue("slug", formattedSlug);
-                        }
-                      })}
-                    />
-                  </div>
-                </div>
-              </CardWithIcon>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="settings">
-            <div className="space-y-6">
-              <CardWithIcon
-                icon={Settings}
-                title="تنظیمات"
-                iconBgColor="bg-orange"
-                iconColor="stroke-orange-2"
-                borderColor="border-b-orange-1"
-                className="hover:shadow-lg transition-all duration-300"
-              >
-                <div className="space-y-6">
-                  <div className="mt-6 space-y-4">
-                    <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
-                      <Item variant="default" size="default" className="py-5">
-                        <ItemContent>
-                          <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
-                          <ItemDescription>
-                            با غیرفعال شدن، برچسب ملک از لیست مدیریت نیز مخفی می‌شود.
-                          </ItemDescription>
-                        </ItemContent>
-                        <ItemActions>
-                          <Switch
-                            checked={watch("is_active")}
-                            onCheckedChange={(checked) => setValue("is_active", checked)}
-                          />
-                        </ItemActions>
-                      </Item>
-                    </div>
-                  </div>
-                </div>
-              </CardWithIcon>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </form>
-
-      <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
-        <Button
-          type="submit"
-          form="label-edit-form"
-          size="lg"
-          disabled={updateLabelMutation.isPending || isSubmitting}
+    <TaxonomyFormLayout
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      onSubmit={handleSubmit}
+      isPending={isPending}
+      isSubmitting={isSubmitting}
+      isEditMode={true}
+      tabs={tabs}
+      itemLabel="برچسب ملک"
+      formId="label-edit-form"
+    >
+      <TabsContent value="account">
+        <CardWithIcon
+          icon={Tag}
+          title="اطلاعات برچسب ملک"
+          iconBgColor="bg-orange"
+          iconColor="stroke-orange-2"
+          borderColor="border-b-orange-1"
         >
-          {updateLabelMutation.isPending || isSubmitting ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin" />
-              در حال به‌روزرسانی...
-            </>
-          ) : (
-            <>
-              <Save className="h-5 w-5" />
-              به‌روزرسانی برچسب ملک
-            </>
-          )}
-        </Button>
-      </div>
-    </div>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormFieldInput
+                label="عنوان"
+                id="title"
+                required
+                error={errors.title?.message}
+                placeholder="عنوان برچسب ملک"
+                {...register("title")}
+              />
+              <FormFieldInput
+                label="نامک"
+                id="slug"
+                required
+                error={errors.slug?.message}
+                placeholder="نامک"
+                {...register("slug", {
+                  onChange: (e) => {
+                    const formattedSlug = formatSlug(e.target.value);
+                    e.target.value = formattedSlug;
+                    setValue("slug", formattedSlug);
+                  }
+                })}
+              />
+            </div>
+          </div>
+        </CardWithIcon>
+      </TabsContent>
+
+      <TabsContent value="settings">
+        <CardWithIcon
+          icon={Settings}
+          title="تنظیمات"
+          iconBgColor="bg-orange"
+          iconColor="stroke-orange-2"
+          borderColor="border-b-orange-1"
+        >
+          <div className="space-y-6">
+            <div className="mt-6 space-y-4">
+              <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                <Item variant="default" size="default" className="py-5">
+                  <ItemContent>
+                    <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
+                    <ItemDescription>
+                      با غیرفعال شدن، برچسب ملک از لیست مدیریت نیز مخفی می‌شود.
+                    </ItemDescription>
+                  </ItemContent>
+                  <ItemActions>
+                    <Switch
+                      checked={watch("is_active")}
+                      onCheckedChange={(checked) => setValue("is_active", checked)}
+                    />
+                  </ItemActions>
+                </Item>
+              </div>
+            </div>
+          </div>
+        </CardWithIcon>
+      </TabsContent>
+    </TaxonomyFormLayout>
   );
 }
