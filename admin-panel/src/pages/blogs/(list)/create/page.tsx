@@ -4,8 +4,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
-import { 
-  FileText, Image, 
+import {
+  FileText, Image,
   Loader2, Save, Search, Settings
 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -101,8 +101,8 @@ export default function CreateBlogPage() {
   });
 
   const form = useForm<BlogFormValues>({
-    resolver: zodResolver(blogFormSchema) as any,
-    defaultValues: blogFormDefaults as any,
+    resolver: zodResolver(blogFormSchema),
+    defaultValues: blogFormDefaults,
     mode: "onSubmit",
   });
 
@@ -176,7 +176,7 @@ export default function CreateBlogPage() {
           };
 
           const formField = fieldMap[field] || field;
-          form.setError(formField as any, {
+          form.setError(formField as keyof BlogFormValues, {
             type: 'server',
             message: message as string
           });
@@ -189,27 +189,19 @@ export default function CreateBlogPage() {
     },
   });
 
-  const handleSave = async () => {
-    const isValid = await form.trigger();
-    if (!isValid) return;
-
-    const data = form.getValues();
+  const handleSave = form.handleSubmit(async (data) => {
     createBlogMutation.mutate({
       ...data,
       status: "published" as const
     });
-  };
+  });
 
-  const handleSaveDraft = async () => {
-    const isValid = await form.trigger();
-    if (!isValid) return;
-
-    const data = form.getValues();
+  const handleSaveDraft = form.handleSubmit(async (data) => {
     createBlogMutation.mutate({
       ...data,
       status: "draft" as const
     });
-  };
+  });
 
   return (
     <div className="space-y-6 pb-28 relative">
@@ -233,7 +225,7 @@ export default function CreateBlogPage() {
         <TabsContent value="account">
           <Suspense fallback={<TabSkeleton />}>
             <BaseInfoTab
-              form={form as any}
+              form={form}
               editMode={editMode}
             />
           </Suspense>
@@ -241,7 +233,7 @@ export default function CreateBlogPage() {
         <TabsContent value="media">
           <Suspense fallback={<TabSkeleton />}>
             <MediaTab
-              form={form as any}
+              form={form}
               blogMedia={blogMedia}
               setBlogMedia={setBlogMedia}
               editMode={editMode}
@@ -251,7 +243,7 @@ export default function CreateBlogPage() {
         <TabsContent value="seo">
           <Suspense fallback={<TabSkeleton />}>
             <SEOTab
-              form={form as any}
+              form={form}
               editMode={editMode}
             />
           </Suspense>

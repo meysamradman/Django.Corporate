@@ -29,7 +29,7 @@ export default function BaseInfoTab({
     if (handleInputChange) {
       handleInputChange(field, value);
     } else {
-      form.setValue(field as any, value);
+      form.setValue(field as keyof AgencyFormValues, value);
     }
   };
 

@@ -111,8 +111,8 @@ export default function CreateRolePage() {
   const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
 
   const form = useForm<RoleFormValues>({
-    resolver: zodResolver(roleFormSchema) as any,
-    defaultValues: roleFormDefaults as any,
+    resolver: zodResolver(roleFormSchema),
+    defaultValues: roleFormDefaults,
   });
 
   const {
@@ -719,7 +719,7 @@ export default function CreateRolePage() {
 
         <Suspense fallback={<RoleBasicInfoFormSkeleton />}>
           <RoleBasicInfoForm
-            form={form as any}
+            form={form}
             onSubmit={onSubmit as any}
             isSubmitting={createRoleMutation.isPending}
             submitButtonText="ایجاد"

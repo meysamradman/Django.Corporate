@@ -1,5 +1,8 @@
 import { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
@@ -9,15 +12,14 @@ import {
   Loader2, Save, MapPin, Home, Settings
 } from "lucide-react";
 import type { Media } from "@/types/shared/media";
-import type { Property } from "@/types/real_estate/realEstate";
 import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
 import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
 import { realEstateApi } from "@/api/real-estate";
-import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { showError, showSuccess } from '@/core/toast';
+import { formatSlug } from '@/core/slug/generate';
+import { showError, showSuccess, extractFieldErrors, hasFieldErrors } from '@/core/toast';
 import { msg } from '@/core/messages';
-import { propertyFormSchema } from '@/components/real-estate/validations/propertySchema';
+import { propertyFormSchema, propertyFormDefaults, type PropertyFormValues } from '@/components/real-estate/validations/propertySchema';
 import type { PropertyMedia } from "@/types/real_estate/realEstateMedia";
 import { collectMediaIds, collectMediaCovers, parsePropertyMedia } from "@/components/real-estate/utils/propertyMediaUtils";
 import type { PropertyUpdateData } from "@/types/real_estate/realEstate";
@@ -95,11 +97,25 @@ const ExtraAttributesTab = lazy(() => import("@/components/real-estate/list/crea
 export default function EditPropertyPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<string>("account");
-  const [editMode, _setEditMode] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isSavingDraft, setIsSavingDraft] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [editMode] = useState(true);
+
+  const form = useForm<PropertyFormValues>({
+    resolver: zodResolver(propertyFormSchema),
+    defaultValues: propertyFormDefaults,
+    mode: "onSubmit",
+  });
+
+  const { data: property, isLoading } = useQuery({
+    queryKey: ['property', id],
+    queryFn: () => realEstateApi.getPropertyById(Number(id!)),
+    enabled: !!id,
+  });
+
+  const [selectedLabels, setSelectedLabels] = useState<PropertyLabel[]>([]);
+  const [selectedTags, setSelectedTags] = useState<PropertyTag[]>([]);
+  const [selectedFeatures, setSelectedFeatures] = useState<PropertyFeature[]>([]);
   const [propertyMedia, setPropertyMedia] = useState<PropertyMedia>({
     featuredImage: null,
     imageGallery: [],
@@ -107,224 +123,169 @@ export default function EditPropertyPage() {
     audioGallery: [],
     pdfDocuments: []
   });
-  const [formData, setFormData] = useState({
-    title: "",
-    region: undefined,
-    region_name: "",
-    slug: "",
-    short_description: "",
-    description: "",
-    meta_title: "",
-    meta_description: "",
-    og_title: "",
-    og_description: "",
-    og_image: null as Media | null,
-    canonical_url: "",
-    robots_meta: "",
-    is_public: true,
-    is_active: true,
-    is_published: false,
-    is_featured: false,
-    property_type: null as number | null,
-    state: null as number | null,
-    agent: null as number | null,
-    agency: null as number | null,
-    province: null as number | null,
-    city: null as number | null,
-    district: null as number | null,
-    country: null as number | null,
-    district_name: null as string | null,
-    address: "",
-    neighborhood: "",
-    latitude: null as number | null,
-    longitude: null as number | null,
-    land_area: null as number | null,
-    built_area: null as number | null,
-    bedrooms: null as number | null,
-    bathrooms: null as number | null,
-    price: null as number | null,
-    price_per_sqm: null as number | null,
-    mortgage_amount: null as number | null,
-    rent_amount: null as number | null,
-    year_built: null as number | null,
-    floors_in_building: null as number | null,
-    parking_spaces: null as number | null,
-    storage_rooms: null as number | null,
-    extra_attributes: {} as Record<string, any>,
-    status: "active" as string,
-  });
 
-  const [selectedLabels, setSelectedLabels] = useState<PropertyLabel[]>([]);
-  const [selectedTags, setSelectedTags] = useState<PropertyTag[]>([]);
-  const [selectedFeatures, setSelectedFeatures] = useState<PropertyFeature[]>([]);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [property, setProperty] = useState<Property | null>(null);
-
+  // پر کردن فرم با داده موجود
   useEffect(() => {
-    if (id) {
-      fetchPropertyData();
-    }
-  }, [id]);
-
-  const fetchPropertyData = async () => {
-    try {
-      setIsLoading(true);
-      const propertyData: any = await realEstateApi.getPropertyById(Number(id));
-      setProperty(propertyData);
-
-      setFormData({
-        title: propertyData.title || "",
-        slug: propertyData.slug || "",
-        short_description: propertyData.short_description || "",
-        description: propertyData.description || "",
-        meta_title: propertyData.meta_title || "",
-        meta_description: propertyData.meta_description || "",
-        og_title: propertyData.og_title || "",
-        og_description: propertyData.og_description || "",
-        og_image: propertyData.og_image || null,
-        canonical_url: propertyData.canonical_url || "",
-        robots_meta: propertyData.robots_meta || "",
-        is_public: propertyData.is_public ?? true,
-        is_active: propertyData.is_active ?? true,
-        is_published: propertyData.is_published ?? false,
-        is_featured: propertyData.is_featured ?? false,
-        property_type: propertyData.property_type?.id || null,
-        state: propertyData.state?.id || null,
-        agent: propertyData.agent?.id || null,
-        agency: propertyData.agency?.id || null,
-        province: propertyData.province || null,
-        city: propertyData.city || null,
-        region: propertyData.district || null,
-        district: propertyData.district || null,
-        country: propertyData.country || null,
-        region_name: propertyData.region_name || "",
-        district_name: propertyData.district_name || "",
-        address: propertyData.address || "",
-        neighborhood: propertyData.neighborhood || "",
-        latitude: propertyData.latitude ? Number(propertyData.latitude) : null,
-        longitude: propertyData.longitude ? Number(propertyData.longitude) : null,
-        land_area: propertyData.land_area ? Number(propertyData.land_area) : null,
-        built_area: propertyData.built_area ? Number(propertyData.built_area) : null,
-        bedrooms: propertyData.bedrooms || null,
-        bathrooms: propertyData.bathrooms || null,
-        price: propertyData.price ? Number(propertyData.price) : null,
-        price_per_sqm: propertyData.price_per_sqm ? Number(propertyData.price_per_sqm) : null,
-        mortgage_amount: propertyData.mortgage_amount ? Number(propertyData.mortgage_amount) : null,
-        rent_amount: propertyData.rent_amount ? Number(propertyData.rent_amount) : null,
-        year_built: propertyData.year_built ? Number(propertyData.year_built) : null,
-        floors_in_building: propertyData.floors_in_building ? Number(propertyData.floors_in_building) : null,
-        parking_spaces: propertyData.parking_spaces ? Number(propertyData.parking_spaces) : null,
-        storage_rooms: propertyData.storage_rooms ? Number(propertyData.storage_rooms) : null,
-        extra_attributes: propertyData.extra_attributes || {},
-        status: typeof propertyData.status === 'object' ? propertyData.status?.value : (propertyData.status || "active"),
+    if (property) {
+      const parsedMedia = (property.property_media || property.media)
+        ? parsePropertyMedia(property.property_media || property.media || [])
+        : {
+            featuredImage: null,
+            imageGallery: [],
+            videoGallery: [],
+            audioGallery: [],
+            pdfDocuments: []
+          };
+      
+      setPropertyMedia(parsedMedia);
+      
+      if (property.labels) {
+        setSelectedLabels(property.labels);
+      }
+      if (property.tags) {
+        setSelectedTags(property.tags);
+      }
+      if (property.features) {
+        setSelectedFeatures(property.features);
+      }
+      
+      form.reset({
+        title: property.title || "",
+        slug: property.slug || "",
+        short_description: property.short_description || "",
+        description: property.description || "",
+        meta_title: property.meta_title || "",
+        meta_description: property.meta_description || "",
+        og_title: property.og_title || "",
+        og_description: property.og_description || "",
+        og_image: property.og_image || null,
+        og_image_id: property.og_image?.id || null,
+        canonical_url: property.canonical_url || "",
+        robots_meta: property.robots_meta || "",
+        is_public: property.is_public ?? true,
+        is_active: property.is_active ?? true,
+        is_published: property.is_published ?? false,
+        is_featured: property.is_featured ?? false,
+        property_type: property.property_type?.id || undefined,
+        state: property.state?.id || undefined,
+        agent: property.agent?.id || null,
+        agency: property.agency?.id || null,
+        province: (property.province as any)?.id || property.province || null,
+        city: (property.city as any)?.id || property.city || null,
+        district: (property.district as any)?.id || property.district || null,
+        address: property.address || "",
+        postal_code: (property as any).postal_code || "",
+        neighborhood: property.neighborhood || "",
+        latitude: property.latitude ? Number(property.latitude) : null,
+        longitude: property.longitude ? Number(property.longitude) : null,
+        land_area: property.land_area ? Number(property.land_area) : null,
+        built_area: property.built_area ? Number(property.built_area) : null,
+        bedrooms: property.bedrooms || null,
+        bathrooms: property.bathrooms || null,
+        kitchens: (property as any).kitchens || null,
+        living_rooms: (property as any).living_rooms || null,
+        year_built: property.year_built ? Number(property.year_built) : null,
+        build_years: (property as any).build_years || null,
+        floors_in_building: property.floors_in_building ? Number(property.floors_in_building) : null,
+        floor_number: (property as any).floor_number || null,
+        parking_spaces: property.parking_spaces ? Number(property.parking_spaces) : null,
+        storage_rooms: property.storage_rooms ? Number(property.storage_rooms) : null,
+        document_type: (property as any).document_type || null,
+        price: property.price ? Number(property.price) : null,
+        sale_price: (property as any).sale_price ? Number((property as any).sale_price) : null,
+        pre_sale_price: (property as any).pre_sale_price ? Number((property as any).pre_sale_price) : null,
+        monthly_rent: (property as any).monthly_rent ? Number((property as any).monthly_rent) : null,
+        mortgage_amount: property.mortgage_amount ? Number(property.mortgage_amount) : null,
+        rent_amount: property.rent_amount ? Number(property.rent_amount) : null,
+        security_deposit: (property as any).security_deposit ? Number((property as any).security_deposit) : null,
+        status: typeof property.status === 'object' ? (property.status as any)?.value : (property.status || "active"),
+        extra_attributes: property.extra_attributes || {},
+        labels_ids: property.labels?.map((l: any) => l.id) || [],
+        tags_ids: property.tags?.map((t: any) => t.id) || [],
+        features_ids: property.features?.map((f: any) => f.id) || [],
+        main_image_id: property.main_image?.id || null,
       });
-
-      if (propertyData.labels) {
-        setSelectedLabels(propertyData.labels);
-      }
-
-      if (propertyData.tags) {
-        setSelectedTags(propertyData.tags);
-      }
-
-      if (propertyData.features) {
-        setSelectedFeatures(propertyData.features);
-      }
-
-      if (propertyData.property_media || propertyData.media) {
-        const parsedMedia = parsePropertyMedia(propertyData.property_media || propertyData.media || []);
-        setPropertyMedia(parsedMedia);
-      }
-    } catch (error) {
-      showError(error);
-    } finally {
-      setIsLoading(false);
     }
-  };
-
-  const handleInputChange = (field: string, value: string | Media | boolean | null | number | Record<string, any>) => {
-    if (field === "title" && typeof value === "string") {
-      const generatedSlug = generateSlug(value);
-
-      setFormData(prev => ({
-        ...prev,
-        [field]: value,
-        slug: generatedSlug
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
-    }
-  };
-
-  const handleLocationChange = useCallback((latitude: number | null, longitude: number | null) => {
-    setFormData(prev => ({ ...prev, latitude, longitude }));
-  }, []);
-
-  const handleLabelToggle = (label: PropertyLabel) => {
-    setSelectedLabels(prev => {
-      if (prev.some(l => l.id === label.id)) {
-        return prev.filter(l => l.id !== label.id);
-      } else {
-        return [...prev, label];
-      }
-    });
-  };
-
-  const handleLabelRemove = (labelId: number) => {
-    setSelectedLabels(prev => prev.filter(label => label.id !== labelId));
-  };
-
-  const handleTagToggle = (tag: PropertyTag) => {
-    setSelectedTags(prev => {
-      if (prev.some(t => t.id === tag.id)) {
-        return prev.filter(t => t.id !== tag.id);
-      } else {
-        return [...prev, tag];
-      }
-    });
-  };
-
-  const handleTagRemove = (tagId: number) => {
-    setSelectedTags(prev => prev.filter(tag => tag.id !== tagId));
-  };
-
-  const handleFeatureToggle = (feature: PropertyFeature) => {
-    setSelectedFeatures(prev => {
-      if (prev.some(f => f.id === feature.id)) {
-        return prev.filter(f => f.id !== feature.id);
-      } else {
-        return [...prev, feature];
-      }
-    });
-  };
-
-  const handleFeatureRemove = (featureId: number) => {
-    setSelectedFeatures(prev => prev.filter(feature => feature.id !== featureId));
-  };
+  }, [property, form]);
 
   const handleFeaturedImageChange = (media: Media | null) => {
     setPropertyMedia(prev => ({
       ...prev,
       featuredImage: media
     }));
+    form.setValue("main_image_id", media?.id || null, { shouldValidate: false });
   };
 
-  const handleSave = async () => {
-    if (!property) return;
+  const handleLabelToggle = useCallback((label: PropertyLabel) => {
+    setSelectedLabels(prev => {
+      const newLabels = prev.find(l => l.id === label.id)
+        ? prev.filter(l => l.id !== label.id)
+        : [...prev, label];
+      form.setValue("labels_ids", newLabels.map(l => l.id), { shouldValidate: false });
+      return newLabels;
+    });
+  }, [form]);
 
-    setIsSaving(true);
-    setErrors({});
-    try {
-      const dataToValidate = {
-        ...formData,
-        labels_ids: selectedLabels.map(label => label.id),
-        tags_ids: selectedTags.map(tag => tag.id),
-        features_ids: selectedFeatures.map(feature => feature.id),
-      };
-      
+  const handleLabelRemove = useCallback((labelId: number) => {
+    setSelectedLabels(prev => {
+      const newLabels = prev.filter(l => l.id !== labelId);
+      form.setValue("labels_ids", newLabels.map(l => l.id), { shouldValidate: false });
+      return newLabels;
+    });
+  }, [form]);
+
+  const handleTagToggle = useCallback((tag: PropertyTag) => {
+    setSelectedTags(prev => {
+      const newTags = prev.find(t => t.id === tag.id)
+        ? prev.filter(t => t.id !== tag.id)
+        : [...prev, tag];
+      form.setValue("tags_ids", newTags.map(t => t.id), { shouldValidate: false });
+      return newTags;
+    });
+  }, [form]);
+
+  const handleTagRemove = useCallback((tagId: number) => {
+    setSelectedTags(prev => {
+      const newTags = prev.filter(t => t.id !== tagId);
+      form.setValue("tags_ids", newTags.map(t => t.id), { shouldValidate: false });
+      return newTags;
+    });
+  }, [form]);
+
+  const handleFeatureToggle = useCallback((feature: PropertyFeature) => {
+    setSelectedFeatures(prev => {
+      const newFeatures = prev.find(f => f.id === feature.id)
+        ? prev.filter(f => f.id !== feature.id)
+        : [...prev, feature];
+      form.setValue("features_ids", newFeatures.map(f => f.id), { shouldValidate: false });
+      return newFeatures;
+    });
+  }, [form]);
+
+  const handleFeatureRemove = useCallback((featureId: number) => {
+    setSelectedFeatures(prev => {
+      const newFeatures = prev.filter(f => f.id !== featureId);
+      form.setValue("features_ids", newFeatures.map(f => f.id), { shouldValidate: false });
+      return newFeatures;
+    });
+  }, [form]);
+
+  const handleLocationChange = useCallback((latitude: number | null, longitude: number | null) => {
+    form.setValue("latitude", latitude, { shouldValidate: false });
+    form.setValue("longitude", longitude, { shouldValidate: false });
+  }, [form]);
+
+  // Wrapper برای تب‌هایی که از formData و handleInputChange استفاده می‌کنند
+  const formData = form.watch();
+  const handleInputChange = useCallback((field: string, value: any) => {
+    form.setValue(field as keyof PropertyFormValues, value, { shouldValidate: false });
+  }, [form]);
+
+  const updatePropertyMutation = useMutation({
+    mutationFn: async (data: PropertyFormValues) => {
+      if (!property) throw new Error("Property not found");
+
+      // Validation برای تب account
       try {
         propertyFormSchema.pick({
           title: true,
@@ -333,11 +294,11 @@ export default function EditPropertyPage() {
           state: true,
           status: true,
         }).parse({
-          title: dataToValidate.title,
-          slug: dataToValidate.slug,
-          property_type: dataToValidate.property_type,
-          state: dataToValidate.state,
-          status: dataToValidate.status,
+          title: data.title,
+          slug: data.slug,
+          property_type: data.property_type,
+          state: data.state,
+          status: data.status,
         });
       } catch (accountError: any) {
         if (accountError.errors || accountError.issues) {
@@ -351,22 +312,24 @@ export default function EditPropertyPage() {
               }
             }
           });
-          setErrors(accountErrors);
+          Object.entries(accountErrors).forEach(([field, message]) => {
+            form.setError(field as keyof PropertyFormValues, { type: 'validation', message });
+          });
           setActiveTab("account");
-          setIsSaving(false);
-          return;
+          throw accountError;
         }
       }
       
+      // Validation برای تب location
       try {
         propertyFormSchema.pick({
           province: true,
           city: true,
           address: true,
         }).parse({
-          province: dataToValidate.province,
-          city: dataToValidate.city,
-          address: dataToValidate.address,
+          province: data.province,
+          city: data.city,
+          address: data.address,
         });
       } catch (locationError: any) {
         if (locationError.errors || locationError.issues) {
@@ -380,20 +343,15 @@ export default function EditPropertyPage() {
               }
             }
           });
-          setErrors(locationErrors);
+          Object.entries(locationErrors).forEach(([field, message]) => {
+            form.setError(field as keyof PropertyFormValues, { type: 'validation', message });
+          });
           setActiveTab("location");
-          setIsSaving(false);
-          return;
+          throw locationError;
         }
       }
       
-      const validatedData = propertyFormSchema.parse(dataToValidate);
-
-      let formattedSlug = formatSlug(validatedData.slug);
-
-      const labelIds = validatedData.labels_ids;
-      const tagIds = validatedData.tags_ids;
-      const featureIds = validatedData.features_ids;
+      const validatedData = propertyFormSchema.parse(data);
 
       const allMediaIds = collectMediaIds(propertyMedia);
       const mainImageId = propertyMedia.featuredImage?.id || null;
@@ -401,12 +359,12 @@ export default function EditPropertyPage() {
 
       const updateData: PropertyUpdateData = {
         title: validatedData.title,
-        slug: formattedSlug,
+        slug: formatSlug(validatedData.slug),
         short_description: validatedData.short_description,
         description: validatedData.description,
-        labels_ids: labelIds,
-        tags_ids: tagIds,
-        features_ids: featureIds,
+        labels_ids: validatedData.labels_ids,
+        tags_ids: validatedData.tags_ids,
+        features_ids: validatedData.features_ids,
         media_ids: allMediaIds,
         main_image_id: mainImageId,
         media_covers: Object.keys(mediaCovers).length > 0 ? mediaCovers : undefined,
@@ -428,7 +386,6 @@ export default function EditPropertyPage() {
         province: validatedData.province || undefined,
         city: validatedData.city || undefined,
         region: validatedData.district || undefined,
-        region_name: formData.region_name || undefined,
         address: validatedData.address || property.address || undefined,
         neighborhood: validatedData.neighborhood || undefined,
         latitude: validatedData.latitude !== null && validatedData.latitude !== undefined
@@ -462,239 +419,89 @@ export default function EditPropertyPage() {
           : undefined,
       };
 
-      await realEstateApi.partialUpdateProperty(property.id, updateData);
-      // ✅ از msg.crud استفاده کنید
+      return await realEstateApi.partialUpdateProperty(property.id, updateData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      queryClient.invalidateQueries({ queryKey: ['property', id] });
       showSuccess(msg.crud("updated", { item: "ملک" }));
       navigate("/real-estate/properties");
-    } catch (error: any) {
-      if (error.errors || error.issues) {
-        const fieldErrors: Record<string, string> = {};
-        const errorsToProcess = error.errors || error.issues || [];
+    },
+    onError: (error: any) => {
+      if (hasFieldErrors(error)) {
+        const fieldErrors = extractFieldErrors(error);
         
-        errorsToProcess.forEach((err: any) => {
-          if (err.path && err.path.length > 0) {
-            const fieldName = err.path[0];
-            if (!fieldErrors[fieldName]) {
-              fieldErrors[fieldName] = err.message;
-            }
+        Object.entries(fieldErrors).forEach(([field, message]) => {
+          form.setError(field as keyof PropertyFormValues, {
+            type: 'server',
+            message: message as string
+          });
+          
+          if (['title', 'slug', 'property_type', 'state', 'status'].includes(field)) {
+            setActiveTab("account");
+          } else if (['province', 'city', 'address', 'latitude', 'longitude', 'postal_code', 'neighborhood'].includes(field)) {
+            setActiveTab("location");
+          } else if (['land_area', 'built_area', 'bedrooms', 'bathrooms', 'price', 'sale_price', 'monthly_rent', 'mortgage_amount'].includes(field)) {
+            setActiveTab("details");
           }
         });
-        setErrors(fieldErrors);
-        setIsSaving(false);
-        return;
-      }
-      
-      if (error.response && error.response.status === 400) {
-        const backendErrors = error.response.data;
-        const newErrors: Record<string, string> = {};
-
-        Object.keys(backendErrors).forEach(key => {
-          const err = backendErrors[key];
-          if (Array.isArray(err)) {
-            newErrors[key] = err[0];
-          } else if (typeof err === 'string') {
-            newErrors[key] = err;
-          }
-        });
-
-        setErrors(newErrors);
-        setIsSaving(false);
+        
+        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
       } else {
         showError(error);
-        setIsSaving(false);
       }
-    } finally {
-      setIsSaving(false);
-    }
-  };
+    },
+  });
 
-  const handleSaveDraft = async () => {
+  const handleSave = form.handleSubmit(async (data) => {
+    updatePropertyMutation.mutate(data);
+  });
+
+  const handleSaveDraft = form.handleSubmit(async (data) => {
     if (!property) return;
+    
+    const validatedData = propertyFormSchema.parse(data);
+    const allMediaIds = collectMediaIds(propertyMedia);
+    const mainImageId = propertyMedia.featuredImage?.id || null;
+    const mediaCovers = collectMediaCovers(propertyMedia);
 
-    setIsSavingDraft(true);
-    setErrors({});
+    const updateData: PropertyUpdateData = {
+      ...validatedData,
+      slug: formatSlug(validatedData.slug),
+      labels_ids: validatedData.labels_ids,
+      tags_ids: validatedData.tags_ids,
+      features_ids: validatedData.features_ids,
+      media_ids: allMediaIds,
+      main_image_id: mainImageId,
+      media_covers: Object.keys(mediaCovers).length > 0 ? mediaCovers : undefined,
+      is_published: false,
+    };
+
     try {
-      const dataToValidate = {
-        ...formData,
-        labels_ids: selectedLabels.map(label => label.id),
-        tags_ids: selectedTags.map(tag => tag.id),
-        features_ids: selectedFeatures.map(feature => feature.id),
-      };
-      
-      try {
-        propertyFormSchema.pick({
-          title: true,
-          slug: true,
-          property_type: true,
-          state: true,
-          status: true,
-        }).parse({
-          title: dataToValidate.title,
-          slug: dataToValidate.slug,
-          property_type: dataToValidate.property_type,
-          state: dataToValidate.state,
-          status: dataToValidate.status,
-        });
-      } catch (accountError: any) {
-        if (accountError.errors || accountError.issues) {
-          const accountErrors: Record<string, string> = {};
-          const errorsToProcess = accountError.errors || accountError.issues || [];
-          errorsToProcess.forEach((err: any) => {
-            if (err.path && err.path.length > 0) {
-              const fieldName = err.path[0];
-              if (!accountErrors[fieldName]) {
-                accountErrors[fieldName] = err.message;
-              }
-            }
-          });
-          setErrors(accountErrors);
-          setActiveTab("account");
-          setIsSavingDraft(false);
-          return;
-        }
-      }
-      
-      try {
-        propertyFormSchema.pick({
-          province: true,
-          city: true,
-          address: true,
-        }).parse({
-          province: dataToValidate.province,
-          city: dataToValidate.city,
-          address: dataToValidate.address,
-        });
-      } catch (locationError: any) {
-        if (locationError.errors || locationError.issues) {
-          const locationErrors: Record<string, string> = {};
-          const errorsToProcess = locationError.errors || locationError.issues || [];
-          errorsToProcess.forEach((err: any) => {
-            if (err.path && err.path.length > 0) {
-              const fieldName = err.path[0];
-              if (!locationErrors[fieldName]) {
-                locationErrors[fieldName] = err.message;
-              }
-            }
-          });
-          setErrors(locationErrors);
-          setActiveTab("location");
-          setIsSavingDraft(false);
-          return;
-        }
-      }
-      
-      const validatedData = propertyFormSchema.parse(dataToValidate);
-
-      let formattedSlug = formatSlug(validatedData.slug);
-
-      const labelIds = validatedData.labels_ids;
-      const tagIds = validatedData.tags_ids;
-      const featureIds = validatedData.features_ids;
-
-      const allMediaIds = collectMediaIds(propertyMedia);
-      const mainImageId = propertyMedia.featuredImage?.id || null;
-      const mediaCovers = collectMediaCovers(propertyMedia);
-
-      const updateData: PropertyUpdateData = {
-        title: validatedData.title,
-        slug: formattedSlug,
-        short_description: validatedData.short_description,
-        description: validatedData.description,
-        labels_ids: labelIds,
-        tags_ids: tagIds,
-        features_ids: featureIds,
-        media_ids: allMediaIds,
-        main_image_id: mainImageId,
-        media_covers: Object.keys(mediaCovers).length > 0 ? mediaCovers : undefined,
-        meta_title: validatedData.meta_title || undefined,
-        meta_description: validatedData.meta_description || undefined,
-        og_title: validatedData.og_title || undefined,
-        og_description: validatedData.og_description || undefined,
-        og_image_id: validatedData.og_image_id || undefined,
-        canonical_url: validatedData.canonical_url || undefined,
-        robots_meta: validatedData.robots_meta || undefined,
-        is_public: validatedData.is_public,
-        is_active: validatedData.is_active,
-        is_published: false,
-        is_featured: validatedData.is_featured,
-        property_type: validatedData.property_type || undefined,
-        state: validatedData.state || undefined,
-        agent: validatedData.agent !== undefined ? validatedData.agent : undefined,
-        agency: validatedData.agency !== undefined ? validatedData.agency : undefined,
-        province: validatedData.province || undefined,
-        city: validatedData.city || undefined,
-        region: validatedData.district || undefined,
-        region_name: formData.region_name || undefined,
-        neighborhood: validatedData.neighborhood || undefined,
-        latitude: validatedData.latitude,
-        longitude: validatedData.longitude,
-        land_area: validatedData.land_area,
-        built_area: validatedData.built_area,
-        bedrooms: validatedData.bedrooms,
-        bathrooms: validatedData.bathrooms,
-        price: validatedData.price,
-        mortgage_amount: validatedData.mortgage_amount,
-        rent_amount: validatedData.rent_amount,
-        year_built: validatedData.year_built,
-        floors_in_building: validatedData.floors_in_building,
-        parking_spaces: validatedData.parking_spaces,
-        storage_rooms: validatedData.storage_rooms,
-        status: validatedData.status,
-        extra_attributes: validatedData.extra_attributes && Object.keys(validatedData.extra_attributes).length > 0
-          ? validatedData.extra_attributes
-          : undefined,
-      };
-
       await realEstateApi.partialUpdateProperty(property.id, updateData);
-      // ✅ از msg.crud استفاده کنید
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      queryClient.invalidateQueries({ queryKey: ['property', id] });
       showSuccess(msg.crud("saved", { item: "پیش‌نویس ملک" }));
       navigate("/real-estate/properties");
     } catch (error: any) {
-      if (error.errors || error.issues) {
-        const fieldErrors: Record<string, string> = {};
-        const errorsToProcess = error.errors || error.issues || [];
-        
-        errorsToProcess.forEach((err: any) => {
-          if (err.path && err.path.length > 0) {
-            const fieldName = err.path[0];
-            if (!fieldErrors[fieldName]) {
-              fieldErrors[fieldName] = err.message;
-            }
-          }
+      if (hasFieldErrors(error)) {
+        const fieldErrors = extractFieldErrors(error);
+        Object.entries(fieldErrors).forEach(([field, message]) => {
+          form.setError(field as keyof PropertyFormValues, {
+            type: 'server',
+            message: message as string
+          });
         });
-        setErrors(fieldErrors);
-        setIsSavingDraft(false);
-        return;
-      }
-      
-      if (error.response && error.response.status === 400) {
-        const backendErrors = error.response.data;
-        const newErrors: Record<string, string> = {};
-
-        Object.keys(backendErrors).forEach(key => {
-          const err = backendErrors[key];
-          if (Array.isArray(err)) {
-            newErrors[key] = err[0];
-          } else if (typeof err === 'string') {
-            newErrors[key] = err;
-          }
-        });
-
-        setErrors(newErrors);
-        setIsSavingDraft(false);
+        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
       } else {
         showError(error);
-        setIsSavingDraft(false);
       }
-    } finally {
-      setIsSavingDraft(false);
     }
-  };
+  });
 
   if (isLoading) {
     return (
       <div className="space-y-6 pb-28 relative">
-
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList>
             <TabsTrigger value="account">
@@ -721,7 +528,7 @@ export default function EditPropertyPage() {
               <Search className="h-4 w-4" />
               سئو
             </TabsTrigger>
-            <TabsTrigger value="advanced">
+            <TabsTrigger value="extra">
               <Settings className="h-4 w-4" />
               فیلدهای اضافی
             </TabsTrigger>
@@ -742,7 +549,6 @@ export default function EditPropertyPage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList>
           <TabsTrigger value="account">
@@ -769,7 +575,7 @@ export default function EditPropertyPage() {
             <Search className="h-4 w-4" />
             سئو
           </TabsTrigger>
-          <TabsTrigger value="advanced">
+          <TabsTrigger value="extra">
             <Settings className="h-4 w-4" />
             فیلدهای اضافی
           </TabsTrigger>
@@ -778,8 +584,7 @@ export default function EditPropertyPage() {
         <TabsContent value="account">
           <Suspense fallback={<TabSkeleton />}>
             <BaseInfoTab
-              formData={formData}
-              handleInputChange={handleInputChange}
+              form={form}
               editMode={editMode}
               selectedLabels={selectedLabels}
               selectedTags={selectedTags}
@@ -791,20 +596,15 @@ export default function EditPropertyPage() {
               onFeatureToggle={handleFeatureToggle}
               onFeatureRemove={handleFeatureRemove}
               propertyId={id}
-              errors={errors}
             />
           </Suspense>
         </TabsContent>
         <TabsContent value="location">
           <Suspense fallback={<TabSkeleton />}>
             <LocationTab
-              formData={formData}
-              handleInputChange={handleInputChange}
+              form={form}
               editMode={editMode}
-              latitude={formData.latitude}
-              longitude={formData.longitude}
               onLocationChange={handleLocationChange}
-              errors={errors}
             />
           </Suspense>
         </TabsContent>
@@ -814,7 +614,7 @@ export default function EditPropertyPage() {
               formData={formData}
               handleInputChange={handleInputChange}
               editMode={editMode}
-              errors={errors}
+              errors={form.formState.errors as any}
             />
           </Suspense>
         </TabsContent>
@@ -848,7 +648,7 @@ export default function EditPropertyPage() {
             />
           </Suspense>
         </TabsContent>
-        <TabsContent value="advanced">
+        <TabsContent value="extra">
           <Suspense fallback={<TabSkeleton />}>
             <ExtraAttributesTab
               formData={formData}
@@ -865,9 +665,9 @@ export default function EditPropertyPage() {
             onClick={handleSaveDraft}
             variant="outline"
             size="lg"
-            disabled={isSaving || isSavingDraft}
+            disabled={updatePropertyMutation.isPending}
           >
-            {isSavingDraft ? (
+            {updatePropertyMutation.isPending ? (
               <>
                 <Loader2 className="h-5 w-5 animate-spin" />
                 در حال ذخیره...
@@ -882,9 +682,9 @@ export default function EditPropertyPage() {
           <Button
             onClick={handleSave}
             size="lg"
-            disabled={isSaving || isSavingDraft}
+            disabled={updatePropertyMutation.isPending}
           >
-            {isSaving ? (
+            {updatePropertyMutation.isPending ? (
               <>
                 <Loader2 className="h-5 w-5 animate-spin" />
                 در حال ذخیره...
@@ -901,4 +701,3 @@ export default function EditPropertyPage() {
     </div>
   );
 }
-

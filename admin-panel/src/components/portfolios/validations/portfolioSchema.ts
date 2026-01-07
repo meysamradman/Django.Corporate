@@ -24,13 +24,11 @@ export const portfolioFormSchema = z.object({
   short_description: z
     .string()
     .max(300, { message: msg.portfolio("shortDescMaxLength") })
-    .optional()
-    .or(z.literal("")),
+    .optional(),
   
   description: z
     .string()
-    .optional()
-    .or(z.literal("")),
+    .optional(),
   
   selectedCategories: z
     .array(z.any())
@@ -52,26 +50,22 @@ export const portfolioFormSchema = z.object({
   meta_title: z
     .string()
     .max(70, { message: msg.validation("metaTitleMaxLength") })
-    .optional()
-    .or(z.literal("")),
+    .optional(),
   
   meta_description: z
     .string()
     .max(160, { message: msg.validation("metaDescMaxLength") })
-    .optional()
-    .or(z.literal("")),
+    .optional(),
   
   og_title: z
     .string()
     .max(70, { message: msg.validation("ogTitleMaxLength") })
-    .optional()
-    .or(z.literal("")),
+    .optional(),
   
   og_description: z
     .string()
     .max(160, { message: msg.validation("ogDescMaxLength") })
-    .optional()
-    .or(z.literal("")),
+    .optional(),
   
   og_image: z
     .any()
@@ -86,45 +80,44 @@ export const portfolioFormSchema = z.object({
   
   robots_meta: z
     .string()
-    .optional()
-    .or(z.literal("")),
+    .optional(),
   
   is_public: z
     .boolean()
-    .default(true)
-    .optional(),
+    .default(true),
   
   is_active: z
     .boolean()
-    .default(true)
-    .optional(),
+    .default(true),
   
   is_featured: z
     .boolean()
-    .default(false)
-    .optional(),
+    .default(false),
   
   status: z
     .enum(["draft", "published"])
-    .default("draft")
-    .optional(),
+    .default("draft"),
   
   extra_attributes: z
     .record(z.string(), z.any())
-    .optional()
     .default({}),
 });
 
-export type PortfolioFormValues = z.infer<typeof portfolioFormSchema>;
+export type PortfolioFormValues = z.input<typeof portfolioFormSchema>;
 
-export const portfolioFormDefaults: Partial<PortfolioFormValues> = {
+export const portfolioFormDefaults: PortfolioFormValues = {
   name: "",
   slug: "",
-  short_description: "",
-  description: "",
   selectedCategories: [],
   selectedTags: [],
   selectedOptions: [],
+  is_public: true,
+  is_active: true,
+  is_featured: false,
+  status: "draft",
+  extra_attributes: {},
+  short_description: "",
+  description: "",
   featuredImage: null,
   meta_title: "",
   meta_description: "",
@@ -133,9 +126,4 @@ export const portfolioFormDefaults: Partial<PortfolioFormValues> = {
   og_image: null,
   canonical_url: "",
   robots_meta: "",
-  is_public: true,
-  is_active: true,
-  is_featured: false,
-  status: "draft",
-  extra_attributes: {},
 };

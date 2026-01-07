@@ -41,11 +41,11 @@ export const portfolioOptionFormSchema = z.object({
 
 export type PortfolioOptionFormValues = z.infer<typeof portfolioOptionFormSchema>;
 
-export const portfolioOptionFormDefaults: Partial<PortfolioOptionFormValues> = {
+export const portfolioOptionFormDefaults: PortfolioOptionFormValues = {
     name: "",
     slug: "",
     description: "",
     is_active: true,
     is_public: true,
-};
+} as PortfolioOptionFormValues;
 

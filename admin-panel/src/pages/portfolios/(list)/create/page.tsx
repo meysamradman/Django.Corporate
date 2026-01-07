@@ -102,8 +102,8 @@ export default function CreatePortfolioPage() {
   });
   
   const form = useForm<PortfolioFormValues>({
-    resolver: zodResolver(portfolioFormSchema) as any,
-    defaultValues: portfolioFormDefaults as any,
+    resolver: zodResolver(portfolioFormSchema),
+    defaultValues: portfolioFormDefaults,
     mode: "onSubmit",
   });
 
@@ -179,7 +179,7 @@ export default function CreatePortfolioPage() {
           };
           
           const formField = fieldMap[field] || field;
-          form.setError(formField as any, {
+          form.setError(formField as keyof PortfolioFormValues, {
             type: 'server',
             message: message as string
           });
@@ -192,27 +192,19 @@ export default function CreatePortfolioPage() {
     },
   });
 
-  const handleSave = async () => {
-    const isValid = await form.trigger();
-    if (!isValid) return;
-    
-    const data = form.getValues();
+  const handleSave = form.handleSubmit(async (data) => {
     createPortfolioMutation.mutate({
       ...data,
       status: "published" as const
     });
-  };
+  });
 
-  const handleSaveDraft = async () => {
-    const isValid = await form.trigger();
-    if (!isValid) return;
-    
-    const data = form.getValues();
+  const handleSaveDraft = form.handleSubmit(async (data) => {
     createPortfolioMutation.mutate({
       ...data,
       status: "draft" as const
     });
-  };
+  });
 
   return (
     <div className="space-y-6 pb-28 relative">
@@ -243,7 +235,7 @@ export default function CreatePortfolioPage() {
             <TabsContent value="account">
               <Suspense fallback={<TabSkeleton />}>
                 <BaseInfoTab 
-                  form={form as any}
+                  form={form}
                   editMode={editMode}
                 />
               </Suspense>
@@ -251,7 +243,7 @@ export default function CreatePortfolioPage() {
             <TabsContent value="media">
               <Suspense fallback={<TabSkeleton />}>
                 <MediaTab 
-                  form={form as any}
+                  form={form}
                   portfolioMedia={portfolioMedia}
                   setPortfolioMedia={setPortfolioMedia}
                   editMode={editMode}
@@ -261,7 +253,7 @@ export default function CreatePortfolioPage() {
             <TabsContent value="seo">
               <Suspense fallback={<TabSkeleton />}>
                 <SEOTab 
-                  form={form as any}
+                  form={form}
                   editMode={editMode}
                 />
               </Suspense>
@@ -269,7 +261,7 @@ export default function CreatePortfolioPage() {
             <TabsContent value="extra">
               <Suspense fallback={<TabSkeleton />}>
                 <ExtraAttributesTab 
-                  form={form as any}
+                  form={form}
                   editMode={editMode}
                 />
               </Suspense>

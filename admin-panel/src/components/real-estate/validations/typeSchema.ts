@@ -57,7 +57,7 @@ export const propertyTypeFormSchema = z.object({
 
 export type PropertyTypeFormValues = z.infer<typeof propertyTypeFormSchema>;
 
-export const propertyTypeFormDefaults: Partial<PropertyTypeFormValues> = {
+export const propertyTypeFormDefaults: PropertyTypeFormValues = {
     title: "",
     slug: "",
     description: "",
@@ -65,5 +65,5 @@ export const propertyTypeFormDefaults: Partial<PropertyTypeFormValues> = {
     display_order: 0,
     is_active: true,
     image_id: null,
-};
+} as PropertyTypeFormValues;
 

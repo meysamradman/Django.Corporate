@@ -18,18 +18,20 @@ import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { propertyTypeFormSchema, propertyTypeFormDefaults, type PropertyTypeFormValues } from '@/components/real-estate/validations/typeSchema';
 import { mediaService } from "@/components/media/services";
-import { Loader2, Save, FolderTree, Image as ImageIcon, UploadCloud, X } from "lucide-react";
+import { Loader2, Save, FolderTree, Image as ImageIcon, UploadCloud, X, Settings } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 
 export default function CreatePropertyTypePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<string>("account");
 
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
 
   const form = useForm<PropertyTypeFormValues>({
-    resolver: zodResolver(propertyTypeFormSchema) as any,
-    defaultValues: propertyTypeFormDefaults as any,
+    resolver: zodResolver(propertyTypeFormSchema),
+    defaultValues: propertyTypeFormDefaults,
     mode: "onSubmit",
   });
 
@@ -79,7 +81,7 @@ export default function CreatePropertyTypePage() {
           };
           
           const formField = fieldMap[field] || field;
-          form.setError(formField as any, {
+          form.setError(formField as keyof PropertyTypeFormValues, {
             type: 'server',
             message: message as string
           });
@@ -100,20 +102,17 @@ export default function CreatePropertyTypePage() {
   const handleImageSelect = (media: Media | Media[] | null) => {
     const selected = Array.isArray(media) ? media[0] || null : media;
     setSelectedMedia(selected);
+    setValue("image_id", selected?.id || null, { shouldValidate: false });
     setIsMediaModalOpen(false);
   };
 
   const handleRemoveImage = () => {
     setSelectedMedia(null);
+    setValue("image_id", null, { shouldValidate: false });
   };
 
   const handleSubmit = form.handleSubmit(async (data) => {
-    const formDataWithImage = {
-      ...data,
-      image_id: selectedMedia?.id || null,
-    };
-
-    createTypeMutation.mutate(formDataWithImage);
+    createTypeMutation.mutate(data);
   });
 
   // Map types to match TreeSelect expected format (title -> name)
@@ -124,106 +123,90 @@ export default function CreatePropertyTypePage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-
       <form id="type-create-form" onSubmit={handleSubmit} noValidate>
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
-          <div className="lg:col-span-4 space-y-6">
-            <CardWithIcon
-              icon={FolderTree}
-              title="اطلاعات نوع ملک"
-              iconBgColor="bg-purple"
-              iconColor="stroke-purple-2"
-              borderColor="border-b-purple-1"
-              className="hover:shadow-lg transition-all duration-300"
-            >
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormFieldInput
-                    label="عنوان"
-                    id="title"
-                    required
-                    error={errors.title?.message}
-                    placeholder="عنوان نوع ملک"
-                    {...register("title")}
-                  />
-                  <FormFieldInput
-                    label="نامک"
-                    id="slug"
-                    required
-                    error={errors.slug?.message}
-                    placeholder="نامک"
-                    {...register("slug", {
-                      onChange: (e) => {
-                        const formattedSlug = formatSlug(e.target.value);
-                        e.target.value = formattedSlug;
-                        setValue("slug", formattedSlug);
-                      }
-                    })}
-                  />
-                </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList>
+            <TabsTrigger value="account">
+              <FolderTree className="h-4 w-4" />
+              اطلاعات پایه
+            </TabsTrigger>
+            <TabsTrigger value="media">
+              <ImageIcon className="h-4 w-4" />
+              مدیا
+            </TabsTrigger>
+            <TabsTrigger value="settings">
+              <Settings className="h-4 w-4" />
+              تنظیمات
+            </TabsTrigger>
+          </TabsList>
 
-                <FormField
-                  label="نوع والد"
-                  htmlFor="parent_id"
-                  description="نوع‌های بدون والد، نوع‌های مادر هستند."
-                  error={errors.parent_id?.message}
-                >
-                  <TreeSelect
-                    data={treeData}
-                    value={watch("parent_id") || null}
-                    onChange={(value) => setValue("parent_id", value ? parseInt(value) : null)}
-                    placeholder="انتخاب نوع والد (اختیاری)"
-                    searchPlaceholder="جستجوی نوع ملک..."
-                    emptyText="نوع ملکی یافت نشد"
-                  />
-                </FormField>
-
-                <FormFieldTextarea
-                  label="توضیحات"
-                  id="description"
-                  error={errors.description?.message}
-                  placeholder="توضیحات نوع ملک"
-                  rows={4}
-                  {...register("description")}
-                />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormFieldInput
-                    label="ترتیب نمایش"
-                    id="display_order"
-                    type="number"
-                    error={errors.display_order?.message}
-                    placeholder="ترتیب نمایش"
-                    {...register("display_order", {
-                      valueAsNumber: true,
-                    })}
-                  />
-                </div>
-
-                <div className="mt-6 space-y-4">
-                  <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
-                    <Item variant="default" size="default" className="py-5">
-                      <ItemContent>
-                        <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
-                        <ItemDescription>
-                          با غیرفعال شدن، نوع ملک از لیست مدیریت نیز مخفی می‌شود.
-                        </ItemDescription>
-                      </ItemContent>
-                      <ItemActions>
-                        <Switch
-                          checked={watch("is_active")}
-                          onCheckedChange={(checked) => setValue("is_active", checked)}
-                        />
-                      </ItemActions>
-                    </Item>
+          <TabsContent value="account">
+            <div className="space-y-6">
+              <CardWithIcon
+                icon={FolderTree}
+                title="اطلاعات نوع ملک"
+                iconBgColor="bg-purple"
+                iconColor="stroke-purple-2"
+                borderColor="border-b-purple-1"
+                className="hover:shadow-lg transition-all duration-300"
+              >
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormFieldInput
+                      label="عنوان"
+                      id="title"
+                      required
+                      error={errors.title?.message}
+                      placeholder="عنوان نوع ملک"
+                      {...register("title")}
+                    />
+                    <FormFieldInput
+                      label="نامک"
+                      id="slug"
+                      required
+                      error={errors.slug?.message}
+                      placeholder="نامک"
+                      {...register("slug", {
+                        onChange: (e) => {
+                          const formattedSlug = formatSlug(e.target.value);
+                          e.target.value = formattedSlug;
+                          setValue("slug", formattedSlug);
+                        }
+                      })}
+                    />
                   </div>
-                </div>
-              </div>
-            </CardWithIcon>
-          </div>
 
-          <div className="lg:col-span-2">
-            <div className="w-full space-y-6 sticky top-20 transition-all duration-300 ease-in-out self-start">
+                  <FormField
+                    label="نوع والد"
+                    htmlFor="parent_id"
+                    description="نوع‌های بدون والد، نوع‌های مادر هستند."
+                    error={errors.parent_id?.message}
+                  >
+                    <TreeSelect
+                      data={treeData}
+                      value={watch("parent_id") || null}
+                      onChange={(value) => setValue("parent_id", value ? parseInt(value) : null)}
+                      placeholder="انتخاب نوع والد (اختیاری)"
+                      searchPlaceholder="جستجوی نوع ملک..."
+                      emptyText="نوع ملکی یافت نشد"
+                    />
+                  </FormField>
+
+                  <FormFieldTextarea
+                    label="توضیحات"
+                    id="description"
+                    error={errors.description?.message}
+                    placeholder="توضیحات نوع ملک"
+                    rows={4}
+                    {...register("description")}
+                  />
+                </div>
+              </CardWithIcon>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="media">
+            <div className="space-y-6">
               <CardWithIcon
                 icon={ImageIcon}
                 title="تصویر نوع ملک"
@@ -276,8 +259,53 @@ export default function CreatePropertyTypePage() {
                 )}
               </CardWithIcon>
             </div>
-          </div>
-        </div>
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <div className="space-y-6">
+              <CardWithIcon
+                icon={Settings}
+                title="تنظیمات"
+                iconBgColor="bg-purple"
+                iconColor="stroke-purple-2"
+                borderColor="border-b-purple-1"
+                className="hover:shadow-lg transition-all duration-300"
+              >
+                <div className="space-y-6">
+                  <FormFieldInput
+                    label="ترتیب نمایش"
+                    id="display_order"
+                    type="number"
+                    error={errors.display_order?.message}
+                    placeholder="ترتیب نمایش"
+                    {...register("display_order", {
+                      valueAsNumber: true,
+                    })}
+                  />
+
+                  <div className="mt-6 space-y-4">
+                    <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                      <Item variant="default" size="default" className="py-5">
+                        <ItemContent>
+                          <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
+                          <ItemDescription>
+                            با غیرفعال شدن، نوع ملک از لیست مدیریت نیز مخفی می‌شود.
+                          </ItemDescription>
+                        </ItemContent>
+                        <ItemActions>
+                          <Switch
+                            checked={watch("is_active")}
+                            onCheckedChange={(checked) => setValue("is_active", checked)}
+                          />
+                        </ItemActions>
+                      </Item>
+                    </div>
+                  </div>
+                </div>
+              </CardWithIcon>
+            </div>
+          </TabsContent>
+        </Tabs>
       </form>
 
       <MediaLibraryModal

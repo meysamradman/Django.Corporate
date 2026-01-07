@@ -106,12 +106,12 @@ export default function PropertyCreatePage() {
   const [districtName, setDistrictName] = useState<string | null>(null);
 
   const form = useForm<PropertyFormValues>({
-    resolver: zodResolver(propertyFormSchema) as any,
-    defaultValues: propertyFormDefaults as any,
+    resolver: zodResolver(propertyFormSchema),
+    defaultValues: propertyFormDefaults,
     mode: "onSubmit",
   });
 
-  const { data: property, isLoading } = useQuery({
+  const { data: property } = useQuery({
     queryKey: ['property', id],
     queryFn: () => realEstateApi.getPropertyById(Number(id!)),
     enabled: !!id && isEditMode,
@@ -127,6 +127,12 @@ export default function PropertyCreatePage() {
     audioGallery: [],
     pdfDocuments: []
   });
+
+  // Wrapper برای تب‌هایی که از formData و handleInputChange استفاده می‌کنند
+  const formData = form.watch();
+  const handleInputChange = useCallback((field: string, value: any) => {
+    form.setValue(field as keyof PropertyFormValues, value, { shouldValidate: false });
+  }, [form]);
 
   // پر کردن فرم با داده موجود (برای edit mode)
   useEffect(() => {
@@ -322,7 +328,7 @@ export default function PropertyCreatePage() {
             }
           });
           Object.entries(accountErrors).forEach(([field, message]) => {
-            form.setError(field as any, { type: 'validation', message });
+            form.setError(field as keyof PropertyFormValues, { type: 'validation', message });
           });
           setActiveTab("account");
           throw accountError;
@@ -353,7 +359,7 @@ export default function PropertyCreatePage() {
             }
           });
           Object.entries(locationErrors).forEach(([field, message]) => {
-            form.setError(field as any, { type: 'validation', message });
+            form.setError(field as keyof PropertyFormValues, { type: 'validation', message });
           });
           setActiveTab("location");
           throw locationError;
@@ -461,7 +467,7 @@ export default function PropertyCreatePage() {
         const fieldErrors = extractFieldErrors(error);
         
         Object.entries(fieldErrors).forEach(([field, message]) => {
-          form.setError(field as any, {
+          form.setError(field as keyof PropertyFormValues, {
             type: 'server',
             message: message as string
           });
@@ -533,7 +539,7 @@ export default function PropertyCreatePage() {
         <TabsContent value="account">
           <Suspense fallback={<TabSkeleton />}>
             <BaseInfoTab
-              form={form as any}
+              form={form}
               editMode={true}
               selectedLabels={selectedLabels}
               selectedTags={selectedTags}
@@ -551,7 +557,7 @@ export default function PropertyCreatePage() {
         <TabsContent value="location">
           <Suspense fallback={<TabSkeleton />}>
             <LocationTab
-              form={form as any}
+              form={form}
               editMode={true}
               latitude={form.watch("latitude")}
               longitude={form.watch("longitude")}
@@ -566,8 +572,17 @@ export default function PropertyCreatePage() {
         <TabsContent value="details">
           <Suspense fallback={<TabSkeleton />}>
             <DetailsTab
-              form={form as any}
+              formData={formData}
+              handleInputChange={handleInputChange}
               editMode={true}
+              errors={Object.fromEntries(
+                Object.entries(form.formState.errors).map(([key, error]) => [
+                  key,
+                  typeof error === 'object' && error !== null && 'message' in error 
+                    ? String(error.message) 
+                    : ""
+                ])
+              ) as Record<string, string>}
             />
           </Suspense>
         </TabsContent>
@@ -596,7 +611,8 @@ export default function PropertyCreatePage() {
         <TabsContent value="seo">
           <Suspense fallback={<TabSkeleton />}>
             <SEOTab
-              form={form as any}
+              formData={formData}
+              handleInputChange={handleInputChange}
               editMode={true}
               propertyId={undefined}
             />
@@ -605,7 +621,8 @@ export default function PropertyCreatePage() {
         <TabsContent value="extra">
           <Suspense fallback={<TabSkeleton />}>
             <ExtraAttributesTab
-              form={form as any}
+              formData={formData}
+              handleInputChange={handleInputChange}
               editMode={true}
             />
           </Suspense>

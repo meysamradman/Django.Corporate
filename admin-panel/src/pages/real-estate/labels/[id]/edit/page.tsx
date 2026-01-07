@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,7 +13,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { Tag, Loader2, Save } from "lucide-react";
+import { Tag, Loader2, Save, Settings, FileText } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { propertyLabelFormSchema, propertyLabelFormDefaults, type PropertyLabelFormValues } from '@/components/real-estate/validations/labelSchema';
 import { Skeleton } from "@/components/elements/Skeleton";
 
@@ -22,10 +23,11 @@ export default function EditPropertyLabelPage() {
   const queryClient = useQueryClient();
   const { id } = useParams<{ id: string }>();
   const labelId = Number(id);
+  const [activeTab, setActiveTab] = useState<string>("account");
 
   const form = useForm<PropertyLabelFormValues>({
-    resolver: zodResolver(propertyLabelFormSchema) as any,
-    defaultValues: propertyLabelFormDefaults as any,
+    resolver: zodResolver(propertyLabelFormSchema),
+    defaultValues: propertyLabelFormDefaults,
     mode: "onSubmit",
   });
 
@@ -150,62 +152,93 @@ export default function EditPropertyLabelPage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-
       <form id="label-edit-form" onSubmit={handleSubmit} noValidate>
-        <CardWithIcon
-          icon={Tag}
-          title="اطلاعات برچسب ملک"
-          iconBgColor="bg-blue"
-          iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
-          className="hover:shadow-lg transition-all duration-300"
-        >
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormFieldInput
-                label="عنوان"
-                id="title"
-                required
-                error={errors.title?.message}
-                placeholder="عنوان برچسب ملک"
-                {...register("title")}
-              />
-              <FormFieldInput
-                label="نامک"
-                id="slug"
-                required
-                error={errors.slug?.message}
-                placeholder="نامک"
-                {...register("slug", {
-                  onChange: (e) => {
-                    const formattedSlug = formatSlug(e.target.value);
-                    e.target.value = formattedSlug;
-                    setValue("slug", formattedSlug);
-                  }
-                })}
-              />
-            </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList>
+            <TabsTrigger value="account">
+              <FileText className="h-4 w-4" />
+              اطلاعات پایه
+            </TabsTrigger>
+            <TabsTrigger value="settings">
+              <Settings className="h-4 w-4" />
+              تنظیمات
+            </TabsTrigger>
+          </TabsList>
 
-            <div className="mt-6 space-y-4">
-              <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
-                <Item variant="default" size="default" className="py-5">
-                  <ItemContent>
-                    <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
-                    <ItemDescription>
-                      با غیرفعال شدن، برچسب ملک از لیست مدیریت نیز مخفی می‌شود.
-                    </ItemDescription>
-                  </ItemContent>
-                  <ItemActions>
-                    <Switch
-                      checked={watch("is_active")}
-                      onCheckedChange={(checked) => setValue("is_active", checked)}
+          <TabsContent value="account">
+            <div className="space-y-6">
+              <CardWithIcon
+                icon={Tag}
+                title="اطلاعات برچسب ملک"
+                iconBgColor="bg-orange"
+                iconColor="stroke-orange-2"
+                borderColor="border-b-orange-1"
+                className="hover:shadow-lg transition-all duration-300"
+              >
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormFieldInput
+                      label="عنوان"
+                      id="title"
+                      required
+                      error={errors.title?.message}
+                      placeholder="عنوان برچسب ملک"
+                      {...register("title")}
                     />
-                  </ItemActions>
-                </Item>
-              </div>
+                    <FormFieldInput
+                      label="نامک"
+                      id="slug"
+                      required
+                      error={errors.slug?.message}
+                      placeholder="نامک"
+                      {...register("slug", {
+                        onChange: (e) => {
+                          const formattedSlug = formatSlug(e.target.value);
+                          e.target.value = formattedSlug;
+                          setValue("slug", formattedSlug);
+                        }
+                      })}
+                    />
+                  </div>
+                </div>
+              </CardWithIcon>
             </div>
-          </div>
-        </CardWithIcon>
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <div className="space-y-6">
+              <CardWithIcon
+                icon={Settings}
+                title="تنظیمات"
+                iconBgColor="bg-orange"
+                iconColor="stroke-orange-2"
+                borderColor="border-b-orange-1"
+                className="hover:shadow-lg transition-all duration-300"
+              >
+                <div className="space-y-6">
+                  <div className="mt-6 space-y-4">
+                    <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                      <Item variant="default" size="default" className="py-5">
+                        <ItemContent>
+                          <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
+                          <ItemDescription>
+                            با غیرفعال شدن، برچسب ملک از لیست مدیریت نیز مخفی می‌شود.
+                          </ItemDescription>
+                        </ItemContent>
+                        <ItemActions>
+                          <Switch
+                            checked={watch("is_active")}
+                            onCheckedChange={(checked) => setValue("is_active", checked)}
+                          />
+                        </ItemActions>
+                      </Item>
+                    </div>
+                  </div>
+                </div>
+              </CardWithIcon>
+            </div>
+          </TabsContent>
+        </Tabs>
       </form>
 
       <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">

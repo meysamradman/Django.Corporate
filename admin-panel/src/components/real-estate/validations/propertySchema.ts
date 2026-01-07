@@ -25,13 +25,11 @@ export const propertyFormSchema = z.object({
     short_description: z
         .string()
         .max(300, { message: msg.realEstate().validation.shortDescMaxLength })
-        .optional()
-        .or(z.literal("")),
+        .optional(),
 
     description: z
         .string()
-        .optional()
-        .or(z.literal("")),
+        .optional(),
 
     property_type: z
         .number({ message: msg.realEstate().validation.propertyTypeRequired })
@@ -50,8 +48,7 @@ export const propertyFormSchema = z.object({
             (val) => ["active", "pending", "sold", "rented", "archived"].includes(val),
             { message: msg.realEstate().validation.statusInvalid }
         )
-        .default("active")
-        .optional(),
+        .default("active"),
 
     agent: z
         .number()
@@ -96,14 +93,12 @@ export const propertyFormSchema = z.object({
             (val) => !val || val === "" || /^\d{10}$/.test(val),
             { message: msg.realEstate().validation.postalCodeInvalid }
         )
-        .optional()
-        .or(z.literal("")),
+        .optional(),
 
     neighborhood: z
         .string()
         .max(120, { message: msg.realEstate().validation.neighborhoodMaxLength })
-        .optional()
-        .or(z.literal("")),
+        .optional(),
 
     latitude: z
         .number()
@@ -314,32 +309,26 @@ export const propertyFormSchema = z.object({
 
     robots_meta: z
         .string()
-        .optional()
-        .or(z.literal("")),
+        .optional(),
 
     is_public: z
         .boolean()
-        .default(true)
-        .optional(),
+        .default(true),
 
     is_active: z
         .boolean()
-        .default(true)
-        .optional(),
+        .default(true),
 
     is_featured: z
         .boolean()
-        .default(false)
-        .optional(),
+        .default(false),
 
     is_published: z
         .boolean()
-        .default(false)
-        .optional(),
+        .default(false),
 
     extra_attributes: z
         .record(z.string(), z.any())
-        .optional()
         .default({}),
 
     labels_ids: z
@@ -365,15 +354,15 @@ export const propertyFormSchema = z.object({
         .optional(),
 });
 
-export type PropertyFormValues = z.infer<typeof propertyFormSchema>;
+export type PropertyFormValues = z.input<typeof propertyFormSchema>;
 
-export const propertyFormDefaults: Partial<PropertyFormValues> = {
+export const propertyFormDefaults: PropertyFormValues = {
     title: "",
     slug: "",
     short_description: "",
     description: "",
-    property_type: undefined,
-    state: undefined,
+    property_type: undefined as any, // Will be set by user, required field
+    state: undefined as any, // Will be set by user, required field
     status: "active",
     agent: null,
     agency: null,

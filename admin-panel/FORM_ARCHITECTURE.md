@@ -851,6 +851,196 @@ onError: (error: any) => {
 
 ---
 
+## ⚠️ رفع خطای TypeScript در zodResolver
+
+### مشکل: `Type 'Resolver<...>' is not assignable`
+
+**علت:**
+- عدم تطابق type های schema و defaultValues
+- استفاده نادرست از `.optional().or(z.literal(""))`
+- ترکیب نادرست `.default()` و `.optional()`
+
+**راه حل:**
+
+#### 1️⃣ برای فیلدهای با default: فقط `.default()`
+```typescript
+selectedTags: z.array(z.any()).default([]),
+is_active: z.boolean().default(true),
+status: z.enum(["draft", "published"]).default("draft"),
+extra_attributes: z.record(z.string(), z.any()).default({}),
+```
+
+#### 2️⃣ برای فیلدهای optional: فقط `.optional()`
+```typescript
+description: z.string().optional(),
+meta_title: z.string().max(70).optional(),
+```
+
+#### 3️⃣ برای nullable: `.nullable().optional()`
+```typescript
+featuredImage: z.any().nullable().optional(),
+og_image: z.any().nullable().optional(),
+```
+
+#### 4️⃣ برای string های خالی: فقط `.optional()` (بدون `.or(z.literal(""))`)
+```typescript
+// ❌ اشتباه - باعث پیچیدگی type می‌شود
+short_description: z.string()
+  .max(300)
+  .optional()
+  .or(z.literal("")),
+
+// ✅ درست - ساده و واضح
+short_description: z.string()
+  .max(300)
+  .optional(),
+```
+
+**استثنا:** فقط برای URL ها می‌توانید از `.optional().or(z.literal(""))` استفاده کنید:
+```typescript
+canonical_url: z.string()
+  .url({ message: msg.validation("urlInvalid") })
+  .optional()
+  .or(z.literal("")),  // ← فقط برای URL ها این OK است
+```
+
+#### 5️⃣ استفاده صحیح از defaults:
+```typescript
+export const entityFormDefaults: Partial<EntityFormValues> = {
+  name: "",
+  selectedTags: [],  // مطابق با .default([])
+  is_active: true,   // مطابق با .default(true)
+  description: "",    // optional، پس می‌تواند "" باشد
+};
+```
+
+#### 6️⃣ بدون `as any`:
+```typescript
+// ✅ درست
+const form = useForm<EntityFormValues>({
+  resolver: zodResolver(entityFormSchema),
+  defaultValues: entityFormDefaults,
+});
+
+// ❌ اشتباه
+const form = useForm<EntityFormValues>({
+  resolver: zodResolver(entityFormSchema) as any,
+  defaultValues: entityFormDefaults as any,
+});
+```
+
+#### 📋 قاعده کلی:
+| حالت | استفاده | مثال |
+|------|---------|------|
+| Required با مقدار خاص | `.default(value)` | `is_active: z.boolean().default(true)` |
+| Optional (می‌تواند undefined باشد) | `.optional()` | `description: z.string().optional()` |
+| Nullable (می‌تواند null باشد) | `.nullable()` | `featuredImage: z.any().nullable()` |
+| Nullable + Optional | `.nullable().optional()` | `og_image: z.any().nullable().optional()` |
+| Array خالی | `.default([])` | `selectedTags: z.array(z.any()).default([])` |
+| String خالی | `.optional()` | `meta_title: z.string().optional()` |
+| URL خالی | `.optional().or(z.literal(""))` | `canonical_url: z.string().url().optional().or(z.literal(""))` |
+
+#### 🎯 مثال کامل:
+```typescript
+export const schema = z.object({
+  name: z.string().min(1),              // required
+  description: z.string().optional(),    // optional
+  tags: z.array(z.any()).default([]),   // با default
+  image: z.any().nullable().optional(),  // nullable + optional
+  is_active: z.boolean().default(true), // با default
+});
+
+export type EntityFormValues = z.infer<typeof schema>;
+
+export const defaults: Partial<EntityFormValues> = {
+  name: "",
+  description: "",
+  tags: [],
+  image: null,
+  is_active: true,
+};
+```
+
+#### ⚠️ چیزهایی که باید اجتناب کنید:
+
+**❌ اشتباه 1: ترکیب `.optional()` و `.or(z.literal(""))` برای string های معمولی**
+```typescript
+// ❌ اشتباه - باعث پیچیدگی type می‌شود
+short_description: z.string()
+  .max(300)
+  .optional()
+  .or(z.literal("")),
+
+// ✅ درست
+short_description: z.string()
+  .max(300)
+  .optional(),
+```
+
+**❌ اشتباه 2: استفاده از `as any` در defaults**
+```typescript
+// ❌ اشتباه
+export const blogFormDefaults = {
+  name: "",
+  // ...
+} as any;
+
+// ✅ درست
+export const blogFormDefaults: Partial<BlogFormValues> = {
+  name: "",
+  // ...
+};
+```
+
+**❌ اشتباه 3: ترکیب `.default()` و `.optional()`**
+```typescript
+// ❌ اشتباه
+is_active: z.boolean().default(true).optional(),
+
+// ✅ درست
+is_active: z.boolean().default(true),
+```
+
+**❌ اشتباه 4: ترتیب نادرست `.optional()` و `.default()`**
+```typescript
+// ❌ اشتباه
+extra_attributes: z.record(z.string(), z.any()).optional().default({}),
+
+// ✅ درست
+extra_attributes: z.record(z.string(), z.any()).default({}),
+```
+
+#### 🎯 چک‌لیست برای جلوگیری از مشکل:
+- [ ] فیلدهای با `.default()` در defaults هم مقدار دارند
+- [ ] فیلدهای `.optional()` در defaults می‌توانند undefined یا "" باشند
+- [ ] از `.optional().or(z.literal(""))` فقط برای URL استفاده شده
+- [ ] `defaultValues` از type `FormValues` است (نه `Partial<FormValues>` و نه `as any`)
+- [ ] `resolver` بدون `as any` استفاده شده
+- [ ] همه فیلدهای required در defaults تعریف شده‌اند
+- [ ] از `.default().optional()` استفاده نشده
+- [ ] از `z.input<typeof schema>` برای type استفاده شده (نه `z.infer`)
+
+#### 🔑 نکته مهم: استفاده از `z.input` به جای `z.infer`
+
+**مشکل:** `zodResolver` از `z.input` استفاده می‌کند، نه `z.infer`. اگر از `z.infer` استفاده کنید، ممکن است خطای type mismatch بگیرید.
+
+**راه حل:**
+```typescript
+// ✅ درست - استفاده از z.input
+export type BlogFormValues = z.input<typeof blogFormSchema>;
+
+// ❌ اشتباه - z.infer ممکن است با zodResolver مشکل داشته باشد
+export type BlogFormValues = z.infer<typeof blogFormSchema>;
+```
+
+**چرا؟**
+- `z.input` → type ورودی schema (قبل از validation)
+- `z.output` → type خروجی schema (بعد از validation و اعمال defaults)
+- `z.infer` → معمولاً همان `z.output` است
+- `zodResolver` از `z.input` استفاده می‌کند، پس باید type ما هم `z.input` باشد
+
+---
+
 ## ⚠️ نکات مهم
 
 1. **همیشه از `react-hook-form` استفاده کنید** - نه `useState`

@@ -18,7 +18,8 @@ import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { portfolioCategoryFormSchema, portfolioCategoryFormDefaults, type PortfolioCategoryFormValues } from '@/components/portfolios/validations/categorySchema';
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
-import { UploadCloud, X, FolderTree, Image as ImageIcon, Loader2, Save } from "lucide-react";
+import { UploadCloud, X, FolderTree, Image as ImageIcon, Loader2, Save, Settings } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function EditCategoryPage() {
@@ -26,13 +27,14 @@ export default function EditCategoryPage() {
   const queryClient = useQueryClient();
   const { id } = useParams<{ id: string }>();
   const categoryId = Number(id);
+  const [activeTab, setActiveTab] = useState<string>("account");
   
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
 
   const form = useForm<PortfolioCategoryFormValues>({
-    resolver: zodResolver(portfolioCategoryFormSchema) as any,
-    defaultValues: portfolioCategoryFormDefaults as any,
+    resolver: zodResolver(portfolioCategoryFormSchema),
+    defaultValues: portfolioCategoryFormDefaults,
     mode: "onSubmit",
   });
 
@@ -239,114 +241,92 @@ export default function EditCategoryPage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-
       <form id="category-edit-form" onSubmit={handleSubmit} noValidate>
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
-          <div className="lg:col-span-4 space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList>
+            <TabsTrigger value="account">
+              <FolderTree className="h-4 w-4" />
+              اطلاعات پایه
+            </TabsTrigger>
+            <TabsTrigger value="media">
+              <ImageIcon className="h-4 w-4" />
+              مدیا
+            </TabsTrigger>
+            <TabsTrigger value="settings">
+              <Settings className="h-4 w-4" />
+              تنظیمات
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="account">
             <div className="space-y-6">
-            <CardWithIcon
-              icon={FolderTree}
-              title="اطلاعات دسته‌بندی"
-              iconBgColor="bg-purple"
-              iconColor="stroke-purple-2"
-              borderColor="border-b-purple-1"
-              className="hover:shadow-lg transition-all duration-300"
-            >
+              <CardWithIcon
+                icon={FolderTree}
+                title="اطلاعات دسته‌بندی"
+                iconBgColor="bg-purple"
+                iconColor="stroke-purple-2"
+                borderColor="border-b-purple-1"
+                className="hover:shadow-lg transition-all duration-300"
+              >
                 <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormFieldInput
-                    label="نام"
-                    id="name"
-                    required
-                    error={errors.name?.message}
-                    placeholder="نام دسته‌بندی"
-                    {...register("name")}
-                  />
-                  <FormFieldInput
-                    label="نامک"
-                    id="slug"
-                    required
-                    error={errors.slug?.message}
-                    placeholder="نامک"
-                    {...register("slug", {
-                      onChange: (e) => {
-                        const formattedSlug = formatSlug(e.target.value);
-                        e.target.value = formattedSlug;
-                        setValue("slug", formattedSlug);
-                      }
-                    })}
-                  />
-                </div>
-
-                <FormField
-                  label="دسته‌بندی والد"
-                  htmlFor="parent_id"
-                  description="دسته‌بندی‌های بدون والد، دسته‌بندی‌های مادر هستند."
-                  error={errors.parent_id?.message}
-                >
-                  <TreeSelect
-                    data={categories?.data?.filter(cat => cat.id !== categoryId) || []}
-                    value={watch("parent_id") || null}
-                    onChange={(value) => setValue("parent_id", value ? parseInt(value) : null)}
-                    placeholder="انتخاب دسته‌بندی والد (اختیاری)"
-                    searchPlaceholder="جستجوی دسته‌بندی..."
-                    emptyText="دسته‌بندی یافت نشد"
-                  />
-                </FormField>
-
-                <FormFieldTextarea
-                  label="توضیحات"
-                  id="description"
-                  error={errors.description?.message}
-                  placeholder="توضیحات دسته‌بندی"
-                  rows={4}
-                  {...register("description")}
-                />
-
-                <div className="mt-6 space-y-4">
-                  <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
-                    <Item variant="default" size="default" className="py-5">
-                      <ItemContent>
-                        <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
-                        <ItemDescription>
-                          با غیرفعال شدن، دسته‌بندی از لیست مدیریت نیز مخفی می‌شود.
-                        </ItemDescription>
-                      </ItemContent>
-                      <ItemActions>
-                        <Switch
-                          checked={watch("is_active")}
-                          onCheckedChange={(checked) => setValue("is_active", checked)}
-                        />
-                      </ItemActions>
-                    </Item>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormFieldInput
+                      label="نام"
+                      id="name"
+                      required
+                      error={errors.name?.message}
+                      placeholder="نام دسته‌بندی"
+                      {...register("name")}
+                    />
+                    <FormFieldInput
+                      label="نامک"
+                      id="slug"
+                      required
+                      error={errors.slug?.message}
+                      placeholder="نامک"
+                      {...register("slug", {
+                        onChange: (e) => {
+                          const formattedSlug = formatSlug(e.target.value);
+                          e.target.value = formattedSlug;
+                          setValue("slug", formattedSlug);
+                        }
+                      })}
+                    />
                   </div>
-                  
-                  <div className="border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
-                    <Item variant="default" size="default" className="py-5">
-                      <ItemContent>
-                        <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>
-                        <ItemDescription>
-                          اگر غیرفعال باشد دسته‌بندی در سایت نمایش داده نمی‌شود.
-                        </ItemDescription>
-                      </ItemContent>
-                      <ItemActions>
-                        <Switch
-                          checked={watch("is_public")}
-                          onCheckedChange={(checked) => setValue("is_public", checked)}
-                        />
-                      </ItemActions>
-                    </Item>
-                  </div>
+
+                  <FormField
+                    label="دسته‌بندی والد"
+                    htmlFor="parent_id"
+                    description="دسته‌بندی‌های بدون والد، دسته‌بندی‌های مادر هستند."
+                    error={errors.parent_id?.message}
+                  >
+                    <TreeSelect
+                      data={categories?.data?.filter(cat => cat.id !== categoryId) || []}
+                      value={watch("parent_id") || null}
+                      onChange={(value) => setValue("parent_id", value ? parseInt(value) : null)}
+                      placeholder="انتخاب دسته‌بندی والد (اختیاری)"
+                      searchPlaceholder="جستجوی دسته‌بندی..."
+                      emptyText="دسته‌بندی یافت نشد"
+                    />
+                  </FormField>
+
+                  <FormFieldTextarea
+                    label="توضیحات"
+                    id="description"
+                    error={errors.description?.message}
+                    placeholder="توضیحات دسته‌بندی"
+                    rows={4}
+                    {...register("description")}
+                  />
                 </div>
-                </div>
-            </CardWithIcon>
+              </CardWithIcon>
             </div>
-          </div>
+          </TabsContent>
 
-          <div className="lg:col-span-2">
-            <div className="w-full space-y-6 sticky top-20 transition-all duration-300 ease-in-out self-start">
-            <CardWithIcon
-              icon={ImageIcon}
+          <TabsContent value="media">
+            <div className="space-y-6">
+              <CardWithIcon
+                icon={ImageIcon}
               title="تصویر شاخص"
               iconBgColor="bg-blue"
               iconColor="stroke-blue-2"
@@ -395,10 +375,61 @@ export default function EditCategoryPage() {
                     </p>
                   </div>
                 )}
-            </CardWithIcon>
+              </CardWithIcon>
             </div>
-          </div>
-        </div>
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <div className="space-y-6">
+              <CardWithIcon
+                icon={Settings}
+                title="تنظیمات"
+                iconBgColor="bg-purple"
+                iconColor="stroke-purple-2"
+                borderColor="border-b-purple-1"
+                className="hover:shadow-lg transition-all duration-300"
+              >
+                <div className="space-y-6">
+                  <div className="mt-6 space-y-4">
+                    <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                      <Item variant="default" size="default" className="py-5">
+                        <ItemContent>
+                          <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
+                          <ItemDescription>
+                            با غیرفعال شدن، دسته‌بندی از لیست مدیریت نیز مخفی می‌شود.
+                          </ItemDescription>
+                        </ItemContent>
+                        <ItemActions>
+                          <Switch
+                            checked={watch("is_active")}
+                            onCheckedChange={(checked) => setValue("is_active", checked)}
+                          />
+                        </ItemActions>
+                      </Item>
+                    </div>
+                    
+                    <div className="border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
+                      <Item variant="default" size="default" className="py-5">
+                        <ItemContent>
+                          <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>
+                          <ItemDescription>
+                            اگر غیرفعال باشد دسته‌بندی در سایت نمایش داده نمی‌شود.
+                          </ItemDescription>
+                        </ItemContent>
+                        <ItemActions>
+                          <Switch
+                            checked={watch("is_public")}
+                            onCheckedChange={(checked) => setValue("is_public", checked)}
+                          />
+                        </ItemActions>
+                      </Item>
+                    </div>
+                  </div>
+                </div>
+              </CardWithIcon>
+            </div>
+          </TabsContent>
+        </Tabs>
       </form>
 
       <MediaLibraryModal

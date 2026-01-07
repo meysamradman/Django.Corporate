@@ -55,7 +55,7 @@ export const portfolioCategoryFormSchema = z.object({
 
 export type PortfolioCategoryFormValues = z.infer<typeof portfolioCategoryFormSchema>;
 
-export const portfolioCategoryFormDefaults: Partial<PortfolioCategoryFormValues> = {
+export const portfolioCategoryFormDefaults: PortfolioCategoryFormValues = {
     name: "",
     slug: "",
     parent_id: null,
@@ -63,5 +63,5 @@ export const portfolioCategoryFormDefaults: Partial<PortfolioCategoryFormValues>
     is_active: true,
     is_public: true,
     image_id: null,
-};
+} as PortfolioCategoryFormValues;
 

@@ -34,10 +34,10 @@ export const propertyStateFormSchema = z.object({
 
 export type PropertyStateFormValues = z.infer<typeof propertyStateFormSchema>;
 
-export const propertyStateFormDefaults: Partial<PropertyStateFormValues> = {
+export const propertyStateFormDefaults: PropertyStateFormValues = {
     title: "",
     slug: "",
     usage_type: "sale",
     is_active: true,
-};
+} as PropertyStateFormValues;
 

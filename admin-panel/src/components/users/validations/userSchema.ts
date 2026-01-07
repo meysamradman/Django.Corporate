@@ -132,7 +132,7 @@ export const userFormSchema = z.object({
     .optional(),
 });
 
-export type UserFormValues = z.infer<typeof userFormSchema>;
+export type UserFormValues = z.input<typeof userFormSchema>;
 
 export const userFormDefaults: Partial<UserFormValues> = {
   mobile: "",

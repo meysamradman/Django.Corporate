@@ -72,8 +72,8 @@ export default function CreateAdminPage() {
     const [rolesError, setRolesError] = useState<string | null>(null);
 
     const form = useForm<AdminFormValues>({
-        resolver: zodResolver(adminFormSchema) as any,
-        defaultValues: adminFormDefaults as any,
+        resolver: zodResolver(adminFormSchema),
+        defaultValues: adminFormDefaults,
         mode: "onSubmit",
     });
 
@@ -172,7 +172,7 @@ export default function CreateAdminPage() {
                     };
 
                     const formField = fieldMap[field] || field;
-                    form.setError(formField as any, {
+                    form.setError(formField as keyof AdminFormValues, {
                         type: 'server',
                         message: message as string
                     });
@@ -242,7 +242,7 @@ export default function CreateAdminPage() {
                 <TabsContent value="base-info">
                     <Suspense fallback={<TabSkeleton />}>
                         <BaseInfoTab
-                            form={form as any}
+                            form={form}
                             editMode={editMode}
                         />
                     </Suspense>
@@ -250,7 +250,7 @@ export default function CreateAdminPage() {
                 <TabsContent value="profile">
                     <Suspense fallback={<TabSkeleton />}>
                         <ProfileTab
-                            form={form as any}
+                            form={form}
                             selectedMedia={selectedMedia}
                             setSelectedMedia={setSelectedMedia}
                             editMode={editMode}
@@ -261,7 +261,7 @@ export default function CreateAdminPage() {
                     <TabsContent value="consultant">
                         <Suspense fallback={<TabSkeleton />}>
                             <ConsultantFields
-                                form={form as any}
+                                form={form}
                                 isEdit={false}
                             />
                         </Suspense>
@@ -270,7 +270,7 @@ export default function CreateAdminPage() {
                 <TabsContent value="permissions">
                     <Suspense fallback={<TabSkeleton />}>
                         <PermissionsTab
-                            form={form as any}
+                            form={form}
                             roles={roles}
                             loadingRoles={loadingRoles}
                             rolesError={rolesError}

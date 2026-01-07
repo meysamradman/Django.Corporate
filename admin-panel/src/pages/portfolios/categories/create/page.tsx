@@ -18,17 +18,19 @@ import { showSuccess, showError, extractFieldErrors, hasFieldErrors } from "@/co
 import { msg } from "@/core/messages";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
-import { UploadCloud, X, FolderTree, Image as ImageIcon, Loader2, Save } from "lucide-react";
+import { UploadCloud, X, FolderTree, Image as ImageIcon, Loader2, Save, Settings } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 
 export default function CreateCategoryPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<string>("account");
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
 
   const form = useForm<PortfolioCategoryFormValues>({
-    resolver: zodResolver(portfolioCategoryFormSchema) as any,
-    defaultValues: portfolioCategoryFormDefaults as any,
+    resolver: zodResolver(portfolioCategoryFormSchema),
+    defaultValues: portfolioCategoryFormDefaults,
     mode: "onSubmit",
   });
 
@@ -87,28 +89,39 @@ export default function CreateCategoryPage() {
   const handleImageSelect = (media: Media | Media[] | null) => {
     const selected = Array.isArray(media) ? media[0] || null : media;
     setSelectedMedia(selected);
+    setValue("image_id", selected?.id || null, { shouldValidate: false });
     setIsMediaModalOpen(false);
   };
 
   const handleRemoveImage = () => {
     setSelectedMedia(null);
+    setValue("image_id", null, { shouldValidate: false });
   };
 
   const handleSubmit = form.handleSubmit(async (data) => {
-    const formDataWithImage = {
-      ...data,
-      image_id: selectedMedia?.id || null,
-    };
-
-    createCategoryMutation.mutate(formDataWithImage);
+    createCategoryMutation.mutate(data);
   });
 
   return (
     <div className="space-y-6 pb-28 relative">
-
       <form id="category-form" onSubmit={handleSubmit} noValidate>
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
-          <div className="lg:col-span-4 space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList>
+            <TabsTrigger value="account">
+              <FolderTree className="h-4 w-4" />
+              اطلاعات پایه
+            </TabsTrigger>
+            <TabsTrigger value="media">
+              <ImageIcon className="h-4 w-4" />
+              مدیا
+            </TabsTrigger>
+            <TabsTrigger value="settings">
+              <Settings className="h-4 w-4" />
+              تنظیمات
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="account">
             <div className="space-y-6">
               <CardWithIcon
                 icon={FolderTree}
@@ -168,50 +181,13 @@ export default function CreateCategoryPage() {
                     rows={4}
                     {...register("description")}
                   />
-
-                  <div className="mt-6 space-y-4">
-                    <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
-                      <Item variant="default" size="default" className="py-5">
-                        <ItemContent>
-                          <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
-                          <ItemDescription>
-                            با غیرفعال شدن، دسته‌بندی از لیست مدیریت نیز مخفی می‌شود.
-                          </ItemDescription>
-                        </ItemContent>
-                        <ItemActions>
-                          <Switch
-                            checked={watch("is_active")}
-                            onCheckedChange={(checked) => setValue("is_active", checked)}
-                          />
-                        </ItemActions>
-                      </Item>
-                    </div>
-
-                    <div className="border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
-                      <Item variant="default" size="default" className="py-5">
-                        <ItemContent>
-                          <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>
-                          <ItemDescription>
-                            اگر غیرفعال باشد دسته‌بندی در سایت نمایش داده نمی‌شود.
-                          </ItemDescription>
-                        </ItemContent>
-                        <ItemActions>
-                          <Switch
-                            checked={watch("is_public")}
-                            onCheckedChange={(checked) => setValue("is_public", checked)}
-                          />
-                        </ItemActions>
-                      </Item>
-                    </div>
-                  </div>
-
                 </div>
               </CardWithIcon>
             </div>
-          </div>
+          </TabsContent>
 
-          <div className="lg:col-span-2">
-            <div className="w-full space-y-6 sticky top-20 transition-all duration-300 ease-in-out self-start">
+          <TabsContent value="media">
+            <div className="space-y-6">
               <CardWithIcon
                 icon={ImageIcon}
                 title="تصویر شاخص"
@@ -264,8 +240,59 @@ export default function CreateCategoryPage() {
                 )}
               </CardWithIcon>
             </div>
-          </div>
-        </div>
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <div className="space-y-6">
+              <CardWithIcon
+                icon={Settings}
+                title="تنظیمات"
+                iconBgColor="bg-purple"
+                iconColor="stroke-purple-2"
+                borderColor="border-b-purple-1"
+                className="hover:shadow-lg transition-all duration-300"
+              >
+                <div className="space-y-6">
+                  <div className="mt-6 space-y-4">
+                    <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                      <Item variant="default" size="default" className="py-5">
+                        <ItemContent>
+                          <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
+                          <ItemDescription>
+                            با غیرفعال شدن، دسته‌بندی از لیست مدیریت نیز مخفی می‌شود.
+                          </ItemDescription>
+                        </ItemContent>
+                        <ItemActions>
+                          <Switch
+                            checked={watch("is_active")}
+                            onCheckedChange={(checked) => setValue("is_active", checked)}
+                          />
+                        </ItemActions>
+                      </Item>
+                    </div>
+
+                    <div className="border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
+                      <Item variant="default" size="default" className="py-5">
+                        <ItemContent>
+                          <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>
+                          <ItemDescription>
+                            اگر غیرفعال باشد دسته‌بندی در سایت نمایش داده نمی‌شود.
+                          </ItemDescription>
+                        </ItemContent>
+                        <ItemActions>
+                          <Switch
+                            checked={watch("is_public")}
+                            onCheckedChange={(checked) => setValue("is_public", checked)}
+                          />
+                        </ItemActions>
+                      </Item>
+                    </div>
+                  </div>
+                </div>
+              </CardWithIcon>
+            </div>
+          </TabsContent>
+        </Tabs>
       </form>
 
       <MediaLibraryModal

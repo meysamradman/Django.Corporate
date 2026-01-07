@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,7 +15,8 @@ import { realEstateApi } from "@/api/real-estate";
 import type { PropertyState } from "@/types/real_estate/state/realEstateState";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { propertyStateFormSchema, propertyStateFormDefaults, type PropertyStateFormValues } from "@/components/real-estate/validations/stateSchema";
-import { Circle, Loader2, Save } from "lucide-react";
+import { Circle, Loader2, Save, Settings, FileText } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function EditPropertyStatePage() {
@@ -23,10 +24,11 @@ export default function EditPropertyStatePage() {
   const queryClient = useQueryClient();
   const { id } = useParams<{ id: string }>();
   const stateId = Number(id);
+  const [activeTab, setActiveTab] = useState<string>("account");
 
   const form = useForm<PropertyStateFormValues>({
-    resolver: zodResolver(propertyStateFormSchema) as any,
-    defaultValues: propertyStateFormDefaults as any,
+    resolver: zodResolver(propertyStateFormSchema),
+    defaultValues: propertyStateFormDefaults,
     mode: "onSubmit",
   });
 
@@ -161,87 +163,118 @@ export default function EditPropertyStatePage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-
       <form id="state-edit-form" onSubmit={handleSubmit} noValidate>
-        <CardWithIcon
-          icon={Circle}
-          title="اطلاعات وضعیت ملک"
-          iconBgColor="bg-blue"
-          iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
-          className="hover:shadow-lg transition-all duration-300"
-        >
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormFieldInput
-                label="عنوان"
-                id="title"
-                required
-                error={errors.title?.message}
-                placeholder="عنوان وضعیت ملک"
-                {...register("title")}
-              />
-              <FormFieldInput
-                label="نامک"
-                id="slug"
-                required
-                error={errors.slug?.message}
-                placeholder="نامک"
-                {...register("slug", {
-                  onChange: (e) => {
-                    const formattedSlug = formatSlug(e.target.value);
-                    e.target.value = formattedSlug;
-                    setValue("slug", formattedSlug);
-                  }
-                })}
-              />
-            </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList>
+            <TabsTrigger value="account">
+              <FileText className="h-4 w-4" />
+              اطلاعات پایه
+            </TabsTrigger>
+            <TabsTrigger value="settings">
+              <Settings className="h-4 w-4" />
+              تنظیمات
+            </TabsTrigger>
+          </TabsList>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                label="نوع کاربری (سیستمی)"
-                htmlFor="usage_type"
-                required
-                error={errors.usage_type?.message}
+          <TabsContent value="account">
+            <div className="space-y-6">
+              <CardWithIcon
+                icon={FileText}
+                title="اطلاعات وضعیت ملک"
+                iconBgColor="bg-purple"
+                iconColor="stroke-purple-2"
+                borderColor="border-b-purple-1"
+                className="hover:shadow-lg transition-all duration-300"
               >
-                <Select
-                  value={watch("usage_type")}
-                  onValueChange={(value) => setValue("usage_type", value)}
-                >
-                  <SelectTrigger id="usage_type">
-                    <SelectValue placeholder="انتخاب نوع کاربری" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {fieldOptions?.usage_type.map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormField>
-            </div>
-
-            <div className="mt-6 space-y-4">
-              <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
-                <Item variant="default" size="default" className="py-5">
-                  <ItemContent>
-                    <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
-                    <ItemDescription>
-                      با غیرفعال شدن، وضعیت ملک از لیست مدیریت نیز مخفی می‌شود.
-                    </ItemDescription>
-                  </ItemContent>
-                  <ItemActions>
-                    <Switch
-                      checked={watch("is_active")}
-                      onCheckedChange={(checked) => setValue("is_active", checked)}
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormFieldInput
+                      label="عنوان"
+                      id="title"
+                      required
+                      error={errors.title?.message}
+                      placeholder="عنوان وضعیت ملک"
+                      {...register("title")}
                     />
-                  </ItemActions>
-                </Item>
-              </div>
+                    <FormFieldInput
+                      label="نامک"
+                      id="slug"
+                      required
+                      error={errors.slug?.message}
+                      placeholder="نامک"
+                      {...register("slug", {
+                        onChange: (e) => {
+                          const formattedSlug = formatSlug(e.target.value);
+                          e.target.value = formattedSlug;
+                          setValue("slug", formattedSlug);
+                        }
+                      })}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      label="نوع کاربری (سیستمی)"
+                      htmlFor="usage_type"
+                      required
+                      error={errors.usage_type?.message}
+                    >
+                      <Select
+                        value={watch("usage_type")}
+                        onValueChange={(value) => setValue("usage_type", value)}
+                      >
+                        <SelectTrigger id="usage_type">
+                          <SelectValue placeholder="انتخاب نوع کاربری" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {fieldOptions?.usage_type.map(([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormField>
+                  </div>
+                </div>
+              </CardWithIcon>
             </div>
-          </div>
-        </CardWithIcon>
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <div className="space-y-6">
+              <CardWithIcon
+                icon={Settings}
+                title="تنظیمات"
+                iconBgColor="bg-purple"
+                iconColor="stroke-purple-2"
+                borderColor="border-b-purple-1"
+                className="hover:shadow-lg transition-all duration-300"
+              >
+                <div className="space-y-6">
+                  <div className="mt-6 space-y-4">
+                    <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                      <Item variant="default" size="default" className="py-5">
+                        <ItemContent>
+                          <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
+                          <ItemDescription>
+                            با غیرفعال شدن، وضعیت ملک از لیست مدیریت نیز مخفی می‌شود.
+                          </ItemDescription>
+                        </ItemContent>
+                        <ItemActions>
+                          <Switch
+                            checked={watch("is_active")}
+                            onCheckedChange={(checked) => setValue("is_active", checked)}
+                          />
+                        </ItemActions>
+                      </Item>
+                    </div>
+                  </div>
+                </div>
+              </CardWithIcon>
+            </div>
+          </TabsContent>
+        </Tabs>
       </form>
 
       <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">

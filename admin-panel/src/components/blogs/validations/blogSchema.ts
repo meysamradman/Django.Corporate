@@ -8,7 +8,7 @@ export const blogFormSchema = z.object({
     .min(1, { message: msg.blog("nameRequired") })
     .min(3, { message: msg.blog("nameMinLength") })
     .max(200, { message: msg.blog("nameMaxLength") }),
-  
+
   slug: z
     .string()
     .superRefine((val, ctx) => {
@@ -20,96 +20,89 @@ export const blogFormSchema = z.object({
         });
       }
     }),
-  
+
   short_description: z
     .string()
     .max(300, { message: msg.blog("shortDescMaxLength") })
-    .optional()
-    .or(z.literal("")),
-  
+    .optional(),
+
   description: z
     .string()
-    .optional()
-    .or(z.literal("")),
-  
+    .optional(),
+
   selectedCategories: z
     .array(z.any())
     .min(1, { message: msg.blog("categoryRequired") }),
-  
+
   selectedTags: z
     .array(z.any())
     .default([]),
-  
+
   featuredImage: z
     .any()
     .nullable()
     .optional(),
-  
+
   meta_title: z
     .string()
     .max(70, { message: msg.validation("metaTitleMaxLength") })
-    .optional()
-    .or(z.literal("")),
-  
+    .optional(),
+
   meta_description: z
     .string()
     .max(160, { message: msg.validation("metaDescMaxLength") })
-    .optional()
-    .or(z.literal("")),
-  
+    .optional(),
+
   og_title: z
     .string()
     .max(70, { message: msg.validation("ogTitleMaxLength") })
-    .optional()
-    .or(z.literal("")),
-  
+    .optional(),
+
   og_description: z
     .string()
     .max(160, { message: msg.validation("ogDescMaxLength") })
-    .optional()
-    .or(z.literal("")),
-  
+    .optional(),
+
   og_image: z
     .any()
     .nullable()
     .optional(),
-  
+
   canonical_url: z
     .string()
     .url({ message: msg.validation("urlInvalid") })
     .optional()
     .or(z.literal("")),
-  
+
   robots_meta: z
     .string()
-    .optional()
-    .or(z.literal("")),
-  
+    .optional(),
+
   is_public: z
     .boolean()
-    .default(true)
-    .optional(),
-  
+    .default(true),
+
   is_active: z
     .boolean()
-    .default(true)
-    .optional(),
-  
+    .default(true),
+
   is_featured: z
     .boolean()
-    .default(false)
-    .optional(),
+    .default(false),
 });
 
-export type BlogFormValues = z.infer<typeof blogFormSchema>;
+export type BlogFormValues = z.input<typeof blogFormSchema>;
 
-export const blogFormDefaults: Partial<BlogFormValues> = {
+export const blogFormDefaults: BlogFormValues = {
   name: "",
   slug: "",
-  short_description: "",
-  description: "",
   selectedCategories: [],
   selectedTags: [],
+  is_public: true,
+  is_active: true,
+  is_featured: false,
+  short_description: "",
+  description: "",
   featuredImage: null,
   meta_title: "",
   meta_description: "",
@@ -118,7 +111,4 @@ export const blogFormDefaults: Partial<BlogFormValues> = {
   og_image: null,
   canonical_url: "",
   robots_meta: "",
-  is_public: true,
-  is_active: true,
-  is_featured: false,
 };

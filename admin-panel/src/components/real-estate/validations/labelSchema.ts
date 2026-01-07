@@ -30,9 +30,9 @@ export const propertyLabelFormSchema = z.object({
 
 export type PropertyLabelFormValues = z.infer<typeof propertyLabelFormSchema>;
 
-export const propertyLabelFormDefaults: Partial<PropertyLabelFormValues> = {
+export const propertyLabelFormDefaults: PropertyLabelFormValues = {
     title: "",
     slug: "",
     is_active: true,
-};
+} as PropertyLabelFormValues;
 

@@ -41,11 +41,11 @@ export const blogTagFormSchema = z.object({
 
 export type BlogTagFormValues = z.infer<typeof blogTagFormSchema>;
 
-export const blogTagFormDefaults: Partial<BlogTagFormValues> = {
+export const blogTagFormDefaults: BlogTagFormValues = {
     name: "",
     slug: "",
     description: "",
     is_active: true,
     is_public: true,
-};
+} as BlogTagFormValues;
 

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,18 +14,20 @@ import { portfolioApi } from "@/api/portfolios/portfolios";
 import type { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { portfolioTagFormSchema, portfolioTagFormDefaults, type PortfolioTagFormValues } from '@/components/portfolios/validations/tagSchema';
-import { Loader2, Save, Tag } from "lucide-react";
+import { Loader2, Save, Tag, Settings, FileText } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 
 export default function EditTagPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { id } = useParams<{ id: string }>();
   const tagId = Number(id);
+  const [activeTab, setActiveTab] = useState<string>("account");
 
   const form = useForm<PortfolioTagFormValues>({
-    resolver: zodResolver(portfolioTagFormSchema) as any,
-    defaultValues: portfolioTagFormDefaults as any,
+    resolver: zodResolver(portfolioTagFormSchema),
+    defaultValues: portfolioTagFormDefaults,
     mode: "onSubmit",
   });
 
@@ -147,88 +149,119 @@ export default function EditTagPage() {
 
   return (
     <div className="space-y-6 pb-28 relative">
-
       <form id="tag-edit-form" onSubmit={handleSubmit} noValidate>
-        <CardWithIcon
-          icon={Tag}
-          title="اطلاعات تگ"
-          iconBgColor="bg-indigo"
-          iconColor="stroke-indigo-2"
-          borderColor="border-b-indigo-1"
-          className="hover:shadow-lg transition-all duration-300"
-        >
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormFieldInput
-                label="نام"
-                id="name"
-                required
-                error={errors.name?.message}
-                placeholder="نام تگ"
-                {...register("name")}
-              />
-              <FormFieldInput
-                label="نامک"
-                id="slug"
-                required
-                error={errors.slug?.message}
-                placeholder="نامک"
-                {...register("slug", {
-                  onChange: (e) => {
-                    const formattedSlug = formatSlug(e.target.value);
-                    e.target.value = formattedSlug;
-                    setValue("slug", formattedSlug);
-                  }
-                })}
-              />
-            </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList>
+            <TabsTrigger value="account">
+              <FileText className="h-4 w-4" />
+              اطلاعات پایه
+            </TabsTrigger>
+            <TabsTrigger value="settings">
+              <Settings className="h-4 w-4" />
+              تنظیمات
+            </TabsTrigger>
+          </TabsList>
 
-            <FormFieldTextarea
-              label="توضیحات"
-              id="description"
-              error={errors.description?.message}
-              placeholder="توضیحات تگ"
-              rows={4}
-              {...register("description")}
-            />
+          <TabsContent value="account">
+            <div className="space-y-6">
+              <CardWithIcon
+                icon={Tag}
+                title="اطلاعات تگ"
+                iconBgColor="bg-indigo"
+                iconColor="stroke-indigo-2"
+                borderColor="border-b-indigo-1"
+                className="hover:shadow-lg transition-all duration-300"
+              >
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormFieldInput
+                      label="نام"
+                      id="name"
+                      required
+                      error={errors.name?.message}
+                      placeholder="نام تگ"
+                      {...register("name")}
+                    />
+                    <FormFieldInput
+                      label="نامک"
+                      id="slug"
+                      required
+                      error={errors.slug?.message}
+                      placeholder="نامک"
+                      {...register("slug", {
+                        onChange: (e) => {
+                          const formattedSlug = formatSlug(e.target.value);
+                          e.target.value = formattedSlug;
+                          setValue("slug", formattedSlug);
+                        }
+                      })}
+                    />
+                  </div>
 
-            <div className="mt-6 space-y-4">
-              <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
-                <Item variant="default" size="default" className="py-5">
-                  <ItemContent>
-                    <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
-                    <ItemDescription>
-                      با غیرفعال شدن، تگ از لیست مدیریت نیز مخفی می‌شود.
-                    </ItemDescription>
-                  </ItemContent>
-                  <ItemActions>
-                    <Switch
-                      checked={watch("is_active")}
-                      onCheckedChange={(checked) => setValue("is_active", checked)}
-                    />
-                  </ItemActions>
-                </Item>
-              </div>
-              
-              <div className="border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
-                <Item variant="default" size="default" className="py-5">
-                  <ItemContent>
-                    <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>
-                    <ItemDescription>
-                      اگر غیرفعال باشد تگ در سایت نمایش داده نمی‌شود.
-                    </ItemDescription>
-                  </ItemContent>
-                  <ItemActions>
-                    <Switch
-                      checked={watch("is_public")}
-                      onCheckedChange={(checked) => setValue("is_public", checked)}
-                    />
-                  </ItemActions>
-                </Item>
-              </div>
+                  <FormFieldTextarea
+                    label="توضیحات"
+                    id="description"
+                    error={errors.description?.message}
+                    placeholder="توضیحات تگ"
+                    rows={4}
+                    {...register("description")}
+                  />
+                </div>
+              </CardWithIcon>
             </div>
-          </div>
-        </CardWithIcon>
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <div className="space-y-6">
+              <CardWithIcon
+                icon={Settings}
+                title="تنظیمات"
+                iconBgColor="bg-indigo"
+                iconColor="stroke-indigo-2"
+                borderColor="border-b-indigo-1"
+                className="hover:shadow-lg transition-all duration-300"
+              >
+                <div className="space-y-6">
+                  <div className="mt-6 space-y-4">
+                    <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                      <Item variant="default" size="default" className="py-5">
+                        <ItemContent>
+                          <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
+                          <ItemDescription>
+                            با غیرفعال شدن، تگ از لیست مدیریت نیز مخفی می‌شود.
+                          </ItemDescription>
+                        </ItemContent>
+                        <ItemActions>
+                          <Switch
+                            checked={watch("is_active")}
+                            onCheckedChange={(checked) => setValue("is_active", checked)}
+                          />
+                        </ItemActions>
+                      </Item>
+                    </div>
+                    
+                    <div className="border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
+                      <Item variant="default" size="default" className="py-5">
+                        <ItemContent>
+                          <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>
+                          <ItemDescription>
+                            اگر غیرفعال باشد تگ در سایت نمایش داده نمی‌شود.
+                          </ItemDescription>
+                        </ItemContent>
+                        <ItemActions>
+                          <Switch
+                            checked={watch("is_public")}
+                            onCheckedChange={(checked) => setValue("is_public", checked)}
+                          />
+                        </ItemActions>
+                      </Item>
+                    </div>
+                  </div>
+                </div>
+              </CardWithIcon>
+            </div>
+          </TabsContent>
+        </Tabs>
       </form>
 
       <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">

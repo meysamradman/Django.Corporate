@@ -70,7 +70,7 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
     });
 
     const form = useForm<AgencyFormValues>({
-        resolver: zodResolver(agencyFormSchema) as any,
+        resolver: zodResolver(agencyFormSchema),
         defaultValues: agencyFormDefaults,
         mode: "onSubmit",
     });
@@ -112,7 +112,7 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
             const formattedSlug = formatSlug(value);
             form.setValue("slug", formattedSlug);
         } else {
-            form.setValue(field as any, value);
+            form.setValue(field as keyof AgencyFormValues, value);
         }
     };
 
@@ -181,7 +181,7 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                 const errorData = error.response.errors;
 
                 Object.entries(errorData).forEach(([field, message]) => {
-                    form.setError(field as any, {
+                    form.setError(field as keyof AgencyFormValues, {
                         type: 'server',
                         message: message as string
                     });
@@ -257,7 +257,7 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                 <TabsContent value="account" className="mt-0">
                     <Suspense fallback={<TabContentSkeleton />}>
                         <BaseInfoTab
-                            form={form as any}
+                            form={form}
                             editMode={editMode}
                             agencyData={agencyData}
                             handleInputChange={handleInputChange}
@@ -268,7 +268,7 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                 <TabsContent value="profile" className="mt-0">
                     <Suspense fallback={<TabContentSkeleton />}>
                         <ProfileTab
-                            form={form as any}
+                            form={form}
                             selectedMedia={selectedProfilePicture}
                             setSelectedMedia={setSelectedProfilePicture}
                             editMode={editMode}
@@ -279,7 +279,7 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                 <TabsContent value="seo" className="mt-0">
                     <Suspense fallback={<TabContentSkeleton />}>
                         <SEOTab
-                            form={form as any}
+                            form={form}
                             editMode={editMode}
                         />
                     </Suspense>

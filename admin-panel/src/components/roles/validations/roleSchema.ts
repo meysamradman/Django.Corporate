@@ -16,15 +16,13 @@ export const roleFormSchema = z.object({
   
   permission_ids: z
     .array(z.number())
-    .default([])
-    .refine((val) => val.length > 0, {
-      message: msg.validation("permissionsRequired")
-    }),
+    .min(1, { message: msg.validation("permissionsRequired") })
+    .default([]),
 });
 
-export type RoleFormValues = z.infer<typeof roleFormSchema>;
+export type RoleFormValues = z.input<typeof roleFormSchema>;
 
-export const roleFormDefaults: Partial<RoleFormValues> = {
+export const roleFormDefaults: RoleFormValues = {
   name: "",
   description: "",
   permission_ids: [],

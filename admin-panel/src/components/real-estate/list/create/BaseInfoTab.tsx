@@ -221,7 +221,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
 
     const handlePropertyTypeChange = (value: string) => {
         if (isFormApproach && setValue) {
-            setValue("property_type", value ? Number(value) : undefined as any, { shouldValidate: false });
+            setValue("property_type", value ? Number(value) : undefined!, { shouldValidate: false });
         } else {
             handleInputChange?.("property_type", value ? Number(value) : null);
         }
@@ -229,7 +229,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
 
     const handleStateChange = (value: string) => {
         if (isFormApproach && setValue) {
-            setValue("state", value ? Number(value) : undefined as any, { shouldValidate: false });
+            setValue("state", value ? Number(value) : undefined!, { shouldValidate: false });
         } else {
             handleInputChange?.("state", value ? Number(value) : null);
         }

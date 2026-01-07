@@ -45,13 +45,13 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const [loadingTags, setLoadingTags] = useState(true);
     const [showCategoryDialog, setShowCategoryDialog] = useState(false);
     const [showTagDialog, setShowTagDialog] = useState(false);
-    
+
     const isFormApproach = 'form' in props;
-    
-    const { register, formState: { errors }, watch, setValue } = isFormApproach 
-        ? props.form 
+
+    const { register, formState: { errors }, watch, setValue } = isFormApproach
+        ? props.form
         : { register: null, formState: { errors: {} as any }, watch: null, setValue: null };
-    
+
     const formData = isFormApproach ? null : (props as any).formData;
     const handleInputChange = isFormApproach ? null : (props as any).handleInputChange;
     const editMode = isFormApproach ? (props as any).editMode : (props as any).editMode;
@@ -62,7 +62,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
     const onTagToggle = isFormApproach ? null : (props as any).onTagToggle;
     const onTagRemove = isFormApproach ? null : (props as any).onTagRemove;
     const blogId = isFormApproach ? props.blogId : props.blogId;
-    
+
     const nameValue = isFormApproach ? watch?.("name") : formData?.name;
     const descriptionValue = isFormApproach ? watch?.("description") : formData?.description;
     const formSelectedCategories = isFormApproach ? (watch?.("selectedCategories" as any) || []) : selectedCategories || [];
@@ -172,7 +172,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                             iconColor="stroke-blue-2"
                             borderColor="border-b-blue-1"
                         >
-                                <div className="space-y-6">
+                            <div className="space-y-6">
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     {isFormApproach ? (
                                         <FormFieldInput
@@ -196,7 +196,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             onChange={handleNameChange}
                                         />
                                     )}
-                                    
+
                                     {isFormApproach ? (
                                         <FormFieldInput
                                             label="لینک (نامک)"
@@ -264,7 +264,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         placeholder="توضیحات کامل وبلاگ را وارد کنید... (اختیاری)"
                                     />
                                 </FormField>
-                                </div>
+                            </div>
                         </CardWithIcon>
                     </div>
                 </div>
@@ -278,7 +278,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                         borderColor="border-b-blue-1"
                         className="lg:sticky lg:top-20"
                     >
-                            <div className="space-y-8">
+                        <div className="space-y-8">
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2">
                                     <div className="p-1.5 bg-purple rounded-lg">
@@ -293,13 +293,13 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                     {formSelectedCategories.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
                                             {formSelectedCategories.map((category: BlogCategory) => (
-                                                <span 
-                                                    key={category.id} 
+                                                <span
+                                                    key={category.id}
                                                     className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-purple text-purple-2 transition hover:shadow-sm"
                                                 >
                                                     {category.name}
-                                                    <button 
-                                                        type="button" 
+                                                    <button
+                                                        type="button"
                                                         className="text-purple-2 hover:text-purple-2 cursor-pointer"
                                                         title="حذف"
                                                         onClick={() => {
@@ -317,10 +317,10 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             ))}
                                         </div>
                                     )}
-                                    
+
                                     <div className="flex gap-4 w-full">
                                         <div className="flex-1">
-                                            <Select 
+                                            <Select
                                                 disabled={!editMode || loadingCategories}
                                                 onValueChange={(value) => {
                                                     const category = categories.find(c => String(c.id) === value);
@@ -343,8 +343,8 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                                     {categories.map((category) => {
                                                         const isSelected = formSelectedCategories.some((selected: BlogCategory) => selected.id === category.id);
                                                         return (
-                                                            <SelectItem 
-                                                                key={category.id} 
+                                                            <SelectItem
+                                                                key={category.id}
                                                                 value={String(category.id)}
                                                                 disabled={isSelected}
                                                                 className={isSelected ? "opacity-60" : undefined}
@@ -396,13 +396,13 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                     {formSelectedTags.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
                                             {formSelectedTags.map((tag: BlogTag) => (
-                                                <span 
-                                                    key={tag.id} 
+                                                <span
+                                                    key={tag.id}
                                                     className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-indigo text-indigo-2 transition hover:shadow-sm"
                                                 >
                                                     {tag.name}
-                                                    <button 
-                                                        type="button" 
+                                                    <button
+                                                        type="button"
                                                         className="text-indigo-2 hover:text-indigo-2 cursor-pointer"
                                                         title="حذف"
                                                         onClick={() => handleTagRemoveFn(tag.id)}
@@ -413,10 +413,10 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             ))}
                                         </div>
                                     )}
-                                    
+
                                     <div className="flex gap-4 w-full">
                                         <div className="flex-1">
-                                            <Select 
+                                            <Select
                                                 disabled={!editMode || loadingTags}
                                                 onValueChange={(value) => {
                                                     const tag = tags.find(t => String(t.id) === value);
@@ -430,8 +430,8 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                                     {tags.map((tag) => {
                                                         const isSelected = formSelectedTags.some((selected: BlogTag) => selected.id === tag.id);
                                                         return (
-                                                            <SelectItem 
-                                                                key={tag.id} 
+                                                            <SelectItem
+                                                                key={tag.id}
                                                                 value={String(tag.id)}
                                                                 disabled={isSelected}
                                                                 className={isSelected ? "opacity-60" : undefined}
@@ -460,65 +460,65 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         >
                                             <Plus />
                                         </Button>
-                            </div>
+                                    </div>
 
-                            {!isFormApproach && (
-                                <div className="mt-6 space-y-4">
-                                    <div className="rounded-xl border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
-                                        <Item variant="default" size="default" className="py-5">
-                                            <ItemContent>
-                                                <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>
-                                                <ItemDescription>
-                                                    اگر غیرفعال باشد بلاگ در سایت نمایش داده نمی‌شود.
-                                                </ItemDescription>
-                                            </ItemContent>
-                                            <ItemActions>
-                                                <Switch
-                                                    checked={(formData?.is_public ?? true)}
-                                                    disabled={!editMode}
-                                                    onCheckedChange={(checked) => handleInputChange?.("is_public", checked)}
-                                                />
-                                            </ItemActions>
-                                        </Item>
-                                    </div>
-                                    
-                                    <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
-                                        <Item variant="default" size="default" className="py-5">
-                                            <ItemContent>
-                                                <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
-                                                <ItemDescription>
-                                                    با غیرفعال شدن، بلاگ از لیست مدیریت نیز مخفی می‌شود.
-                                                </ItemDescription>
-                                            </ItemContent>
-                                            <ItemActions>
-                                                <Switch
-                                                    checked={(formData?.is_active ?? true)}
-                                                    disabled={!editMode}
-                                                    onCheckedChange={(checked) => handleInputChange?.("is_active", checked)}
-                                                />
-                                            </ItemActions>
-                                        </Item>
-                                    </div>
-                                    
-                                    <div className="rounded-xl border border-orange-1/40 bg-orange-0/30 hover:border-orange-1/60 transition-colors overflow-hidden">
-                                        <Item variant="default" size="default" className="py-5">
-                                            <ItemContent>
-                                                <ItemTitle className="text-orange-2">وضعیت ویژه</ItemTitle>
-                                                <ItemDescription>
-                                                    بلاگ‌های ویژه در بخش‌های خاص سایت با اولویت نمایش داده می‌شوند.
-                                                </ItemDescription>
-                                            </ItemContent>
-                                            <ItemActions>
-                                                <Switch
-                                                    checked={(formData?.is_featured ?? false)}
-                                                    disabled={!editMode}
-                                                    onCheckedChange={(checked) => handleInputChange?.("is_featured", checked)}
-                                                />
-                                            </ItemActions>
-                                        </Item>
-                                    </div>
-                                </div>
-                            )}
+                                    {!isFormApproach && (
+                                        <div className="mt-6 space-y-4">
+                                            <div className="rounded-xl border border-blue-1/40 bg-blue-0/30 hover:border-blue-1/60 transition-colors overflow-hidden">
+                                                <Item variant="default" size="default" className="py-5">
+                                                    <ItemContent>
+                                                        <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>
+                                                        <ItemDescription>
+                                                            اگر غیرفعال باشد بلاگ در سایت نمایش داده نمی‌شود.
+                                                        </ItemDescription>
+                                                    </ItemContent>
+                                                    <ItemActions>
+                                                        <Switch
+                                                            checked={(formData?.is_public ?? true)}
+                                                            disabled={!editMode}
+                                                            onCheckedChange={(checked) => handleInputChange?.("is_public", checked)}
+                                                        />
+                                                    </ItemActions>
+                                                </Item>
+                                            </div>
+
+                                            <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
+                                                <Item variant="default" size="default" className="py-5">
+                                                    <ItemContent>
+                                                        <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
+                                                        <ItemDescription>
+                                                            با غیرفعال شدن، بلاگ از لیست مدیریت نیز مخفی می‌شود.
+                                                        </ItemDescription>
+                                                    </ItemContent>
+                                                    <ItemActions>
+                                                        <Switch
+                                                            checked={(formData?.is_active ?? true)}
+                                                            disabled={!editMode}
+                                                            onCheckedChange={(checked) => handleInputChange?.("is_active", checked)}
+                                                        />
+                                                    </ItemActions>
+                                                </Item>
+                                            </div>
+
+                                            <div className="rounded-xl border border-orange-1/40 bg-orange-0/30 hover:border-orange-1/60 transition-colors overflow-hidden">
+                                                <Item variant="default" size="default" className="py-5">
+                                                    <ItemContent>
+                                                        <ItemTitle className="text-orange-2">وضعیت ویژه</ItemTitle>
+                                                        <ItemDescription>
+                                                            بلاگ‌های ویژه در بخش‌های خاص سایت با اولویت نمایش داده می‌شوند.
+                                                        </ItemDescription>
+                                                    </ItemContent>
+                                                    <ItemActions>
+                                                        <Switch
+                                                            checked={(formData?.is_featured ?? false)}
+                                                            disabled={!editMode}
+                                                            onCheckedChange={(checked) => handleInputChange?.("is_featured", checked)}
+                                                        />
+                                                    </ItemActions>
+                                                </Item>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                                 {errors.selectedTags?.message && (
                                     <div className="flex items-start gap-2 text-red-2">
@@ -547,7 +547,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             </ItemActions>
                                         </Item>
                                     </div>
-                                    
+
                                     <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
                                         <Item variant="default" size="default" className="py-5">
                                             <ItemContent>
@@ -565,7 +565,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                             </ItemActions>
                                         </Item>
                                     </div>
-                                    
+
                                     <div className="rounded-xl border border-orange-1/40 bg-orange-0/30 hover:border-orange-1/60 transition-colors overflow-hidden">
                                         <Item variant="default" size="default" className="py-5">
                                             <ItemContent>
@@ -586,7 +586,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                 </div>
                             )}
 
-                            </div>
+                        </div>
                     </CardWithIcon>
                 </div>
             </div>
@@ -596,11 +596,11 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                 onOpenChange={setShowCategoryDialog}
                 type="category"
                 onSubmit={async (data) => {
-                    const categoryData: any = { 
-                        name: data.name, 
-                        slug: data.slug, 
-                        is_public: data.is_public ?? true, 
-                        is_active: data.is_active ?? true 
+                    const categoryData: any = {
+                        name: data.name,
+                        slug: data.slug,
+                        is_public: data.is_public ?? true,
+                        is_active: data.is_active ?? true
                     };
                     if (data.image_id) {
                         categoryData.image_id = data.image_id;
@@ -630,11 +630,11 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                 onOpenChange={setShowTagDialog}
                 type="tag"
                 onSubmit={async (data) => {
-                    return await blogApi.createTag({ 
-                        name: data.name, 
-                        slug: data.slug, 
-                        is_public: data.is_public ?? true, 
-                        is_active: data.is_active ?? true 
+                    return await blogApi.createTag({
+                        name: data.name,
+                        slug: data.slug,
+                        is_public: data.is_public ?? true,
+                        is_active: data.is_active ?? true
                     });
                 }}
                 onSuccess={(createdTag) => {

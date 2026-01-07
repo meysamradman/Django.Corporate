@@ -29,10 +29,10 @@ export const propertyFeatureFormSchema = z.object({
 
 export type PropertyFeatureFormValues = z.infer<typeof propertyFeatureFormSchema>;
 
-export const propertyFeatureFormDefaults: Partial<PropertyFeatureFormValues> = {
+export const propertyFeatureFormDefaults: PropertyFeatureFormValues = {
     title: "",
     group: "",
     is_active: true,
     image_id: null,
-};
+} as PropertyFeatureFormValues;
 

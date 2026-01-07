@@ -55,7 +55,7 @@ export const blogCategoryFormSchema = z.object({
 
 export type BlogCategoryFormValues = z.infer<typeof blogCategoryFormSchema>;
 
-export const blogCategoryFormDefaults: Partial<BlogCategoryFormValues> = {
+export const blogCategoryFormDefaults: BlogCategoryFormValues = {
     name: "",
     slug: "",
     parent_id: null,
@@ -63,5 +63,5 @@ export const blogCategoryFormDefaults: Partial<BlogCategoryFormValues> = {
     is_active: true,
     is_public: true,
     image_id: null,
-};
+} as BlogCategoryFormValues;
 

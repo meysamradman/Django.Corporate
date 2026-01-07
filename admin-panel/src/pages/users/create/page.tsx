@@ -63,8 +63,8 @@ export default function CreateUserPage() {
     const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
 
     const form = useForm<UserFormValues>({
-        resolver: zodResolver(userFormSchema) as any,
-        defaultValues: userFormDefaults as any,
+        resolver: zodResolver(userFormSchema),
+        defaultValues: userFormDefaults,
         mode: "onSubmit",
     });
 
@@ -152,7 +152,7 @@ export default function CreateUserPage() {
                     };
                     
                     const formField = fieldMap[field] || field;
-                    form.setError(formField as any, {
+                    form.setError(formField as keyof UserFormValues, {
                         type: 'server',
                         message: message as string
                     });
@@ -195,7 +195,7 @@ export default function CreateUserPage() {
                 <TabsContent value="base-info">
                     <Suspense fallback={<TabSkeleton />}>
                         <BaseInfoTab
-                            form={form as any}
+                            form={form}
                             editMode={editMode}
                         />
                     </Suspense>
@@ -203,7 +203,7 @@ export default function CreateUserPage() {
                 <TabsContent value="profile">
                     <Suspense fallback={<TabSkeleton />}>
                         <ProfileTab
-                            form={form as any}
+                            form={form}
                             selectedMedia={selectedMedia}
                             setSelectedMedia={setSelectedMedia}
                             editMode={editMode}

@@ -145,7 +145,7 @@ export const agencyFormSchema = z.object({
         .or(z.literal("")),
 });
 
-export type AgencyFormValues = z.infer<typeof agencyFormSchema>;
+export type AgencyFormValues = z.input<typeof agencyFormSchema>;
 
 export const agencyFormDefaults: Partial<AgencyFormValues> = {
     name: "",

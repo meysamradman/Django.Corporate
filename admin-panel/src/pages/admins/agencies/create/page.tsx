@@ -57,7 +57,7 @@ export default function AdminsAgenciesCreatePage() {
     const [selectedLogo, setSelectedLogo] = useState<Media | null>(null);
 
     const form = useForm<AgencyFormValues>({
-        resolver: zodResolver(agencyFormSchema) as any,
+        resolver: zodResolver(agencyFormSchema),
         defaultValues: agencyFormDefaults,
         mode: "onSubmit",
     });
@@ -72,7 +72,7 @@ export default function AdminsAgenciesCreatePage() {
             const formattedSlug = formatSlug(value);
             form.setValue("slug", formattedSlug);
         } else {
-            form.setValue(field as any, value);
+            form.setValue(field as keyof AgencyFormValues, value);
         }
     };
 
@@ -131,7 +131,7 @@ export default function AdminsAgenciesCreatePage() {
                     };
 
                     const formField = fieldMap[field] || field;
-                    form.setError(formField as any, {
+                    form.setError(formField as keyof AgencyFormValues, {
                         type: 'server',
                         message: message as string
                     });
@@ -178,7 +178,7 @@ export default function AdminsAgenciesCreatePage() {
                 <TabsContent value="account">
                     <Suspense fallback={<TabSkeleton />}>
                         <BaseInfoTab
-                            form={form as any}
+                            form={form}
                             editMode={editMode}
                             handleInputChange={handleInputChange}
                         />
@@ -188,7 +188,7 @@ export default function AdminsAgenciesCreatePage() {
                 <TabsContent value="profile">
                     <Suspense fallback={<TabSkeleton />}>
                         <ProfileTab
-                            form={form as any}
+                            form={form}
                             selectedMedia={selectedLogo}
                             setSelectedMedia={setSelectedLogo}
                             editMode={editMode}
@@ -199,7 +199,7 @@ export default function AdminsAgenciesCreatePage() {
                 <TabsContent value="seo">
                     <Suspense fallback={<TabSkeleton />}>
                         <SEOTab
-                            form={form as any}
+                            form={form}
                             editMode={editMode}
                         />
                     </Suspense>

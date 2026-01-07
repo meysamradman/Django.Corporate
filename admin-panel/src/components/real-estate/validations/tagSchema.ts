@@ -41,11 +41,11 @@ export const propertyTagFormSchema = z.object({
 
 export type PropertyTagFormValues = z.infer<typeof propertyTagFormSchema>;
 
-export const propertyTagFormDefaults: Partial<PropertyTagFormValues> = {
+export const propertyTagFormDefaults: PropertyTagFormValues = {
     title: "",
     slug: "",
     description: "",
     is_active: true,
     is_public: true,
-};
+} as PropertyTagFormValues;
 
