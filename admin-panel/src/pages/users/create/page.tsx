@@ -16,40 +16,40 @@ import { Loader2, Save, User, UserCircle } from "lucide-react";
 import type { Media } from "@/types/shared/media";
 
 const TabSkeleton = () => (
-  <div className="mt-0 space-y-6">
-    <div className="flex flex-col lg:flex-row gap-6">
-      <div className="flex-1 min-w-0">
-        <CardWithIcon
-          icon={User}
-          title="اطلاعات پایه"
-          iconBgColor="bg-blue"
-          iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
-        >
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-16" />
-                <Skeleton className="h-10 w-full" />
-              </div>
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-10 w-full" />
-              </div>
+    <div className="mt-0 space-y-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+            <div className="flex-1 min-w-0">
+                <CardWithIcon
+                    icon={User}
+                    title="اطلاعات پایه"
+                    iconBgColor="bg-blue"
+                    iconColor="stroke-blue-2"
+                    borderColor="border-b-blue-1"
+                >
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-16" />
+                                <Skeleton className="h-10 w-full" />
+                            </div>
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-10 w-full" />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-16" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </div>
+                </CardWithIcon>
             </div>
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          </div>
-        </CardWithIcon>
-      </div>
+        </div>
     </div>
-  </div>
 );
 
 const BaseInfoTab = lazy(() => import("@/components/users/create/BaseInfoTab"));
@@ -84,44 +84,24 @@ export default function CreateUserPage() {
                 userDataToSubmit.email = data.email;
             }
 
-            if (data.profile_first_name) {
-                userDataToSubmit.first_name = data.profile_first_name;
-            }
-            
-            if (data.profile_last_name) {
-                userDataToSubmit.last_name = data.profile_last_name;
-            }
-            
-            if (data.profile_birth_date) {
-                userDataToSubmit.birth_date = data.profile_birth_date;
-            }
-            
-            if (data.profile_national_id) {
-                userDataToSubmit.national_id = data.profile_national_id;
-            }
-            
-            if (data.profile_phone) {
-                userDataToSubmit.phone = data.profile_phone;
-            }
-            
-            if (data.profile_province_id) {
-                userDataToSubmit.province_id = data.profile_province_id;
-            }
-            
-            if (data.profile_city_id) {
-                userDataToSubmit.city_id = data.profile_city_id;
-            }
-            
-            if (data.profile_address) {
-                userDataToSubmit.address = data.profile_address;
-            }
-            
-            if (data.profile_bio) {
-                userDataToSubmit.bio = data.profile_bio;
-            }
+            const profileData: Record<string, any> = {};
+
+            if (data.profile_first_name) profileData.first_name = data.profile_first_name;
+            if (data.profile_last_name) profileData.last_name = data.profile_last_name;
+            if (data.profile_birth_date) profileData.birth_date = data.profile_birth_date;
+            if (data.profile_national_id) profileData.national_id = data.profile_national_id;
+            if (data.profile_phone) profileData.phone = data.profile_phone;
+            if (data.profile_province_id) profileData.province = data.profile_province_id;
+            if (data.profile_city_id) profileData.city = data.profile_city_id;
+            if (data.profile_address) profileData.address = data.profile_address;
+            if (data.profile_bio) profileData.bio = data.profile_bio;
 
             if (selectedMedia?.id) {
-                userDataToSubmit.profile_picture_id = selectedMedia.id;
+                profileData.profile_picture = selectedMedia.id;
+            }
+
+            if (Object.keys(profileData).length > 0) {
+                userDataToSubmit.profile = profileData;
             }
 
             return await adminApi.createUser(userDataToSubmit);
@@ -136,7 +116,7 @@ export default function CreateUserPage() {
             // ✅ Field Errors → Inline + Toast کلی
             if (hasFieldErrors(error)) {
                 const fieldErrors = extractFieldErrors(error);
-                
+
                 Object.entries(fieldErrors).forEach(([field, message]) => {
                     const fieldMap: Record<string, any> = {
                         'mobile': 'mobile',
@@ -150,17 +130,17 @@ export default function CreateUserPage() {
                         'province_id': 'profile_province_id',
                         'city_id': 'profile_city_id',
                     };
-                    
+
                     const formField = fieldMap[field] || field;
                     form.setError(formField as keyof UserFormValues, {
                         type: 'server',
                         message: message as string
                     });
                 });
-                
+
                 // Toast کلی برای راهنمایی کاربر
                 showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
-            } 
+            }
             // ✅ General Errors → فقط Toast
             else {
                 // showError خودش تصمیم می‌گیرد (بک‌اند یا frontend)
@@ -172,7 +152,7 @@ export default function CreateUserPage() {
     const handleSubmit = async () => {
         const isValid = await form.trigger();
         if (!isValid) return;
-        
+
         const data = form.getValues();
         createUserMutation.mutate(data);
     };
@@ -214,8 +194,8 @@ export default function CreateUserPage() {
 
             {editMode && (
                 <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
-                    <Button 
-                        onClick={handleSubmit} 
+                    <Button
+                        onClick={handleSubmit}
                         size="lg"
                         disabled={createUserMutation.isPending}
                     >
