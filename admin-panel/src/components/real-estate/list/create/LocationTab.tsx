@@ -1,14 +1,28 @@
 import { useState, useEffect, useCallback } from "react";
+import type { UseFormReturn } from "react-hook-form";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
-import { FormField, FormFieldTextarea } from "@/components/forms/FormField";
+import { FormField, FormFieldTextarea, FormFieldInput } from "@/components/forms/FormField";
 import { Input } from "@/components/elements/Input";
 import { MapPin, Loader2 } from "lucide-react";
 import PropertyLocationMap from "@/components/real-estate/PropertyLocationMap";
 import { realEstateApi } from "@/api/real-estate";
 import type { RealEstateCity, RealEstateCityRegion } from "@/types/real_estate/location";
+import type { PropertyFormValues } from "@/components/real-estate/validations/propertySchema";
 
-interface LocationTabProps {
+interface LocationTabFormProps {
+    form: UseFormReturn<PropertyFormValues>;
+    editMode: boolean;
+    latitude?: number | null;
+    longitude?: number | null;
+    onLocationChange?: (latitude: number | null, longitude: number | null) => void;
+    regionName?: string;
+    districtName?: string | null;
+    onRegionNameChange?: (value: string) => void;
+    onDistrictNameChange?: (value: string | null) => void;
+}
+
+interface LocationTabManualProps {
     formData: any;
     handleInputChange: (field: string, value: any) => void;
     editMode: boolean;
@@ -18,16 +32,32 @@ interface LocationTabProps {
     errors?: Record<string, string>;
 }
 
+type LocationTabProps = LocationTabFormProps | LocationTabManualProps;
+
 export default function LocationTab(props: LocationTabProps) {
-    const { formData, handleInputChange, editMode, latitude, longitude, onLocationChange, errors } = props;
+    const isFormApproach = 'form' in props;
+    const { register, formState: { errors }, watch, setValue } = isFormApproach 
+        ? props.form 
+        : { register: null, formState: { errors: {} as any }, watch: null, setValue: null };
+    const formData = isFormApproach ? null : (props as any).formData;
+    const handleInputChange = isFormApproach ? null : (props as any).handleInputChange;
+    const editMode = isFormApproach ? (props as any).editMode : (props as any).editMode;
+    const latitude = isFormApproach ? (props as LocationTabFormProps).latitude : (props as any).latitude;
+    const longitude = isFormApproach ? (props as LocationTabFormProps).longitude : (props as any).longitude;
+    const onLocationChange = isFormApproach ? (props as LocationTabFormProps).onLocationChange : (props as any).onLocationChange;
+    const regionName = isFormApproach ? (props as LocationTabFormProps).regionName : undefined;
+    const districtName = isFormApproach ? (props as LocationTabFormProps).districtName : undefined;
+    const onRegionNameChange = isFormApproach ? (props as LocationTabFormProps).onRegionNameChange : undefined;
+    const onDistrictNameChange = isFormApproach ? (props as LocationTabFormProps).onDistrictNameChange : undefined;
+    const errorsObj = isFormApproach ? errors : (props as any).errors || {};
     const [provinces, setProvinces] = useState<any[]>([]);
     const [cities, setCities] = useState<RealEstateCity[]>([]);
     const [cityRegions, setCityRegions] = useState<RealEstateCityRegion[]>([]);
     const [loading, setLoading] = useState(false);
 
-    const selectedProvinceId = formData?.province;
-    const selectedCityId = formData?.city;
-    const selectedRegionId = formData?.region;
+    const selectedProvinceId = isFormApproach ? watch?.("province") : formData?.province;
+    const selectedCityId = isFormApproach ? watch?.("city") : formData?.city;
+    const selectedRegionId = isFormApproach ? watch?.("district") : formData?.region;
 
     const [provinceName, setProvinceName] = useState<string>('');
     const [cityName, setCityName] = useState<string>('');
@@ -126,21 +156,36 @@ export default function LocationTab(props: LocationTabProps) {
 
     const handleProvinceChange = useCallback((value: string) => {
         const provinceId = value ? Number(value) : null;
-        handleInputChange("province", provinceId);
-        handleInputChange("city", null);
-        handleInputChange("region", null);
-        handleInputChange("latitude", null);
-        handleInputChange("longitude", null);
+        if (isFormApproach && setValue) {
+            setValue("province", provinceId as any, { shouldValidate: false });
+            setValue("city", null as any, { shouldValidate: false });
+            setValue("district", null as any, { shouldValidate: false });
+            setValue("latitude", null, { shouldValidate: false });
+            setValue("longitude", null, { shouldValidate: false });
+        } else {
+            handleInputChange?.("province", provinceId);
+            handleInputChange?.("city", null);
+            handleInputChange?.("region", null);
+            handleInputChange?.("latitude", null);
+            handleInputChange?.("longitude", null);
+        }
         setCityName('');
         setPendingCityId(null);
-    }, [handleInputChange]);
+    }, [isFormApproach, setValue, handleInputChange]);
 
     const handleCityChange = useCallback((value: string) => {
         const cityId = value ? Number(value) : null;
-        handleInputChange("city", cityId);
-        handleInputChange("region", null);
-        handleInputChange("latitude", null);
-        handleInputChange("longitude", null);
+        if (isFormApproach && setValue) {
+            setValue("city", cityId as any, { shouldValidate: false });
+            setValue("district", null as any, { shouldValidate: false });
+            setValue("latitude", null, { shouldValidate: false });
+            setValue("longitude", null, { shouldValidate: false });
+        } else {
+            handleInputChange?.("city", cityId);
+            handleInputChange?.("region", null);
+            handleInputChange?.("latitude", null);
+            handleInputChange?.("longitude", null);
+        }
 
         setPendingCityId(cityId);
 
@@ -155,12 +200,16 @@ export default function LocationTab(props: LocationTabProps) {
             setPendingCityId(null);
         }
 
-    }, [handleInputChange, cities]);
+    }, [isFormApproach, setValue, handleInputChange, cities]);
 
     const handleRegionChange = useCallback((value: string) => {
         const regionId = value && value.trim() ? Number(value) : null;
-        handleInputChange("region", regionId);
-    }, [handleInputChange]);
+        if (isFormApproach && setValue) {
+            setValue("district", regionId as any, { shouldValidate: false });
+        } else {
+            handleInputChange?.("region", regionId);
+        }
+    }, [isFormApproach, setValue, handleInputChange]);
 
     const selectedCity = selectedCityId ? cities.find(c => c.id === selectedCityId) : null;
     const selectedProvince = selectedProvinceId ? provinces.find(p => p.id === selectedProvinceId) : null;
@@ -188,9 +237,9 @@ export default function LocationTab(props: LocationTabProps) {
                         >
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {/* Province Selection */}
-                                <FormField label="استان" required error={errors?.province}>
+                                <FormField label="استان" required error={isFormApproach ? errorsObj.province?.message : errorsObj?.province}>
                                     <Select
-                                        value={selectedProvinceId?.toString() || ""}
+                                        value={selectedProvinceId ? String(selectedProvinceId) : ""}
                                         onValueChange={handleProvinceChange}
                                         disabled={!editMode || loading}
                                     >
@@ -207,9 +256,9 @@ export default function LocationTab(props: LocationTabProps) {
                                     </Select>
                                 </FormField>
 
-                                <FormField label="شهر" required error={errors?.city}>
+                                <FormField label="شهر" required error={isFormApproach ? errorsObj.city?.message : errorsObj?.city}>
                                     <Select
-                                        value={selectedCityId?.toString() || ""}
+                                        value={selectedCityId ? String(selectedCityId) : ""}
                                         onValueChange={handleCityChange}
                                         disabled={!editMode || !selectedProvinceId || loading}
                                     >
@@ -226,19 +275,29 @@ export default function LocationTab(props: LocationTabProps) {
                                     </Select>
                                 </FormField>
 
-                                <FormField label="محله">
-                                    <Input
+                                {isFormApproach ? (
+                                    <FormFieldInput
+                                        label="محله"
                                         placeholder="محله را وارد کنید"
                                         disabled={!editMode}
-                                        value={formData?.neighborhood || ""}
-                                        onChange={(e) => handleInputChange("neighborhood", e.target.value)}
+                                        error={errorsObj.neighborhood?.message}
+                                        {...(register ? register("neighborhood") : {})}
                                     />
-                                </FormField>
+                                ) : (
+                                    <FormField label="محله">
+                                        <Input
+                                            placeholder="محله را وارد کنید"
+                                            disabled={!editMode}
+                                            value={formData?.neighborhood || ""}
+                                            onChange={(e) => handleInputChange?.("neighborhood", e.target.value)}
+                                        />
+                                    </FormField>
+                                )}
 
                                 {cityRegions.length > 0 && (
                                     <FormField label="منطقه (اختیاری - فقط شهرهای بزرگ)">
                                         <Select
-                                            value={selectedRegionId?.toString() || ""}
+                                            value={selectedRegionId ? String(selectedRegionId) : ""}
                                             onValueChange={handleRegionChange}
                                             disabled={!editMode || !selectedCityId || loading}
                                         >
@@ -262,16 +321,28 @@ export default function LocationTab(props: LocationTabProps) {
                             title="آدرس کامل"
                             icon={MapPin}
                         >
-                            <FormFieldTextarea
-                                label="آدرس"
-                                required
-                                error={errors?.address}
-                                placeholder="آدرس کامل را وارد کنید"
-                                disabled={!editMode}
-                                rows={3}
-                                value={formData?.address || ""}
-                                onChange={(e) => handleInputChange("address", e.target.value)}
-                            />
+                            {isFormApproach ? (
+                                <FormFieldTextarea
+                                    label="آدرس"
+                                    required
+                                    error={errorsObj.address?.message}
+                                    placeholder="آدرس کامل را وارد کنید"
+                                    disabled={!editMode}
+                                    rows={3}
+                                    {...(register ? register("address") : {})}
+                                />
+                            ) : (
+                                <FormFieldTextarea
+                                    label="آدرس"
+                                    required
+                                    error={errorsObj?.address}
+                                    placeholder="آدرس کامل را وارد کنید"
+                                    disabled={!editMode}
+                                    rows={3}
+                                    value={formData?.address || ""}
+                                    onChange={(e) => handleInputChange?.("address", e.target.value)}
+                                />
+                            )}
                         </CardWithIcon>
                     </div>
                 </div>
@@ -292,21 +363,39 @@ export default function LocationTab(props: LocationTabProps) {
                                 onLocationChange?.(lat, lng);
                             }, [onLocationChange])}
                             onAddressUpdate={useCallback((address: string) => {
-                                handleInputChange("address", address);
-                            }, [handleInputChange])}
+                                if (isFormApproach && setValue) {
+                                    setValue("address", address, { shouldValidate: false });
+                                } else {
+                                    handleInputChange?.("address", address);
+                                }
+                            }, [isFormApproach, setValue, handleInputChange])}
                             onNeighborhoodUpdate={useCallback((neighborhood: string) => {
-                                handleInputChange("neighborhood", neighborhood);
-                            }, [handleInputChange])}
+                                if (isFormApproach && setValue) {
+                                    setValue("neighborhood", neighborhood, { shouldValidate: false });
+                                } else {
+                                    handleInputChange?.("neighborhood", neighborhood);
+                                }
+                            }, [isFormApproach, setValue, handleInputChange])}
                             onRegionUpdate={useCallback((regionCode: number) => {
                                 const region = cityRegions.find(r => r.code === regionCode);
-                                if (region) {
-                                    handleInputChange("region", region.id);
-                                    handleInputChange("region_name", region.name);
+                                if (isFormApproach && setValue) {
+                                    if (region) {
+                                        setValue("district", region.id as any, { shouldValidate: false });
+                                        onRegionNameChange?.(region.name);
+                                    } else {
+                                        setValue("district", null as any, { shouldValidate: false });
+                                        onRegionNameChange?.(`منطقه ${regionCode}`);
+                                    }
                                 } else {
-                                    handleInputChange("region", null);
-                                    handleInputChange("region_name", `منطقه ${regionCode}`);
+                                    if (region) {
+                                        handleInputChange?.("region", region.id);
+                                        handleInputChange?.("region_name", region.name);
+                                    } else {
+                                        handleInputChange?.("region", null);
+                                        handleInputChange?.("region_name", `منطقه ${regionCode}`);
+                                    }
                                 }
-                            }, [cityRegions, handleInputChange])}
+                            }, [isFormApproach, setValue, cityRegions, handleInputChange, onRegionNameChange])}
                             disabled={!editMode || !selectedCityId}
                         />
 

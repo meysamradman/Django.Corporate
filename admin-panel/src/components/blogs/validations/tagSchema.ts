@@ -24,7 +24,7 @@ export const blogTagFormSchema = z.object({
 
     description: z
         .string()
-        .max(1000, { message: "توضیحات نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد" })
+        .max(1000, { message: msg.validation("bioMaxLength") }) // ✅ از msg استفاده کنید
         .optional()
         .or(z.literal("")),
 

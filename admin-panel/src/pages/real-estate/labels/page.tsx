@@ -14,7 +14,7 @@ import { showError, showSuccess } from '@/core/toast';
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 import type { ColumnDef } from "@tanstack/react-table";
-import { getCrud, getConfirm, getStatus } from '@/core/messages';
+import { msg, getConfirm, getStatus } from '@/core/messages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -117,7 +117,8 @@ export default function PropertyLabelsPage() {
     mutationFn: (labelId: number) => realEstateApi.deleteLabel(labelId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-labels'] });
-      showSuccess(getCrud('deleted', { item: 'برچسب ملک' }));
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud('deleted', { item: 'برچسب ملک' }));
     },
     onError: (_error) => {
       showError('خطای سرور رخ داد');
@@ -128,7 +129,8 @@ export default function PropertyLabelsPage() {
     mutationFn: (labelIds: number[]) => Promise.all(labelIds.map(id => realEstateApi.deleteLabel(id))),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-labels'] });
-      showSuccess(getCrud('deleted', { item: 'برچسب‌های ملک' }));
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud('deleted', { item: 'برچسب‌های ملک' }));
       setRowSelection({});
     },
     onError: (_error) => {

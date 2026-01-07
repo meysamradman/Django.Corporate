@@ -1,4 +1,5 @@
 import { useState, useEffect, type ChangeEvent } from "react";
+import type { UseFormReturn } from "react-hook-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { Label } from "@/components/elements/Label";
 import { Switch } from "@/components/elements/Switch";
@@ -17,9 +18,25 @@ import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeat
 import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
 import type { PropertyAgent } from "@/types/real_estate/agent/realEstateAgent";
 import type { RealEstateAgency } from "@/types/real_estate/agency/realEstateAgency";
+import type { PropertyFormValues } from "@/components/real-estate/validations/propertySchema";
 import { formatSlug, generateSlug } from '@/core/slug/generate';
 
-interface BaseInfoTabProps {
+interface BaseInfoTabFormProps {
+    form: UseFormReturn<PropertyFormValues>;
+    editMode: boolean;
+    selectedLabels: PropertyLabel[];
+    selectedTags: PropertyTag[];
+    selectedFeatures: PropertyFeature[];
+    onLabelToggle: (label: PropertyLabel) => void;
+    onLabelRemove: (labelId: number) => void;
+    onTagToggle: (tag: PropertyTag) => void;
+    onTagRemove: (tagId: number) => void;
+    onFeatureToggle: (feature: PropertyFeature) => void;
+    onFeatureRemove: (featureId: number) => void;
+    propertyId?: number | string;
+}
+
+interface BaseInfoTabManualProps {
     formData: any;
     handleInputChange: (field: string, value: any) => void;
     editMode: boolean;
@@ -36,11 +53,36 @@ interface BaseInfoTabProps {
     errors?: Record<string, string>;
 }
 
+type BaseInfoTabProps = BaseInfoTabFormProps | BaseInfoTabManualProps;
+
 export default function BaseInfoTab(props: BaseInfoTabProps) {
-    const { formData, handleInputChange, editMode, selectedLabels, selectedTags, selectedFeatures,
-        onLabelToggle, onLabelRemove, onTagToggle, onTagRemove, onFeatureToggle, onFeatureRemove,
-        errors
-    } = props;
+    const isFormApproach = 'form' in props;
+    const { register, formState: { errors }, watch, setValue } = isFormApproach 
+        ? props.form 
+        : { register: null, formState: { errors: {} as any }, watch: null, setValue: null };
+    const formData = isFormApproach ? null : (props as any).formData;
+    const handleInputChange = isFormApproach ? null : (props as any).handleInputChange;
+    const editMode = isFormApproach ? (props as any).editMode : (props as any).editMode;
+    const selectedLabels = isFormApproach ? [] : (props as any).selectedLabels || [];
+    const selectedTags = isFormApproach ? [] : (props as any).selectedTags || [];
+    const selectedFeatures = isFormApproach ? [] : (props as any).selectedFeatures || [];
+    const onLabelToggle = isFormApproach ? null : (props as any).onLabelToggle;
+    const onLabelRemove = isFormApproach ? null : (props as any).onLabelRemove;
+    const onTagToggle = isFormApproach ? null : (props as any).onTagToggle;
+    const onTagRemove = isFormApproach ? null : (props as any).onTagRemove;
+    const onFeatureToggle = isFormApproach ? null : (props as any).onFeatureToggle;
+    const onFeatureRemove = isFormApproach ? null : (props as any).onFeatureRemove;
+    const descriptionValue = isFormApproach ? watch?.("description") : formData?.description;
+    // در form approach، selectedLabels/Tags/Features از props می‌آید
+    const formSelectedLabels = isFormApproach ? (props as BaseInfoTabFormProps).selectedLabels : selectedLabels || [];
+    const formSelectedTags = isFormApproach ? (props as BaseInfoTabFormProps).selectedTags : selectedTags || [];
+    const formSelectedFeatures = isFormApproach ? (props as BaseInfoTabFormProps).selectedFeatures : selectedFeatures || [];
+    const formOnLabelToggle = isFormApproach ? (props as BaseInfoTabFormProps).onLabelToggle : onLabelToggle;
+    const formOnLabelRemove = isFormApproach ? (props as BaseInfoTabFormProps).onLabelRemove : onLabelRemove;
+    const formOnTagToggle = isFormApproach ? (props as BaseInfoTabFormProps).onTagToggle : onTagToggle;
+    const formOnTagRemove = isFormApproach ? (props as BaseInfoTabFormProps).onTagRemove : onTagRemove;
+    const formOnFeatureToggle = isFormApproach ? (props as BaseInfoTabFormProps).onFeatureToggle : onFeatureToggle;
+    const formOnFeatureRemove = isFormApproach ? (props as BaseInfoTabFormProps).onFeatureRemove : onFeatureRemove;
 
     const [propertyTypes, setPropertyTypes] = useState<PropertyType[]>([]);
     const [propertyStates, setPropertyStates] = useState<PropertyState[]>([]);
@@ -136,45 +178,85 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
 
     const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        handleInputChange("title", value);
-        if (value && !formData?.slug) {
-            const slug = generateSlug(value);
-            handleInputChange("slug", slug);
+        if (isFormApproach && setValue) {
+            setValue("title", value, { shouldValidate: false });
+            if (value) {
+                const slug = generateSlug(value);
+                setValue("slug", slug, { shouldValidate: false });
+            }
+        } else {
+            handleInputChange?.("title", value);
+            if (value && !formData?.slug) {
+                const slug = generateSlug(value);
+                handleInputChange?.("slug", slug);
+            }
         }
     };
 
     const handleSlugChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         const formattedSlug = formatSlug(value);
-        handleInputChange("slug", formattedSlug);
+        if (isFormApproach && setValue) {
+            setValue("slug", formattedSlug, { shouldValidate: false });
+        } else {
+            handleInputChange?.("slug", formattedSlug);
+        }
     };
 
     const handleShortDescriptionChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-        handleInputChange("short_description", e.target.value);
+        if (isFormApproach && setValue) {
+            setValue("short_description", e.target.value, { shouldValidate: false });
+        } else {
+            handleInputChange?.("short_description", e.target.value);
+        }
     };
 
     const handleDescriptionChange = (content: string) => {
-        handleInputChange("description", content);
+        if (isFormApproach && setValue) {
+            setValue("description", content, { shouldValidate: false });
+        } else {
+            handleInputChange?.("description", content);
+        }
     };
 
     const handlePropertyTypeChange = (value: string) => {
-        handleInputChange("property_type", value ? Number(value) : null);
+        if (isFormApproach && setValue) {
+            setValue("property_type", value ? Number(value) : undefined as any, { shouldValidate: false });
+        } else {
+            handleInputChange?.("property_type", value ? Number(value) : null);
+        }
     };
 
     const handleStateChange = (value: string) => {
-        handleInputChange("state", value ? Number(value) : null);
+        if (isFormApproach && setValue) {
+            setValue("state", value ? Number(value) : undefined as any, { shouldValidate: false });
+        } else {
+            handleInputChange?.("state", value ? Number(value) : null);
+        }
     };
 
     const handleAgentChange = (value: string) => {
-        handleInputChange("agent", value && value !== "none" ? Number(value) : null);
+        if (isFormApproach && setValue) {
+            setValue("agent", value && value !== "none" ? Number(value) : null, { shouldValidate: false });
+        } else {
+            handleInputChange?.("agent", value && value !== "none" ? Number(value) : null);
+        }
     };
 
     const handleAgencyChange = (value: string) => {
-        handleInputChange("agency", value && value !== "none" ? Number(value) : null);
+        if (isFormApproach && setValue) {
+            setValue("agency", value && value !== "none" ? Number(value) : null, { shouldValidate: false });
+        } else {
+            handleInputChange?.("agency", value && value !== "none" ? Number(value) : null);
+        }
     };
 
     const handleStatusChange = (value: string) => {
-        handleInputChange("status", value);
+        if (isFormApproach && setValue) {
+            setValue("status", value as any, { shouldValidate: false });
+        } else {
+            handleInputChange?.("status", value);
+        }
     };
 
 
@@ -191,51 +273,105 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                     >
                         <div className="space-y-6">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <FormFieldInput
-                                    label="عنوان"
-                                    id="title"
-                                    required
-                                    placeholder="عنوان ملک"
-                                    disabled={!editMode}
-                                    value={formData?.title || ""}
-                                    onChange={handleNameChange}
-                                    error={errors?.title}
-                                />
+                                {isFormApproach ? (
+                                    <>
+                                        <FormFieldInput
+                                            label="عنوان"
+                                            id="title"
+                                            required
+                                            placeholder="عنوان ملک"
+                                            disabled={!editMode}
+                                            error={errors.title?.message}
+                                            {...(register ? register("title") : {})}
+                                        />
 
-                                <FormFieldInput
-                                    label="لینک (نامک)"
-                                    id="slug"
-                                    required
-                                    placeholder="نامک"
-                                    disabled={!editMode}
-                                    value={formData?.slug || ""}
-                                    onChange={handleSlugChange}
-                                    error={errors?.slug}
-                                />
+                                        <FormFieldInput
+                                            label="لینک (نامک)"
+                                            id="slug"
+                                            required
+                                            placeholder="نامک"
+                                            disabled={!editMode}
+                                            error={errors.slug?.message}
+                                            {...(register ? register("slug") : {})}
+                                        />
+                                    </>
+                                ) : (
+                                    <>
+                                        <FormFieldInput
+                                            label="عنوان"
+                                            id="title"
+                                            required
+                                            placeholder="عنوان ملک"
+                                            disabled={!editMode}
+                                            value={formData?.title || ""}
+                                            onChange={handleNameChange}
+                                            error={errors?.title}
+                                        />
+
+                                        <FormFieldInput
+                                            label="لینک (نامک)"
+                                            id="slug"
+                                            required
+                                            placeholder="نامک"
+                                            disabled={!editMode}
+                                            value={formData?.slug || ""}
+                                            onChange={handleSlugChange}
+                                            error={errors?.slug}
+                                        />
+                                    </>
+                                )}
                             </div>
 
-                            <FormFieldTextarea
-                                label="توضیحات کوتاه"
-                                id="short_description"
-                                placeholder="یک توضیح کوتاه درباره ملک... (حداکثر ۳۰۰ کاراکتر)"
-                                rows={3}
-                                disabled={!editMode}
-                                maxLength={300}
-                                value={formData?.short_description || ""}
-                                onChange={handleShortDescriptionChange}
-                                error={errors?.short_description}
-                            />
+                            {isFormApproach ? (
+                                <>
+                                    <FormFieldTextarea
+                                        label="توضیحات کوتاه"
+                                        id="short_description"
+                                        placeholder="یک توضیح کوتاه درباره ملک... (حداکثر ۳۰۰ کاراکتر)"
+                                        rows={3}
+                                        disabled={!editMode}
+                                        maxLength={300}
+                                        error={errors.short_description?.message}
+                                        {...(register ? register("short_description") : {})}
+                                    />
 
-                            <FormField
-                                label="توضیحات بلند"
-                                error={errors?.description}
-                            >
-                                <TipTapEditor
-                                    content={formData?.description || ""}
-                                    onChange={handleDescriptionChange}
-                                    placeholder="توضیحات کامل ملک را وارد کنید... (اختیاری)"
-                                />
-                            </FormField>
+                                    <FormField
+                                        label="توضیحات بلند"
+                                        error={errors.description?.message}
+                                    >
+                                        <TipTapEditor
+                                            content={descriptionValue || ""}
+                                            onChange={handleDescriptionChange}
+                                            placeholder="توضیحات کامل ملک را وارد کنید... (اختیاری)"
+                                        />
+                                    </FormField>
+                                </>
+                            ) : (
+                                <>
+                                    <FormFieldTextarea
+                                        label="توضیحات کوتاه"
+                                        id="short_description"
+                                        placeholder="یک توضیح کوتاه درباره ملک... (حداکثر ۳۰۰ کاراکتر)"
+                                        rows={3}
+                                        disabled={!editMode}
+                                        maxLength={300}
+                                        value={formData?.short_description || ""}
+                                        onChange={handleShortDescriptionChange}
+                                        error={errors?.short_description}
+                                    />
+
+                                    <FormField
+                                        label="توضیحات بلند"
+                                        error={errors?.description}
+                                    >
+                                        <TipTapEditor
+                                            content={formData?.description || ""}
+                                            onChange={handleDescriptionChange}
+                                            placeholder="توضیحات کامل ملک را وارد کنید... (اختیاری)"
+                                        />
+                                    </FormField>
+                                </>
+                            )}
                         </div>
                     </CardWithIcon>
 
@@ -251,14 +387,14 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                             <FormField
                                 label="نوع ملک"
                                 required
-                                error={errors?.property_type}
+                                error={isFormApproach ? errors.property_type?.message : errors?.property_type}
                             >
                                 <Select
                                     disabled={!editMode || loadingTypes}
-                                    value={formData?.property_type ? String(formData.property_type) : ""}
+                                    value={isFormApproach ? (watch?.("property_type") ? String(watch("property_type")) : "") : (formData?.property_type ? String(formData.property_type) : "")}
                                     onValueChange={handlePropertyTypeChange}
                                 >
-                                    <SelectTrigger className={cn("h-11", errors?.property_type && "border-red-1")}>
+                                    <SelectTrigger className={cn("h-11", (isFormApproach ? errors.property_type?.message : errors?.property_type) && "border-red-1")}>
                                         <SelectValue placeholder={loadingTypes ? "در حال بارگذاری..." : "نوع ملک را انتخاب کنید"} />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -275,14 +411,14 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                             <FormField
                                 label="نوع واگذاری"
                                 required
-                                error={errors?.state}
+                                error={isFormApproach ? errors.state?.message : errors?.state}
                             >
                                 <Select
                                     disabled={!editMode || loadingStates}
-                                    value={formData?.state ? String(formData.state) : ""}
+                                    value={isFormApproach ? (watch?.("state") ? String(watch("state")) : "") : (formData?.state ? String(formData.state) : "")}
                                     onValueChange={handleStateChange}
                                 >
-                                    <SelectTrigger className={cn("h-11", errors?.state && "border-red-1")}>
+                                    <SelectTrigger className={cn("h-11", (isFormApproach ? errors.state?.message : errors?.state) && "border-red-1")}>
                                         <SelectValue placeholder={loadingStates ? "در حال بارگذاری..." : "مثلاً فروشی، اجاره‌ای..."} />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -299,14 +435,14 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                             <FormField
                                 label="وضعیت معامله"
                                 required
-                                error={errors?.status}
+                                error={isFormApproach ? errors.status?.message : errors?.status}
                             >
                                 <Select
                                     disabled={!editMode || loadingOptions}
-                                    value={formData?.status || "active"}
+                                    value={isFormApproach ? (watch?.("status") || "active") : (formData?.status || "active")}
                                     onValueChange={handleStatusChange}
                                 >
-                                    <SelectTrigger className={cn("h-11", errors?.status && "border-red-1")}>
+                                    <SelectTrigger className={cn("h-11", (isFormApproach ? errors.status?.message : errors?.status) && "border-red-1")}>
                                         <SelectValue placeholder={loadingOptions ? "در حال بارگذاری..." : "انتخاب وضعیت..."} />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -324,36 +460,36 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                 label="مشاور مسئول"
                                 error={errors?.agent}
                             >
-                                <Select
-                                    disabled={!editMode || loadingAgents}
-                                    value={formData?.agent ? String(formData.agent) : "none"}
-                                    onValueChange={handleAgentChange}
-                                >
-                                    <SelectTrigger className={cn("h-11", errors?.agent && "border-red-1")}>
-                                        <SelectValue placeholder={loadingAgents ? "در حال بارگذاری..." : "مشاور را انتخاب کنید"} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="none">هیچکدام</SelectItem>
-                                        {(agents || []).map((agent) => (
-                                            <SelectItem key={agent.id} value={String(agent.id)}>
-                                                {agent.first_name} {agent.last_name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </FormField>
+                                    <Select
+                                        disabled={!editMode || loadingAgents}
+                                        value={isFormApproach ? (watch?.("agent") ? String(watch("agent")) : "none") : (formData?.agent ? String(formData.agent) : "none")}
+                                        onValueChange={handleAgentChange}
+                                    >
+                                        <SelectTrigger className={cn("h-11", (isFormApproach ? errors.agent?.message : errors?.agent) && "border-red-1")}>
+                                            <SelectValue placeholder={loadingAgents ? "در حال بارگذاری..." : "مشاور را انتخاب کنید"} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">هیچکدام</SelectItem>
+                                            {(agents || []).map((agent) => (
+                                                <SelectItem key={agent.id} value={String(agent.id)}>
+                                                    {agent.first_name} {agent.last_name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </FormField>
 
                             {/* Agency */}
                             <FormField
                                 label="آژانس املاک"
-                                error={errors?.agency}
+                                error={isFormApproach ? errors.agency?.message : errors?.agency}
                             >
                                 <Select
                                     disabled={!editMode || loadingAgencies}
-                                    value={formData?.agency ? String(formData.agency) : "none"}
+                                    value={isFormApproach ? (watch?.("agency") ? String(watch("agency")) : "none") : (formData?.agency ? String(formData.agency) : "none")}
                                     onValueChange={handleAgencyChange}
                                 >
-                                    <SelectTrigger className={cn("h-11", errors?.agency && "border-red-1")}>
+                                    <SelectTrigger className={cn("h-11", (isFormApproach ? errors.agency?.message : errors?.agency) && "border-red-1")}>
                                         <SelectValue placeholder={loadingAgencies ? "در حال بارگذاری..." : "آژانس را انتخاب کنید"} />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -390,9 +526,9 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                     <Label>برچسب‌ها</Label>
                                 </div>
                                 <div className="space-y-2">
-                                    {selectedLabels.length > 0 && (
+                                    {formSelectedLabels.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
-                                            {selectedLabels.map((label) => (
+                                            {formSelectedLabels.map((label) => (
                                                 <span
                                                     key={label.id}
                                                     className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-purple text-purple-2 transition hover:shadow-sm"
@@ -402,7 +538,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                                         type="button"
                                                         className="text-purple-2 hover:text-purple-2 cursor-pointer"
                                                         title="حذف"
-                                                        onClick={() => onLabelRemove(label.id)}
+                                                        onClick={() => formOnLabelRemove?.(label.id)}
                                                     >
                                                         <X className="w-3 h-3" />
                                                     </button>
@@ -414,16 +550,16 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                     <Select
                                         disabled={!editMode || loadingLabels}
                                         onValueChange={(value) => {
-                                            const label = labels.find(l => String(l.id) === value);
-                                            if (label) onLabelToggle(label);
+                                            const label = labels.find((l: PropertyLabel) => String(l.id) === value);
+                                            if (label) formOnLabelToggle?.(label);
                                         }}
                                     >
                                         <SelectTrigger className="w-full">
                                             <SelectValue placeholder={loadingLabels ? "در حال بارگذاری..." : "برچسب‌ها را انتخاب کنید"} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {(labels || []).map((label) => {
-                                                const isSelected = selectedLabels.some(l => l.id === label.id);
+                                            {(labels || []).map((label: PropertyLabel) => {
+                                                const isSelected = formSelectedLabels.some((l: PropertyLabel) => l.id === label.id);
                                                 return (
                                                     <SelectItem
                                                         key={label.id}
@@ -455,9 +591,9 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                     <Label>تگ‌ها</Label>
                                 </div>
                                 <div className="space-y-2">
-                                    {selectedTags.length > 0 && (
+                                    {formSelectedTags.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
-                                            {selectedTags.map((tag) => (
+                                            {formSelectedTags.map((tag) => (
                                                 <span
                                                     key={tag.id}
                                                     className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-indigo text-indigo-2 transition hover:shadow-sm"
@@ -467,7 +603,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                                         type="button"
                                                         className="text-indigo-2 hover:text-indigo-2 cursor-pointer"
                                                         title="حذف"
-                                                        onClick={() => onTagRemove(tag.id)}
+                                                        onClick={() => formOnTagRemove?.(tag.id)}
                                                     >
                                                         <X className="w-3 h-3" />
                                                     </button>
@@ -479,16 +615,16 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                     <Select
                                         disabled={!editMode || loadingTags}
                                         onValueChange={(value) => {
-                                            const tag = tags.find(t => String(t.id) === value);
-                                            if (tag) onTagToggle(tag);
+                                            const tag = tags.find((t: PropertyTag) => String(t.id) === value);
+                                            if (tag) formOnTagToggle?.(tag);
                                         }}
                                     >
                                         <SelectTrigger className="w-full">
                                             <SelectValue placeholder={loadingTags ? "در حال بارگذاری..." : "تگ‌ها را انتخاب کنید"} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {(tags || []).map((tag) => {
-                                                const isSelected = selectedTags.some(t => t.id === tag.id);
+                                            {(tags || []).map((tag: PropertyTag) => {
+                                                const isSelected = formSelectedTags.some((t: PropertyTag) => t.id === tag.id);
                                                 return (
                                                     <SelectItem
                                                         key={tag.id}
@@ -520,9 +656,9 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                     <Label>ویژگی‌ها</Label>
                                 </div>
                                 <div className="space-y-2">
-                                    {selectedFeatures.length > 0 && (
+                                    {formSelectedFeatures.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
-                                            {selectedFeatures.map((feature) => (
+                                            {formSelectedFeatures.map((feature) => (
                                                 <span
                                                     key={feature.id}
                                                     className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-teal text-teal-2"
@@ -531,7 +667,7 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                                     <button
                                                         type="button"
                                                         className="text-teal-2 hover:text-teal-2"
-                                                        onClick={() => onFeatureRemove(feature.id)}
+                                                        onClick={() => formOnFeatureRemove?.(feature.id)}
                                                     >
                                                         <X className="w-3 h-3" />
                                                     </button>
@@ -543,16 +679,16 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                     <Select
                                         disabled={!editMode || loadingFeatures}
                                         onValueChange={(value) => {
-                                            const feature = features.find(f => String(f.id) === value);
-                                            if (feature) onFeatureToggle(feature);
+                                            const feature = features.find((f: PropertyFeature) => String(f.id) === value);
+                                            if (feature) formOnFeatureToggle?.(feature);
                                         }}
                                     >
                                         <SelectTrigger className="w-full">
                                             <SelectValue placeholder={loadingFeatures ? "در حال بارگذاری..." : "ویژگی‌ها را انتخاب کنید"} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {(features || []).map((feature) => {
-                                                const isSelected = selectedFeatures.some(f => f.id === feature.id);
+                                            {(features || []).map((feature: PropertyFeature) => {
+                                                const isSelected = formSelectedFeatures.some((f: PropertyFeature) => f.id === feature.id);
                                                 return (
                                                     <SelectItem
                                                         key={feature.id}
@@ -590,9 +726,15 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         </ItemContent>
                                         <ItemActions>
                                             <Switch
-                                                checked={(formData?.is_public ?? true)}
+                                                checked={isFormApproach ? (watch?.("is_public") ?? true) : (formData?.is_public ?? true)}
                                                 disabled={!editMode}
-                                                onCheckedChange={(checked) => handleInputChange("is_public", checked)}
+                                                onCheckedChange={(checked) => {
+                                                    if (isFormApproach && setValue) {
+                                                        setValue("is_public", checked, { shouldValidate: false });
+                                                    } else {
+                                                        handleInputChange?.("is_public", checked);
+                                                    }
+                                                }}
                                             />
                                         </ItemActions>
                                     </Item>
@@ -611,9 +753,15 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         </ItemContent>
                                         <ItemActions>
                                             <Switch
-                                                checked={(formData?.is_active ?? true)}
+                                                checked={isFormApproach ? (watch?.("is_active") ?? true) : (formData?.is_active ?? true)}
                                                 disabled={!editMode}
-                                                onCheckedChange={(checked) => handleInputChange("is_active", checked)}
+                                                onCheckedChange={(checked) => {
+                                                    if (isFormApproach && setValue) {
+                                                        setValue("is_active", checked, { shouldValidate: false });
+                                                    } else {
+                                                        handleInputChange?.("is_active", checked);
+                                                    }
+                                                }}
                                             />
                                         </ItemActions>
                                     </Item>
@@ -632,9 +780,15 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         </ItemContent>
                                         <ItemActions>
                                             <Switch
-                                                checked={(formData?.is_featured ?? false)}
+                                                checked={isFormApproach ? (watch?.("is_featured") ?? false) : (formData?.is_featured ?? false)}
                                                 disabled={!editMode}
-                                                onCheckedChange={(checked) => handleInputChange("is_featured", checked)}
+                                                onCheckedChange={(checked) => {
+                                                    if (isFormApproach && setValue) {
+                                                        setValue("is_featured", checked, { shouldValidate: false });
+                                                    } else {
+                                                        handleInputChange?.("is_featured", checked);
+                                                    }
+                                                }}
                                             />
                                         </ItemActions>
                                     </Item>
@@ -653,9 +807,15 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                         </ItemContent>
                                         <ItemActions>
                                             <Switch
-                                                checked={(formData?.is_published ?? false)}
+                                                checked={isFormApproach ? (watch?.("is_published") ?? false) : (formData?.is_published ?? false)}
                                                 disabled={!editMode}
-                                                onCheckedChange={(checked) => handleInputChange("is_published", checked)}
+                                                onCheckedChange={(checked) => {
+                                                    if (isFormApproach && setValue) {
+                                                        setValue("is_published", checked, { shouldValidate: false });
+                                                    } else {
+                                                        handleInputChange?.("is_published", checked);
+                                                    }
+                                                }}
                                             />
                                         </ItemActions>
                                     </Item>

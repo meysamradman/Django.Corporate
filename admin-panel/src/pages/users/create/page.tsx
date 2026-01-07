@@ -6,7 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/api/admins/admins";
 import { extractFieldErrors, hasFieldErrors } from '@/core/toast';
 import { showSuccess, showError } from '@/core/toast';
-import { getCrud } from '@/core/messages';
+import { msg } from '@/core/messages';
 import { userFormSchema, userFormDefaults, type UserFormValues } from "@/components/users/validations/userSchema";
 import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
@@ -128,10 +128,12 @@ export default function CreateUserPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['users'] });
-            showSuccess(getCrud('created', { item: 'کاربر' }));
+            // ✅ از msg.crud استفاده کنید
+            showSuccess(msg.crud('created', { item: 'کاربر' }));
             navigate("/users");
         },
         onError: (error: any) => {
+            // ✅ Field Errors → Inline + Toast کلی
             if (hasFieldErrors(error)) {
                 const fieldErrors = extractFieldErrors(error);
                 
@@ -156,8 +158,12 @@ export default function CreateUserPage() {
                     });
                 });
                 
+                // Toast کلی برای راهنمایی کاربر
                 showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
-            } else {
+            } 
+            // ✅ General Errors → فقط Toast
+            else {
+                // showError خودش تصمیم می‌گیرد (بک‌اند یا frontend)
                 showError(error);
             }
         },

@@ -15,7 +15,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
-import { getCrud, getConfirm, getStatus } from '@/core/messages';
+import { msg, getConfirm, getStatus } from '@/core/messages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -212,7 +212,8 @@ export default function PropertyPage() {
     mutationFn: (propertyId: number) => realEstateApi.deleteProperty(propertyId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['properties'] });
-      showSuccess(getCrud('deleted', { item: 'ملک' }));
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud('deleted', { item: 'ملک' }));
     },
     onError: (_error) => {
       showError('خطای سرور رخ داد');
@@ -223,7 +224,8 @@ export default function PropertyPage() {
     mutationFn: (propertyIds: number[]) => realEstateApi.bulkDeleteProperties(propertyIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['properties'] });
-      showSuccess(getCrud('deleted', { item: 'ملک‌ها' }));
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud('deleted', { item: 'ملک‌ها' }));
       setRowSelection({});
     },
     onError: (_error) => {

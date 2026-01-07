@@ -1,12 +1,14 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
-import { Input } from "@/components/elements/Input";
-import { FormField } from "@/components/forms/FormField";
+import { FormFieldInput } from "@/components/forms/FormField";
 import { Switch } from "@/components/elements/Switch";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
-import { showError, showSuccess } from "@/core/toast";
+import { showError, showSuccess, extractFieldErrors, hasFieldErrors } from "@/core/toast";
+import { msg } from "@/core/messages";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
@@ -14,7 +16,7 @@ import type { Media } from "@/types/shared/media";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
 import { Star, Loader2, Save, Image as ImageIcon, UploadCloud, X } from "lucide-react";
-import { propertyFeatureFormSchema, propertyFeatureFormDefaults } from '@/components/real-estate/validations/featureSchema';
+import { propertyFeatureFormSchema, propertyFeatureFormDefaults, type PropertyFeatureFormValues } from '@/components/real-estate/validations/featureSchema';
 
 export default function CreatePropertyFeaturePage() {
   const navigate = useNavigate();
@@ -22,32 +24,45 @@ export default function CreatePropertyFeaturePage() {
   
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
-  
-  const [formData, setFormData] = useState(propertyFeatureFormDefaults);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const form = useForm<PropertyFeatureFormValues>({
+    resolver: zodResolver(propertyFeatureFormSchema) as any,
+    defaultValues: propertyFeatureFormDefaults as any,
+    mode: "onSubmit",
+  });
+
+  const { register, formState: { errors, isSubmitting }, watch, setValue } = form;
 
   const createFeatureMutation = useMutation({
     mutationFn: (data: Partial<PropertyFeature>) => realEstateApi.createFeature(data),
     onSuccess: () => {
-      showSuccess("ویژگی ملک با موفقیت ایجاد شد");
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud("created", { item: "ویژگی ملک" }));
       queryClient.invalidateQueries({ queryKey: ['property-features'] });
       navigate("/real-estate/features");
     },
     onError: (error: any) => {
-      const errorData = error?.response?.data?.data;
-      const errorMessage = errorData?.detail || 
-                          error?.response?.data?.metaData?.message ||
-                          "خطا در ایجاد ویژگی ملک";
-      showError(errorMessage);
+      // ✅ Field Errors → Inline + Toast کلی
+      if (hasFieldErrors(error)) {
+        const fieldErrors = extractFieldErrors(error);
+        
+        Object.entries(fieldErrors).forEach(([field, message]) => {
+          form.setError(field as keyof PropertyFeatureFormValues, {
+            type: 'server',
+            message: message as string
+          });
+        });
+        
+        // Toast کلی برای راهنمایی کاربر
+        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
+      } 
+      // ✅ General Errors → فقط Toast
+      else {
+        // showError خودش تصمیم می‌گیرد (بک‌اند یا frontend)
+        showError(error);
+      }
     },
   });
-
-  const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
 
   const handleImageSelect = (media: Media | Media[] | null) => {
     const selected = Array.isArray(media) ? media[0] || null : media;
@@ -59,43 +74,19 @@ export default function CreatePropertyFeaturePage() {
     setSelectedMedia(null);
   };
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    
-    setErrors({});
-    
-    try {
-      const validatedData = propertyFeatureFormSchema.parse({
-        ...formData,
-        image_id: selectedMedia?.id || null,
-      });
-      
-      const formDataWithImage = {
-        ...validatedData,
-        ...(validatedData.image_id && { image_id: validatedData.image_id })
-      };
-      
-      createFeatureMutation.mutate(formDataWithImage);
-    } catch (error: any) {
-      if (error.errors || error.issues) {
-        const fieldErrors: Record<string, string> = {};
-        const errorsToProcess = error.errors || error.issues || [];
-        errorsToProcess.forEach((err: any) => {
-          if (err.path && err.path.length > 0) {
-            fieldErrors[err.path[0]] = err.message;
-          }
-        });
-        setErrors(fieldErrors);
-      } else {
-        showError("خطا در اعتبارسنجی فرم");
-      }
-    }
-  };
+  const handleSubmit = form.handleSubmit(async (data) => {
+    const formDataWithImage = {
+      ...data,
+      image_id: selectedMedia?.id || null,
+    };
+
+    createFeatureMutation.mutate(formDataWithImage);
+  });
 
   return (
     <div className="space-y-6 pb-28 relative">
 
-      <form id="feature-create-form" onSubmit={handleSubmit}>
+      <form id="feature-create-form" onSubmit={handleSubmit} noValidate>
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-4 space-y-6">
             <CardWithIcon
@@ -108,32 +99,21 @@ export default function CreatePropertyFeaturePage() {
             >
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
+                  <FormFieldInput
                     label="عنوان"
-                    htmlFor="title"
+                    id="title"
                     required
-                    error={errors.title}
-                  >
-                    <Input
-                      id="title"
-                      value={formData.title || ""}
-                      onChange={(e) => handleInputChange("title", e.target.value)}
-                      placeholder="عنوان ویژگی ملک"
-                      required
-                    />
-                  </FormField>
-                  <FormField
+                    error={errors.title?.message}
+                    placeholder="عنوان ویژگی ملک"
+                    {...register("title")}
+                  />
+                  <FormFieldInput
                     label="دسته‌بندی"
-                    htmlFor="group"
-                    error={errors.group}
-                  >
-                    <Input
-                      id="group"
-                      value={formData.group || ""}
-                      onChange={(e) => handleInputChange("group", e.target.value)}
-                      placeholder="دسته‌بندی ویژگی"
-                    />
-                  </FormField>
+                    id="group"
+                    error={errors.group?.message}
+                    placeholder="دسته‌بندی ویژگی"
+                    {...register("group")}
+                  />
                 </div>
 
                 <div className="mt-6 space-y-4">
@@ -147,8 +127,8 @@ export default function CreatePropertyFeaturePage() {
                       </ItemContent>
                       <ItemActions>
                         <Switch
-                          checked={formData.is_active}
-                          onCheckedChange={(checked) => handleInputChange("is_active", checked)}
+                          checked={watch("is_active")}
+                          onCheckedChange={(checked) => setValue("is_active", checked)}
                         />
                       </ItemActions>
                     </Item>
@@ -228,15 +208,12 @@ export default function CreatePropertyFeaturePage() {
 
       <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
         <Button
-          type="button"
-          onClick={() => {
-            const form = document.getElementById('feature-create-form') as HTMLFormElement;
-            if (form) form.requestSubmit();
-          }}
+          type="submit"
+          form="feature-create-form"
           size="lg"
-          disabled={createFeatureMutation.isPending}
+          disabled={createFeatureMutation.isPending || isSubmitting}
         >
-          {createFeatureMutation.isPending ? (
+          {createFeatureMutation.isPending || isSubmitting ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
               در حال ایجاد...

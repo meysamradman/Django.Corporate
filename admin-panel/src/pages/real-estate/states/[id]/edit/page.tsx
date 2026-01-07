@@ -1,19 +1,21 @@
-import { useState, useEffect, type FormEvent } from "react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
-import { Input } from "@/components/elements/Input";
-import { FormField } from "@/components/forms/FormField";
+import { FormFieldInput, FormField } from "@/components/forms/FormField";
 import { Switch } from "@/components/elements/Switch";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
-import { showError, showSuccess, showInfo } from "@/core/toast";
+import { showError, showSuccess, showInfo, extractFieldErrors, hasFieldErrors } from "@/core/toast";
+import { msg } from "@/core/messages";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyState } from "@/types/real_estate/state/realEstateState";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { propertyStateFormSchema } from "@/components/real-estate/validations/stateSchema";
-import { Circle, Loader2, Save, Type } from "lucide-react";
+import { propertyStateFormSchema, propertyStateFormDefaults, type PropertyStateFormValues } from "@/components/real-estate/validations/stateSchema";
+import { Circle, Loader2, Save } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function EditPropertyStatePage() {
@@ -22,13 +24,22 @@ export default function EditPropertyStatePage() {
   const { id } = useParams<{ id: string }>();
   const stateId = Number(id);
 
-  const [formData, setFormData] = useState({
-    title: "",
-    slug: "",
-    usage_type: "",
-    is_active: true,
+  const form = useForm<PropertyStateFormValues>({
+    resolver: zodResolver(propertyStateFormSchema) as any,
+    defaultValues: propertyStateFormDefaults as any,
+    mode: "onSubmit",
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const { register, formState: { errors, isSubmitting }, watch, setValue } = form;
+  const titleValue = watch("title");
+
+  // Auto-generate slug from title
+  useEffect(() => {
+    if (titleValue) {
+      const generatedSlug = generateSlug(titleValue);
+      setValue("slug", generatedSlug, { shouldValidate: false });
+    }
+  }, [titleValue, setValue]);
 
   const { data: state, isLoading, error } = useQuery({
     queryKey: ['property-state', stateId],
@@ -41,109 +52,79 @@ export default function EditPropertyStatePage() {
     queryFn: () => realEstateApi.getStateFieldOptions(),
   });
 
+  // Reset form with state data
   useEffect(() => {
     if (state) {
-      setFormData({
+      form.reset({
         title: state.title || "",
         slug: state.slug || "",
-        usage_type: state.usage_type || "",
-        is_active: state.is_active,
+        usage_type: state.usage_type || "sale",
+        is_active: state.is_active ?? true,
       });
     }
-  }, [state]);
+  }, [state, form]);
 
   const updateStateMutation = useMutation({
     mutationFn: (data: Partial<PropertyState>) => realEstateApi.partialUpdateState(stateId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-state', stateId] });
       queryClient.invalidateQueries({ queryKey: ['property-states'] });
-      showSuccess("وضعیت ملک با موفقیت به‌روزرسانی شد");
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud("updated", { item: "وضعیت ملک" }));
       navigate("/real-estate/states");
     },
     onError: (error: any) => {
-      const errorData = error?.response?.data?.data;
-      const errorMessage = errorData?.detail ||
-        error?.response?.data?.metaData?.message ||
-        "خطا در به‌روزرسانی وضعیت ملک";
-      showError(errorMessage);
+      // ✅ Field Errors → Inline + Toast کلی
+      if (hasFieldErrors(error)) {
+        const fieldErrors = extractFieldErrors(error);
+        
+        Object.entries(fieldErrors).forEach(([field, message]) => {
+          form.setError(field as keyof PropertyStateFormValues, {
+            type: 'server',
+            message: message as string
+          });
+        });
+        
+        // Toast کلی برای راهنمایی کاربر
+        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
+      } 
+      // ✅ General Errors → فقط Toast
+      else {
+        // showError خودش تصمیم می‌گیرد (بک‌اند یا frontend)
+        showError(error);
+      }
     },
   });
 
-  const handleInputChange = (field: string, value: string | boolean) => {
-    if (field === "title" && typeof value === "string") {
-      const generatedSlug = generateSlug(value);
-
-      setFormData(prev => ({
-        ...prev,
-        [field]: value,
-        slug: generatedSlug
-      }));
-    } else if (field === "slug" && typeof value === "string") {
-      const formattedSlug = formatSlug(value);
-      setFormData(prev => ({
-        ...prev,
-        [field]: formattedSlug
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
-    }
-  };
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-
+  const handleSubmit = form.handleSubmit(async (data) => {
     if (!state) return;
 
-    setErrors({});
+    // ✅ حفظ منطق: فقط فیلدهایی که تغییر کرده‌اند را ارسال کن
+    const submitData: Partial<PropertyState> = {};
 
-    try {
-      const validatedData = propertyStateFormSchema.parse(formData);
-      
-      const submitData: Partial<PropertyState> = {};
-
-      if (validatedData.title !== state.title) {
-        submitData.title = validatedData.title;
-      }
-
-      if (validatedData.slug !== state.slug) {
-        submitData.slug = validatedData.slug;
-      }
-
-      if (validatedData.is_active !== state.is_active) {
-        submitData.is_active = validatedData.is_active;
-      }
-
-      if (validatedData.usage_type !== state.usage_type) {
-        submitData.usage_type = validatedData.usage_type;
-      }
-
-      if (Object.keys(submitData).length === 0) {
-        showInfo("تغییری اعمال نشده است");
-        return;
-      }
-
-      updateStateMutation.mutate(submitData);
-    } catch (error: any) {
-      if (error.errors) {
-        const fieldErrors: Record<string, string> = {};
-        error.errors.forEach((err: any) => {
-          if (err.path && err.path.length > 0) {
-            fieldErrors[err.path[0]] = err.message;
-          }
-        });
-        setErrors(fieldErrors);
-        if (Object.keys(fieldErrors).length > 0) {
-          const firstError = Object.values(fieldErrors)[0];
-          showError(firstError);
-        }
-      } else {
-        showError("خطا در اعتبارسنجی فرم");
-      }
+    if (data.title !== state.title) {
+      submitData.title = data.title;
     }
-  };
+
+    if (data.slug !== state.slug) {
+      submitData.slug = data.slug;
+    }
+
+    if (data.is_active !== (state.is_active ?? true)) {
+      submitData.is_active = data.is_active;
+    }
+
+    if (data.usage_type !== state.usage_type) {
+      submitData.usage_type = data.usage_type;
+    }
+
+    if (Object.keys(submitData).length === 0) {
+      showInfo("تغییری اعمال نشده است");
+      return;
+    }
+
+    updateStateMutation.mutate(submitData);
+  });
 
   if (isLoading) {
     return (
@@ -181,7 +162,7 @@ export default function EditPropertyStatePage() {
   return (
     <div className="space-y-6 pb-28 relative">
 
-      <form id="state-edit-form" onSubmit={handleSubmit}>
+      <form id="state-edit-form" onSubmit={handleSubmit} noValidate>
         <CardWithIcon
           icon={Circle}
           title="اطلاعات وضعیت ملک"
@@ -192,34 +173,28 @@ export default function EditPropertyStatePage() {
         >
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
+              <FormFieldInput
                 label="عنوان"
-                htmlFor="title"
+                id="title"
                 required
-                error={errors.title}
-              >
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => handleInputChange("title", e.target.value)}
-                  placeholder="عنوان وضعیت ملک"
-                  required
-                />
-              </FormField>
-              <FormField
+                error={errors.title?.message}
+                placeholder="عنوان وضعیت ملک"
+                {...register("title")}
+              />
+              <FormFieldInput
                 label="نامک"
-                htmlFor="slug"
+                id="slug"
                 required
-                error={errors.slug}
-              >
-                <Input
-                  id="slug"
-                  value={formData.slug}
-                  onChange={(e) => handleInputChange("slug", e.target.value)}
-                  placeholder="نامک"
-                  required
-                />
-              </FormField>
+                error={errors.slug?.message}
+                placeholder="نامک"
+                {...register("slug", {
+                  onChange: (e) => {
+                    const formattedSlug = formatSlug(e.target.value);
+                    e.target.value = formattedSlug;
+                    setValue("slug", formattedSlug);
+                  }
+                })}
+              />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -227,11 +202,11 @@ export default function EditPropertyStatePage() {
                 label="نوع کاربری (سیستمی)"
                 htmlFor="usage_type"
                 required
-                error={errors.usage_type}
+                error={errors.usage_type?.message}
               >
                 <Select
-                  value={formData.usage_type}
-                  onValueChange={(value) => handleInputChange("usage_type", value)}
+                  value={watch("usage_type")}
+                  onValueChange={(value) => setValue("usage_type", value)}
                 >
                   <SelectTrigger id="usage_type">
                     <SelectValue placeholder="انتخاب نوع کاربری" />
@@ -258,8 +233,8 @@ export default function EditPropertyStatePage() {
                   </ItemContent>
                   <ItemActions>
                     <Switch
-                      checked={formData.is_active}
-                      onCheckedChange={(checked) => handleInputChange("is_active", checked)}
+                      checked={watch("is_active")}
+                      onCheckedChange={(checked) => setValue("is_active", checked)}
                     />
                   </ItemActions>
                 </Item>
@@ -271,15 +246,12 @@ export default function EditPropertyStatePage() {
 
       <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
         <Button
-          type="button"
-          onClick={() => {
-            const form = document.getElementById('state-edit-form') as HTMLFormElement;
-            if (form) form.requestSubmit();
-          }}
+          type="submit"
+          form="state-edit-form"
           size="lg"
-          disabled={updateStateMutation.isPending}
+          disabled={updateStateMutation.isPending || isSubmitting}
         >
-          {updateStateMutation.isPending ? (
+          {updateStateMutation.isPending || isSubmitting ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
               در حال به‌روزرسانی...
@@ -295,4 +267,3 @@ export default function EditPropertyStatePage() {
     </div>
   );
 }
-

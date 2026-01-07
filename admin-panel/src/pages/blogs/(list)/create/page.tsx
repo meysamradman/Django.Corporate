@@ -13,7 +13,7 @@ import { blogApi } from "@/api/blogs/blogs";
 import { blogFormSchema, blogFormDefaults, type BlogFormValues } from "@/components/blogs/validations/blogSchema";
 import { extractFieldErrors, hasFieldErrors } from '@/core/toast';
 import { showSuccess, showError } from '@/core/toast';
-import { getCrud } from '@/core/messages';
+import { msg } from '@/core/messages';
 import { env } from "@/core/config/environment";
 import type { Blog } from "@/types/blog/blog";
 import type { BlogMedia } from "@/types/blog/blogMedia";
@@ -155,12 +155,12 @@ export default function CreateBlogPage() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['blogs'] });
 
+      // ✅ از msg.crud استفاده کنید
       const successMessage = variables.status === "draft"
-        ? getCrud('saved', { item: 'بلاگ درافت' })
-        : getCrud('created', { item: 'بلاگ' });
+        ? msg.crud('saved', { item: 'بلاگ درافت' })
+        : msg.crud('created', { item: 'بلاگ' });
       showSuccess(successMessage);
 
-      navigate("/blogs");
       navigate("/blogs");
     },
     onError: (error: any) => {

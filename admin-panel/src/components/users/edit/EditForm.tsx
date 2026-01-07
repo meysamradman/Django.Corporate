@@ -6,7 +6,7 @@ import { User, KeyRound } from "lucide-react";
 import { ProfileHeader } from "@/components/users/profile/ProfileHeader";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { adminApi } from "@/api/admins/admins";
-import { getCrud, getValidation } from '@/core/messages';
+import { msg } from '@/core/messages';
 
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
@@ -144,7 +144,8 @@ export function EditUserForm({ userData }: EditUserFormProps) {
             }
             
                                     await adminApi.updateUserByType(userData.id, updateData, 'user');
-                        showSuccess(getCrud('updated', { item: 'پروفایل کاربر' }));
+                        // ✅ از msg.crud استفاده کنید
+                        showSuccess(msg.crud('updated', { item: 'پروفایل کاربر' }));
             setEditMode(false);
         } catch (error: any) {
             if (error?.response?.errors) {
@@ -152,26 +153,26 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                 const newFieldErrors: Record<string, string> = {};
                 
                 if (errorData.mobile) {
-                    newFieldErrors.mobile = getValidation('mobileInvalid');
+                    newFieldErrors.mobile = msg.validation('mobileInvalid');
                 }
                 if (errorData.email) {
-                    newFieldErrors.email = getValidation('emailInvalid');
+                    newFieldErrors.email = msg.validation('emailInvalid');
                 }
                 if (errorData.profile?.national_id) {
                     if (errorData.profile.national_id.includes('تکراری') || errorData.profile.national_id.includes('قبلاً')) {
-                        newFieldErrors.nationalId = getValidation('nationalIdInvalid');
+                        newFieldErrors.nationalId = msg.validation('nationalIdInvalid');
                         showError('کد ملی تکراری است');
                     } else if (errorData.profile.national_id.includes('10 رقم') || errorData.profile.national_id.includes('طول')) {
-                        newFieldErrors.nationalId = getValidation('nationalIdLength');
+                        newFieldErrors.nationalId = msg.validation('nationalIdLength');
                     } else {
-                        newFieldErrors.nationalId = getValidation('nationalIdInvalid');
+                        newFieldErrors.nationalId = msg.validation('nationalIdInvalid');
                     }
                 }
                 if (errorData.profile?.first_name) {
-                    newFieldErrors.firstName = getValidation('required', { field: 'نام' });
+                    newFieldErrors.firstName = msg.validation('required', { field: 'نام' });
                 }
                 if (errorData.profile?.last_name) {
-                    newFieldErrors.lastName = getValidation('required', { field: 'نام خانوادگی' });
+                    newFieldErrors.lastName = msg.validation('required', { field: 'نام خانوادگی' });
                 }
                 
                 if (errorData.detail) {

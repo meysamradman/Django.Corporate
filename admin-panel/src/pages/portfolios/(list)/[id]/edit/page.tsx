@@ -15,7 +15,8 @@ import type { PortfolioOption } from "@/types/portfolio/options/portfolioOption"
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
-import { showError } from '@/core/toast';
+import { showError, showSuccess } from '@/core/toast';
+import { msg } from '@/core/messages';
 import type { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
 import { collectMediaIds, collectMediaCovers, parsePortfolioMedia } from "@/components/portfolios/utils/portfolioMediaUtils";
 import type { PortfolioUpdateData } from "@/types/portfolio/portfolio";
@@ -297,6 +298,7 @@ export default function EditPortfolioPage() {
       
       await portfolioApi.updatePortfolio(portfolio.id, updateData);
       
+      showSuccess(msg.crud("updated", { item: "نمونه‌کار" }));
       navigate("/portfolios");
     } catch (error) {
     } finally {
@@ -352,6 +354,7 @@ export default function EditPortfolioPage() {
       
       await portfolioApi.partialUpdatePortfolio(portfolio.id, updateData);
       
+      showSuccess(msg.crud("saved", { item: "پیش‌نویس نمونه‌کار" }));
       navigate("/portfolios");
     } catch (error) {
     } finally {

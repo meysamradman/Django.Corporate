@@ -14,7 +14,7 @@ import { showError, showSuccess } from '@/core/toast';
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
 import type { ColumnDef } from "@tanstack/react-table";
-import { getCrud, getConfirm, getStatus } from '@/core/messages';
+import { msg, getConfirm, getStatus } from '@/core/messages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -119,7 +119,8 @@ export default function PropertyTagsPage() {
     mutationFn: (tagId: number) => realEstateApi.deleteTag(tagId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-tags'] });
-      showSuccess(getCrud('deleted', { item: 'تگ ملک' }));
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud('deleted', { item: 'تگ ملک' }));
     },
     onError: (_error) => {
       showError('خطای سرور رخ داد');
@@ -130,7 +131,8 @@ export default function PropertyTagsPage() {
     mutationFn: (tagIds: number[]) => Promise.all(tagIds.map(id => realEstateApi.deleteTag(id))),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-tags'] });
-      showSuccess(getCrud('deleted', { item: 'تگ‌های ملک' }));
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud('deleted', { item: 'تگ‌های ملک' }));
       setRowSelection({});
     },
     onError: (_error) => {

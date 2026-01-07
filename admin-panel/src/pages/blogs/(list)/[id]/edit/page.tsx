@@ -14,7 +14,8 @@ import type { BlogCategory } from "@/types/blog/category/blogCategory";
 import { blogApi } from "@/api/blogs/blogs";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
-import { showError } from '@/core/toast';
+import { showError, showSuccess } from '@/core/toast';
+import { msg } from '@/core/messages';
 import type { BlogMedia } from "@/types/blog/blogMedia";
 import { collectMediaIds, collectMediaCovers, parseBlogMedia } from "@/components/blogs/utils/blogMediaUtils";
 import type { BlogUpdateData } from "@/types/blog/blog";
@@ -265,6 +266,7 @@ export default function EditBlogPage() {
       
       await blogApi.updateBlog(blog.id, updateData);
       
+      showSuccess(msg.crud("updated", { item: "بلاگ" }));
       navigate("/blogs");
     } catch (error) {
     } finally {
@@ -317,6 +319,7 @@ export default function EditBlogPage() {
       
       await blogApi.partialUpdateBlog(blog.id, updateData);
       
+      showSuccess(msg.crud("saved", { item: "پیش‌نویس بلاگ" }));
       navigate("/blogs");
     } catch (error) {
     } finally {

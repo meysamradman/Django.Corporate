@@ -14,7 +14,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import { portfolioFormSchema, portfolioFormDefaults, type PortfolioFormValues } from "@/components/portfolios/validations/portfolioSchema";
 import { extractFieldErrors, hasFieldErrors, showSuccess, showError } from '@/core/toast';
-import { getCrud } from '@/core/messages';
+import { msg } from '@/core/messages';
 import { env } from "@/core/config/environment";
 import type { Portfolio } from "@/types/portfolio/portfolio";
 import type { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
@@ -158,9 +158,10 @@ export default function CreatePortfolioPage() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
       
+      // ✅ از msg.crud استفاده کنید
       const successMessage = variables.status === "draft" 
-        ? getCrud('saved', { item: 'نمونه‌کار درافت' })
-        : getCrud('created', { item: 'نمونه‌کار' });
+        ? msg.crud('saved', { item: 'نمونه‌کار درافت' })
+        : msg.crud('created', { item: 'نمونه‌کار' });
       showSuccess(successMessage);
       
       navigate("/portfolios");

@@ -8,6 +8,7 @@ import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
 import { showSuccess, showError } from '@/core/toast';
+import { msg } from '@/core/messages';
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';
@@ -95,7 +96,8 @@ export default function CategoryPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries();
-      showSuccess("با موفقیت حذف شد");
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud('deleted', { item: 'دسته‌بندی' }));
     },
     onError: (_error) => {
       showError("خطای سرور");
@@ -108,7 +110,8 @@ export default function CategoryPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries();
-      showSuccess("با موفقیت حذف شد");
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud('deleted', { item: 'دسته‌بندی' }));
       setRowSelection({});
     },
     onError: (_error) => {

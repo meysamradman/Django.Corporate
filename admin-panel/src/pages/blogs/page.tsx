@@ -15,7 +15,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
-import { getConfirm } from '@/core/messages';
+import { msg, getConfirm } from '@/core/messages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -201,7 +201,8 @@ export default function BlogPage() {
     mutationFn: (blogId: number) => blogApi.deleteBlog(blogId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blogs'] });
-      showSuccess("با موفقیت حذف شد");
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud('deleted', { item: 'بلاگ' }));
     },
     onError: (_error) => {
       showError("خطای سرور");
@@ -212,7 +213,8 @@ export default function BlogPage() {
     mutationFn: (blogIds: number[]) => blogApi.bulkDeleteBlogs(blogIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blogs'] });
-      showSuccess("با موفقیت حذف شد");
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud('deleted', { item: 'بلاگ' }));
       setRowSelection({});
     },
     onError: (_error) => {

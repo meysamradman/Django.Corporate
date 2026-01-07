@@ -1,34 +1,44 @@
-import { useState, useEffect, type FormEvent } from "react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
-import { Input } from "@/components/elements/Input";
-import { FormField, FormFieldTextarea } from "@/components/forms/FormField";
+import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
 import { Switch } from "@/components/elements/Switch";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
-import { showError, showSuccess, showInfo } from "@/core/toast";
+import { showError, showSuccess, showInfo, extractFieldErrors, hasFieldErrors } from "@/core/toast";
+import { msg } from "@/core/messages";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
+import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { Hash, Loader2, Save } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { propertyTagFormSchema } from '@/components/real-estate/validations/tagSchema';
+import { propertyTagFormSchema, propertyTagFormDefaults, type PropertyTagFormValues } from '@/components/real-estate/validations/tagSchema';
 
 export default function EditPropertyTagPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { id } = useParams<{ id: string }>();
   const tagId = Number(id);
-  
-  const [formData, setFormData] = useState({
-    title: "",
-    slug: "",
-    description: "",
-    is_active: true,
-    is_public: true,
+
+  const form = useForm<PropertyTagFormValues>({
+    resolver: zodResolver(propertyTagFormSchema) as any,
+    defaultValues: propertyTagFormDefaults as any,
+    mode: "onSubmit",
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const { register, formState: { errors, isSubmitting }, watch, setValue } = form;
+  const titleValue = watch("title");
+
+  // Auto-generate slug from title
+  useEffect(() => {
+    if (titleValue) {
+      const generatedSlug = generateSlug(titleValue);
+      setValue("slug", generatedSlug, { shouldValidate: false });
+    }
+  }, [titleValue, setValue]);
 
   const { data: tag, isLoading, error } = useQuery({
     queryKey: ['property-tag', tagId],
@@ -36,9 +46,10 @@ export default function EditPropertyTagPage() {
     enabled: !!tagId,
   });
 
+  // Reset form with tag data
   useEffect(() => {
     if (tag) {
-      setFormData({
+      form.reset({
         title: tag.title || "",
         slug: tag.slug || "",
         description: tag.description || "",
@@ -46,100 +57,73 @@ export default function EditPropertyTagPage() {
         is_public: tag.is_public ?? true,
       });
     }
-  }, [tag]);
+  }, [tag, form]);
 
   const updateTagMutation = useMutation({
     mutationFn: (data: Partial<PropertyTag>) => realEstateApi.partialUpdateTag(tagId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-tag', tagId] });
       queryClient.invalidateQueries({ queryKey: ['property-tags'] });
-      showSuccess("تگ ملک با موفقیت به‌روزرسانی شد");
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud("updated", { item: "تگ ملک" }));
       navigate("/real-estate/tags");
     },
     onError: (error: any) => {
-      const errorData = error?.response?.data?.data;
-      const errorMessage = errorData?.detail || 
-                          error?.response?.data?.metaData?.message ||
-                          "خطا در به‌روزرسانی تگ ملک";
-      showError(errorMessage);
+      // ✅ Field Errors → Inline + Toast کلی
+      if (hasFieldErrors(error)) {
+        const fieldErrors = extractFieldErrors(error);
+        
+        Object.entries(fieldErrors).forEach(([field, message]) => {
+          form.setError(field as keyof PropertyTagFormValues, {
+            type: 'server',
+            message: message as string
+          });
+        });
+        
+        // Toast کلی برای راهنمایی کاربر
+        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
+      } 
+      // ✅ General Errors → فقط Toast
+      else {
+        // showError خودش تصمیم می‌گیرد (بک‌اند یا frontend)
+        showError(error);
+      }
     },
   });
 
-  const handleInputChange = (field: string, value: string | boolean) => {
-    if (field === "title" && typeof value === "string") {
-      const generatedSlug = generateSlug(value);
-      setFormData(prev => ({
-        ...prev,
-        [field]: value,
-        slug: generatedSlug
-      }));
-    } else if (field === "slug" && typeof value === "string") {
-      const formattedSlug = formatSlug(value);
-      setFormData(prev => ({
-        ...prev,
-        [field]: formattedSlug
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
-    }
-  };
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = form.handleSubmit(async (data) => {
     if (!tag) return;
     
-    setErrors({});
+    // ✅ حفظ منطق: فقط فیلدهایی که تغییر کرده‌اند را ارسال کن
+    const submitData: Partial<PropertyTag> = {};
     
-    try {
-      const validatedData = propertyTagFormSchema.parse(formData);
-      
-      const submitData: Partial<PropertyTag> = {};
-      
-      if (validatedData.title !== tag.title) {
-        submitData.title = validatedData.title;
-      }
-      
-      if (validatedData.slug !== tag.slug) {
-        submitData.slug = validatedData.slug;
-      }
-      
-      if (validatedData.description !== (tag.description || "")) {
-        submitData.description = validatedData.description || "";
-      }
-      
-      if (validatedData.is_active !== (tag.is_active ?? true)) {
-        submitData.is_active = validatedData.is_active;
-      }
-      
-      if (validatedData.is_public !== (tag.is_public ?? true)) {
-        submitData.is_public = validatedData.is_public;
-      }
-      
-      if (Object.keys(submitData).length === 0) {
-        showInfo("تغییری اعمال نشده است");
-        return;
-      }
-      
-      updateTagMutation.mutate(submitData);
-    } catch (error: any) {
-      if (error.errors || error.issues) {
-        const fieldErrors: Record<string, string> = {};
-        const errorsToProcess = error.errors || error.issues || [];
-        errorsToProcess.forEach((err: any) => {
-          if (err.path && err.path.length > 0) {
-            fieldErrors[err.path[0]] = err.message;
-          }
-        });
-        setErrors(fieldErrors);
-      } else {
-        showError("خطا در اعتبارسنجی فرم");
-      }
+    if (data.title !== tag.title) {
+      submitData.title = data.title;
     }
-  };
+    
+    if (data.slug !== tag.slug) {
+      submitData.slug = data.slug;
+    }
+    
+    if (data.description !== (tag.description || "")) {
+      submitData.description = data.description || "";
+    }
+    
+    if (data.is_active !== (tag.is_active ?? true)) {
+      submitData.is_active = data.is_active;
+    }
+    
+    if (data.is_public !== (tag.is_public ?? true)) {
+      submitData.is_public = data.is_public;
+    }
+    
+    if (Object.keys(submitData).length === 0) {
+      showInfo("تغییری اعمال نشده است");
+      return;
+    }
+    
+    updateTagMutation.mutate(submitData);
+  });
 
   if (isLoading) {
     return (
@@ -177,7 +161,7 @@ export default function EditPropertyTagPage() {
   return (
     <div className="space-y-6 pb-28 relative">
 
-      <form id="tag-edit-form" onSubmit={handleSubmit}>
+      <form id="tag-edit-form" onSubmit={handleSubmit} noValidate>
         <CardWithIcon
           icon={Hash}
           title="اطلاعات تگ ملک"
@@ -188,43 +172,37 @@ export default function EditPropertyTagPage() {
         >
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
+              <FormFieldInput
                 label="عنوان"
-                htmlFor="title"
+                id="title"
                 required
-                error={errors.title}
-              >
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => handleInputChange("title", e.target.value)}
-                  placeholder="عنوان تگ ملک"
-                  required
-                />
-              </FormField>
-              <FormField
+                error={errors.title?.message}
+                placeholder="عنوان تگ ملک"
+                {...register("title")}
+              />
+              <FormFieldInput
                 label="نامک"
-                htmlFor="slug"
+                id="slug"
                 required
-                error={errors.slug}
-              >
-                <Input
-                  id="slug"
-                  value={formData.slug}
-                  onChange={(e) => handleInputChange("slug", e.target.value)}
-                  placeholder="نامک"
-                  required
-                />
-              </FormField>
+                error={errors.slug?.message}
+                placeholder="نامک"
+                {...register("slug", {
+                  onChange: (e) => {
+                    const formattedSlug = formatSlug(e.target.value);
+                    e.target.value = formattedSlug;
+                    setValue("slug", formattedSlug);
+                  }
+                })}
+              />
             </div>
 
             <FormFieldTextarea
               label="توضیحات"
               id="description"
+              error={errors.description?.message}
               placeholder="توضیحات تگ ملک (اختیاری)"
               rows={4}
-              value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
+              {...register("description")}
             />
 
             <div className="mt-6 space-y-4">
@@ -238,8 +216,8 @@ export default function EditPropertyTagPage() {
                   </ItemContent>
                   <ItemActions>
                     <Switch
-                      checked={formData.is_active}
-                      onCheckedChange={(checked) => handleInputChange("is_active", checked)}
+                      checked={watch("is_active")}
+                      onCheckedChange={(checked) => setValue("is_active", checked)}
                     />
                   </ItemActions>
                 </Item>
@@ -255,8 +233,8 @@ export default function EditPropertyTagPage() {
                   </ItemContent>
                   <ItemActions>
                     <Switch
-                      checked={formData.is_public}
-                      onCheckedChange={(checked) => handleInputChange("is_public", checked)}
+                      checked={watch("is_public")}
+                      onCheckedChange={(checked) => setValue("is_public", checked)}
                     />
                   </ItemActions>
                 </Item>
@@ -268,15 +246,12 @@ export default function EditPropertyTagPage() {
 
       <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
         <Button
-          type="button"
-          onClick={() => {
-            const form = document.getElementById('tag-edit-form') as HTMLFormElement;
-            if (form) form.requestSubmit();
-          }}
+          type="submit"
+          form="tag-edit-form"
           size="lg"
-          disabled={updateTagMutation.isPending}
+          disabled={updateTagMutation.isPending || isSubmitting}
         >
-          {updateTagMutation.isPending ? (
+          {updateTagMutation.isPending || isSubmitting ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
               در حال به‌روزرسانی...
@@ -292,4 +267,3 @@ export default function EditPropertyTagPage() {
     </div>
   );
 }
-

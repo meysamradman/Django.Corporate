@@ -1,5 +1,8 @@
 import { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
@@ -10,13 +13,16 @@ import {
 } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { showError, showSuccess } from '@/core/toast';
-import { propertyFormSchema } from '@/components/real-estate/validations/propertySchema';
+import { showError, showSuccess, extractFieldErrors, hasFieldErrors } from '@/core/toast';
+import { msg } from '@/core/messages';
+import { propertyFormSchema, propertyFormDefaults, type PropertyFormValues } from '@/components/real-estate/validations/propertySchema';
 import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
 import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
 import type { PropertyMedia } from "@/types/real_estate/realEstateMedia";
-import { collectMediaFilesAndIds } from "@/components/real-estate/utils/propertyMediaUtils";
+import { collectMediaFilesAndIds, parsePropertyMedia } from "@/components/real-estate/utils/propertyMediaUtils";
+import type { Property } from "@/types/real_estate/realEstate";
+import type { Media } from "@/types/shared/media";
 
 const TabSkeleton = () => (
   <div className="mt-0 space-y-6">
@@ -91,155 +97,25 @@ const ExtraAttributesTab = lazy(() => import("@/components/real-estate/list/crea
 
 export default function PropertyCreatePage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { id } = useParams<{ id?: string }>();
-  const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("account");
-  const [isEditMode, setIsEditMode] = useState(false);
+  const isEditMode = !!id;
+  const [tempFloorPlans, setTempFloorPlans] = useState<any[]>([]);
+  const [regionName, setRegionName] = useState<string>("");
+  const [districtName, setDistrictName] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (id) {
-      setIsEditMode(true);
-      const loadProperty = async () => {
-        try {
-          setIsLoading(true);
-          const property = await realEstateApi.getPropertyById(Number(id));
-          setFormData({
-            title: property.title || "",
-            slug: property.slug || "",
-            short_description: property.short_description || "",
-            description: property.description || "",
-            meta_title: property.meta_title || "",
-            meta_description: property.meta_description || "",
-            og_title: property.og_title || "",
-            og_description: property.og_description || "",
-            og_image: property.og_image || null,
-            canonical_url: property.canonical_url || "",
-            robots_meta: property.robots_meta || "",
-            is_public: property.is_public ?? true,
-            is_active: property.is_active ?? true,
-            is_published: property.is_published || false,
-            is_featured: property.is_featured || false,
-            property_type: property.property_type?.id || null,
-            state: property.state?.id || null,
-            agent: property.agent ? (property.agent as any).id : null,
-            agency: property.agency ? (property.agency as any).id : null,
-            province: property.province ? (property.province as any).id : null,
-            city: property.city ? (property.city as any).id : null,
-            district: (property as any).district || null,
-            country: null,
-            region_name: "",
-            district_name: "",
-            neighborhood: property.neighborhood || "",
-            address: property.address || "",
-            postal_code: property.postal_code || "",
-            latitude: property.latitude || null,
-            longitude: property.longitude || null,
-            land_area: property.land_area || null,
-            built_area: property.built_area || null,
-            bedrooms: property.bedrooms || null,
-            bathrooms: property.bathrooms || null,
-            kitchens: property.kitchens || null,
-            living_rooms: property.living_rooms || null,
-            year_built: property.year_built || null,
-            build_years: property.build_years || null,
-            floors_in_building: property.floors_in_building || null,
-            floor_number: property.floor_number || null,
-            parking_spaces: property.parking_spaces || null,
-            storage_rooms: property.storage_rooms || null,
-            document_type: (property as any).document_type || null,
-            price: property.price || null,
-            sale_price: property.sale_price || null,
-            pre_sale_price: property.pre_sale_price || null,
-            monthly_rent: property.monthly_rent || null,
-            mortgage_amount: property.mortgage_amount || null,
-            rent_amount: property.rent_amount || null,
-            security_deposit: property.security_deposit || null,
-            extra_attributes: (property as any).extra_attributes || {},
-            labels_ids: property.labels?.map((label: any) => label.id) || [],
-            tags_ids: property.tags?.map((tag: any) => tag.id) || [],
-            features_ids: property.features?.map((feature: any) => feature.id) || [],
-            main_image_id: property.main_image?.id || null,
-            og_image_id: property.og_image?.id || null,
-            status: typeof (property as any).status === 'object' ? (property as any).status?.value : ((property as any).status || "active"),
-          });
-
-          setSelectedLabels(property.labels || []);
-          setSelectedTags(property.tags || []);
-          setSelectedFeatures(property.features || []);
-        } catch (error) {
-          showError("خطا در بارگذاری اطلاعات ملک");
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      loadProperty();
-    }
-  }, [id]);
-
-  const [formData, setFormData] = useState({
-    title: "",
-    slug: "",
-    short_description: "",
-    description: "",
-    meta_title: "",
-    meta_description: "",
-    og_title: "",
-    og_description: "",
-    og_image: null as any,
-    canonical_url: "",
-    robots_meta: "",
-    is_public: true,
-    is_active: true,
-    is_published: false,
-    is_featured: false,
-    property_type: null as number | null,
-    state: null as number | null,
-    agent: null as number | null,
-    agency: null as number | null,
-    province: null as number | null,
-    city: null as number | null,
-    district: null as number | null,
-    country: null as number | null,
-    region_name: null as string | null,
-    district_name: null as string | null,
-    neighborhood: "",
-    address: "",
-    postal_code: "",
-    latitude: null as number | null,
-    longitude: null as number | null,
-    land_area: null as number | null,
-    built_area: null as number | null,
-    bedrooms: null as number | null,
-    bathrooms: null as number | null,
-    kitchens: null as number | null,
-    living_rooms: null as number | null,
-    year_built: null as number | null,
-    build_years: null as number | null,
-    floors_in_building: null as number | null,
-    floor_number: null as number | null,
-    parking_spaces: null as number | null,
-    storage_rooms: null as number | null,
-    document_type: null as string | null,
-    price: null as number | null,
-    sale_price: null as number | null,
-    pre_sale_price: null as number | null,
-    monthly_rent: null as number | null,
-    mortgage_amount: null as number | null,
-    rent_amount: null as number | null,
-    security_deposit: null as number | null,
-    extra_attributes: {} as Record<string, any>,
-    labels_ids: [] as number[],
-    tags_ids: [] as number[],
-    features_ids: [] as number[],
-    main_image_id: null as number | null,
-    og_image_id: null as number | null,
-    status: "active" as string,
+  const form = useForm<PropertyFormValues>({
+    resolver: zodResolver(propertyFormSchema) as any,
+    defaultValues: propertyFormDefaults as any,
+    mode: "onSubmit",
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const [tempFloorPlans, setTempFloorPlans] = useState<any[]>([]);
-
+  const { data: property, isLoading } = useQuery({
+    queryKey: ['property', id],
+    queryFn: () => realEstateApi.getPropertyById(Number(id!)),
+    enabled: !!id && isEditMode,
+  });
 
   const [selectedLabels, setSelectedLabels] = useState<PropertyLabel[]>([]);
   const [selectedTags, setSelectedTags] = useState<PropertyTag[]>([]);
@@ -252,139 +128,173 @@ export default function PropertyCreatePage() {
     pdfDocuments: []
   });
 
-  const handleInputChange = useCallback((field: string, value: string | any | boolean | null | number) => {
-    if (field === "title" && typeof value === "string") {
-      const generatedSlug = generateSlug(value);
-
-      setFormData(prev => ({
-        ...prev,
-        [field]: value,
-        slug: generatedSlug
-      }));
-    } else if (field === "slug" && typeof value === "string") {
-      const formattedSlug = formatSlug(value);
-      setFormData(prev => ({
-        ...prev,
-        [field]: formattedSlug
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
+  // پر کردن فرم با داده موجود (برای edit mode)
+  useEffect(() => {
+    if (property && isEditMode) {
+      const parsedMedia = (property.property_media || property.media)
+        ? parsePropertyMedia(property.property_media || property.media || [])
+        : {
+            featuredImage: null,
+            imageGallery: [],
+            videoGallery: [],
+            audioGallery: [],
+            pdfDocuments: []
+          };
+      
+      setPropertyMedia(parsedMedia);
+      
+      if (property.labels) {
+        setSelectedLabels(property.labels);
+      }
+      if (property.tags) {
+        setSelectedTags(property.tags);
+      }
+      if (property.features) {
+        setSelectedFeatures(property.features);
+      }
+      
+      setRegionName((property as any).region_name || "");
+      setDistrictName((property as any).district_name || null);
+      
+      form.reset({
+        title: property.title || "",
+        slug: property.slug || "",
+        short_description: property.short_description || "",
+        description: property.description || "",
+        meta_title: property.meta_title || "",
+        meta_description: property.meta_description || "",
+        og_title: property.og_title || "",
+        og_description: property.og_description || "",
+        og_image: property.og_image || null,
+        og_image_id: property.og_image?.id || null,
+        canonical_url: property.canonical_url || "",
+        robots_meta: property.robots_meta || "",
+        is_public: property.is_public ?? true,
+        is_active: property.is_active ?? true,
+        is_published: property.is_published ?? false,
+        is_featured: property.is_featured ?? false,
+        property_type: property.property_type?.id || undefined,
+        state: property.state?.id || undefined,
+        agent: property.agent?.id || null,
+        agency: property.agency?.id || null,
+        province: (property.province as any)?.id || property.province || null,
+        city: (property.city as any)?.id || property.city || null,
+        district: (property.district as any)?.id || property.district || null,
+        address: property.address || "",
+        postal_code: (property as any).postal_code || "",
+        neighborhood: property.neighborhood || "",
+        latitude: property.latitude ? Number(property.latitude) : null,
+        longitude: property.longitude ? Number(property.longitude) : null,
+        land_area: property.land_area ? Number(property.land_area) : null,
+        built_area: property.built_area ? Number(property.built_area) : null,
+        bedrooms: property.bedrooms || null,
+        bathrooms: property.bathrooms || null,
+        kitchens: (property as any).kitchens || null,
+        living_rooms: (property as any).living_rooms || null,
+        year_built: property.year_built ? Number(property.year_built) : null,
+        build_years: (property as any).build_years || null,
+        floors_in_building: property.floors_in_building ? Number(property.floors_in_building) : null,
+        floor_number: (property as any).floor_number || null,
+        parking_spaces: property.parking_spaces ? Number(property.parking_spaces) : null,
+        storage_rooms: property.storage_rooms ? Number(property.storage_rooms) : null,
+        document_type: (property as any).document_type || null,
+        price: property.price ? Number(property.price) : null,
+        sale_price: (property as any).sale_price ? Number((property as any).sale_price) : null,
+        pre_sale_price: (property as any).pre_sale_price ? Number((property as any).pre_sale_price) : null,
+        monthly_rent: (property as any).monthly_rent ? Number((property as any).monthly_rent) : null,
+        mortgage_amount: property.mortgage_amount ? Number(property.mortgage_amount) : null,
+        rent_amount: property.rent_amount ? Number(property.rent_amount) : null,
+        security_deposit: (property as any).security_deposit ? Number((property as any).security_deposit) : null,
+        status: typeof property.status === 'object' ? (property.status as any)?.value : (property.status || "active"),
+        extra_attributes: property.extra_attributes || {},
+        labels_ids: property.labels?.map((l: any) => l.id) || [],
+        tags_ids: property.tags?.map((t: any) => t.id) || [],
+        features_ids: property.features?.map((f: any) => f.id) || [],
+        main_image_id: property.main_image?.id || null,
+      });
     }
-  }, []);
+  }, [property, isEditMode, form]);
+
+  // Auto-generate slug from title
+  const titleValue = form.watch("title");
+  useEffect(() => {
+    if (titleValue && !isEditMode) {
+      const generatedSlug = generateSlug(titleValue);
+      form.setValue("slug", generatedSlug, { shouldValidate: false });
+    }
+  }, [titleValue, form, isEditMode]);
+
+  const handleFeaturedImageChange = (media: Media | null) => {
+    setPropertyMedia(prev => ({
+      ...prev,
+      featuredImage: media
+    }));
+    form.setValue("main_image_id", media?.id || null, { shouldValidate: false });
+  };
 
 
   const handleLabelToggle = useCallback((label: PropertyLabel) => {
     setSelectedLabels(prev => {
-      const exists = prev.find(l => l.id === label.id);
-      if (exists) {
-        const newLabels = prev.filter(l => l.id !== label.id);
-        setFormData(prevForm => ({
-          ...prevForm,
-          labels_ids: newLabels.map(l => l.id)
-        }));
+      const newLabels = prev.find(l => l.id === label.id)
+        ? prev.filter(l => l.id !== label.id)
+        : [...prev, label];
+      form.setValue("labels_ids", newLabels.map(l => l.id), { shouldValidate: false });
         return newLabels;
-      } else {
-        const newLabels = [...prev, label];
-        setFormData(prevForm => ({
-          ...prevForm,
-          labels_ids: newLabels.map(l => l.id)
-        }));
-        return newLabels;
-      }
     });
-  }, []);
+  }, [form]);
 
   const handleLabelRemove = useCallback((labelId: number) => {
     setSelectedLabels(prev => {
       const newLabels = prev.filter(l => l.id !== labelId);
-      setFormData(prevForm => ({
-        ...prevForm,
-        labels_ids: newLabels.map(l => l.id)
-      }));
+      form.setValue("labels_ids", newLabels.map(l => l.id), { shouldValidate: false });
       return newLabels;
     });
-  }, []);
+  }, [form]);
 
   const handleTagToggle = useCallback((tag: PropertyTag) => {
     setSelectedTags(prev => {
-      const exists = prev.find(t => t.id === tag.id);
-      if (exists) {
-        const newTags = prev.filter(t => t.id !== tag.id);
-        setFormData(prevForm => ({
-          ...prevForm,
-          tags_ids: newTags.map(t => t.id)
-        }));
+      const newTags = prev.find(t => t.id === tag.id)
+        ? prev.filter(t => t.id !== tag.id)
+        : [...prev, tag];
+      form.setValue("tags_ids", newTags.map(t => t.id), { shouldValidate: false });
         return newTags;
-      } else {
-        const newTags = [...prev, tag];
-        setFormData(prevForm => ({
-          ...prevForm,
-          tags_ids: newTags.map(t => t.id)
-        }));
-        return newTags;
-      }
     });
-  }, []);
+  }, [form]);
 
   const handleTagRemove = useCallback((tagId: number) => {
     setSelectedTags(prev => {
       const newTags = prev.filter(t => t.id !== tagId);
-      setFormData(prevForm => ({
-        ...prevForm,
-        tags_ids: newTags.map(t => t.id)
-      }));
+      form.setValue("tags_ids", newTags.map(t => t.id), { shouldValidate: false });
       return newTags;
     });
-  }, []);
+  }, [form]);
 
   const handleFeatureToggle = useCallback((feature: PropertyFeature) => {
     setSelectedFeatures(prev => {
-      const exists = prev.find(f => f.id === feature.id);
-      if (exists) {
-        const newFeatures = prev.filter(f => f.id !== feature.id);
-        setFormData(prevForm => ({
-          ...prevForm,
-          features_ids: newFeatures.map(f => f.id)
-        }));
+      const newFeatures = prev.find(f => f.id === feature.id)
+        ? prev.filter(f => f.id !== feature.id)
+        : [...prev, feature];
+      form.setValue("features_ids", newFeatures.map(f => f.id), { shouldValidate: false });
         return newFeatures;
-      } else {
-        const newFeatures = [...prev, feature];
-        setFormData(prevForm => ({
-          ...prevForm,
-          features_ids: newFeatures.map(f => f.id)
-        }));
-        return newFeatures;
-      }
     });
-  }, []);
+  }, [form]);
 
   const handleFeatureRemove = useCallback((featureId: number) => {
     setSelectedFeatures(prev => {
       const newFeatures = prev.filter(f => f.id !== featureId);
-      setFormData(prevForm => ({
-        ...prevForm,
-        features_ids: newFeatures.map(f => f.id)
-      }));
+      form.setValue("features_ids", newFeatures.map(f => f.id), { shouldValidate: false });
       return newFeatures;
     });
-  }, []);
+  }, [form]);
 
-  const handleSubmit = useCallback(async () => {
-    setIsLoading(true);
-    setErrors({}); // Clear previous errors
-    try {
-      const dataToValidate = {
-        ...formData,
-        labels_ids: selectedLabels.map(label => label.id),
-        tags_ids: selectedTags.map(tag => tag.id),
-        features_ids: selectedFeatures.map(feature => feature.id),
-      };
-      
-      const accountErrors: Record<string, string> = {};
-      
+  const handleLocationChange = useCallback((latitude: number | null, longitude: number | null) => {
+    form.setValue("latitude", latitude, { shouldValidate: false });
+    form.setValue("longitude", longitude, { shouldValidate: false });
+  }, [form]);
+
+  const createPropertyMutation = useMutation({
+    mutationFn: async (data: PropertyFormValues) => {
+      // Validation برای تب account
       try {
         propertyFormSchema.pick({
           title: true,
@@ -393,14 +303,15 @@ export default function PropertyCreatePage() {
           state: true,
           status: true,
         }).parse({
-          title: dataToValidate.title,
-          slug: dataToValidate.slug,
-          property_type: dataToValidate.property_type,
-          state: dataToValidate.state,
-          status: dataToValidate.status,
+          title: data.title,
+          slug: data.slug,
+          property_type: data.property_type,
+          state: data.state,
+          status: data.status,
         });
       } catch (accountError: any) {
         if (accountError.errors || accountError.issues) {
+          const accountErrors: Record<string, string> = {};
           const errorsToProcess = accountError.errors || accountError.issues || [];
           errorsToProcess.forEach((err: any) => {
             if (err.path && err.path.length > 0) {
@@ -410,27 +321,28 @@ export default function PropertyCreatePage() {
               }
             }
           });
-          setErrors(accountErrors);
+          Object.entries(accountErrors).forEach(([field, message]) => {
+            form.setError(field as any, { type: 'validation', message });
+          });
           setActiveTab("account");
-          setIsLoading(false);
-          return;
+          throw accountError;
         }
       }
       
-      const locationErrors: Record<string, string> = {};
-      
+      // Validation برای تب location
       try {
         propertyFormSchema.pick({
           province: true,
           city: true,
           address: true,
         }).parse({
-          province: dataToValidate.province,
-          city: dataToValidate.city,
-          address: dataToValidate.address,
+          province: data.province,
+          city: data.city,
+          address: data.address,
         });
       } catch (locationError: any) {
         if (locationError.errors || locationError.issues) {
+          const locationErrors: Record<string, string> = {};
           const errorsToProcess = locationError.errors || locationError.issues || [];
           errorsToProcess.forEach((err: any) => {
             if (err.path && err.path.length > 0) {
@@ -440,21 +352,25 @@ export default function PropertyCreatePage() {
               }
             }
           });
-          setErrors(locationErrors);
+          Object.entries(locationErrors).forEach(([field, message]) => {
+            form.setError(field as any, { type: 'validation', message });
+          });
           setActiveTab("location");
-          setIsLoading(false);
-          return;
+          throw locationError;
         }
       }
       
-      const validatedData = propertyFormSchema.parse(dataToValidate);
-
+      const validatedData = propertyFormSchema.parse(data);
+      const { allMediaFiles, allMediaIds } = collectMediaFilesAndIds(
+        propertyMedia,
+        validatedData.og_image
+      );
 
       const updateData: any = {
         title: validatedData.title,
-        slug: validatedData.slug,
-        short_description: validatedData.short_description,
-        description: validatedData.description,
+        slug: formatSlug(validatedData.slug),
+        short_description: validatedData.short_description || "",
+        description: validatedData.description || "",
         labels_ids: validatedData.labels_ids,
         tags_ids: validatedData.tags_ids,
         features_ids: validatedData.features_ids,
@@ -476,89 +392,43 @@ export default function PropertyCreatePage() {
         province: validatedData.province || undefined,
         city: validatedData.city || undefined,
         region: validatedData.district || undefined,
-        region_name: formData.region_name || undefined,
-        district_name: formData.district_name || undefined,
+        region_name: regionName || undefined,
+        district_name: districtName || undefined,
         address: validatedData.address || undefined,
-        latitude: validatedData.latitude !== null && validatedData.latitude !== undefined
-          ? validatedData.latitude
-          : undefined,
-        longitude: validatedData.longitude !== null && validatedData.longitude !== undefined
-          ? validatedData.longitude
-          : undefined,
-        land_area: validatedData.land_area !== null && validatedData.land_area !== undefined
-          ? validatedData.land_area
-          : undefined,
-        built_area: validatedData.built_area !== null && validatedData.built_area !== undefined
-          ? validatedData.built_area
-          : undefined,
-        bedrooms: validatedData.bedrooms !== null && validatedData.bedrooms !== undefined
-          ? validatedData.bedrooms
-          : undefined,
-        bathrooms: validatedData.bathrooms !== null && validatedData.bathrooms !== undefined
-          ? validatedData.bathrooms
-          : undefined,
-        kitchens: validatedData.kitchens !== null && validatedData.kitchens !== undefined
-          ? validatedData.kitchens
-          : undefined,
-        living_rooms: validatedData.living_rooms !== null && validatedData.living_rooms !== undefined
-          ? validatedData.living_rooms
-          : undefined,
-        year_built: validatedData.year_built !== null && validatedData.year_built !== undefined
-          ? validatedData.year_built
-          : undefined,
-        build_years: validatedData.build_years !== null && validatedData.build_years !== undefined
-          ? validatedData.build_years
-          : undefined,
-        floors_in_building: validatedData.floors_in_building !== null && validatedData.floors_in_building !== undefined
-          ? validatedData.floors_in_building
-          : undefined,
-        floor_number: validatedData.floor_number !== null && validatedData.floor_number !== undefined
-          ? validatedData.floor_number
-          : undefined,
-        parking_spaces: validatedData.parking_spaces !== null && validatedData.parking_spaces !== undefined
-          ? validatedData.parking_spaces
-          : undefined,
-        storage_rooms: validatedData.storage_rooms !== null && validatedData.storage_rooms !== undefined
-          ? validatedData.storage_rooms
-          : undefined,
+        neighborhood: validatedData.neighborhood || undefined,
+        latitude: validatedData.latitude !== null && validatedData.latitude !== undefined ? validatedData.latitude : undefined,
+        longitude: validatedData.longitude !== null && validatedData.longitude !== undefined ? validatedData.longitude : undefined,
+        land_area: validatedData.land_area !== null && validatedData.land_area !== undefined ? validatedData.land_area : undefined,
+        built_area: validatedData.built_area !== null && validatedData.built_area !== undefined ? validatedData.built_area : undefined,
+        bedrooms: validatedData.bedrooms !== null && validatedData.bedrooms !== undefined ? validatedData.bedrooms : undefined,
+        bathrooms: validatedData.bathrooms !== null && validatedData.bathrooms !== undefined ? validatedData.bathrooms : undefined,
+        kitchens: validatedData.kitchens !== null && validatedData.kitchens !== undefined ? validatedData.kitchens : undefined,
+        living_rooms: validatedData.living_rooms !== null && validatedData.living_rooms !== undefined ? validatedData.living_rooms : undefined,
+        year_built: validatedData.year_built !== null && validatedData.year_built !== undefined ? validatedData.year_built : undefined,
+        build_years: validatedData.build_years !== null && validatedData.build_years !== undefined ? validatedData.build_years : undefined,
+        floors_in_building: validatedData.floors_in_building !== null && validatedData.floors_in_building !== undefined ? validatedData.floors_in_building : undefined,
+        floor_number: validatedData.floor_number !== null && validatedData.floor_number !== undefined ? validatedData.floor_number : undefined,
+        parking_spaces: validatedData.parking_spaces !== null && validatedData.parking_spaces !== undefined ? validatedData.parking_spaces : undefined,
+        storage_rooms: validatedData.storage_rooms !== null && validatedData.storage_rooms !== undefined ? validatedData.storage_rooms : undefined,
         document_type: validatedData.document_type || undefined,
-        price: validatedData.price !== null && validatedData.price !== undefined
-          ? validatedData.price
-          : 0,
-        sale_price: validatedData.sale_price !== null && validatedData.sale_price !== undefined
-          ? validatedData.sale_price
-          : undefined,
-        pre_sale_price: validatedData.pre_sale_price !== null && validatedData.pre_sale_price !== undefined
-          ? validatedData.pre_sale_price
-          : undefined,
-        monthly_rent: validatedData.monthly_rent !== null && validatedData.monthly_rent !== undefined
-          ? validatedData.monthly_rent
-          : undefined,
-        mortgage_amount: validatedData.mortgage_amount !== null && validatedData.mortgage_amount !== undefined
-          ? validatedData.mortgage_amount
-          : 0,
-        rent_amount: validatedData.rent_amount !== null && validatedData.rent_amount !== undefined
-          ? validatedData.rent_amount
-          : 0,
-        security_deposit: validatedData.security_deposit !== null && validatedData.security_deposit !== undefined
-          ? validatedData.security_deposit
-          : undefined,
+        price: validatedData.price !== null && validatedData.price !== undefined ? validatedData.price : 0,
+        sale_price: validatedData.sale_price !== null && validatedData.sale_price !== undefined ? validatedData.sale_price : undefined,
+        pre_sale_price: validatedData.pre_sale_price !== null && validatedData.pre_sale_price !== undefined ? validatedData.pre_sale_price : undefined,
+        monthly_rent: validatedData.monthly_rent !== null && validatedData.monthly_rent !== undefined ? validatedData.monthly_rent : undefined,
+        mortgage_amount: validatedData.mortgage_amount !== null && validatedData.mortgage_amount !== undefined ? validatedData.mortgage_amount : 0,
+        rent_amount: validatedData.rent_amount !== null && validatedData.rent_amount !== undefined ? validatedData.rent_amount : 0,
+        security_deposit: validatedData.security_deposit !== null && validatedData.security_deposit !== undefined ? validatedData.security_deposit : undefined,
         status: validatedData.status,
+        extra_attributes: validatedData.extra_attributes && Object.keys(validatedData.extra_attributes).length > 0 ? validatedData.extra_attributes : undefined,
       };
-
-      const { allMediaFiles, allMediaIds } = collectMediaFilesAndIds(
-        propertyMedia,
-        formData.og_image
-      );
 
       if (allMediaIds.length > 0) {
         updateData.media_ids = allMediaIds;
       }
 
-      let property;
+      let property: Property;
       if (isEditMode && id) {
         property = await realEstateApi.updateProperty(Number(id), updateData);
-
         if (allMediaFiles.length > 0 || allMediaIds.length > 0) {
           await realEstateApi.addMediaToProperty(Number(id), allMediaFiles, allMediaIds);
         }
@@ -570,57 +440,54 @@ export default function PropertyCreatePage() {
         }
       }
 
-      showSuccess(isEditMode ? "ملک با موفقیت ویرایش شد" : "ملک با موفقیت ایجاد شد");
-      navigate(`/real-estate/properties/${property.id}/view`);
-    } catch (error: any) {
-      if (error.errors || error.issues) {
-        const fieldErrors: Record<string, string> = {};
-        const errorsToProcess = error.errors || error.issues || [];
-        
-        errorsToProcess.forEach((err: any) => {
-          if (err.path && err.path.length > 0) {
-            const fieldName = err.path[0];
-            if (!fieldErrors[fieldName]) {
-              fieldErrors[fieldName] = err.message;
-            }
-            
-            if (['title', 'slug', 'property_type', 'state', 'status'].includes(fieldName)) {
-              setActiveTab("account");
-            } else if (['province', 'city', 'address', 'latitude', 'longitude', 'postal_code', 'neighborhood'].includes(fieldName)) {
-              setActiveTab("location");
-            } else if (['land_area', 'built_area', 'bedrooms', 'bathrooms', 'price', 'sale_price', 'monthly_rent', 'mortgage_amount'].includes(fieldName)) {
-              setActiveTab("details");
-            }
-          }
-        });
-        setErrors(fieldErrors);
-        setIsLoading(false);
-        return;
+      return property;
+    },
+    onSuccess: (property) => {
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      if (isEditMode && id) {
+        queryClient.invalidateQueries({ queryKey: ['property', id] });
       }
       
-      if (error.response && error.response.status === 400) {
-        const backendErrors = error.response.data;
-        const newErrors: Record<string, string> = {};
-
-        Object.keys(backendErrors).forEach(key => {
-          const err = backendErrors[key];
-          if (Array.isArray(err)) {
-            newErrors[key] = err[0];
-          } else if (typeof err === 'string') {
-            newErrors[key] = err;
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(isEditMode 
+        ? msg.crud("updated", { item: "ملک" })
+        : msg.crud("created", { item: "ملک" })
+      );
+      navigate(`/real-estate/properties/${property.id}/view`);
+    },
+    onError: (error: any) => {
+      // ✅ Field Errors → Inline + Toast کلی
+      if (hasFieldErrors(error)) {
+        const fieldErrors = extractFieldErrors(error);
+        
+        Object.entries(fieldErrors).forEach(([field, message]) => {
+          form.setError(field as any, {
+            type: 'server',
+            message: message as string
+          });
+          
+          // Switch to appropriate tab based on field
+          if (['title', 'slug', 'property_type', 'state', 'status'].includes(field)) {
+              setActiveTab("account");
+          } else if (['province', 'city', 'address', 'latitude', 'longitude', 'postal_code', 'neighborhood'].includes(field)) {
+              setActiveTab("location");
+          } else if (['land_area', 'built_area', 'bedrooms', 'bathrooms', 'price', 'sale_price', 'monthly_rent', 'mortgage_amount'].includes(field)) {
+              setActiveTab("details");
           }
         });
-
-        setErrors(newErrors);
-        setIsLoading(false);
-      } else {
-        showError("خطا در ایجاد ملک");
-        setIsLoading(false);
+        
+        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
+      } 
+      // ✅ General Errors → فقط Toast
+      else {
+        showError(error);
       }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [formData, selectedLabels, selectedTags, selectedFeatures, navigate, isEditMode, id]);
+    },
+  });
+
+  const handleSubmit = form.handleSubmit(async (data) => {
+    createPropertyMutation.mutate(data);
+  });
 
 
   return (
@@ -666,8 +533,7 @@ export default function PropertyCreatePage() {
         <TabsContent value="account">
           <Suspense fallback={<TabSkeleton />}>
             <BaseInfoTab
-              formData={formData}
-              handleInputChange={handleInputChange}
+              form={form as any}
               editMode={true}
               selectedLabels={selectedLabels}
               selectedTags={selectedTags}
@@ -679,33 +545,29 @@ export default function PropertyCreatePage() {
               onFeatureToggle={handleFeatureToggle}
               onFeatureRemove={handleFeatureRemove}
               propertyId={undefined}
-              errors={errors}
             />
-
           </Suspense>
         </TabsContent>
         <TabsContent value="location">
           <Suspense fallback={<TabSkeleton />}>
             <LocationTab
-              formData={formData}
-              handleInputChange={handleInputChange}
+              form={form as any}
               editMode={true}
-              latitude={formData.latitude}
-              longitude={formData.longitude}
-              onLocationChange={useCallback((latitude: number | null, longitude: number | null) => {
-                setFormData(prev => ({ ...prev, latitude, longitude }));
-              }, [])}
-              errors={errors}
+              latitude={form.watch("latitude")}
+              longitude={form.watch("longitude")}
+              onLocationChange={handleLocationChange}
+              regionName={regionName}
+              districtName={districtName}
+              onRegionNameChange={setRegionName}
+              onDistrictNameChange={setDistrictName}
             />
           </Suspense>
         </TabsContent>
         <TabsContent value="details">
           <Suspense fallback={<TabSkeleton />}>
             <DetailsTab
-              formData={formData}
-              handleInputChange={handleInputChange}
+              form={form as any}
               editMode={true}
-              errors={errors}
             />
           </Suspense>
         </TabsContent>
@@ -726,12 +588,7 @@ export default function PropertyCreatePage() {
               setPropertyMedia={setPropertyMedia}
               editMode={true}
               featuredImage={propertyMedia.featuredImage}
-              onFeaturedImageChange={(media) => {
-                setPropertyMedia(prev => ({
-                  ...prev,
-                  featuredImage: media
-                }));
-              }}
+              onFeaturedImageChange={handleFeaturedImageChange}
               propertyId={undefined}
             />
           </Suspense>
@@ -739,8 +596,7 @@ export default function PropertyCreatePage() {
         <TabsContent value="seo">
           <Suspense fallback={<TabSkeleton />}>
             <SEOTab
-              formData={formData}
-              handleInputChange={handleInputChange}
+              form={form as any}
               editMode={true}
               propertyId={undefined}
             />
@@ -749,8 +605,7 @@ export default function PropertyCreatePage() {
         <TabsContent value="extra">
           <Suspense fallback={<TabSkeleton />}>
             <ExtraAttributesTab
-              formData={formData}
-              handleInputChange={handleInputChange}
+              form={form as any}
               editMode={true}
             />
           </Suspense>
@@ -761,9 +616,9 @@ export default function PropertyCreatePage() {
         <Button
           onClick={handleSubmit}
           size="lg"
-          disabled={isLoading}
+          disabled={createPropertyMutation.isPending || form.formState.isSubmitting}
         >
-          {isLoading ? (
+          {createPropertyMutation.isPending || form.formState.isSubmitting ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
               در حال ذخیره...

@@ -15,7 +15,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
-import { getCrud, getConfirm, getStatus } from '@/core/messages';
+import { msg } from '@/core/messages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -201,7 +201,8 @@ export default function PortfolioPage() {
     mutationFn: (portfolioId: number) => portfolioApi.deletePortfolio(portfolioId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
-      showSuccess(getCrud('deleted', { item: 'نمونه‌کار' }));
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud('deleted', { item: 'نمونه‌کار' }));
     },
     onError: (_error) => {
       showError('خطای سرور رخ داد');
@@ -212,7 +213,8 @@ export default function PortfolioPage() {
     mutationFn: (portfolioIds: number[]) => portfolioApi.bulkDeletePortfolios(portfolioIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
-      showSuccess(getCrud('deleted', { item: 'نمونه‌کارها' }));
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud('deleted', { item: 'نمونه‌کارها' }));
       setRowSelection({});
     },
     onError: (_error) => {

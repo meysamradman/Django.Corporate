@@ -1,18 +1,19 @@
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
-import { Input } from "@/components/elements/Input";
-import { FormField } from "@/components/forms/FormField";
-import { Textarea } from "@/components/elements/Textarea";
+import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
 import { Switch } from "@/components/elements/Switch";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
-import { showError, showSuccess } from "@/core/toast";
+import { showError, showSuccess, extractFieldErrors, hasFieldErrors } from "@/core/toast";
+import { msg } from "@/core/messages";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { blogApi } from "@/api/blogs/blogs";
 import type { BlogTag } from "@/types/blog/tags/blogTag";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { blogTagFormSchema, blogTagFormDefaults } from '@/components/blogs/validations/tagSchema';
+import { blogTagFormSchema, blogTagFormDefaults, type BlogTagFormValues } from '@/components/blogs/validations/tagSchema';
 import { Tag, Loader2, Save } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
@@ -20,18 +21,52 @@ export default function CreateTagPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [formData, setFormData] = useState(blogTagFormDefaults);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const form = useForm<BlogTagFormValues>({
+    resolver: zodResolver(blogTagFormSchema) as any,
+    defaultValues: blogTagFormDefaults as any,
+    mode: "onSubmit",
+  });
+
+  const { register, formState: { errors, isSubmitting }, watch, setValue } = form;
+  const nameValue = watch("name");
+
+  // Auto-generate slug from name
+  useEffect(() => {
+    if (nameValue) {
+      const generatedSlug = generateSlug(nameValue);
+      setValue("slug", generatedSlug, { shouldValidate: false });
+    }
+  }, [nameValue, setValue]);
 
   const createTagMutation = useMutation({
     mutationFn: (data: Partial<BlogTag>) => blogApi.createTag(data),
     onSuccess: () => {
-      showSuccess("تگ با موفقیت ایجاد شد");
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud("created", { item: "تگ" }));
       queryClient.invalidateQueries();
       navigate("/blogs/tags");
     },
-    onError: (_error) => {
-      showError("خطا در ایجاد تگ");
+    onError: (error: any) => {
+      // ✅ Field Errors → Inline + Toast کلی
+      if (hasFieldErrors(error)) {
+        const fieldErrors = extractFieldErrors(error);
+        
+        Object.entries(fieldErrors).forEach(([field, message]) => {
+          form.setError(field as keyof BlogTagFormValues, {
+            type: 'server',
+            message: message as string
+          });
+        });
+        
+        // Toast کلی برای راهنمایی کاربر
+        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
+      } 
+      // ✅ General Errors → فقط Toast
+      else {
+        // showError خودش تصمیم می‌گیرد (بک‌اند یا frontend)
+        showError(error);
+      }
     },
   });
 
@@ -42,59 +77,9 @@ export default function CreateTagPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    if (formData.name && !formData.slug) {
-      const generatedSlug = generateSlug(formData.name);
-      setFormData(prev => ({ ...prev, slug: generatedSlug }));
-    }
-  }, [formData.name, formData.slug]);
-
-  const handleInputChange = (field: string, value: string | boolean) => {
-    if (field === "name" && typeof value === "string") {
-      const generatedSlug = generateSlug(value);
-      
-      setFormData(prev => ({
-        ...prev,
-        [field]: value,
-        slug: generatedSlug
-      }));
-    } else if (field === "slug" && typeof value === "string") {
-      const formattedSlug = formatSlug(value);
-      setFormData(prev => ({
-        ...prev,
-        [field]: formattedSlug
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
-    }
-  };
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    
-    setErrors({});
-    
-    try {
-      const validatedData = blogTagFormSchema.parse(formData);
-      createTagMutation.mutate(validatedData);
-    } catch (error: any) {
-      if (error.errors || error.issues) {
-        const fieldErrors: Record<string, string> = {};
-        const errorsToProcess = error.errors || error.issues || [];
-        errorsToProcess.forEach((err: any) => {
-          if (err.path && err.path.length > 0) {
-            fieldErrors[err.path[0]] = err.message;
-          }
-        });
-        setErrors(fieldErrors);
-      } else {
-        showError("خطا در اعتبارسنجی فرم");
-      }
-    }
-  };
+  const handleSubmit = form.handleSubmit(async (data) => {
+    createTagMutation.mutate(data);
+  });
 
   if (isInitialLoading) {
     return (
@@ -135,7 +120,7 @@ export default function CreateTagPage() {
   return (
     <div className="space-y-6 pb-28 relative">
 
-      <form id="tag-form" onSubmit={handleSubmit}>
+      <form id="tag-form" onSubmit={handleSubmit} noValidate>
         <CardWithIcon
           icon={Tag}
           title="اطلاعات تگ"
@@ -146,49 +131,38 @@ export default function CreateTagPage() {
         >
             <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
+              <FormFieldInput
                 label="نام"
-                htmlFor="name"
+                id="name"
                 required
-                error={errors.name}
-              >
-                <Input
-                  id="name"
-                  value={formData.name || ""}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
-                  placeholder="نام تگ"
-                  required
-                />
-              </FormField>
-              <FormField
+                error={errors.name?.message}
+                placeholder="نام تگ"
+                {...register("name")}
+              />
+              <FormFieldInput
                 label="نامک"
-                htmlFor="slug"
+                id="slug"
                 required
-                error={errors.slug}
-              >
-                <Input
-                  id="slug"
-                  value={formData.slug || ""}
-                  onChange={(e) => handleInputChange("slug", e.target.value)}
-                  placeholder="نامک"
-                  required
-                />
-              </FormField>
+                error={errors.slug?.message}
+                placeholder="نامک"
+                {...register("slug", {
+                  onChange: (e) => {
+                    const formattedSlug = formatSlug(e.target.value);
+                    e.target.value = formattedSlug;
+                    setValue("slug", formattedSlug);
+                  }
+                })}
+              />
             </div>
 
-            <FormField
+            <FormFieldTextarea
               label="توضیحات"
-              htmlFor="description"
-              error={errors.description}
-            >
-              <Textarea
-                id="description"
-                value={formData.description || ""}
-                onChange={(e) => handleInputChange("description", e.target.value)}
-                placeholder="توضیحات تگ"
-                rows={4}
-              />
-            </FormField>
+              id="description"
+              error={errors.description?.message}
+              placeholder="توضیحات تگ"
+              rows={4}
+              {...register("description")}
+            />
 
             <div className="mt-6 space-y-4">
               <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
@@ -201,8 +175,8 @@ export default function CreateTagPage() {
                   </ItemContent>
                   <ItemActions>
                     <Switch
-                      checked={formData.is_active}
-                      onCheckedChange={(checked) => handleInputChange("is_active", checked)}
+                      checked={watch("is_active")}
+                      onCheckedChange={(checked) => setValue("is_active", checked)}
                     />
                   </ItemActions>
                 </Item>
@@ -218,8 +192,8 @@ export default function CreateTagPage() {
                   </ItemContent>
                   <ItemActions>
                     <Switch
-                      checked={formData.is_public}
-                      onCheckedChange={(checked) => handleInputChange("is_public", checked)}
+                      checked={watch("is_public")}
+                      onCheckedChange={(checked) => setValue("is_public", checked)}
                     />
                   </ItemActions>
                 </Item>
@@ -232,15 +206,12 @@ export default function CreateTagPage() {
 
       <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
         <Button
-          type="button"
-          onClick={() => {
-            const form = document.getElementById('tag-form') as HTMLFormElement;
-            if (form) form.requestSubmit();
-          }}
+          type="submit"
+          form="tag-form"
           size="lg"
-          disabled={createTagMutation.isPending}
+          disabled={createTagMutation.isPending || isSubmitting}
         >
-          {createTagMutation.isPending ? (
+          {createTagMutation.isPending || isSubmitting ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
               در حال ایجاد...

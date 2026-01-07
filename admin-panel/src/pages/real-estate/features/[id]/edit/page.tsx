@@ -1,12 +1,14 @@
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
-import { Input } from "@/components/elements/Input";
-import { FormField } from "@/components/forms/FormField";
+import { FormFieldInput } from "@/components/forms/FormField";
 import { Switch } from "@/components/elements/Switch";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
-import { showError, showSuccess, showInfo } from "@/core/toast";
+import { showError, showSuccess, showInfo, extractFieldErrors, hasFieldErrors } from "@/core/toast";
+import { msg } from "@/core/messages";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
@@ -15,7 +17,7 @@ import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
 import { Settings, Loader2, Save, Star, Image as ImageIcon, UploadCloud, X } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { propertyFeatureFormSchema } from '@/components/real-estate/validations/featureSchema';
+import { propertyFeatureFormSchema, propertyFeatureFormDefaults, type PropertyFeatureFormValues } from '@/components/real-estate/validations/featureSchema';
 
 export default function EditPropertyFeaturePage() {
   const navigate = useNavigate();
@@ -25,13 +27,14 @@ export default function EditPropertyFeaturePage() {
   
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
-  
-  const [formData, setFormData] = useState({
-    title: "",
-    group: "",
-    is_active: true,
+
+  const form = useForm<PropertyFeatureFormValues>({
+    resolver: zodResolver(propertyFeatureFormSchema) as any,
+    defaultValues: propertyFeatureFormDefaults as any,
+    mode: "onSubmit",
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const { register, formState: { errors, isSubmitting }, watch, setValue } = form;
 
   const { data: feature, isLoading, error } = useQuery({
     queryKey: ['property-feature', featureId],
@@ -39,108 +42,97 @@ export default function EditPropertyFeaturePage() {
     enabled: !!featureId,
   });
 
+  // Reset form with feature data
   useEffect(() => {
     if (feature) {
-      setFormData({
+      form.reset({
         title: feature.title || "",
         group: feature.group || "",
-        is_active: feature.is_active,
+        is_active: feature.is_active ?? true,
+        image_id: feature.image?.id || null,
       });
       
       if (feature.image) {
         setSelectedMedia(feature.image);
       }
     }
-  }, [feature]);
+  }, [feature, form]);
 
   const updateFeatureMutation = useMutation({
     mutationFn: (data: Partial<PropertyFeature>) => realEstateApi.partialUpdateFeature(featureId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-feature', featureId] });
       queryClient.invalidateQueries({ queryKey: ['property-features'] });
-      showSuccess("ویژگی ملک با موفقیت به‌روزرسانی شد");
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud("updated", { item: "ویژگی ملک" }));
       navigate("/real-estate/features");
     },
     onError: (error: any) => {
-      const errorData = error?.response?.data?.data;
-      const errorMessage = errorData?.detail || 
-                          error?.response?.data?.metaData?.message ||
-                          "خطا در به‌روزرسانی ویژگی ملک";
-      showError(errorMessage);
+      // ✅ Field Errors → Inline + Toast کلی
+      if (hasFieldErrors(error)) {
+        const fieldErrors = extractFieldErrors(error);
+        
+        Object.entries(fieldErrors).forEach(([field, message]) => {
+          form.setError(field as keyof PropertyFeatureFormValues, {
+            type: 'server',
+            message: message as string
+          });
+        });
+        
+        // Toast کلی برای راهنمایی کاربر
+        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
+      } 
+      // ✅ General Errors → فقط Toast
+      else {
+        // showError خودش تصمیم می‌گیرد (بک‌اند یا frontend)
+        showError(error);
+      }
     },
   });
-
-  const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
 
   const handleImageSelect = (media: Media | Media[] | null) => {
     const selected = Array.isArray(media) ? media[0] || null : media;
     setSelectedMedia(selected);
+    setValue("image_id", selected?.id || null, { shouldValidate: false });
     setIsMediaModalOpen(false);
   };
 
   const handleRemoveImage = () => {
     setSelectedMedia(null);
+    setValue("image_id", null, { shouldValidate: false });
   };
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = form.handleSubmit(async (data) => {
     if (!feature) return;
     
-    setErrors({});
+    // ✅ حفظ منطق: فقط فیلدهایی که تغییر کرده‌اند را ارسال کن
+    const submitData: Partial<PropertyFeature> = {};
     
-    try {
-      const validatedData = propertyFeatureFormSchema.parse({
-        ...formData,
-        image_id: selectedMedia?.id || null,
-      });
-      
-      const submitData: Partial<PropertyFeature> = {};
-      
-      if (validatedData.title !== feature.title) {
-        submitData.title = validatedData.title;
-      }
-      
-      if (validatedData.group !== (feature.group || "")) {
-        submitData.group = validatedData.group || null;
-      }
-      
-      if (validatedData.is_active !== feature.is_active) {
-        submitData.is_active = validatedData.is_active;
-      }
-      
-      const currentImageId = feature.image?.id || null;
-      const newImageId = validatedData.image_id || null;
-      if (currentImageId !== newImageId) {
-        (submitData as any).image_id = newImageId;
-      }
-      
-      if (Object.keys(submitData).length === 0) {
-        showInfo("تغییری اعمال نشده است");
-        return;
-      }
-      
-      updateFeatureMutation.mutate(submitData);
-    } catch (error: any) {
-      if (error.errors || error.issues) {
-        const fieldErrors: Record<string, string> = {};
-        const errorsToProcess = error.errors || error.issues || [];
-        errorsToProcess.forEach((err: any) => {
-          if (err.path && err.path.length > 0) {
-            fieldErrors[err.path[0]] = err.message;
-          }
-        });
-        setErrors(fieldErrors);
-      } else {
-        showError("خطا در اعتبارسنجی فرم");
-      }
+    if (data.title !== feature.title) {
+      submitData.title = data.title;
     }
-  };
+    
+    if (data.group !== (feature.group || "")) {
+      submitData.group = data.group || null;
+    }
+    
+    if (data.is_active !== (feature.is_active ?? true)) {
+      submitData.is_active = data.is_active;
+    }
+    
+    const currentImageId = feature.image?.id || null;
+    const newImageId = data.image_id || null;
+    if (currentImageId !== newImageId) {
+      (submitData as any).image_id = newImageId;
+    }
+    
+    if (Object.keys(submitData).length === 0) {
+      showInfo("تغییری اعمال نشده است");
+      return;
+    }
+    
+    updateFeatureMutation.mutate(submitData);
+  });
 
   if (isLoading) {
     return (
@@ -178,7 +170,7 @@ export default function EditPropertyFeaturePage() {
   return (
     <div className="space-y-6 pb-28 relative">
 
-      <form id="feature-edit-form" onSubmit={handleSubmit}>
+      <form id="feature-edit-form" onSubmit={handleSubmit} noValidate>
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-4 space-y-6">
             <CardWithIcon
@@ -191,32 +183,21 @@ export default function EditPropertyFeaturePage() {
             >
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
+                  <FormFieldInput
                     label="عنوان"
-                    htmlFor="title"
+                    id="title"
                     required
-                    error={errors.title}
-                  >
-                    <Input
-                      id="title"
-                      value={formData.title}
-                      onChange={(e) => handleInputChange("title", e.target.value)}
-                      placeholder="عنوان ویژگی ملک"
-                      required
-                    />
-                  </FormField>
-                  <FormField
+                    error={errors.title?.message}
+                    placeholder="عنوان ویژگی ملک"
+                    {...register("title")}
+                  />
+                  <FormFieldInput
                     label="دسته‌بندی"
-                    htmlFor="group"
-                    error={errors.group}
-                  >
-                    <Input
-                      id="group"
-                      value={formData.group}
-                      onChange={(e) => handleInputChange("group", e.target.value)}
-                      placeholder="دسته‌بندی ویژگی"
-                    />
-                  </FormField>
+                    id="group"
+                    error={errors.group?.message}
+                    placeholder="دسته‌بندی ویژگی"
+                    {...register("group")}
+                  />
                 </div>
 
                 <div className="mt-6 space-y-4">
@@ -230,8 +211,8 @@ export default function EditPropertyFeaturePage() {
                       </ItemContent>
                       <ItemActions>
                         <Switch
-                          checked={formData.is_active}
-                          onCheckedChange={(checked) => handleInputChange("is_active", checked)}
+                          checked={watch("is_active")}
+                          onCheckedChange={(checked) => setValue("is_active", checked)}
                         />
                       </ItemActions>
                     </Item>
@@ -311,15 +292,12 @@ export default function EditPropertyFeaturePage() {
 
       <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
         <Button
-          type="button"
-          onClick={() => {
-            const form = document.getElementById('feature-edit-form') as HTMLFormElement;
-            if (form) form.requestSubmit();
-          }}
+          type="submit"
+          form="feature-edit-form"
           size="lg"
-          disabled={updateFeatureMutation.isPending}
+          disabled={updateFeatureMutation.isPending || isSubmitting}
         >
-          {updateFeatureMutation.isPending ? (
+          {updateFeatureMutation.isPending || isSubmitting ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
               در حال به‌روزرسانی...
@@ -335,4 +313,3 @@ export default function EditPropertyFeaturePage() {
     </div>
   );
 }
-

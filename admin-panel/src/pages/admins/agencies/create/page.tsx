@@ -4,8 +4,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate/properties";
-import { showSuccess, showError } from '@/core/toast';
-import { getCrud } from '@/core/messages';
+import { showSuccess, showError, extractFieldErrors, hasFieldErrors } from '@/core/toast';
+import { msg } from '@/core/messages';
 import { Button } from "@/components/elements/Button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
@@ -110,12 +110,14 @@ export default function AdminsAgenciesCreatePage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['agencies'] });
-            showSuccess(getCrud('created', { item: 'آژانس' }));
+            // ✅ از msg.crud استفاده کنید
+            showSuccess(msg.crud('created', { item: 'آژانس' }));
             navigate("/admins/agencies");
         },
         onError: (error: any) => {
-            if (error?.response?.errors) {
-                const fieldErrors = error.response.errors;
+            // ✅ Field Errors → Inline + Toast کلی
+            if (hasFieldErrors(error)) {
+                const fieldErrors = extractFieldErrors(error);
 
                 Object.entries(fieldErrors).forEach(([field, message]) => {
                     const fieldMap: Record<string, any> = {
@@ -125,6 +127,7 @@ export default function AdminsAgenciesCreatePage() {
                         'license_number': 'license_number',
                         'city': 'city',
                         'province': 'province',
+                        'slug': 'slug',
                     };
 
                     const formField = fieldMap[field] || field;
@@ -134,8 +137,12 @@ export default function AdminsAgenciesCreatePage() {
                     });
                 });
 
+                // Toast کلی برای راهنمایی کاربر
                 showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
-            } else {
+            } 
+            // ✅ General Errors → فقط Toast
+            else {
+                // showError خودش تصمیم می‌گیرد (بک‌اند یا frontend)
                 showError(error);
             }
         },

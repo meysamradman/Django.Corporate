@@ -1,23 +1,24 @@
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
-import { Input } from "@/components/elements/Input";
-import { FormField } from "@/components/forms/FormField";
-import { Textarea } from "@/components/elements/Textarea";
+import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
 import { Switch } from "@/components/elements/Switch";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
-import { showError, showSuccess, showInfo } from "@/core/toast";
+import { showError, showSuccess, showInfo, extractFieldErrors, hasFieldErrors } from "@/core/toast";
+import { msg } from "@/core/messages";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { blogApi } from "@/api/blogs/blogs";
 import type { BlogCategory } from "@/types/blog/category/blogCategory";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
+import { TreeSelect } from "@/components/elements/TreeSelect";
 import type { Media } from "@/types/shared/media";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { blogCategoryFormSchema } from '@/components/blogs/validations/categorySchema';
+import { blogCategoryFormSchema, blogCategoryFormDefaults, type BlogCategoryFormValues } from '@/components/blogs/validations/categorySchema';
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";
-import { UploadCloud, X, FolderTree, Image as ImageIcon, FolderOpen, Folder, Home, Loader2, Save } from "lucide-react";
+import { UploadCloud, X, FolderTree, Image as ImageIcon, Loader2, Save } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
 export default function EditCategoryPage() {
@@ -28,15 +29,23 @@ export default function EditCategoryPage() {
   
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    slug: "",
-    parent_id: null as number | null,
-    is_active: true,
-    is_public: true,
-    description: "",
+
+  const form = useForm<BlogCategoryFormValues>({
+    resolver: zodResolver(blogCategoryFormSchema) as any,
+    defaultValues: blogCategoryFormDefaults as any,
+    mode: "onSubmit",
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const { register, formState: { errors, isSubmitting }, watch, setValue } = form;
+  const nameValue = watch("name");
+
+  // Auto-generate slug from name
+  useEffect(() => {
+    if (nameValue) {
+      const generatedSlug = generateSlug(nameValue);
+      setValue("slug", generatedSlug, { shouldValidate: false });
+    }
+  }, [nameValue, setValue]);
 
   const { data: category, isLoading, error } = useQuery({
     queryKey: ['blog-category', categoryId],
@@ -53,219 +62,112 @@ export default function EditCategoryPage() {
     gcTime: 0,
   });
 
-  const getSelectedCategoryDisplay = () => {
-    if (!formData.parent_id) {
-      return {
-        name: "بدون والد (دسته‌بندی مادر)",
-        icon: Home,
-        level: 0,
-        badge: "پیش‌فرض"
-      };
-    }
-    const selected = categories?.data?.find(cat => cat.id === formData.parent_id);
-    if (!selected) return null;
-    
-    return {
-      name: selected.name,
-      icon: (selected.level || 1) === 1 ? FolderOpen : Folder,
-      level: selected.level || 1,
-      badge: null
-    };
-  };
-
-  const renderCategoryOption = (category: BlogCategory) => {
-    const level = category.level || 1;
-    const indentPx = (level - 1) * 24;
-    const Icon = level === 1 ? FolderOpen : Folder;
-    const isSelected = formData.parent_id === category.id;
-    
-    return (
-      <SelectItem 
-        key={category.id} 
-        value={category.id.toString()}
-        className="relative"
-      >
-        <div 
-          className="flex items-center gap-3 w-full justify-end" 
-          style={{ paddingRight: `${indentPx}px` }}
-        >
-          <div className="flex items-center gap-2 flex-1 min-w-0 justify-end text-right">
-            {level > 1 && (
-              <div className="flex items-center gap-1 shrink-0">
-                <div className="flex gap-0.5">
-                  {Array.from({ length: level - 1 }).map((_, idx) => (
-                    <div key={idx} className="w-1 h-1 bg-font-s/30" />
-                  ))}
-                </div>
-              </div>
-            )}
-            <span className={`flex-1 truncate text-right ${isSelected ? 'font-medium text-foreground' : 'text-foreground'}`}>
-              {category.name}
-            </span>
-          </div>
-          {level > 1 && (
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-border" />
-          )}
-          <Icon 
-            className={`w-4 h-4 shrink-0 transition-colors ${
-              isSelected 
-                ? 'text-primary' 
-                : level === 1 
-                  ? 'text-primary/70' 
-                  : 'text-font-s'
-            }`} 
-          />
-        </div>
-      </SelectItem>
-    );
-  };
-
+  // Reset form with category data
   useEffect(() => {
     if (category) {
-      setFormData({
+      form.reset({
         name: category.name || "",
         slug: category.slug || "",
         parent_id: category.parent_id || null,
-        is_active: category.is_active,
-        is_public: category.is_public,
+        is_active: category.is_active ?? true,
+        is_public: category.is_public ?? true,
         description: category.description || "",
+        image_id: category.image?.id || null,
       });
       
       if (category.image) {
         setSelectedMedia(category.image);
       }
     }
-  }, [category]);
+  }, [category, form]);
 
   const updateCategoryMutation = useMutation({
     mutationFn: (data: Partial<BlogCategory>) => blogApi.partialUpdateCategory(categoryId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blog-category', categoryId] });
       queryClient.invalidateQueries({ queryKey: ['blog-categories'] });
-      showSuccess("دسته‌بندی با موفقیت به‌روزرسانی شد");
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud("updated", { item: "دسته‌بندی" }));
       navigate("/blogs/categories");
     },
     onError: (error: any) => {
-      const errorData = error?.response?.data?.data;
-      const errorMessage = errorData?.detail || 
-                          error?.response?.data?.metaData?.message ||
-                          "خطا در به‌روزرسانی دسته‌بندی";
-      
-      if (errorData?.name || errorData?.slug) {
-        const validationErrors: string[] = [];
-        if (errorData.name) validationErrors.push(...errorData.name);
-        if (errorData.slug) validationErrors.push(...errorData.slug);
-        showError(validationErrors.join(", "));
-      } else {
-        showError(errorMessage);
+      // ✅ Field Errors → Inline + Toast کلی
+      if (hasFieldErrors(error)) {
+        const fieldErrors = extractFieldErrors(error);
+        
+        Object.entries(fieldErrors).forEach(([field, message]) => {
+          form.setError(field as keyof BlogCategoryFormValues, {
+            type: 'server',
+            message: message as string
+          });
+        });
+        
+        // Toast کلی برای راهنمایی کاربر
+        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
+      } 
+      // ✅ General Errors → فقط Toast
+      else {
+        // showError خودش تصمیم می‌گیرد (بک‌اند یا frontend)
+        showError(error);
       }
     },
   });
 
-  const handleInputChange = (field: string, value: string | boolean | number | null) => {
-    if (field === "name" && typeof value === "string") {
-      const generatedSlug = generateSlug(value);
-      
-      setFormData(prev => ({
-        ...prev,
-        [field]: value,
-        slug: generatedSlug
-      }));
-    } else if (field === "slug" && typeof value === "string") {
-      const formattedSlug = formatSlug(value);
-      setFormData(prev => ({
-        ...prev,
-        [field]: formattedSlug
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
-    }
-  };
-
-  const handleParentChange = (value: string) => {
-    const parentId = value && value !== "null" ? parseInt(value) : null;
-    setFormData(prev => ({ ...prev, parent_id: parentId }));
-  };
-
   const handleImageSelect = (media: Media | Media[] | null) => {
     const selected = Array.isArray(media) ? media[0] || null : media;
     setSelectedMedia(selected);
+    setValue("image_id", selected?.id || null, { shouldValidate: false });
     setIsMediaModalOpen(false);
   };
 
   const handleRemoveImage = () => {
     setSelectedMedia(null);
+    setValue("image_id", null, { shouldValidate: false });
   };
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = form.handleSubmit(async (data) => {
     if (!category) return;
     
-    setErrors({});
+    // ✅ حفظ منطق: فقط فیلدهایی که تغییر کرده‌اند را ارسال کن
+    const submitData: Partial<BlogCategory> = {};
     
-    try {
-      const validatedData = blogCategoryFormSchema.parse({
-        ...formData,
-        image_id: selectedMedia?.id || null,
-      });
-      
-      const submitData: Partial<BlogCategory> = {};
-      
-      if (validatedData.name !== category.name) {
-        submitData.name = validatedData.name;
-      }
-      
-      if (validatedData.slug !== category.slug) {
-        submitData.slug = validatedData.slug;
-      }
-      
-      if (validatedData.parent_id !== (category.parent_id || null)) {
-        submitData.parent_id = validatedData.parent_id;
-      }
-      
-      if (validatedData.is_active !== category.is_active) {
-        submitData.is_active = validatedData.is_active;
-      }
-      
-      if (validatedData.is_public !== category.is_public) {
-        submitData.is_public = validatedData.is_public;
-      }
-      
-      if (validatedData.description !== (category.description || "")) {
-        submitData.description = validatedData.description || "";
-      }
-      
-      const currentImageId = category.image?.id || null;
-      const newImageId = validatedData.image_id || null;
-      if (currentImageId !== newImageId) {
-        submitData.image_id = newImageId;
-      }
-      
-      if (Object.keys(submitData).length === 0) {
-        showInfo("تغییری اعمال نشده است");
-        return;
-      }
-      
-      updateCategoryMutation.mutate(submitData);
-    } catch (error: any) {
-      if (error.errors || error.issues) {
-        const fieldErrors: Record<string, string> = {};
-        const errorsToProcess = error.errors || error.issues || [];
-        errorsToProcess.forEach((err: any) => {
-          if (err.path && err.path.length > 0) {
-            fieldErrors[err.path[0]] = err.message;
-          }
-        });
-        setErrors(fieldErrors);
-      } else {
-        showError("خطا در اعتبارسنجی فرم");
-      }
+    if (data.name !== category.name) {
+      submitData.name = data.name;
     }
-  };
+    
+    if (data.slug !== category.slug) {
+      submitData.slug = data.slug;
+    }
+    
+    if (data.parent_id !== (category.parent_id || null)) {
+      submitData.parent_id = data.parent_id;
+    }
+    
+    if (data.is_active !== (category.is_active ?? true)) {
+      submitData.is_active = data.is_active;
+    }
+    
+    if (data.is_public !== (category.is_public ?? true)) {
+      submitData.is_public = data.is_public;
+    }
+    
+    if (data.description !== (category.description || "")) {
+      submitData.description = data.description || "";
+    }
+    
+    const currentImageId = category.image?.id || null;
+    const newImageId = data.image_id || null;
+    if (currentImageId !== newImageId) {
+      submitData.image_id = newImageId;
+    }
+    
+    if (Object.keys(submitData).length === 0) {
+      showInfo("تغییری اعمال نشده است");
+      return;
+    }
+    
+    updateCategoryMutation.mutate(submitData);
+  });
 
   if (isLoading) {
     return (
@@ -338,7 +240,7 @@ export default function EditCategoryPage() {
   return (
     <div className="space-y-6 pb-28 relative">
 
-      <form id="blog-category-edit-form" onSubmit={handleSubmit}>
+      <form id="blog-category-edit-form" onSubmit={handleSubmit} noValidate>
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-4 space-y-6">
             <div className="space-y-6">
@@ -352,131 +254,54 @@ export default function EditCategoryPage() {
             >
                 <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
+                  <FormFieldInput
                     label="نام"
-                    htmlFor="name"
+                    id="name"
                     required
-                    error={errors.name}
-                  >
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange("name", e.target.value)}
-                      placeholder="نام دسته‌بندی"
-                      required
-                    />
-                  </FormField>
-                  <FormField
+                    error={errors.name?.message}
+                    placeholder="نام دسته‌بندی"
+                    {...register("name")}
+                  />
+                  <FormFieldInput
                     label="نامک"
-                    htmlFor="slug"
+                    id="slug"
                     required
-                    error={errors.slug}
-                  >
-                    <Input
-                      id="slug"
-                      value={formData.slug}
-                      onChange={(e) => handleInputChange("slug", e.target.value)}
-                      placeholder="نامک"
-                      required
-                    />
-                  </FormField>
+                    error={errors.slug?.message}
+                    placeholder="نامک"
+                    {...register("slug", {
+                      onChange: (e) => {
+                        const formattedSlug = formatSlug(e.target.value);
+                        e.target.value = formattedSlug;
+                        setValue("slug", formattedSlug);
+                      }
+                    })}
+                  />
                 </div>
 
                 <FormField
                   label="دسته‌بندی والد"
                   htmlFor="parent_id"
                   description="دسته‌بندی‌های بدون والد، دسته‌بندی‌های مادر هستند."
+                  error={errors.parent_id?.message}
                 >
-                  <Select
-                    value={formData.parent_id?.toString() || "null"}
-                    onValueChange={handleParentChange}
-                  >
-                    <SelectTrigger className="w-full h-auto min-h-[2.5rem] py-2 !justify-start">
-                      <div className="flex items-center gap-3 w-full flex-1 min-w-0">
-                        {(() => {
-                          const display = getSelectedCategoryDisplay();
-                          if (!display) {
-                            return (
-                              <>
-                                <SelectValue placeholder="دسته‌بندی والد را انتخاب کنید" className="flex-1 text-right w-full" />
-                                <div className="p-1.5 bg-bg/50 shrink-0">
-                                  <Home className="w-4 h-4 text-font-s" />
-                                </div>
-                              </>
-                            );
-                          }
-                          const Icon = display.icon;
-                          return (
-                            <>
-                              <SelectValue className="flex-1 text-right w-full">
-                                <span className="font-medium truncate text-right block">{display.name}</span>
-                              </SelectValue>
-                              {display.badge && (
-                                <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary font-medium shrink-0">
-                                  {display.badge}
-                                </span>
-                              )}
-                              <div className={`p-1.5 shrink-0 ${
-                                display.level === 0 
-                                  ? 'bg-primary/10' 
-                                  : 'bg-bg/50'
-                              }`}>
-                                <Icon className={`w-4 h-4 ${
-                                  display.level === 0 
-                                    ? 'text-primary' 
-                                    : 'text-foreground'
-                                }`} />
-                              </div>
-                            </>
-                          );
-                        })()}
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px]">
-                      <SelectItem 
-                        value="null"
-                        className="font-medium"
-                      >
-                        <div className="flex items-center gap-3 w-full justify-end">
-                          <div className="flex items-center gap-2 flex-1 justify-end text-right">
-                            <span>بدون والد (دسته‌بندی مادر)</span>
-                            <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary font-medium">
-                              پیش‌فرض
-                            </span>
-                          </div>
-                          <div className="p-1.5 bg-primary/10 shrink-0">
-                            <Home className="w-4 h-4 text-primary" />
-                          </div>
-                        </div>
-                      </SelectItem>
-                      {categories?.data && categories.data.length > 0 && (
-                        <>
-                          <div className="h-px bg-border/50 my-2 mx-2" />
-                          <div className="px-3 py-2 text-xs font-semibold text-font-s uppercase tracking-wide text-right">
-                            دسته‌بندی‌های موجود
-                          </div>
-                        </>
-                      )}
-                      {categories?.data
-                        ?.filter(cat => cat.id !== categoryId)
-                        .map((category) => renderCategoryOption(category))}
-                    </SelectContent>
-                  </Select>
-                </FormField>
-
-                <FormField
-                  label="توضیحات"
-                  htmlFor="description"
-                  error={errors.description}
-                >
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => handleInputChange("description", e.target.value)}
-                    placeholder="توضیحات دسته‌بندی"
-                    rows={4}
+                  <TreeSelect
+                    data={categories?.data?.filter(cat => cat.id !== categoryId) || []}
+                    value={watch("parent_id") || null}
+                    onChange={(value) => setValue("parent_id", value ? parseInt(value) : null)}
+                    placeholder="انتخاب دسته‌بندی والد (اختیاری)"
+                    searchPlaceholder="جستجوی دسته‌بندی..."
+                    emptyText="دسته‌بندی یافت نشد"
                   />
                 </FormField>
+
+                <FormFieldTextarea
+                  label="توضیحات"
+                  id="description"
+                  error={errors.description?.message}
+                  placeholder="توضیحات دسته‌بندی"
+                  rows={4}
+                  {...register("description")}
+                />
 
                 <div className="mt-6 space-y-4">
                   <div className="border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden">
@@ -489,8 +314,8 @@ export default function EditCategoryPage() {
                       </ItemContent>
                       <ItemActions>
                         <Switch
-                          checked={formData.is_active}
-                          onCheckedChange={(checked) => handleInputChange("is_active", checked)}
+                          checked={watch("is_active")}
+                          onCheckedChange={(checked) => setValue("is_active", checked)}
                         />
                       </ItemActions>
                     </Item>
@@ -506,8 +331,8 @@ export default function EditCategoryPage() {
                       </ItemContent>
                       <ItemActions>
                         <Switch
-                          checked={formData.is_public}
-                          onCheckedChange={(checked) => handleInputChange("is_public", checked)}
+                          checked={watch("is_public")}
+                          onCheckedChange={(checked) => setValue("is_public", checked)}
                         />
                       </ItemActions>
                     </Item>
@@ -588,15 +413,12 @@ export default function EditCategoryPage() {
 
       <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
         <Button
-          type="button"
-          onClick={() => {
-            const form = document.getElementById('blog-category-edit-form') as HTMLFormElement;
-            if (form) form.requestSubmit();
-          }}
+          type="submit"
+          form="blog-category-edit-form"
           size="lg"
-          disabled={updateCategoryMutation.isPending}
+          disabled={updateCategoryMutation.isPending || isSubmitting}
         >
-          {updateCategoryMutation.isPending ? (
+          {updateCategoryMutation.isPending || isSubmitting ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
               در حال به‌روزرسانی...

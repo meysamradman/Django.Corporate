@@ -14,7 +14,7 @@ import { showError, showSuccess } from '@/core/toast';
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyType } from "@/types/real_estate/type/propertyType";
 import type { ColumnDef } from "@tanstack/react-table";
-import { getCrud, getConfirm, getStatus } from '@/core/messages';
+import { msg, getConfirm, getStatus } from '@/core/messages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -119,7 +119,8 @@ export default function PropertyTypesPage() {
     mutationFn: (typeId: number) => realEstateApi.deleteType(typeId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-types'] });
-      showSuccess(getCrud('deleted', { item: 'نوع ملک' }));
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud('deleted', { item: 'نوع ملک' }));
     },
     onError: (_error) => {
       showError('خطای سرور رخ داد');
@@ -130,7 +131,8 @@ export default function PropertyTypesPage() {
     mutationFn: (typeIds: number[]) => Promise.all(typeIds.map(id => realEstateApi.deleteType(id))),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-types'] });
-      showSuccess(getCrud('deleted', { item: 'نوع‌های ملک' }));
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud('deleted', { item: 'نوع‌های ملک' }));
       setRowSelection({});
     },
     onError: (_error) => {

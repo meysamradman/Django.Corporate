@@ -14,7 +14,7 @@ import { showError, showSuccess } from '@/core/toast';
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
 import type { ColumnDef } from "@tanstack/react-table";
-import { getCrud, getConfirm, getStatus } from '@/core/messages';
+import { msg, getConfirm, getStatus } from '@/core/messages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -117,7 +117,8 @@ export default function PropertyFeaturesPage() {
     mutationFn: (featureId: number) => realEstateApi.deleteFeature(featureId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-features'] });
-      showSuccess(getCrud('deleted', { item: 'ویژگی ملک' }));
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud('deleted', { item: 'ویژگی ملک' }));
     },
     onError: (_error) => {
       showError('خطای سرور رخ داد');
@@ -128,7 +129,8 @@ export default function PropertyFeaturesPage() {
     mutationFn: (featureIds: number[]) => Promise.all(featureIds.map(id => realEstateApi.deleteFeature(id))),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-features'] });
-      showSuccess(getCrud('deleted', { item: 'ویژگی‌های ملک' }));
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud('deleted', { item: 'ویژگی‌های ملک' }));
       setRowSelection({});
     },
     onError: (_error) => {

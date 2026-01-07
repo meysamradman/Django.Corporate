@@ -9,6 +9,7 @@ import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
 import { showSuccess, showError } from '@/core/toast';
+import { msg } from '@/core/messages';
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -88,7 +89,8 @@ export default function TagPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolio-tags'] });
-      showSuccess("با موفقیت حذف شد");
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud('deleted', { item: 'تگ نمونه‌کار' }));
     },
     onError: (_error) => {
       showError("خطای سرور");
@@ -101,7 +103,8 @@ export default function TagPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries();
-      showSuccess("با موفقیت حذف شد");
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud('deleted', { item: 'تگ نمونه‌کار' }));
       setRowSelection({});
     },
     onError: (_error) => {

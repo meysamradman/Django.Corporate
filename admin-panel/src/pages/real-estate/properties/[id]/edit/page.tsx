@@ -16,6 +16,7 @@ import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeat
 import { realEstateApi } from "@/api/real-estate";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { showError, showSuccess } from '@/core/toast';
+import { msg } from '@/core/messages';
 import { propertyFormSchema } from '@/components/real-estate/validations/propertySchema';
 import type { PropertyMedia } from "@/types/real_estate/realEstateMedia";
 import { collectMediaIds, collectMediaCovers, parsePropertyMedia } from "@/components/real-estate/utils/propertyMediaUtils";
@@ -462,7 +463,8 @@ export default function EditPropertyPage() {
       };
 
       await realEstateApi.partialUpdateProperty(property.id, updateData);
-      showSuccess("ملک با موفقیت ویرایش شد");
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud("updated", { item: "ملک" }));
       navigate("/real-estate/properties");
     } catch (error: any) {
       if (error.errors || error.issues) {
@@ -644,7 +646,8 @@ export default function EditPropertyPage() {
       };
 
       await realEstateApi.partialUpdateProperty(property.id, updateData);
-      showSuccess("پیش‌نویس با موفقیت ذخیره شد");
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud("saved", { item: "پیش‌نویس ملک" }));
       navigate("/real-estate/properties");
     } catch (error: any) {
       if (error.errors || error.issues) {

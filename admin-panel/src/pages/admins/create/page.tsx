@@ -8,7 +8,7 @@ import { roleApi } from "@/api/admins/roles/roles";
 import type { Role } from "@/types/auth/permission";
 import { extractFieldErrors, hasFieldErrors } from '@/core/toast';
 import { showSuccess, showError } from '@/core/toast';
-import { getCrud } from '@/core/messages';
+import { msg } from '@/core/messages';
 import { adminFormSchema, adminFormDefaults } from "@/components/admins/validations/adminSchema";
 import type { AdminFormValues } from "@/components/admins/validations/adminSchema";
 import { Button } from "@/components/elements/Button";
@@ -147,10 +147,12 @@ export default function CreateAdminPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admins'] });
-            showSuccess(getCrud('created', { item: 'ادمین' }));
+            // ✅ از msg.crud استفاده کنید
+            showSuccess(msg.crud('created', { item: 'ادمین' }));
             navigate("/admins");
         },
         onError: (error: any) => {
+            // ✅ Field Errors → Inline + Toast کلی
             if (hasFieldErrors(error)) {
                 const fieldErrors = extractFieldErrors(error);
 
@@ -176,8 +178,12 @@ export default function CreateAdminPage() {
                     });
                 });
 
+                // Toast کلی برای راهنمایی کاربر
                 showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
-            } else {
+            } 
+            // ✅ General Errors → فقط Toast
+            else {
+                // showError خودش تصمیم می‌گیرد (بک‌اند یا frontend)
                 showError(error);
             }
         },

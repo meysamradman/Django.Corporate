@@ -1,13 +1,14 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
-import { Input } from "@/components/elements/Input";
-import { FormField } from "@/components/forms/FormField";
-import { Textarea } from "@/components/elements/Textarea";
+import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
 import { Switch } from "@/components/elements/Switch";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
-import { showError, showSuccess } from "@/core/toast";
+import { showError, showSuccess, extractFieldErrors, hasFieldErrors } from "@/core/toast";
+import { msg } from "@/core/messages";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyType } from "@/types/real_estate/type/propertyType";
@@ -15,7 +16,7 @@ import type { Media } from "@/types/shared/media";
 import { TreeSelect } from "@/components/elements/TreeSelect";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
-import { propertyTypeFormSchema } from '@/components/real-estate/validations/typeSchema';
+import { propertyTypeFormSchema, propertyTypeFormDefaults, type PropertyTypeFormValues } from '@/components/real-estate/validations/typeSchema';
 import { mediaService } from "@/components/media/services";
 import { Loader2, Save, FolderTree, Image as ImageIcon, UploadCloud, X } from "lucide-react";
 
@@ -26,14 +27,14 @@ export default function CreatePropertyTypePage() {
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
 
-  const [formData, setFormData] = useState({
-    title: "",
-    slug: "",
-    description: "",
-    parent_id: null as number | null,
-    display_order: 0,
-    is_active: true,
+  const form = useForm<PropertyTypeFormValues>({
+    resolver: zodResolver(propertyTypeFormSchema) as any,
+    defaultValues: propertyTypeFormDefaults as any,
+    mode: "onSubmit",
   });
+
+  const { register, formState: { errors, isSubmitting }, watch, setValue } = form;
+  const titleValue = watch("title");
 
   const { data: types } = useQuery({
     queryKey: ['property-types-all'],
@@ -45,44 +46,56 @@ export default function CreatePropertyTypePage() {
     gcTime: 0,
   });
 
+  // Auto-generate slug from title
+  useEffect(() => {
+    if (titleValue) {
+      const generatedSlug = generateSlug(titleValue);
+      setValue("slug", generatedSlug, { shouldValidate: false });
+    }
+  }, [titleValue, setValue]);
+
   const createTypeMutation = useMutation({
     mutationFn: (data: Partial<PropertyType>) => realEstateApi.createType(data),
     onSuccess: () => {
-      showSuccess("نوع ملک با موفقیت ایجاد شد");
+      // ✅ از msg.crud استفاده کنید
+      showSuccess(msg.crud("created", { item: "نوع ملک" }));
       queryClient.invalidateQueries({ queryKey: ['property-types'] });
       navigate("/real-estate/types");
     },
     onError: (error: any) => {
-      const errorData = error?.response?.data?.data;
-      const errorMessage = errorData?.detail ||
-        error?.response?.data?.metaData?.message ||
-        "خطا در ایجاد نوع ملک";
-      showError(errorMessage);
+      // ✅ Field Errors → Inline + Toast کلی
+      if (hasFieldErrors(error)) {
+        const fieldErrors = extractFieldErrors(error);
+        
+        Object.entries(fieldErrors).forEach(([field, message]) => {
+          const fieldMap: Record<string, any> = {
+            'title': 'title',
+            'slug': 'slug',
+            'description': 'description',
+            'parent_id': 'parent_id',
+            'display_order': 'display_order',
+            'is_active': 'is_active',
+            'image_id': 'image_id',
+          };
+          
+          const formField = fieldMap[field] || field;
+          form.setError(formField as any, {
+            type: 'server',
+            message: message as string
+          });
+        });
+        
+        // Toast کلی برای راهنمایی کاربر
+        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
+      } 
+      // ✅ General Errors → فقط Toast
+      else {
+        // showError خودش تصمیم می‌گیرد (بک‌اند یا frontend)
+        showError(error);
+      }
     },
   });
 
-  const handleInputChange = (field: string, value: string | boolean | number | null) => {
-    if (field === "title" && typeof value === "string") {
-      const generatedSlug = generateSlug(value);
-
-      setFormData(prev => ({
-        ...prev,
-        [field]: value,
-        slug: generatedSlug
-      }));
-    } else if (field === "slug" && typeof value === "string") {
-      const formattedSlug = formatSlug(value);
-      setFormData(prev => ({
-        ...prev,
-        [field]: formattedSlug
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
-    }
-  };
 
   const handleImageSelect = (media: Media | Media[] | null) => {
     const selected = Array.isArray(media) ? media[0] || null : media;
@@ -94,38 +107,14 @@ export default function CreatePropertyTypePage() {
     setSelectedMedia(null);
   };
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = form.handleSubmit(async (data) => {
+    const formDataWithImage = {
+      ...data,
+      image_id: selectedMedia?.id || null,
+    };
 
-    try {
-      const validatedData = propertyTypeFormSchema.parse({
-        ...formData,
-        image_id: selectedMedia?.id || null,
-      });
-
-      const formDataWithImage = {
-        ...validatedData,
-        ...(validatedData.image_id && { image_id: validatedData.image_id })
-      };
-
-      createTypeMutation.mutate(formDataWithImage);
-    } catch (error: any) {
-      if (error.errors) {
-        const fieldErrors: Record<string, string> = {};
-        error.errors.forEach((err: any) => {
-          if (err.path && err.path.length > 0) {
-            fieldErrors[err.path[0]] = err.message;
-          }
-        });
-        if (Object.keys(fieldErrors).length > 0) {
-          const firstError = Object.values(fieldErrors)[0];
-          showError(firstError as string);
-        }
-      } else {
-        showError("خطا در اعتبارسنجی فرم");
-      }
-    }
-  };
+    createTypeMutation.mutate(formDataWithImage);
+  });
 
   // Map types to match TreeSelect expected format (title -> name)
   const treeData = types?.data?.map(t => ({
@@ -136,7 +125,7 @@ export default function CreatePropertyTypePage() {
   return (
     <div className="space-y-6 pb-28 relative">
 
-      <form id="type-create-form" onSubmit={handleSubmit}>
+      <form id="type-create-form" onSubmit={handleSubmit} noValidate>
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-4 space-y-6">
             <CardWithIcon
@@ -149,75 +138,66 @@ export default function CreatePropertyTypePage() {
             >
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
+                  <FormFieldInput
                     label="عنوان"
-                    htmlFor="title"
+                    id="title"
                     required
-                  >
-                    <Input
-                      id="title"
-                      value={formData.title}
-                      onChange={(e) => handleInputChange("title", e.target.value)}
-                      placeholder="عنوان نوع ملک"
-                      required
-                    />
-                  </FormField>
-                  <FormField
+                    error={errors.title?.message}
+                    placeholder="عنوان نوع ملک"
+                    {...register("title")}
+                  />
+                  <FormFieldInput
                     label="نامک"
-                    htmlFor="slug"
+                    id="slug"
                     required
-                  >
-                    <Input
-                      id="slug"
-                      value={formData.slug}
-                      onChange={(e) => handleInputChange("slug", e.target.value)}
-                      placeholder="نامک"
-                      required
-                    />
-                  </FormField>
+                    error={errors.slug?.message}
+                    placeholder="نامک"
+                    {...register("slug", {
+                      onChange: (e) => {
+                        const formattedSlug = formatSlug(e.target.value);
+                        e.target.value = formattedSlug;
+                        setValue("slug", formattedSlug);
+                      }
+                    })}
+                  />
                 </div>
 
                 <FormField
                   label="نوع والد"
                   htmlFor="parent_id"
                   description="نوع‌های بدون والد، نوع‌های مادر هستند."
+                  error={errors.parent_id?.message}
                 >
                   <TreeSelect
                     data={treeData}
-                    value={formData.parent_id || null}
-                    onChange={(value) => handleInputChange("parent_id", value ? parseInt(value) : null)}
+                    value={watch("parent_id") || null}
+                    onChange={(value) => setValue("parent_id", value ? parseInt(value) : null)}
                     placeholder="انتخاب نوع والد (اختیاری)"
                     searchPlaceholder="جستجوی نوع ملک..."
                     emptyText="نوع ملکی یافت نشد"
                   />
                 </FormField>
 
-                <FormField
+                <FormFieldTextarea
                   label="توضیحات"
-                  htmlFor="description"
-                >
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => handleInputChange("description", e.target.value)}
-                    placeholder="توضیحات نوع ملک"
-                    rows={4}
-                  />
-                </FormField>
+                  id="description"
+                  error={errors.description?.message}
+                  placeholder="توضیحات نوع ملک"
+                  rows={4}
+                  {...register("description")}
+                />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
+                  <FormFieldInput
                     label="ترتیب نمایش"
-                    htmlFor="display_order"
-                  >
-                    <Input
-                      id="display_order"
-                      type="number"
-                      value={formData.display_order}
-                      onChange={(e) => handleInputChange("display_order", parseInt(e.target.value) || 0)}
-                      placeholder="ترتیب نمایش"
-                    />
-                  </FormField>
+                    id="display_order"
+                    type="number"
+                    error={errors.display_order?.message}
+                    placeholder="ترتیب نمایش"
+                    {...register("display_order", {
+                      valueAsNumber: true,
+                    })}
+                  />
                 </div>
 
                 <div className="mt-6 space-y-4">
@@ -231,8 +211,8 @@ export default function CreatePropertyTypePage() {
                       </ItemContent>
                       <ItemActions>
                         <Switch
-                          checked={formData.is_active}
-                          onCheckedChange={(checked) => handleInputChange("is_active", checked)}
+                          checked={watch("is_active")}
+                          onCheckedChange={(checked) => setValue("is_active", checked)}
                         />
                       </ItemActions>
                     </Item>
@@ -312,15 +292,12 @@ export default function CreatePropertyTypePage() {
 
       <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
         <Button
-          type="button"
-          onClick={() => {
-            const form = document.getElementById('type-create-form') as HTMLFormElement;
-            if (form) form.requestSubmit();
-          }}
+          type="submit"
+          form="type-create-form"
           size="lg"
-          disabled={createTypeMutation.isPending}
+          disabled={createTypeMutation.isPending || isSubmitting}
         >
-          {createTypeMutation.isPending ? (
+          {createTypeMutation.isPending || isSubmitting ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
               در حال ایجاد...
