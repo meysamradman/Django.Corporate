@@ -93,11 +93,8 @@ export default function BlogPage() {
       if (urlParams.get('is_featured')) filters.is_featured = urlParams.get('is_featured') === 'true';
       if (urlParams.get('is_public')) filters.is_public = urlParams.get('is_public') === 'true';
       if (urlParams.get('is_active')) filters.is_active = urlParams.get('is_active') === 'true';
-      if (urlParams.get('categories__in')) {
-        const categoryIds = urlParams.get('categories__in')?.split(',').map(Number);
-        if (categoryIds && categoryIds.length > 0) {
-          filters.categories = categoryIds.join(',') as any;
-        }
+      if (urlParams.get('category')) {
+        filters.category = urlParams.get('category') as string;
       }
       const dateFrom = urlParams.get('date_from');
       const dateTo = urlParams.get('date_to');
@@ -148,15 +145,15 @@ export default function BlogPage() {
       categories: (value, updateUrl) => {
         setClientFilters(prev => ({
           ...prev,
-          categories: value as string | undefined
+          category: value as string | undefined
         }));
         setPagination(prev => ({ ...prev, pageIndex: 0 }));
-        
+
         const url = new URL(window.location.href);
         if (value && value !== 'all' && value !== '') {
-          url.searchParams.set('categories', String(value));
+          url.searchParams.set('category', String(value));
         } else {
-          url.searchParams.delete('categories');
+          url.searchParams.delete('category');
         }
         updateUrl(url);
       }
@@ -179,13 +176,14 @@ export default function BlogPage() {
     is_featured: clientFilters.is_featured as boolean | undefined,
     is_public: clientFilters.is_public as boolean | undefined,
     is_active: clientFilters.is_active as boolean | undefined,
-    categories__in: clientFilters.categories ? clientFilters.categories.toString() : undefined,
+    category: clientFilters.category,
     date_from: (clientFilters.date_range?.from || clientFilters['date_from']) as string | undefined,
     date_to: (clientFilters.date_range?.to || clientFilters['date_to']) as string | undefined,
   };
 
   const { data: blogs, isLoading, error } = useQuery({
-    queryKey: ['blogs', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.status, queryParams.is_featured, queryParams.is_public, queryParams.is_active, queryParams.categories__in, queryParams.date_from, queryParams.date_to],
+    queryKey: ['blogs', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.status, queryParams.is_featured, queryParams.is_public, queryParams.is_active, queryParams.category, queryParams.date_from, queryParams.date_to],
+
     queryFn: async () => {
       const response = await blogApi.getBlogList(queryParams);
       return response;

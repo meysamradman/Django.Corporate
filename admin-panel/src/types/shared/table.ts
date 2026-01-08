@@ -32,6 +32,7 @@ export interface FilterConfig {
   placeholder?: string;
   type?: 'select' | 'hierarchical' | 'date' | 'date_range' | 'date_range_dropdown' | 'faceted';
   showSearch?: boolean;
+  multiSelect?: boolean;
 }
 
 export interface DeleteConfig {
@@ -73,7 +74,7 @@ export interface DataTableRowAction<TData> {
 
 export type FetchDataFn<_TData, TApiFilters extends BaseApiFilterParams> = (
   filters: TApiFilters,
-  options?: { 
+  options?: {
     cookieHeader?: string;
   }
 ) => Promise<unknown>;
@@ -97,7 +98,7 @@ export interface UseDataTableLogicOptions<
   pageSizeOptions?: number[];
   updateUrlOnFilterChange?: boolean;
   searchDebounceMs?: number;
-  
+
   mapClientFiltersToApiFilters: (
     pagination: PaginationState,
     sorting: SortingState,

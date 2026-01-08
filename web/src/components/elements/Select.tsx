@@ -38,7 +38,7 @@ function SelectTrigger({
       data-size={size}
       dir="rtl"
       className={cn(
-        "border-br data-[placeholder]:text-font-s [&_svg:not([class*='text-'])]:text-font-s focus-visible:border-primary focus-visible:ring-primary/20 aria-invalid:ring-red-1/20 aria-invalid:border-red-1 flex w-auto items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-base whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 text-right min-w-[120px] md:text-sm",
+        "border-br data-[placeholder]:text-font-s [&_svg:not([class*='text-'])]:text-font-s focus-visible:border-primary focus-visible:ring-primary/20 aria-invalid:ring-red-1/20 aria-invalid:border-red-1 flex w-full items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-base whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 text-right md:text-sm",
         className
       )}
       {...props}

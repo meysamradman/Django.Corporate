@@ -17,6 +17,7 @@ export interface PropertyListParams {
   
   property_type?: number | string;
   state?: number | string;
+  status?: string;
   agent?: number | string;
   agency?: number | string;
   city?: number | string;
@@ -57,6 +58,7 @@ export interface PropertyFilters {
   is_active?: boolean;
   property_type?: number | string;
   state?: number | string;
+  status?: string;
   agent?: number | string;
   agency?: number | string;
   city?: number | string;

@@ -103,6 +103,9 @@ export default function PropertyPage() {
       if (urlParams.get('property_type')) filters.property_type = parseInt(urlParams.get('property_type') || '0');
       if (urlParams.get('state')) filters.state = parseInt(urlParams.get('state') || '0');
       if (urlParams.get('city')) filters.city = parseInt(urlParams.get('city') || '0');
+      if (urlParams.get('status')) filters.status = urlParams.get('status') || undefined;
+      if (urlParams.get('date_from')) filters.date_from = urlParams.get('date_from') || undefined;
+      if (urlParams.get('date_to')) filters.date_to = urlParams.get('date_to') || undefined;
       return filters;
     }
     return {};
@@ -169,6 +172,22 @@ export default function PropertyPage() {
           url.searchParams.delete('property_type');
         }
         updateUrl(url);
+      },
+      status: (value, updateUrl) => {
+        const statusValue = value ? (typeof value === 'string' ? value : String(value)) : undefined;
+        setClientFilters(prev => ({
+          ...prev,
+          status: statusValue as string | undefined
+        }));
+        setPagination(prev => ({ ...prev, pageIndex: 0 }));
+
+        const url = new URL(window.location.href);
+        if (statusValue && statusValue !== '') {
+          url.searchParams.set('status', statusValue);
+        } else {
+          url.searchParams.delete('status');
+        }
+        updateUrl(url);
       }
     }
   );
@@ -192,11 +211,14 @@ export default function PropertyPage() {
     is_active: clientFilters.is_active as boolean | undefined,
     property_type: clientFilters.property_type,
     state: clientFilters.state,
+    status: clientFilters.status as string | undefined,
     city: clientFilters.city,
+    date_from: clientFilters.date_from,
+    date_to: clientFilters.date_to,
   };
 
   const { data: properties, isLoading, error } = useQuery({
-    queryKey: ['properties', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_published, queryParams.is_featured, queryParams.is_active, queryParams.property_type, queryParams.state, queryParams.city],
+    queryKey: ['properties', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_published, queryParams.is_featured, queryParams.is_active, queryParams.property_type, queryParams.state, queryParams.status, queryParams.city, queryParams.date_from, queryParams.date_to],
     queryFn: async () => {
       const response = await realEstateApi.getPropertyList(queryParams);
       return response;
@@ -310,6 +332,7 @@ export default function PropertyPage() {
         is_active: filters.is_active as boolean | undefined,
         property_type: filters.property_type,
         state: filters.state,
+        status: filters.status as string | undefined,
         city: filters.city,
       };
 
@@ -339,6 +362,7 @@ export default function PropertyPage() {
         is_active: filters.is_active as boolean | undefined,
         property_type: filters.property_type,
         state: filters.state,
+        status: filters.status as string | undefined,
         city: filters.city,
       };
 

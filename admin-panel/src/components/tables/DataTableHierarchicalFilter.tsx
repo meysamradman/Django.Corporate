@@ -33,15 +33,39 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
   items,
   placeholder,
   value,
-  onChange
-}: DataTableHierarchicalFilterProps<TValue>) {
+  onChange,
+  multiSelect = false,
+}: DataTableHierarchicalFilterProps<TValue> & { multiSelect?: boolean }) {
 
   const [open, setOpen] = useState(false)
   const [selectedLabel, setSelectedLabel] = useState<string>("")
-  const filterValue = value === undefined ? undefined : String(value);
+
+  // Handle multi-select value parsing
+  const selectedValues = new Set<string>();
+  if (multiSelect) {
+    if (Array.isArray(value)) {
+      value.forEach(v => selectedValues.add(String(v)));
+    } else if (typeof value === 'string') {
+      value.split(',').forEach(v => {
+        const trimmed = v.trim();
+        if (trimmed) selectedValues.add(trimmed);
+      });
+    } else if (value !== undefined && value !== null) {
+      selectedValues.add(String(value));
+    }
+  } else if (value !== undefined && value !== null && !Array.isArray(value)) {
+    selectedValues.add(String(value));
+  }
+
+  const filterValue = !multiSelect && value !== undefined ? String(value) : undefined;
   const defaultPlaceholder = placeholder || title || "انتخاب کنید...";
 
   useEffect(() => {
+    if (multiSelect) {
+      // Logic for multi-select label is handled in render
+      return;
+    }
+
     if (filterValue) {
       const findLabel = (items: CategoryItem[]): string => {
         for (const item of items) {
@@ -57,39 +81,66 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
     } else {
       setSelectedLabel("")
     }
-  }, [filterValue, items])
+  }, [filterValue, items, multiSelect])
 
   const handleValueChange = (newValue: string) => {
     if (newValue === "all") {
-      onChange(undefined)
-    } else {
-      const findItemValue = (items: CategoryItem[]): TValue | undefined => {
-        for (const item of items) {
-          if (item.value === newValue) {
-            const id = item.id;
-            return (typeof value === 'number' && typeof id === 'number') ? id as TValue : String(id) as TValue;
-          }
-          if (item.children?.length) {
-            const childValue = findItemValue(item.children);
-            if (childValue !== undefined) return childValue;
-          }
-        }
-        return undefined;
-      }
-      const originalValue = findItemValue(items);
-      onChange(originalValue);
+      onChange(undefined);
+      setOpen(false);
+      return;
     }
-    setOpen(false)
+
+    const findItemValue = (items: CategoryItem[], searchVal: string): TValue | undefined => {
+      for (const item of items) {
+        if (item.value === searchVal) {
+          const id = item.id;
+          // Determine consistency with TValue type based on current value type or id type
+          // This assumes TValue is consistent with id type (number or string)
+          return id as unknown as TValue;
+        }
+        if (item.children?.length) {
+          const childValue = findItemValue(item.children, searchVal);
+          if (childValue !== undefined) return childValue;
+        }
+      }
+      return undefined;
+    }
+
+    const itemValue = findItemValue(items, newValue);
+    if (itemValue === undefined) return;
+
+    if (multiSelect) {
+      const newSet = new Set(selectedValues);
+      if (newSet.has(newValue)) {
+        newSet.delete(newValue);
+      } else {
+        newSet.add(newValue);
+      }
+
+      // Convert back to IDs
+      const newValues: TValue[] = [];
+      newSet.forEach(val => {
+        const found = findItemValue(items, val);
+        if (found !== undefined) newValues.push(found);
+      });
+
+      // @ts-ignore - Generic type issue with array callback
+      onChange(newValues.length > 0 ? newValues : undefined);
+      // Don't close on multi-select
+    } else {
+      onChange(itemValue);
+      setOpen(false);
+    }
   }
 
   const renderItems = (items: CategoryItem[], depth = 0) => {
     return items.map((item) => {
-      const isSelected = filterValue === item.value;
+      const isSelected = selectedValues.has(item.value);
       return (
         <Fragment key={`item-${item.id}-${depth}`}>
           <CommandItem
             key={`command-${item.id}-${depth}`}
-            value={item.value}
+            value={item.value} // Use value for uniqueness in command
             onSelect={() => handleValueChange(item.value)}
           >
             <Checkbox
@@ -110,7 +161,7 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
               )}
               <span className={cn(
                 "me-1 flex-1",
-                item.children?.length ? "font-medium" : "text-font-s"  
+                item.children?.length ? "font-medium" : "text-font-s"
               )}>
                 {item.label}
               </span>
@@ -123,48 +174,64 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
   }
 
   let triggerText: string;
-  if (filterValue === undefined) {
-            triggerText = defaultPlaceholder ?? title ?? "انتخاب کنید...";
-  } else if (filterValue === "all") {
-    triggerText = "همه";
+  if (!multiSelect) {
+    if (filterValue === undefined) {
+      triggerText = defaultPlaceholder;
+    } else if (filterValue === "all") {
+      triggerText = "همه";
+    } else {
+      triggerText = selectedLabel || defaultPlaceholder;
+    }
   } else {
-    triggerText = selectedLabel || (defaultPlaceholder ?? title ?? "انتخاب کنید...");
+    triggerText = defaultPlaceholder;
   }
 
-  const hasSelection = filterValue !== undefined;
+  const hasSelection = selectedValues.size > 0;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="border-dashed">
+        <Button variant="outline" size="sm">
           <PlusCircle />
           {title}
           {hasSelection && (
             <>
               <span className="mx-2 h-4 w-px bg-border" />
-              <Badge
-                variant="outline"
-                className="rounded-sm px-1 font-normal"
-              >
-                {selectedLabel || triggerText}
-              </Badge>
+              {multiSelect ? (
+                <Badge
+                  variant="outline"
+                  className="rounded-sm px-1 font-normal"
+                >
+                  {selectedValues.size} انتخاب شده
+                </Badge>
+              ) : (
+                <Badge
+                  variant="outline"
+                  className="rounded-sm px-1 font-normal"
+                >
+                  {selectedLabel || triggerText}
+                </Badge>
+              )}
             </>
           )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[280px] p-0" align="start">
         <Command>
-          <CommandInput placeholder={defaultPlaceholder ?? title ?? "جستجو..."} />
+          <CommandInput placeholder={defaultPlaceholder} />
           <CommandList>
             <CommandEmpty>نتیجه‌ای یافت نشد</CommandEmpty>
             <CommandGroup>
-              <CommandItem value="all" onSelect={() => handleValueChange("all")}>
-                <Checkbox
-                  checked={filterValue === undefined}
-                  className="me-2"
-                />
-                <span className="flex-1 font-medium">همه</span>
-              </CommandItem>
+              {!multiSelect && (
+                <CommandItem value="all" onSelect={() => handleValueChange("all")}>
+                  <Checkbox
+                    checked={!hasSelection}
+                    className="me-2"
+                  />
+                  <span className="flex-1 font-medium">همه</span>
+                </CommandItem>
+              )}
+
               {renderItems(items)}
             </CommandGroup>
             {hasSelection && (
@@ -173,7 +240,7 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
                 <CommandGroup>
                   <CommandItem
                     onSelect={() => onChange(undefined)}
-                    className="justify-center text-center"
+                    className="justify-center text-center cursor-pointer"
                   >
                     پاک کردن فیلتر
                   </CommandItem>

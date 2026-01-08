@@ -37,10 +37,10 @@ import { env } from '@/core/config/environment';
 
 const convertCategoriesToHierarchical = (categories: PortfolioCategory[]): any[] => {
   const rootCategories = categories.filter(cat => !cat.parent_id);
-  
+
   const buildTree = (category: PortfolioCategory): any => {
     const children = categories.filter(cat => cat.parent_id === category.id);
-    
+
     return {
       id: category.id,
       label: category.name,
@@ -49,7 +49,7 @@ const convertCategoriesToHierarchical = (categories: PortfolioCategory[]): any[]
       children: children.map(buildTree)
     };
   };
-  
+
   return rootCategories.map(buildTree);
 };
 
@@ -57,10 +57,10 @@ export default function PortfolioPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { statusFilterOptions, booleanFilterOptions } = usePortfolioFilterOptions();
-  
+
   const [_categories, setCategories] = useState<PortfolioCategory[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
-  
+
   const [pagination, setPagination] = useState<TablePaginationState>(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
@@ -93,11 +93,8 @@ export default function PortfolioPage() {
       if (urlParams.get('is_featured')) filters.is_featured = urlParams.get('is_featured') === 'true';
       if (urlParams.get('is_public')) filters.is_public = urlParams.get('is_public') === 'true';
       if (urlParams.get('is_active')) filters.is_active = urlParams.get('is_active') === 'true';
-      if (urlParams.get('categories__in')) {
-        const categoryIds = urlParams.get('categories__in')?.split(',').map(Number);
-        if (categoryIds && categoryIds.length > 0) {
-          filters.categories = categoryIds.join(',') as any;
-        }
+      if (urlParams.get('category')) {
+        filters.category = urlParams.get('category') as string;
       }
       const dateFrom = urlParams.get('date_from');
       const dateTo = urlParams.get('date_to');
@@ -130,13 +127,13 @@ export default function PortfolioPage() {
           is_active: true,
           is_public: true
         });
-        
+
         setCategories(response.data);
         setCategoryOptions(convertCategoriesToHierarchical(response.data));
       } catch (error) {
       }
     };
-    
+
     fetchCategories();
   }, []);
 
@@ -148,15 +145,15 @@ export default function PortfolioPage() {
       categories: (value, updateUrl) => {
         setClientFilters(prev => ({
           ...prev,
-          categories: value as string | undefined
+          category: value as string | undefined
         }));
         setPagination(prev => ({ ...prev, pageIndex: 0 }));
-        
+
         const url = new URL(window.location.href);
         if (value && value !== 'all' && value !== '') {
-          url.searchParams.set('categories', String(value));
+          url.searchParams.set('category', String(value));
         } else {
-          url.searchParams.delete('categories');
+          url.searchParams.delete('category');
         }
         updateUrl(url);
       }
@@ -164,7 +161,7 @@ export default function PortfolioPage() {
   );
 
   const portfolioFilterConfig = getPortfolioFilterConfig(
-    statusFilterOptions, 
+    statusFilterOptions,
     booleanFilterOptions,
     categoryOptions
   );
@@ -179,13 +176,13 @@ export default function PortfolioPage() {
     is_featured: clientFilters.is_featured as boolean | undefined,
     is_public: clientFilters.is_public as boolean | undefined,
     is_active: clientFilters.is_active as boolean | undefined,
-    categories__in: clientFilters.categories ? clientFilters.categories.toString() : undefined,
+    category: clientFilters.category,
     date_from: ((clientFilters as any).date_range?.from || clientFilters['date_from']) as string | undefined,
     date_to: ((clientFilters as any).date_range?.to || clientFilters['date_to']) as string | undefined,
   };
 
   const { data: portfolios, isLoading, error } = useQuery({
-    queryKey: ['portfolios', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.status, queryParams.is_featured, queryParams.is_public, queryParams.is_active, queryParams.categories__in, queryParams.date_from, queryParams.date_to],
+    queryKey: ['portfolios', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.status, queryParams.is_featured, queryParams.is_public, queryParams.is_active, queryParams.category, queryParams.date_from, queryParams.date_to],
     queryFn: async () => {
       const response = await portfolioApi.getPortfolioList(queryParams);
       return response;
@@ -285,7 +282,7 @@ export default function PortfolioPage() {
       permission: "portfolio.delete",
     },
   ];
-  
+
   const columns = usePortfolioColumns(rowActions, handleToggleActive) as ColumnDef<Portfolio>[];
 
   const handleExportExcel = async (filters: PortfolioFilters, search: string, exportAll: boolean = false) => {
@@ -300,14 +297,14 @@ export default function PortfolioPage() {
         is_active: filters.is_active as boolean | undefined,
         categories__in: filters.categories ? filters.categories.toString() : undefined,
       };
-      
+
       if (exportAll) {
         exportParams.export_all = true;
       } else {
         exportParams.page = pagination.pageIndex + 1;
         exportParams.size = pagination.pageSize;
       }
-      
+
       await exportPortfolios(exportParams, 'excel');
       showSuccess(exportAll ? "فایل اکسل (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل اکسل (صفحه فعلی) با موفقیت دانلود شد");
     } catch (error: any) {
@@ -328,14 +325,14 @@ export default function PortfolioPage() {
         is_active: filters.is_active as boolean | undefined,
         categories__in: filters.categories ? filters.categories.toString() : undefined,
       };
-      
+
       if (exportAll) {
         exportParams.export_all = true;
       } else {
         exportParams.page = pagination.pageIndex + 1;
         exportParams.size = pagination.pageSize;
       }
-      
+
       await exportPortfolios(exportParams, 'pdf');
       showSuccess(exportAll ? "فایل PDF (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل PDF (صفحه فعلی) با موفقیت دانلود شد");
     } catch (error: any) {
@@ -405,7 +402,7 @@ export default function PortfolioPage() {
       const options = portfolio.options?.map(o => o.name + (o.description ? ` (${o.description})` : '')).join(', ') || '-';
       const statusText = getStatusText(portfolio.status);
       const createdDate = portfolio.created_at ? formatDate(portfolio.created_at) : '-';
-      
+
       return `
         <tr>
           <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${statusText}</td>
@@ -516,12 +513,12 @@ export default function PortfolioPage() {
 
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
-    const newPagination = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(pagination) 
+    const newPagination = typeof updaterOrValue === 'function'
+      ? updaterOrValue(pagination)
       : updaterOrValue;
-    
+
     setPagination(newPagination);
-    
+
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
@@ -529,12 +526,12 @@ export default function PortfolioPage() {
   };
 
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(sorting) 
+    const newSorting = typeof updaterOrValue === 'function'
+      ? updaterOrValue(sorting)
       : updaterOrValue;
-    
+
     setSorting(newSorting);
-    
+
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -556,13 +553,13 @@ export default function PortfolioPage() {
           <p className="text-sm text-font-s mb-4">
             سرور با خطای 500 پاسخ داده است. لطفاً با مدیر سیستم تماس بگیرید.
           </p>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             className="mt-4"
           >
             تلاش مجدد
           </Button>
-          <Button 
+          <Button
             variant="outline"
             onClick={() => {
               queryClient.invalidateQueries({ queryKey: ['portfolios'] });
@@ -580,7 +577,7 @@ export default function PortfolioPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="مدیریت نمونه‌کارها">
-        <ProtectedButton 
+        <ProtectedButton
           permission="portfolio.create"
           size="sm"
           onClick={() => navigate('/portfolios/create')}
@@ -652,8 +649,8 @@ export default function PortfolioPage() {
         />
       </Suspense>
 
-      <AlertDialog 
-        open={deleteConfirm.open} 
+      <AlertDialog
+        open={deleteConfirm.open}
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
       >
         <AlertDialogContent>

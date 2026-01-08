@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/elements/Button";
 import { Calendar, ChevronLeft, ChevronRight, X } from "lucide-react";
-import { 
-  format, 
-  addMonths, 
-  subMonths, 
-  startOfMonth, 
-  endOfMonth, 
-  eachDayOfInterval, 
-  isSameDay, 
-  isSameMonth, 
+import {
+  format,
+  addMonths,
+  subMonths,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameDay,
+  isSameMonth,
   isAfter,
   isBefore,
   isWithinInterval,
@@ -54,7 +54,7 @@ export function PersianDateRangePicker({
       } else {
         setStartDate(null);
       }
-      
+
       if (value.to) {
         const to = new Date(value.to);
         if (!isNaN(to.getTime())) {
@@ -104,14 +104,21 @@ export function PersianDateRangePicker({
   };
 
   const applySelection = () => {
+    const formatDate = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     if (startDate && endDate && onChange) {
       onChange({
-        from: startDate.toISOString().split('T')[0],
-        to: endDate.toISOString().split('T')[0]
+        from: formatDate(startDate),
+        to: formatDate(endDate)
       });
     } else if (startDate && onChange) {
       onChange({
-        from: startDate.toISOString().split('T')[0],
+        from: formatDate(startDate),
         to: undefined
       });
     }
@@ -143,11 +150,11 @@ export function PersianDateRangePicker({
     const monthStart = startOfMonth(month);
     const monthEnd = endOfMonth(month);
     const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
-    
+
     const persianMonthName = format(month, 'MMMM', { locale: faIR });
     const persianYear = format(month, 'yyyy', { locale: faIR });
     const weekdayNames = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
-    
+
     // Get first day of month weekday
     // In Jalali: Saturday = 0, Sunday = 1, ..., Friday = 6
     const firstDayWeekday = monthStart.getDay();
@@ -155,7 +162,7 @@ export function PersianDateRangePicker({
     // getDay() returns: 0=Saturday, 1=Sunday, ..., 6=Friday
     // We need: 0=Saturday (ش), 1=Sunday (ی), ..., 6=Friday (ج)
     const adjustedFirstDay = firstDayWeekday;
-    
+
     // Get previous month's last days to fill the grid
     const prevMonth = subMonths(month, 1);
     const prevMonthEnd = endOfMonth(prevMonth);
@@ -163,7 +170,7 @@ export function PersianDateRangePicker({
       start: startOfMonth(prevMonth),
       end: prevMonthEnd
     });
-    
+
     // Get next month's first days to fill the grid
     const nextMonth = addMonths(month, 1);
     const nextMonthStart = startOfMonth(nextMonth);
@@ -171,19 +178,19 @@ export function PersianDateRangePicker({
       start: nextMonthStart,
       end: addMonths(nextMonthStart, 1)
     });
-    
+
     // Build calendar grid: 6 rows × 7 columns = 42 days
     const allDays: Date[] = [];
-    
+
     // Add previous month's trailing days
     if (adjustedFirstDay > 0) {
       const trailingDays = prevMonthDays.slice(-adjustedFirstDay);
       allDays.push(...trailingDays);
     }
-    
+
     // Add current month's days
     allDays.push(...days);
-    
+
     // Add next month's leading days to complete 42 days
     const remainingDays = 42 - allDays.length;
     if (remainingDays > 0) {
@@ -193,14 +200,14 @@ export function PersianDateRangePicker({
 
     const isDateInRange = (date: Date) => {
       if (!startDate) return false;
-      
+
       if (startDate && endDate) {
         return isWithinInterval(date, {
           start: startOfDay(startDate),
           end: endOfDay(endDate)
         });
       }
-      
+
       if (startDate && hoverDate) {
         const rangeStart = isBefore(startDate, hoverDate) ? startDate : hoverDate;
         const rangeEnd = isAfter(startDate, hoverDate) ? startDate : hoverDate;
@@ -209,7 +216,7 @@ export function PersianDateRangePicker({
           end: endOfDay(rangeEnd)
         });
       }
-      
+
       return false;
     };
 
@@ -291,7 +298,7 @@ export function PersianDateRangePicker({
             const isCurrentMonth = isDateInCurrentMonth(day);
             const isToday = isSameDay(day, new Date());
             const dayNumber = format(day, 'd', { locale: faIR });
-            
+
             return (
               <button
                 key={`${day.getTime()}-${index}`}
@@ -353,7 +360,7 @@ export function PersianDateRangePicker({
           )}
         </div>
       </PopoverTrigger>
-      
+
       <PopoverContent
         align="start"
         side="bottom"
@@ -373,7 +380,7 @@ export function PersianDateRangePicker({
           <div className="w-[280px] border-l border-input pl-4">
             {renderCalendar(leftMonth, true)}
           </div>
-          
+
           {/* Right Calendar */}
           <div className="w-[280px] pr-4">
             {renderCalendar(rightMonth, false)}

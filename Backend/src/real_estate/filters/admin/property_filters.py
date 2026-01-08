@@ -5,9 +5,9 @@ from src.real_estate.models.constants import PROPERTY_STATUS_CHOICES
 
 
 class PropertyAdminFilter(django_filters.FilterSet):
-    status = django_filters.ChoiceFilter(
-        choices=PROPERTY_STATUS_CHOICES,
-        help_text="Filter by listing lifecycle status"
+    status = django_filters.CharFilter(
+        method='filter_status',
+        help_text="Filter by listing lifecycle status (single or comma-separated)"
     )
     
     is_published = django_filters.BooleanFilter(
@@ -62,49 +62,49 @@ class PropertyAdminFilter(django_filters.FilterSet):
         help_text="Published before this date (YYYY-MM-DD)"
     )
     
-    property_type = django_filters.NumberFilter(
-        field_name='property_type__id',
-        help_text="Filter by property type ID"
+    property_type = django_filters.CharFilter(
+        method='filter_property_type',
+        help_text="Filter by property type ID (single or comma-separated)"
     )
     
-    state = django_filters.NumberFilter(
-        field_name='state__id',
-        help_text="Filter by property state ID"
+    state = django_filters.CharFilter(
+        method='filter_state',
+        help_text="Filter by property state ID (single or comma-separated)"
     )
     
-    agent = django_filters.NumberFilter(
-        field_name='agent__id',
-        help_text="Filter by agent ID"
+    agent = django_filters.CharFilter(
+        method='filter_agent',
+        help_text="Filter by agent ID (single or comma-separated)"
     )
     
-    agency = django_filters.NumberFilter(
-        field_name='agency__id',
-        help_text="Filter by agency ID"
+    agency = django_filters.CharFilter(
+        method='filter_agency',
+        help_text="Filter by agency ID (single or comma-separated)"
     )
     
-    created_by = django_filters.NumberFilter(
-        field_name='created_by__id',
-        help_text="Filter by creator (admin user) ID"
+    created_by = django_filters.CharFilter(
+        method='filter_created_by',
+        help_text="Filter by creator (admin user) ID (single or comma-separated)"
     )
     
-    city = django_filters.NumberFilter(
-        field_name='city__id',
-        help_text="Filter by city ID"
+    city = django_filters.CharFilter(
+        method='filter_city',
+        help_text="Filter by city ID (single or comma-separated)"
     )
     
-    province = django_filters.NumberFilter(
-        field_name='province__id',
-        help_text="Filter by province ID"
+    province = django_filters.CharFilter(
+        method='filter_province',
+        help_text="Filter by province ID (single or comma-separated)"
     )
     
-    region = django_filters.NumberFilter(
-        field_name='region__id',
-        help_text="Filter by region ID"
+    region = django_filters.CharFilter(
+        method='filter_region',
+        help_text="Filter by region ID (single or comma-separated)"
     )
 
-    region_code = django_filters.NumberFilter(
-        field_name='region__code',
-        help_text="Filter by region code (1-22 for Tehran)"
+    region_code = django_filters.CharFilter(
+        method='filter_region_code',
+        help_text="Filter by region code (single or comma-separated)"
     )
 
     neighborhood = django_filters.CharFilter(
@@ -364,3 +364,99 @@ class PropertyAdminFilter(django_filters.FilterSet):
             )
         return queryset
 
+    def filter_property_type(self, queryset, name, value):
+        if value:
+            try:
+                ids = [int(id.strip()) for id in value.split(',') if id.strip().isdigit()]
+                if ids:
+                    return queryset.filter(property_type__id__in=ids)
+            except ValueError:
+                pass
+        return queryset
+
+    def filter_state(self, queryset, name, value):
+        if value:
+            try:
+                ids = [int(id.strip()) for id in value.split(',') if id.strip().isdigit()]
+                if ids:
+                    return queryset.filter(state__id__in=ids)
+            except ValueError:
+                pass
+        return queryset
+
+    def filter_status(self, queryset, name, value):
+        if value:
+            statuses = [s.strip() for s in value.split(',') if s.strip()]
+            if statuses:
+                return queryset.filter(status__in=statuses)
+        return queryset
+
+    def filter_agent(self, queryset, name, value):
+        if value:
+            try:
+                ids = [int(id.strip()) for id in value.split(',') if id.strip().isdigit()]
+                if ids:
+                    return queryset.filter(agent__id__in=ids)
+            except ValueError:
+                pass
+        return queryset
+
+    def filter_agency(self, queryset, name, value):
+        if value:
+            try:
+                ids = [int(id.strip()) for id in value.split(',') if id.strip().isdigit()]
+                if ids:
+                    return queryset.filter(agency__id__in=ids)
+            except ValueError:
+                pass
+        return queryset
+
+    def filter_created_by(self, queryset, name, value):
+        if value:
+            try:
+                ids = [int(id.strip()) for id in value.split(',') if id.strip().isdigit()]
+                if ids:
+                    return queryset.filter(created_by__id__in=ids)
+            except ValueError:
+                pass
+        return queryset
+
+    def filter_city(self, queryset, name, value):
+        if value:
+            try:
+                ids = [int(id.strip()) for id in value.split(',') if id.strip().isdigit()]
+                if ids:
+                    return queryset.filter(city__id__in=ids)
+            except ValueError:
+                pass
+        return queryset
+
+    def filter_province(self, queryset, name, value):
+        if value:
+            try:
+                ids = [int(id.strip()) for id in value.split(',') if id.strip().isdigit()]
+                if ids:
+                    return queryset.filter(province__id__in=ids)
+            except ValueError:
+                pass
+        return queryset
+
+    def filter_region(self, queryset, name, value):
+        if value:
+            try:
+                ids = [int(id.strip()) for id in value.split(',') if id.strip().isdigit()]
+                if ids:
+                    return queryset.filter(region__id__in=ids)
+            except ValueError:
+                pass
+        return queryset
+
+    def filter_region_code(self, queryset, name, value):
+        if value:
+            try:
+                codes = [int(code.strip()) for code in value.split(',') if code.strip().isdigit()]
+                if codes:
+                    return queryset.filter(region__code__in=codes)
+            except ValueError:
+                pass
+        return queryset

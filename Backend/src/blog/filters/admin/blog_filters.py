@@ -4,9 +4,9 @@ from src.blog.models.blog import Blog
 
 
 class BlogAdminFilter(django_filters.FilterSet):
-    status = django_filters.ChoiceFilter(
-        choices=Blog.STATUS_CHOICES,
-        help_text="Filter by blog status"
+    status = django_filters.CharFilter(
+        method='filter_status',
+        help_text="Filter by blog status (comma-separated)"
     )
     
     is_featured = django_filters.BooleanFilter(
@@ -43,9 +43,9 @@ class BlogAdminFilter(django_filters.FilterSet):
         lookup_expr='lte',
         help_text="Filter to this date (YYYY-MM-DD)"
     )
-    category = django_filters.NumberFilter(
-        field_name='categories__id',
-        help_text="Filter by category ID"
+    category = django_filters.CharFilter(
+        method='filter_category',
+        help_text="Filter by category ID (comma-separated)"
     )
     
     category_slug = django_filters.CharFilter(
@@ -53,9 +53,9 @@ class BlogAdminFilter(django_filters.FilterSet):
         help_text="Filter by category slug"
     )
     
-    tag = django_filters.NumberFilter(
-        field_name='tags__id',
-        help_text="Filter by tag ID"
+    tag = django_filters.CharFilter(
+        method='filter_tag',
+        help_text="Filter by tag ID (comma-separated)"
     )
     
     tag_slug = django_filters.CharFilter(
@@ -190,7 +190,35 @@ class BlogAdminFilter(django_filters.FilterSet):
             media_count=Count('blog_medias')
         ).filter(media_count__gte=value)
     
+    def filter_status(self, queryset, name, value):
+        if value:
+            statuses = [s.strip() for s in value.split(',') if s.strip()]
+            if statuses:
+                return queryset.filter(status__in=statuses)
+        return queryset
+
+    def filter_category(self, queryset, name, value):
+        if value:
+            try:
+                ids = [int(i.strip()) for i in value.split(',') if i.strip().isdigit()]
+                if ids:
+                    return queryset.filter(categories__id__in=ids).distinct()
+            except ValueError:
+                pass
+        return queryset
+
+    def filter_tag(self, queryset, name, value):
+        if value:
+            try:
+                ids = [int(i.strip()) for i in value.split(',') if i.strip().isdigit()]
+                if ids:
+                    return queryset.filter(tags__id__in=ids).distinct()
+            except ValueError:
+                pass
+        return queryset
+
     def filter_categories_in(self, queryset, name, value):
+        # Kept for backward compatibility if needed, though redundant with category
         if value:
             try:
                 category_ids = [int(id.strip()) for id in value.split(',') if id.strip()]

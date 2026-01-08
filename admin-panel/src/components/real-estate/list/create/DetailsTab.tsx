@@ -70,7 +70,6 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                         value={formData?.land_area ?? ""}
                         onChange={handleNumericChange("land_area")}
                         error={errors?.land_area}
-                        className="h-11"
                     />
                     <FormFieldInput
                         label="زیربنا / کف (متر)"
@@ -81,7 +80,6 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                         value={formData?.built_area ?? ""}
                         onChange={handleNumericChange("built_area")}
                         error={errors?.built_area}
-                        className="h-11"
                     />
 
                     <div className="space-y-2">
@@ -97,7 +95,6 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             error={errors?.year_built}
                             min={fieldOptions?.year_built?.min}
                             max={fieldOptions?.year_built?.max}
-                            className="h-11"
                         />
                     </div>
 
@@ -110,7 +107,6 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                         value={formData?.floors_in_building ?? ""}
                         onChange={handleNumericChange("floors_in_building")}
                         error={errors?.floors_in_building}
-                        className="h-11"
                     />
 
                     <div className="space-y-2">
@@ -120,7 +116,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             onValueChange={handleSelectChange("floor_number")}
                             disabled={!editMode || isLoadingOptions}
                         >
-                            <SelectTrigger className="w-full h-11 border-br bg-wt">
+                            <SelectTrigger className="w-full border-br bg-wt">
                                 <SelectValue placeholder="انتخاب طبقه" />
                             </SelectTrigger>
                             <SelectContent>
@@ -141,7 +137,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             onValueChange={(value) => handleInputChange("document_type", value)}
                             disabled={!editMode || isLoadingOptions}
                         >
-                            <SelectTrigger className="w-full h-11 border-br bg-wt">
+                            <SelectTrigger className="w-full border-br bg-wt">
                                 <SelectValue placeholder="انتخاب نوع سند" />
                             </SelectTrigger>
                             <SelectContent>
@@ -177,7 +173,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             onValueChange={handleSelectChange("bedrooms")}
                             disabled={!editMode || isLoadingOptions}
                         >
-                            <SelectTrigger className="w-full h-11 border-br bg-wt">
+                            <SelectTrigger className="w-full border-br bg-wt">
                                 <SelectValue placeholder="انتخاب تعداد خواب" />
                             </SelectTrigger>
                             <SelectContent>
@@ -202,7 +198,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             onValueChange={handleSelectChange("bathrooms")}
                             disabled={!editMode || isLoadingOptions}
                         >
-                            <SelectTrigger className="w-full h-11 border-br bg-wt">
+                            <SelectTrigger className="w-full border-br bg-wt">
                                 <SelectValue placeholder="انتخاب تعداد سرویس" />
                             </SelectTrigger>
                             <SelectContent>
@@ -227,7 +223,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             onValueChange={handleSelectChange("parking_spaces")}
                             disabled={!editMode || isLoadingOptions}
                         >
-                            <SelectTrigger className="w-full h-11 border-br bg-wt">
+                            <SelectTrigger className="w-full border-br bg-wt">
                                 <SelectValue placeholder="تعداد پارکینگ" />
                             </SelectTrigger>
                             <SelectContent>
@@ -252,7 +248,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             onValueChange={handleSelectChange("storage_rooms")}
                             disabled={!editMode || isLoadingOptions}
                         >
-                            <SelectTrigger className="w-full h-11 border-br bg-wt">
+                            <SelectTrigger className="w-full border-br bg-wt">
                                 <SelectValue placeholder="تعداد انباری" />
                             </SelectTrigger>
                             <SelectContent>
@@ -277,7 +273,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             onValueChange={handleSelectChange("kitchens")}
                             disabled={!editMode || isLoadingOptions}
                         >
-                            <SelectTrigger className="w-full h-11 border-br bg-wt">
+                            <SelectTrigger className="w-full border-br bg-wt">
                                 <SelectValue placeholder="تعداد آشپزخانه" />
                             </SelectTrigger>
                             <SelectContent>
@@ -301,7 +297,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             onValueChange={handleSelectChange("living_rooms")}
                             disabled={!editMode || isLoadingOptions}
                         >
-                            <SelectTrigger className="w-full h-11 border-br bg-wt">
+                            <SelectTrigger className="w-full border-br bg-wt">
                                 <SelectValue placeholder="تعداد پذیرایی" />
                             </SelectTrigger>
                             <SelectContent>
@@ -336,7 +332,6 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             value={formData?.price ?? ""}
                             onChange={handleNumericChange("price")}
                             error={errors?.price}
-                            className="h-11"
                         />
                         <FormFieldInput
                             label="قیمت ویژه / حراج"
@@ -347,7 +342,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             value={formData?.sale_price ?? ""}
                             onChange={handleNumericChange("sale_price")}
                             error={errors?.sale_price}
-                            className="h-11 border-orange-1/50"
+                            className="border-orange-1/50"
                         />
                         <FormFieldInput
                             label="قیمت پیش‌فروش"
@@ -358,7 +353,7 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             value={formData?.pre_sale_price ?? ""}
                             onChange={handleNumericChange("pre_sale_price")}
                             error={errors?.pre_sale_price}
-                            className="h-11 border-blue-1/50"
+                            className="border-blue-1/50"
                         />
                     </div>
 
@@ -388,7 +383,6 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             value={formData?.mortgage_amount ?? ""}
                             onChange={handleNumericChange("mortgage_amount")}
                             error={errors?.mortgage_amount}
-                            className="h-11"
                         />
                         <FormFieldInput
                             label="اجاره ماهیانه"
@@ -399,7 +393,6 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             value={formData?.rent_amount ?? ""}
                             onChange={handleNumericChange("rent_amount")}
                             error={errors?.rent_amount}
-                            className="h-11"
                         />
                         <FormFieldInput
                             label="ودیعه ثانویه"
@@ -410,7 +403,6 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             value={formData?.security_deposit ?? ""}
                             onChange={handleNumericChange("security_deposit")}
                             error={errors?.security_deposit}
-                            className="h-11"
                         />
                         <FormFieldInput
                             label="اجاره (کوتاه‌مدت)"
@@ -421,7 +413,6 @@ export default function DetailsTab({ formData, handleInputChange, editMode, erro
                             value={formData?.monthly_rent ?? ""}
                             onChange={handleNumericChange("monthly_rent")}
                             error={errors?.monthly_rent}
-                            className="h-11"
                         />
                     </div>
                 </div>

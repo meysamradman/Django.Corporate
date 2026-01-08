@@ -382,19 +382,20 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                         iconColor="stroke-blue-2"
                         borderColor="border-b-blue-1"
                     >
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
                             {/* Property Type */}
                             <FormField
                                 label="نوع ملک"
                                 required
                                 error={isFormApproach ? errors.property_type?.message : errors?.property_type}
+                                className="lg:col-span-2"
                             >
                                 <Select
                                     disabled={!editMode || loadingTypes}
                                     value={isFormApproach ? (watch?.("property_type") ? String(watch("property_type")) : "") : (formData?.property_type ? String(formData.property_type) : "")}
                                     onValueChange={handlePropertyTypeChange}
                                 >
-                                    <SelectTrigger className={cn("h-11", (isFormApproach ? errors.property_type?.message : errors?.property_type) && "border-red-1")}>
+                                    <SelectTrigger className={cn((isFormApproach ? errors.property_type?.message : errors?.property_type) && "border-red-1")}>
                                         <SelectValue placeholder={loadingTypes ? "در حال بارگذاری..." : "نوع ملک را انتخاب کنید"} />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -409,16 +410,17 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
 
                             {/* Property State/Category */}
                             <FormField
-                                label="نوع واگذاری"
+                                label="وضعیت ملک"
                                 required
                                 error={isFormApproach ? errors.state?.message : errors?.state}
+                                className="lg:col-span-2"
                             >
                                 <Select
                                     disabled={!editMode || loadingStates}
                                     value={isFormApproach ? (watch?.("state") ? String(watch("state")) : "") : (formData?.state ? String(formData.state) : "")}
                                     onValueChange={handleStateChange}
                                 >
-                                    <SelectTrigger className={cn("h-11", (isFormApproach ? errors.state?.message : errors?.state) && "border-red-1")}>
+                                    <SelectTrigger className={cn((isFormApproach ? errors.state?.message : errors?.state) && "border-red-1")}>
                                         <SelectValue placeholder={loadingStates ? "در حال بارگذاری..." : "مثلاً فروشی، اجاره‌ای..."} />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -436,13 +438,14 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                                 label="وضعیت معامله"
                                 required
                                 error={isFormApproach ? errors.status?.message : errors?.status}
+                                className="lg:col-span-2"
                             >
                                 <Select
                                     disabled={!editMode || loadingOptions}
                                     value={isFormApproach ? (watch?.("status") || "") : (formData?.status || "")}
                                     onValueChange={handleStatusChange}
                                 >
-                                    <SelectTrigger className={cn("h-11", (isFormApproach ? errors.status?.message : errors?.status) && "border-red-1")}>
+                                    <SelectTrigger className={cn((isFormApproach ? errors.status?.message : errors?.status) && "border-red-1")}>
                                         <SelectValue placeholder={loadingOptions ? "در حال بارگذاری..." : "انتخاب وضعیت..."} />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -459,22 +462,23 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                             <FormField
                                 label="مشاور مسئول"
                                 error={errors?.agent}
+                                className="lg:col-span-3"
                             >
-                                <Select
-                                    disabled={!editMode || loadingAgents}
-                                    value={isFormApproach ? (watch?.("agent") ? String(watch("agent")) : "none") : (formData?.agent ? String(formData.agent) : "none")}
-                                    onValueChange={handleAgentChange}
-                                >
-                                    <SelectTrigger className={cn("h-11", (isFormApproach ? errors.agent?.message : errors?.agent) && "border-red-1")}>
-                                        <SelectValue placeholder={loadingAgents ? "در حال بارگذاری..." : "مشاور را انتخاب کنید"} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="none">هیچکدام</SelectItem>
-                                        {(agents || []).map((agent) => (
-                                            <SelectItem key={agent.id} value={String(agent.id)}>
-                                                {agent.first_name} {agent.last_name}
-                                            </SelectItem>
-                                        ))}
+                                    <Select
+                                        disabled={!editMode || loadingAgents}
+                                        value={isFormApproach ? (watch?.("agent") ? String(watch("agent")) : "none") : (formData?.agent ? String(formData.agent) : "none")}
+                                        onValueChange={handleAgentChange}
+                                    >
+                                        <SelectTrigger className={cn((isFormApproach ? errors.agent?.message : errors?.agent) && "border-red-1")}>
+                                            <SelectValue placeholder={loadingAgents ? "در حال بارگذاری..." : "مشاور را انتخاب کنید"} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">هیچکدام</SelectItem>
+                                            {(agents || []).map((agent) => (
+                                                <SelectItem key={agent.id} value={String(agent.id)}>
+                                                    {agent.first_name} {agent.last_name}
+                                                </SelectItem>
+                                            ))}
                                     </SelectContent>
                                 </Select>
                             </FormField>
@@ -483,13 +487,14 @@ export default function BaseInfoTab(props: BaseInfoTabProps) {
                             <FormField
                                 label="آژانس املاک"
                                 error={isFormApproach ? errors.agency?.message : errors?.agency}
+                                className="lg:col-span-3"
                             >
                                 <Select
                                     disabled={!editMode || loadingAgencies}
                                     value={isFormApproach ? (watch?.("agency") ? String(watch("agency")) : "none") : (formData?.agency ? String(formData.agency) : "none")}
                                     onValueChange={handleAgencyChange}
                                 >
-                                    <SelectTrigger className={cn("h-11", (isFormApproach ? errors.agency?.message : errors?.agency) && "border-red-1")}>
+                                    <SelectTrigger className={cn((isFormApproach ? errors.agency?.message : errors?.agency) && "border-red-1")}>
                                         <SelectValue placeholder={loadingAgencies ? "در حال بارگذاری..." : "آژانس را انتخاب کنید"} />
                                     </SelectTrigger>
                                     <SelectContent>

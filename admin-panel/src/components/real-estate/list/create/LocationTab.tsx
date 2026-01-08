@@ -235,45 +235,47 @@ export default function LocationTab(props: LocationTabProps) {
                             title="اطلاعات مکانی"
                             icon={MapPin}
                         >
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Province Selection */}
-                                <FormField label="استان" required error={isFormApproach ? errorsObj.province?.message : errorsObj?.province}>
-                                    <Select
-                                        value={selectedProvinceId ? String(selectedProvinceId) : ""}
-                                        onValueChange={handleProvinceChange}
-                                        disabled={!editMode || loading}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="استان را انتخاب کنید" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {(provinces || []).map((province) => (
-                                                <SelectItem key={province.id} value={province.id.toString()}>
-                                                    {province.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </FormField>
+                            <div className="grid grid-cols-1 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Province Selection */}
+                                    <FormField label="استان" required error={isFormApproach ? errorsObj.province?.message : errorsObj?.province}>
+                                        <Select
+                                            value={selectedProvinceId ? String(selectedProvinceId) : ""}
+                                            onValueChange={handleProvinceChange}
+                                            disabled={!editMode || loading}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="استان را انتخاب کنید" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {(provinces || []).map((province) => (
+                                                    <SelectItem key={province.id} value={province.id.toString()}>
+                                                        {province.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </FormField>
 
-                                <FormField label="شهر" required error={isFormApproach ? errorsObj.city?.message : errorsObj?.city}>
-                                    <Select
-                                        value={selectedCityId ? String(selectedCityId) : ""}
-                                        onValueChange={handleCityChange}
-                                        disabled={!editMode || !selectedProvinceId || loading}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="شهر را انتخاب کنید" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {(cities || []).map((city) => (
-                                                <SelectItem key={city.id} value={city.id.toString()}>
-                                                    {city.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </FormField>
+                                    <FormField label="شهر" required error={isFormApproach ? errorsObj.city?.message : errorsObj?.city}>
+                                        <Select
+                                            value={selectedCityId ? String(selectedCityId) : ""}
+                                            onValueChange={handleCityChange}
+                                            disabled={!editMode || !selectedProvinceId || loading}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="شهر را انتخاب کنید" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {(cities || []).map((city) => (
+                                                    <SelectItem key={city.id} value={city.id.toString()}>
+                                                        {city.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </FormField>
+                                </div>
 
                                 {isFormApproach ? (
                                     <FormFieldInput

@@ -50,7 +50,7 @@ export function DataTableDateRangeFilterDropdown({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="border-dashed">
+        <Button variant="outline" size="sm">
           <PlusCircle />
           {title}
           {hasSelection && selectedOption && (
@@ -121,7 +121,7 @@ export function DataTableDateRangeFilterDropdown({
                     onSelect={() => {
                       onChange({ from: undefined, to: undefined });
                     }}
-                    className="justify-center text-center"
+                    className="justify-center text-center cursor-pointer"
                   >
                     پاک کردن فیلتر
                   </CommandItem>

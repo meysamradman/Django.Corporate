@@ -36,10 +36,16 @@ import { DataTableDateRangeFilter } from "./DataTableDateRangeFilter"
 import { DataTableDateRangeFilterDropdown } from "./DataTableDateRangeFilterDropdown"
 import { DataTableFacetedFilterSimple } from "./DataTableFacetedFilterSimple"
 import type { DateRangeOption } from "@/types/shared/table"
-import { Trash, Search, Download, Printer, FileSpreadsheet, FileText } from "lucide-react"
+import { Trash, Search, Download, Printer, FileSpreadsheet, FileText, ChevronDown } from "lucide-react"
 import { Loader } from "@/components/elements/Loader"
 import { PaginationControls } from "@/components/shared/Pagination"
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/elements/Select"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/elements/DropdownMenu"
+import { Button } from "@/components/elements/Button"
 import type {
   SearchConfig,
   FilterConfig,
@@ -58,12 +64,12 @@ interface DataTableProps<TData extends { id: number | string }, TValue, TClientF
   clientFilters: TClientFilters;
   onFilterChange: (filterId: keyof TClientFilters | 'search', value: unknown) => void;
   state?: {
-      pagination?: TablePaginationState;
-      sorting?: SortingState;
-      rowSelection?: Record<string, boolean>;
-      columnVisibility?: VisibilityState;
+    pagination?: TablePaginationState;
+    sorting?: SortingState;
+    rowSelection?: Record<string, boolean>;
+    columnVisibility?: VisibilityState;
   };
-  searchConfig?: SearchConfig; 
+  searchConfig?: SearchConfig;
   filterConfig?: FilterConfig[];
   deleteConfig?: DeleteConfig;
   exportConfig?: ExportConfig<TClientFilters>;
@@ -141,7 +147,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
       onPrint();
       return;
     }
-    
+
     const activeExportConfigs = exportConfigs || (exportConfig ? [exportConfig] : []);
     const config = activeExportConfigs.find(c => c.value === value);
     if (config) {
@@ -152,311 +158,326 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
   const activeExportConfigs = exportConfigs || (exportConfig ? [exportConfig] : []);
 
   return (
-    <Card 
+    <Card
       className="gap-0 shadow-sm border hover:shadow-lg transition-all duration-300"
       data-table="portfolio-table"
     >
       <CardHeader className="border-b">
-         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-           <div className="flex items-center gap-2 flex-wrap">
-             <div className="relative w-full sm:w-auto sm:min-w-[240px] sm:max-w-[320px]">
-               <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-font-s pointer-events-none" />
-               <Input
-                 placeholder="جستجو..."
-                 value={searchValue ?? ""}
-                 onChange={(event) => {
-                   onFilterChange("search", event.target.value);
-                 }}
-                 className="pr-8 h-8 text-sm"
-               />
-             </div>
-             {(activeExportConfigs.length > 0 || onPrint) && (
-               <Select onValueChange={handleExportSelect}>
-                 <SelectTrigger className="w-[140px]">
-                   <span>خروجی</span>
-                 </SelectTrigger>
-                 <SelectContent>
-                   {activeExportConfigs.map((config, index) => {
-                     const getIcon = () => {
-                       if (config.value === 'excel') {
-                         return <FileSpreadsheet className="h-4 w-4" />;
-                       }
-                       if (config.value === 'pdf') {
-                         return <FileText className="h-4 w-4" />;
-                       }
-                       return <Download className="h-4 w-4" />;
-                     };
-                     return (
-                       <SelectItem key={index} value={config.value || `export-${index}`}>
-                         <div className="flex items-center gap-2">
-                           {getIcon()}
-                           <span>{config.buttonText || "خروجی"}</span>
-                         </div>
-                       </SelectItem>
-                     );
-                   })}
-                   {onPrint && (
-                     <SelectItem value="print">
-                       <div className="flex items-center gap-2">
-                         <Printer className="h-4 w-4" />
-                         <span>پرینت</span>
-                       </div>
-                     </SelectItem>
-                   )}
-                 </SelectContent>
-               </Select>
-             )}
-             {selectedRowCount > 0 && deleteConfig && (
-               <ProtectedButton
-                 permission={deleteConfig.permission || "delete"}
-                 variant="destructive"
-                 onClick={handleDeleteSelectedClick}
-                 denyMessage={deleteConfig.denyMessage || "اجازه حذف ندارید"}
-               >
-                 <Trash className="" />
-                 {deleteConfig.buttonText || "حذف"}
-               </ProtectedButton>
-             )}
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative w-full sm:w-auto sm:min-w-[240px] sm:max-w-[320px]">
+              <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-font-s pointer-events-none" />
+              <Input
+                placeholder="جستجو..."
+                value={searchValue ?? ""}
+                onChange={(event) => {
+                  onFilterChange("search", event.target.value);
+                }}
+                className="pr-8"
+              />
             </div>
+            {(activeExportConfigs.length > 0 || onPrint) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Download className="h-4 w-4" />
+                    خروجی
+                    <ChevronDown className="h-4 w-4 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-[180px]">
+                  {activeExportConfigs.map((config, index) => {
+                    const getIcon = () => {
+                      if (config.value === 'excel') {
+                        return <FileSpreadsheet className="h-4 w-4" />;
+                      }
+                      if (config.value === 'pdf') {
+                        return <FileText className="h-4 w-4" />;
+                      }
+                      return <Download className="h-4 w-4" />;
+                    };
+                    return (
+                      <DropdownMenuItem
+                        key={index}
+                        onClick={() => handleExportSelect(config.value || `export-${index}`)}
+                        className="cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2 w-full">
+                          {getIcon()}
+                          <span>{config.buttonText || "خروجی"}</span>
+                        </div>
+                      </DropdownMenuItem>
+                    );
+                  })}
+                  {onPrint && (
+                    <>
+                      {activeExportConfigs.length > 0 && <div className="h-px bg-border my-1" />}
+                      <DropdownMenuItem
+                        onClick={() => handleExportSelect('print')}
+                        className="cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2 w-full">
+                          <Printer className="h-4 w-4" />
+                          <span>پرینت</span>
+                        </div>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            {selectedRowCount > 0 && deleteConfig && (
+              <ProtectedButton
+                permission={deleteConfig.permission || "delete"}
+                variant="destructive"
+                onClick={handleDeleteSelectedClick}
+                denyMessage={deleteConfig.denyMessage || "اجازه حذف ندارید"}
+              >
+                <Trash className="" />
+                {deleteConfig.buttonText || "حذف"}
+              </ProtectedButton>
+            )}
+          </div>
 
-           <div className="flex flex-col flex-wrap gap-2 md:flex-row md:items-center md:gap-2">
-             {customHeaderActions}
-              {filterConfig.map((filter) => {
-               // ✅ Check if it's a non-column filter FIRST to avoid warning
-               const isNonColumnFilter = ['categories', 'property_type', 'date_from', 'date_to', 'date_range', 'date_range_dropdown'].includes(filter.columnId);
-               
-               // Only call getColumn if it's not a non-column filter
-               const column = isNonColumnFilter ? null : table.getColumn(filter.columnId);
-               
-               // Skip if no column found and it's not a non-column filter
-               if (!column && !isNonColumnFilter) return null;
-               
-               if (filter.type === 'hierarchical') {
-                 return (
-                   <DataTableHierarchicalFilter
-                     key={filter.columnId}
-                     title={filter.title}
-                     items={filter.options as unknown as CategoryItem[]}
-                     placeholder={filter.placeholder || filter.title || "انتخاب کنید..."}
-                     value={clientFilters[filter.columnId as keyof TClientFilters] as string | number | undefined}
-                     onChange={(value) => onFilterChange(filter.columnId, value)}
-                   />
-                 );
-               }
-               
-               if (filter.type === 'date_range') {
-                 // Get range from filters, or construct from date_from/date_to
-                 const rangeValue = clientFilters[filter.columnId as keyof TClientFilters] as { from?: string; to?: string } | undefined;
-                 const dateFrom = clientFilters['date_from' as keyof TClientFilters] as string | undefined;
-                 const dateTo = clientFilters['date_to' as keyof TClientFilters] as string | undefined;
-                 
-                 const currentRange = rangeValue || (dateFrom || dateTo ? { from: dateFrom, to: dateTo } : { from: undefined, to: undefined });
-                 
-                 return (
-                   <DataTableDateRangeFilter
-                     key={filter.columnId}
-                     title={filter.title}
-                     value={currentRange}
-                     onChange={(range) => {
-                       // Store the range object for UI
-                       onFilterChange(filter.columnId, range);
-                       // Also set date_from and date_to for backend compatibility
-                       onFilterChange('date_from', range.from);
-                       onFilterChange('date_to', range.to);
-                     }}
-                     placeholder={filter.placeholder || filter.title || "انتخاب بازه تاریخ"}
-                   />
-                 );
-               }
-               
-               if (filter.type === 'date_range_dropdown') {
-                 // Get range from filters, or construct from date_from/date_to
-                 const rangeValue = clientFilters[filter.columnId as keyof TClientFilters] as { from?: string; to?: string } | undefined;
-                 const dateFrom = clientFilters['date_from' as keyof TClientFilters] as string | undefined;
-                 const dateTo = clientFilters['date_to' as keyof TClientFilters] as string | undefined;
-                 
-                 const currentRange = rangeValue || (dateFrom || dateTo ? { from: dateFrom, to: dateTo } : { from: undefined, to: undefined });
-                 
-                 return (
-                   <DataTableDateRangeFilterDropdown
-                     key={filter.columnId}
-                     title={filter.title}
-                     options={(filter.options || []) as DateRangeOption[]}
-                     value={currentRange}
-                     onChange={(range) => {
-                       // Store the range object for UI
-                       onFilterChange(filter.columnId, range);
-                       // Also set date_from and date_to for backend compatibility
-                       onFilterChange('date_from', range.from);
-                       onFilterChange('date_to', range.to);
-                     }}
-                     placeholder={filter.placeholder || filter.title || "بازه تاریخ"}
-                   />
-                 );
-               }
-               
-               if (filter.type === 'date') {
-                 return (
-                   <DataTableDateFilter
-                     key={filter.columnId}
-                     title={filter.title}
-                     value={clientFilters[filter.columnId as keyof TClientFilters] as string || undefined}
-                     onChange={(value) => onFilterChange(filter.columnId, value)}
-                     placeholder={filter.placeholder || filter.title || "تاریخ"}
-                   />
-                 );
-               }
-               
-               if (filter.type === 'faceted') {
-                 return (
-                   <DataTableFacetedFilterSimple
-                     key={filter.columnId}
-                     title={filter.title}
-                     options={(filter.options || []) as Array<{ label: string; value: string | boolean; icon?: React.ComponentType<{ className?: string }>; count?: number }>}
-                     value={clientFilters[filter.columnId as keyof TClientFilters] as string | boolean | (string | boolean)[] | undefined}
-                     onChange={(value) => onFilterChange(filter.columnId, value)}
-                     multiSelect={false}
-                     showSearch={filter.showSearch !== false}
-                   />
-                 );
-               }
-               
-               // Default to faceted filter for backward compatibility
-               return (
-                 <DataTableFacetedFilterSimple
-                   key={filter.columnId}
-                   title={filter.title}
-                   options={(filter.options || []) as Array<{ label: string; value: string | boolean; icon?: React.ComponentType<{ className?: string }>; count?: number }>}
-                   value={clientFilters[filter.columnId as keyof TClientFilters] as string | boolean | (string | boolean)[] | undefined}
-                   onChange={(value) => onFilterChange(filter.columnId, value)}
-                   multiSelect={false}
-                   showSearch={filter.showSearch !== false && (filter.options || []).length > 5}
-                 />
-               );
-             })}
-           </div>
+          <div className="flex flex-col flex-wrap gap-2 md:flex-row md:items-center md:gap-2">
+            {customHeaderActions}
+            {filterConfig.map((filter) => {
+              // ✅ Check if it's a non-column filter FIRST to avoid warning
+              const isNonColumnFilter = ['category', 'property_type', 'date_from', 'date_to', 'date_range', 'date_range_dropdown'].includes(filter.columnId);
 
-         </div>
+              // Only call getColumn if it's not a non-column filter
+              const column = isNonColumnFilter ? null : table.getColumn(filter.columnId);
+
+              // Skip if no column found and it's not a non-column filter
+              if (!column && !isNonColumnFilter) return null;
+
+              if (filter.type === 'hierarchical') {
+                return (
+                  <DataTableHierarchicalFilter
+                    key={filter.columnId}
+                    title={filter.title}
+                    items={filter.options as unknown as CategoryItem[]}
+                    placeholder={filter.placeholder || filter.title || "انتخاب کنید..."}
+                    value={clientFilters[filter.columnId as keyof TClientFilters] as string | number | undefined}
+                    onChange={(value) => onFilterChange(filter.columnId, value)}
+                    multiSelect={filter.multiSelect}
+                  />
+                );
+              }
+
+              if (filter.type === 'date_range') {
+                // Get range from filters, or construct from date_from/date_to
+                const rangeValue = clientFilters[filter.columnId as keyof TClientFilters] as { from?: string; to?: string } | undefined;
+                const dateFrom = clientFilters['date_from' as keyof TClientFilters] as string | undefined;
+                const dateTo = clientFilters['date_to' as keyof TClientFilters] as string | undefined;
+
+                const currentRange = rangeValue || (dateFrom || dateTo ? { from: dateFrom, to: dateTo } : { from: undefined, to: undefined });
+
+                return (
+                  <DataTableDateRangeFilter
+                    key={filter.columnId}
+                    title={filter.title}
+                    value={currentRange}
+                    onChange={(range) => {
+                      // Store the range object for UI
+                      onFilterChange(filter.columnId, range);
+                      // Also set date_from and date_to for backend compatibility
+                      onFilterChange('date_from', range.from);
+                      onFilterChange('date_to', range.to);
+                    }}
+                    placeholder={filter.placeholder || filter.title || "انتخاب بازه تاریخ"}
+                  />
+                );
+              }
+
+              if (filter.type === 'date_range_dropdown') {
+                // Get range from filters, or construct from date_from/date_to
+                const rangeValue = clientFilters[filter.columnId as keyof TClientFilters] as { from?: string; to?: string } | undefined;
+                const dateFrom = clientFilters['date_from' as keyof TClientFilters] as string | undefined;
+                const dateTo = clientFilters['date_to' as keyof TClientFilters] as string | undefined;
+
+                const currentRange = rangeValue || (dateFrom || dateTo ? { from: dateFrom, to: dateTo } : { from: undefined, to: undefined });
+
+                return (
+                  <DataTableDateRangeFilterDropdown
+                    key={filter.columnId}
+                    title={filter.title}
+                    options={(filter.options || []) as DateRangeOption[]}
+                    value={currentRange}
+                    onChange={(range) => {
+                      // Store the range object for UI
+                      onFilterChange(filter.columnId, range);
+                      // Also set date_from and date_to for backend compatibility
+                      onFilterChange('date_from', range.from);
+                      onFilterChange('date_to', range.to);
+                    }}
+                    placeholder={filter.placeholder || filter.title || "بازه تاریخ"}
+                  />
+                );
+              }
+
+              if (filter.type === 'date') {
+                return (
+                  <DataTableDateFilter
+                    key={filter.columnId}
+                    title={filter.title}
+                    value={clientFilters[filter.columnId as keyof TClientFilters] as string || undefined}
+                    onChange={(value) => onFilterChange(filter.columnId, value)}
+                    placeholder={filter.placeholder || filter.title || "تاریخ"}
+                  />
+                );
+              }
+
+              if (filter.type === 'faceted') {
+                return (
+                  <DataTableFacetedFilterSimple
+                    key={filter.columnId}
+                    title={filter.title}
+                    options={(filter.options || []) as Array<{ label: string; value: string | boolean; icon?: React.ComponentType<{ className?: string }>; count?: number }>}
+                    value={clientFilters[filter.columnId as keyof TClientFilters] as string | boolean | (string | boolean)[] | undefined}
+                    onChange={(value) => onFilterChange(filter.columnId, value)}
+                    multiSelect={filter.multiSelect}
+                    showSearch={filter.showSearch !== false}
+                  />
+                );
+              }
+
+              // Default to faceted filter for backward compatibility
+              return (
+                <DataTableFacetedFilterSimple
+                  key={filter.columnId}
+                  title={filter.title}
+                  options={(filter.options || []) as Array<{ label: string; value: string | boolean; icon?: React.ComponentType<{ className?: string }>; count?: number }>}
+                  value={clientFilters[filter.columnId as keyof TClientFilters] as string | boolean | (string | boolean)[] | undefined}
+                  onChange={(value) => onFilterChange(filter.columnId, value)}
+                  multiSelect={true}
+                  showSearch={filter.showSearch !== false && (filter.options || []).length > 5}
+                />
+              );
+            })}
+          </div>
+
+        </div>
       </CardHeader>
 
       <CardContent className="p-0">
-          <div className="w-full">
-            <Table className="w-full">
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow 
-                      key={headerGroup.id}
-                    >
-                      {headerGroup.headers.map((header) => {
-                        return (
-                        <TableHead 
-                          key={header.id} 
-                          colSpan={header.colSpan}
-                          style={{ 
-                            width: (header.column.id === 'order' || header.column.id === 'actions') && header.column.columnDef.size 
-                              ? `${header.column.columnDef.size}px` 
-                              : header.column.columnDef.size === 60 
-                                ? '60px' 
-                                : (header.column.id === 'is_active' && header.column.columnDef.size ? `${header.column.columnDef.size}px` : undefined),
-                            minWidth: (header.column.id === 'order' || header.column.id === 'actions') && header.column.columnDef.minSize
-                              ? `${header.column.columnDef.minSize}px`
-                              : header.column.columnDef.size === 60 
-                                ? '60px' 
-                                : (header.column.id === 'is_active' && header.column.columnDef.size ? `${header.column.columnDef.size}px` : (header.column.columnDef.minSize || header.getSize())),
-                            maxWidth: (header.column.id === 'order' || header.column.id === 'actions') && header.column.columnDef.maxSize
-                              ? `${header.column.columnDef.maxSize}px`
-                              : header.column.columnDef.maxSize === 60 
-                                ? '60px' 
-                                : undefined,
-                            ...(header.column.id === 'select' && {
-                              paddingLeft: '0.5rem',
-                              paddingRight: '0.5rem'
-                            })
-                          }}
-                          className={header.column.id === 'select' || header.column.id === 'order' || header.column.id === 'actions' ? 'text-center' : 'text-right'}
-                          >
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                          </TableHead>
-                        )
-                      })}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && "selected"}
+        <div className="w-full">
+          <Table className="w-full">
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow
+                  key={headerGroup.id}
+                >
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead
+                        key={header.id}
+                        colSpan={header.colSpan}
+                        style={{
+                          width: (header.column.id === 'order' || header.column.id === 'actions') && header.column.columnDef.size
+                            ? `${header.column.columnDef.size}px`
+                            : header.column.columnDef.size === 60
+                              ? '60px'
+                              : (header.column.id === 'is_active' && header.column.columnDef.size ? `${header.column.columnDef.size}px` : undefined),
+                          minWidth: (header.column.id === 'order' || header.column.id === 'actions') && header.column.columnDef.minSize
+                            ? `${header.column.columnDef.minSize}px`
+                            : header.column.columnDef.size === 60
+                              ? '60px'
+                              : (header.column.id === 'is_active' && header.column.columnDef.size ? `${header.column.columnDef.size}px` : (header.column.columnDef.minSize || header.getSize())),
+                          maxWidth: (header.column.id === 'order' || header.column.id === 'actions') && header.column.columnDef.maxSize
+                            ? `${header.column.columnDef.maxSize}px`
+                            : header.column.columnDef.maxSize === 60
+                              ? '60px'
+                              : undefined,
+                          ...(header.column.id === 'select' && {
+                            paddingLeft: '0.5rem',
+                            paddingRight: '0.5rem'
+                          })
+                        }}
+                        className={header.column.id === 'select' || header.column.id === 'order' || header.column.id === 'actions' ? 'text-center' : 'text-right'}
                       >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell 
-                            key={cell.id}
-                            style={{ 
-                              width: (cell.column.id === 'order' || cell.column.id === 'actions') && cell.column.columnDef.size 
-                                ? `${cell.column.columnDef.size}px` 
-                                : cell.column.columnDef.size === 60 
-                                  ? '60px' 
-                                  : (cell.column.id === 'is_active' && cell.column.columnDef.size ? `${cell.column.columnDef.size}px` : undefined),
-                              minWidth: (cell.column.id === 'order' || cell.column.id === 'actions') && cell.column.columnDef.minSize
-                                ? `${cell.column.columnDef.minSize}px`
-                                : cell.column.columnDef.size === 60 
-                                  ? '60px' 
-                                  : (cell.column.id === 'is_active' && cell.column.columnDef.size ? `${cell.column.columnDef.size}px` : (cell.column.columnDef.minSize || cell.column.getSize())),
-                              maxWidth: (cell.column.id === 'order' || cell.column.id === 'actions') && cell.column.columnDef.maxSize
-                                ? `${cell.column.columnDef.maxSize}px`
-                                : cell.column.columnDef.maxSize === 60 
-                                  ? '60px' 
-                                  : undefined,
-                              ...(cell.column.id === 'select' && {
-                                paddingLeft: '0.5rem',
-                                paddingRight: '0.5rem'
-                              }),
-                              ...(cell.column.id === 'actions' && {
-                                paddingLeft: '1.3rem',
-                                paddingRight: '0.9rem'
-                              })
-                            }}
-                            className={cn(
-                              cell.column.id === 'select' || cell.column.id === 'order' || cell.column.id === 'actions' ? 'text-center' : undefined,
-                              (cell.column.id === 'question' || cell.column.id === 'answer') && 'whitespace-normal'
-                            )}
-                            {...(cell.column.id === 'actions' && {
-                              'data-actions': 'true'
-                            })}
-                          >
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                      </TableHead>
+                    )
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
                       <TableCell
-                        colSpan={columns.length}
-                        className="h-24 text-center p-0"
+                        key={cell.id}
+                        style={{
+                          width: (cell.column.id === 'order' || cell.column.id === 'actions') && cell.column.columnDef.size
+                            ? `${cell.column.columnDef.size}px`
+                            : cell.column.columnDef.size === 60
+                              ? '60px'
+                              : (cell.column.id === 'is_active' && cell.column.columnDef.size ? `${cell.column.columnDef.size}px` : undefined),
+                          minWidth: (cell.column.id === 'order' || cell.column.id === 'actions') && cell.column.columnDef.minSize
+                            ? `${cell.column.columnDef.minSize}px`
+                            : cell.column.columnDef.size === 60
+                              ? '60px'
+                              : (cell.column.id === 'is_active' && cell.column.columnDef.size ? `${cell.column.columnDef.size}px` : (cell.column.columnDef.minSize || cell.column.getSize())),
+                          maxWidth: (cell.column.id === 'order' || cell.column.id === 'actions') && cell.column.columnDef.maxSize
+                            ? `${cell.column.columnDef.maxSize}px`
+                            : cell.column.columnDef.maxSize === 60
+                              ? '60px'
+                              : undefined,
+                          ...(cell.column.id === 'select' && {
+                            paddingLeft: '0.5rem',
+                            paddingRight: '0.5rem'
+                          }),
+                          ...(cell.column.id === 'actions' && {
+                            paddingLeft: '1.3rem',
+                            paddingRight: '0.9rem'
+                          })
+                        }}
+                        className={cn(
+                          cell.column.id === 'select' || cell.column.id === 'order' || cell.column.id === 'actions' ? 'text-center' : undefined,
+                          (cell.column.id === 'question' || cell.column.id === 'answer') && 'whitespace-normal'
+                        )}
+                        {...(cell.column.id === 'actions' && {
+                          'data-actions': 'true'
+                        })}
                       >
-                        {isLoading ? (
-                          <Loader />
-                        ) : (
-                          <div className="py-8 text-font-s">
-                            داده‌ای یافت نشد
-                          </div>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
                         )}
                       </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-            </Table>
-          </div>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center p-0"
+                  >
+                    {isLoading ? (
+                      <Loader />
+                    ) : (
+                      <div className="py-8 text-font-s">
+                        داده‌ای یافت نشد
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
       <CardFooter className="border-t">
         <PaginationControls

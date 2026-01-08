@@ -48,6 +48,7 @@ export const getPropertyFilterConfig = (
       type: "hierarchical",
       options: propertyTypeOptions,
       placeholder: "نوع ملک",
+      multiSelect: true,
     },
     {
       columnId: "state",
@@ -56,6 +57,7 @@ export const getPropertyFilterConfig = (
       options: stateOptions,
       placeholder: "وضعیت",
       showSearch: true,
+      multiSelect: true,
     },
     {
       columnId: "city",
@@ -64,6 +66,7 @@ export const getPropertyFilterConfig = (
       options: cityOptions,
       placeholder: "شهر",
       showSearch: true,
+      multiSelect: true,
     },
     {
       columnId: "status",
@@ -72,6 +75,7 @@ export const getPropertyFilterConfig = (
       options: statusOptions,
       placeholder: "وضعیت فرآیند",
       showSearch: true,
+      multiSelect: true,
     },
     {
       columnId: "date_range",

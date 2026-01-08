@@ -92,12 +92,12 @@ export function usePropertyForm({ id, isEditMode }: UsePropertyFormProps) {
                 is_active: property.is_active ?? true,
                 is_published: property.is_published ?? false,
                 is_featured: property.is_featured ?? false,
-                property_type: property.property_type?.id || undefined,
-                state: property.state?.id || undefined,
+                property_type: property.property_type?.id ?? undefined,
+                state: property.state?.id ?? undefined,
                 agent: property.agent?.id || null,
                 agency: property.agency?.id || null,
-                province: (property.province as any)?.id || property.province || null,
-                city: (property.city as any)?.id || property.city || null,
+                province: (property.province as any)?.id ?? property.province ?? undefined,
+                city: (property.city as any)?.id ?? property.city ?? undefined,
                 district: (property.district as any)?.id || property.district || null,
                 address: property.address || "",
                 postal_code: (property as any).postal_code || "",
@@ -130,6 +130,8 @@ export function usePropertyForm({ id, isEditMode }: UsePropertyFormProps) {
                 tags_ids: property.tags?.map((t: any) => t.id) || [],
                 features_ids: property.features?.map((f: any) => f.id) || [],
                 main_image_id: property.main_image?.id || null,
+            }, { 
+                keepErrors: false
             });
         }
     }, [property, isEditMode, form]);
@@ -283,7 +285,13 @@ export function usePropertyForm({ id, isEditMode }: UsePropertyFormProps) {
     });
 
     const handleSubmit = form.handleSubmit(
-        (data) => mutation.mutate(data),
+        (data) => {
+            if (isEditMode && !form.formState.isDirty) {
+                navigate("/real-estate/properties");
+                return;
+            }
+            mutation.mutate(data);
+        },
         (errors) => {
             const firstErrorField = Object.keys(errors)[0];
             if (firstErrorField) {

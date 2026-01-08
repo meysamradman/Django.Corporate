@@ -22,6 +22,7 @@ export const getPropertyStateFilterConfig = (
       options: usageTypeOptions,
       placeholder: "نوع کاربری",
       showSearch: true,
+      multiSelect: true,
     },
     {
       columnId: "is_active",

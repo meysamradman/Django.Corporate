@@ -205,12 +205,7 @@ export const propertyFormSchema = z.object({
         .optional(),
 
     document_type: z
-        .string()
-        .refine(
-            (val) => !val || val === "" || ["official", "contract", "cooperative", "endowment", "other"].includes(val),
-            { message: msg.realEstate().validation.documentTypeInvalid }
-        )
-        .nullable()
+        .union([z.string(), z.null(), z.undefined()])
         .optional(),
 
     price: z

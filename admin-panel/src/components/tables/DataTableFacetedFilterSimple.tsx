@@ -1,4 +1,4 @@
-import { PlusCircle} from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import type { ComponentType } from "react";
 import { Badge } from "@/components/elements/Badge";
 import { Button } from "@/components/elements/Button";
@@ -43,9 +43,16 @@ export function DataTableFacetedFilterSimple({
   showSearch = true,
 }: DataTableFacetedFilterSimpleProps) {
   const selectedValues = new Set<string | boolean>();
-  
-  if (multiSelect && Array.isArray(value)) {
-    value.forEach(v => selectedValues.add(v));
+
+  if (multiSelect) {
+    if (Array.isArray(value)) {
+      value.forEach(v => selectedValues.add(v));
+    } else if (typeof value === 'string') {
+      value.split(',').forEach(v => {
+        const trimmed = v.trim();
+        if (trimmed) selectedValues.add(trimmed);
+      });
+    }
   } else if (value !== undefined && value !== null && !Array.isArray(value)) {
     selectedValues.add(value as string | boolean);
   }
@@ -73,7 +80,7 @@ export function DataTableFacetedFilterSimple({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="border-dashed">
+        <Button variant="outline" size="sm">
           <PlusCircle />
           {title}
           {hasSelection && (
@@ -151,7 +158,7 @@ export function DataTableFacetedFilterSimple({
                 <CommandGroup>
                   <CommandItem
                     onSelect={() => onChange(undefined)}
-                    className="justify-center text-center"
+                    className="justify-center text-center cursor-pointer"
                   >
                     پاک کردن فیلتر
                   </CommandItem>
