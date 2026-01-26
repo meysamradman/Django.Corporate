@@ -1,3 +1,3 @@
-export { AboutPageForm } from "./AboutPageForm";
-export { TermsPageForm } from "./TermsPageForm";
+export { PageAboutForm } from "./PageAboutForm.tsx";
+export { PageTermsForm } from "./PageTermsForm.tsx";
 

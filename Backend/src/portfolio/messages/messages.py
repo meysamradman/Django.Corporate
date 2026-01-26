@@ -1,6 +1,5 @@
 PORTFOLIO_SUCCESS = {
     "portfolio_list_success": "لیست نمونه کارها با موفقیت دریافت شد.",
-    "portfolios_list_retrieved": "لیست نمونه کارها با موفقیت دریافت شد.",
     "portfolio_created": "نمونه کار با موفقیت ایجاد شد.",
     "portfolio_updated": "نمونه کار با موفقیت به‌روزرسانی شد.",
     "portfolio_deleted": "نمونه کار با موفقیت حذف شد.",
@@ -41,7 +40,6 @@ PORTFOLIO_ERRORS = {
     "category_not_found": "دسته‌بندی یافت نشد.",
     "tag_ids_required": "شناسه تگ‌ها مورد نیاز است.",
     "media_upload_limit_exceeded": "حداکثر {max_items} رسانه برای آپلود مجاز است. شما {total_items} رسانه ارسال کرده‌اید.",
-    "portfolio_ids_required": "شناسه نمونه کارها مورد نیاز است.",
     "portfolios_not_found": "نمونه کارهای انتخاب‌شده یافت نشدند.",
     "only_one_main_image": "فقط یک تصویر اصلی برای هر نمونه کار مجاز است.",
 }
@@ -90,7 +88,6 @@ OPTION_ERRORS = {
     "option_delete_failed": "حذف گزینه ناموفق بود.",
     "option_ids_required": "شناسه گزینه‌ها مورد نیاز است.",
     "option_key_required": "کلید مورد نیاز است.",
-    "option_name_exists": "گزینه با نام \"{name}\" قبلاً وجود دارد.",
     "option_name_required": "نام نمی‌تواند خالی باشد.",
     "option_slug_required": "اسلاگ نمی‌تواند خالی باشد.",
     "option_name_exists": "گزینه‌ای با نام '{name}' قبلاً وجود دارد.",

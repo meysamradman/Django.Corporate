@@ -319,6 +319,24 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
     def get_main_image(self, obj):
         return obj.get_main_image_details()
     
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        
+        # Convert latitude and longitude to float for frontend (Leaflet/Google Maps)
+        if 'latitude' in data and data['latitude'] is not None:
+            try:
+                data['latitude'] = float(data['latitude'])
+            except (ValueError, TypeError):
+                pass
+                
+        if 'longitude' in data and data['longitude'] is not None:
+            try:
+                data['longitude'] = float(data['longitude'])
+            except (ValueError, TypeError):
+                pass
+                
+        return data
+    
     def get_media(self, obj):
         media_limit = _MEDIA_DETAIL_LIMIT
         
@@ -555,6 +573,14 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
         help_text="Neighborhood name (from map or manual input)"
     )
     
+    # Override slug field to support Persian and English characters
+    slug = serializers.CharField(
+        max_length=120,
+        required=False,
+        allow_blank=True,
+        help_text="URL Slug (supports Persian and English, auto-generated from title if not provided)"
+    )
+    
     class Meta:
         model = Property
         fields = [
@@ -575,6 +601,10 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
             'labels_ids', 'tags_ids', 'features_ids',
             'media_files',
         ]
+        # Remove slug from validators to handle uniqueness manually
+        extra_kwargs = {
+            'slug': {'validators': []},
+        }
     
     def to_internal_value(self, data):
         """Override to quantize latitude/longitude before model validation"""
@@ -612,29 +642,51 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
 
         return super().to_internal_value(data)
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        
+        # Convert latitude and longitude to float for frontend (Leaflet/Google Maps)
+        if 'latitude' in data and data['latitude'] is not None:
+            try:
+                data['latitude'] = float(data['latitude'])
+            except (ValueError, TypeError):
+                pass
+                
+        if 'longitude' in data and data['longitude'] is not None:
+            try:
+                data['longitude'] = float(data['longitude'])
+            except (ValueError, TypeError):
+                pass
+                
+        return data
+
+    def validate_slug(self, value):
+        """
+        Field-level validator for slug to ensure uniqueness.
+        This runs before validate() method and Django's model validation.
+        """
+        if not value:
+            return value
+            
+        from django.utils.text import slugify
+        base_slug = slugify(value, allow_unicode=True)
+        slug = base_slug
+        counter = 1
+        
+        # Keep incrementing until we find a unique slug
+        while Property.objects.filter(slug=slug).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        
+        return slug
+
     def validate(self, attrs):
-        # ✅ Auto-generate unique slug if not provided or if duplicate
+        # ✅ Auto-generate slug from title if not provided
         if not attrs.get('slug') and attrs.get('title'):
             from django.utils.text import slugify
-            base_slug = slugify(attrs['title'])
-            slug = base_slug
-            counter = 1
-            while Property.objects.filter(slug=slug).exists():
-                slug = f"{base_slug}-{counter}"
-                counter += 1
-            attrs['slug'] = slug
-        elif attrs.get('slug'):
-            # ✅ Slug provided - check if it exists and make it unique
-            from django.utils.text import slugify
-            base_slug = attrs['slug']
-            slug = base_slug
-            counter = 1
-            while Property.objects.filter(slug=slug).exists():
-                slug = f"{base_slug}-{counter}"
-                counter += 1
-            # Only update if we had to change it
-            if slug != base_slug:
-                attrs['slug'] = slug
+            generated_slug = slugify(attrs['title'], allow_unicode=True)
+            # Ensure uniqueness by calling validate_slug
+            attrs['slug'] = self.validate_slug(generated_slug)
         
         # ✅ Auto-assign agent if not provided
         if not attrs.get('agent'):
@@ -745,23 +797,23 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
 
 
 class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
-    labels_ids = serializers.ListField(
-        child=serializers.IntegerField(),
+    labels = serializers.PrimaryKeyRelatedField(
+        queryset=PropertyLabel.objects.all(),
+        many=True,
         write_only=True,
         required=False,
-        allow_null=True
     )
-    tags_ids = serializers.ListField(
-        child=serializers.IntegerField(),
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=PropertyTag.objects.all(),
+        many=True,
         write_only=True,
         required=False,
-        allow_null=True
     )
-    features_ids = serializers.ListField(
-        child=serializers.IntegerField(),
+    features = serializers.PrimaryKeyRelatedField(
+        queryset=PropertyFeature.objects.all(),
+        many=True,
         write_only=True,
         required=False,
-        allow_null=True
     )
     latitude = serializers.DecimalField(max_digits=10, decimal_places=8, required=False, allow_null=True, coerce_to_string=False)
     longitude = serializers.DecimalField(max_digits=11, decimal_places=8, required=False, allow_null=True, coerce_to_string=False)
@@ -783,6 +835,12 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         write_only=True,
         required=False,
         help_text="Mapping of media_id to cover_image_id for property-specific covers. Format: {media_id: cover_image_id}"
+    )
+    media_files = serializers.ListField(
+        child=serializers.FileField(),
+        write_only=True,
+        required=False,
+        help_text="New media files to upload"
     )
     
     parking_spaces = serializers.IntegerField(
@@ -848,20 +906,19 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         help_text="City (can be selected directly or auto-filled from region)"
     )
     province = serializers.PrimaryKeyRelatedField(
-        read_only=True,
+        queryset=Province.objects.all(),
+        required=False,
+        allow_null=True,
         help_text="Province (auto-filled from city or region)"
     )
-    country = serializers.PrimaryKeyRelatedField(
-        read_only=True,
-        help_text="Country (auto-filled from province)"
-    )
+    # country stays in Meta.fields but not as an explicit field here if we don't want to validate it against a queryset
     
     class Meta:
         model = Property
         fields = [
             'title', 'slug', 'short_description', 'description',
             'agent', 'agency', 'property_type', 'state', 'status', # ✅ Status added
-            'region', 'city', 'province', 'country', 'neighborhood',
+            'region', 'city', 'province', 'neighborhood',
             'address', 'postal_code', 'latitude', 'longitude',
             'price', 'sale_price', 'pre_sale_price',
             'monthly_rent', 'rent_amount', 'mortgage_amount', 'security_deposit',
@@ -873,7 +930,7 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
             'is_published', 'is_featured', 'is_public', 'is_active',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
-            'labels_ids', 'tags_ids', 'features_ids', 'media_ids', 'main_image_id', 'media_covers',
+            'labels', 'tags', 'features', 'media_ids', 'media_files', 'main_image_id', 'media_covers',
         ]
 
     def to_internal_value(self, data):
@@ -881,9 +938,12 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         from decimal import Decimal, ROUND_DOWN
 
         # Process latitude
-        if 'latitude' in data and data['latitude'] is not None:
+        if 'latitude' in data and data['latitude'] not in [None, '']:
             if isinstance(data['latitude'], str):
-                lat_value = Decimal(data['latitude'])
+                try:
+                    lat_value = Decimal(data['latitude'])
+                except:
+                    lat_value = None
             elif isinstance(data['latitude'], (int, float)):
                 lat_value = Decimal(str(data['latitude']))
             else:
@@ -893,9 +953,12 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
                 data['latitude'] = lat_value.quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
 
         # Process longitude
-        if 'longitude' in data and data['longitude'] is not None:
+        if 'longitude' in data and data['longitude'] not in [None, '']:
             if isinstance(data['longitude'], str):
-                lng_value = Decimal(data['longitude'])
+                try:
+                    lng_value = Decimal(data['longitude'])
+                except:
+                    lng_value = None
             elif isinstance(data['longitude'], (int, float)):
                 lng_value = Decimal(str(data['longitude']))
             else:
@@ -906,27 +969,7 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
 
         return super().to_internal_value(data)
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-
-        # Convert latitude and longitude to float for frontend
-        if hasattr(instance, 'latitude') and instance.latitude is not None:
-            try:
-                data['latitude'] = float(instance.latitude)
-            except (ValueError, TypeError):
-                data['latitude'] = None
-        else:
-            data['latitude'] = None
-
-        if hasattr(instance, 'longitude') and instance.longitude is not None:
-            try:
-                data['longitude'] = float(instance.longitude)
-            except (ValueError, TypeError):
-                data['longitude'] = None
-        else:
-            data['longitude'] = None
-
-        return data
+    # to_representation is now inherited from PropertyAdminDetailSerializer
 
     def validate(self, attrs):
         # Quantize latitude and longitude to prevent validation errors

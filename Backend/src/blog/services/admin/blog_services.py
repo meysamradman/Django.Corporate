@@ -105,95 +105,174 @@ class BlogAdminService:
                 'videos',
                 'audios',
                 'documents'
+            ).annotate(
+                categories_count=Count('categories', distinct=True),
+                tags_count=Count('tags', distinct=True)
             ).get(id=blog_id)
         except Blog.DoesNotExist:
             return None
     
     @staticmethod
-    def create_blog(validated_data, created_by=None):
-        categories_ids = validated_data.pop('categories_ids', [])
-        tags_ids = validated_data.pop('tags_ids', [])
-        media_files = validated_data.pop('media_files', [])
+    def get_main_image_for_model(blog_obj):
+        """Standardized main image retrieval with fallback logic"""
+        # 1. Try to get explicit main image
+        main_image_obj = BlogImage.objects.filter(
+            blog=blog_obj,
+            is_main=True
+        ).select_related('image').first()
         
+        if main_image_obj and main_image_obj.image:
+            return main_image_obj.image
+
+        # 2. Fallback to any images
+        first_image = BlogImage.objects.filter(
+            blog=blog_obj
+        ).select_related('image').order_by('order', 'created_at').first()
+        if first_image and first_image.image:
+            return first_image.image
+
+        # 3. Fallback to video cover
+        first_video = BlogVideo.objects.filter(
+            blog=blog_obj
+        ).select_related('video__cover_image').order_by('order', 'created_at').first()
+        if first_video and first_video.video and first_video.video.cover_image:
+            return first_video.video.cover_image
+
+        # 4. Fallback to other media types covers
+        audio = BlogAudio.objects.filter(
+            blog=blog_obj
+        ).select_related('audio__cover_image').first()
+        if audio and audio.audio and audio.audio.cover_image:
+            return audio.audio.cover_image
+            
+        doc = BlogDocument.objects.filter(
+            blog=blog_obj
+        ).select_related('document__cover_image').first()
+        if doc and doc.document and doc.document.cover_image:
+            return doc.document.cover_image
+
+        return None
+
+    @staticmethod
+    def create_blog(validated_data, created_by=None):
+        # Support both standard model names and _ids for safety with frontend
+        categories_ids = validated_data.pop('categories', validated_data.pop('categories_ids', []))
+        tags_ids = validated_data.pop('tags', validated_data.pop('tags_ids', []))
+        media_files = validated_data.pop('media_files', [])
+        media_ids = validated_data.pop('media_ids', [])
+        
+        # Unique Slug logic
+        if not validated_data.get('slug') and validated_data.get('title'):
+            from django.utils.text import slugify
+            base_slug = slugify(validated_data['title'])
+            slug = base_slug
+            counter = 1
+            while Blog.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            validated_data['slug'] = slug
+
+        # SEO Logic
         if not validated_data.get('meta_title') and validated_data.get('title'):
             validated_data['meta_title'] = validated_data['title'][:70]
-            
         if not validated_data.get('meta_description') and validated_data.get('short_description'):
             validated_data['meta_description'] = validated_data['short_description'][:300]
-        
-        if not validated_data.get('og_title') and validated_data.get('meta_title'):
-            validated_data['og_title'] = validated_data['meta_title']
-            
-        if not validated_data.get('og_description') and validated_data.get('meta_description'):
-            validated_data['og_description'] = validated_data['meta_description']
-        
-        if 'canonical_url' in validated_data and validated_data.get('canonical_url'):
-            canonical_url = validated_data['canonical_url']
-            if not canonical_url.startswith(('http://', 'https://')):
-                validated_data['canonical_url'] = None
-        
+        if not validated_data.get('og_title'):
+            validated_data['og_title'] = validated_data.get('meta_title')
+        if not validated_data.get('og_description'):
+            validated_data['og_description'] = validated_data.get('meta_description')
+
         with transaction.atomic():
-            blog = Blog.objects.create(**validated_data)
+            blog = Blog.objects.create(created_by=created_by, **validated_data)
             
             if categories_ids:
                 blog.categories.set(categories_ids)
             if tags_ids:
                 blog.tags.set(tags_ids)
-        
-        return blog
-    
-    @staticmethod
-    def create_blog_with_media(validated_data, media_files, created_by=None):
-        blog = BlogAdminService.create_blog(validated_data, created_by)
-        
-        if media_files:
-            result = BlogAdminMediaService.add_media_bulk(
-                blog_id=blog.id,
-                media_files=media_files,
-                created_by=created_by
-            )
+            
+            if media_files or media_ids:
+                BlogAdminMediaService.add_media_bulk(
+                    blog_id=blog.id,
+                    media_files=media_files,
+                    media_ids=media_ids,
+                    created_by=created_by
+                )
         
         return blog
 
     @staticmethod
-    def update_blog(blog_id, validated_data, media_ids=None, main_image_id=None, media_covers=None, updated_by=None):
+    def update_blog(blog_id, validated_data, media_ids=None, media_files=None, main_image_id=None, media_covers=None, updated_by=None):
         try:
             blog = Blog.objects.get(id=blog_id)
         except Blog.DoesNotExist:
-            raise Blog.DoesNotExist("Blog not found")
+            raise ValidationError(BLOG_ERRORS["blog_not_found"])
         
-        if not validated_data.get('meta_title') and validated_data.get('title'):
-            validated_data['meta_title'] = validated_data['title'][:70]
+        # Support both standard model names and _ids for safety with frontend
+        categories_val = validated_data.pop('categories', validated_data.pop('categories_ids', None))
+        tags_val = validated_data.pop('tags', validated_data.pop('tags_ids', None))
         
-        if not validated_data.get('meta_description') and validated_data.get('short_description'):
-            validated_data['meta_description'] = validated_data['short_description'][:300]
+        media_ids = media_ids if media_ids is not None else validated_data.pop('media_ids', None)
+        media_files = media_files if media_files is not None else validated_data.pop('media_files', None)
+        main_image_id = main_image_id if main_image_id is not None else validated_data.pop('main_image_id', None)
+        media_covers = media_covers if media_covers is not None else validated_data.pop('media_covers', None)
         
-        if not validated_data.get('og_title') and validated_data.get('meta_title'):
-            validated_data['og_title'] = validated_data['meta_title']
+        # Unique Slug logic
+        if 'title' in validated_data and not validated_data.get('slug'):
+            from django.utils.text import slugify
+            base_slug = slugify(validated_data['title'])
+            slug = base_slug
+            counter = 1
+            while Blog.objects.filter(slug=slug).exclude(pk=blog_id).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            validated_data['slug'] = slug
+            
+        # SEO Logic
+        if 'title' in validated_data:
+            if not validated_data.get('meta_title'):
+                validated_data['meta_title'] = validated_data['title'][:70]
+            if not validated_data.get('og_title'):
+                validated_data['og_title'] = validated_data.get('meta_title')
+                
+        if 'short_description' in validated_data or 'description' in validated_data:
+            desc_val = validated_data.get('short_description') or validated_data.get('description')
+            if not validated_data.get('meta_description') and desc_val:
+                validated_data['meta_description'] = desc_val[:300]
+            if not validated_data.get('og_description'):
+                validated_data['og_description'] = validated_data.get('meta_description') or blog.meta_description
         
-        if not validated_data.get('og_description') and validated_data.get('meta_description'):
-            validated_data['og_description'] = validated_data['meta_description']
-        
-        if 'canonical_url' in validated_data and validated_data.get('canonical_url'):
-            canonical_url = validated_data['canonical_url']
-            if not canonical_url.startswith(('http://', 'https://')):
-                validated_data['canonical_url'] = None
-        
-        for field, value in validated_data.items():
-            setattr(blog, field, value)
-        blog.save()
-        
-        if media_ids is not None:
-            BlogAdminMediaService.sync_media(
-                blog_id=blog.id,
-                media_ids=media_ids,
-                main_image_id=main_image_id,
-                media_covers=media_covers
-            )
-        
+        with transaction.atomic():
+            for field, value in validated_data.items():
+                if hasattr(blog, field):
+                    setattr(blog, field, value)
+            blog.save()
+            
+            if categories_val is not None:
+                blog.categories.set(categories_val)
+            if tags_val is not None:
+                blog.tags.set(tags_val)
+            
+            if media_files:
+                media_result = BlogAdminMediaService.add_media_bulk(
+                    blog_id=blog.id,
+                    media_files=media_files,
+                    created_by=updated_by
+                )
+                uploaded_ids = media_result.get('uploaded_media_ids', [])
+                if uploaded_ids:
+                    if media_ids is None: media_ids = uploaded_ids
+                    else: media_ids = list(set(media_ids) | set(uploaded_ids))
+                
+            if media_ids is not None or main_image_id is not None or media_covers is not None:
+                BlogAdminMediaService.sync_media(
+                    blog_id=blog.id,
+                    media_ids=media_ids,
+                    main_image_id=main_image_id,
+                    media_covers=media_covers
+                )
+                
         BlogCacheManager.invalidate_blog(blog.id)
-        BlogCacheManager.invalidate_all_lists()  # پاک کردن کش لیست‌ها
-        
+        blog.refresh_from_db()
         return blog
 
     @staticmethod

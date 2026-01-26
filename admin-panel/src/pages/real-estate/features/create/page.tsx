@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { FileText, Image as ImageIcon, Settings, Star, UploadCloud, X } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
-import { useTaxonomyForm } from "@/components/real-estate/hooks/useTaxonomyForm";
-import { TaxonomyFormLayout } from "@/components/real-estate/layouts/TaxonomyFormLayout";
+import { useRealEstateTaxonomyForm } from "@/components/real-estate/hooks/useRealEstateTaxonomyForm.ts";
+import { TaxonomyFormLayout } from "@/components/real-estate/layouts/TaxonomyFormLayout.tsx";
 import { propertyFeatureFormSchema, propertyFeatureFormDefaults } from '@/components/real-estate/validations/featureSchema';
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { FormFieldInput } from "@/components/forms/FormField";
+import { FormFieldInput } from "@/components/shared/FormField";
 import { mediaService } from "@/components/media/services";
 import { Button } from "@/components/elements/Button";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
@@ -25,7 +25,7 @@ export default function CreatePropertyFeaturePage() {
     handleRemoveImage,
     handleSubmit,
     isPending,
-  } = useTaxonomyForm({
+  } = useRealEstateTaxonomyForm({
     isEditMode: false,
     schema: propertyFeatureFormSchema,
     defaultValues: propertyFeatureFormDefaults,

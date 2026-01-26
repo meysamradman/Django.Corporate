@@ -21,13 +21,17 @@ from src.real_estate.models.constants import PROPERTY_STATUS_CHOICES
 
 class Property(BaseModel, SEOMixin):
 
-    # Core fields
     title = models.CharField(max_length=100, db_index=True, verbose_name="Title")
-    slug = models.SlugField(max_length=120, unique=True, db_index=True, allow_unicode=True, verbose_name="URL Slug")
+    slug = models.CharField(
+        max_length=120, 
+        unique=True, 
+        db_index=True, 
+        verbose_name="URL Slug",
+        help_text="Unique URL slug (supports Persian and English)"
+    )
     short_description = models.CharField(max_length=300, blank=True, verbose_name="Short Description")
     description = models.TextField(blank=True, null=True, verbose_name="Description")
-    
-    # Foreign Keys - db_index removed (covered by partial indexes)
+
     agent = models.ForeignKey(
         PropertyAgent, 
         on_delete=models.PROTECT, 
@@ -79,7 +83,6 @@ class Property(BaseModel, SEOMixin):
         help_text="Geographic longitude for map display"
     )
 
-    # Pricing fields - db_index removed (covered by partial indexes)
     price = models.BigIntegerField(null=True, blank=True)
     sale_price = models.BigIntegerField(null=True, blank=True)
     pre_sale_price = models.BigIntegerField(null=True, blank=True)
@@ -89,8 +92,7 @@ class Property(BaseModel, SEOMixin):
     rent_amount = models.BigIntegerField(null=True, blank=True)
     mortgage_amount = models.BigIntegerField(null=True, blank=True)
     security_deposit = models.BigIntegerField(null=True, blank=True)
-    
-    # Area fields - db_index removed (covered by partial indexes)
+
     land_area = models.DecimalField(
         max_digits=10, 
         decimal_places=2, 
@@ -107,33 +109,31 @@ class Property(BaseModel, SEOMixin):
         blank=True,
         help_text="Built area in square meters (optional)"
     )
-    
-    # Room Counts with English labels (i18n handled in frontend)
+
     BEDROOM_CHOICES = [
         (0, 'Studio'),
         (1, '1 Bedroom'),
-        (2, '2 Bedrooms'),
-        (3, '3 Bedrooms'),
-        (4, '4 Bedrooms'),
-        (5, '5 Bedrooms'),
-        (6, '6 Bedrooms'),
-        (7, '7 Bedrooms'),
-        (8, '8 Bedrooms'),
-        (9, '9 Bedrooms'),
-        (10, '10 Bedrooms'),
-        (11, '11 Bedrooms'),
-        (12, '12 Bedrooms'),
-        (13, '13 Bedrooms'),
-        (14, '14 Bedrooms'),
-        (15, '15 Bedrooms'),
-        (16, '16 Bedrooms'),
-        (17, '17 Bedrooms'),
-        (18, '18 Bedrooms'),
-        (19, '19 Bedrooms'),
-        (20, '20+ Bedrooms'),
+        (2, '2 Bedroom'),
+        (3, '3 Bedroom'),
+        (4, '4 Bedroom'),
+        (5, '5 Bedroom'),
+        (6, '6 Bedroom'),
+        (7, '7 Bedroom'),
+        (8, '8 Bedroom'),
+        (9, '9 Bedroom'),
+        (10, '10 Bedroom'),
+        (11, '11 Bedroom'),
+        (12, '12 Bedroom'),
+        (13, '13 Bedroom'),
+        (14, '14 Bedroom'),
+        (15, '15 Bedroom'),
+        (16, '16 Bedroom'),
+        (17, '17 Bedroom'),
+        (18, '18 Bedroom'),
+        (19, '19 Bedroom'),
+        (20, '20+ Bedroom'),
     ]
-    
-    # Room fields - Keep db_index (frequently used in filters)
+
     bedrooms = models.SmallIntegerField(
         choices=BEDROOM_CHOICES,
         default=1,
@@ -146,25 +146,25 @@ class Property(BaseModel, SEOMixin):
     BATHROOM_CHOICES = [
         (0, 'No Bathroom'),
         (1, '1 Bathroom'),
-        (2, '2 Bathrooms'),
-        (3, '3 Bathrooms'),
-        (4, '4 Bathrooms'),
-        (5, '5 Bathrooms'),
-        (6, '6 Bathrooms'),
-        (7, '7 Bathrooms'),
-        (8, '8 Bathrooms'),
-        (9, '9 Bathrooms'),
-        (10, '10 Bathrooms'),
-        (11, '11 Bathrooms'),
-        (12, '12 Bathrooms'),
-        (13, '13 Bathrooms'),
-        (14, '14 Bathrooms'),
-        (15, '15 Bathrooms'),
-        (16, '16 Bathrooms'),
-        (17, '17 Bathrooms'),
-        (18, '18 Bathrooms'),
-        (19, '19 Bathrooms'),
-        (20, '20+ Bathrooms'),
+        (2, '2 Bathroom'),
+        (3, '3 Bathroom'),
+        (4, '4 Bathroom'),
+        (5, '5 Bathroom'),
+        (6, '6 Bathroom'),
+        (7, '7 Bathroom'),
+        (8, '8 Bathroom'),
+        (9, '9 Bathroom'),
+        (10, '10 Bathroom'),
+        (11, '11 Bathroom'),
+        (12, '12 Bathroom'),
+        (13, '13 Bathroom'),
+        (14, '14 Bathroom'),
+        (15, '15 Bathroom'),
+        (16, '16 Bathroom'),
+        (17, '17 Bathroom'),
+        (18, '18 Bathroom'),
+        (19, '19 Bathroom'),
+        (20, '20+ Bathroom'),
     ]
     
     bathrooms = models.SmallIntegerField(
@@ -175,8 +175,7 @@ class Property(BaseModel, SEOMixin):
         verbose_name="Bathrooms",
         help_text="Number of bathrooms"
     )
-    
-    # Capacity for short-term rentals - db_index removed (less frequently used)
+
     CAPACITY_CHOICES = [
         (1, '1 Person'),
         (2, '2 People'),
@@ -207,15 +206,15 @@ class Property(BaseModel, SEOMixin):
     KITCHEN_CHOICES = [
         (0, 'No Kitchen'),
         (1, '1 Kitchen'),
-        (2, '2 Kitchens'),
-        (3, '3 Kitchens'),
-        (4, '4 Kitchens'),
-        (5, '5 Kitchens'),
-        (6, '6 Kitchens'),
-        (7, '7 Kitchens'),
-        (8, '8 Kitchens'),
-        (9, '9 Kitchens'),
-        (10, '10 Kitchens'),
+        (2, '2 Kitchen'),
+        (3, '3 Kitchen'),
+        (4, '4 Kitchen'),
+        (5, '5 Kitchen'),
+        (6, '6 Kitchen'),
+        (7, '7 Kitchen'),
+        (8, '8 Kitchen'),
+        (9, '9 Kitchen'),
+        (10, '10 Kitchen'),
     ]
     
     kitchens = models.SmallIntegerField(
@@ -229,15 +228,15 @@ class Property(BaseModel, SEOMixin):
     LIVING_ROOM_CHOICES = [
         (0, 'No Living Room'),
         (1, '1 Living Room'),
-        (2, '2 Living Rooms'),
-        (3, '3 Living Rooms'),
-        (4, '4 Living Rooms'),
-        (5, '5 Living Rooms'),
-        (6, '6 Living Rooms'),
-        (7, '7 Living Rooms'),
-        (8, '8 Living Rooms'),
-        (9, '9 Living Rooms'),
-        (10, '10 Living Rooms'),
+        (2, '2 Living Room'),
+        (3, '3 Living Room'),
+        (4, '4 Living Room'),
+        (5, '5 Living Room'),
+        (6, '6 Living Room'),
+        (7, '7 Living Room'),
+        (8, '8 Living Room'),
+        (9, '9 Living Room'),
+        (10, '10 Living Room'),
     ]
     
     living_rooms = models.SmallIntegerField(
@@ -272,8 +271,7 @@ class Property(BaseModel, SEOMixin):
             (year, f'{year}')
             for year in range(year_max, cls.YEAR_MIN - 1, -1)
         ]
-    
-    # Year fields - Keep db_index (frequently filtered)
+
     year_built = models.SmallIntegerField(
         null=True,
         blank=True,
@@ -293,8 +291,7 @@ class Property(BaseModel, SEOMixin):
         verbose_name="Floors in Building",
         help_text="Total floors in the building"
     )
-    
-    # Floor fields - db_index removed (covered by partial indexes)
+
     FLOOR_CHOICES = [
         (-2, '2nd Basement'),
         (-1, 'Basement'),
@@ -338,30 +335,29 @@ class Property(BaseModel, SEOMixin):
         verbose_name="Floor Number",
         help_text="Floor number of the property (-2 to 50, -1=Basement, 0=Ground floor)"
     )
-    
-    # Parking and storage - Keep db_index (frequently filtered)
+
     PARKING_CHOICES = [
         (0, 'No Parking'),
         (1, '1 Parking'),
-        (2, '2 Parkings'),
-        (3, '3 Parkings'),
-        (4, '4 Parkings'),
-        (5, '5 Parkings'),
-        (6, '6 Parkings'),
-        (7, '7 Parkings'),
-        (8, '8 Parkings'),
-        (9, '9 Parkings'),
-        (10, '10 Parkings'),
-        (11, '11 Parkings'),
-        (12, '12 Parkings'),
-        (13, '13 Parkings'),
-        (14, '14 Parkings'),
-        (15, '15 Parkings'),
-        (16, '16 Parkings'),
-        (17, '17 Parkings'),
-        (18, '18 Parkings'),
-        (19, '19 Parkings'),
-        (20, '20+ Parkings'),
+        (2, '2 Parking'),
+        (3, '3 Parking'),
+        (4, '4 Parking'),
+        (5, '5 Parking'),
+        (6, '6 Parking'),
+        (7, '7 Parking'),
+        (8, '8 Parking'),
+        (9, '9 Parking'),
+        (10, '10 Parking'),
+        (11, '11 Parking'),
+        (12, '12 Parking'),
+        (13, '13 Parking'),
+        (14, '14 Parking'),
+        (15, '15 Parking'),
+        (16, '16 Parking'),
+        (17, '17 Parking'),
+        (18, '18 Parking'),
+        (19, '19 Parking'),
+        (20, '20+ Parking'),
     ]
     
     parking_spaces = models.SmallIntegerField(
@@ -378,15 +374,15 @@ class Property(BaseModel, SEOMixin):
     STORAGE_CHOICES = [
         (0, 'No Storage'),
         (1, '1 Storage'),
-        (2, '2 Storages'),
-        (3, '3 Storages'),
-        (4, '4 Storages'),
-        (5, '5 Storages'),
-        (6, '6 Storages'),
-        (7, '7 Storages'),
-        (8, '8 Storages'),
-        (9, '9 Storages'),
-        (10, '10+ Storages'),
+        (2, '2 Storage'),
+        (3, '3 Storage'),
+        (4, '4 Storage'),
+        (5, '5 Storage'),
+        (6, '6 Storage'),
+        (7, '7 Storage'),
+        (8, '8 Storage'),
+        (9, '9 Storage'),
+        (10, '10+ Storage'),
     ]
     
     storage_rooms = models.SmallIntegerField(
@@ -720,7 +716,6 @@ class Property(BaseModel, SEOMixin):
     
     def generate_structured_data(self):
 
-        from src.real_estate.services.admin.property_seo_services import PropertyAdminSEOService
         from django.core.cache import cache
         
         cache_key = PropertyCacheKeys.structured_data(self.pk)
@@ -822,8 +817,7 @@ class Property(BaseModel, SEOMixin):
         
         if not self.og_description and self.meta_description:
             self.og_description = self.meta_description
-        
-        # Auto-calculate price per sqm
+
         if self.built_area and self.built_area > 0:
             if self.price:
                 self.price_per_sqm = int(self.price / float(self.built_area))
@@ -831,8 +825,7 @@ class Property(BaseModel, SEOMixin):
                 self.price_per_sqm = int(self.sale_price / float(self.built_area))
             elif self.pre_sale_price:
                 self.price_per_sqm = int(self.pre_sale_price / float(self.built_area))
-        
-        # Auto-set province from city
+
         if self.city_id and not self.province_id:
             self.province = self.city.province
         
@@ -840,19 +833,12 @@ class Property(BaseModel, SEOMixin):
         if self.is_published and not self.published_at:
             from django.utils import timezone
             self.published_at = timezone.now()
-        
-        # ذخیره متغیر برای بعد
+
         is_new = self.pk is None
-        
-        # ذخیره رکورد
-        if is_new:
-            # برای insert جدید - بدون full_clean چون search_vector مشکل دارد
-            models.Model.save(self, *args, **kwargs)
-        else:
-            # برای update - با full_clean از BaseModel
-            super().save(*args, **kwargs)
-        
-        # به‌روزرسانی search_vector بعد از save (فقط برای insert)
+        # No matter if new or existing, call super().save to ensure all mixins (BaseModel, models.Model) are called.
+        # super() will resolve to BaseModel.save (which calls full_clean + models.Model.save)
+        super().save(*args, **kwargs)
+
         if is_new:
             from django.contrib.postgres.search import SearchVector
             Property.objects.filter(pk=self.pk).update(
@@ -862,8 +848,7 @@ class Property(BaseModel, SEOMixin):
                     SearchVector('address', weight='C', config='english')
                 )
             )
-        
-        # Invalidate cache
+
         if self.pk:
             PropertyCacheManager.invalidate_property(self.pk)
             PropertyCacheManager.invalidate_list()

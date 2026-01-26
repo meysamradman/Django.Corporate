@@ -1,6 +1,6 @@
 import { Button } from '@/components/elements/Button';
 import { Input } from '@/components/elements/Input';
-import { FormField } from '@/components/forms/FormField';
+import { FormField } from '@/components/shared/FormField';
 import { Loader2, RotateCw } from 'lucide-react';
 import type { UseFormReturn } from 'react-hook-form';
 import { filterNumericOnly } from '@/core/filters/numeric';

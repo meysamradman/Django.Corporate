@@ -2,13 +2,13 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { FolderTree, Image as ImageIcon, Settings, UploadCloud, X } from "lucide-react";
-import { TaxonomyFormLayout } from "@/components/real-estate/layouts/TaxonomyFormLayout";
-import { useTaxonomyForm } from "@/components/real-estate/hooks/useTaxonomyForm";
+import { TaxonomyFormLayout } from "@/components/real-estate/layouts/TaxonomyFormLayout.tsx";
+import { useRealEstateTaxonomyForm } from "@/components/real-estate/hooks/useRealEstateTaxonomyForm.ts";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import { portfolioCategoryFormSchema, portfolioCategoryFormDefaults, type PortfolioCategoryFormValues } from "@/components/portfolios/validations/categorySchema";
 import { TabsContent } from "@/components/elements/Tabs";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
+import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/shared/FormField";
 import { TreeSelect } from "@/components/elements/TreeSelect";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
 import { Switch } from "@/components/elements/Switch";
@@ -31,7 +31,7 @@ export default function EditCategoryPage() {
     handleSubmit,
     isPending,
     isSubmitting,
-  } = useTaxonomyForm<PortfolioCategoryFormValues>({
+  } = useRealEstateTaxonomyForm<PortfolioCategoryFormValues>({
     id,
     isEditMode: true,
     fetchQueryKey: ['portfolio-category', Number(id)],

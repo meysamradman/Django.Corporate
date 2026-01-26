@@ -50,6 +50,11 @@ export const env = {
     return value ? parseInt(value, 10) : 10;
   },
 
+  get REAL_ESTATE_MEDIA_UPLOAD_MAX(): number {
+    const value = import.meta.env.VITE_REAL_ESTATE_MEDIA_UPLOAD_MAX;
+    return value ? parseInt(value, 10) : 50;
+  },
+
   get BLOG_EXPORT_PRINT_MAX_ITEMS(): number {
     const value = import.meta.env.VITE_BLOG_EXPORT_PRINT_MAX_ITEMS;
     return value ? parseInt(value, 10) : 100;

@@ -8,8 +8,8 @@ import { FileText, Search, Edit2 } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate/properties";
 import { AgencySidebar } from "@/components/real-estate/agencies/view/AgencySidebar";
-import { OverviewTab } from "@/components/real-estate/agencies/view/OverviewTab";
-import { SEOInfoTab } from "@/components/real-estate/agencies/view/SEOInfoTab";
+import { AgencyOverview } from "@/components/real-estate/agencies/view/AgencyOverview";
+import { AgencySEO } from "@/components/real-estate/agencies/view/AgencySEO.tsx";
 
 export default function AgencyViewPage() {
   const params = useParams();
@@ -110,8 +110,8 @@ export default function AgencyViewPage() {
               </TabsTrigger>
             </TabsList>
 
-            <OverviewTab agency={agencyData} />
-            <SEOInfoTab agency={agencyData} />
+            <AgencyOverview agency={agencyData} />
+            <AgencySEO agency={agencyData} />
           </Tabs>
         </div>
       </div>

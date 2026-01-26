@@ -1,3 +1,3 @@
-export { BaseInfoTab } from "./BaseInfoTab";
-export { SEOTab } from "./SEOTab";
+export { PageInfo } from "./PageInfo.tsx";
+export { PageSEO } from "./PageSEO.tsx";
 

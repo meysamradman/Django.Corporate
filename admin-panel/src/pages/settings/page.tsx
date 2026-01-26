@@ -15,9 +15,9 @@ const TabSkeleton = () => (
 );
 
 const GeneralSettingsForm = lazy(() => import("@/components/settings").then(mod => ({ default: mod.GeneralSettingsForm })));
-const ContactPhonesSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.ContactPhonesSection })));
-const ContactMobilesSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.ContactMobilesSection })));
-const ContactEmailsSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.ContactEmailsSection })));
+const ContactPhonesSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.ContactPhones })));
+const ContactMobilesSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.ContactMobiles })));
+const ContactEmailsSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.ContactEmails })));
 const SocialMediaSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.SocialMediaSection })));
 
 export default function SettingsPage() {

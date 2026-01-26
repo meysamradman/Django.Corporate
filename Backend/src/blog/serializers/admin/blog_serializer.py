@@ -2,6 +2,8 @@ from rest_framework import serializers
 from django.core.cache import cache
 from django.conf import settings
 from src.blog.models.blog import Blog
+from src.blog.models.category import BlogCategory
+from src.blog.models.tag import BlogTag
 from src.blog.models.media import BlogImage, BlogVideo, BlogAudio, BlogDocument
 from src.blog.serializers.admin.category_serializer import BlogCategorySimpleAdminSerializer
 from src.blog.serializers.admin.tag_serializer import BlogTagAdminSerializer
@@ -135,6 +137,9 @@ class BlogAdminDetailSerializer(serializers.ModelSerializer):
     seo_preview = serializers.SerializerMethodField()
     seo_completeness = serializers.SerializerMethodField()
     
+    categories_count = serializers.IntegerField(read_only=True)
+    tags_count = serializers.IntegerField(read_only=True)
+    
     class Meta:
         model = Blog
         fields = [
@@ -146,6 +151,7 @@ class BlogAdminDetailSerializer(serializers.ModelSerializer):
             'og_image', 'canonical_url', 'robots_meta',
             'structured_data', 'hreflang_data',
             'seo_data', 'seo_preview', 'seo_completeness',
+            'categories_count', 'tags_count', 'views_count',
             'created_at', 'updated_at',
         ]
     
@@ -286,20 +292,30 @@ class BlogAdminDetailSerializer(serializers.ModelSerializer):
 
 
 class BlogAdminCreateSerializer(serializers.ModelSerializer):
-    categories_ids = serializers.ListField(
-        child=serializers.IntegerField(), 
-        write_only=True, 
+    categories = serializers.PrimaryKeyRelatedField(
+        queryset=BlogCategory.objects.all(),
+        many=True,
+        write_only=True,
         required=False
     )
-    tags_ids = serializers.ListField(
-        child=serializers.IntegerField(), 
-        write_only=True, 
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=BlogTag.objects.all(),
+        many=True,
+        write_only=True,
         required=False
     )
     media_files = serializers.ListField(
         child=serializers.FileField(),
         write_only=True,
         required=False
+    )
+    
+    media_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True,
+        required=False,
+        allow_empty=True,
+        help_text="List of media IDs to link to this article"
     )
     
     class Meta:
@@ -309,60 +325,28 @@ class BlogAdminCreateSerializer(serializers.ModelSerializer):
             'status', 'is_featured', 'is_public',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
-            'categories_ids', 'tags_ids',
-            'media_files'
+            'categories', 'tags',
+            'media_files', 'media_ids'
         ]
     
     def validate(self, attrs):
-        # ✅ Auto-generate unique slug if not provided or if duplicate
-        if not attrs.get('slug') and attrs.get('title'):
-            from django.utils.text import slugify
-            base_slug = slugify(attrs['title'])
-            slug = base_slug
-            counter = 1
-            while Blog.objects.filter(slug=slug).exists():
-                slug = f"{base_slug}-{counter}"
-                counter += 1
-            attrs['slug'] = slug
-        elif attrs.get('slug'):
-            # ✅ Slug provided - check if it exists and make it unique
-            from django.utils.text import slugify
-            base_slug = attrs['slug']
-            slug = base_slug
-            counter = 1
-            while Blog.objects.filter(slug=slug).exists():
-                slug = f"{base_slug}-{counter}"
-                counter += 1
-            # Only update if we had to change it
-            if slug != base_slug:
-                attrs['slug'] = slug
-        
+        # Validation logic moved to service for consistency
         return attrs
     
-    def create(self, validated_data):
-        categories_ids = validated_data.pop('categories_ids', [])
-        tags_ids = validated_data.pop('tags_ids', [])
-        media_files = validated_data.pop('media_files', [])
-        
-        blog = Blog.objects.create(**validated_data)
-        
-        if categories_ids:
-            blog.categories.set(categories_ids)
-        if tags_ids:
-            blog.tags.set(tags_ids)
-            
-        return blog
+    # Logic moved to BlogAdminService
 
 
 class BlogAdminUpdateSerializer(serializers.ModelSerializer):
-    categories_ids = serializers.ListField(
-        child=serializers.IntegerField(), 
-        write_only=True, 
+    categories = serializers.PrimaryKeyRelatedField(
+        queryset=BlogCategory.objects.all(),
+        many=True,
+        write_only=True,
         required=False
     )
-    tags_ids = serializers.ListField(
-        child=serializers.IntegerField(), 
-        write_only=True, 
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=BlogTag.objects.all(),
+        many=True,
+        write_only=True,
         required=False
     )
     media_ids = serializers.ListField(
@@ -384,6 +368,11 @@ class BlogAdminUpdateSerializer(serializers.ModelSerializer):
         required=False,
         help_text="Mapping of media_id to cover_image_id for blog-specific covers. Format: {media_id: cover_image_id}"
     )
+    media_files = serializers.ListField(
+        child=serializers.FileField(),
+        write_only=True,
+        required=False
+    )
     
     class Meta:
         model = Blog
@@ -392,27 +381,10 @@ class BlogAdminUpdateSerializer(serializers.ModelSerializer):
             'status', 'is_featured', 'is_public', 'is_active',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
-            'categories_ids', 'tags_ids', 'media_ids', 'main_image_id', 'media_covers'
+            'categories', 'tags', 'media_ids', 'media_files', 'main_image_id', 'media_covers'
         ]
     
-    def update(self, instance, validated_data):
-        categories_ids = validated_data.pop('categories_ids', None)
-        tags_ids = validated_data.pop('tags_ids', None)
-        media_ids = validated_data.pop('media_ids', None)
-        main_image_id = validated_data.pop('main_image_id', None)
-        media_covers = validated_data.pop('media_covers', None)
-        
-        for field, value in validated_data.items():
-            setattr(instance, field, value)
-        
-        instance.save()
-        
-        if categories_ids is not None:
-            instance.categories.set(categories_ids)
-        if tags_ids is not None:
-            instance.tags.set(tags_ids)
-        
-        return instance
+    # Logic moved to BlogAdminService
 
 
 class BlogAdminSerializer(BlogAdminDetailSerializer):

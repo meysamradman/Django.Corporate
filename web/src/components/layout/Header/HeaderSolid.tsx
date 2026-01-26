@@ -2,19 +2,27 @@
 
 import React from 'react';
 import { Logo } from '../Logo';
+import { Menu } from '../Header/Menu';
+import { Button } from "@/components/elements/Button";
+import {Edit} from "lucide-react";
+import {router} from "next/dist/client";
 
 export function HeaderSolid() {
     return (
-        <header className="sticky top-0 z-50 h-16 flex items-center justify-between px-6 lg:px-12 bg-header border-b transition-all">
+        <header className="sticky top-0 z-50 h-16 flex items-center justify-between px-6 lg:px-12 bg-header-s border-b transition-all">
             <Logo />
 
-            <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold text-font-p">
-                <a href="/" className="hover:text-primary transition-colors">خانه</a>
-                <a href="/real-estate" className="hover:text-primary transition-colors text-primary">املاک</a>
-                <a href="/blogs" className="hover:text-primary transition-colors">مجله خبری</a>
-            </nav>
+            <Menu />
 
             <div className="flex items-center gap-4">
+
+                <Button
+            size="sm"
+            onClick={() => router.push('/portfolios/create')}>
+            <Edit className="h-4 w-4" />
+            افزودن نمونه‌کار
+          </Button>
+
             </div>
         </header>
     );

@@ -67,7 +67,16 @@ class PropertyAdminService:
     
     @staticmethod
     def get_property_queryset(filters=None, search=None, order_by=None, order_desc=None, date_from=None, date_to=None):
-        queryset = Property.objects.for_admin_listing()
+        queryset = Property.objects.select_related(
+            'property_type', 'state', 'agent', 'agency', 'province', 'city', 'region', 'og_image'
+        ).prefetch_related(
+            'labels', 'tags', 'features',
+            Prefetch(
+                'images',
+                queryset=PropertyImage.objects.filter(is_main=True).select_related('image'),
+                to_attr='main_image_media'
+            )
+        )
         
         if filters:
             if filters.get('is_published') is not None:
@@ -153,29 +162,45 @@ class PropertyAdminService:
     @staticmethod
     def get_property_detail(property_id):
         try:
-            return Property.objects.for_detail().get(id=property_id)
+            return Property.objects.select_related(
+                'property_type', 'state', 'agent', 'agency', 'province', 'city', 'region', 'og_image'
+            ).prefetch_related(
+                'labels', 'tags', 'features',
+                'images__image', 'videos__video', 'audios__audio', 'documents__document',
+                'images__image__created_by', 'videos__video__created_by'
+            ).get(id=property_id)
         except Property.DoesNotExist:
             return None
     
     @staticmethod
     def create_property(validated_data, created_by=None):
-        labels_ids = validated_data.pop('labels_ids', [])
-        tags_ids = validated_data.pop('tags_ids', [])
-        features_ids = validated_data.pop('features_ids', [])
+        from src.real_estate.services.admin.property_media_services import PropertyAdminMediaService
         
-        # ✅ Always ensure slug is unique (even if provided by frontend)
-        if validated_data.get('slug'):
-            # Slug provided - check if it exists and make it unique
-            base_slug = validated_data['slug']
+        # Consistent extraction - support both model instances and IDs
+        labels_val = validated_data.pop('labels', validated_data.pop('labels_ids', []))
+        tags_val = validated_data.pop('tags', validated_data.pop('tags_ids', []))
+        features_val = validated_data.pop('features', validated_data.pop('features_ids', []))
+        
+        # Convert to instances/IDs list (PrimaryKeyRelatedField gives us instances already)
+        # .set() accepts both instances and IDs, so we can pass directly
+        labels_ids = labels_val if labels_val else []
+        tags_ids = tags_val if tags_val else []
+        features_ids = features_val if features_val else []
+        
+        media_files = validated_data.pop('media_files', [])
+        media_ids = validated_data.pop('media_ids', [])
+        
+        # ✅ slug generation
+        if not validated_data.get('slug') and validated_data.get('title'):
+            base_slug = slugify(validated_data['title'])
             slug = base_slug
             counter = 1
             while Property.objects.filter(slug=slug).exists():
                 slug = f"{base_slug}-{counter}"
                 counter += 1
             validated_data['slug'] = slug
-        elif validated_data.get('title'):
-            # No slug provided - generate from title
-            base_slug = slugify(validated_data['title'])
+        elif validated_data.get('slug'):
+            base_slug = validated_data['slug']
             slug = base_slug
             counter = 1
             while Property.objects.filter(slug=slug).exists():
@@ -213,17 +238,45 @@ class PropertyAdminService:
                 property_obj.tags.set(tags_ids)
             if features_ids:
                 property_obj.features.set(features_ids)
+            
+            if media_files or media_ids:
+                PropertyAdminMediaService.add_media_bulk(
+                    property_id=property_obj.id,
+                    media_files=media_files,
+                    media_ids=media_ids,
+                    created_by=created_by
+                )
         
         return property_obj
     
     @staticmethod
-    def update_property(property_id, validated_data, labels_ids=None, tags_ids=None, features_ids=None, updated_by=None):
+    def update_property(property_id, validated_data, media_ids=None, media_files=None, main_image_id=None, media_covers=None, updated_by=None):
         try:
             property_obj = Property.objects.get(id=property_id)
         except Property.DoesNotExist:
-            raise Property.DoesNotExist(PROPERTY_ERRORS["property_not_found"])
+            raise ValidationError(PROPERTY_ERRORS["property_not_found"])
+        
+        # Consistent extraction: prefer direct args, fallback to popped validated_data
+        
+        # Consistent extraction: prefer args, fallback to popped validated_data
+        # Consistent extraction: prefer direct args, fallback to popped validated_data
+        # We handle both plural names and _ids for maximum frontend compatibility
+        labels_val = validated_data.pop('labels', validated_data.pop('labels_ids', None))
+        tags_val = validated_data.pop('tags', validated_data.pop('tags_ids', None))
+        features_val = validated_data.pop('features', validated_data.pop('features_ids', None))
+        
+        media_ids = media_ids if media_ids is not None else validated_data.pop('media_ids', None)
+        media_files = media_files if media_files is not None else validated_data.pop('media_files', None)
+        main_image_id = main_image_id if main_image_id is not None else validated_data.pop('main_image_id', None)
+        media_covers = media_covers if media_covers is not None else validated_data.pop('media_covers', None)
+        
+        # Extract location info for manual handling if needed
+        city = validated_data.get('city')
+        province = validated_data.get('province')
+        region = validated_data.get('region')
         
         if 'title' in validated_data and not validated_data.get('slug'):
+            from django.utils.text import slugify
             base_slug = slugify(validated_data['title'])
             slug = base_slug
             counter = 1
@@ -231,7 +284,8 @@ class PropertyAdminService:
                 slug = f"{base_slug}-{counter}"
                 counter += 1
             validated_data['slug'] = slug
-        
+            
+        # SEO Logic
         if 'title' in validated_data:
             if not validated_data.get('meta_title'):
                 validated_data['meta_title'] = validated_data['title'][:70]
@@ -244,41 +298,57 @@ class PropertyAdminService:
                     validated_data['meta_description'] = validated_data['short_description'][:300]
                 elif validated_data.get('description'):
                     validated_data['meta_description'] = validated_data['description'][:300]
-                elif property_obj.short_description:
-                    validated_data['meta_description'] = property_obj.short_description[:300]
-                elif property_obj.description:
-                    validated_data['meta_description'] = property_obj.description[:300]
             
             if not validated_data.get('og_description'):
                 validated_data['og_description'] = validated_data.get('meta_description') or property_obj.meta_description
-        
-        # Validate canonical_url
-        if 'canonical_url' in validated_data and validated_data.get('canonical_url'):
-            canonical_url = validated_data['canonical_url']
-            if not canonical_url.startswith(('http://', 'https://')):
-                validated_data['canonical_url'] = None
-        
+
         with transaction.atomic():
-            for field, value in validated_data.items():
-                setattr(property_obj, field, value)
+            # Mandatory fields and explicit setters for critical ones
+            if province: property_obj.province = province
+            if city: property_obj.city = city
+            if region: property_obj.region = region
             
-            if updated_by:
-                # Note: updated_by isn't a field in BaseModel currently, 
-                # but it's good practice to handle it if it were.
-                # However, created_by usually stays fixed.
-                # If there's an updated_by field in a future migration, it would go here.
-                pass
-                
+            # Update other fields safely
+            for field, value in validated_data.items():
+                if hasattr(property_obj, field):
+                    try:
+                        setattr(property_obj, field, value)
+                    except (AttributeError, TypeError):
+                        pass
+            
             property_obj.save()
             
-            if labels_ids is not None:
-                property_obj.labels.set(labels_ids)
-            if tags_ids is not None:
-                property_obj.tags.set(tags_ids)
-            if features_ids is not None:
-                property_obj.features.set(features_ids)
+            # M2M updates - Ensure we use .set() correctly
+            if labels_val is not None: property_obj.labels.set(labels_val)
+            if tags_val is not None: property_obj.tags.set(tags_val)
+            if features_val is not None: property_obj.features.set(features_val)
+            
+            # Media handling
+            if media_files:
+                from src.real_estate.services.admin.property_media_services import PropertyAdminMediaService
+                media_result = PropertyAdminMediaService.add_media_bulk(
+                    property_id=property_obj.id,
+                    media_files=media_files,
+                    created_by=updated_by
+                )
+                uploaded_ids = media_result.get('uploaded_media_ids', [])
+                if uploaded_ids:
+                    if media_ids is None: media_ids = uploaded_ids
+                    else: media_ids = list(set(media_ids) | set(uploaded_ids))
+            
+            if media_ids is not None or main_image_id is not None or media_covers is not None:
+                from src.real_estate.services.admin.property_media_services import PropertyAdminMediaService
+                PropertyAdminMediaService.sync_media(
+                    property_id=property_obj.id,
+                    media_ids=media_ids,
+                    main_image_id=main_image_id,
+                    media_covers=media_covers
+                )
         
-        # Invalidate cache
+        # FORCE DB REFRESH before return
+        property_obj.refresh_from_db()
+        
+        # Clear all possible cache keys
         PropertyCacheManager.invalidate_property(property_id)
         PropertyCacheManager.invalidate_list()
         
@@ -348,34 +418,8 @@ class PropertyAdminService:
     
     @staticmethod
     def set_main_image(property_id, media_id):
-        try:
-            property_obj = Property.objects.get(id=property_id)
-        except Property.DoesNotExist:
-            raise Property.DoesNotExist(PROPERTY_ERRORS["property_not_found"])
-        
-        PropertyImage.objects.filter(
-            property=property_obj,
-            is_main=True
-        ).update(is_main=False)
-        
-        try:
-            property_image = PropertyImage.objects.get(
-                property=property_obj,
-                image_id=media_id
-            )
-        except PropertyImage.DoesNotExist:
-            raise PropertyImage.DoesNotExist(PROPERTY_ERRORS["media_id_required"])
-        
-        property_image.is_main = True
-        property_image.save()
-        
-        if not property_obj.og_image:
-            property_obj.og_image = property_image.image
-            property_obj.save(update_fields=['og_image'])
-        
-        PropertyCacheManager.invalidate_property(property_id)
-        
-        return property_image
+        from src.real_estate.services.admin.property_media_services import PropertyAdminMediaService
+        return PropertyAdminMediaService.set_main_image(property_id, media_id)
     
     @staticmethod
     def get_property_statistics():

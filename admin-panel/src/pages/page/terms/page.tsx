@@ -1,6 +1,6 @@
-import { TermsPageForm } from "@/components/page/TermsPageForm";
+import { PageTermsForm } from "@/components/page/PageTermsForm.tsx";
 
 export default function TermsPageSettings() {
-    return <TermsPageForm />;
+    return <PageTermsForm />;
 }
 

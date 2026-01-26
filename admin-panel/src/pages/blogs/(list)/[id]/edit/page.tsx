@@ -6,7 +6,7 @@ import {
   FileText, Image, Search, Settings
 } from "lucide-react";
 import { useBlogForm } from "@/components/blogs/hooks/useBlogForm";
-import { BlogFormLayout } from "@/components/blogs/layouts/BlogFormLayout";
+import { BlogFormLayout } from "@/components/blogs/layouts/BlogFormLayout.tsx";
 
 const TabSkeleton = () => (
   <div className="mt-0 space-y-6">
@@ -73,9 +73,9 @@ const TabSkeleton = () => (
   </div>
 );
 
-const BaseInfoTab = lazy(() => import("@/components/blogs/list/create/BaseInfoTab"));
-const MediaTab = lazy(() => import("@/components/blogs/list/create/MediaTab"));
-const SEOTab = lazy(() => import("@/components/blogs/list/create/SEOTab"));
+const BaseInfoTab = lazy(() => import("@/components/blogs/list/create/BlogInfo"));
+const MediaTab = lazy(() => import("@/components/blogs/list/create/BlogMedia"));
+const SEOTab = lazy(() => import("@/components/blogs/list/create/BlogSEO"));
 
 export default function EditBlogPage() {
   const { id } = useParams<{ id: string }>();

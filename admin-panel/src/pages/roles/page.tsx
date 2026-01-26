@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { DataTable } from "@/components/tables/DataTable";
 import { useRoleColumns } from "@/components/roles/RoleTableColumns";
@@ -47,8 +47,8 @@ export default function RolesPage() {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    
-    
+
+
     if (urlParams.get('page')) {
       const page = parseInt(urlParams.get('page')!, 10);
       setPagination(prev => ({ ...prev, pageIndex: page - 1 }));
@@ -57,7 +57,7 @@ export default function RolesPage() {
       const size = parseInt(urlParams.get('size')!, 10);
       setPagination(prev => ({ ...prev, pageSize: size }));
     }
-    
+
     if (urlParams.get('order_by') && urlParams.get('order_desc') !== null) {
       const orderBy = urlParams.get('order_by')!;
       const orderDesc = urlParams.get('order_desc') === 'true';
@@ -65,11 +65,11 @@ export default function RolesPage() {
     } else {
       setSorting(initSortingFromURL());
     }
-    
+
     if (urlParams.get('search')) {
       setSearchValue(urlParams.get('search')!);
     }
-    
+
     const newClientFilters: typeof clientFilters = {};
     if (urlParams.get('is_active') !== null) {
       newClientFilters.is_active = urlParams.get('is_active') === 'true';
@@ -83,12 +83,13 @@ export default function RolesPage() {
     if (urlParams.get('date_to')) {
       newClientFilters.date_to = urlParams.get('date_to') as string;
     }
-    
+
     if (Object.keys(newClientFilters).length > 0) {
       setClientFilters(newClientFilters);
     }
   }, []);
 
+  const navigate = useNavigate();
   const { handleFilterChange } = useTableFilters<typeof clientFilters>(
     setClientFilters,
     setSearchValue,
@@ -117,7 +118,7 @@ export default function RolesPage() {
       date_from: clientFilters.date_from as string | undefined,
       date_to: clientFilters.date_to as string | undefined,
     };
-    
+
     return params;
   }, [searchValue, pagination.pageIndex, pagination.pageSize, sorting, clientFilters.is_active, clientFilters.is_system_role, clientFilters.date_from, clientFilters.date_to]);
 
@@ -134,15 +135,17 @@ export default function RolesPage() {
       label: "مشاهده",
       icon: <Eye className="h-4 w-4" />,
       onClick: (role: Role) => {
-        window.location.href = `/roles/${role.id}`;
+        navigate(`/roles/${role.id}`);
       },
+      permission: "role.read",
     },
     {
-      label: "ویرایش", 
+      label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (role: Role) => {
-        window.location.href = `/roles/${role.id}/edit`;
+        navigate(`/roles/${role.id}/edit`);
       },
+      permission: "role.update",
     },
     {
       label: "حذف",
@@ -150,6 +153,8 @@ export default function RolesPage() {
       onClick: (role: Role) => {
         handleDeleteRole(role.id);
       },
+      isDestructive: true,
+      permission: "role.delete",
     },
   ];
 
@@ -161,7 +166,7 @@ export default function RolesPage() {
       showWarning('نقش‌های سیستمی قابل حذف نیستند');
       return;
     }
-    
+
     setDeleteConfirm({
       open: true,
       roleId: roleId,
@@ -173,16 +178,16 @@ export default function RolesPage() {
     const numericSelectedIds = selectedIds.map(id => Number(id));
     const selectedRoles = data.filter(role => numericSelectedIds.includes(Number(role.id)));
     const deletableRoles = selectedRoles.filter(role => !role.is_system_role);
-    
+
     if (deletableRoles.length === 0) {
       showWarning('نقش‌های سیستمی قابل حذف نیستند');
       return;
     }
-    
+
     if (deletableRoles.length < selectedRoles.length) {
       showWarning(`تنها ${deletableRoles.length} نقش غیرسیستمی حذف خواهد شد`);
     }
-    
+
     setDeleteConfirm({
       open: true,
       roleIds: deletableRoles.map(role => role.id),
@@ -205,12 +210,12 @@ export default function RolesPage() {
 
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
-    const newPagination = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(pagination) 
+    const newPagination = typeof updaterOrValue === 'function'
+      ? updaterOrValue(pagination)
       : updaterOrValue;
-    
+
     setPagination(newPagination);
-    
+
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
@@ -218,12 +223,12 @@ export default function RolesPage() {
   };
 
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(sorting) 
+    const newSorting = typeof updaterOrValue === 'function'
+      ? updaterOrValue(sorting)
       : updaterOrValue;
-    
+
     setSorting(newSorting);
-    
+
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -241,8 +246,8 @@ export default function RolesPage() {
         <PageHeader title="مدیریت نقش‌ها" />
         <div className="text-center py-8">
           <p className="text-red-1">خطا در بارگیری داده‌ها</p>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             className="mt-4"
           >
             تلاش مجدد
@@ -293,8 +298,8 @@ export default function RolesPage() {
         pageSizeOptions={[10, 20, 50]}
       />
 
-      <AlertDialog 
-        open={deleteConfirm.open} 
+      <AlertDialog
+        open={deleteConfirm.open}
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
       >
         <AlertDialogContent>

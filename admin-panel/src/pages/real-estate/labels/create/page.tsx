@@ -1,10 +1,10 @@
 import { FileText, Settings, Tag } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
-import { useTaxonomyForm } from "@/components/real-estate/hooks/useTaxonomyForm";
-import { TaxonomyFormLayout } from "@/components/real-estate/layouts/TaxonomyFormLayout";
+import { useRealEstateTaxonomyForm } from "@/components/real-estate/hooks/useRealEstateTaxonomyForm.ts";
+import { TaxonomyFormLayout } from "@/components/real-estate/layouts/TaxonomyFormLayout.tsx";
 import { propertyLabelFormSchema, propertyLabelFormDefaults } from '@/components/real-estate/validations/labelSchema';
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { FormFieldInput } from "@/components/forms/FormField";
+import { FormFieldInput } from "@/components/shared/FormField";
 import { formatSlug } from '@/core/slug/generate';
 import { TabsContent } from "@/components/elements/Tabs";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
@@ -17,7 +17,7 @@ export default function CreatePropertyLabelPage() {
     setActiveTab,
     handleSubmit,
     isPending,
-  } = useTaxonomyForm({
+  } = useRealEstateTaxonomyForm({
     isEditMode: false,
     schema: propertyLabelFormSchema,
     defaultValues: propertyLabelFormDefaults,

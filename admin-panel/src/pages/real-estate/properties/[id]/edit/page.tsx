@@ -4,8 +4,8 @@ import { TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { FileText, Settings } from "lucide-react";
-import { usePropertyForm } from "@/components/real-estate/hooks/usePropertyForm";
-import { PropertyFormLayout } from "@/components/real-estate/layouts/PropertyFormLayout";
+import { useRealEstateForm } from "@/components/real-estate/hooks/useRealEstateForm.ts";
+import { FormLayout } from "@/components/real-estate/layouts/FormLayout.tsx";
 
 const TabSkeleton = () => (
   <div className="mt-0 space-y-6">
@@ -69,13 +69,13 @@ const TabSkeleton = () => (
   </div>
 );
 
-const BaseInfoTab = lazy(() => import("@/components/real-estate/list/create/BaseInfoTab"));
-const DetailsTab = lazy(() => import("@/components/real-estate/list/create/DetailsTab"));
-const MediaTab = lazy(() => import("@/components/real-estate/list/create/MediaTab"));
-const SEOTab = lazy(() => import("@/components/real-estate/list/create/SEOTab"));
-const LocationTab = lazy(() => import("@/components/real-estate/list/create/LocationTab"));
-const FloorPlansTab = lazy(() => import("@/components/real-estate/list/create/FloorPlansTab"));
-const ExtraAttributesTab = lazy(() => import("@/components/real-estate/list/create/ExtraAttributesTab"));
+const BaseInfoTab = lazy(() => import("@/components/real-estate/list/create/RealEstateInfo"));
+const DetailsTab = lazy(() => import("@/components/real-estate/list/create/RealEstateDetails"));
+const MediaTab = lazy(() => import("@/components/real-estate/list/create/RealEstateMedia"));
+const SEOTab = lazy(() => import("@/components/real-estate/list/create/RealEstateSEO"));
+const LocationTab = lazy(() => import("@/components/real-estate/list/create/RealEstateLocation"));
+const FloorPlansTab = lazy(() => import("@/components/real-estate/list/create/RealEstateFloorPlans"));
+const ExtraAttributesTab = lazy(() => import("@/components/real-estate/list/create/RealEstateAttributes"));
 
 export default function EditPropertyPage() {
   const { id } = useParams<{ id: string }>();
@@ -93,6 +93,10 @@ export default function EditPropertyPage() {
     handleSubmit,
     handleSaveDraft,
     handleFeaturedImageChange,
+    handleGalleryChange,
+    handleVideoGalleryChange,
+    handleAudioGalleryChange,
+    handlePdfDocumentsChange,
     handleLabelToggle,
     handleLabelRemove,
     handleTagToggle,
@@ -104,7 +108,7 @@ export default function EditPropertyPage() {
     isLoading,
     isPending,
     property,
-  } = usePropertyForm({ id, isEditMode: true });
+  } = useRealEstateForm({ id, isEditMode: true });
 
   const formData = form.watch();
 
@@ -125,7 +129,7 @@ export default function EditPropertyPage() {
   }
 
   return (
-    <PropertyFormLayout
+    <FormLayout
       activeTab={activeTab}
       onTabChange={setActiveTab}
       onSubmit={handleSubmit}
@@ -159,6 +163,8 @@ export default function EditPropertyPage() {
           <LocationTab
             formData={formData}
             handleInputChange={handleInputChange}
+            latitude={formData.latitude}
+            longitude={formData.longitude}
             onLocationChange={handleLocationChange}
             editMode={true}
             regionName={(property as any).region_name || ""}
@@ -204,6 +210,10 @@ export default function EditPropertyPage() {
             editMode={true}
             featuredImage={propertyMedia.featuredImage}
             onFeaturedImageChange={handleFeaturedImageChange}
+            onGalleryChange={handleGalleryChange}
+            onVideoGalleryChange={handleVideoGalleryChange}
+            onAudioGalleryChange={handleAudioGalleryChange}
+            onPdfDocumentsChange={handlePdfDocumentsChange}
             propertyId={id}
           />
         </Suspense>
@@ -229,6 +239,6 @@ export default function EditPropertyPage() {
           />
         </Suspense>
       </TabsContent>
-    </PropertyFormLayout>
+    </FormLayout>
   );
 }

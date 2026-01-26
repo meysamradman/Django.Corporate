@@ -6,11 +6,11 @@ import { FileText, Image, Search, Edit2, FileDown } from "lucide-react";
 import { showError, showSuccess } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
 import { blogApi } from "@/api/blogs/blogs";
-import { BlogImageGallery } from "@/components/blogs/list/view/BlogImageGallery";
-import { BlogBasicInfo } from "@/components/blogs/list/view/BlogBasicInfo";
-import { OverviewTab } from "@/components/blogs/list/view/OverviewTab";
-import { MediaInfoTab } from "@/components/blogs/list/view/MediaInfoTab";
-import { SEOInfoTab } from "@/components/blogs/list/view/SEOInfoTab";
+import { BlogCarousel } from "@/components/blogs/list/view/BlogCarousel.tsx";
+import { BlogInfo } from "@/components/blogs/list/view/BlogInfo.tsx";
+import { BlogOverview } from "@/components/blogs/list/view/BlogOverview.tsx";
+import { BlogMedia } from "@/components/blogs/list/view/BlogMedia.tsx";
+import { BlogSEO } from "@/components/blogs/list/view/BlogSEO.tsx";
 import { FloatingActions } from "@/components/elements/FloatingActions";
 
 
@@ -117,13 +117,13 @@ export default function BlogViewPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">
         {/* Right Side: Carousel (Gallery) - Takes more space */}
         <div className="lg:col-span-7 xl:col-span-8 h-full">
-          <BlogImageGallery blog={blogData} className="h-full" />
+          <BlogCarousel blog={blogData} className="h-full" />
         </div>
 
         {/* Left Side: Basic Info Sidebar - Takes less space */}
         <div className="lg:col-span-5 xl:col-span-4 h-full">
           <div className="sticky top-4 self-start">
-            <BlogBasicInfo blog={blogData} />
+            <BlogInfo blog={blogData} />
           </div>
         </div>
       </div>
@@ -146,9 +146,9 @@ export default function BlogViewPage() {
             </TabsTrigger>
           </TabsList>
 
-          <OverviewTab blog={blogData} />
-          <MediaInfoTab blog={blogData} />
-          <SEOInfoTab blog={blogData} />
+          <BlogOverview blog={blogData} />
+          <BlogMedia blog={blogData} />
+          <BlogSEO blog={blogData} />
         </Tabs>
       </div>
     </div>

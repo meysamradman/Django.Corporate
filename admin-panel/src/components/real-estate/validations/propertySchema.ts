@@ -73,7 +73,7 @@ export const propertyFormSchema = z.object({
         .int()
         .positive({ message: msg.realEstate().validation.cityRequired }),
 
-    district: z
+    region: z
         .number()
         .int()
         .positive()
@@ -331,6 +331,10 @@ export const propertyFormSchema = z.object({
         .array(z.number())
         .default([]),
 
+    media_ids: z
+        .array(z.number())
+        .default([]),
+
     main_image_id: z
         .number()
         .nullable()
@@ -339,6 +343,10 @@ export const propertyFormSchema = z.object({
     og_image_id: z
         .number()
         .nullable()
+        .optional(),
+
+    media_covers: z
+        .record(z.string(), z.number().nullable())
         .optional(),
 });
 
@@ -356,7 +364,7 @@ export const propertyFormDefaults: PropertyFormValues = {
     agency: null,
     province: undefined!,
     city: undefined!,
-    district: null,
+    region: null,
     address: "",
     postal_code: "",
     neighborhood: "",
@@ -397,6 +405,8 @@ export const propertyFormDefaults: PropertyFormValues = {
     labels_ids: [],
     tags_ids: [],
     features_ids: [],
+    media_ids: [],
     main_image_id: null,
     og_image_id: null,
+    media_covers: {},
 } as PropertyFormValues;

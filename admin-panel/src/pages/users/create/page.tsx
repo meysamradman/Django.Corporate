@@ -52,8 +52,8 @@ const TabSkeleton = () => (
     </div>
 );
 
-const BaseInfoTab = lazy(() => import("@/components/users/create/BaseInfoTab"));
-const ProfileTab = lazy(() => import("@/components/users/create/ProfileTab"));
+const BaseInfoTab = lazy(() => import("@/components/users/create/UserInfo"));
+const ProfileTab = lazy(() => import("@/components/users/create/UserProfile"));
 
 export default function CreateUserPage() {
     const navigate = useNavigate();

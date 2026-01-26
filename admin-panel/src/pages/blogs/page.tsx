@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useBlogColumns } from "@/components/blogs/list/BlogTableColumns";
 import { useBlogFilterOptions, getBlogFilterConfig } from "@/components/blogs/list/BlogTableFilters";
 import type { BlogFilters } from "@/types/blog/blogListParams";
-import { Edit, Trash2, Plus } from "lucide-react";
+import { Eye, Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
 import { showError, showSuccess, showWarning } from '@/core/toast';
@@ -269,6 +269,12 @@ export default function BlogPage() {
   };
 
   const rowActions: DataTableRowAction<Blog>[] = [
+    {
+      label: "مشاهده",
+      icon: <Eye className="h-4 w-4" />,
+      onClick: (blog) => navigate(`/blogs/${blog.id}/view`),
+      permission: "blog.read",
+    },
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,

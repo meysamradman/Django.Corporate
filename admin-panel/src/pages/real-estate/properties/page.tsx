@@ -2,10 +2,10 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
-import { usePropertyColumns } from "@/components/real-estate/list/PropertyTableColumns";
-import { usePropertyFilterOptions, getPropertyFilterConfig } from "@/components/real-estate/list/PropertyTableFilters";
+import { usePropertyColumns } from "@/components/real-estate/list/RealEstateTableColumns";
+import { usePropertyFilterOptions, getPropertyFilterConfig } from "@/components/real-estate/list/RealEstateTableFilters";
 import type { PropertyFilters } from "@/types/real_estate/realEstateListParams";
-import { Edit, Trash2, Plus } from "lucide-react";
+import { Edit, Trash2, Plus, Eye } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
 import { showError, showSuccess, showWarning } from '@/core/toast';
@@ -304,6 +304,12 @@ export default function PropertyPage() {
   };
 
   const rowActions: DataTableRowAction<Property>[] = [
+    {
+      label: "مشاهده",
+      icon: <Eye className="h-4 w-4" />,
+      onClick: (property) => navigate(`/real-estate/properties/${property.id}/view`),
+      permission: "real_estate.property.view",
+    },
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,

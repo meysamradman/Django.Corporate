@@ -130,6 +130,61 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             return value
         return value.lower() in ('1', 'true', 'yes', 'on')
     
+    def _merge_media_data(self, data, media_ids=None, media_files=None):
+        """Unified helper to merge media IDs and files into request data"""
+        if media_ids:
+            if hasattr(data, 'setlist'):
+                data.setlist('media_ids', media_ids)
+            else:
+                data['media_ids'] = media_ids
+        if media_files:
+            if hasattr(data, 'setlist'):
+                data.setlist('media_files', media_files)
+            else:
+                data['media_files'] = media_files
+        return data
+
+    def _extract_list(self, data, field_name, convert_to_int=False):
+        """Robust helper to extract list/array from data (JSON, CSV, or list)"""
+        import json
+        value = data.get(field_name)
+        if not value:
+            return []
+        
+        result = []
+        if isinstance(value, list):
+            result = [v for v in value if v]
+        elif isinstance(value, str):
+            value = value.strip()
+            if value.startswith('['):
+                try:
+                    parsed = json.loads(value)
+                    if isinstance(parsed, list):
+                        result = parsed
+                except (json.JSONDecodeError, ValueError):
+                    pass
+            
+            if not result:
+                # Fallback to comma separation
+                result = [v.strip() for v in value.split(',') if v.strip()]
+        else:
+            result = [value]
+        
+        # Convert to integers if needed (for ID fields)
+        if convert_to_int:
+            converted = []
+            for v in result:
+                try:
+                    converted.append(int(v))
+                except (ValueError, TypeError):
+                    pass
+            return converted
+        
+        return result
+
+    def _extract_media_ids(self, request):
+        return self._extract_list(request.data, 'media_ids')
+    
     def get_serializer_class(self):
         if self.action == 'list':
             return BlogAdminListSerializer
@@ -139,88 +194,66 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             return BlogAdminUpdateSerializer
         else:
             return BlogAdminDetailSerializer
-    
-    def _extract_media_ids(self, request):
-        media_ids = []
-        
-        media_ids_value = request.data.get('media_ids')
-        
-        if not media_ids_value:
-            media_ids_value = request.POST.get('media_ids')
-        
-        if not media_ids_value:
-            return []
-        
-        if isinstance(media_ids_value, list):
-            media_ids = [
-                int(id) for id in media_ids_value 
-                if isinstance(id, (int, str)) and str(id).isdigit()
-            ]
-        elif isinstance(media_ids_value, int):
-            media_ids = [media_ids_value]
-        elif isinstance(media_ids_value, str):
-            if media_ids_value.strip().startswith('['):
-                try:
-                    parsed = json.loads(media_ids_value)
-                    if isinstance(parsed, list):
-                        media_ids = [int(id) for id in parsed if isinstance(id, (int, str)) and str(id).isdigit()]
-                except json.JSONDecodeError:
-                    pass
-            
-            if not media_ids:
-                media_ids = [
-                    int(id.strip()) for id in media_ids_value.split(',') 
-                    if id.strip().isdigit()
-                ]
-        
-        return media_ids
-    
+
     def create(self, request, *args, **kwargs):
         media_ids = self._extract_media_ids(request)
         media_files = request.FILES.getlist('media_files')
         
-        upload_max = settings.BLOG_MEDIA_UPLOAD_MAX
-        total_media = len(media_ids) + len(media_files)
-        if total_media > upload_max:
-            raise DRFValidationError({
-                'non_field_errors': [
-                    BLOG_ERRORS["media_upload_limit_exceeded"].format(max_items=upload_max, total_items=total_media)
-                ]
-            })
+        data = request.data.copy()
         
-        serializer = self.get_serializer(data=request.data)
+        # Parse M2M fields that might be JSON strings from frontend
+        for field in ['categories', 'tags']:
+            if field in data:
+                extracted = self._extract_list(data, field, convert_to_int=True)
+                if hasattr(data, 'setlist'):
+                    data.setlist(field, extracted)
+                else:
+                    data[field] = extracted
+        
+        data = self._merge_media_data(data, media_ids, media_files)
+        serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         
-        blog = BlogAdminService.create_blog(
-            validated_data=serializer.validated_data,
-            created_by=request.user
-        )
-        
-        if media_files or media_ids:
-            BlogAdminMediaService.add_media_bulk(
-                blog_id=blog.id,
-                media_files=media_files,
-                media_ids=media_ids,
+        try:
+            blog = BlogAdminService.create_blog(
+                validated_data=serializer.validated_data,
                 created_by=request.user
             )
-            blog.refresh_from_db()
-            BlogCacheManager.invalidate_blog(blog.id)
-        
-        blog = Blog.objects.for_detail().get(id=blog.id)
-        detail_serializer = BlogAdminDetailSerializer(blog)
-        return APIResponse.success(
-            message=BLOG_SUCCESS["blog_created"],
-            data=detail_serializer.data,
-            status_code=status.HTTP_201_CREATED
-        )
-    
+            
+            # Fetch for complete representation
+            instance = Blog.objects.for_detail().get(id=blog.id)
+            detail_serializer = BlogAdminDetailSerializer(instance, context={'request': request})
+            
+            return APIResponse.success(
+                message=BLOG_SUCCESS["blog_created"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_201_CREATED
+            )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=str(e.message if hasattr(e, 'message') else e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         
         media_ids = self._extract_media_ids(request)
+        media_files = request.FILES.getlist('media_files')
         main_image_id = request.data.get('main_image_id')
         media_covers_raw = request.data.get('media_covers')
+        
+        data = request.data.copy()
+        
+        # Parse M2M fields that might be JSON strings from frontend
+        for field in ['categories', 'tags']:
+            if field in data:
+                extracted = self._extract_list(data, field, convert_to_int=True)
+                if hasattr(data, 'setlist'):
+                    data.setlist(field, extracted)
+                else:
+                    data[field] = extracted
         
         media_covers = None
         if media_covers_raw:
@@ -230,29 +263,41 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 try:
                     import json
                     media_covers = json.loads(media_covers_raw)
-                except:
+                except Exception:
                     media_covers = None
         
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        data = self._merge_media_data(data, media_ids, media_files)
+        if media_covers: data['media_covers'] = media_covers
+        if main_image_id: data['main_image_id'] = main_image_id
+            
+        serializer = self.get_serializer(instance, data=data, partial=partial)
         serializer.is_valid(raise_exception=True)
         
-        updated_instance = BlogAdminService.update_blog(
-            blog_id=instance.id,
-            validated_data=serializer.validated_data,
-            media_ids=media_ids if media_ids else None,
-            main_image_id=main_image_id,
-            media_covers=media_covers,
-            updated_by=request.user
-        )
-        
-        updated_instance = Blog.objects.for_detail().get(pk=updated_instance.pk)
-        
-        detail_serializer = BlogAdminDetailSerializer(updated_instance)
-        return APIResponse.success(
-            message=BLOG_SUCCESS["blog_updated"],
-            data=detail_serializer.data,
-            status_code=status.HTTP_200_OK
-        )
+        try:
+            updated_instance = BlogAdminService.update_blog(
+                blog_id=instance.id,
+                validated_data=serializer.validated_data,
+                media_ids=serializer.validated_data.get('media_ids'),
+                media_files=serializer.validated_data.get('media_files'),
+                main_image_id=serializer.validated_data.get('main_image_id'),
+                media_covers=serializer.validated_data.get('media_covers'),
+                updated_by=request.user
+            )
+            
+            # Refresh and return
+            updated_instance = Blog.objects.for_detail().get(pk=updated_instance.pk)
+            detail_serializer = BlogAdminDetailSerializer(updated_instance, context={'request': request})
+            
+            return APIResponse.success(
+                message=BLOG_SUCCESS["blog_updated"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_200_OK
+            )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=str(e.message if hasattr(e, 'message') else e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
     
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -468,17 +513,15 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         
         try:
-            BlogImage.objects.filter(blog_id=pk, is_main=True).update(is_main=False)
+            BlogAdminMediaService.set_main_image(pk, media_id)
             
-            blog_image = BlogImage.objects.filter(blog_id=pk, image_id=media_id).first()
-            if blog_image:
-                blog_image.is_main = True
-                blog_image.save()
-            else:
-                blog_media = BlogAdminService.set_main_image(pk, media_id)
+            # Return refreshed object - Standardized behavior
+            fresh_instance = Blog.objects.for_detail().get(pk=pk)
+            serializer = BlogAdminDetailSerializer(fresh_instance)
             
             return APIResponse.success(
                 message=BLOG_SUCCESS["blog_main_image_set"],
+                data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
         except Exception:

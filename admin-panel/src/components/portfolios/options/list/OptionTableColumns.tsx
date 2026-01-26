@@ -1,24 +1,15 @@
+import React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
-import { Edit, Trash2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { Badge } from "@/components/elements/Badge";
 import { Link } from "react-router-dom";
+import { Badge } from "@/components/elements/Badge";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { Checkbox } from "@/components/elements/Checkbox";
 
-export interface OptionAction {
-  label: string;
-  icon: React.ReactNode;
-  onClick: (option: PortfolioOption) => void;
-  isDestructive?: boolean;
-}
-
 export const useOptionColumns = (actions: DataTableRowAction<PortfolioOption>[] = []) => {
-  const navigate = useNavigate();
-  
+
   const baseColumns: ColumnDef<PortfolioOption>[] = [
     {
       id: "select",
@@ -120,23 +111,7 @@ export const useOptionColumns = (actions: DataTableRowAction<PortfolioOption>[] 
     {
       id: "actions",
       cell: ({ row }) => {
-        const defaultActions: DataTableRowAction<PortfolioOption>[] = [
-          {
-            label: "ویرایش",
-            icon: <Edit className="h-4 w-4" />,
-            onClick: (option) => navigate(`/portfolios/options/${option.id}/edit`),
-          },
-          {
-            label: "حذف",
-            icon: <Trash2 className="h-4 w-4" />,
-            onClick: (_option) => {},
-            isDestructive: true,
-          },
-        ];
-        
-        const rowActions = actions.length > 0 ? actions : defaultActions;
-        
-        return <DataTableRowActions row={row} actions={rowActions} />;
+        return <DataTableRowActions row={row} actions={actions} />;
       },
       enableSorting: false,
       enableHiding: false,

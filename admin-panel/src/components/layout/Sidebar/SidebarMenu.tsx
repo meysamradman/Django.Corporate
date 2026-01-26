@@ -6,6 +6,7 @@ import {
   Users,
   Settings,
   Shield,
+  Flag,
   Images,
   Sparkles,
   Mail,
@@ -362,7 +363,8 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         icon: Settings,
         items: [
           { title: "تنظیمات پنل ادمین", isTitle: true, access: { requireSuperAdmin: true } },
-          { title: "تنظیمات پنل", url: "/panel", icon: LayoutDashboard, access: { requireSuperAdmin: true } },  // 🔒 فقط Super Admin
+          { title: "تنظیمات پنل", url: "/panel", icon: LayoutDashboard, access: { requireSuperAdmin: true } },
+          { title: "ویژگی‌های سیستم", url: "/panel?tab=feature-flags", icon: Flag, access: { requireSuperAdmin: true } },
           { title: "تنظیمات هوش مصنوعی", isTitle: true, access: { requireSuperAdmin: true } },
           { title: "مدیریت Provider ها", url: "/ai/settings", icon: Cpu, access: { module: "ai", actions: ["manage"], roles: ["super_admin"] } },
           { title: "انتخاب مدل‌ها", url: "/ai/models", icon: List, access: { module: "ai", actions: ["manage"], requireSuperAdmin: true } },
@@ -483,6 +485,11 @@ export const useMenuData = () => {
 
     if (access.requireSuperAdmin && !isSuperAdmin) {
       return { visible: false } as const;
+    }
+
+    // ✅ If it's a Super Admin only item and we ARE Super Admin, show it even if no module is defined
+    if (access.requireSuperAdmin && isSuperAdmin) {
+      return { visible: true } as const;
     }
 
     if (access.hideForSuperAdmin && isSuperAdmin) {

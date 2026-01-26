@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/elements/Button';
 import { Input } from '@/components/elements/Input';
-import { FormField } from '@/components/forms/FormField';
+import { FormField } from '@/components/shared/FormField';
 import { passwordLoginSchema, type PasswordLoginForm } from './validations/loginSchema';
 import { z } from 'zod';
 import { msg } from '@/core/messages';

@@ -1,11 +1,11 @@
 import { Settings, FileText } from "lucide-react";
-import { TaxonomyFormLayout } from "@/components/real-estate/layouts/TaxonomyFormLayout";
-import { useTaxonomyForm } from "@/components/real-estate/hooks/useTaxonomyForm";
+import { TaxonomyFormLayout } from "@/components/real-estate/layouts/TaxonomyFormLayout.tsx";
+import { useRealEstateTaxonomyForm } from "@/components/real-estate/hooks/useRealEstateTaxonomyForm.ts";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import { portfolioOptionFormSchema, portfolioOptionFormDefaults, type PortfolioOptionFormValues } from "@/components/portfolios/validations/optionSchema";
 import { TabsContent } from "@/components/elements/Tabs";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
+import { FormFieldInput, FormFieldTextarea } from "@/components/shared/FormField";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
 import { Switch } from "@/components/elements/Switch";
 import { formatSlug } from '@/core/slug/generate';
@@ -19,7 +19,7 @@ export default function CreateOptionPage() {
     handleSubmit,
     isPending,
     isSubmitting,
-  } = useTaxonomyForm<PortfolioOptionFormValues>({
+  } = useRealEstateTaxonomyForm<PortfolioOptionFormValues>({
     isEditMode: false,
     fetchQueryKey: [],
     createMutationFn: (data) => portfolioApi.createOption(data),

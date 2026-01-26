@@ -1,11 +1,11 @@
-import { TaxonomyFormLayout } from "@/components/real-estate/layouts/TaxonomyFormLayout";
-import { useTaxonomyForm } from "@/components/real-estate/hooks/useTaxonomyForm";
+import { TaxonomyFormLayout } from "@/components/real-estate/layouts/TaxonomyFormLayout.tsx";
+import { useRealEstateTaxonomyForm } from "@/components/real-estate/hooks/useRealEstateTaxonomyForm.ts";
 import { blogApi } from "@/api/blogs/blogs";
 import { blogCategoryFormSchema, blogCategoryFormDefaults, type BlogCategoryFormValues } from '@/components/blogs/validations/categorySchema';
 import { FolderTree, Image as ImageIcon, Settings, UploadCloud, X } from "lucide-react";
 import { TabsContent } from "@/components/elements/Tabs";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
+import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/shared/FormField";
 import { TreeSelect } from "@/components/elements/TreeSelect";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
 import { Switch } from "@/components/elements/Switch";
@@ -28,7 +28,7 @@ export default function CreateCategoryPage() {
     handleRemoveImage,
     handleSubmit,
     isPending,
-  } = useTaxonomyForm<BlogCategoryFormValues>({
+  } = useRealEstateTaxonomyForm<BlogCategoryFormValues>({
     isEditMode: false,
     itemLabel: "دسته‌بندی",
     schema: blogCategoryFormSchema,

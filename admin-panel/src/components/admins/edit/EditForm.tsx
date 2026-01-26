@@ -28,13 +28,13 @@ const TabContentSkeleton = () => (
     </div>
 );
 
-const AccountTab = lazy(() => import("@/components/admins/profile/AccountTab").then((mod) => ({ default: mod.AccountTab })));
-const SecurityTab = lazy(() => import("@/components/admins/profile/SecurityTab").then((mod) => ({ default: mod.SecurityTab })));
-const SocialTab = lazy(() => import("@/components/admins/profile/SocialTab").then((mod) => ({ default: mod.SocialTab })));
-const AdvancedSettingsTab = lazy(() => import("@/components/admins/profile/AdvancedSettingsTab").then((mod) => ({ default: mod.AdvancedSettingsTab })));
-const ConsultantTab = lazy(() => import("@/components/admins/profile/ConsultantTab").then((mod) => ({ default: mod.ConsultantTab })));
-const AgentPropertiesTab = lazy(() => import("@/components/admins/profile/AgentPropertiesTab").then((mod) => ({ default: mod.AgentPropertiesTab })));
-const AdminPropertiesTab = lazy(() => import("@/components/admins/profile/AdminPropertiesTab").then((mod) => ({ default: mod.AdminPropertiesTab })));
+const AccountTab = lazy(() => import("@/components/admins/profile/Account.tsx").then((mod) => ({ default: mod.Account })));
+const SecurityTab = lazy(() => import("@/components/admins/profile/Security.tsx").then((mod) => ({ default: mod.Security })));
+const SocialTab = lazy(() => import("@/components/admins/profile/Social.tsx").then((mod) => ({ default: mod.Social })));
+const AdvancedSettingsTab = lazy(() => import("@/components/admins/profile/AdvancedSettings.tsx").then((mod) => ({ default: mod.AdvancedSettings })));
+const ConsultantTab = lazy(() => import("@/components/admins/profile/Consultant.tsx").then((mod) => ({ default: mod.Consultant })));
+const AgentPropertiesTab = lazy(() => import("@/components/admins/profile/AgentProperties.tsx").then((mod) => ({ default: mod.AgentProperties })));
+const AdminPropertiesTab = lazy(() => import("@/components/admins/profile/Properties.tsx").then((mod) => ({ default: mod.Properties })));
 
 
 interface EditAdminFormProps {

@@ -7,8 +7,8 @@ import { useTicketList, useTicket, useTicketMessages, useCreateTicketMessage, us
 import type { Ticket, TicketStatusType } from "@/types/ticket/ticket";
 import { showSuccess } from "@/core/toast";
 
-const TicketDetailView = lazy(() => import("@/components/ticket").then(mod => ({ default: mod.TicketDetailView })));
-const ReplyTicketDialog = lazy(() => import("@/components/ticket/ReplyTicketDialog").then(mod => ({ default: mod.ReplyTicketDialog })));
+const TicketDetailView = lazy(() => import("@/components/ticket").then(mod => ({ default: mod.TicketDetail })));
+const ReplyTicketDialog = lazy(() => import("@/components/ticket/TicketReplyDialog.tsx").then(mod => ({ default: mod.TicketReplyDialog })));
 
 export default function TicketPage() {
   const [searchParams] = useSearchParams();

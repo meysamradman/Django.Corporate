@@ -1,6 +1,5 @@
 BLOG_SUCCESS = {
     "blog_list_success": "لیست مقالات با موفقیت دریافت شد.",
-    "blogs_list_retrieved": "لیست مقالات با موفقیت دریافت شد.",
     "blog_created": "مقاله با موفقیت ایجاد شد.",
     "blog_updated": "مقاله با موفقیت به‌روزرسانی شد.",
     "blog_deleted": "مقاله با موفقیت حذف شد.",

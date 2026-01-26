@@ -3,7 +3,7 @@ import { showError, showSuccess } from "@/core/toast";
 import type { UserWithProfile } from "@/types/auth/user";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { User, KeyRound } from "lucide-react";
-import { ProfileHeader } from "@/components/users/profile/ProfileHeader";
+import { UserProfileHeader } from "@/components/users/profile/UserProfileHeader.tsx";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { adminApi } from "@/api/admins/admins";
 import { msg } from '@/core/messages';
@@ -23,8 +23,8 @@ const TabContentSkeleton = () => (
     </div>
 );
 
-const AccountTab = lazy(() => import("@/components/users/profile/AccountTab").then((mod) => ({ default: mod.AccountTab })));
-const SecurityTab = lazy(() => import("@/components/users/profile/SecurityTab").then((mod) => ({ default: mod.SecurityTab })));
+const AccountTab = lazy(() => import("@/components/users/profile/UserAccount.tsx").then((mod) => ({ default: mod.UserAccount })));
+const SecurityTab = lazy(() => import("@/components/users/profile/UserSecurity.tsx").then((mod) => ({ default: mod.UserSecurity })));
 
 interface EditUserFormProps {
     userData: UserWithProfile;
@@ -194,7 +194,7 @@ export function EditUserForm({ userData }: EditUserFormProps) {
     
     return (
         <div className="space-y-6">
-            <ProfileHeader 
+            <UserProfileHeader
                 user={userData} 
                 formData={formData}
                 onProfileImageChange={(media) => handleInputChange("profileImage", media)}

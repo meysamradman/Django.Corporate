@@ -2,7 +2,7 @@ import { lazy, Suspense } from "react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { FileText, Settings } from "lucide-react";
-import { PortfolioFormLayout } from "@/components/portfolios/layouts/PortfolioFormLayout";
+import { PortfolioFormLayout } from "@/components/portfolios/layouts/PortfolioFormLayout.tsx";
 import { usePortfolioForm } from "@/components/portfolios/hooks/usePortfolioForm";
 
 const TabSkeleton = () => (
@@ -67,10 +67,10 @@ const TabSkeleton = () => (
   </div>
 );
 
-const BaseInfoTab = lazy(() => import("@/components/portfolios/list/create/BaseInfoTab"));
-const MediaTab = lazy(() => import("@/components/portfolios/list/create/MediaTab"));
-const SEOTab = lazy(() => import("@/components/portfolios/list/create/SEOTab"));
-const ExtraAttributesTab = lazy(() => import("@/components/portfolios/list/create/ExtraAttributesTab"));
+const BaseInfoTab = lazy(() => import("@/components/portfolios/list/create/PortfolioInfo"));
+const MediaTab = lazy(() => import("@/components/portfolios/list/create/PortfolioMedia"));
+const SEOTab = lazy(() => import("@/components/portfolios/list/create/PortfolioSEO"));
+const ExtraAttributesTab = lazy(() => import("@/components/portfolios/list/create/PortfolioAttributes"));
 
 export default function CreatePortfolioPage() {
   const {

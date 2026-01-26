@@ -2,6 +2,9 @@ from rest_framework import serializers
 from django.core.cache import cache
 from django.conf import settings
 from src.portfolio.models.portfolio import Portfolio
+from src.portfolio.models.category import PortfolioCategory
+from src.portfolio.models.tag import PortfolioTag
+from src.portfolio.models.option import PortfolioOption
 from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
 from src.portfolio.serializers.admin.category_serializer import PortfolioCategorySimpleAdminSerializer
 from src.portfolio.serializers.admin.tag_serializer import PortfolioTagAdminSerializer
@@ -134,6 +137,9 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
     seo_preview = serializers.SerializerMethodField()
     seo_completeness = serializers.SerializerMethodField()
     
+    categories_count = serializers.IntegerField(read_only=True)
+    tags_count = serializers.IntegerField(read_only=True)
+    
     class Meta:
         model = Portfolio
         fields = [
@@ -146,6 +152,7 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
             'og_image', 'canonical_url', 'robots_meta',
             'structured_data', 'hreflang_data',
             'seo_data', 'seo_preview', 'seo_completeness',
+            'categories_count', 'tags_count', 'views_count',
             'created_at', 'updated_at',
         ]
     
@@ -285,25 +292,30 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
 
 
 class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
-    categories_ids = serializers.ListField(
-        child=serializers.IntegerField(), 
-        write_only=True, 
-        required=False
-    )
-    tags_ids = serializers.ListField(
-        child=serializers.IntegerField(), 
-        write_only=True, 
-        required=False
-    )
-    options_ids = serializers.ListField(
-        child=serializers.IntegerField(), 
-        write_only=True, 
-        required=False
-    )
-    media_files = serializers.ListField(
-        child=serializers.FileField(),
+    categories = serializers.PrimaryKeyRelatedField(
+        queryset=PortfolioCategory.objects.all(),
+        many=True,
         write_only=True,
         required=False
+    )
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=PortfolioTag.objects.all(),
+        many=True,
+        write_only=True,
+        required=False
+    )
+    options = serializers.PrimaryKeyRelatedField(
+        queryset=PortfolioOption.objects.all(),
+        many=True,
+        write_only=True,
+        required=False
+    )
+    media_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True,
+        required=False,
+        allow_empty=True,
+        help_text="List of media IDs to link to this portfolio"
     )
     
     class Meta:
@@ -314,68 +326,34 @@ class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
             'extra_attributes',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
-            'categories_ids', 'tags_ids', 'options_ids',
-            'media_files'
+            'categories', 'tags', 'options',
+            'media_files', 'media_ids'
         ]
     
     def validate(self, attrs):
-        # ✅ Auto-generate unique slug if not provided or if duplicate
-        if not attrs.get('slug') and attrs.get('title'):
-            from django.utils.text import slugify
-            base_slug = slugify(attrs['title'])
-            slug = base_slug
-            counter = 1
-            while Portfolio.objects.filter(slug=slug).exists():
-                slug = f"{base_slug}-{counter}"
-                counter += 1
-            attrs['slug'] = slug
-        elif attrs.get('slug'):
-            # ✅ Slug provided - check if it exists and make it unique
-            from django.utils.text import slugify
-            base_slug = attrs['slug']
-            slug = base_slug
-            counter = 1
-            while Portfolio.objects.filter(slug=slug).exists():
-                slug = f"{base_slug}-{counter}"
-                counter += 1
-            # Only update if we had to change it
-            if slug != base_slug:
-                attrs['slug'] = slug
-        
+        # Validation logic moved to service for consistency
         return attrs
     
-    def create(self, validated_data):
-        categories_ids = validated_data.pop('categories_ids', [])
-        tags_ids = validated_data.pop('tags_ids', [])
-        options_ids = validated_data.pop('options_ids', [])
-        media_files = validated_data.pop('media_files', [])
-        
-        portfolio = Portfolio.objects.create(**validated_data)
-        
-        if categories_ids:
-            portfolio.categories.set(categories_ids)
-        if tags_ids:
-            portfolio.tags.set(tags_ids)
-        if options_ids:
-            portfolio.options.set(options_ids)
-            
-        return portfolio
+    # Logic moved to PortfolioAdminService
 
 
 class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
-    categories_ids = serializers.ListField(
-        child=serializers.IntegerField(), 
-        write_only=True, 
+    categories = serializers.PrimaryKeyRelatedField(
+        queryset=PortfolioCategory.objects.all(),
+        many=True,
+        write_only=True,
         required=False
     )
-    tags_ids = serializers.ListField(
-        child=serializers.IntegerField(), 
-        write_only=True, 
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=PortfolioTag.objects.all(),
+        many=True,
+        write_only=True,
         required=False
     )
-    options_ids = serializers.ListField(
-        child=serializers.IntegerField(), 
-        write_only=True, 
+    options = serializers.PrimaryKeyRelatedField(
+        queryset=PortfolioOption.objects.all(),
+        many=True,
+        write_only=True,
         required=False
     )
     media_ids = serializers.ListField(
@@ -397,6 +375,11 @@ class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
         required=False,
         help_text="Mapping of media_id to cover_image_id for portfolio-specific covers. Format: {media_id: cover_image_id}"
     )
+    media_files = serializers.ListField(
+        child=serializers.FileField(),
+        write_only=True,
+        required=False
+    )
     
     class Meta:
         model = Portfolio
@@ -406,30 +389,10 @@ class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
             'extra_attributes',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
-            'categories_ids', 'tags_ids', 'options_ids', 'media_ids', 'main_image_id', 'media_covers'
+            'categories', 'tags', 'options', 'media_ids', 'media_files', 'main_image_id', 'media_covers'
         ]
     
-    def update(self, instance, validated_data):
-        categories_ids = validated_data.pop('categories_ids', None)
-        tags_ids = validated_data.pop('tags_ids', None)
-        options_ids = validated_data.pop('options_ids', None)
-        media_ids = validated_data.pop('media_ids', None)
-        main_image_id = validated_data.pop('main_image_id', None)
-        media_covers = validated_data.pop('media_covers', None)
-        
-        for field, value in validated_data.items():
-            setattr(instance, field, value)
-        
-        instance.save()
-        
-        if categories_ids is not None:
-            instance.categories.set(categories_ids)
-        if tags_ids is not None:
-            instance.tags.set(tags_ids)
-        if options_ids is not None:
-            instance.options.set(options_ids)
-        
-        return instance
+    # Logic moved to PortfolioAdminService
 
 
 class PortfolioAdminSerializer(PortfolioAdminDetailSerializer):

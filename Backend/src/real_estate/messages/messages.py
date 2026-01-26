@@ -11,6 +11,9 @@ PROPERTY_SUCCESS = {
     "property_media_added": "رسانه با موفقیت به ملک اضافه شد.",
     "property_main_image_set": "تصویر شاخص با موفقیت تنظیم شد.",
     "property_statistics_retrieved": "آمار املاک با موفقیت دریافت شد.",
+    "property_seo_generated": "اطلاعات SEO با موفقیت تولید شد.",
+    "property_seo_validated": "اطلاعات SEO با موفقیت بررسی شد.",
+    "property_seo_report_retrieved": "گزارش SEO با موفقیت دریافت شد.",
 }
 
 PROPERTY_ERRORS = {
@@ -28,13 +31,14 @@ PROPERTY_ERRORS = {
     "agency_id_required": "شناسه آژانس مورد نیاز است.",
     "property_type_id_required": "شناسه نوع ملک مورد نیاز است.",
     "state_id_required": "شناسه وضعیت ملک مورد نیاز است.",
-    "district_id_required": "شناسه محله مورد نیاز است.",
+    "region_id_required": "شناسه محله مورد نیاز است.",
     "city_id_required": "شناسه شهر مورد نیاز است.",
     "media_upload_limit_exceeded": "حداکثر {max_items} رسانه برای آپلود مجاز است. شما {total_items} رسانه ارسال کرده‌اید.",
     "only_one_main_image": "فقط یک تصویر اصلی برای هر ملک مجاز است.",
     "property_export_failed": "خروجی گیری املاک ناموفق بود.",
     "property_export_limit_exceeded": "حد مجاز خروجی گیری تجاوز شده است. لطفاً بعداً تلاش کنید.",
     "property_export_too_large": "حجم خروجی بسیار بزرگ است. لطفاً فیلترهای بیشتری اعمال کنید.",
+    "property_update_failed": "به‌روزرسانی ملک ناموفق بود.",
 }
 
 PDF_LABELS = {

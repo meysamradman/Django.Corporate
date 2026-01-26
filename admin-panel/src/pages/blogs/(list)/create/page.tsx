@@ -3,7 +3,7 @@ import { FileText, Settings } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { useBlogForm } from "@/components/blogs/hooks/useBlogForm";
-import { BlogFormLayout } from "@/components/blogs/layouts/BlogFormLayout";
+import { BlogFormLayout } from "@/components/blogs/layouts/BlogFormLayout.tsx";
 import { TabsContent } from "@/components/elements/Tabs";
 
 const TabSkeleton = () => (
@@ -68,9 +68,9 @@ const TabSkeleton = () => (
   </div>
 );
 
-const BaseInfoTab = lazy(() => import("@/components/blogs/list/create/BaseInfoTab"));
-const MediaTab = lazy(() => import("@/components/blogs/list/create/MediaTab"));
-const SEOTab = lazy(() => import("@/components/blogs/list/create/SEOTab"));
+const BaseInfoTab = lazy(() => import("@/components/blogs/list/create/BlogInfo"));
+const MediaTab = lazy(() => import("@/components/blogs/list/create/BlogMedia"));
+const SEOTab = lazy(() => import("@/components/blogs/list/create/BlogSEO"));
 
 export default function CreateBlogPage() {
   const {

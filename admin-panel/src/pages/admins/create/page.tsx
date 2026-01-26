@@ -55,9 +55,9 @@ const TabSkeleton = () => (
     </div>
 );
 
-const BaseInfoTab = lazy(() => import("@/components/admins/create/BaseInfoTab"));
-const ProfileTab = lazy(() => import("@/components/admins/create/ProfileTab"));
-const PermissionsTab = lazy(() => import("@/components/admins/create/PermissionsTab"));
+const BaseInfoTab = lazy(() => import("@/components/admins/create/Info"));
+const ProfileTab = lazy(() => import("@/components/admins/create/Profile"));
+const PermissionsTab = lazy(() => import("@/components/admins/create/Permissions"));
 const ConsultantFields = lazy(() => import("@/components/admins/ConsultantFields"));
 
 export default function CreateAdminPage() {

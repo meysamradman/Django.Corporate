@@ -1,24 +1,15 @@
+import React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
-import { Edit, Trash2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { Badge } from "@/components/elements/Badge";
 import { Link } from "react-router-dom";
+import { Badge } from "@/components/elements/Badge";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { Checkbox } from "@/components/elements/Checkbox";
 
-export interface TagAction {
-  label: string;
-  icon: React.ReactNode;
-  onClick: (tag: PortfolioTag) => void;
-  isDestructive?: boolean;
-}
-
 export const useTagColumns = (actions: DataTableRowAction<PortfolioTag>[] = []) => {
-  const navigate = useNavigate();
-  
+
   const baseColumns: ColumnDef<PortfolioTag>[] = [
     {
       id: "select",
@@ -117,21 +108,7 @@ export const useTagColumns = (actions: DataTableRowAction<PortfolioTag>[] = []) 
     {
       id: "actions",
       cell: ({ row }) => {
-        const defaultActions: DataTableRowAction<PortfolioTag>[] = [
-          {
-            label: "ویرایش",
-            icon: <Edit className="h-4 w-4" />,
-            onClick: (tag) => navigate(`/portfolios/tags/${tag.id}/edit`),
-          },
-          {
-            label: "حذف",
-            icon: <Trash2 className="h-4 w-4" />,
-            onClick: (_tag) => {},
-            isDestructive: true,
-          },
-        ];
-        const rowActions = actions.length > 0 ? actions : defaultActions;
-        return <DataTableRowActions row={row} actions={rowActions} />;
+        return <DataTableRowActions row={row} actions={actions} />;
       },
       enableSorting: false,
       enableHiding: false,

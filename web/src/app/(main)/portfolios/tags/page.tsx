@@ -2,18 +2,13 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { DataTable } from "@/components/tables/DataTable";
-import { useTagColumns } from "@/components/portfolios/tags/list/TagTableColumns";
-import { useTagFilterOptions, getTagFilterConfig } from "@/components/portfolios/tags/list/TagTableFilters";
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
-import { ProtectedButton } from "@/core/permissions";
 import Link from "next/link";
 import { toast } from '@/components/elements/Sonner';
 import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 import { msg } from '@/core/messages';
 import {
   AlertDialog,
@@ -27,9 +22,7 @@ import {
 } from "@/components/elements/AlertDialog";
 
 import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
-import { ColumnDef } from "@tanstack/react-table";
 import { portfolioApi } from "@/api/portfolios/route";
-import type { DataTableRowAction } from "@/types/shared/table";
 
 export default function TagPage() {
   const router = useRouter();

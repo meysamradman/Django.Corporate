@@ -8,63 +8,49 @@ from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentM
 from src.media.services.media_services import MediaAdminService
 
 
-class PropertyAdminMediaService:
 
+class PropertyAdminMediaService:
     @staticmethod
-    def get_main_image_for_model(property_instance):
-        """
-        دریافت تصویر اصلی ملک با cache
-        این method منطق پیچیده را از model جدا می‌کنه
-        """
-        from src.real_estate.utils.cache import PropertyCacheKeys
+    def get_main_image_for_model(property_obj):
+        """Standardized main image retrieval with fallback logic"""
+        # 1. Try to get explicit main image
+        main_image_obj = PropertyImage.objects.filter(
+            property=property_obj,
+            is_main=True
+        ).select_related('image').first()
         
-        cache_key = PropertyCacheKeys.main_image(property_instance.pk)
-        main_image_id = cache.get(cache_key)
-        
-        if main_image_id is None:
-            try:
-                # 1. جستجوی تصویر اصلی
-                main_media = property_instance.images.select_related('image').filter(is_main=True).first()
-                if main_media:
-                    main_image = main_media.image
-                else:
-                    # 2. جستجوی cover ویدئو
-                    video = property_instance.videos.select_related('video__cover_image').first()
-                    if video and video.video.cover_image:
-                        main_image = video.video.cover_image
-                    else:
-                        # 3. جستجوی cover audio
-                        audio = property_instance.audios.select_related('audio__cover_image').first()
-                        if audio and audio.audio.cover_image:
-                            main_image = audio.audio.cover_image
-                        else:
-                            # 4. جستجوی cover document
-                            document = property_instance.documents.select_related('document__cover_image').first()
-                            if document and document.document.cover_image:
-                                main_image = document.document.cover_image
-                            else:
-                                main_image = None
-                
-                # Cache کردن نتیجه
-                if main_image:
-                    cache.set(cache_key, main_image.id, 1800)  # 30 minutes
-                    return main_image
-                else:
-                    cache.set(cache_key, False, 1800)
-                    return None
-            except Exception:
-                cache.set(cache_key, False, 1800)
-                return None
-        else:
-            # اگر cache داشت False، None برگردون
-            if main_image_id is False:
-                return None
-            # وگرنه، object رو از database بگیر
-            try:
-                return ImageMedia.objects.get(id=main_image_id)
-            except ImageMedia.DoesNotExist:
-                cache.delete(cache_key)
-                return None
+        if main_image_obj and main_image_obj.image:
+            return main_image_obj.image
+
+        # 2. Fallback to any images
+        first_image = PropertyImage.objects.filter(
+            property=property_obj
+        ).select_related('image').order_by('order', 'created_at').first()
+        if first_image and first_image.image:
+            return first_image.image
+
+        # 3. Fallback to video cover
+        first_video = PropertyVideo.objects.filter(
+            property=property_obj
+        ).select_related('video__cover_image').order_by('order', 'created_at').first()
+        if first_video and first_video.video and first_video.video.cover_image:
+            return first_video.video.cover_image
+
+        # 4. Fallback to other media types covers
+        audio = PropertyAudio.objects.filter(
+            property=property_obj
+        ).select_related('audio__cover_image').first()
+        if audio and audio.audio and audio.audio.cover_image:
+            return audio.audio.cover_image
+            
+        doc = PropertyDocument.objects.filter(
+            property=property_obj
+        ).select_related('document__cover_image').first()
+        if doc and doc.document and doc.document.cover_image:
+            return doc.document.cover_image
+
+        return None
+
 
     @staticmethod
     def get_next_media_order(property_id):
@@ -143,44 +129,111 @@ class PropertyAdminMediaService:
             property_obj = Property.objects.get(id=property_id)
         except Property.DoesNotExist:
             raise Property.DoesNotExist("Property not found")
-        
         media_files = media_files or []
         media_ids = media_ids or []
         
         created_count = 0
         failed_ids = []
-        failed_files = []
         
+        failed_files = []
+        uploaded_medias = []
         if media_files:
-            uploaded_medias = []
             for media_file in media_files:
                 try:
-                    media_type = detect_media_type_from_extension(media_file.name)
-                    uploaded_media = MediaAdminService.upload_media(
-                        file=media_file,
-                        media_type=media_type,
-                        created_by=created_by
-                    )
-                    uploaded_medias.append(uploaded_media)
+                    file_ext = media_file.name.lower().split('.')[-1] if '.' in media_file.name else ''
+                    media_type = detect_media_type_from_extension(file_ext)
+                    
+                    media = MediaAdminService.create_media(media_type, {
+                        'file': media_file,
+                        'title': f"Media for {property_obj.title}",
+                    })
+                    uploaded_medias.append((media, media_type))
                 except Exception as e:
                     failed_files.append({
-                        'filename': media_file.name,
+                        'name': media_file.name,
                         'error': str(e)
                     })
+                    continue
             
-            media_ids.extend([m.id for m in uploaded_medias])
+            if uploaded_medias:
+                next_order = PropertyAdminMediaService.get_next_media_order(property_id)
+                
+                has_main_image = PropertyImage.objects.filter(
+                    property=property_obj,
+                    is_main=True
+                ).exists()
+                
+                property_media_objects = []
+                for i, (media, media_type) in enumerate(uploaded_medias):
+                    if media_type == 'image':
+                        should_be_main = (i == 0) and not has_main_image
+                        
+                        property_media_objects.append(
+                            PropertyImage(
+                                property=property_obj,
+                                image=media,
+                                is_main=should_be_main,
+                                order=next_order + i
+                            )
+                        )
+                        
+                        if should_be_main:
+                            has_main_image = True
+                    elif media_type == 'video':
+                        property_media_objects.append(
+                            PropertyVideo(
+                                property=property_obj,
+                                video=media,
+                                order=next_order + i
+                            )
+                        )
+                    elif media_type == 'audio':
+                        property_media_objects.append(
+                            PropertyAudio(
+                                property=property_obj,
+                                audio=media,
+                                order=next_order + i
+                            )
+                        )
+                    elif media_type == 'pdf':
+                        property_media_objects.append(
+                            PropertyDocument(
+                                property=property_obj,
+                                document=media,
+                                order=next_order + i
+                            )
+                        )
+                
+                if property_media_objects:
+                    images = [obj for obj in property_media_objects if isinstance(obj, PropertyImage)]
+                    videos = [obj for obj in property_media_objects if isinstance(obj, PropertyVideo)]
+                    audios = [obj for obj in property_media_objects if isinstance(obj, PropertyAudio)]
+                    documents = [obj for obj in property_media_objects if isinstance(obj, PropertyDocument)]
+                    
+                    if images:
+                        PropertyImage.objects.bulk_create(images)
+                    if videos:
+                        PropertyVideo.objects.bulk_create(videos)
+                    if audios:
+                        PropertyAudio.objects.bulk_create(audios)
+                    if documents:
+                        PropertyDocument.objects.bulk_create(documents)
+                    
+                    created_count += len(property_media_objects)
         
         if media_ids:
             media_ids_list = list(set(media_ids)) if isinstance(media_ids, (list, tuple)) else [media_ids]
             
-            image_medias, video_medias, audio_medias, document_medias = PropertyAdminMediaService.get_media_by_ids(media_ids_list)
+            image_medias, video_medias, audio_medias, document_medias = \
+                PropertyAdminMediaService.get_media_by_ids(media_ids_list)
             
             image_dict = {media.id: media for media in image_medias}
             video_dict = {media.id: media for media in video_medias}
             audio_dict = {media.id: media for media in audio_medias}
             document_dict = {media.id: media for media in document_medias}
             
-            existing_image_ids, existing_video_ids, existing_audio_ids, existing_document_ids = PropertyAdminMediaService.get_existing_property_media(property_id, media_ids_list)
+            existing_image_ids, existing_video_ids, existing_audio_ids, existing_document_ids = \
+                PropertyAdminMediaService.get_existing_property_media(property_id, media_ids_list)
             
             all_existing_ids = existing_image_ids | existing_video_ids | existing_audio_ids | existing_document_ids
             
@@ -200,6 +253,7 @@ class PropertyAdminMediaService:
                     media_to_create.append(('document', document_dict[media_id]))
                 else:
                     failed_ids.append(media_id)
+            
             
             if media_to_create:
                 next_order = PropertyAdminMediaService.get_next_media_order(property_id)
@@ -276,7 +330,7 @@ class PropertyAdminMediaService:
             if not has_main_image:
                 first_image = PropertyImage.objects.filter(
                     property_id=property_id
-                ).select_related('image').order_by('is_main', 'order', 'created_at').first()
+                ).select_related('image').order_by('is_main', '-order', 'created_at').first()
                 
                 if first_image:
                     first_image.is_main = True
@@ -285,147 +339,252 @@ class PropertyAdminMediaService:
                     if not property_obj.og_image:
                         property_obj.og_image = first_image.image
                         property_obj.save(update_fields=['og_image'])
-        
-        PropertyCacheManager.invalidate_property(property_id)
+                
+                PropertyCacheManager.invalidate_property(property_id)
         
         return {
             'created_count': created_count,
+            'uploaded_media_ids': [m.id for m, t in uploaded_medias] if 'uploaded_medias' in locals() else [],
             'failed_ids': failed_ids,
             'failed_files': failed_files
         }
-
+    
     @staticmethod
-    def sync_media(property_id, media_ids=None, main_image_id=None, media_covers=None):
+    def sync_media(property_id, media_ids, main_image_id=None, media_covers=None):
         try:
             property_obj = Property.objects.get(id=property_id)
         except Property.DoesNotExist:
             raise Property.DoesNotExist("Property not found")
         
-        if media_ids is None:
-            return
+        # Prepare IDs lists
+        media_to_remove = set()
+        media_to_add = set()
+        media_ids_count = 0
         
-        media_ids_set = set(media_ids) if isinstance(media_ids, list) else set([media_ids])
-        
-        existing_images = PropertyImage.objects.filter(property=property_obj)
-        existing_videos = PropertyVideo.objects.filter(property=property_obj)
-        existing_audios = PropertyAudio.objects.filter(property=property_obj)
-        existing_documents = PropertyDocument.objects.filter(property=property_obj)
-        
-        existing_image_ids = set(existing_images.values_list('image_id', flat=True))
-        existing_video_ids = set(existing_videos.values_list('video_id', flat=True))
-        existing_audio_ids = set(existing_audios.values_list('audio_id', flat=True))
-        existing_document_ids = set(existing_documents.values_list('document_id', flat=True))
-        
-        all_existing_ids = existing_image_ids | existing_video_ids | existing_audio_ids | existing_document_ids
-        
-        image_medias, video_medias, audio_medias, document_medias = PropertyAdminMediaService.get_media_by_ids(media_ids)
-        
-        all_media_ids = set()
-        all_media_ids.update([m.id for m in image_medias])
-        all_media_ids.update([m.id for m in video_medias])
-        all_media_ids.update([m.id for m in audio_medias])
-        all_media_ids.update([m.id for m in document_medias])
-        
-        ids_to_remove = all_existing_ids - all_media_ids
-        ids_to_add = all_media_ids - all_existing_ids
+        if media_ids is not None:
+            media_ids = media_ids if isinstance(media_ids, (list, tuple)) else []
+            media_ids_set = set(media_ids)
+            media_ids_count = len(media_ids_set)
+            
+            current_image_ids = set(
+                PropertyImage.objects.filter(property_id=property_id).values_list('image_id', flat=True)
+            )
+            current_video_ids = set(
+                PropertyVideo.objects.filter(property_id=property_id).values_list('video_id', flat=True)
+            )
+            current_audio_ids = set(
+                PropertyAudio.objects.filter(property_id=property_id).values_list('audio_id', flat=True)
+            )
+            current_document_ids = set(
+                PropertyDocument.objects.filter(property_id=property_id).values_list('document_id', flat=True)
+            )
+            
+            all_current_ids = current_image_ids | current_video_ids | current_audio_ids | current_document_ids
+            
+            media_to_remove = all_current_ids - media_ids_set
+            media_to_add = media_ids_set - all_current_ids
+            
+            # If everything is removed, we might need to clear main image
+            if not media_ids_set:
+                media_to_remove = all_current_ids
+                media_to_add = set()
         
         with transaction.atomic():
-            if ids_to_remove:
-                PropertyImage.objects.filter(property=property_obj, image_id__in=ids_to_remove).delete()
-                PropertyVideo.objects.filter(property=property_obj, video_id__in=ids_to_remove).delete()
-                PropertyAudio.objects.filter(property=property_obj, audio_id__in=ids_to_remove).delete()
-                PropertyDocument.objects.filter(property=property_obj, document_id__in=ids_to_remove).delete()
+            if media_ids is not None:
+                current_main_image_id = None
+                if current_image_ids:
+                    main_image_obj = PropertyImage.objects.filter(
+                        property_id=property_id,
+                        is_main=True
+                    ).first()
+                    if main_image_obj:
+                        current_main_image_id = main_image_obj.image_id
+                
+                if media_to_remove:
+                    image_ids_to_remove = media_to_remove & current_image_ids
+                    if image_ids_to_remove:
+                        if current_main_image_id and current_main_image_id in image_ids_to_remove:
+                            PropertyImage.objects.filter(
+                                property_id=property_id,
+                                is_main=True
+                            ).update(is_main=False)
+                            current_main_image_id = None
+                        
+                        PropertyImage.objects.filter(
+                            property_id=property_id,
+                            image_id__in=image_ids_to_remove
+                        ).delete()
+                    
+                    video_ids_to_remove = media_to_remove & current_video_ids
+                    if video_ids_to_remove:
+                        PropertyVideo.objects.filter(
+                            property_id=property_id,
+                            video_id__in=video_ids_to_remove
+                        ).delete()
+                    
+                    audio_ids_to_remove = media_to_remove & current_audio_ids
+                    if audio_ids_to_remove:
+                        PropertyAudio.objects.filter(
+                            property_id=property_id,
+                            audio_id__in=audio_ids_to_remove
+                        ).delete()
+                    
+                    document_ids_to_remove = media_to_remove & current_document_ids
+                    if document_ids_to_remove:
+                        PropertyDocument.objects.filter(
+                            property_id=property_id,
+                            document_id__in=document_ids_to_remove
+                        ).delete()
+                
             
-            if ids_to_add:
-                next_order = PropertyAdminMediaService.get_next_media_order(property_id)
-                
-                for image_media in image_medias:
-                    if image_media.id in ids_to_add:
-                        PropertyImage.objects.create(
-                            property=property_obj,
-                            image=image_media,
-                            order=next_order
-                        )
-                        next_order += 1
-                
-                for video_media in video_medias:
-                    if video_media.id in ids_to_add:
-                        PropertyVideo.objects.create(
-                            property=property_obj,
-                            video=video_media,
-                            order=next_order
-                        )
-                        next_order += 1
-                
-                for audio_media in audio_medias:
-                    if audio_media.id in ids_to_add:
-                        PropertyAudio.objects.create(
-                            property=property_obj,
-                            audio=audio_media,
-                            order=next_order
-                        )
-                        next_order += 1
-                
-                for document_media in document_medias:
-                    if document_media.id in ids_to_add:
-                        PropertyDocument.objects.create(
-                            property=property_obj,
-                            document=document_media,
-                            order=next_order
-                        )
-                        next_order += 1
-            
-            if main_image_id:
+            if main_image_id is not None:
                 PropertyImage.objects.filter(
-                    property=property_obj,
+                    property_id=property_id,
                     is_main=True
                 ).update(is_main=False)
                 
-                PropertyImage.objects.filter(
-                    property=property_obj,
+                property_image = PropertyImage.objects.filter(
+                    property_id=property_id,
                     image_id=main_image_id
-                ).update(is_main=True)
+                ).first()
                 
-                if not property_obj.og_image:
-                    try:
-                        image_media = ImageMedia.objects.get(id=main_image_id)
-                        property_obj.og_image = image_media
+                if property_image:
+                    property_image.is_main = True
+                    property_image.save(update_fields=['is_main'])
+                    
+                    property_obj.refresh_from_db()
+                    if not property_obj.og_image:
+                        property_obj.og_image = property_image.image
                         property_obj.save(update_fields=['og_image'])
-                    except ImageMedia.DoesNotExist:
-                        pass
+            
+            if media_to_add:
+                PropertyAdminMediaService.add_media_bulk(
+                    property_id=property_id,
+                    media_ids=list(media_to_add)
+                )
+                
+                if main_image_id is not None and main_image_id in media_to_add:
+                    property_image = PropertyImage.objects.filter(
+                        property_id=property_id,
+                        image_id=main_image_id
+                    ).first()
+                    
+                    if property_image:
+                        PropertyImage.objects.filter(
+                            property_id=property_id,
+                            is_main=True
+                        ).exclude(image_id=main_image_id).update(is_main=False)
+                        
+                        property_image.is_main = True
+                        property_image.save(update_fields=['is_main'])
+                        
+                        property_obj.refresh_from_db()
+                        if not property_obj.og_image:
+                            property_obj.og_image = property_image.image
+                            property_obj.save(update_fields=['og_image'])
             
             if media_covers:
-                for media_id, cover_image_id in media_covers.items():
-                    if cover_image_id:
-                        PropertyVideo.objects.filter(
-                            property=property_obj,
-                            video_id=media_id
-                        ).update(cover_image_id=cover_image_id)
-                        
-                        PropertyAudio.objects.filter(
-                            property=property_obj,
-                            audio_id=media_id
-                        ).update(cover_image_id=cover_image_id)
-                        
-                        PropertyDocument.objects.filter(
-                            property=property_obj,
-                            document_id=media_id
-                        ).update(cover_image_id=cover_image_id)
-                    else:
-                        PropertyVideo.objects.filter(
-                            property=property_obj,
-                            video_id=media_id
-                        ).update(cover_image=None)
-                        
-                        PropertyAudio.objects.filter(
-                            property=property_obj,
-                            audio_id=media_id
-                        ).update(cover_image=None)
-                        
-                        PropertyDocument.objects.filter(
-                            property=property_obj,
-                            document_id=media_id
-                        ).update(cover_image=None)
+                PropertyAdminMediaService._update_property_media_covers(
+                    property_id=property_id,
+                    media_covers=media_covers,
+                    all_current_ids=all_current_ids,
+                    current_video_ids=current_video_ids,
+                    current_audio_ids=current_audio_ids,
+                    current_document_ids=current_document_ids
+                )
+            
+            PropertyCacheManager.invalidate_property(property_id)
         
-        PropertyCacheManager.invalidate_property(property_id)
+        return {
+            'removed_count': len(media_to_remove),
+            'added_count': len(media_to_add),
+            'total_count': media_ids_count
+        }
 
+    @staticmethod
+    def set_main_image(property_id, media_id):
+        """Standardized set main image logic"""
+        try:
+            property_obj = Property.objects.get(id=property_id)
+        except Property.DoesNotExist:
+            raise Property.DoesNotExist("Property not found")
+
+        with transaction.atomic():
+            # Unset current main
+            PropertyImage.objects.filter(property_id=property_id, is_main=True).update(is_main=False)
+            
+            # Try to find the image in the property's images
+            property_image = PropertyImage.objects.filter(property_id=property_id, image_id=media_id).first()
+            
+            if property_image:
+                property_image.is_main = True
+                property_image.save(update_fields=['is_main'])
+                
+                # Update OG image if empty
+                if not property_obj.og_image:
+                    property_obj.og_image = property_image.image
+                    property_obj.save(update_fields=['og_image'])
+            else:
+                # If not found directly, it might be newly added via central media
+                # This part is handled by ViewSet calling add_media if needed, 
+                # but for direct service call we ensure it exists
+                from src.media.models.media import ImageMedia
+                try:
+                    media_image = ImageMedia.objects.get(id=media_id)
+                    PropertyImage.objects.create(
+                        property=property_obj,
+                        image=media_image,
+                        is_main=True,
+                        order=0
+                    )
+                    if not property_obj.og_image:
+                        property_obj.og_image = media_image
+                        property_obj.save(update_fields=['og_image'])
+                except ImageMedia.DoesNotExist:
+                    raise ValidationError("Media image not found")
+
+            PropertyCacheManager.invalidate_property(property_id)
+            return True
+    
+    @staticmethod
+    def _update_property_media_covers(property_id, media_covers, all_current_ids, 
+                                       current_video_ids, current_audio_ids, current_document_ids):
+        for media_id_str, cover_image_id in media_covers.items():
+            try:
+                media_id = int(media_id_str) if isinstance(media_id_str, str) else media_id_str
+            except (ValueError, TypeError):
+                continue
+            
+            if media_id not in all_current_ids:
+                continue
+            
+            if media_id in current_video_ids:
+                PropertyAdminMediaService._update_media_cover(
+                    PropertyVideo, 'video', property_id, media_id, cover_image_id, video_id=media_id
+                )
+            elif media_id in current_audio_ids:
+                PropertyAdminMediaService._update_media_cover(
+                    PropertyAudio, 'audio', property_id, media_id, cover_image_id, audio_id=media_id
+                )
+            elif media_id in current_document_ids:
+                PropertyAdminMediaService._update_media_cover(
+                    PropertyDocument, 'document', property_id, media_id, cover_image_id, document_id=media_id
+                )
+    
+    @staticmethod
+    def _update_media_cover(model_class, media_type, property_id, media_id, cover_image_id, **filter_kwargs):
+        try:
+            property_media = model_class.objects.filter(
+                property_id=property_id,
+                **filter_kwargs
+            ).first()
+            
+            if property_media:
+                if cover_image_id:
+                    cover_image = ImageMedia.objects.filter(id=cover_image_id).first()
+                    property_media.cover_image = cover_image if cover_image else None
+                else:
+                    property_media.cover_image = None
+                property_media.save(update_fields=['cover_image'])
+        except Exception:
+            pass

@@ -1,10 +1,10 @@
-export { TicketSidebar } from "./TicketSidebar";
-export { TicketList } from "./TicketList";
-export { TicketItem } from "./TicketItem";
-export { TicketSearch } from "./TicketSearch";
-export { TicketToolbar } from "./TicketToolbar";
-export { ReplyTicketDialog } from "./ReplyTicketDialog";
+export { TicketSidebar } from "./TicketSidebar.tsx";
+export { TicketList } from "./TicketList.tsx";
+export { TicketItem } from "./TicketItem.tsx";
+export { TicketSearch } from "./TicketSearch.tsx";
+export { TicketToolbar } from "./TicketToolbar.tsx";
+export { TicketReplyDialog } from "./TicketReplyDialog.tsx";
 export type { ReplyTicketData } from "@/types/ticket/ticket";
-export { TicketDetailView } from "./TicketDetailView";
+export { TicketDetail } from "./TicketDetail.tsx";
 export type { TicketStatusType, TicketStatusItem, TicketPriorityItem } from "./types";
 

@@ -1,9 +1,8 @@
+import React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
-import { Edit, Trash2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { Badge } from "@/components/elements/Badge";
 import { Link } from "react-router-dom";
+import { Badge } from "@/components/elements/Badge";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
@@ -11,16 +10,8 @@ import { Checkbox } from "@/components/elements/Checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import { mediaService } from "@/components/media/services";
 
-export interface CategoryAction {
-  label: string;
-  icon: React.ReactNode;
-  onClick: (category: PortfolioCategory) => void;
-  isDestructive?: boolean;
-}
-
 export const useCategoryColumns = (actions: DataTableRowAction<PortfolioCategory>[] = []) => {
-  const navigate = useNavigate();
-  
+
   const baseColumns: ColumnDef<PortfolioCategory>[] = [
     {
       id: "select",
@@ -53,12 +44,12 @@ export const useCategoryColumns = (actions: DataTableRowAction<PortfolioCategory
       header: () => <div className="table-header-text">نام</div>,
       cell: ({ row }) => {
         const category = row.original;
-        const imageUrl = category.image_url 
+        const imageUrl = category.image_url
           ? mediaService.getMediaUrlFromObject({ file_url: category.image_url } as any)
-          : category.image 
+          : category.image
             ? mediaService.getMediaUrlFromObject(category.image)
             : "";
-          
+
         const getInitial = () => {
           if (!category.name) return "؟";
           return category.name.charAt(0).toUpperCase();
@@ -132,24 +123,7 @@ export const useCategoryColumns = (actions: DataTableRowAction<PortfolioCategory
     {
       id: "actions",
       cell: ({ row }) => {
-        const defaultActions: DataTableRowAction<PortfolioCategory>[] = [
-          {
-            label: "ویرایش",
-            icon: <Edit className="h-4 w-4" />,
-            onClick: (category) => navigate(`/portfolios/categories/${category.id}/edit`),
-          },
-          {
-            label: "حذف",
-            icon: <Trash2 className="h-4 w-4" />,
-            onClick: (_category) => {
-            },
-            isDestructive: true,
-          },
-        ];
-        
-        const rowActions = actions.length > 0 ? actions : defaultActions;
-        
-        return <DataTableRowActions row={row} actions={rowActions} />;
+        return <DataTableRowActions row={row} actions={actions} />;
       },
       enableSorting: false,
       enableHiding: false,

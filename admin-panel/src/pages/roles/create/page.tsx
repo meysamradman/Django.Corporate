@@ -60,7 +60,7 @@ const ManagementPermissionsCard = lazy(
 );
 
 const RoleBasicInfoForm = lazy(
-  () => import("@/components/roles/form").then(mod => ({ default: mod.RoleBasicInfoForm }))
+  () => import("@/components/roles/form").then(mod => ({ default: mod.RoleInfoForm }))
 );
 
 // استخراج permissions از API به صورت داینامیک

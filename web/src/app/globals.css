@@ -26,7 +26,11 @@
   --sdb-menu-ttl: #6b6876;
   --sdb-hv: #f2f2f2;
   /* Header */
-  --header: #ffffff;
+  --header-s: #ffffff;
+  --header-t: #ffffff1f;
+  /* Footer */
+  --footer: #1c1c1c;
+  --cprt: #000;
   /* Card */
   --card: #fff;
   /* Table */
@@ -143,7 +147,11 @@
   --color-sdb-menu-ttl: var(--sdb-menu-ttl);
   --color-sdb-hv: var(--sdb-hv);
   /* --- Header --- */
-  --color-header: var(--header);
+  --color-header-s: var(--header-s);
+  --color-header-t: var(--header-t);
+    /* --- Footer --- */
+  --color-footer: var(--footer);
+  --color-cprt: var(--cprt);
   /* --- Absolute Colors --- */
   --color-static-w: var(--static-w);
   --color-static-b: var(--static-b);

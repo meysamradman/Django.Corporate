@@ -23,9 +23,9 @@ const TabContentSkeleton = () => (
     </div>
 );
 
-const BaseInfoTab = lazy(() => import('@/components/real-estate/agencies/view/BaseInfoTab'));
-const MediaTab = lazy(() => import('@/components/real-estate/agencies/view/MediaTab'));
-const SettingsTab = lazy(() => import('@/components/real-estate/agencies/view/SettingsTab'));
+const BaseInfoTab = lazy(() => import('@/components/real-estate/agencies/view/AgencyInfo'));
+const MediaTab = lazy(() => import('@/components/real-estate/agencies/view/AgencyMedia'));
+const SettingsTab = lazy(() => import('@/components/real-estate/agencies/view/AgencySettings'));
 
 interface AgencyViewContentProps {
     agencyId: string;

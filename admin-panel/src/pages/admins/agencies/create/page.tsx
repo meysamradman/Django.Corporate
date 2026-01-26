@@ -45,9 +45,9 @@ const TabSkeleton = () => (
     </div>
 );
 
-const BaseInfoTab = lazy(() => import("@/components/real-estate/agencies/edit/BaseInfoTab"));
-const ProfileTab = lazy(() => import("@/components/real-estate/agencies/create/ProfileTab"));
-const SEOTab = lazy(() => import("@/components/real-estate/agencies/edit/SEOTab"));
+const BaseInfoTab = lazy(() => import("@/components/real-estate/agencies/edit/AgencyInfo"));
+const ProfileTab = lazy(() => import("@/components/real-estate/agencies/create/AgencyProfile"));
+const SEOTab = lazy(() => import("@/components/real-estate/agencies/edit/AgencySEO"));
 
 export default function AdminsAgenciesCreatePage() {
     const navigate = useNavigate();

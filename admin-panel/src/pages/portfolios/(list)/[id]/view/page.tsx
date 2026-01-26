@@ -6,12 +6,12 @@ import { FileText, Image, Search, Edit2, FileDown, Settings } from "lucide-react
 import { showError, showSuccess } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
 import { portfolioApi } from "@/api/portfolios/portfolios";
-import { PortfolioImageGallery } from "@/components/portfolios/list/view/PortfolioImageGallery";
-import { PortfolioBasicInfo } from "@/components/portfolios/list/view/PortfolioBasicInfo";
-import { OverviewTab } from "@/components/portfolios/list/view/OverviewTab";
-import { MediaInfoTab } from "@/components/portfolios/list/view/MediaInfoTab";
-import { SEOInfoTab } from "@/components/portfolios/list/view/SEOInfoTab";
-import { ExtraAttributesInfoTab } from "@/components/portfolios/list/view/ExtraAttributesInfoTab";
+import { PortfolioCarousel } from "@/components/portfolios/list/view/PortfolioCarousel.tsx";
+import { PortfolioInfo } from "@/components/portfolios/list/view/PortfolioInfo.tsx";
+import { PortfolioOverview } from "@/components/portfolios/list/view/PortfolioOverview.tsx";
+import { PortfolioMedia } from "@/components/portfolios/list/view/PortfolioMedia.tsx";
+import { PortfolioSEO } from "@/components/portfolios/list/view/PortfolioSEO.tsx";
+import { PortfolioAttributes } from "@/components/portfolios/list/view/PortfolioAttributes.tsx";
 import { FloatingActions } from "@/components/elements/FloatingActions";
 
 export default function PortfolioViewPage() {
@@ -121,13 +121,13 @@ export default function PortfolioViewPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">
         {/* Right Side: Carousel (Gallery) - Takes more space */}
         <div className="lg:col-span-7 xl:col-span-8 h-full">
-          <PortfolioImageGallery portfolio={portfolioData} className="h-full" />
+          <PortfolioCarousel portfolio={portfolioData} className="h-full" />
         </div>
 
         {/* Left Side: Basic Info Sidebar - Takes less space */}
         <div className="lg:col-span-5 xl:col-span-4 h-full">
           <div className="sticky top-4 self-start">
-            <PortfolioBasicInfo portfolio={portfolioData} />
+            <PortfolioInfo portfolio={portfolioData} />
           </div>
         </div>
       </div>
@@ -154,10 +154,10 @@ export default function PortfolioViewPage() {
             </TabsTrigger>
           </TabsList>
 
-          <OverviewTab portfolio={portfolioData} />
-          <MediaInfoTab portfolio={portfolioData} />
-          <ExtraAttributesInfoTab portfolio={portfolioData} />
-          <SEOInfoTab portfolio={portfolioData} />
+          <PortfolioOverview portfolio={portfolioData} />
+          <PortfolioMedia portfolio={portfolioData} />
+          <PortfolioAttributes portfolio={portfolioData} />
+          <PortfolioSEO portfolio={portfolioData} />
         </Tabs>
       </div>
     </div>

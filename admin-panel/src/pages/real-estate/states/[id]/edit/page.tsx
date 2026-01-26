@@ -2,11 +2,11 @@ import { FileText, Settings } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
-import { useTaxonomyForm } from "@/components/real-estate/hooks/useTaxonomyForm";
-import { TaxonomyFormLayout } from "@/components/real-estate/layouts/TaxonomyFormLayout";
+import { useRealEstateTaxonomyForm } from "@/components/real-estate/hooks/useRealEstateTaxonomyForm.ts";
+import { TaxonomyFormLayout } from "@/components/real-estate/layouts/TaxonomyFormLayout.tsx";
 import { propertyStateFormSchema, propertyStateFormDefaults } from "@/components/real-estate/validations/stateSchema";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { FormFieldInput, FormField } from "@/components/forms/FormField";
+import { FormFieldInput, FormField } from "@/components/shared/FormField";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { formatSlug } from '@/core/slug/generate';
 import { TabsContent } from "@/components/elements/Tabs";
@@ -23,7 +23,7 @@ export default function EditPropertyStatePage() {
     handleSubmit,
     isLoading,
     isPending,
-  } = useTaxonomyForm({
+  } = useRealEstateTaxonomyForm({
     id,
     isEditMode: true,
     schema: propertyStateFormSchema,

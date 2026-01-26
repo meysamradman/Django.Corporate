@@ -1,7 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Blog } from "@/types/blog/blog";
-import { Edit, Trash2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/elements/Badge";
 import { Switch } from "@/components/elements/Switch";
 import { formatDate } from "@/core/utils/format";
@@ -12,20 +10,12 @@ import { Checkbox } from "@/components/elements/Checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import { mediaService } from "@/components/media/services";
 
-export interface BlogAction {
-  label: string;
-  icon: React.ReactNode;
-  onClick: (blog: Blog) => void;
-  isDestructive?: boolean;
-}
-
 export const useBlogColumns = (
   actions: DataTableRowAction<Blog>[] = [],
   onToggleActive?: (blog: Blog) => void
 ) => {
-  const navigate = useNavigate();
   const { hasPermission } = usePermission();
-  
+
   const baseColumns: ColumnDef<Blog>[] = [
     {
       id: "select",
@@ -58,18 +48,18 @@ export const useBlogColumns = (
       header: () => <div className="table-header-text">عنوان</div>,
       cell: ({ row }) => {
         const blog = row.original;
-        const imageUrl = blog.main_image?.file_url 
+        const imageUrl = blog.main_image?.file_url
           ? mediaService.getMediaUrlFromObject({ file_url: blog.main_image.file_url } as any)
           : "";
-          
+
         const getInitial = () => {
           if (!blog.title) return "؟";
           return blog.title.charAt(0).toUpperCase();
         };
 
         return (
-          <ProtectedLink 
-            to={`/blogs/${blog.id}/view`} 
+          <ProtectedLink
+            to={`/blogs/${blog.id}/view`}
             permission="blog.read"
             className="flex items-center gap-3"
           >
@@ -149,7 +139,7 @@ export const useBlogColumns = (
       cell: ({ row }) => {
         const blog = row.original;
         const categories = blog.categories || [];
-        
+
         if (categories.length === 0) {
           return (
             <div className="table-cell-secondary">
@@ -164,7 +154,7 @@ export const useBlogColumns = (
           }
           return category.name;
         };
-        
+
         return (
           <div className="flex flex-wrap gap-1">
             {categories.slice(0, 2).map((category) => (
@@ -203,7 +193,7 @@ export const useBlogColumns = (
         const blog = row.original;
         const isActive = blog.is_active;
         const canUpdate = hasPermission("blog.update");
-        
+
         if (onToggleActive) {
           return (
             <div onClick={(e) => e.stopPropagation()}>
@@ -215,7 +205,7 @@ export const useBlogColumns = (
             </div>
           );
         }
-        
+
         return (
           <div className="table-badge-container">
             {isActive ? (
@@ -234,23 +224,7 @@ export const useBlogColumns = (
     {
       id: "actions",
       cell: ({ row }) => {
-        const defaultActions: DataTableRowAction<Blog>[] = [
-          {
-            label: "ویرایش",
-            icon: <Edit className="h-4 w-4" />,
-            onClick: (blog) => navigate(`/blogs/${blog.id}/edit`),
-          },
-          {
-            label: "حذف",
-            icon: <Trash2 className="h-4 w-4" />,
-            onClick: (_blog) => {},
-            isDestructive: true,
-          },
-        ];
-        
-        const rowActions = actions.length > 0 ? actions : defaultActions;
-        
-        return <DataTableRowActions row={row} actions={rowActions} />;
+        return <DataTableRowActions row={row} actions={actions} />;
       },
       enableSorting: false,
       enableHiding: false,

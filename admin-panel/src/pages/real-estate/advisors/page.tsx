@@ -135,7 +135,7 @@ export default function AdvisorsListPage() {
                 setStatusFilter(value);
                 setCurrentPage(1);
               }}>
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className="w-37.5">
                   <SelectValue placeholder="وضعیت" />
                 </SelectTrigger>
                 <SelectContent>
@@ -148,7 +148,7 @@ export default function AdvisorsListPage() {
                 setVerifiedFilter(value);
                 setCurrentPage(1);
               }}>
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className="w-37.5">
                   <SelectValue placeholder="تایید شده" />
                 </SelectTrigger>
                 <SelectContent>

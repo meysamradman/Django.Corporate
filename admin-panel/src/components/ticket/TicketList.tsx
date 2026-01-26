@@ -1,4 +1,4 @@
-import { TicketItem } from "./TicketItem";
+import { TicketItem } from "./TicketItem.tsx";
 import { Skeleton } from "@/components/elements/Skeleton";
 import type { Ticket } from "@/types/ticket/ticket";
 

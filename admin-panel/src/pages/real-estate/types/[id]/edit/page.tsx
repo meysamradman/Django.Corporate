@@ -4,11 +4,11 @@ import { FolderTree, Image as ImageIcon, Settings } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
-import { useTaxonomyForm } from "@/components/real-estate/hooks/useTaxonomyForm";
-import { TaxonomyFormLayout } from "@/components/real-estate/layouts/TaxonomyFormLayout";
+import { useRealEstateTaxonomyForm } from "@/components/real-estate/hooks/useRealEstateTaxonomyForm.ts";
+import { TaxonomyFormLayout } from "@/components/real-estate/layouts/TaxonomyFormLayout.tsx";
 import { propertyTypeFormSchema, propertyTypeFormDefaults } from '@/components/real-estate/validations/typeSchema';
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
+import { FormField, FormFieldInput, FormFieldTextarea } from "@/components/shared/FormField";
 import { TreeSelect } from "@/components/elements/TreeSelect";
 import { formatSlug } from '@/core/slug/generate';
 import { mediaService } from "@/components/media/services";
@@ -34,7 +34,7 @@ export default function EditPropertyTypePage() {
     isLoading,
     isPending,
     item: _unused,
-  } = useTaxonomyForm({
+  } = useRealEstateTaxonomyForm({
     id,
     isEditMode: true,
     schema: propertyTypeFormSchema,

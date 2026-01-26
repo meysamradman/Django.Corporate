@@ -130,97 +130,141 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             status_code=status.HTTP_200_OK
         )
     
-    def _extract_media_ids(self, request):
-        media_ids = []
+    def _merge_media_data(self, data, media_ids=None, media_files=None):
+        """Unified helper to merge media IDs and files into request data"""
+        if media_ids is not None:
+            if hasattr(data, 'setlist'):
+                data.setlist('media_ids', media_ids)
+            else:
+                data['media_ids'] = media_ids
         
-        media_ids_value = request.data.get('media_ids')
-        
-        if not media_ids_value:
-            media_ids_value = request.POST.get('media_ids')
-        
-        if not media_ids_value:
+        if media_files:
+            if hasattr(data, 'setlist'):
+                data.setlist('media_files', media_files)
+            else:
+                data['media_files'] = media_files
+        return data
+
+    def _extract_list(self, data, field_name, convert_to_int=False):
+        """Robust helper to extract list/array from data (JSON, CSV, or list)"""
+        import json
+        value = data.get(field_name)
+        if not value:
             return []
         
-        if isinstance(media_ids_value, list):
-            media_ids = [
-                int(id) for id in media_ids_value 
-                if isinstance(id, (int, str)) and str(id).isdigit()
-            ]
-        elif isinstance(media_ids_value, int):
-            media_ids = [media_ids_value]
-        elif isinstance(media_ids_value, str):
-            if media_ids_value.strip().startswith('['):
+        result = []
+        if isinstance(value, list):
+            result = [v for v in value if v]
+        elif isinstance(value, str):
+            value = value.strip()
+            if value.startswith('['):
                 try:
-                    import json
-                    parsed = json.loads(media_ids_value)
+                    parsed = json.loads(value)
                     if isinstance(parsed, list):
-                        media_ids = [int(id) for id in parsed if isinstance(id, (int, str)) and str(id).isdigit()]
-                except json.JSONDecodeError:
+                        result = parsed
+                except (json.JSONDecodeError, ValueError):
                     pass
             
-            if not media_ids:
-                media_ids = [
-                    int(id.strip()) for id in media_ids_value.split(',') 
-                    if id.strip().isdigit()
-                ]
+            if not result:
+                # Fallback to comma separation
+                result = [v.strip() for v in value.split(',') if v.strip()]
+        else:
+            result = [value]
         
-        return media_ids
-    
+        # Convert to integers if needed (for ID fields)
+        if convert_to_int:
+            converted = []
+            for v in result:
+                try:
+                    converted.append(int(v))
+                except (ValueError, TypeError):
+                    pass
+            return converted
+        
+        return result
+
+    def _extract_media_ids(self, request):
+        return self._extract_list(request.data, 'media_ids')
+
     def create(self, request, *args, **kwargs):
+        # Extract M2M IDs manually because multipart-form data doesn't auto-parse nested lists well
         media_ids = self._extract_media_ids(request)
         media_files = request.FILES.getlist('media_files')
         
-        upload_max = getattr(settings, 'REAL_ESTATE_MEDIA_UPLOAD_MAX', 10)
-        total_media = len(media_ids) + len(media_files)
-        if total_media > upload_max:
-            raise DRFValidationError({
-                'non_field_errors': [
-                    PROPERTY_ERRORS["media_upload_limit_exceeded"].format(max_items=upload_max, total_items=total_media)
-                ]
-            })
+        data = request.data.copy()
         
-        serializer = self.get_serializer(data=request.data)
+        # Parse M2M and JSON fields from frontend
+        for field in ['labels', 'tags', 'features', 'extra_attributes']:
+            if field in data:
+                if field == 'extra_attributes':
+                    extracted = data.get(field)
+                    if isinstance(extracted, str):
+                        try:
+                            import json
+                            extracted = json.loads(extracted)
+                        except (ValueError, json.JSONDecodeError): pass
+                else:
+                    extracted = self._extract_list(data, field, convert_to_int=True)
+                
+                if hasattr(data, 'setlist') and isinstance(extracted, list):
+                    data.setlist(field, extracted)
+                else:
+                    data[field] = extracted
         
-        if not serializer.is_valid():
-            return APIResponse.error(
-                message=PROPERTY_ERRORS["property_validation_failed"],
-                errors=serializer.errors,
-                status_code=status.HTTP_400_BAD_REQUEST
-            )
+        data = self._merge_media_data(data, media_ids, media_files)
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
         
-        validated_data = serializer.validated_data.copy()
-        
-        property_obj = PropertyAdminService.create_property(
-            validated_data=validated_data,
-            created_by=request.user
-        )
-        
-        if media_files or media_ids:
-            PropertyAdminMediaService.add_media_bulk(
-                property_id=property_obj.id,
-                media_files=media_files,
-                media_ids=media_ids,
+        try:
+            property_obj = PropertyAdminService.create_property(
+                validated_data=serializer.validated_data,
                 created_by=request.user
             )
-            property_obj.refresh_from_db()
-            PropertyCacheManager.invalidate_property(property_obj.id)
-        
-        property_obj = Property.objects.for_detail().get(id=property_obj.id)
-        detail_serializer = PropertyAdminDetailSerializer(property_obj)
-        
-        return APIResponse.success(
-            message=PROPERTY_SUCCESS["property_created"],
-            data=detail_serializer.data,
-            status_code=status.HTTP_201_CREATED
-        )
-    
+            
+            # Fetch for complete representation
+            instance = PropertyAdminService.get_property_detail(property_obj.id)
+            detail_serializer = PropertyAdminDetailSerializer(instance, context={'request': request})
+            
+            return APIResponse.success(
+                message=PROPERTY_SUCCESS["property_created"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_201_CREATED
+            )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=str(e.message if hasattr(e, 'message') else e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         
+        # Bridge attributes from request to serializer manually for multipart support
         media_ids = self._extract_media_ids(request)
+        media_files = request.FILES.getlist('media_files')
         main_image_id = request.data.get('main_image_id')
         media_covers_raw = request.data.get('media_covers')
+        
+        data = request.data.copy()
+        
+        # Parse M2M and JSON fields from frontend
+        for field in ['labels', 'tags', 'features', 'extra_attributes']:
+            if field in data:
+                if field == 'extra_attributes':
+                    extracted = data.get(field)
+                    if isinstance(extracted, str):
+                        try:
+                            import json
+                            extracted = json.loads(extracted)
+                        except (ValueError, json.JSONDecodeError): pass
+                else:
+                    extracted = self._extract_list(data, field, convert_to_int=True)
+                
+                if hasattr(data, 'setlist') and isinstance(extracted, list):
+                    data.setlist(field, extracted)
+                else:
+                    data[field] = extracted
         
         media_covers = None
         if media_covers_raw:
@@ -230,54 +274,41 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 try:
                     import json
                     media_covers = json.loads(media_covers_raw)
-                except:
+                except Exception:
                     media_covers = None
         
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        data = self._merge_media_data(data, media_ids, media_files)
+        if media_covers: data['media_covers'] = media_covers
+        if main_image_id: data['main_image_id'] = main_image_id
+            
+        serializer = self.get_serializer(instance, data=data, partial=partial)
         serializer.is_valid(raise_exception=True)
         
-        validated_data = serializer.validated_data.copy()
-        labels_ids = validated_data.pop('labels_ids', None)
-        tags_ids = validated_data.pop('tags_ids', None)
-        features_ids = validated_data.pop('features_ids', None)
-        media_ids_from_serializer = validated_data.pop('media_ids', None)
-        main_image_id_from_serializer = validated_data.pop('main_image_id', None)
-        media_covers_from_serializer = validated_data.pop('media_covers', None)
-        
-        if media_ids_from_serializer is not None:
-            media_ids = media_ids_from_serializer
-        if main_image_id_from_serializer is not None:
-            main_image_id = main_image_id_from_serializer
-        if media_covers_from_serializer is not None:
-            media_covers = media_covers_from_serializer
-        
-        updated_instance = PropertyAdminService.update_property(
-            property_id=instance.id,
-            validated_data=validated_data,
-            labels_ids=labels_ids,
-            tags_ids=tags_ids,
-            features_ids=features_ids,
-            updated_by=request.user
-        )
-        
-        if media_ids is not None or main_image_id is not None or media_covers:
-            PropertyAdminMediaService.sync_media(
+        try:
+            updated_instance = PropertyAdminService.update_property(
                 property_id=instance.id,
-                media_ids=media_ids if media_ids is not None else None,
-                main_image_id=main_image_id,
-                media_covers=media_covers
+                validated_data=serializer.validated_data,
+                media_ids=serializer.validated_data.get('media_ids'),
+                media_files=serializer.validated_data.get('media_files'),
+                main_image_id=serializer.validated_data.get('main_image_id'),
+                media_covers=serializer.validated_data.get('media_covers'),
+                updated_by=request.user
             )
-            updated_instance.refresh_from_db()
-            PropertyCacheManager.invalidate_property(instance.id)
-        
-        updated_instance = Property.objects.for_detail().get(pk=updated_instance.pk)
-        detail_serializer = PropertyAdminDetailSerializer(updated_instance)
-        
-        return APIResponse.success(
-            message=PROPERTY_SUCCESS["property_updated"],
-            data=detail_serializer.data,
-            status_code=status.HTTP_200_OK
-        )
+            
+            # Refresh and return
+            fresh_instance = PropertyAdminService.get_property_detail(updated_instance.id)
+            detail_serializer = PropertyAdminDetailSerializer(fresh_instance, context={'request': request})
+            
+            return APIResponse.success(
+                message=PROPERTY_SUCCESS["property_updated"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_200_OK
+            )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=str(e.message if hasattr(e, 'message') else e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
     
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -431,8 +462,14 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         
         try:
             PropertyAdminService.set_main_image(pk, media_id)
+            
+            # Return refreshed object - Standardized behavior
+            fresh_instance = PropertyAdminService.get_property_detail(pk)
+            serializer = PropertyAdminDetailSerializer(fresh_instance, context={'request': request})
+            
             return APIResponse.success(
                 message=PROPERTY_SUCCESS["property_main_image_set"],
+                data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
         except Property.DoesNotExist:
@@ -446,6 +483,53 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
+    @action(detail=True, methods=['post'])
+    def add_media(self, request, pk=None):
+        from src.real_estate.services.admin.property_media_services import PropertyAdminMediaService
+        from src.real_estate.serializers.admin.media_serializer import PropertyMediaSerializer
+        from django.conf import settings
+        
+        media_files = request.FILES.getlist('media_files')
+        serializer = PropertyMediaSerializer(data=request.data.copy())
+        serializer.is_valid(raise_exception=True)
+        
+        media_ids = serializer.validated_data.get('media_ids', [])
+        if not media_ids and not media_files:
+            raise DRFValidationError({
+                'non_field_errors': ['At least one of media_ids or media_files must be provided.']
+            })
+        
+        upload_max = settings.PROPERTY_MEDIA_UPLOAD_MAX if hasattr(settings, 'PROPERTY_MEDIA_UPLOAD_MAX') else 20
+        total_media = len(media_ids) + len(media_files)
+        if total_media > upload_max:
+            raise DRFValidationError({
+                'non_field_errors': [
+                    PROPERTY_ERRORS["media_upload_limit_exceeded"].format(max_items=upload_max, total_items=total_media)
+                ]
+            })
+        
+        result = PropertyAdminMediaService.add_media_bulk(
+            property_id=pk,
+            media_files=media_files,
+            media_ids=media_ids,
+            created_by=request.user
+        )
+        return APIResponse.success(
+            message=PROPERTY_SUCCESS["property_media_added"],
+            data=result,
+            status_code=status.HTTP_200_OK
+        )
+    
+    @action(detail=False, methods=['get'])
+    def seo_report(self, request):
+        report = PropertyAdminService.get_seo_report()
+        
+        return APIResponse.success(
+            message=PROPERTY_SUCCESS["property_seo_report_retrieved"],
+            data=report,
+            status_code=status.HTTP_200_OK
+        )
+
     @action(detail=False, methods=['get'])
     def statistics(self, request):
         stats = PropertyAdminService.get_property_statistics()
@@ -521,7 +605,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
     
-    @action(detail=True, methods=['post'], url_path='add-media')
+    @action(detail=True, methods=['post'])
     def add_media(self, request, pk=None):
         media_files = request.FILES.getlist('media_files')
         serializer = PropertyMediaSerializer(data=request.data.copy())
@@ -549,9 +633,14 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 media_ids=media_ids,
                 created_by=request.user
             )
+            
+            # Return full refreshed object to the frontend
+            property_obj = PropertyAdminService.get_property_detail(pk)
+            serializer = PropertyAdminDetailSerializer(property_obj)
+            
             return APIResponse.success(
                 message=PROPERTY_SUCCESS["property_media_added"],
-                data=result,
+                data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
         except Property.DoesNotExist:

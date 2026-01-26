@@ -27,7 +27,7 @@ export default function NotFound() {
                         <div className="text-center space-y-6">
                             {/* Animated 404 Number */}
                             <div className="relative">
-                                <div className="text-[120px] md:text-[180px] font-bold leading-none bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent animate-pulse">
+                                <div className="text-[120px] md:text-[180px] font-bold leading-none bg-linear-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent animate-pulse">
                                     404
                                 </div>
                                 <div className="absolute inset-0 text-[120px] md:text-[180px] font-bold leading-none text-primary/10 blur-2xl">

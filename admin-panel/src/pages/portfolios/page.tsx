@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { usePortfolioColumns } from "@/components/portfolios/list/PortfolioTableColumns";
 import { usePortfolioFilterOptions, getPortfolioFilterConfig } from "@/components/portfolios/list/PortfolioTableFilters";
 import type { PortfolioFilters } from "@/types/portfolio/portfolioListParams";
-import { Edit, Trash2, Plus } from "lucide-react";
+import { Eye, Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
 import { showError, showSuccess, showWarning } from '@/core/toast';
@@ -268,6 +268,12 @@ export default function PortfolioPage() {
   };
 
   const rowActions: DataTableRowAction<Portfolio>[] = [
+    {
+      label: "مشاهده",
+      icon: <Eye className="h-4 w-4" />,
+      onClick: (portfolio) => navigate(`/portfolios/${portfolio.id}/view`),
+      permission: "portfolio.read",
+    },
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,

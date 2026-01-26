@@ -6,13 +6,13 @@ import { FileText, Image, Search, Edit2, FileDown, Settings } from "lucide-react
 import { showError, showSuccess } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate";
-import { RealtorCard } from "@/components/real-estate/list/view/RealtorCard";
-import { PropertyImageGallery } from "@/components/real-estate/list/view/PropertyImageGallery";
-import { PropertyBasicInfo } from "@/components/real-estate/list/view/PropertyBasicInfo";
-import { OverviewTab } from "@/components/real-estate/list/view/OverviewTab";
-import { MediaInfoTab } from "@/components/real-estate/list/view/MediaInfoTab";
-import { SEOInfoTab } from "@/components/real-estate/list/view/SEOInfoTab";
-import { ExtraAttributesInfoTab } from "@/components/real-estate/list/view/ExtraAttributesInfoTab";
+import { RealEstateRealtorCard } from "@/components/real-estate/list/view/RealEstateRealtorCard.tsx";
+import { RealEstateCarousel } from "@/components/real-estate/list/view/RealEstateCarousel.tsx";
+import { RealEstateInfo } from "@/components/real-estate/list/view/RealEstateInfo.tsx";
+import { RealEstateOverview } from "@/components/real-estate/list/view/RealEstateOverview.tsx";
+import { RealEstateMedia } from "@/components/real-estate/list/view/RealEstateMedia.tsx";
+import { RealEstateSEO } from "@/components/real-estate/list/view/RealEstateSEO.tsx";
+import { RealEstateAttributes } from "@/components/real-estate/list/view/RealEstateAttributes.tsx";
 import { FloatingActions } from "@/components/elements/FloatingActions";
 
 export default function PropertyViewPage() {
@@ -40,10 +40,10 @@ export default function PropertyViewPage() {
     return (
       <div className="space-y-6">
         {/* Top Section Skeleton: Carousel + Basic Info */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-125">
           {/* Main Gallery Skeleton */}
           <div className="lg:col-span-7 xl:col-span-8 h-full bg-card rounded-xl border border-br p-6">
-            <Skeleton className="h-[500px] w-full rounded-xl" />
+            <Skeleton className="h-125 w-full rounded-xl" />
             <div className="flex gap-3 mt-4 overflow-hidden">
               {[1, 2, 3, 4].map(i => (
                 <Skeleton key={i} className="h-24 w-36 rounded-lg shrink-0" />
@@ -154,28 +154,21 @@ export default function PropertyViewPage() {
         position="left"
       />
 
-      {/* Top Section: Carousel + Basic Info */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">
-        {/* Right Side: Carousel (Gallery) - Takes more space */}
-        <div className="lg:col-span-7 xl:col-span-8 h-full">
-          <PropertyImageGallery property={propertyData} className="h-full" />
-        </div>
 
-        {/* Left Side: Basic Info Sidebar - Takes less space */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-125">
+        <div className="lg:col-span-7 xl:col-span-8 h-full">
+          <RealEstateCarousel property={propertyData} className="h-full" />
+        </div>
         <div className="lg:col-span-5 xl:col-span-4 h-full">
           <div className="sticky top-4 self-start">
-            <PropertyBasicInfo property={propertyData} />
+            <RealEstateInfo property={propertyData} />
           </div>
         </div>
       </div>
 
-      {/* Bottom Section: Existing Sidebar + Tabs - Preserved as requested */}
       <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
         <div className="lg:col-span-2">
-          {/* User specifically asked not to touch "tab and its sidebar", defaulting to keeping it. 
-              The top sidebar has initial info, this might have more details. */}
-          {/* Realtor Card - Displays Agent or Admin info */}
-          <RealtorCard property={propertyData} />
+          <RealEstateRealtorCard property={propertyData} />
         </div>
 
         <div className="lg:col-span-4">
@@ -199,10 +192,10 @@ export default function PropertyViewPage() {
               </TabsTrigger>
             </TabsList>
 
-            <OverviewTab property={propertyData} />
-            <MediaInfoTab property={propertyData} />
-            <SEOInfoTab property={propertyData} />
-            <ExtraAttributesInfoTab property={propertyData} />
+            <RealEstateOverview property={propertyData} />
+            <RealEstateMedia property={propertyData} />
+            <RealEstateSEO property={propertyData} />
+            <RealEstateAttributes property={propertyData} />
           </Tabs>
         </div>
       </div>

@@ -1,6 +1,6 @@
-import { AboutPageForm } from "@/components/page/AboutPageForm";
+import { PageAboutForm } from "@/components/page/PageAboutForm.tsx";
 
 export default function AboutPageSettings() {
-    return <AboutPageForm />;
+    return <PageAboutForm />;
 }
 

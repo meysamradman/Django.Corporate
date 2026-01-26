@@ -1,7 +1,6 @@
+import React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { BlogTag } from "@/types/blog/tags/blogTag";
-import { Edit, Trash2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/elements/Badge";
 import { formatDate } from "@/core/utils/format";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
@@ -9,16 +8,8 @@ import type { DataTableRowAction } from "@/types/shared/table";
 import { ProtectedLink } from "@/core/permissions";
 import { Checkbox } from "@/components/elements/Checkbox";
 
-export interface TagAction {
-  label: string;
-  icon: React.ReactNode;
-  onClick: (tag: BlogTag) => void;
-  isDestructive?: boolean;
-}
-
 export const useTagColumns = (actions: DataTableRowAction<BlogTag>[] = []) => {
-  const navigate = useNavigate();
-  
+
   const baseColumns: ColumnDef<BlogTag>[] = [
     {
       id: "select",
@@ -50,8 +41,8 @@ export const useTagColumns = (actions: DataTableRowAction<BlogTag>[] = []) => {
       accessorKey: "name",
       header: () => <div className="table-header-text">نام</div>,
       cell: ({ row }) => (
-        <ProtectedLink 
-          to={`/blogs/tags/${row.original.id}/edit`} 
+        <ProtectedLink
+          to={`/blogs/tags/${row.original.id}/edit`}
           permission="blog_tags.update"
           className="table-cell-primary table-cell-wide"
         >
@@ -121,21 +112,7 @@ export const useTagColumns = (actions: DataTableRowAction<BlogTag>[] = []) => {
     {
       id: "actions",
       cell: ({ row }) => {
-        const defaultActions: DataTableRowAction<BlogTag>[] = [
-          {
-            label: "ویرایش",
-            icon: <Edit className="h-4 w-4" />,
-            onClick: (tag) => navigate(`/blogs/tags/${tag.id}/edit`),
-          },
-          {
-            label: "حذف",
-            icon: <Trash2 className="h-4 w-4" />,
-            onClick: (_tag) => {},
-            isDestructive: true,
-          },
-        ];
-        const rowActions = actions.length > 0 ? actions : defaultActions;
-        return <DataTableRowActions row={row} actions={rowActions} />;
+        return <DataTableRowActions row={row} actions={actions} />;
       },
       enableSorting: false,
       enableHiding: false,

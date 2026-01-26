@@ -96,11 +96,13 @@ export const realEstateApi = {
   },
 
   createProperty: async (data: Partial<PropertyUpdateData>): Promise<Property> => {
+    console.log("🚀 [Frontend] Sending createProperty (JSON):", data);
     const response = await api.post<Property>('/admin/property/', data);
     return response.data;
   },
 
   createPropertyWithMedia: async (data: Partial<PropertyUpdateData> & { media_ids?: number[] }, mediaFiles: File[]): Promise<Property> => {
+    console.log("🚀 [Frontend] Sending createPropertyDataWithMedia:", { data, mediaFilesCount: mediaFiles.length });
     const formData = new FormData();
 
     Object.entries(data).forEach(([key, value]) => {
@@ -123,12 +125,50 @@ export const realEstateApi = {
       formData.append('media_ids', data.media_ids.join(','));
     }
 
+    console.log("🛠️ [Frontend] FINAL FormData content for CREATE:");
+    formData.forEach((value, key) => {
+      console.log(`  👉 ${key}:`, value);
+    });
+
     const response = await api.post<Property>('/admin/property/', formData);
     return response.data;
   },
 
   updateProperty: async (id: number, data: Partial<PropertyUpdateData>): Promise<Property> => {
-    const response = await api.put<Property>('/admin/property/' + id + '/', data);
+    const response = await api.patch<Property>('/admin/property/' + id + '/', data);
+    return response.data;
+  },
+
+  updatePropertyWithMedia: async (id: number, data: Partial<PropertyUpdateData> & { media_ids?: number[] }, mediaFiles: File[]): Promise<Property> => {
+    console.log(`🚀 [Frontend] Sending updatePropertyWithMedia for ID ${id}:`, { data, mediaFilesCount: mediaFiles.length });
+    const formData = new FormData();
+
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && key !== 'media_ids' && key !== 'media_files') {
+        if (Array.isArray(value)) {
+          formData.append(key, JSON.stringify(value));
+        } else if (typeof value === 'object') {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, String(value));
+        }
+      }
+    });
+
+    mediaFiles.forEach((file) => {
+      formData.append('media_files', file);
+    });
+
+    if (data.media_ids && Array.isArray(data.media_ids) && data.media_ids.length > 0) {
+      formData.append('media_ids', data.media_ids.join(','));
+    }
+
+    console.log(`🛠️ [Frontend] FINAL FormData content for UPDATE (ID ${id}):`);
+    formData.forEach((value, key) => {
+      console.log(`  👉 ${key}:`, value);
+    });
+
+    const response = await api.put<Property>('/admin/property/' + id + '/', formData);
     return response.data;
   },
 
@@ -147,7 +187,7 @@ export const realEstateApi = {
       formData.append('media_ids', mediaIds.join(','));
     }
 
-    const response = await api.post<Property>('/admin/property/' + propertyId + '/add-media/', formData);
+    const response = await api.post<Property>('/admin/property/' + propertyId + '/add_media/', formData);
     return response.data;
   },
 

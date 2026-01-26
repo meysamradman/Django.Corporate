@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/elements/Button';
-import { FormFieldInput } from '@/components/forms/FormField';
+import { FormFieldInput } from '@/components/shared/FormField';
 import { CaptchaField } from './CaptchaField';
 import { z } from 'zod';
 import { filterNumericOnly } from '@/core/filters/numeric';

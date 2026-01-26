@@ -21,7 +21,7 @@ import {
   StatisticsPermissionsCard,
   AIPermissionsCard,
   ManagementPermissionsCard,
-  RoleBasicInfoForm,
+  RoleInfoForm,
 } from "@/components/roles/form";
 import { getResourceIcon } from "@/components/roles/form/utils";
 
@@ -820,7 +820,7 @@ export default function EditRolePage() {
             )}
         </CardWithIcon>
 
-        <RoleBasicInfoForm
+        <RoleInfoForm
           form={form}
           onSubmit={onSubmit}
           isSubmitting={updateRoleMutation.isPending}

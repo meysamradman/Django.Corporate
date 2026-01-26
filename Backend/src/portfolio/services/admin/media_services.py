@@ -10,6 +10,46 @@ from src.media.services.media_services import MediaAdminService
 
 
 class PortfolioAdminMediaService:
+    @staticmethod
+    def get_main_image_for_model(portfolio_obj):
+        """Standardized main image retrieval with fallback logic"""
+        # 1. Try to get explicit main image
+        main_image_obj = PortfolioImage.objects.filter(
+            portfolio=portfolio_obj,
+            is_main=True
+        ).select_related('image').first()
+        
+        if main_image_obj and main_image_obj.image:
+            return main_image_obj.image
+
+        # 2. Fallback to any images
+        first_image = PortfolioImage.objects.filter(
+            portfolio=portfolio_obj
+        ).select_related('image').order_by('order', 'created_at').first()
+        if first_image and first_image.image:
+            return first_image.image
+
+        # 3. Fallback to video cover
+        first_video = PortfolioVideo.objects.filter(
+            portfolio=portfolio_obj
+        ).select_related('video__cover_image').order_by('order', 'created_at').first()
+        if first_video and first_video.video and first_video.video.cover_image:
+            return first_video.video.cover_image
+
+        # 4. Fallback to other media types covers
+        audio = PortfolioAudio.objects.filter(
+            portfolio=portfolio_obj
+        ).select_related('audio__cover_image').first()
+        if audio and audio.audio and audio.audio.cover_image:
+            return audio.audio.cover_image
+            
+        doc = PortfolioDocument.objects.filter(
+            portfolio=portfolio_obj
+        ).select_related('document__cover_image').first()
+        if doc and doc.document and doc.document.cover_image:
+            return doc.document.cover_image
+
+        return None
 
     @staticmethod
     def get_next_media_order(portfolio_id):
@@ -299,9 +339,12 @@ class PortfolioAdminMediaService:
                     if not portfolio.og_image:
                         portfolio.og_image = first_image.image
                         portfolio.save(update_fields=['og_image'])
+                
+                PortfolioCacheManager.invalidate_portfolio(portfolio_id)
         
         return {
             'created_count': created_count,
+            'uploaded_media_ids': [m.id for m in uploaded_medias] if 'uploaded_medias' in locals() else [],
             'failed_ids': failed_ids,
             'failed_files': failed_files
         }
@@ -313,80 +356,85 @@ class PortfolioAdminMediaService:
         except Portfolio.DoesNotExist:
             raise Portfolio.DoesNotExist("Portfolio not found")
         
-        if media_ids is None:
-            return {
-                'removed_count': 0,
-                'added_count': 0,
-                'total_count': 0
-            }
+        # Prepare IDs lists
+        media_to_remove = set()
+        media_to_add = set()
+        media_ids_count = 0
         
-        media_ids = media_ids if isinstance(media_ids, (list, tuple)) else []
-        media_ids_set = set(media_ids)
-        
-        current_image_ids = set(
-            PortfolioImage.objects.filter(portfolio_id=portfolio_id).values_list('image_id', flat=True)
-        )
-        current_video_ids = set(
-            PortfolioVideo.objects.filter(portfolio_id=portfolio_id).values_list('video_id', flat=True)
-        )
-        current_audio_ids = set(
-            PortfolioAudio.objects.filter(portfolio_id=portfolio_id).values_list('audio_id', flat=True)
-        )
-        current_document_ids = set(
-            PortfolioDocument.objects.filter(portfolio_id=portfolio_id).values_list('document_id', flat=True)
-        )
-        
-        all_current_ids = current_image_ids | current_video_ids | current_audio_ids | current_document_ids
-        
-        media_to_remove = all_current_ids - media_ids_set
-        
-        media_to_add = media_ids_set - all_current_ids
+        if media_ids is not None:
+            media_ids = media_ids if isinstance(media_ids, (list, tuple)) else []
+            media_ids_set = set(media_ids)
+            media_ids_count = len(media_ids_set)
+            
+            current_image_ids = set(
+                PortfolioImage.objects.filter(portfolio_id=portfolio_id).values_list('image_id', flat=True)
+            )
+            current_video_ids = set(
+                PortfolioVideo.objects.filter(portfolio_id=portfolio_id).values_list('video_id', flat=True)
+            )
+            current_audio_ids = set(
+                PortfolioAudio.objects.filter(portfolio_id=portfolio_id).values_list('audio_id', flat=True)
+            )
+            current_document_ids = set(
+                PortfolioDocument.objects.filter(portfolio_id=portfolio_id).values_list('document_id', flat=True)
+            )
+            
+            all_current_ids = current_image_ids | current_video_ids | current_audio_ids | current_document_ids
+            
+            media_to_remove = all_current_ids - media_ids_set
+            media_to_add = media_ids_set - all_current_ids
+            
+            # If everything is removed
+            if not media_ids_set:
+                media_to_remove = all_current_ids
+                media_to_add = set()
         
         with transaction.atomic():
-            current_main_image_id = None
-            if current_image_ids:
-                main_image_obj = PortfolioImage.objects.filter(
-                    portfolio_id=portfolio_id,
-                    is_main=True
-                ).first()
-                if main_image_obj:
-                    current_main_image_id = main_image_obj.image_id
-            
-            if media_to_remove:
-                image_ids_to_remove = media_to_remove & current_image_ids
-                if image_ids_to_remove:
-                    if current_main_image_id and current_main_image_id in image_ids_to_remove:
+            if media_ids is not None:
+                current_main_image_id = None
+                if current_image_ids:
+                    main_image_obj = PortfolioImage.objects.filter(
+                        portfolio_id=portfolio_id,
+                        is_main=True
+                    ).first()
+                    if main_image_obj:
+                        current_main_image_id = main_image_obj.image_id
+                
+                if media_to_remove:
+                    image_ids_to_remove = media_to_remove & current_image_ids
+                    if image_ids_to_remove:
+                        if current_main_image_id and current_main_image_id in image_ids_to_remove:
+                            PortfolioImage.objects.filter(
+                                portfolio_id=portfolio_id,
+                                is_main=True
+                            ).update(is_main=False)
+                            current_main_image_id = None
+                        
                         PortfolioImage.objects.filter(
                             portfolio_id=portfolio_id,
-                            is_main=True
-                        ).update(is_main=False)
-                        current_main_image_id = None
+                            image_id__in=image_ids_to_remove
+                        ).delete()
                     
-                    PortfolioImage.objects.filter(
-                        portfolio_id=portfolio_id,
-                        image_id__in=image_ids_to_remove
-                    ).delete()
-                
-                video_ids_to_remove = media_to_remove & current_video_ids
-                if video_ids_to_remove:
-                    PortfolioVideo.objects.filter(
-                        portfolio_id=portfolio_id,
-                        video_id__in=video_ids_to_remove
-                    ).delete()
-                
-                audio_ids_to_remove = media_to_remove & current_audio_ids
-                if audio_ids_to_remove:
-                    PortfolioAudio.objects.filter(
-                        portfolio_id=portfolio_id,
-                        audio_id__in=audio_ids_to_remove
-                    ).delete()
-                
-                document_ids_to_remove = media_to_remove & current_document_ids
-                if document_ids_to_remove:
-                    PortfolioDocument.objects.filter(
-                        portfolio_id=portfolio_id,
-                        document_id__in=document_ids_to_remove
-                    ).delete()
+                    video_ids_to_remove = media_to_remove & current_video_ids
+                    if video_ids_to_remove:
+                        PortfolioVideo.objects.filter(
+                            portfolio_id=portfolio_id,
+                            video_id__in=video_ids_to_remove
+                        ).delete()
+                    
+                    audio_ids_to_remove = media_to_remove & current_audio_ids
+                    if audio_ids_to_remove:
+                        PortfolioAudio.objects.filter(
+                            portfolio_id=portfolio_id,
+                            audio_id__in=audio_ids_to_remove
+                        ).delete()
+                    
+                    document_ids_to_remove = media_to_remove & current_document_ids
+                    if document_ids_to_remove:
+                        PortfolioDocument.objects.filter(
+                            portfolio_id=portfolio_id,
+                            document_id__in=document_ids_to_remove
+                        ).delete()
                 
             
             if main_image_id is not None:
@@ -450,8 +498,51 @@ class PortfolioAdminMediaService:
         return {
             'removed_count': len(media_to_remove),
             'added_count': len(media_to_add),
-            'total_count': len(media_ids_set)
+            'total_count': media_ids_count
         }
+
+    @staticmethod
+    def set_main_image(portfolio_id, media_id):
+        """Standardized set main image logic"""
+        try:
+            portfolio = Portfolio.objects.get(id=portfolio_id)
+        except Portfolio.DoesNotExist:
+            raise Portfolio.DoesNotExist("Portfolio not found")
+
+        with transaction.atomic():
+            # Unset current main
+            PortfolioImage.objects.filter(portfolio_id=portfolio_id, is_main=True).update(is_main=False)
+            
+            # Try to find the image in the portfolio's images
+            portfolio_image = PortfolioImage.objects.filter(portfolio_id=portfolio_id, image_id=media_id).first()
+            
+            if portfolio_image:
+                portfolio_image.is_main = True
+                portfolio_image.save(update_fields=['is_main'])
+                
+                # Update OG image if empty
+                if not portfolio.og_image:
+                    portfolio.og_image = portfolio_image.image
+                    portfolio.save(update_fields=['og_image'])
+            else:
+                # If not found directly, newly add it
+                from src.media.models.media import ImageMedia
+                try:
+                    media_image = ImageMedia.objects.get(id=media_id)
+                    PortfolioImage.objects.create(
+                        portfolio=portfolio,
+                        image=media_image,
+                        is_main=True,
+                        order=0
+                    )
+                    if not portfolio.og_image:
+                        portfolio.og_image = media_image
+                        portfolio.save(update_fields=['og_image'])
+                except ImageMedia.DoesNotExist:
+                    raise ValidationError("Media image not found")
+
+            PortfolioCacheManager.invalidate_portfolio(portfolio_id)
+            return True
     
     @staticmethod
     def _update_portfolio_media_covers(portfolio_id, media_covers, all_current_ids, 

@@ -45,8 +45,8 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
     if (!permissionMapRaw) return null;
     return {
       ...permissionMapRaw,
-      user_permissions: Array.isArray(permissionMapRaw.user_permissions) 
-        ? permissionMapRaw.user_permissions 
+      user_permissions: Array.isArray(permissionMapRaw.user_permissions)
+        ? permissionMapRaw.user_permissions
         : [],
     };
   }, [permissionMapRaw]);
@@ -74,11 +74,11 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
     (permissionId: string): boolean => {
       if (!permissionMap) return false;
       if (permissionMap.is_superadmin) return true;
-      
+
       if (permissionSet.has(permissionId)) return true;
 
       const [resource, action] = permissionId.split('.');
-      
+
       if (resource) {
         if (permissionSet.has(`${resource}.*`)) return true;
 
@@ -88,7 +88,7 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       if (resource && action) {
         const synonyms = ACTION_SYNONYMS[action.toLowerCase()];
         if (synonyms) {
-            return synonyms.some(syn => permissionSet.has(`${resource}.${syn}`));
+          return synonyms.some(syn => permissionSet.has(`${resource}.${syn}`));
         }
       }
 
@@ -128,11 +128,11 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       if (permissionMap.is_superadmin) return true;
 
       if (context === 'media_library') {
-        return hasPermission(PERMISSIONS.MEDIA.UPLOAD) || 
-               hasPermission(PERMISSIONS.MEDIA_IMAGE.UPLOAD) ||
-               hasPermission(PERMISSIONS.MEDIA_VIDEO.UPLOAD) ||
-               hasPermission(PERMISSIONS.MEDIA_AUDIO.UPLOAD) ||
-               hasPermission(PERMISSIONS.MEDIA_DOCUMENT.UPLOAD);
+        return hasPermission(PERMISSIONS.MEDIA.UPLOAD) ||
+          hasPermission(PERMISSIONS.MEDIA_IMAGE.UPLOAD) ||
+          hasPermission(PERMISSIONS.MEDIA_VIDEO.UPLOAD) ||
+          hasPermission(PERMISSIONS.MEDIA_AUDIO.UPLOAD) ||
+          hasPermission(PERMISSIONS.MEDIA_DOCUMENT.UPLOAD);
       }
 
       if (context === 'portfolio') {
@@ -142,7 +142,7 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       if (context === 'blog') {
         return hasAnyPermission(['blog.create', 'blog.update']);
       }
-      
+
       if (context === 'real_estate') {
         return hasAnyPermission(['real_estate.property.create', 'real_estate.property.update']);
       }
@@ -159,7 +159,7 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
   const uiPermissions = useMemo<UIPermissions>(() => {
     const isSuperAdmin = permissionMap?.is_superadmin || false;
     const check = (perm: string) => isSuperAdmin || permissionSet.has(perm);
-    
+
     return {
       canManagePanel: isSuperAdmin, // 🔒 فقط Super Admin - تنظیمات سیستم پنل
       canManagePages: check(PERMISSIONS.PAGES.MANAGE),
@@ -167,14 +167,14 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       canManageAI: check(PERMISSIONS.AI.MANAGE),
       canManageForms: check(PERMISSIONS.FORMS.MANAGE),
       canManageChatbot: check(PERMISSIONS.CHATBOT.MANAGE),
-      
+
       canManageAIChat: check(PERMISSIONS.AI.CHAT_MANAGE) || check(PERMISSIONS.AI.MANAGE),
       canManageAIContent: check(PERMISSIONS.AI.CONTENT_MANAGE) || check(PERMISSIONS.AI.MANAGE),
       canManageAIImage: check(PERMISSIONS.AI.IMAGE_MANAGE) || check(PERMISSIONS.AI.MANAGE),
       canManageAIAudio: check(PERMISSIONS.AI.AUDIO_MANAGE) || check(PERMISSIONS.AI.MANAGE),
       canManageAISettings: check(PERMISSIONS.AI.SETTINGS_PERSONAL_MANAGE) || check(PERMISSIONS.AI.MANAGE),
       canManageSharedAISettings: check(PERMISSIONS.AI.SETTINGS_SHARED_MANAGE) || isSuperAdmin,
-      
+
       canCreateBlog: check(PERMISSIONS.BLOG.CREATE),
       canUpdateBlog: check(PERMISSIONS.BLOG.UPDATE),
       canDeleteBlog: check(PERMISSIONS.BLOG.DELETE),
@@ -187,7 +187,7 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       canCreateUser: check(PERMISSIONS.USERS.CREATE),
       canUpdateUser: check(PERMISSIONS.USERS.UPDATE),
       canDeleteUser: check(PERMISSIONS.USERS.DELETE),
-      
+
       canReadMedia: check(PERMISSIONS.MEDIA.READ),
       canUploadMedia: check(PERMISSIONS.MEDIA.UPLOAD),
       canUpdateMedia: check(PERMISSIONS.MEDIA.UPDATE),
@@ -218,7 +218,7 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       canManageEmail: check(PERMISSIONS.EMAIL.MANAGE),
       canViewAI: check(PERMISSIONS.AI.MANAGE),
       canManageTicket: check(PERMISSIONS.TICKET.MANAGE),
-      
+
       canReadRealEstateProperty: check(PERMISSIONS.REAL_ESTATE.PROPERTY_READ),
       canCreateRealEstateProperty: check(PERMISSIONS.REAL_ESTATE.PROPERTY_CREATE),
       canUpdateRealEstateProperty: check(PERMISSIONS.REAL_ESTATE.PROPERTY_UPDATE),
