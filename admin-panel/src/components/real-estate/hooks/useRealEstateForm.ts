@@ -364,7 +364,6 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
     });
 
     const handleSaveDraft = form.handleSubmit(async (data) => {
-        if (!isEditMode) return;
         const validatedData = propertyFormSchema.parse(data);
         const { allMediaFiles, allMediaIds } = collectMediaFilesAndIds(propertyMedia, validatedData.og_image);
         const mainImageId = propertyMedia.featuredImage?.id || null;
@@ -380,15 +379,29 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
         };
 
         try {
-            const propertyId = Number(id);
-            if (allMediaFiles.length > 0) {
-                await realEstateApi.updateProperty(propertyId, updateData);
-                await realEstateApi.addMediaToProperty(propertyId, allMediaFiles, allMediaIds);
+            if (isEditMode && id) {
+                const propertyId = Number(id);
+                if (allMediaFiles.length > 0) {
+                    await realEstateApi.updateProperty(propertyId, updateData);
+                    await realEstateApi.addMediaToProperty(propertyId, allMediaFiles, allMediaIds);
+                } else {
+                    await realEstateApi.updateProperty(propertyId, updateData);
+                }
+                queryClient.invalidateQueries({ queryKey: ["properties"] });
+                queryClient.invalidateQueries({ queryKey: ["property", id] });
             } else {
-                await realEstateApi.updateProperty(propertyId, updateData);
+                const createData = { ...updateData };
+                delete createData.id;
+
+                if (allMediaFiles.length > 0) {
+                    const createdProperty = await realEstateApi.createProperty(createData);
+                    await realEstateApi.addMediaToProperty(createdProperty.id, allMediaFiles, allMediaIds);
+                } else {
+                    await realEstateApi.createProperty(createData);
+                }
+                queryClient.invalidateQueries({ queryKey: ["properties"] });
             }
-            queryClient.invalidateQueries({ queryKey: ["properties"] });
-            queryClient.invalidateQueries({ queryKey: ["property", id] });
+
             showSuccess(msg.crud("saved", { item: "پیش‌نویس ملک" }));
             navigate("/real-estate/properties");
         } catch (error: any) {

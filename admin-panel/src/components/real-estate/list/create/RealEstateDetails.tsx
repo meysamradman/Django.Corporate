@@ -166,7 +166,7 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
                     <div className="space-y-2">
                         <div className="flex items-center gap-2 mb-1">
                             <Key className="w-4 h-4 text-purple-2" />
-                            <Label htmlFor="bedrooms" className="font-bold">تعداد خواب *</Label>
+                            <Label htmlFor="bedrooms" className="font-bold">تعداد خواب</Label>
                         </div>
                         <Select
                             value={formData?.bedrooms?.toString() || undefined}
@@ -191,7 +191,7 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
                     <div className="space-y-2">
                         <div className="flex items-center gap-2 mb-1">
                             <Box className="w-4 h-4 text-purple-2" />
-                            <Label htmlFor="bathrooms" className="font-bold">تعداد سرویس *</Label>
+                            <Label htmlFor="bathrooms" className="font-bold">تعداد سرویس</Label>
                         </div>
                         <Select
                             value={formData?.bathrooms?.toString() || undefined}
