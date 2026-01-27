@@ -142,6 +142,7 @@ export interface AIContentGenerationRequest {
     word_count?: number;
     tone?: string;
     keywords?: string[];
+    destination?: 'blog' | 'portfolio' | 'real_estate' | 'none';
 }
 
 export interface AIContentGenerationResponse {

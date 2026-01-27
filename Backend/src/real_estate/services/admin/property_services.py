@@ -190,6 +190,29 @@ class PropertyAdminService:
         media_files = validated_data.pop('media_files', [])
         media_ids = validated_data.pop('media_ids', [])
         
+        # ✅ Auto-assign agent if not provided
+        if not validated_data.get('agent') and created_by and created_by.is_authenticated:
+            from src.real_estate.models.agent import PropertyAgent
+            import uuid
+            
+            # Try to get existing agent for this user
+            agent = PropertyAgent.objects.filter(user=created_by).first()
+            
+            if not agent:
+                # Create new agent for this user
+                license_num = f'AUTO-{uuid.uuid4().hex[:8].upper()}'
+                agent_slug = f'agent-{created_by.id}-{uuid.uuid4().hex[:6]}'
+                
+                agent = PropertyAgent.objects.create(
+                    user=created_by,
+                    license_number=license_num,
+                    slug=agent_slug,
+                    specialization='General',
+                    is_active=True
+                )
+            
+            validated_data['agent'] = agent
+
         # ✅ slug generation
         if not validated_data.get('slug') and validated_data.get('title'):
             base_slug = slugify(validated_data['title'])

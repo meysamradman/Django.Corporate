@@ -18,8 +18,10 @@ interface AIContentGeneratorProps {
 export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorProps) {
     const { user } = useAuth();
     const [availableProviders, setAvailableProviders] = useState<AvailableProvider[]>([]);
+    const [destinations, setDestinations] = useState<{ key: string; label: string }[]>([]);
     const [loadingProviders, setLoadingProviders] = useState(true);
     const [selectedProvider, setSelectedProvider] = useState<string>('');
+    const [destination, setDestination] = useState<string>('none');
     const [topic, setTopic] = useState('');
     const [generating, setGenerating] = useState(false);
     const [generatedContent, setGeneratedContent] = useState<AIContentGenerationResponse | null>(null);
@@ -30,13 +32,14 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
         if (user && !providersFetched.current) {
             const permissionsObject = user?.permissions as any;
             const permissionsArray = (permissionsObject?.permissions || []) as string[];
-            const hasAIPermission = permissionsArray.some((p: string) => 
+            const hasAIPermission = permissionsArray.some((p: string) =>
                 p === 'all' || p === 'ai.manage' || p.startsWith('ai.')
             );
-            
+
             if (hasAIPermission) {
                 providersFetched.current = true;
                 fetchAvailableProviders();
+                fetchDestinations();
             } else {
                 setLoadingProviders(false);
             }
@@ -48,16 +51,27 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
     useEffect(() => {
     }, [loadingProviders, availableProviders.length, generatedContent]);
 
+    const fetchDestinations = async () => {
+        try {
+            const response = await aiApi.content.getDestinations();
+            if (response.metaData.status === 'success') {
+                setDestinations(response.data);
+            }
+        } catch {
+            // Ignore error
+        }
+    };
+
     const fetchAvailableProviders = async () => {
         try {
             setLoadingProviders(true);
             const response = await aiApi.content.getAvailableProviders();
-            
+
             if (response.metaData.status === 'success') {
-                const providersData = Array.isArray(response.data) 
-                    ? response.data 
+                const providersData = Array.isArray(response.data)
+                    ? response.data
                     : (response.data as any)?.data || [];
-                
+
                 setAvailableProviders(providersData);
             }
         } catch (error: any) {
@@ -87,6 +101,7 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
             const response = await aiApi.content.generateContent({
                 provider_name: selectedProvider,
                 topic: topic.trim(),
+                destination: destination as any,
             });
 
             if (response.metaData.status === 'success') {
@@ -133,17 +148,21 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
         <div className="space-y-6">
             <ContentInputForm
                 providers={availableProviders}
+                destinations={destinations}
                 selectedProvider={selectedProvider}
+                destination={destination}
                 topic={topic}
                 generating={generating}
                 loadingProviders={loadingProviders}
                 onSelectProvider={setSelectedProvider}
+
+                onDestinationChange={setDestination}
                 onTopicChange={setTopic}
                 onGenerate={handleGenerate}
             />
 
             {generatedContent && (
-                    <div className="space-y-4">
+                <div className="space-y-4">
                     <SEOInfoCard
                         content={generatedContent}
                         copiedField={copiedField}

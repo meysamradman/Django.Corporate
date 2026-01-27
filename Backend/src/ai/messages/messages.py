@@ -34,6 +34,7 @@ CONTENT_SUCCESS = {
     "content_generated_and_saved": "محتوای SEO تولید و ذخیره شد",
     "content_saved_to_blog": "محتوا در بلاگ ذخیره شد",
     "content_saved_to_portfolio": "محتوا در نمونه‌کار ذخیره شد",
+    "content_saved_to_real_estate": "محتوا در املاک ذخیره شد",
     "content_not_saved": "محتوا ذخیره نشد",
     "providers_list_retrieved": "لیست Provider ها دریافت شد",
     "capabilities_retrieved": "قابلیت‌های {provider_name} دریافت شد",

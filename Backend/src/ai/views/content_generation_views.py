@@ -8,6 +8,7 @@ from src.ai.serializers.content_generation_serializer import (
     AIContentGenerationRequestSerializer,
     AIContentGenerationResponseSerializer
 )
+from src.ai.destinations.registry import ContentDestinationRegistry
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
 from src.user.access_control import ai_permission, PermissionRequiredMixin
 from src.ai.providers.capabilities import get_provider_capabilities, supports_feature, PROVIDER_CAPABILITIES
@@ -57,6 +58,18 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                 data=content_providers,
                 status_code=status.HTTP_200_OK
             )
+            
+    @action(detail=False, methods=['get'])
+    def destinations(self, request):
+        """
+        Get all registered content destinations.
+        """
+        destinations = ContentDestinationRegistry.get_all_destinations()
+        return APIResponse.success(
+            message='لیست مقاصد دریافت شد',
+            data=destinations,
+            status_code=status.HTTP_200_OK
+        )
     
     @action(detail=False, methods=['get'], url_path='available-providers')
     def available_providers(self, request):

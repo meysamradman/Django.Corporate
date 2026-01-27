@@ -660,60 +660,7 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
                 
         return data
 
-    def validate_slug(self, value):
-        """
-        Field-level validator for slug to ensure uniqueness.
-        This runs before validate() method and Django's model validation.
-        """
-        if not value:
-            return value
-            
-        from django.utils.text import slugify
-        base_slug = slugify(value, allow_unicode=True)
-        slug = base_slug
-        counter = 1
-        
-        # Keep incrementing until we find a unique slug
-        while Property.objects.filter(slug=slug).exists():
-            slug = f"{base_slug}-{counter}"
-            counter += 1
-        
-        return slug
-
     def validate(self, attrs):
-        # ✅ Auto-generate slug from title if not provided
-        if not attrs.get('slug') and attrs.get('title'):
-            from django.utils.text import slugify
-            generated_slug = slugify(attrs['title'], allow_unicode=True)
-            # Ensure uniqueness by calling validate_slug
-            attrs['slug'] = self.validate_slug(generated_slug)
-        
-        # ✅ Auto-assign agent if not provided
-        if not attrs.get('agent'):
-            # Get or create default agent from current user (from context)
-            request = self.context.get('request')
-            if request and hasattr(request, 'user') and request.user.is_authenticated:
-                from src.real_estate.models.agent import PropertyAgent
-                import uuid
-                
-                # Try to get existing agent for this user
-                agent = PropertyAgent.objects.filter(user=request.user).first()
-                
-                if not agent:
-                    # Create new agent for this user
-                    license_num = f'AUTO-{uuid.uuid4().hex[:8].upper()}'
-                    agent_slug = f'agent-{request.user.id}-{uuid.uuid4().hex[:6]}'
-                    
-                    agent = PropertyAgent.objects.create(
-                        user=request.user,
-                        license_number=license_num,
-                        slug=agent_slug,
-                        specialization='General',
-                        is_active=True
-                    )
-                
-                attrs['agent'] = agent
-        
         # Validate location fields - simplified like Diwar
         if not attrs.get('province'):
             raise serializers.ValidationError("استان الزامی است.")

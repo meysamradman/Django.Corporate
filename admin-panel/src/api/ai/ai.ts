@@ -141,6 +141,11 @@ export const aiApi = {
     },
 
     content: {
+        getDestinations: async (): Promise<ApiResponse<{ key: string; label: string }[]>> => {
+            const endpoint = '/admin/ai-content/destinations/';
+            return await api.get<{ key: string; label: string }[]>(endpoint);
+        },
+
         getAvailableProviders: async (): Promise<ApiResponse<AvailableProvider[]>> => {
             try {
                 const endpoint = '/admin/ai-providers/available/?capability=content';
