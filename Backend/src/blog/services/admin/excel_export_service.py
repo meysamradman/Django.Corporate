@@ -2,106 +2,68 @@ from io import BytesIO
 from datetime import datetime
 from django.http import HttpResponse
 from src.blog.messages.messages import BLOG_ERRORS
-
-try:
-    import xlsxwriter
-    XLSXWRITER_AVAILABLE = True
-except ImportError:
-    XLSXWRITER_AVAILABLE = False
-
-try:
-    import jdatetime
-    JDATETIME_AVAILABLE = True
-except ImportError:
-    JDATETIME_AVAILABLE = False
-
+from src.core.utils.date_utils import format_jalali_date, format_jalali_datetime, format_jalali_short
+from src.core.utils.excel_base_service import ExcelBaseExportService
 
 class BlogExcelExportService:
     """
-    Optimized Excel export service for Blog.
-    Features professional formatting and dynamic field mapping.
+    Optimized Excel export service for Blog with sortable Persian dates.
     """
     
     EXPORT_FIELDS = [
-        {'key': 'title', 'label': 'Title', 'width': 35},
-        {'key': 'short_description', 'label': 'Short Description', 'width': 45},
-        {'key': 'status', 'label': 'Status', 'width': 15},
-        {'key': 'is_featured', 'label': 'Featured', 'width': 12},
-        {'key': 'is_public', 'label': 'Public', 'width': 12},
-        {'key': 'is_active', 'label': 'Active', 'width': 12},
-        {'key': 'created_at', 'label': 'Created At', 'width': 22},
-        {'key': 'categories', 'label': 'Categories', 'width': 30},
-        {'key': 'tags', 'label': 'Tags', 'width': 30},
+        {'key': 'title', 'label': 'عنوان', 'width': 40, 'type': 'text'},
+        {'key': 'short_description', 'label': 'خلاصه', 'width': 50, 'type': 'text'},
+        {'key': 'status', 'label': 'وضعیت', 'width': 15, 'type': 'status'},
+        {'key': 'categories', 'label': 'دسته‌بندی‌ها', 'width': 30, 'type': 'array'},
+        {'key': 'tags', 'label': 'تگ‌ها', 'width': 30, 'type': 'array'},
+        {'key': 'created_at', 'label': 'تاریخ ایجاد (شمسی)', 'width': 25, 'type': 'jalali_datetime'},
+        {'key': 'updated_at', 'label': 'تاریخ بروزرسانی', 'width': 25, 'type': 'jalali_datetime'},
+        {'key': 'is_featured', 'label': 'ویژه', 'width': 12, 'type': 'boolean'},
+        {'key': 'is_public', 'label': 'عمومی', 'width': 12, 'type': 'boolean'},
+        {'key': 'is_active', 'label': 'فعال', 'width': 12, 'type': 'boolean'},
     ]
 
     @staticmethod
     def export_blogs(queryset):
-        if not XLSXWRITER_AVAILABLE:
-            raise ImportError(BLOG_ERRORS["blog_export_failed"])
+        workbook, worksheet, formats, output = ExcelBaseExportService.get_workbook_and_formats('وبلاگ‌ها')
+        ExcelBaseExportService.write_headers(worksheet, BlogExcelExportService.EXPORT_FIELDS, formats['header'], formats['text'])
         
-        output = BytesIO()
-        workbook = xlsxwriter.Workbook(output, {
-            'in_memory': True, 
-            'default_date_format': 'yyyy-mm-dd hh:mm:ss',
-            'remove_timezone': True,
-        })
-        worksheet = workbook.add_worksheet('Blogs')
+        date_field_count = sum(1 for f in BlogExcelExportService.EXPORT_FIELDS if f['type'] in ['jalali_datetime', 'jalali_date'])
+        hidden_col_start = len(BlogExcelExportService.EXPORT_FIELDS)
+        if date_field_count > 0:
+            worksheet.set_column(hidden_col_start, hidden_col_start + date_field_count - 1, None, None, {'hidden': True})
         
-        # Formats
-        header_format = workbook.add_format({
-            'bold': True, 'bg_color': '#2563eb', 'font_color': 'white',
-            'align': 'center', 'valign': 'vcenter', 'border': 1
-        })
-        data_format = workbook.add_format({
-            'align': 'right', 'valign': 'vcenter', 'border': 1, 'border_color': '#e2e8f0'
-        })
-        date_format = workbook.add_format({
-            'num_format': 'yyyy-mm-dd hh:mm:ss', 'align': 'right', 'border': 1, 'border_color': '#e2e8f0'
-        })
-
-        # Write Headers
-        for col, field in enumerate(BlogExcelExportService.EXPORT_FIELDS):
-            worksheet.write(0, col, field['label'], header_format)
-            worksheet.set_column(col, col, field['width'])
-
+        row = 0
         try:
-            # Write Data
             for row, blog in enumerate(queryset, start=1):
+                hidden_col_index = 0
                 for col, field in enumerate(BlogExcelExportService.EXPORT_FIELDS):
-                    key = field['key']
-                    val = ""
-                    
-                    if key == 'categories':
-                        val = ", ".join([c.name for c in blog.categories.all()])
-                    elif key == 'tags':
-                        val = ", ".join([t.name for t in blog.tags.all()])
-                    elif key in ['is_featured', 'is_public', 'is_active']:
-                        val = "Yes" if getattr(blog, key) else "No"
-                    elif key == 'status':
-                        status_map = {'published': 'منتشر شده', 'draft': 'پیش نویس', 'archived': 'آرشیو'}
-                        val = status_map.get(blog.status, blog.status)
+                    key, field_type = field['key'], field.get('type', 'text')
+                    if field_type == 'jalali_datetime':
+                        dt = getattr(blog, key, None)
+                        if dt and isinstance(dt, datetime):
+                            worksheet.write(row, col, format_jalali_datetime(dt, '%Y/%m/%d %H:%M'), formats['jalali'])
+                            worksheet.write_datetime(row, hidden_col_start + hidden_col_index, dt, formats['date'])
+                            hidden_col_index += 1
+                        else: worksheet.write(row, col, "-", formats['text'])
+                    elif field_type == 'boolean':
+                        worksheet.write(row, col, "✓ بله" if getattr(blog, key, False) else "✗ خیر", formats['bool'])
+                    elif field_type == 'status':
+                        status_map = {'published': '✅ منتشر شده', 'draft': '📝 پیش‌نویس', 'archived': '📦 آرشیو'}
+                        worksheet.write(row, col, status_map.get(getattr(blog, key, ""), getattr(blog, key, "")), formats['status'])
+                    elif field_type == 'array':
+                        val = ", ".join([obj.name for obj in getattr(blog, key).all()])
+                        worksheet.write(row, col, val or "-", formats['text'])
                     else:
-                        val = getattr(blog, key, "")
-
-                    if isinstance(val, datetime):
-                        if JDATETIME_AVAILABLE:
-                            jd = jdatetime.datetime.fromgregorian(datetime=val)
-                            worksheet.write(row, col, jd.strftime("%Y/%m/%d %H:%M"), data_format)
-                        else:
-                            worksheet.write_datetime(row, col, val, date_format)
-                    else:
-                        worksheet.write(row, col, val, data_format)
+                        worksheet.write(row, col, getattr(blog, key, "") or "-", formats['text'])
             
             worksheet.freeze_panes(1, 0)
+            worksheet.autofilter(0, 0, row, len(BlogExcelExportService.EXPORT_FIELDS) - 1)
+            worksheet.write(row + 2, 0, 'تعداد کل رکوردها:', formats['summary_label'])
+            worksheet.write(row + 2, 1, row, formats['summary_value'])
         finally:
             workbook.close()
         
-        # Response
-        output.seek(0)
-        response = HttpResponse(
-            output.getvalue(),
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        filename = f"blog_export_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        return response
+        filename = f"گزارش_وبلاگ_{format_jalali_short(datetime.now())}.xlsx"
+        return ExcelBaseExportService.create_response(output, filename)
+

@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { FileText, Image, Search, Edit2, FileDown, Settings } from "lucide-react";
-import { showError, showSuccess } from '@/core/toast';
+import { FileText, Image, Search, Edit2, Settings, Printer } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import { PortfolioCarousel } from "@/components/portfolios/list/view/PortfolioCarousel.tsx";
@@ -94,16 +93,12 @@ export default function PortfolioViewPage() {
       <FloatingActions
         actions={[
           {
-            icon: FileDown,
-            label: "خروجی PDF",
+            icon: Printer,
+            label: "خروجی PDF / چاپ سند",
             variant: "outline",
-            onClick: async () => {
-              try {
-                await portfolioApi.exportPortfolioPdf(Number(portfolioId));
-                showSuccess("فایل PDF با موفقیت دانلود شد");
-              } catch (error) {
-                showError("خطا در دانلود فایل PDF");
-              }
+            onClick: () => {
+              const url = `/portfolios/print?ids=${portfolioId}&type=detail`;
+              window.open(url, '_blank', 'width=1024,height=768');
             },
           },
           {

@@ -1,195 +1,94 @@
+import logging
+import traceback
 from io import BytesIO
 from datetime import datetime
-from html import escape
-import os
-import platform
 from django.http import HttpResponse
-from django.conf import settings
+from src.core.utils.date_utils import format_jalali_medium, format_jalali_long, format_jalali_short
+from src.core.utils.pdf_base_service import PDFBaseExportService, REPORTLAB_AVAILABLE
+from src.portfolio.messages.messages import PDF_LABELS
 
-try:
-    import jdatetime
-    JDATETIME_AVAILABLE = True
-except ImportError:
-    JDATETIME_AVAILABLE = False
+logger = logging.getLogger(__name__)
 
-from src.core.utils.date_utils import format_jalali_date
-
-try:
-    import arabic_reshaper
-    from bidi.algorithm import get_display
-    ARABIC_RESHAPER_AVAILABLE = True
-except ImportError:
-    ARABIC_RESHAPER_AVAILABLE = False
-
-try:
-    from PIL import Image as PILImage
-    PIL_AVAILABLE = True
-except ImportError:
-    PIL_AVAILABLE = False
-
-try:
-    from reportlab.lib import colors
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+if REPORTLAB_AVAILABLE:
     from reportlab.lib.units import inch
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
     from reportlab.platypus.flowables import HRFlowable
-    from reportlab.pdfbase import pdfmetrics
-    from reportlab.pdfbase.ttfonts import TTFont
-    REPORTLAB_AVAILABLE = True
-except ImportError:
-    REPORTLAB_AVAILABLE = False
-
-from src.portfolio.messages.messages import PORTFOLIO_ERRORS, PDF_LABELS
-
+    from reportlab.lib.pagesizes import A4
 
 class PortfolioPDFExportService:
-    """
-    Professional PDF export service for single Portfolio details.
-    Supports high-quality RTL (Persian), media embedding, and modern UI.
-    """
-    
-    PRIMARY_COLOR = colors.HexColor('#2563eb') if REPORTLAB_AVAILABLE else None
-    SECONDARY_COLOR = colors.HexColor('#64748b') if REPORTLAB_AVAILABLE else None
-    BORDER_COLOR = colors.HexColor('#e2e8f0') if REPORTLAB_AVAILABLE else None
-    TEXT_PRIMARY = colors.HexColor('#0f172a') if REPORTLAB_AVAILABLE else None
-    TEXT_SECONDARY = colors.HexColor('#475569') if REPORTLAB_AVAILABLE else None
-
-    @staticmethod
-    def _register_persian_font():
-        persian_font_name = 'Helvetica'
-        if not REPORTLAB_AVAILABLE: return persian_font_name
-        try:
-            base_dir = str(settings.BASE_DIR)
-            font_paths = [
-                os.path.join(base_dir, 'static', 'fonts', 'IRANSansXVF.ttf'),
-                os.path.join(base_dir, 'static', 'fonts', 'Vazir.ttf'),
-            ]
-            for path in font_paths:
-                if os.path.exists(path):
-                    pdfmetrics.registerFont(TTFont('PersianFont', path))
-                    return 'PersianFont'
-        except Exception: pass
-        if platform.system() == 'Windows':
-            path = r'C:\Windows\Fonts\Tahoma.ttf'
-            if os.path.exists(path):
-                try:
-                    pdfmetrics.registerFont(TTFont('SystemPersian', path))
-                    return 'SystemPersian'
-                except Exception: pass
-        return persian_font_name
-
-    @staticmethod
-    def _process_rtl(text):
-        if not text: return ""
-        if ARABIC_RESHAPER_AVAILABLE:
-            reshaped = arabic_reshaper.reshape(str(text))
-            return get_display(reshaped)
-        return str(text)
-
-    @staticmethod
-    def _get_image(media_obj, max_w=5.0, max_h=4.0):
-        if not PIL_AVAILABLE or not media_obj or not hasattr(media_obj, 'file'):
-            return None
-        try:
-            path = media_obj.file.path
-            if not os.path.exists(path): return None
-            img = PILImage.open(path)
-            w, h = img.size
-            ratio = min(max_w * inch / w, max_h * inch / h, 1.0)
-            return Image(path, width=w*ratio, height=h*ratio)
-        except Exception: return None
-
     @staticmethod
     def export_portfolio_pdf(portfolio):
-        if not REPORTLAB_AVAILABLE: raise ImportError("ReportLab not found.")
-        
+        if not REPORTLAB_AVAILABLE:
+            raise ImportError("ReportLab is not installed.")
+            
         buffer = BytesIO()
-        font_name = PortfolioPDFExportService._register_persian_font()
-        rtl = PortfolioPDFExportService._process_rtl
-        status_map = {
-            'published': PDF_LABELS.get('published', 'منتشر شده'),
-            'draft': PDF_LABELS.get('draft', 'پیش نویس'),
-            'archived': PDF_LABELS.get('archived', 'آرشیو')
-        }
+        font_name = PDFBaseExportService.register_persian_font()
+        rtl = PDFBaseExportService.process_rtl
+        styles = PDFBaseExportService.get_styles(font_name)
+        clr = PDFBaseExportService.get_colors()
         
-        doc = SimpleDocTemplate(
-            buffer, pagesize=A4,
-            rightMargin=40, leftMargin=40, topMargin=50, bottomMargin=50
-        )
+        if not clr:
+            logger.error("PDF config colors missing.")
+            raise ValueError("Config failed.")
+
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=40, leftMargin=40, topMargin=50, bottomMargin=50)
         elements = []
         
-        styles = getSampleStyleSheet()
-        title_style = ParagraphStyle(
-            'PortfolioTitle', parent=styles['Heading1'], fontName=font_name, 
-            fontSize=24, alignment=2, textColor=PortfolioPDFExportService.PRIMARY_COLOR
-        )
-        section_style = ParagraphStyle(
-            'SectionHeader', parent=styles['Heading3'], fontName=font_name,
-            fontSize=14, alignment=2, textColor=PortfolioPDFExportService.SECONDARY_COLOR,
-            spaceBefore=15, spaceAfter=10
-        )
-        content_style = ParagraphStyle(
-            'BodyContent', parent=styles['Normal'], fontName=font_name,
-            fontSize=11, leading=18, alignment=2, textColor=PortfolioPDFExportService.TEXT_PRIMARY
-        )
-
-        # Header
-        elements.append(Paragraph(rtl(portfolio.title), title_style))
-        elements.append(HRFlowable(width="100%", thickness=1, color=PortfolioPDFExportService.BORDER_COLOR, spaceAfter=20))
+        elements.append(Paragraph(rtl(portfolio.title), styles['title']))
+        elements.append(HRFlowable(width="100%", thickness=1, color=clr.PRIMARY, spaceAfter=20))
         
         # Main Image
         main_img = portfolio.get_main_image()
-        if main_img:
-            reportlab_img = PortfolioPDFExportService._get_image(main_img)
-            if reportlab_img:
-                elements.append(reportlab_img)
-                elements.append(Spacer(1, 15))
+        rl_img = PDFBaseExportService.get_image(main_img)
+        if rl_img:
+            elements.append(rl_img)
+            elements.append(Spacer(1, 20))
 
-        # Metadata Table
+        status_map = {'published': 'منتشر شده', 'draft': 'پیش نویس', 'archived': 'آرشیو'}
         meta_data = [
-            [rtl(PDF_LABELS.get('categories', 'دسته بندی')), rtl(", ".join([c.name for c in portfolio.categories.all()]))],
-            [rtl(PDF_LABELS.get('options', 'امکانات')), rtl(", ".join([o.name for o in portfolio.options.all()]))],
-            [rtl(PDF_LABELS.get('created_at', 'تاریخ')), rtl(format_jalali_date(portfolio.created_at))],
-            [rtl(PDF_LABELS.get('status', 'وضعیت')), rtl(status_map.get(portfolio.status, portfolio.status))]
+            [rtl(PDF_LABELS.get('status', 'وضعیت')), rtl(status_map.get(portfolio.status, portfolio.status))],
+            [rtl(PDF_LABELS.get('categories', 'دسته‌بندی')), rtl(", ".join([c.name for c in portfolio.categories.all()[:3]]) or "-")],
+            [rtl(PDF_LABELS.get('options', 'امکانات')), rtl(", ".join([o.name for o in portfolio.options.all()[:3]]) or "-")],
+            [rtl(PDF_LABELS.get('created_at', 'تاریخ ثبت')), rtl(format_jalali_long(portfolio.created_at))],
         ]
-        meta_table = Table(meta_data, colWidths=[1.5*inch, 3.5*inch])
+        
+        meta_table = Table(meta_data, colWidths=[1.5*inch, 4.0*inch])
         meta_table.setStyle(TableStyle([
             ('FONTNAME', (0, 0), (-1, -1), font_name),
-            ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
-            ('ALIGN', (1, 0), (1, -1), 'LEFT'),
-            ('TEXTCOLOR', (0, 0), (0, -1), PortfolioPDFExportService.PRIMARY_COLOR),
-            ('GRID', (0, 0), (-1, -1), 0.2, PortfolioPDFExportService.BORDER_COLOR),
-            ('PADDING', (0, 0), (-1, -1), 6),
+            ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+            ('BACKGROUND', (0, 0), (-1, -1), clr.LIGHT_BG),
+            ('GRID', (0, 0), (-1, -1), 0.5, clr.BORDER),
+            ('PADDING', (0, 0), (-1, -1), 8),
         ]))
         elements.append(meta_table)
-        elements.append(Spacer(1, 20))
-
-        # Description
-        if portfolio.short_description:
-            elements.append(Paragraph(rtl(PDF_LABELS.get('short_description', 'خلاصه')), section_style))
-            elements.append(Paragraph(rtl(portfolio.short_description), content_style))
-            elements.append(Spacer(1, 15))
+        elements.append(Spacer(1, 25))
 
         if portfolio.description:
-            elements.append(Paragraph(rtl(PDF_LABELS.get('full_description', 'مشخصات کامل')), section_style))
-            desc_text = portfolio.description.replace("\n", "<br/>")
-            elements.append(Paragraph(rtl(desc_text), content_style))
+            elements.append(Paragraph(rtl("جزئیات کامل"), styles['section']))
+            elements.append(Paragraph(rtl(portfolio.description.replace('\n', '<br/>')), styles['content']))
 
-        # Build
-        def add_header_footer(canvas, doc):
-            canvas.saveState()
-            canvas.setFont(font_name, 9)
-            canvas.setFillColor(PortfolioPDFExportService.TEXT_SECONDARY)
-            footer_text = rtl(f"پروژه‌های شرکت - صفحه {doc.page}")
-            canvas.drawCentredString(doc.pagesize[0]/2, 30, footer_text)
-            canvas.restoreState()
-
-        doc.build(elements, onFirstPage=add_header_footer, onLaterPages=add_header_footer)
+        footer_func = PDFBaseExportService.get_generic_footer_func(font_name, f"گزارش نمونه‌کار | {format_jalali_medium(datetime.now())}")
         
+        try:
+            logger.info(f"Building single portfolio PDF ID: {portfolio.id}...")
+            doc.build(elements, onFirstPage=footer_func, onLaterPages=footer_func)
+            logger.info("Portfolio PDF build success.")
+        except Exception as e:
+            logger.error(f"Portfolio PDF build crash (ID: {portfolio.id}): {str(e)}")
+            logger.error(traceback.format_exc())
+            raise
+
         buffer.seek(0)
-        response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
-        filename = f"portfolio_detail_{portfolio.id}_{datetime.now().strftime('%Y%m%d')}.pdf"
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        pdf_content = buffer.getvalue()
+        buffer.close()
+        
+        from django.utils.encoding import escape_uri_path
+        filename = f"پروژه_{portfolio.id}.pdf"
+        
+        logger.info(f"Generated single portfolio PDF size: {len(pdf_content)} bytes.")
+
+        response = HttpResponse(pdf_content, content_type='application/pdf')
+        response['Content-Disposition'] = f"attachment; filename*=utf-8''{escape_uri_path(filename)}"
         return response
+
     

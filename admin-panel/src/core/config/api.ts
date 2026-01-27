@@ -56,7 +56,7 @@ axiosInstance.interceptors.response.use(
       };
       return { ...response, data: wrappedResponse };
     }
-    
+
     return response;
   },
   async (error: AxiosError<ApiResponse<any>>) => {
@@ -68,14 +68,14 @@ axiosInstance.interceptors.response.use(
       // ثبت خطای rate limit
       const retryAfterHeader = error.response.headers['retry-after'];
       const retryAfter = retryAfterHeader ? parseInt(retryAfterHeader, 10) : 60;
-      
+
       handleRateLimitError(endpoint, retryAfter);
 
       originalRequest._retry = originalRequest._retry || 0;
 
       if (originalRequest._retry < MAX_RETRY_ATTEMPTS) {
         originalRequest._retry++;
-        
+
         // Exponential backoff: 1s, 2s, 4s
         const delay = RETRY_DELAY_BASE * Math.pow(2, originalRequest._retry - 1);
 
@@ -139,8 +139,8 @@ export const api = {
   },
 
   upload: async <T>(
-    url: string, 
-    formData: FormData, 
+    url: string,
+    formData: FormData,
     onUploadProgress?: (progressEvent: any) => void
   ): Promise<ApiResponse<T>> => {
     const response = await axiosInstance.post<ApiResponse<T>>(url, formData, {
@@ -153,7 +153,7 @@ export const api = {
   },
 
   download: async (
-    url: string, 
+    url: string,
     filename: string,
     onDownloadProgress?: (progressEvent: any) => void
   ): Promise<void> => {
@@ -162,7 +162,20 @@ export const api = {
       onDownloadProgress,
     });
 
-    const blob = new Blob([response.data]);
+    // Check if the response is actually JSON (error) even though we asked for a blob
+    const contentType = response.headers['content-type'];
+    if (contentType && contentType.includes('application/json')) {
+      // It's likely an error message disguised as a blob
+      const text = await response.data.text();
+      try {
+        const errorData = JSON.parse(text);
+        throw new Error(errorData.metaData?.message || 'Download failed');
+      } catch (e) {
+        throw new Error('Server returned an error instead of a file.');
+      }
+    }
+
+    const blob = new Blob([response.data], { type: contentType || 'application/octet-stream' });
     const downloadUrl = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = downloadUrl;
@@ -170,7 +183,7 @@ export const api = {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    window.URL.revokeObjectURL(downloadUrl);
+    setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 100);
   },
 };
 

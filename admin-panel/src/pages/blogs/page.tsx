@@ -13,6 +13,9 @@ import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
+import { useExcelExport } from "@/hooks/blogs/useExcelExport";
+import { usePdfExport } from "@/hooks/blogs/usePdfExport";
+import { usePrintView } from "@/hooks/blogs/usePrintView";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
 import { msg, getConfirm } from '@/core/messages';
@@ -30,10 +33,8 @@ import {
 import type { Blog } from "@/types/blog/blog";
 import type { ColumnDef } from "@tanstack/react-table";
 import { blogApi } from "@/api/blogs/blogs";
-import { exportBlogs } from "@/api/blogs/export";
 import type { DataTableRowAction } from "@/types/shared/table";
 import type { BlogCategory } from "@/types/blog/category/blogCategory";
-import { env } from '@/core/config/environment';
 
 const convertCategoriesToHierarchical = (categories: BlogCategory[]): any[] => {
   const rootCategories = categories.filter(cat => !cat.parent_id);
@@ -77,7 +78,7 @@ export default function BlogPage() {
     };
   });
   const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
-  const [rowSelection, setRowSelection] = useState({});
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [searchValue, setSearchValue] = useState(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
@@ -199,7 +200,6 @@ export default function BlogPage() {
     mutationFn: (blogId: number) => blogApi.deleteBlog(blogId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blogs'] });
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'بلاگ' }));
     },
     onError: (_error) => {
@@ -211,7 +211,6 @@ export default function BlogPage() {
     mutationFn: (blogIds: number[]) => blogApi.bulkDeleteBlogs(blogIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blogs'] });
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'بلاگ' }));
       setRowSelection({});
     },
@@ -292,232 +291,83 @@ export default function BlogPage() {
 
   const columns = useBlogColumns(rowActions, handleToggleActive) as ColumnDef<Blog>[];
 
-  const handleExportExcel = async (filters: BlogFilters, search: string, exportAll: boolean = false) => {
-    try {
-      const exportParams: any = {
-        search: search || undefined,
-        order_by: sorting.length > 0 ? sorting[0].id : "created_at",
-        order_desc: sorting.length > 0 ? sorting[0].desc : true,
-        status: filters.status as string | undefined,
-        is_featured: filters.is_featured as boolean | undefined,
-        is_public: filters.is_public as boolean | undefined,
-        is_active: filters.is_active as boolean | undefined,
-        categories__in: filters.categories ? filters.categories.toString() : undefined,
-      };
+  const { exportExcel, isLoading: isExcelLoading } = useExcelExport();
+  const { exportBlogListPdf, isLoading: isPdfLoading } = usePdfExport();
+  const { openPrintWindow } = usePrintView();
 
-      if (exportAll) {
-        exportParams.export_all = true;
-      } else {
-        exportParams.page = pagination.pageIndex + 1;
-        exportParams.size = pagination.pageSize;
-      }
+  const handleExcelExport = async (filters: BlogFilters, search: string, exportAll: boolean = false) => {
+    const exportParams: any = {
+      search: search || undefined,
+      order_by: sorting.length > 0 ? sorting[0].id : "created_at",
+      order_desc: sorting.length > 0 ? sorting[0].desc : true,
+      status: filters.status,
+      is_featured: filters.is_featured,
+      is_public: filters.is_public,
+      is_active: filters.is_active,
+      categories__in: filters.categories ? filters.categories.toString() : undefined,
+    };
 
-      await exportBlogs(exportParams, 'excel');
-      showSuccess(exportAll ? "فایل اکسل (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل اکسل (صفحه فعلی) با موفقیت دانلود شد");
-    } catch (error: any) {
-      const errorMessage = error?.response?.message || error?.message || "خطا در دانلود فایل اکسل";
-      showError(errorMessage);
+    if (exportAll) exportParams.export_all = true;
+    else {
+      exportParams.page = pagination.pageIndex + 1;
+      exportParams.size = pagination.pageSize;
     }
+
+    await exportExcel(data, blogs?.pagination?.count || 0, exportParams);
   };
 
-  const handleExportPDF = async (filters: BlogFilters, search: string, exportAll: boolean = false) => {
-    try {
-      const exportParams: any = {
-        search: search || undefined,
-        order_by: sorting.length > 0 ? sorting[0].id : "created_at",
-        order_desc: sorting.length > 0 ? sorting[0].desc : true,
-        status: filters.status as string | undefined,
-        is_featured: filters.is_featured as boolean | undefined,
-        is_public: filters.is_public as boolean | undefined,
-        is_active: filters.is_active as boolean | undefined,
-        categories__in: filters.categories ? filters.categories.toString() : undefined,
-      };
+  const handlePdfExport = async (filters: BlogFilters, search: string, exportAll: boolean = false) => {
+    const exportParams: any = {
+      search: search || undefined,
+      order_by: sorting.length > 0 ? sorting[0].id : "created_at",
+      order_desc: sorting.length > 0 ? sorting[0].desc : true,
+      status: filters.status,
+      is_featured: filters.is_featured,
+      is_public: filters.is_public,
+      is_active: filters.is_active,
+      categories__in: filters.categories ? filters.categories.toString() : undefined,
+    };
 
-      if (exportAll) {
-        exportParams.export_all = true;
-      } else {
-        exportParams.page = pagination.pageIndex + 1;
-        exportParams.size = pagination.pageSize;
-      }
-
-      await exportBlogs(exportParams, 'pdf');
-      showSuccess(exportAll ? "فایل PDF (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل PDF (صفحه فعلی) با موفقیت دانلود شد");
-    } catch (error: any) {
-      const errorMessage = error?.response?.message || error?.message || "خطا در دانلود فایل PDF";
-      showError(errorMessage);
+    if (exportAll) exportParams.export_all = true;
+    else {
+      exportParams.page = pagination.pageIndex + 1;
+      exportParams.size = pagination.pageSize;
     }
+
+    exportBlogListPdf(exportParams);
   };
 
-  const handlePrint = async (printAll: boolean = false) => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      showError("لطفاً popup blocker را غیرفعال کنید");
+  const handlePrintAction = async (printAll: boolean = false) => {
+    // If not printing all, use selection or current page data
+    if (!printAll) {
+      const selectedIds = Object.keys(rowSelection).filter(key => (rowSelection as any)[key]).map(idx => data[parseInt(idx)].id);
+      if (selectedIds.length > 0) {
+        openPrintWindow(selectedIds);
+      } else {
+        openPrintWindow(data.map(b => b.id));
+      }
       return;
     }
 
-    let printData = data;
-    const MAX_PRINT_ITEMS = env.BLOG_EXPORT_PRINT_MAX_ITEMS;
-    if (printAll) {
-      try {
-        const allParams = {
-          search: searchValue || undefined,
-          page: 1,
-          size: MAX_PRINT_ITEMS,
-          order_by: sorting.length > 0 ? sorting[0].id : "created_at",
-          order_desc: sorting.length > 0 ? sorting[0].desc : true,
-          status: clientFilters.status as string | undefined,
-          is_featured: clientFilters.is_featured as boolean | undefined,
-          is_public: clientFilters.is_public as boolean | undefined,
-          is_active: clientFilters.is_active as boolean | undefined,
-          categories__in: clientFilters.categories ? clientFilters.categories.toString() : undefined,
-        };
-        const response = await blogApi.getBlogList(allParams);
-        printData = response.data;
-        const totalCount = response.pagination?.count || 0;
-        if (totalCount > MAX_PRINT_ITEMS) {
-          showWarning(`فقط ${MAX_PRINT_ITEMS} آیتم اول از ${totalCount} آیتم پرینت شد. لطفاً فیلترهای بیشتری اعمال کنید.`);
-        }
-      } catch (error: any) {
-        const errorMessage = error?.response?.message || error?.message || "خطا در دریافت داده‌ها برای پرینت";
-        showError(errorMessage);
-        printWindow.close();
-        return;
+    // Fetch all IDs matching current filters
+    try {
+      showWarning("در حال آماده‌سازی فایل پرینت برای تمامی موارد...");
+      const response = await blogApi.getBlogList({
+        ...queryParams,
+        page: 1,
+        size: 10000, // Fetch all reasonable amount
+      });
+
+      const allIds = response.data.map(b => b.id);
+      if (allIds.length > 0) {
+        openPrintWindow(allIds);
+      } else {
+        showError("داده‌ای برای پرینت یافت نشد");
       }
+    } catch (error) {
+      showError("خطا در بارگذاری داده‌ها برای پرینت");
     }
-
-    const formatDate = (dateString: string) => {
-      const date = new Date(dateString);
-      const year = date.getFullYear() - 621;
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      const seconds = String(date.getSeconds()).padStart(2, '0');
-      return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
-    };
-
-    const getStatusText = (status: string) => {
-      if (status === 'published') return 'منتشر شده';
-      if (status === 'draft') return 'پیش‌نویس';
-      if (status === 'archived') return 'بایگانی شده';
-      return status;
-    };
-
-    const tableRows = printData.map((blog) => {
-      const categories = blog.categories?.map(c => c.name).join(', ') || '-';
-      const tags = blog.tags?.map(t => t.name).join(', ') || '-';
-      const shortDescription = blog.short_description ? blog.short_description.substring(0, 80) : '-';
-      const statusText = getStatusText(blog.status);
-      const createdDate = blog.created_at ? formatDate(blog.created_at) : '-';
-
-      return `
-        <tr>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${statusText}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${createdDate}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${shortDescription}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${tags}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${categories}</td>
-          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${blog.is_active ? 'بله' : 'خیر'}</td>
-          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${blog.is_public ? 'بله' : 'خیر'}</td>
-          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${blog.is_featured ? 'بله' : 'خیر'}</td>
-          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${blog.id}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${blog.title || '-'}</td>
-        </tr>
-      `;
-    }).join('');
-
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html dir="rtl">
-        <head>
-          <meta charset="utf-8">
-          <title>پرینت لیست بلاگ‌ها ${printAll ? '(همه)' : '(صفحه فعلی)'}</title>
-          <style>
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
-            body {
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              direction: rtl;
-              background: white;
-              padding: 20px;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-top: 20px;
-              font-size: 10px;
-            }
-            th {
-              background-color: #f8fafc;
-              color: #0f172a;
-              font-weight: bold;
-              padding: 8px;
-              text-align: right;
-              border-bottom: 1px solid #e2e8f0;
-              font-size: 11px;
-            }
-            td {
-              padding: 8px;
-              color: #0f172a;
-              border-bottom: 0.5px solid #e2e8f0;
-              word-wrap: break-word;
-            }
-            tr:nth-child(even) {
-              background-color: #f8fafc;
-            }
-            tr:nth-child(odd) {
-              background-color: white;
-            }
-            @media print {
-              @page {
-                size: A4 landscape;
-                margin: 1cm;
-              }
-              body {
-                padding: 0;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <table>
-            <thead>
-              <tr>
-                <th>وضعیت</th>
-                <th>تاریخ ایجاد</th>
-                <th>خلاصه</th>
-                <th>تگ‌ها</th>
-                <th>دسته‌بندی‌ها</th>
-                <th>فعال</th>
-                <th>عمومی</th>
-                <th>ویژه</th>
-                <th>ID</th>
-                <th>عنوان</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${tableRows}
-            </tbody>
-          </table>
-          <script>
-            window.onload = function() {
-              window.print();
-              setTimeout(function() {
-                window.close();
-              }, 100);
-            };
-          </script>
-        </body>
-      </html>
-    `;
-
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
   };
-
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function'
@@ -620,39 +470,36 @@ export default function BlogPage() {
           }}
           exportConfigs={[
             {
-              onExport: (filters, search) => handleExportExcel(filters as BlogFilters, search, false),
-              buttonText: "خروجی اکسل (صفحه فعلی)",
+              onExport: (filters, search) => handleExcelExport(filters as BlogFilters, search, false),
+              buttonText: `خروجی اکسل (صفحه فعلی)${isExcelLoading ? '...' : ''}`,
               value: "excel",
-              variant: "outline",
             },
             {
-              onExport: (filters, search) => handleExportExcel(filters as BlogFilters, search, true),
+              onExport: (filters, search) => handleExcelExport(filters as BlogFilters, search, true),
               buttonText: "خروجی اکسل (همه)",
               value: "excel_all",
-              variant: "outline",
             },
             {
-              onExport: (filters, search) => handleExportPDF(filters as BlogFilters, search, false),
-              buttonText: "خروجی PDF (صفحه فعلی)",
+              onExport: (filters, search) => handlePdfExport(filters as BlogFilters, search, false),
+              buttonText: `خروجی PDF (صفحه فعلی)${isPdfLoading ? '...' : ''}`,
               value: "pdf",
-              variant: "outline",
             },
             {
-              onExport: (filters, search) => handleExportPDF(filters as BlogFilters, search, true),
+              onExport: (filters, search) => handlePdfExport(filters as BlogFilters, search, true),
               buttonText: "خروجی PDF (همه)",
               value: "pdf_all",
-              variant: "outline",
             },
             {
-              onExport: async () => {
-                await handlePrint(true);
-              },
-              buttonText: "پرینت (همه)",
+              onExport: () => handlePrintAction(false),
+              buttonText: "خروجی پرینت (صفحه فعلی)",
+              value: "print",
+            },
+            {
+              onExport: () => handlePrintAction(true),
+              buttonText: "خروجی پرینت (همه)",
               value: "print_all",
-              variant: "outline",
             },
           ]}
-          onPrint={() => handlePrint(false)}
           filterConfig={blogFilterConfig}
         />
       </Suspense>

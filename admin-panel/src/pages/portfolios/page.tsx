@@ -30,10 +30,11 @@ import {
 import type { Portfolio } from "@/types/portfolio/portfolio";
 import type { ColumnDef } from "@tanstack/react-table";
 import { portfolioApi } from "@/api/portfolios/portfolios";
-import { exportPortfolios } from "@/api/portfolios/export";
 import type { DataTableRowAction } from "@/types/shared/table";
 import type { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
-import { env } from '@/core/config/environment';
+import { usePortfolioExcelExport } from "@/hooks/portfolios/usePortfolioExcelExport";
+import { usePortfolioPdfExport } from "@/hooks/portfolios/usePortfolioPdfExport";
+import { usePortfolioPrintView } from "@/hooks/portfolios/usePortfolioPrintView";
 
 const convertCategoriesToHierarchical = (categories: PortfolioCategory[]): any[] => {
   const rootCategories = categories.filter(cat => !cat.parent_id);
@@ -198,7 +199,6 @@ export default function PortfolioPage() {
     mutationFn: (portfolioId: number) => portfolioApi.deletePortfolio(portfolioId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'نمونه‌کار' }));
     },
     onError: (_error) => {
@@ -210,7 +210,6 @@ export default function PortfolioPage() {
     mutationFn: (portfolioIds: number[]) => portfolioApi.bulkDeletePortfolios(portfolioIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'نمونه‌کارها' }));
       setRowSelection({});
     },
@@ -291,230 +290,82 @@ export default function PortfolioPage() {
 
   const columns = usePortfolioColumns(rowActions, handleToggleActive) as ColumnDef<Portfolio>[];
 
-  const handleExportExcel = async (filters: PortfolioFilters, search: string, exportAll: boolean = false) => {
-    try {
-      const exportParams: any = {
-        search: search || undefined,
-        order_by: sorting.length > 0 ? sorting[0].id : "created_at",
-        order_desc: sorting.length > 0 ? sorting[0].desc : true,
-        status: filters.status as string | undefined,
-        is_featured: filters.is_featured as boolean | undefined,
-        is_public: filters.is_public as boolean | undefined,
-        is_active: filters.is_active as boolean | undefined,
-        categories__in: filters.categories ? filters.categories.toString() : undefined,
-      };
+  const { exportExcel, isLoading: isExcelLoading } = usePortfolioExcelExport();
+  const { exportPortfolioListPdf, isLoading: isPdfLoading } = usePortfolioPdfExport();
+  const { openPrintWindow } = usePortfolioPrintView();
 
-      if (exportAll) {
-        exportParams.export_all = true;
-      } else {
-        exportParams.page = pagination.pageIndex + 1;
-        exportParams.size = pagination.pageSize;
-      }
+  const handleExcelExport = async (filters: PortfolioFilters, search: string, exportAll: boolean = false) => {
+    const exportParams: any = {
+      search: search || undefined,
+      order_by: sorting.length > 0 ? sorting[0].id : "created_at",
+      order_desc: sorting.length > 0 ? sorting[0].desc : true,
+      status: filters.status,
+      is_featured: filters.is_featured,
+      is_public: filters.is_public,
+      is_active: filters.is_active,
+      categories__in: filters.category ? filters.category.toString() : undefined,
+    };
 
-      await exportPortfolios(exportParams, 'excel');
-      showSuccess(exportAll ? "فایل اکسل (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل اکسل (صفحه فعلی) با موفقیت دانلود شد");
-    } catch (error: any) {
-      const errorMessage = error?.response?.message || error?.message || "خطا در دانلود فایل اکسل";
-      showError(errorMessage);
+    if (exportAll) exportParams.export_all = true;
+    else {
+      exportParams.page = pagination.pageIndex + 1;
+      exportParams.size = pagination.pageSize;
     }
+
+    await exportExcel(data, portfolios?.pagination?.count || 0, exportParams);
   };
 
-  const handleExportPDF = async (filters: PortfolioFilters, search: string, exportAll: boolean = false) => {
-    try {
-      const exportParams: any = {
-        search: search || undefined,
-        order_by: sorting.length > 0 ? sorting[0].id : "created_at",
-        order_desc: sorting.length > 0 ? sorting[0].desc : true,
-        status: filters.status as string | undefined,
-        is_featured: filters.is_featured as boolean | undefined,
-        is_public: filters.is_public as boolean | undefined,
-        is_active: filters.is_active as boolean | undefined,
-        categories__in: filters.categories ? filters.categories.toString() : undefined,
-      };
+  const handlePdfExport = async (filters: PortfolioFilters, search: string, exportAll: boolean = false) => {
+    const exportParams: any = {
+      search: search || undefined,
+      order_by: sorting.length > 0 ? sorting[0].id : "created_at",
+      order_desc: sorting.length > 0 ? sorting[0].desc : true,
+      status: filters.status,
+      is_featured: filters.is_featured,
+      is_public: filters.is_public,
+      is_active: filters.is_active,
+      categories__in: filters.category ? filters.category.toString() : undefined,
+    };
 
-      if (exportAll) {
-        exportParams.export_all = true;
-      } else {
-        exportParams.page = pagination.pageIndex + 1;
-        exportParams.size = pagination.pageSize;
-      }
-
-      await exportPortfolios(exportParams, 'pdf');
-      showSuccess(exportAll ? "فایل PDF (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل PDF (صفحه فعلی) با موفقیت دانلود شد");
-    } catch (error: any) {
-      const errorMessage = error?.response?.message || error?.message || "خطا در دانلود فایل PDF";
-      showError(errorMessage);
+    if (exportAll) exportParams.export_all = true;
+    else {
+      exportParams.page = pagination.pageIndex + 1;
+      exportParams.size = pagination.pageSize;
     }
+
+    exportPortfolioListPdf(exportParams);
   };
 
-  const handlePrint = async (printAll: boolean = false) => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      showError("لطفاً popup blocker را غیرفعال کنید");
+  const handlePrintAction = async (printAll: boolean = false) => {
+    // If not printing all, use selection or current page data
+    if (!printAll) {
+      const selectedIds = Object.keys(rowSelection).filter(key => (rowSelection as any)[key]).map(idx => data[parseInt(idx)].id);
+      if (selectedIds.length > 0) {
+        openPrintWindow(selectedIds);
+      } else {
+        openPrintWindow(data.map(p => p.id));
+      }
       return;
     }
 
-    let printData = data;
-    const MAX_PRINT_ITEMS = env.PORTFOLIO_EXPORT_PRINT_MAX_ITEMS;
-    if (printAll) {
-      try {
-        const allParams = {
-          search: searchValue || undefined,
-          page: 1,
-          size: MAX_PRINT_ITEMS,
-          order_by: sorting.length > 0 ? sorting[0].id : "created_at",
-          order_desc: sorting.length > 0 ? sorting[0].desc : true,
-          status: clientFilters.status as string | undefined,
-          is_featured: clientFilters.is_featured as boolean | undefined,
-          is_public: clientFilters.is_public as boolean | undefined,
-          is_active: clientFilters.is_active as boolean | undefined,
-          categories__in: clientFilters.categories ? clientFilters.categories.toString() : undefined,
-        };
-        const response = await portfolioApi.getPortfolioList(allParams);
-        printData = response.data;
-        const totalCount = response.pagination?.count || 0;
-        if (totalCount > MAX_PRINT_ITEMS) {
-          showWarning(`فقط ${MAX_PRINT_ITEMS} آیتم اول از ${totalCount} آیتم پرینت شد. لطفاً فیلترهای بیشتری اعمال کنید.`);
-        }
-      } catch (error: any) {
-        const errorMessage = error?.response?.message || error?.message || "خطا در دریافت داده‌ها برای پرینت";
-        showError(errorMessage);
-        printWindow.close();
-        return;
+    // Fetch all IDs matching current filters
+    try {
+      showWarning("در حال آماده‌سازی فایل پرینت برای تمامی موارد...");
+      const response = await portfolioApi.getPortfolioList({
+        ...queryParams,
+        page: 1,
+        size: 10000, // Fetch all reasonable amount
+      });
+
+      const allIds = response.data.map(p => p.id);
+      if (allIds.length > 0) {
+        openPrintWindow(allIds);
+      } else {
+        showError("داده‌ای برای پرینت یافت نشد");
       }
+    } catch (error) {
+      showError("خطا در بارگذاری داده‌ها برای پرینت");
     }
-
-    const formatDate = (dateString: string) => {
-      const date = new Date(dateString);
-      const year = date.getFullYear() - 621;
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      const seconds = String(date.getSeconds()).padStart(2, '0');
-      return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
-    };
-
-    const getStatusText = (status: string) => {
-      if (status === 'published') return 'منتشر شده';
-      if (status === 'draft') return 'پیش‌نویس';
-      if (status === 'archived') return 'بایگانی شده';
-      return status;
-    };
-
-    const tableRows = printData.map((portfolio) => {
-      const categories = portfolio.categories?.map(c => c.name).join(', ') || '-';
-      const tags = portfolio.tags?.map(t => t.name).join(', ') || '-';
-      const options = portfolio.options?.map(o => o.name + (o.description ? ` (${o.description})` : '')).join(', ') || '-';
-      const statusText = getStatusText(portfolio.status);
-      const createdDate = portfolio.created_at ? formatDate(portfolio.created_at) : '-';
-
-      return `
-        <tr>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${statusText}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${createdDate}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${options}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${tags}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${categories}</td>
-          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${portfolio.is_active ? 'بله' : 'خیر'}</td>
-          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${portfolio.is_public ? 'بله' : 'خیر'}</td>
-          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${portfolio.is_featured ? 'بله' : 'خیر'}</td>
-          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${portfolio.id}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${portfolio.title || '-'}</td>
-        </tr>
-      `;
-    }).join('');
-
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html dir="rtl">
-        <head>
-          <meta charset="utf-8">
-          <title>پرینت لیست نمونه‌کارها ${printAll ? '(همه)' : '(صفحه فعلی)'}</title>
-          <style>
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
-            body {
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              direction: rtl;
-              background: white;
-              padding: 20px;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-top: 20px;
-              font-size: 10px;
-            }
-            th {
-              background-color: #f8fafc;
-              color: #0f172a;
-              font-weight: bold;
-              padding: 8px;
-              text-align: right;
-              border-bottom: 1px solid #e2e8f0;
-              font-size: 11px;
-            }
-            td {
-              padding: 8px;
-              color: #0f172a;
-              border-bottom: 0.5px solid #e2e8f0;
-              word-wrap: break-word;
-            }
-            tr:nth-child(even) {
-              background-color: #f8fafc;
-            }
-            tr:nth-child(odd) {
-              background-color: white;
-            }
-            @media print {
-              @page {
-                size: A4 landscape;
-                margin: 1cm;
-              }
-              body {
-                padding: 0;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <table>
-            <thead>
-              <tr>
-                <th>وضعیت</th>
-                <th>تاریخ ایجاد</th>
-                <th>گزینه‌ها</th>
-                <th>تگ‌ها</th>
-                <th>دسته‌بندی‌ها</th>
-                <th>فعال</th>
-                <th>عمومی</th>
-                <th>ویژه</th>
-                <th>ID</th>
-                <th>عنوان</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${tableRows}
-            </tbody>
-          </table>
-          <script>
-            window.onload = function() {
-              window.print();
-              setTimeout(function() {
-                window.close();
-              }, 100);
-            };
-          </script>
-        </body>
-      </html>
-    `;
-
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
   };
 
 
@@ -618,39 +469,36 @@ export default function PortfolioPage() {
           }}
           exportConfigs={[
             {
-              onExport: (filters, search) => handleExportExcel(filters as PortfolioFilters, search, false),
-              buttonText: "خروجی اکسل (صفحه فعلی)",
+              onExport: (filters, search) => handleExcelExport(filters as PortfolioFilters, search, false),
+              buttonText: `خروجی اکسل (صفحه فعلی)${isExcelLoading ? '...' : ''}`,
               value: "excel",
-              variant: "outline",
             },
             {
-              onExport: (filters, search) => handleExportExcel(filters as PortfolioFilters, search, true),
+              onExport: (filters, search) => handleExcelExport(filters as PortfolioFilters, search, true),
               buttonText: "خروجی اکسل (همه)",
               value: "excel_all",
-              variant: "outline",
             },
             {
-              onExport: (filters, search) => handleExportPDF(filters as PortfolioFilters, search, false),
-              buttonText: "خروجی PDF (صفحه فعلی)",
+              onExport: (filters, search) => handlePdfExport(filters as PortfolioFilters, search, false),
+              buttonText: `خروجی PDF (صفحه فعلی)${isPdfLoading ? '...' : ''}`,
               value: "pdf",
-              variant: "outline",
             },
             {
-              onExport: (filters, search) => handleExportPDF(filters as PortfolioFilters, search, true),
+              onExport: (filters, search) => handlePdfExport(filters as PortfolioFilters, search, true),
               buttonText: "خروجی PDF (همه)",
               value: "pdf_all",
-              variant: "outline",
             },
             {
-              onExport: async () => {
-                await handlePrint(true);
-              },
-              buttonText: "پرینت (همه)",
+              onExport: () => handlePrintAction(false),
+              buttonText: "خروجی پرینت (صفحه فعلی)",
+              value: "print",
+            },
+            {
+              onExport: () => handlePrintAction(true),
+              buttonText: "خروجی پرینت (همه)",
               value: "print_all",
-              variant: "outline",
             },
           ]}
-          onPrint={() => handlePrint(false)}
           filterConfig={portfolioFilterConfig}
         />
       </Suspense>

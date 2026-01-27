@@ -6,9 +6,9 @@ import type { PortfolioOption } from "@/types/portfolio/options/portfolioOption"
 import type { PaginatedResponse, ApiPagination } from "@/types/shared/pagination";
 import { convertToLimitOffset } from '@/core/utils/pagination';
 import type {
-    PortfolioListParams,
-    CategoryListParams,
-    TagListParams
+  PortfolioListParams,
+  CategoryListParams,
+  TagListParams
 } from "@/types/portfolio/portfolioListParams";
 
 export const portfolioApi = {
@@ -16,7 +16,7 @@ export const portfolioApi = {
     let url = '/admin/portfolio/';
     if (params) {
       const queryParams = new URLSearchParams();
-      
+
       const apiParams: Record<string, unknown> = { ...params };
       if (params.page && params.size) {
         const { limit, offset } = convertToLimitOffset(params.page, params.size);
@@ -26,7 +26,7 @@ export const portfolioApi = {
         delete apiParams.page;
         delete apiParams.size;
       }
-      
+
       Object.entries(apiParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           if (key === 'is_featured' || key === 'is_public' || key === 'is_active') {
@@ -47,9 +47,9 @@ export const portfolioApi = {
         url += '?' + queryString;
       }
     }
-    
+
     const response = await api.get<Portfolio[]>(url);
-    
+
     if (!response) {
       return {
         data: [],
@@ -63,10 +63,10 @@ export const portfolioApi = {
         }
       };
     }
-    
+
     const responseData = Array.isArray(response.data) ? response.data : [];
     const responsePagination = response.pagination;
-    
+
     const pagination: ApiPagination = {
       count: responsePagination?.count || responseData.length,
       next: responsePagination?.next || null,
@@ -75,14 +75,14 @@ export const portfolioApi = {
       current_page: responsePagination?.current_page || (params?.page || 1),
       total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
     };
-    
+
     if (pagination.current_page < 1) {
       pagination.current_page = 1;
     }
     if (pagination.current_page > pagination.total_pages) {
       pagination.current_page = pagination.total_pages;
     }
-    
+
     return {
       data: responseData,
       pagination: pagination
@@ -94,6 +94,15 @@ export const portfolioApi = {
     return response.data;
   },
 
+  getPortfoliosByIds: async (ids: number[]): Promise<Portfolio[]> => {
+    if (ids.length === 0) {
+      return [];
+    }
+    const url = `/admin/portfolio/?ids=${ids.join(',')}`;
+    const response = await api.get<Portfolio[]>(url);
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
   createPortfolio: async (data: Partial<Portfolio>): Promise<Portfolio> => {
     const response = await api.post<Portfolio>('/admin/portfolio/', data);
     return response.data;
@@ -101,7 +110,7 @@ export const portfolioApi = {
 
   createPortfolioWithMedia: async (data: Partial<Portfolio> & { media_ids?: number[] }, mediaFiles: File[]): Promise<Portfolio> => {
     const formData = new FormData();
-    
+
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null && key !== 'media_ids') {
         if (Array.isArray(value)) {
@@ -113,15 +122,15 @@ export const portfolioApi = {
         }
       }
     });
-    
+
     mediaFiles.forEach((file) => {
       formData.append('media_files', file);
     });
-    
+
     if (data.media_ids && Array.isArray(data.media_ids) && data.media_ids.length > 0) {
       formData.append('media_ids', data.media_ids.join(','));
     }
-    
+
     const response = await api.post<Portfolio>('/admin/portfolio/', formData);
     return response.data;
   },
@@ -141,11 +150,11 @@ export const portfolioApi = {
     mediaFiles.forEach(file => {
       formData.append('media_files', file);
     });
-    
+
     if (mediaIds && mediaIds.length > 0) {
       formData.append('media_ids', mediaIds.join(','));
     }
-    
+
     const response = await api.post<Portfolio>('/admin/portfolio/' + portfolioId + '/add_media/', formData);
     return response.data;
   },
@@ -174,7 +183,7 @@ export const portfolioApi = {
     let url = '/admin/portfolio-category/';
     if (params) {
       const queryParams = new URLSearchParams();
-      
+
       const apiParams: Record<string, unknown> = { ...params };
       if (params.page && params.size) {
         const { limit, offset } = convertToLimitOffset(params.page, params.size);
@@ -184,7 +193,7 @@ export const portfolioApi = {
         delete apiParams.page;
         delete apiParams.size;
       }
-      
+
       Object.entries(apiParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           queryParams.append(key, String(value));
@@ -195,12 +204,12 @@ export const portfolioApi = {
         url += '?' + queryString;
       }
     }
-    
+
     const response = await api.get<PortfolioCategory[]>(url);
-    
+
     const responseData = Array.isArray(response.data) ? response.data : [];
     const responsePagination = response.pagination;
-    
+
     const pagination: ApiPagination = {
       count: responsePagination?.count || responseData.length,
       next: responsePagination?.next || null,
@@ -209,14 +218,14 @@ export const portfolioApi = {
       current_page: responsePagination?.current_page || (params?.page || 1),
       total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
     };
-    
+
     if (pagination.current_page < 1) {
       pagination.current_page = 1;
     }
     if (pagination.current_page > pagination.total_pages) {
       pagination.current_page = pagination.total_pages;
     }
-    
+
     return {
       data: responseData,
       pagination: pagination
@@ -256,7 +265,7 @@ export const portfolioApi = {
     let url = '/admin/portfolio-tag/';
     if (params) {
       const queryParams = new URLSearchParams();
-      
+
       const apiParams: Record<string, unknown> = { ...params };
       if (params.page && params.size) {
         const { limit, offset } = convertToLimitOffset(params.page, params.size);
@@ -266,7 +275,7 @@ export const portfolioApi = {
         delete apiParams.page;
         delete apiParams.size;
       }
-      
+
       Object.entries(apiParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           queryParams.append(key, String(value));
@@ -277,12 +286,12 @@ export const portfolioApi = {
         url += '?' + queryString;
       }
     }
-    
+
     const response = await api.get<PortfolioTag[]>(url);
-    
+
     const responseData = Array.isArray(response.data) ? response.data : [];
     const responsePagination = response.pagination;
-    
+
     const pagination: ApiPagination = {
       count: responsePagination?.count || responseData.length,
       next: responsePagination?.next || null,
@@ -291,14 +300,14 @@ export const portfolioApi = {
       current_page: responsePagination?.current_page || (params?.page || 1),
       total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
     };
-    
+
     if (pagination.current_page < 1) {
       pagination.current_page = 1;
     }
     if (pagination.current_page > pagination.total_pages) {
       pagination.current_page = pagination.total_pages;
     }
-    
+
     return {
       data: responseData,
       pagination: pagination
@@ -338,7 +347,7 @@ export const portfolioApi = {
     let url = '/admin/portfolio-option/';
     if (params) {
       const queryParams = new URLSearchParams();
-      
+
       const apiParams: Record<string, unknown> = { ...params };
       if (params.page && params.size) {
         const { limit, offset } = convertToLimitOffset(params.page, params.size);
@@ -347,7 +356,7 @@ export const portfolioApi = {
         delete apiParams.page;
         delete apiParams.size;
       }
-      
+
       Object.entries(apiParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           queryParams.append(key, String(value));
@@ -358,12 +367,12 @@ export const portfolioApi = {
         url += '?' + queryString;
       }
     }
-    
+
     const response = await api.get<PortfolioOption[]>(url);
-    
+
     const responseData = Array.isArray(response.data) ? response.data : [];
     const responsePagination = response.pagination;
-    
+
     const pagination: ApiPagination = {
       count: responsePagination?.count || responseData.length,
       next: responsePagination?.next || null,
@@ -372,14 +381,14 @@ export const portfolioApi = {
       current_page: responsePagination?.current_page || (params?.page || 1),
       total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
     };
-    
+
     if (pagination.current_page < 1) {
       pagination.current_page = 1;
     }
     if (pagination.current_page > pagination.total_pages) {
       pagination.current_page = pagination.total_pages;
     }
-    
+
     return {
       data: responseData,
       pagination: pagination
@@ -415,3 +424,6 @@ export const portfolioApi = {
     return response.data;
   },
 };
+
+// Export standalone functions
+export const { getPortfoliosByIds } = portfolioApi;

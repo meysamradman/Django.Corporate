@@ -188,11 +188,15 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                 <DropdownMenuContent align="end" className="min-w-[180px]">
                   {activeExportConfigs.map((config, index) => {
                     const getIcon = () => {
-                      if (config.value === 'excel') {
+                      const val = config.value?.toLowerCase() || "";
+                      if (val.includes('excel')) {
                         return <FileSpreadsheet className="h-4 w-4" />;
                       }
-                      if (config.value === 'pdf') {
+                      if (val.includes('pdf')) {
                         return <FileText className="h-4 w-4" />;
+                      }
+                      if (val.includes('print')) {
+                        return <Printer className="h-4 w-4" />;
                       }
                       return <Download className="h-4 w-4" />;
                     };
@@ -210,18 +214,15 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                     );
                   })}
                   {onPrint && (
-                    <>
-                      {activeExportConfigs.length > 0 && <div className="h-px bg-border my-1" />}
-                      <DropdownMenuItem
-                        onClick={() => handleExportSelect('print')}
-                        className="cursor-pointer"
-                      >
-                        <div className="flex items-center gap-2 w-full">
-                          <Printer className="h-4 w-4" />
-                          <span>پرینت</span>
-                        </div>
-                      </DropdownMenuItem>
-                    </>
+                    <DropdownMenuItem
+                      onClick={() => handleExportSelect('print')}
+                      className="cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2 w-full">
+                        <Printer className="h-4 w-4" />
+                        <span>خروجی پرینت</span>
+                      </div>
+                    </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>

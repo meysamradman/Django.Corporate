@@ -55,6 +55,8 @@ import BlogCategoriesEditPage from './pages/blogs/categories/[id]/edit/page';
 import BlogTagsPage from './pages/blogs/tags/page';
 import BlogTagsCreatePage from './pages/blogs/tags/create/page';
 import BlogTagsEditPage from './pages/blogs/tags/[id]/edit/page';
+import BlogPrintPage from './pages/blogs/print/page';
+import PortfolioPrintPage from './pages/portfolios/print/page';
 import AIChatPage from './pages/ai/chat/page';
 import AIImagePage from './pages/ai/image/page';
 import AIAudioPage from './pages/ai/audio/page';
@@ -134,177 +136,182 @@ function App() {
           <AuthProvider>
             <PermissionProvider>
               <AIChatProvider>
-              <Routes>
-                <Route path="/login" element={<AuthLayout />} />
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <AdminLayout />
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route index element={<Dashboard />} />
-                  <Route path="media" element={<MediaPage />} />
-                  <Route path="admins">
-                    <Route index element={<AdminsPage />} />
-                    <Route path="create" element={<AdminsCreatePage />} />
-                    <Route path="agencies">
-                      <Route index element={<AdminsAgenciesPage />} />
-                      <Route path="create" element={<AdminsAgenciesCreatePage />} />
-                      <Route path=":id/view" element={<AdminsAgenciesViewPage />} />
-                      <Route path=":id/edit" element={<AdminsAgenciesEditPage />} />
+                <Routes>
+                  <Route path="/login" element={<AuthLayout />} />
+                  <Route
+                    path="/"
+                    element={
+                      <ProtectedRoute>
+                        <AdminLayout />
+                      </ProtectedRoute>
+                    }
+                  >
+                    <Route index element={<Dashboard />} />
+                    <Route path="media" element={<MediaPage />} />
+                    <Route path="admins">
+                      <Route index element={<AdminsPage />} />
+                      <Route path="create" element={<AdminsCreatePage />} />
+                      <Route path="agencies">
+                        <Route index element={<AdminsAgenciesPage />} />
+                        <Route path="create" element={<AdminsAgenciesCreatePage />} />
+                        <Route path=":id/view" element={<AdminsAgenciesViewPage />} />
+                        <Route path=":id/edit" element={<AdminsAgenciesEditPage />} />
+                      </Route>
+                      <Route path="me/edit" element={<AdminsMePage />} />
+                      <Route path=":id/view" element={<AdminsViewPage />} />
+                      <Route path=":id/edit" element={<AdminsEditPage />} />
+                      <Route path="permissions" element={<AdminsPermissionsPage />} />
+                      {/* Redirect old agents routes to new location */}
+                      <Route path="agents" element={<Navigate to="/agents" replace />} />
+                      <Route path="agents/:id/view" element={<AgentRedirectView />} />
+                      <Route path="agents/:id/edit" element={<AgentRedirectEdit />} />
+                      <Route path="me-consultant/edit" element={<Navigate to="/agents/me/edit" replace />} />
                     </Route>
-                    <Route path="me/edit" element={<AdminsMePage />} />
-                    <Route path=":id/view" element={<AdminsViewPage />} />
-                    <Route path=":id/edit" element={<AdminsEditPage />} />
-                    <Route path="permissions" element={<AdminsPermissionsPage />} />
-                    {/* Redirect old agents routes to new location */}
-                    <Route path="agents" element={<Navigate to="/agents" replace />} />
-                    <Route path="agents/:id/view" element={<AgentRedirectView />} />
-                    <Route path="agents/:id/edit" element={<AgentRedirectEdit />} />
-                    <Route path="me-consultant/edit" element={<Navigate to="/agents/me/edit" replace />} />
-                  </Route>
-                  <Route path="agents">
-                    <Route index element={<AgentsPage />} />
-                    <Route path="me/edit" element={<AgentsMePage />} />
-                    <Route path=":id/view" element={<AgentViewRedirect />} />
-                    <Route path=":id/edit" element={<AgentsEditPage />} />
-                  </Route>
-                  <Route path="users">
-                    <Route index element={<UsersPage />} />
-                    <Route path="create" element={<UsersCreatePage />} />
-                    <Route path=":id/edit" element={<UsersEditPage />} />
-                  </Route>
-                  <Route path="roles">
-                    <Route index element={<RolesPage />} />
-                    <Route path="create" element={<RolesCreatePage />} />
-                    <Route path=":id" element={<RolesViewPage />} />
-                    <Route path=":id/edit" element={<RolesEditPage />} />
-                  </Route>
-                  <Route path="portfolios">
-                    <Route index element={<PortfoliosPage />} />
-                    <Route path="create" element={<PortfoliosCreatePage />} />
-                    <Route path=":id/edit" element={<PortfoliosEditPage />} />
-                    <Route path=":id/view" element={<PortfoliosViewPage />} />
-                    <Route path="categories">
-                      <Route index element={<PortfolioCategoriesPage />} />
-                      <Route path="create" element={<PortfolioCategoriesCreatePage />} />
-                      <Route path=":id/edit" element={<PortfolioCategoriesEditPage />} />
+                    <Route path="agents">
+                      <Route index element={<AgentsPage />} />
+                      <Route path="me/edit" element={<AgentsMePage />} />
+                      <Route path=":id/view" element={<AgentViewRedirect />} />
+                      <Route path=":id/edit" element={<AgentsEditPage />} />
                     </Route>
-                    <Route path="tags">
-                      <Route index element={<PortfolioTagsPage />} />
-                      <Route path="create" element={<PortfolioTagsCreatePage />} />
-                      <Route path=":id/edit" element={<PortfolioTagsEditPage />} />
+                    <Route path="users">
+                      <Route index element={<UsersPage />} />
+                      <Route path="create" element={<UsersCreatePage />} />
+                      <Route path=":id/edit" element={<UsersEditPage />} />
                     </Route>
-                    <Route path="options">
-                      <Route index element={<PortfolioOptionsPage />} />
-                      <Route path="create" element={<PortfolioOptionsCreatePage />} />
-                      <Route path=":id" element={<PortfolioOptionsViewPage />} />
-                      <Route path=":id/edit" element={<PortfolioOptionsEditPage />} />
+                    <Route path="roles">
+                      <Route index element={<RolesPage />} />
+                      <Route path="create" element={<RolesCreatePage />} />
+                      <Route path=":id" element={<RolesViewPage />} />
+                      <Route path=":id/edit" element={<RolesEditPage />} />
                     </Route>
-                  </Route>
-                  <Route path="blogs">
-                    <Route index element={<BlogsPage />} />
-                    <Route path="create" element={<BlogsCreatePage />} />
-                    <Route path=":id/edit" element={<BlogsEditPage />} />
-                    <Route path=":id/view" element={<BlogsViewPage />} />
-                    <Route path="categories">
-                      <Route index element={<BlogCategoriesPage />} />
-                      <Route path="create" element={<BlogCategoriesCreatePage />} />
-                      <Route path=":id/edit" element={<BlogCategoriesEditPage />} />
+                    <Route path="portfolios">
+                      <Route index element={<PortfoliosPage />} />
+                      <Route path="create" element={<PortfoliosCreatePage />} />
+                      <Route path=":id/edit" element={<PortfoliosEditPage />} />
+                      <Route path=":id/view" element={<PortfoliosViewPage />} />
+                      <Route path="categories">
+                        <Route index element={<PortfolioCategoriesPage />} />
+                        <Route path="create" element={<PortfolioCategoriesCreatePage />} />
+                        <Route path=":id/edit" element={<PortfolioCategoriesEditPage />} />
+                      </Route>
+                      <Route path="tags">
+                        <Route index element={<PortfolioTagsPage />} />
+                        <Route path="create" element={<PortfolioTagsCreatePage />} />
+                        <Route path=":id/edit" element={<PortfolioTagsEditPage />} />
+                      </Route>
+                      <Route path="options">
+                        <Route index element={<PortfolioOptionsPage />} />
+                        <Route path="create" element={<PortfolioOptionsCreatePage />} />
+                        <Route path=":id" element={<PortfolioOptionsViewPage />} />
+                        <Route path=":id/edit" element={<PortfolioOptionsEditPage />} />
+                      </Route>
                     </Route>
-                    <Route path="tags">
-                      <Route index element={<BlogTagsPage />} />
-                      <Route path="create" element={<BlogTagsCreatePage />} />
-                      <Route path=":id/edit" element={<BlogTagsEditPage />} />
+                    <Route path="blogs">
+                      <Route index element={<BlogsPage />} />
+                      <Route path="create" element={<BlogsCreatePage />} />
+                      <Route path=":id/edit" element={<BlogsEditPage />} />
+                      <Route path=":id/view" element={<BlogsViewPage />} />
+                      <Route path="categories">
+                        <Route index element={<BlogCategoriesPage />} />
+                        <Route path="create" element={<BlogCategoriesCreatePage />} />
+                        <Route path=":id/edit" element={<BlogCategoriesEditPage />} />
+                      </Route>
+                      <Route path="tags">
+                        <Route index element={<BlogTagsPage />} />
+                        <Route path="create" element={<BlogTagsCreatePage />} />
+                        <Route path=":id/edit" element={<BlogTagsEditPage />} />
+                      </Route>
                     </Route>
-                  </Route>
-                  <Route path="ai">
-                    <Route path="chat" element={<AIChatPage />} />
-                    <Route path="image" element={<AIImagePage />} />
-                    <Route path="audio" element={<AIAudioPage />} />
-                    <Route path="content" element={<AIContentPage />} />
-                    <Route path="models" element={<AIModelsPage />} />
-                    <Route path="settings" element={<AISettingsPage />} />
-                    <Route path="ai-unified" element={<AIUnifiedPage />} />
-                  </Route>
-                  <Route path="analytics" element={<AnalyticsPage />} />
-                  <Route path="settings" element={<SettingsPage />} />
-                  <Route path="panel" element={<PanelPage />} />
-                  <Route path="email" element={<EmailPage />} />
-                  <Route path="ticket" element={<TicketPage />} />
-                  <Route path="chatbot" element={<ChatbotPage />} />
-                  <Route path="form-builder" element={<FormBuilderPage />} />
-                  <Route path="page">
-                    <Route path="about" element={<PageAbout />} />
-                    <Route path="terms" element={<PageTerms />} />
-                  </Route>
-                  <Route path="real-estate">
-                    <Route index element={<PropertiesPage />} />
-                    <Route path="statistics" element={<RealEstateStatisticsPage />} />
-                    <Route path="properties">
+                    <Route path="ai">
+                      <Route path="chat" element={<AIChatPage />} />
+                      <Route path="image" element={<AIImagePage />} />
+                      <Route path="audio" element={<AIAudioPage />} />
+                      <Route path="content" element={<AIContentPage />} />
+                      <Route path="models" element={<AIModelsPage />} />
+                      <Route path="settings" element={<AISettingsPage />} />
+                      <Route path="ai-unified" element={<AIUnifiedPage />} />
+                    </Route>
+                    <Route path="analytics" element={<AnalyticsPage />} />
+                    <Route path="settings" element={<SettingsPage />} />
+                    <Route path="panel" element={<PanelPage />} />
+                    <Route path="email" element={<EmailPage />} />
+                    <Route path="ticket" element={<TicketPage />} />
+                    <Route path="chatbot" element={<ChatbotPage />} />
+                    <Route path="form-builder" element={<FormBuilderPage />} />
+                    <Route path="page">
+                      <Route path="about" element={<PageAbout />} />
+                      <Route path="terms" element={<PageTerms />} />
+                    </Route>
+                    <Route path="real-estate">
                       <Route index element={<PropertiesPage />} />
-                      <Route path="create" element={<PropertiesCreatePage />} />
-                      <Route path=":id/edit" element={<PropertiesEditPage />} />
-                      <Route path=":id/view" element={<PropertiesViewPage />} />
+                      <Route path="statistics" element={<RealEstateStatisticsPage />} />
+                      <Route path="properties">
+                        <Route index element={<PropertiesPage />} />
+                        <Route path="create" element={<PropertiesCreatePage />} />
+                        <Route path=":id/edit" element={<PropertiesEditPage />} />
+                        <Route path=":id/view" element={<PropertiesViewPage />} />
+                      </Route>
+                      <Route path="types">
+                        <Route index element={<PropertyTypesPage />} />
+                        <Route path="create" element={<PropertyTypeCreatePage />} />
+                        <Route path=":id/edit" element={<PropertyTypeEditPage />} />
+                        <Route path=":id/view" element={<PropertyTypeViewPage />} />
+                      </Route>
+                      <Route path="states">
+                        <Route index element={<PropertyStatesPage />} />
+                        <Route path="create" element={<PropertyStateCreatePage />} />
+                        <Route path=":id/edit" element={<PropertyStateEditPage />} />
+                        <Route path=":id/view" element={<PropertyStateViewPage />} />
+                      </Route>
+                      <Route path="labels">
+                        <Route index element={<PropertyLabelsPage />} />
+                        <Route path="create" element={<PropertyLabelCreatePage />} />
+                        <Route path=":id/edit" element={<PropertyLabelEditPage />} />
+                        <Route path=":id/view" element={<PropertyLabelViewPage />} />
+                      </Route>
+                      <Route path="features">
+                        <Route index element={<PropertyFeaturesPage />} />
+                        <Route path="create" element={<PropertyFeatureCreatePage />} />
+                        <Route path=":id/edit" element={<PropertyFeatureEditPage />} />
+                        <Route path=":id/view" element={<PropertyFeatureViewPage />} />
+                      </Route>
+                      <Route path="tags">
+                        <Route index element={<PropertyTagsPage />} />
+                        <Route path="create" element={<PropertyTagCreatePage />} />
+                        <Route path=":id/edit" element={<PropertyTagEditPage />} />
+                        <Route path=":id/view" element={<PropertyTagViewPage />} />
+                      </Route>
+                      {/* Agents and Agencies routes removed from real-estate section — managed via Admins now */}
                     </Route>
-                    <Route path="types">
-                      <Route index element={<PropertyTypesPage />} />
-                      <Route path="create" element={<PropertyTypeCreatePage />} />
-                      <Route path=":id/edit" element={<PropertyTypeEditPage />} />
-                      <Route path=":id/view" element={<PropertyTypeViewPage />} />
-                    </Route>
-                    <Route path="states">
-                      <Route index element={<PropertyStatesPage />} />
-                      <Route path="create" element={<PropertyStateCreatePage />} />
-                      <Route path=":id/edit" element={<PropertyStateEditPage />} />
-                      <Route path=":id/view" element={<PropertyStateViewPage />} />
-                    </Route>
-                    <Route path="labels">
-                      <Route index element={<PropertyLabelsPage />} />
-                      <Route path="create" element={<PropertyLabelCreatePage />} />
-                      <Route path=":id/edit" element={<PropertyLabelEditPage />} />
-                      <Route path=":id/view" element={<PropertyLabelViewPage />} />
-                    </Route>
-                    <Route path="features">
-                      <Route index element={<PropertyFeaturesPage />} />
-                      <Route path="create" element={<PropertyFeatureCreatePage />} />
-                      <Route path=":id/edit" element={<PropertyFeatureEditPage />} />
-                      <Route path=":id/view" element={<PropertyFeatureViewPage />} />
-                    </Route>
-                    <Route path="tags">
-                      <Route index element={<PropertyTagsPage />} />
-                      <Route path="create" element={<PropertyTagCreatePage />} />
-                      <Route path=":id/edit" element={<PropertyTagEditPage />} />
-                      <Route path=":id/view" element={<PropertyTagViewPage />} />
-                    </Route>
-                    {/* Agents and Agencies routes removed from real-estate section — managed via Admins now */}
-                  </Route>
-                  <Route path="staticstyle">
-                    <Route path="realstate">
-                      <Route index element={<RealEstateStaticPage />} />
-                      <Route path="list" element={<RealEstateListPage />} />
-                      <Route path="advisors/list" element={<AdvisorsListPageStatic />} />
-                      <Route path="advisors/:id/view" element={<AdvisorViewPage />} />
-                      <Route path="advisors/:id/edit" element={<AdvisorEditPage />} />
-                      <Route path="agencies/list" element={<AgenciesListPageStatic />} />
-                      <Route path="agencies/:id/view" element={<AgencyViewPageStatic />} />
-                      <Route path="agencies/:id/edit" element={<AgencyEditPageStatic />} />
-                      <Route path=":id">
-                        <Route path="view" element={<RealEstateViewPage />} />
-                        <Route path="edit" element={<RealEstateEditPage />} />
+                    <Route path="staticstyle">
+                      <Route path="realstate">
+                        <Route index element={<RealEstateStaticPage />} />
+                        <Route path="list" element={<RealEstateListPage />} />
+                        <Route path="advisors/list" element={<AdvisorsListPageStatic />} />
+                        <Route path="advisors/:id/view" element={<AdvisorViewPage />} />
+                        <Route path="advisors/:id/edit" element={<AdvisorEditPage />} />
+                        <Route path="agencies/list" element={<AgenciesListPageStatic />} />
+                        <Route path="agencies/:id/view" element={<AgencyViewPageStatic />} />
+                        <Route path="agencies/:id/edit" element={<AgencyEditPageStatic />} />
+                        <Route path=":id">
+                          <Route path="view" element={<RealEstateViewPage />} />
+                          <Route path="edit" element={<RealEstateEditPage />} />
+                        </Route>
                       </Route>
                     </Route>
                   </Route>
-                </Route>
-                <Route path="/dashboard" element={<Navigate to="/" replace />} />
-              </Routes>
-              <Toaster
-                position="top-right"
-                closeButton
-                duration={4000}
-              />
+
+                  {/* Isolated Print Routes - No Sidebar */}
+                  <Route path="/blogs/print" element={<ProtectedRoute><BlogPrintPage /></ProtectedRoute>} />
+                  <Route path="/portfolios/print" element={<ProtectedRoute><PortfolioPrintPage /></ProtectedRoute>} />
+
+                  <Route path="/dashboard" element={<Navigate to="/" replace />} />
+                </Routes>
+                <Toaster
+                  position="top-right"
+                  closeButton
+                  duration={4000}
+                />
               </AIChatProvider>
             </PermissionProvider>
           </AuthProvider>

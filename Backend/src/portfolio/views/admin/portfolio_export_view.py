@@ -1,3 +1,5 @@
+import logging
+import traceback
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -9,13 +11,13 @@ from django.conf import settings
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.services.admin.excel_export_service import PortfolioExcelExportService
 from src.portfolio.services.admin.pdf_list_export_service import PortfolioPDFListExportService
-from src.portfolio.services.admin.print_list_export_service import PortfolioPrintListExportService
 from src.portfolio.filters.admin.portfolio_filters import PortfolioAdminFilter
 from src.core.responses.response import APIResponse
 from src.user.access_control import portfolio_permission, PermissionRequiredMixin
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 
+logger = logging.getLogger(__name__)
 
 class PortfolioExportView(PermissionRequiredMixin, APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
@@ -118,20 +120,22 @@ class PortfolioExportView(PermissionRequiredMixin, APIView):
             
             if export_format == 'pdf':
                 response = PortfolioPDFListExportService.export_portfolios_pdf(queryset)
-            elif export_format == 'print':
-                response = PortfolioPrintListExportService.export_portfolios_print(queryset)
-            else:
+            else:  # excel (default)
                 response = PortfolioExcelExportService.export_portfolios(queryset)
             
             self._add_cors_headers(response, request)
             return response
             
-        except ImportError:
+        except ImportError as e:
+            logger.error(f"ImportError in PortfolioExportView: {str(e)}")
+            logger.error(traceback.format_exc())
             return APIResponse.error(
                 message=PORTFOLIO_ERRORS["portfolio_export_failed"],
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE
             )
-        except Exception:
+        except Exception as e:
+            logger.error(f"Critical error in PortfolioExportView: {str(e)}")
+            logger.error(traceback.format_exc())
             return APIResponse.error(
                 message=PORTFOLIO_ERRORS["portfolio_export_failed"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
