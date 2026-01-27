@@ -11,7 +11,24 @@ except ImportError:
 
 
 class PortfolioExcelExportService:
+    """
+    Optimized Excel export service for Portfolio.
+    Features professional formatting and dynamic field mapping.
+    """
     
+    EXPORT_FIELDS = [
+        {'key': 'title', 'label': 'Title', 'width': 35},
+        {'key': 'short_description', 'label': 'Short Description', 'width': 45},
+        {'key': 'status', 'label': 'Status', 'width': 15},
+        {'key': 'is_featured', 'label': 'Featured', 'width': 12},
+        {'key': 'is_public', 'label': 'Public', 'width': 12},
+        {'key': 'is_active', 'label': 'Active', 'width': 12},
+        {'key': 'created_at', 'label': 'Created At', 'width': 22},
+        {'key': 'categories', 'label': 'Categories', 'width': 30},
+        {'key': 'tags', 'label': 'Tags', 'width': 30},
+        {'key': 'options', 'label': 'Options', 'width': 30},
+    ]
+
     @staticmethod
     def export_portfolios(queryset):
         if not XLSXWRITER_AVAILABLE:
@@ -21,98 +38,62 @@ class PortfolioExcelExportService:
         workbook = xlsxwriter.Workbook(output, {
             'in_memory': True, 
             'default_date_format': 'yyyy-mm-dd hh:mm:ss',
-            'remove_timezone': True
+            'remove_timezone': True,
         })
         worksheet = workbook.add_worksheet('Portfolios')
         
-        headers = [
-            'ID',
-            'Title',
-            'Short Description',
-            'Status',
-            'Featured',
-            'Public',
-            'Active',
-            'Created At',
-            'Updated At',
-            'Categories',
-            'Tags',
-            'Options'
-        ]
-        
+        # Formats
         header_format = workbook.add_format({
-            'bold': True,
-            'bg_color': '#366092',
-            'font_color': 'white',
-            'align': 'center',
-            'valign': 'vcenter',
-            'border': 1,
-            'border_color': '#1e3a5f',
+            'bold': True, 'bg_color': '#2563eb', 'font_color': 'white',
+            'align': 'center', 'valign': 'vcenter', 'border': 1
         })
-        
-        for col_num, header in enumerate(headers):
-            worksheet.write(0, col_num, header, header_format)
-        
         data_format = workbook.add_format({
-            'align': 'right',
-            'valign': 'vcenter',
-            'border': 1,
-            'border_color': '#d0d7de',
+            'align': 'right', 'valign': 'vcenter', 'border': 1, 'border_color': '#e2e8f0'
         })
-        
-        for row_num, portfolio in enumerate(queryset, start=1):
-            worksheet.write(row_num, 0, portfolio.id, data_format)
-            worksheet.write(row_num, 1, portfolio.title, data_format)
-            worksheet.write(row_num, 2, portfolio.short_description or "", data_format)
-            worksheet.write(row_num, 3, portfolio.get_status_display() if hasattr(portfolio, 'get_status_display') else portfolio.status, data_format)
-            
-            worksheet.write(row_num, 4, "Yes" if portfolio.is_featured else "No", data_format)
-            worksheet.write(row_num, 5, "Yes" if portfolio.is_public else "No", data_format)
-            worksheet.write(row_num, 6, "Yes" if portfolio.is_active else "No", data_format)
-            
-            if portfolio.created_at:
-                worksheet.write_datetime(row_num, 7, portfolio.created_at, data_format)
-            else:
-                worksheet.write(row_num, 7, "", data_format)
+        date_format = workbook.add_format({
+            'num_format': 'yyyy-mm-dd hh:mm:ss', 'align': 'right', 'border': 1, 'border_color': '#e2e8f0'
+        })
+
+        # Write Headers
+        for col, field in enumerate(PortfolioExcelExportService.EXPORT_FIELDS):
+            worksheet.write(0, col, field['label'], header_format)
+            worksheet.set_column(col, col, field['width'])
+
+        # Write Data
+        for row, portfolio in enumerate(queryset, start=1):
+            for col, field in enumerate(PortfolioExcelExportService.EXPORT_FIELDS):
+                key = field['key']
                 
-            if portfolio.updated_at:
-                worksheet.write_datetime(row_num, 8, portfolio.updated_at, data_format)
-            else:
-                worksheet.write(row_num, 8, "", data_format)
-            
-            categories = ", ".join([cat.name for cat in portfolio.categories.all()])
-            worksheet.write(row_num, 9, categories, data_format)
-            
-            tags = ", ".join([tag.name for tag in portfolio.tags.all()])
-            worksheet.write(row_num, 10, tags, data_format)
-            
-            options_list = []
-            for opt in portfolio.options.all():
-                if opt.description:
-                    options_list.append(f"{opt.name} ({opt.description})")
+                if key == 'categories':
+                    val = ", ".join([c.name for c in portfolio.categories.all()])
+                elif key == 'tags':
+                    val = ", ".join([t.name for t in portfolio.tags.all()])
+                elif key == 'options':
+                    val = ", ".join([o.name for o in portfolio.options.all()])
+                elif key in ['is_featured', 'is_public', 'is_active']:
+                    val = "Yes" if getattr(portfolio, key) else "No"
+                elif key == 'status':
+                    val = portfolio.get_status_display() if hasattr(portfolio, 'get_status_display') else portfolio.status
                 else:
-                    options_list.append(opt.name)
-            options = ", ".join(options_list)
-            worksheet.write(row_num, 11, options, data_format)
+                    val = getattr(portfolio, key, "")
+
+                if isinstance(val, datetime):
+                    worksheet.write_datetime(row, col, val, date_format)
+                else:
+                    worksheet.write(row, col, val, data_format)
         
-        worksheet.set_column(0, 0, 8)
-        worksheet.set_column(1, 1, 30)
-        worksheet.set_column(2, 2, 40)
-        worksheet.set_column(3, 3, 15)
-        worksheet.set_column(4, 6, 12)
-        worksheet.set_column(7, 8, 20)
-        worksheet.set_column(9, 11, 30)
+        try:
+            worksheet.freeze_panes(1, 0)
+            workbook.close()
+        except Exception:
+            raise Exception(PORTFOLIO_ERRORS["portfolio_export_failed"])
         
-        worksheet.freeze_panes(1, 0)
-        
-        workbook.close()
+        # Response
         output.seek(0)
-        
         response = HttpResponse(
             output.getvalue(),
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
-        timestamp = datetime.now().strftime("%Y%m%d")
-        response['Content-Disposition'] = f'attachment; filename="portfolios_{timestamp}.xlsx"'
-        
+        filename = f"portfolio_export_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response

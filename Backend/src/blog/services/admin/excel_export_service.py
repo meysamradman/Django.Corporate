@@ -11,7 +11,23 @@ except ImportError:
 
 
 class BlogExcelExportService:
+    """
+    Optimized Excel export service for Blog.
+    Features professional formatting and dynamic field mapping.
+    """
     
+    EXPORT_FIELDS = [
+        {'key': 'title', 'label': 'Title', 'width': 35},
+        {'key': 'short_description', 'label': 'Short Description', 'width': 45},
+        {'key': 'status', 'label': 'Status', 'width': 15},
+        {'key': 'is_featured', 'label': 'Featured', 'width': 12},
+        {'key': 'is_public', 'label': 'Public', 'width': 12},
+        {'key': 'is_active', 'label': 'Active', 'width': 12},
+        {'key': 'created_at', 'label': 'Created At', 'width': 22},
+        {'key': 'categories', 'label': 'Categories', 'width': 30},
+        {'key': 'tags', 'label': 'Tags', 'width': 30},
+    ]
+
     @staticmethod
     def export_blogs(queryset):
         if not XLSXWRITER_AVAILABLE:
@@ -21,88 +37,60 @@ class BlogExcelExportService:
         workbook = xlsxwriter.Workbook(output, {
             'in_memory': True, 
             'default_date_format': 'yyyy-mm-dd hh:mm:ss',
-            'remove_timezone': True
+            'remove_timezone': True,
         })
         worksheet = workbook.add_worksheet('Blogs')
         
-        headers = [
-            'ID',
-            'Title',
-            'Short Description',
-            'Status',
-            'Featured',
-            'Public',
-            'Active',
-            'Created At',
-            'Updated At',
-            'Categories',
-            'Tags',
-        ]
-        
+        # Formats
         header_format = workbook.add_format({
-            'bold': True,
-            'bg_color': '#366092',
-            'font_color': 'white',
-            'align': 'center',
-            'valign': 'vcenter',
-            'border': 1,
-            'border_color': '#1e3a5f',
+            'bold': True, 'bg_color': '#2563eb', 'font_color': 'white',
+            'align': 'center', 'valign': 'vcenter', 'border': 1
         })
-        
-        for col_num, header in enumerate(headers):
-            worksheet.write(0, col_num, header, header_format)
-        
         data_format = workbook.add_format({
-            'align': 'right',
-            'valign': 'vcenter',
-            'border': 1,
-            'border_color': '#d0d7de',
+            'align': 'right', 'valign': 'vcenter', 'border': 1, 'border_color': '#e2e8f0'
         })
-        
-        for row_num, blog in enumerate(queryset, start=1):
-            worksheet.write(row_num, 0, blog.id, data_format)
-            worksheet.write(row_num, 1, blog.title, data_format)
-            worksheet.write(row_num, 2, blog.short_description or "", data_format)
-            worksheet.write(row_num, 3, blog.get_status_display() if hasattr(blog, 'get_status_display') else blog.status, data_format)
-            
-            worksheet.write(row_num, 4, "Yes" if blog.is_featured else "No", data_format)
-            worksheet.write(row_num, 5, "Yes" if blog.is_public else "No", data_format)
-            worksheet.write(row_num, 6, "Yes" if blog.is_active else "No", data_format)
-            
-            if blog.created_at:
-                worksheet.write_datetime(row_num, 7, blog.created_at, data_format)
-            else:
-                worksheet.write(row_num, 7, "", data_format)
+        date_format = workbook.add_format({
+            'num_format': 'yyyy-mm-dd hh:mm:ss', 'align': 'right', 'border': 1, 'border_color': '#e2e8f0'
+        })
+
+        # Write Headers
+        for col, field in enumerate(BlogExcelExportService.EXPORT_FIELDS):
+            worksheet.write(0, col, field['label'], header_format)
+            worksheet.set_column(col, col, field['width'])
+
+        # Write Data
+        for row, blog in enumerate(queryset, start=1):
+            for col, field in enumerate(BlogExcelExportService.EXPORT_FIELDS):
+                key = field['key']
                 
-            if blog.updated_at:
-                worksheet.write_datetime(row_num, 8, blog.updated_at, data_format)
-            else:
-                worksheet.write(row_num, 8, "", data_format)
-            
-            categories = ", ".join([cat.name for cat in blog.categories.all()])
-            worksheet.write(row_num, 9, categories, data_format)
-            
-            tags = ", ".join([tag.name for tag in blog.tags.all()])
-            worksheet.write(row_num, 10, tags, data_format)
+                if key == 'categories':
+                    val = ", ".join([c.name for c in blog.categories.all()])
+                elif key == 'tags':
+                    val = ", ".join([t.name for t in blog.tags.all()])
+                elif key in ['is_featured', 'is_public', 'is_active']:
+                    val = "Yes" if getattr(blog, key) else "No"
+                elif key == 'status':
+                    val = blog.get_status_display() if hasattr(blog, 'get_status_display') else blog.status
+                else:
+                    val = getattr(blog, key, "")
+
+                if isinstance(val, datetime):
+                    worksheet.write_datetime(row, col, val, date_format)
+                else:
+                    worksheet.write(row, col, val, data_format)
         
-        worksheet.set_column(0, 0, 8)
-        worksheet.set_column(1, 1, 30)
-        worksheet.set_column(2, 2, 40)
-        worksheet.set_column(3, 3, 15)
-        worksheet.set_column(4, 6, 12)
-        worksheet.set_column(7, 8, 20)
-        worksheet.set_column(9, 10, 30)
+        try:
+            worksheet.freeze_panes(1, 0)
+            workbook.close()
+        except Exception:
+            raise Exception(BLOG_ERRORS["blog_export_failed"])
         
-        worksheet.freeze_panes(1, 0)
-        
-        workbook.close()
+        # Response
         output.seek(0)
-        
         response = HttpResponse(
             output.getvalue(),
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
-        timestamp = datetime.now().strftime("%Y%m%d")
-        response['Content-Disposition'] = f'attachment; filename="blogs_{timestamp}.xlsx"'
-        
+        filename = f"blog_export_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response

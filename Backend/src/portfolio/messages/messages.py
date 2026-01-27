@@ -70,6 +70,9 @@ CATEGORY_ERRORS = {
     "category_slug_exists": "این نامک قبلاً استفاده شده است.",
     "category_max_depth": "حداکثر عمق درخت 5 سطح است.",
     "category_cannot_be_own_parent": "دسته‌بندی نمی‌تواند والد خودش باشد.",
+    "category_move_to_descendant": "نمی‌توانید دسته‌بندی را به فرزند خودش منتقل کنید.",
+    "category_move_to_self": "نمی‌توانید دسته‌بندی را به خودش منتقل کنید.",
+    "categories_not_found": "دسته‌بندی‌های انتخاب شده یافت نشدند.",
 }
 OPTION_SUCCESS = {
     "option_list_success": "لیست گزینه‌ها با موفقیت دریافت شد.",
@@ -160,4 +163,5 @@ PDF_LABELS = {
     "draft": "پیش‌نویس",
     "archived": "بایگانی شده",
     "title": "عنوان",
+    "portfolios_list": "لیست نمونه کارها",
 }

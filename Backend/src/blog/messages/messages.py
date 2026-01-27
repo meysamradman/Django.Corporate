@@ -63,6 +63,7 @@ PDF_LABELS = {
     "draft": "پیش‌نویس",
     "archived": "بایگانی شده",
     "title": "عنوان",
+    "blogs_list": "لیست مقالات",
 }
 
 BLOG_ERRORS = {
