@@ -12,7 +12,10 @@ from src.media.services.media_services import MediaAdminService as MediaService
 class UserManagementService:
     @staticmethod
     def get_users_list(search=None, is_active=None, date_from=None, date_to=None, request=None):
-        queryset = User.objects.select_related('user_profile').prefetch_related(
+        queryset = User.objects.select_related(
+            'user_profile',
+            'user_profile__province',
+            'user_profile__city',
             'user_profile__profile_picture'
         ).filter(user_type='user', is_staff=False)
         
@@ -51,7 +54,10 @@ class UserManagementService:
     @staticmethod
     def get_user_detail(user_id):
         try:
-            return User.objects.select_related('user_profile').prefetch_related(
+            return User.objects.select_related(
+                'user_profile',
+                'user_profile__province',
+                'user_profile__city',
                 'user_profile__profile_picture'
             ).get(id=user_id, user_type='user', is_staff=False)
         except User.DoesNotExist:
@@ -60,7 +66,10 @@ class UserManagementService:
     @staticmethod
     def get_user_by_public_id(public_id):
         try:
-            return User.objects.select_related('user_profile').prefetch_related(
+            return User.objects.select_related(
+                'user_profile',
+                'user_profile__province',
+                'user_profile__city',
                 'user_profile__profile_picture'
             ).get(public_id=public_id, user_type='user', is_staff=False)
         except User.DoesNotExist:
@@ -208,7 +217,12 @@ class UserManagementService:
                 if profile_fields_to_update:
                     UserProfileService.update_user_profile(user, profile_fields_to_update)
             
-            user = User.objects.select_related('user_profile').prefetch_related('user_profile__profile_picture').get(id=user_id)
+            user = User.objects.select_related(
+                'user_profile',
+                'user_profile__province',
+                'user_profile__city',
+                'user_profile__profile_picture'
+            ).get(id=user_id)
             return user
             
         except User.DoesNotExist:

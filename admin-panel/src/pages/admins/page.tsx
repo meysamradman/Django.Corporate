@@ -54,7 +54,7 @@ export default function AdminsPage() {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    
+
 
     if (urlParams.get('page')) {
       const page = parseInt(urlParams.get('page')!, 10);
@@ -64,7 +64,7 @@ export default function AdminsPage() {
       const size = parseInt(urlParams.get('size')!, 10);
       setPagination(prev => ({ ...prev, pageSize: size }));
     }
-    
+
     if (urlParams.get('order_by') && urlParams.get('order_desc') !== null) {
       const orderBy = urlParams.get('order_by')!;
       const orderDesc = urlParams.get('order_desc') === 'true';
@@ -72,11 +72,11 @@ export default function AdminsPage() {
     } else {
       setSorting(initSortingFromURL());
     }
-    
+
     if (urlParams.get('search')) {
       setSearchValue(urlParams.get('search')!);
     }
-    
+
     const newClientFilters: typeof clientFilters = {};
     if (urlParams.get('is_active') !== null) {
       newClientFilters.is_active = urlParams.get('is_active') === 'true';
@@ -93,7 +93,7 @@ export default function AdminsPage() {
       newClientFilters.date_to = dateTo || undefined;
       (newClientFilters as any).date_range = { from: dateFrom || undefined, to: dateTo || undefined };
     }
-    
+
     if (Object.keys(newClientFilters).length > 0) {
       setClientFilters(newClientFilters);
     }
@@ -195,7 +195,7 @@ export default function AdminsPage() {
 
   const actions = useMemo(() => {
     const adminActions: CardItemAction<AdminWithProfile>[] = [];
-    
+
     // Add View action
     adminActions.push({
       label: "مشاهده",
@@ -204,7 +204,7 @@ export default function AdminsPage() {
         // چک کنیم آیا پروفایل خودش هست
         const isOwnProfile = currentUserId !== undefined && Number(currentUserId) === Number(admin.id);
         const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
-        
+
         if (isOwnProfile) {
           // اگه پروفایل خودشه، به ME view میریم (در حال حاضر view جدا نداریم، پس به edit میریم)
           if (isConsultant) {
@@ -222,7 +222,7 @@ export default function AdminsPage() {
         }
       },
     });
-    
+
     adminActions.push({
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
@@ -230,7 +230,7 @@ export default function AdminsPage() {
         // چک کنیم آیا پروفایل خودش هست
         const isOwnProfile = currentUserId !== undefined && Number(currentUserId) === Number(admin.id);
         const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
-        
+
         if (isOwnProfile) {
           // اگه پروفایل خودشه، به ME میریم
           if (isConsultant) {
@@ -253,7 +253,7 @@ export default function AdminsPage() {
         return !isSuperAdmin && !isOwnProfile;
       },
     });
-    
+
     adminActions.push({
       label: "حذف",
       icon: <Trash2 className="h-4 w-4" />,
@@ -261,17 +261,17 @@ export default function AdminsPage() {
       isDestructive: true,
       isDisabled: () => !isSuperAdmin,
     });
-    
+
     return adminActions;
   }, [navigate, currentUserId, isSuperAdmin]);
 
   const getAdminFullName = (admin: AdminWithProfile) => {
     const profile = admin.profile;
-    return admin.full_name || 
-           `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() ||
-           admin.email || 
-           admin.mobile || 
-           '';
+    return admin.full_name ||
+      `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() ||
+      admin.email ||
+      admin.mobile ||
+      '';
   };
 
   const getAdminInitial = (admin: AdminWithProfile) => {
@@ -283,7 +283,7 @@ export default function AdminsPage() {
 
   const getAdminAvatarUrl = (admin: AdminWithProfile) => {
     const profile = admin.profile;
-    return profile?.profile_picture 
+    return profile?.profile_picture
       ? mediaService.getMediaUrlFromObject(profile.profile_picture)
       : null;
   };
@@ -310,12 +310,12 @@ export default function AdminsPage() {
 
 
   const handlePaginationChange = (updaterOrValue: TablePaginationState | ((prev: TablePaginationState) => TablePaginationState)) => {
-    const newPagination = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(pagination) 
+    const newPagination = typeof updaterOrValue === 'function'
+      ? updaterOrValue(pagination)
       : updaterOrValue;
-    
+
     setPagination(newPagination);
-    
+
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
@@ -329,8 +329,8 @@ export default function AdminsPage() {
         <PageHeader title="مدیریت ادمین‌ها" />
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             className="mt-4"
           >
             تلاش مجدد
@@ -344,8 +344,8 @@ export default function AdminsPage() {
     <div className="space-y-6">
       <PageHeader title="مدیریت ادمین‌ها" description="لیست ادمین‌های سیستم">
         {isSuperAdmin ? (
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             asChild
           >
             <Link to="/admins/create">
@@ -497,7 +497,7 @@ export default function AdminsPage() {
                     // چک کنیم آیا پروفایل خودش هست
                     const isOwnProfile = currentUserId !== undefined && Number(currentUserId) === Number(admin.id);
                     const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
-                    
+
                     if (isOwnProfile) {
                       // اگه پروفایل خودشه، به ME view میریم (در حال حاضر view جدا نداریم، پس به edit میریم)
                       if (isConsultant) {
@@ -534,8 +534,8 @@ export default function AdminsPage() {
         </>
       )}
 
-      <AlertDialog 
-        open={deleteConfirm.open} 
+      <AlertDialog
+        open={deleteConfirm.open}
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
       >
         <AlertDialogContent>

@@ -25,9 +25,13 @@ class AdminManagementService:
     def get_admins_list(search=None, is_active=None, is_superuser=None, user_role_type=None, date_from=None, date_to=None, request=None):
         queryset = User.objects.select_related(
             'admin_profile',
-            'real_estate_agent_profile'
-        ).prefetch_related(
+            'admin_profile__province',
+            'admin_profile__city',
             'admin_profile__profile_picture',
+            'real_estate_agent_profile',
+            'real_estate_agent_profile__agency',
+            'real_estate_agent_profile__profile_picture'
+        ).prefetch_related(
             'admin_user_roles__role'
         ).filter(user_type='admin', is_staff=True, is_admin_active=True)
         
@@ -78,8 +82,15 @@ class AdminManagementService:
     @staticmethod
     def get_admin_detail(admin_id):
         try:
-            return User.objects.select_related('admin_profile').prefetch_related(
+            return User.objects.select_related(
+                'admin_profile',
+                'admin_profile__province',
+                'admin_profile__city',
                 'admin_profile__profile_picture',
+                'real_estate_agent_profile',
+                'real_estate_agent_profile__agency',
+                'real_estate_agent_profile__profile_picture'
+            ).prefetch_related(
                 'admin_user_roles__role'
             ).get(id=admin_id, user_type='admin', is_staff=True, is_admin_active=True)
         except User.DoesNotExist:
