@@ -9,6 +9,12 @@ try:
 except ImportError:
     XLSXWRITER_AVAILABLE = False
 
+try:
+    import jdatetime
+    JDATETIME_AVAILABLE = True
+except ImportError:
+    JDATETIME_AVAILABLE = False
+
 
 class BlogExcelExportService:
     """
@@ -58,32 +64,37 @@ class BlogExcelExportService:
             worksheet.write(0, col, field['label'], header_format)
             worksheet.set_column(col, col, field['width'])
 
-        # Write Data
-        for row, blog in enumerate(queryset, start=1):
-            for col, field in enumerate(BlogExcelExportService.EXPORT_FIELDS):
-                key = field['key']
-                
-                if key == 'categories':
-                    val = ", ".join([c.name for c in blog.categories.all()])
-                elif key == 'tags':
-                    val = ", ".join([t.name for t in blog.tags.all()])
-                elif key in ['is_featured', 'is_public', 'is_active']:
-                    val = "Yes" if getattr(blog, key) else "No"
-                elif key == 'status':
-                    val = blog.get_status_display() if hasattr(blog, 'get_status_display') else blog.status
-                else:
-                    val = getattr(blog, key, "")
-
-                if isinstance(val, datetime):
-                    worksheet.write_datetime(row, col, val, date_format)
-                else:
-                    worksheet.write(row, col, val, data_format)
-        
         try:
+            # Write Data
+            for row, blog in enumerate(queryset, start=1):
+                for col, field in enumerate(BlogExcelExportService.EXPORT_FIELDS):
+                    key = field['key']
+                    val = ""
+                    
+                    if key == 'categories':
+                        val = ", ".join([c.name for c in blog.categories.all()])
+                    elif key == 'tags':
+                        val = ", ".join([t.name for t in blog.tags.all()])
+                    elif key in ['is_featured', 'is_public', 'is_active']:
+                        val = "Yes" if getattr(blog, key) else "No"
+                    elif key == 'status':
+                        status_map = {'published': 'منتشر شده', 'draft': 'پیش نویس', 'archived': 'آرشیو'}
+                        val = status_map.get(blog.status, blog.status)
+                    else:
+                        val = getattr(blog, key, "")
+
+                    if isinstance(val, datetime):
+                        if JDATETIME_AVAILABLE:
+                            jd = jdatetime.datetime.fromgregorian(datetime=val)
+                            worksheet.write(row, col, jd.strftime("%Y/%m/%d %H:%M"), data_format)
+                        else:
+                            worksheet.write_datetime(row, col, val, date_format)
+                    else:
+                        worksheet.write(row, col, val, data_format)
+            
             worksheet.freeze_panes(1, 0)
+        finally:
             workbook.close()
-        except Exception:
-            raise Exception(BLOG_ERRORS["blog_export_failed"])
         
         # Response
         output.seek(0)

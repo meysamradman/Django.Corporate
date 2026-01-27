@@ -9,6 +9,7 @@ from django.conf import settings
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.services.admin.excel_export_service import PortfolioExcelExportService
 from src.portfolio.services.admin.pdf_list_export_service import PortfolioPDFListExportService
+from src.portfolio.services.admin.print_list_export_service import PortfolioPrintListExportService
 from src.portfolio.filters.admin.portfolio_filters import PortfolioAdminFilter
 from src.core.responses.response import APIResponse
 from src.user.access_control import portfolio_permission, PermissionRequiredMixin
@@ -33,18 +34,17 @@ class PortfolioExportView(PermissionRequiredMixin, APIView):
         return response
     
     def _add_cors_headers(self, response, request):
-        origin = request.META.get('HTTP_ORIGIN', '')
+        origin = request.META.get('HTTP_ORIGIN')
+        if not origin:
+            return
+            
         allowed_origins = getattr(settings, 'CORS_ALLOWED_ORIGINS', [])
-        
-        if origin and (origin in allowed_origins or settings.DEBUG):
+        if settings.DEBUG or origin in allowed_origins:
             response['Access-Control-Allow-Origin'] = origin
-        elif allowed_origins:
-            response['Access-Control-Allow-Origin'] = allowed_origins[0]
-        
-        if getattr(settings, 'CORS_ALLOW_CREDENTIALS', False):
             response['Access-Control-Allow-Credentials'] = 'true'
-        
-        response['Access-Control-Expose-Headers'] = 'Content-Disposition, Content-Type'
+            response['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+            response['Access-Control-Allow-Headers'] = 'Content-Type, X-CSRFToken, Authorization, Accept'
+            response['Access-Control-Expose-Headers'] = 'Content-Disposition, Content-Type, Content-Length'
     
     def perform_content_negotiation(self, request, force=False):
         return (JSONRenderer(), JSONRenderer().media_type)
@@ -118,6 +118,8 @@ class PortfolioExportView(PermissionRequiredMixin, APIView):
             
             if export_format == 'pdf':
                 response = PortfolioPDFListExportService.export_portfolios_pdf(queryset)
+            elif export_format == 'print':
+                response = PortfolioPrintListExportService.export_portfolios_print(queryset)
             else:
                 response = PortfolioExcelExportService.export_portfolios(queryset)
             

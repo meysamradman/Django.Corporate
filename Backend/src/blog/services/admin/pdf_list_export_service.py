@@ -12,6 +12,8 @@ try:
 except ImportError:
     JDATETIME_AVAILABLE = False
 
+from src.core.utils.date_utils import format_jalali_date
+
 try:
     import arabic_reshaper
     from bidi.algorithm import get_display
@@ -103,15 +105,8 @@ class BlogPDFListExportService:
 
     @staticmethod
     def _convert_date(dt):
-        """Converts datetime to Persian string if possible."""
-        if not dt: return ""
-        try:
-            if JDATETIME_AVAILABLE:
-                jd = jdatetime.datetime.fromgregorian(datetime=dt)
-                return jd.strftime("%Y/%m/%d")
-            return dt.strftime("%Y/%m/%d")
-        except Exception:
-            return str(dt)
+        """Converts datetime to Persian string using robust utility."""
+        return format_jalali_date(dt)
 
     @staticmethod
     def export_blogs_pdf(queryset):

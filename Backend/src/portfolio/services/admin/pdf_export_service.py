@@ -12,6 +12,8 @@ try:
 except ImportError:
     JDATETIME_AVAILABLE = False
 
+from src.core.utils.date_utils import format_jalali_date
+
 try:
     import arabic_reshaper
     from bidi.algorithm import get_display
@@ -145,16 +147,10 @@ class PortfolioPDFExportService:
                 elements.append(Spacer(1, 15))
 
         # Metadata Table
-        def get_jalali_date(dt):
-            if not dt: return "-"
-            if JDATETIME_AVAILABLE:
-                return jdatetime.datetime.fromgregorian(datetime=dt).strftime("%Y/%m/%d")
-            return dt.strftime("%Y/%m/%d")
-
         meta_data = [
             [rtl(PDF_LABELS.get('categories', 'دسته بندی')), rtl(", ".join([c.name for c in portfolio.categories.all()]))],
             [rtl(PDF_LABELS.get('options', 'امکانات')), rtl(", ".join([o.name for o in portfolio.options.all()]))],
-            [rtl(PDF_LABELS.get('created_at', 'تاریخ')), rtl(get_jalali_date(portfolio.created_at))],
+            [rtl(PDF_LABELS.get('created_at', 'تاریخ')), rtl(format_jalali_date(portfolio.created_at))],
             [rtl(PDF_LABELS.get('status', 'وضعیت')), rtl(status_map.get(portfolio.status, portfolio.status))]
         ]
         meta_table = Table(meta_data, colWidths=[1.5*inch, 3.5*inch])

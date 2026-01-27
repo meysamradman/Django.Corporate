@@ -9,6 +9,7 @@ from django.conf import settings
 from src.blog.models.blog import Blog
 from src.blog.services.admin.excel_export_service import BlogExcelExportService
 from src.blog.services.admin.pdf_list_export_service import BlogPDFListExportService
+from src.blog.services.admin.print_list_export_service import BlogPrintListExportService
 from src.blog.filters.admin.blog_filters import BlogAdminFilter
 from src.core.responses.response import APIResponse
 from src.user.access_control import blog_permission, PermissionRequiredMixin
@@ -33,18 +34,17 @@ class BlogExportView(PermissionRequiredMixin, APIView):
         return response
     
     def _add_cors_headers(self, response, request):
-        origin = request.META.get('HTTP_ORIGIN', '')
+        origin = request.META.get('HTTP_ORIGIN')
+        if not origin:
+            return
+            
         allowed_origins = getattr(settings, 'CORS_ALLOWED_ORIGINS', [])
-        
-        if origin and (origin in allowed_origins or settings.DEBUG):
+        if settings.DEBUG or origin in allowed_origins:
             response['Access-Control-Allow-Origin'] = origin
-        elif allowed_origins:
-            response['Access-Control-Allow-Origin'] = allowed_origins[0]
-        
-        if getattr(settings, 'CORS_ALLOW_CREDENTIALS', False):
             response['Access-Control-Allow-Credentials'] = 'true'
-        
-        response['Access-Control-Expose-Headers'] = 'Content-Disposition, Content-Type'
+            response['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+            response['Access-Control-Allow-Headers'] = 'Content-Type, X-CSRFToken, Authorization, Accept'
+            response['Access-Control-Expose-Headers'] = 'Content-Disposition, Content-Type, Content-Length'
     
     def perform_content_negotiation(self, request, force=False):
         return (JSONRenderer(), JSONRenderer().media_type)
@@ -118,6 +118,8 @@ class BlogExportView(PermissionRequiredMixin, APIView):
             
             if export_format == 'pdf':
                 response = BlogPDFListExportService.export_blogs_pdf(queryset)
+            elif export_format == 'print':
+                response = BlogPrintListExportService.export_blogs_print(queryset)
             else:
                 response = BlogExcelExportService.export_blogs(queryset)
             

@@ -9,6 +9,12 @@ try:
 except ImportError:
     XLSXWRITER_AVAILABLE = False
 
+try:
+    import jdatetime
+    JDATETIME_AVAILABLE = True
+except ImportError:
+    JDATETIME_AVAILABLE = False
+
 
 class PortfolioExcelExportService:
     """
@@ -59,34 +65,39 @@ class PortfolioExcelExportService:
             worksheet.write(0, col, field['label'], header_format)
             worksheet.set_column(col, col, field['width'])
 
-        # Write Data
-        for row, portfolio in enumerate(queryset, start=1):
-            for col, field in enumerate(PortfolioExcelExportService.EXPORT_FIELDS):
-                key = field['key']
-                
-                if key == 'categories':
-                    val = ", ".join([c.name for c in portfolio.categories.all()])
-                elif key == 'tags':
-                    val = ", ".join([t.name for t in portfolio.tags.all()])
-                elif key == 'options':
-                    val = ", ".join([o.name for o in portfolio.options.all()])
-                elif key in ['is_featured', 'is_public', 'is_active']:
-                    val = "Yes" if getattr(portfolio, key) else "No"
-                elif key == 'status':
-                    val = portfolio.get_status_display() if hasattr(portfolio, 'get_status_display') else portfolio.status
-                else:
-                    val = getattr(portfolio, key, "")
-
-                if isinstance(val, datetime):
-                    worksheet.write_datetime(row, col, val, date_format)
-                else:
-                    worksheet.write(row, col, val, data_format)
-        
         try:
+            # Write Data
+            for row, portfolio in enumerate(queryset, start=1):
+                for col, field in enumerate(PortfolioExcelExportService.EXPORT_FIELDS):
+                    key = field['key']
+                    val = ""
+                    
+                    if key == 'categories':
+                        val = ", ".join([c.name for c in portfolio.categories.all()])
+                    elif key == 'tags':
+                        val = ", ".join([t.name for t in portfolio.tags.all()])
+                    elif key == 'options':
+                        val = ", ".join([o.name for o in portfolio.options.all()])
+                    elif key in ['is_featured', 'is_public', 'is_active']:
+                        val = "Yes" if getattr(portfolio, key) else "No"
+                    elif key == 'status':
+                        status_map = {'published': 'منتشر شده', 'draft': 'پیش نویس', 'archived': 'آرشیو'}
+                        val = status_map.get(portfolio.status, portfolio.status)
+                    else:
+                        val = getattr(portfolio, key, "")
+
+                    if isinstance(val, datetime):
+                        if JDATETIME_AVAILABLE:
+                            jd = jdatetime.datetime.fromgregorian(datetime=val)
+                            worksheet.write(row, col, jd.strftime("%Y/%m/%d %H:%M"), data_format)
+                        else:
+                            worksheet.write_datetime(row, col, val, date_format)
+                    else:
+                        worksheet.write(row, col, val, data_format)
+            
             worksheet.freeze_panes(1, 0)
+        finally:
             workbook.close()
-        except Exception:
-            raise Exception(PORTFOLIO_ERRORS["portfolio_export_failed"])
         
         # Response
         output.seek(0)
