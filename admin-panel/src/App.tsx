@@ -57,6 +57,7 @@ import BlogTagsCreatePage from './pages/blogs/tags/create/page';
 import BlogTagsEditPage from './pages/blogs/tags/[id]/edit/page';
 import BlogPrintPage from './pages/blogs/print/page';
 import PortfolioPrintPage from './pages/portfolios/print/page';
+import PropertyPrintPage from './pages/real-estate/print/page';
 import AIChatPage from './pages/ai/chat/page';
 import AIImagePage from './pages/ai/image/page';
 import AIAudioPage from './pages/ai/audio/page';
@@ -304,6 +305,7 @@ function App() {
                   {/* Isolated Print Routes - No Sidebar */}
                   <Route path="/blogs/print" element={<ProtectedRoute><BlogPrintPage /></ProtectedRoute>} />
                   <Route path="/portfolios/print" element={<ProtectedRoute><PortfolioPrintPage /></ProtectedRoute>} />
+                  <Route path="/real-estate/print" element={<ProtectedRoute><PropertyPrintPage /></ProtectedRoute>} />
 
                   <Route path="/dashboard" element={<Navigate to="/" replace />} />
                 </Routes>

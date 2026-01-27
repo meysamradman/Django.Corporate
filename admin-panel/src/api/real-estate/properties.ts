@@ -95,6 +95,15 @@ export const realEstateApi = {
     return response.data;
   },
 
+  getPropertiesByIds: async (ids: number[]): Promise<Property[]> => {
+    if (ids.length === 0) {
+      return [];
+    }
+    const url = `/admin/property/?ids=${ids.join(',')}`;
+    const response = await api.get<Property[]>(url);
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
   createProperty: async (data: Partial<PropertyUpdateData>): Promise<Property> => {
     console.log("🚀 [Frontend] Sending createProperty (JSON):", data);
     const response = await api.post<Property>('/admin/property/', data);

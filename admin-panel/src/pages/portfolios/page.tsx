@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { usePortfolioColumns } from "@/components/portfolios/list/PortfolioTableColumns";
 import { usePortfolioFilterOptions, getPortfolioFilterConfig } from "@/components/portfolios/list/PortfolioTableFilters";
 import type { PortfolioFilters } from "@/types/portfolio/portfolioListParams";
-import { Eye, Edit, Trash2, Plus } from "lucide-react";
+import { Eye, Edit, Trash2, Plus, FileText } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
 import { showError, showSuccess, showWarning } from '@/core/toast';
@@ -286,12 +286,18 @@ export default function PortfolioPage() {
       isDestructive: true,
       permission: "portfolio.delete",
     },
+    {
+      label: "خروجی PDF",
+      icon: <FileText className="h-4 w-4" />,
+      onClick: (portfolio) => exportSinglePortfolioPdf(portfolio.id),
+      permission: "portfolio.read",
+    },
   ];
 
   const columns = usePortfolioColumns(rowActions, handleToggleActive) as ColumnDef<Portfolio>[];
 
   const { exportExcel, isLoading: isExcelLoading } = usePortfolioExcelExport();
-  const { exportPortfolioListPdf, isLoading: isPdfLoading } = usePortfolioPdfExport();
+  const { exportPortfolioListPdf, exportSinglePortfolioPdf, isLoading: isPdfLoading } = usePortfolioPdfExport();
   const { openPrintWindow } = usePortfolioPrintView();
 
   const handleExcelExport = async (filters: PortfolioFilters, search: string, exportAll: boolean = false) => {

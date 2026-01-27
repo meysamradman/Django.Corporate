@@ -25,6 +25,14 @@ from src.real_estate.services.admin import (
     PropertyAdminMediaService,
 )
 from src.real_estate.filters.admin.property_filters import PropertyAdminFilter
+from src.real_estate.services.admin import (
+    PropertyAdminService,
+    PropertyAdminStatusService,
+    PropertyAdminSEOService,
+    PropertyAdminMediaService,
+    PropertyExcelExportService,
+    PropertyPDFListExportService,
+)
 from src.real_estate.utils.cache import PropertyCacheManager
 from src.real_estate.messages.messages import PROPERTY_SUCCESS, PROPERTY_ERRORS
 
@@ -62,12 +70,14 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         'set_main_image': 'real_estate.property.update',
         'add_media': 'real_estate.property.update',
         'remove_media': 'real_estate.property.update',
+        'export_pdf': 'real_estate.property.read',
         'statistics': 'real_estate.property.read',
         'seo_report': 'real_estate.property.read',
         'bulk_generate_seo': 'real_estate.property.update',
         'generate_seo': 'real_estate.property.update',
         'validate_seo': 'real_estate.property.read',
         'field_options': 'real_estate.property.read',
+        'export': 'real_estate.property.read',
     }
     permission_denied_message = PROPERTY_ERRORS["property_not_authorized"]
     
@@ -80,6 +90,12 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         elif self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
             queryset = Property.objects.for_detail().select_related(
                 'region__city__province__country'
+            )
+        elif self.action == 'export':
+            queryset = Property.objects.for_admin_listing().prefetch_related(
+                'labels', 'tags', 'features'
+            ).select_related(
+                'property_type', 'state', 'city', 'province', 'agent', 'agency'
             )
 
         is_super = getattr(user, 'is_superuser', False) or getattr(user, 'is_admin_full', False)
@@ -761,4 +777,65 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             data=options,
             status_code=status.HTTP_200_OK
         )
+
+    @action(detail=False, methods=['get'], url_path='export')
+    def export(self, request):
+        """
+        Export property listings in Excel or PDF format
+        GET /property/export/?format=excel|pdf&[filters]
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+        export_format = request.query_params.get('format', 'excel').lower()
+        
+        logger.info(f"Property export requested. Format: {export_format}, Count: {queryset.count()}")
+        
+        try:
+            if export_format == 'pdf':
+                # Optimization for PDF build
+                queryset = queryset.select_related('property_type', 'state', 'city')
+                return PropertyPDFListExportService.export_properties_pdf(queryset)
+            else:
+                return PropertyExcelExportService.export_properties(queryset)
+        except ImportError as e:
+            logger.error(f"Export dependency missing: {str(e)}")
+            return APIResponse.error(
+                message=str(e),
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+        except Exception as e:
+            logger.error(f"Property export failed: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return APIResponse.error(
+                message=PROPERTY_ERRORS.get("property_export_failed", "Export failed"),
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=['get'], url_path='export-pdf')
+    def export_pdf(self, request, pk=None):
+        """
+        Export a single property record in professional PDF format
+        GET /property/{id}/export-pdf/
+        """
+        try:
+            # Prefetch for better performance and complete data
+            instance = Property.objects.prefetch_related(
+                'labels', 'tags', 'features', 'images__image'
+            ).select_related(
+                'property_type', 'state', 'city', 'province', 'agent', 'agency'
+            ).get(pk=pk)
+            
+            # Use the dedicated single-property PDF service
+            from src.real_estate.services.admin.pdf_export_service import PropertyPDFExportService
+            return PropertyPDFExportService.export_property_pdf(instance)
+        except Property.DoesNotExist:
+            return APIResponse.error(
+                message=PROPERTY_ERRORS["property_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        except Exception:
+            return APIResponse.error(
+                message=PROPERTY_ERRORS.get("property_export_failed", "Export failed"),
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 

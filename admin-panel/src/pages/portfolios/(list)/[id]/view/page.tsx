@@ -11,6 +11,7 @@ import { PortfolioOverview } from "@/components/portfolios/list/view/PortfolioOv
 import { PortfolioMedia } from "@/components/portfolios/list/view/PortfolioMedia.tsx";
 import { PortfolioSEO } from "@/components/portfolios/list/view/PortfolioSEO.tsx";
 import { PortfolioAttributes } from "@/components/portfolios/list/view/PortfolioAttributes.tsx";
+import { usePortfolioPdfExport } from "@/hooks/portfolios/usePortfolioPdfExport";
 import { FloatingActions } from "@/components/elements/FloatingActions";
 
 export default function PortfolioViewPage() {
@@ -25,6 +26,7 @@ export default function PortfolioViewPage() {
     staleTime: 0,
     enabled: !!portfolioId,
   });
+  const { exportSinglePortfolioPdf, isLoading: isExportingPdf } = usePortfolioPdfExport();
 
   if (!portfolioId) {
     return (
@@ -100,6 +102,12 @@ export default function PortfolioViewPage() {
               const url = `/portfolios/print?ids=${portfolioId}&type=detail`;
               window.open(url, '_blank', 'width=1024,height=768');
             },
+          },
+          {
+            icon: FileText,
+            label: `دریافت فایل PDF ${isExportingPdf ? "..." : ""}`,
+            variant: "outline",
+            onClick: () => exportSinglePortfolioPdf(Number(portfolioId)),
           },
           {
             icon: Edit2,

@@ -10,6 +10,11 @@ class PropertyAdminFilter(django_filters.FilterSet):
         help_text="Filter by listing lifecycle status (single or comma-separated)"
     )
     
+    ids = django_filters.CharFilter(
+        method='filter_ids',
+        help_text="Filter by multiple IDs (comma-separated)"
+    )
+    
     is_published = django_filters.BooleanFilter(
         help_text="Filter by published status"
     )
@@ -105,6 +110,24 @@ class PropertyAdminFilter(django_filters.FilterSet):
     region_code = django_filters.CharFilter(
         method='filter_region_code',
         help_text="Filter by region code (single or comma-separated)"
+    )
+
+    # Standardized aliases for multi-select parity
+    property_types__in = django_filters.CharFilter(
+        method='filter_property_type',
+        help_text="Alias for property_type"
+    )
+    states__in = django_filters.CharFilter(
+        method='filter_state',
+        help_text="Alias for state"
+    )
+    cities__in = django_filters.CharFilter(
+        method='filter_city',
+        help_text="Alias for city"
+    )
+    statuses__in = django_filters.CharFilter(
+        method='filter_status',
+        help_text="Alias for status"
     )
 
     neighborhood = django_filters.CharFilter(
@@ -243,9 +266,20 @@ class PropertyAdminFilter(django_filters.FilterSet):
             'labels__in', 'tags__in', 'features__in',
             'seo_status', 'has_meta_title', 'has_meta_description',
             'has_og_image', 'has_canonical_url',
-            'search', 'has_main_image', 'media_count', 'media_count_gte',
+            'search', 'has_main_image', 'media_count', 'media_count_gte', 'ids',
+            'property_types__in', 'states__in', 'cities__in', 'statuses__in',
         ]
     
+    def filter_ids(self, queryset, name, value):
+        if value:
+            try:
+                ids = [int(id.strip()) for id in value.split(',') if id.strip().isdigit()]
+                if ids:
+                    return queryset.filter(id__in=ids)
+            except ValueError:
+                pass
+        return queryset
+
     def filter_seo_status(self, queryset, name, value):
         if value == 'complete':
             return queryset.filter(

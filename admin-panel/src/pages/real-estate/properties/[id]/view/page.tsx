@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { FileText, Image, Search, Edit2, FileDown, Settings } from "lucide-react";
-import { showError, showSuccess } from '@/core/toast';
+import { FileText, Image, Search, Edit2, Printer, Settings } from "lucide-react";
+
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate";
+import { usePropertyPrintView } from "@/hooks/real-estate/usePropertyPrintView";
 import { RealEstateRealtorCard } from "@/components/real-estate/list/view/RealEstateRealtorCard.tsx";
 import { RealEstateCarousel } from "@/components/real-estate/list/view/RealEstateCarousel.tsx";
 import { RealEstateInfo } from "@/components/real-estate/list/view/RealEstateInfo.tsx";
@@ -13,6 +14,7 @@ import { RealEstateOverview } from "@/components/real-estate/list/view/RealEstat
 import { RealEstateMedia } from "@/components/real-estate/list/view/RealEstateMedia.tsx";
 import { RealEstateSEO } from "@/components/real-estate/list/view/RealEstateSEO.tsx";
 import { RealEstateAttributes } from "@/components/real-estate/list/view/RealEstateAttributes.tsx";
+import { usePropertyPdfExport } from "@/hooks/real-estate/usePropertyPdfExport";
 import { FloatingActions } from "@/components/elements/FloatingActions";
 
 export default function PropertyViewPage() {
@@ -27,6 +29,9 @@ export default function PropertyViewPage() {
     staleTime: 0,
     enabled: !!propertyId,
   });
+
+  const { openPrintWindow } = usePropertyPrintView();
+  const { exportSinglePropertyPdf, isLoading: isExportingPdf } = usePropertyPdfExport();
 
   if (!propertyId) {
     return (
@@ -131,17 +136,18 @@ export default function PropertyViewPage() {
       <FloatingActions
         actions={[
           {
-            icon: FileDown,
-            label: "خروجی PDF",
+            icon: Printer,
+            label: "خروجی PDF / چاپ سند",
             variant: "outline",
-            onClick: async () => {
-              try {
-                await realEstateApi.exportPropertyPdf(Number(propertyId));
-                showSuccess("فایل PDF با موفقیت دانلود شد");
-              } catch (error) {
-                showError("خطا در دانلود فایل PDF");
-              }
+            onClick: () => {
+              openPrintWindow([Number(propertyId)], 'detail');
             },
+          },
+          {
+            icon: FileText,
+            label: `دریافت فایل PDF ${isExportingPdf ? "..." : ""}`,
+            variant: "outline",
+            onClick: () => exportSinglePropertyPdf(Number(propertyId)),
           },
           {
             icon: Edit2,

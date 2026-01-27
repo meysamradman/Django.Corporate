@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { usePropertyColumns } from "@/components/real-estate/list/RealEstateTableColumns";
 import { usePropertyFilterOptions, getPropertyFilterConfig } from "@/components/real-estate/list/RealEstateTableFilters";
 import type { PropertyFilters } from "@/types/real_estate/realEstateListParams";
-import { Edit, Trash2, Plus, Eye } from "lucide-react";
+import { Edit, Trash2, Plus, Eye, FileText } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
 import { showError, showSuccess, showWarning } from '@/core/toast';
@@ -30,12 +30,13 @@ import {
 import type { Property } from "@/types/real_estate/realEstate";
 import type { ColumnDef } from "@tanstack/react-table";
 import { realEstateApi } from "@/api/real-estate";
-import { exportProperties } from "@/api/real-estate/export";
+import { usePropertyPrintView } from "@/hooks/real-estate/usePropertyPrintView";
 import type { DataTableRowAction } from "@/types/shared/table";
 import type { PropertyType } from "@/types/real_estate/type/propertyType";
 import type { PropertyState } from "@/types/real_estate/state/realEstateState";
-import { env } from '@/core/config/environment';
 import type { CategoryItem } from "@/types/shared/table";
+import { usePropertyExcelExport } from "@/hooks/real-estate/usePropertyExcelExport";
+import { usePropertyPdfExport } from "@/hooks/real-estate/usePropertyPdfExport";
 
 const convertPropertyTypesToHierarchical = (types: PropertyType[]): CategoryItem[] => {
   const rootTypes = types.filter(type => !type.parent_id);
@@ -323,237 +324,97 @@ export default function PropertyPage() {
       isDestructive: true,
       permission: "real_estate.property.delete",
     },
+    {
+      label: "خروجی PDF",
+      icon: <FileText className="h-4 w-4" />,
+      onClick: (property) => exportSinglePropertyPdf(property.id),
+      permission: "real_estate.property.view",
+    },
   ];
 
   const columns = usePropertyColumns(rowActions, handleToggleActive) as ColumnDef<Property>[];
 
-  const handleExportExcel = async (filters: PropertyFilters, search: string, exportAll: boolean = false) => {
-    try {
-      const exportParams: any = {
-        search: search || undefined,
-        order_by: sorting.length > 0 ? sorting[0].id : "created_at",
-        order_desc: sorting.length > 0 ? sorting[0].desc : true,
-        is_published: filters.is_published as boolean | undefined,
-        is_featured: filters.is_featured as boolean | undefined,
-        is_active: filters.is_active as boolean | undefined,
-        property_type: filters.property_type,
-        state: filters.state,
-        status: filters.status as string | undefined,
-        city: filters.city,
-      };
+  const { exportExcel, isLoading: isExcelLoading } = usePropertyExcelExport();
+  const { exportPropertyListPdf, exportSinglePropertyPdf, isLoading: isPdfLoading } = usePropertyPdfExport();
+  const { openPrintWindow } = usePropertyPrintView();
 
-      if (exportAll) {
-        exportParams.export_all = true;
-      } else {
-        exportParams.page = pagination.pageIndex + 1;
-        exportParams.size = pagination.pageSize;
-      }
+  const handleExcelExport = async (filters: PropertyFilters, search: string, exportAll: boolean = false) => {
+    const exportParams: any = {
+      search: search || undefined,
+      order_by: sorting.length > 0 ? sorting[0].id : "created_at",
+      order_desc: sorting.length > 0 ? sorting[0].desc : true,
+      is_published: filters.is_published,
+      is_featured: filters.is_featured,
+      is_active: filters.is_active,
+      property_types__in: filters.property_type ? String(filters.property_type) : undefined,
+      states__in: filters.state ? String(filters.state) : undefined,
+      statuses__in: filters.status ? String(filters.status) : undefined,
+      cities__in: filters.city ? String(filters.city) : undefined,
+    };
 
-      await exportProperties(exportParams, 'excel');
-      showSuccess(exportAll ? "فایل اکسل (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل اکسل (صفحه فعلی) با موفقیت دانلود شد");
-    } catch (error: any) {
-      const errorMessage = error?.response?.message || error?.message || "خطا در دانلود فایل اکسل";
-      showError(errorMessage);
+    if (exportAll) exportParams.export_all = true;
+    else {
+      exportParams.page = pagination.pageIndex + 1;
+      exportParams.size = pagination.pageSize;
     }
+
+    await exportExcel(data, properties?.pagination?.count || 0, exportParams);
   };
 
-  const handleExportPDF = async (filters: PropertyFilters, search: string, exportAll: boolean = false) => {
-    try {
-      const exportParams: any = {
-        search: search || undefined,
-        order_by: sorting.length > 0 ? sorting[0].id : "created_at",
-        order_desc: sorting.length > 0 ? sorting[0].desc : true,
-        is_published: filters.is_published as boolean | undefined,
-        is_featured: filters.is_featured as boolean | undefined,
-        is_active: filters.is_active as boolean | undefined,
-        property_type: filters.property_type,
-        state: filters.state,
-        status: filters.status as string | undefined,
-        city: filters.city,
-      };
+  const handlePdfExport = async (filters: PropertyFilters, search: string, exportAll: boolean = false) => {
+    const exportParams: any = {
+      search: search || undefined,
+      order_by: sorting.length > 0 ? sorting[0].id : "created_at",
+      order_desc: sorting.length > 0 ? sorting[0].desc : true,
+      is_published: filters.is_published,
+      is_featured: filters.is_featured,
+      is_active: filters.is_active,
+      property_types__in: filters.property_type ? String(filters.property_type) : undefined,
+      states__in: filters.state ? String(filters.state) : undefined,
+      statuses__in: filters.status ? String(filters.status) : undefined,
+      cities__in: filters.city ? String(filters.city) : undefined,
+    };
 
-      if (exportAll) {
-        exportParams.export_all = true;
-      } else {
-        exportParams.page = pagination.pageIndex + 1;
-        exportParams.size = pagination.pageSize;
-      }
-
-      await exportProperties(exportParams, 'pdf');
-      showSuccess(exportAll ? "فایل PDF (همه آیتم‌ها) با موفقیت دانلود شد" : "فایل PDF (صفحه فعلی) با موفقیت دانلود شد");
-    } catch (error: any) {
-      const errorMessage = error?.response?.message || error?.message || "خطا در دانلود فایل PDF";
-      showError(errorMessage);
+    if (exportAll) exportParams.export_all = true;
+    else {
+      exportParams.page = pagination.pageIndex + 1;
+      exportParams.size = pagination.pageSize;
     }
+
+    exportPropertyListPdf(exportParams);
   };
 
-  const handlePrint = async (printAll: boolean = false) => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      showError("لطفاً popup blocker را غیرفعال کنید");
+  const handlePrintAction = async (printAll: boolean = false) => {
+    // If not printing all, use selection or current page data
+    if (!printAll) {
+      const selectedIds = Object.keys(rowSelection).filter(key => (rowSelection as any)[key]).map(idx => data[parseInt(idx)].id);
+      if (selectedIds.length > 0) {
+        openPrintWindow(selectedIds);
+      } else {
+        openPrintWindow(data.map(p => p.id));
+      }
       return;
     }
 
-    let printData = data;
-    const MAX_PRINT_ITEMS = env.REAL_ESTATE_EXPORT_PRINT_MAX_ITEMS;
-    if (printAll) {
-      try {
-        const allParams = {
-          search: searchValue || undefined,
-          page: 1,
-          size: MAX_PRINT_ITEMS,
-          order_by: sorting.length > 0 ? sorting[0].id : "created_at",
-          order_desc: sorting.length > 0 ? sorting[0].desc : true,
-          is_published: clientFilters.is_published as boolean | undefined,
-          is_featured: clientFilters.is_featured as boolean | undefined,
-          is_active: clientFilters.is_active as boolean | undefined,
-          property_type: clientFilters.property_type,
-          state: clientFilters.state,
-          city: clientFilters.city,
-        };
-        const response = await realEstateApi.getPropertyList(allParams);
-        printData = response.data;
-        const totalCount = response.pagination?.count || 0;
-        if (totalCount > MAX_PRINT_ITEMS) {
-          showWarning(`فقط ${MAX_PRINT_ITEMS} آیتم اول از ${totalCount} آیتم پرینت شد. لطفاً فیلترهای بیشتری اعمال کنید.`);
-        }
-      } catch (error: any) {
-        const errorMessage = error?.response?.message || error?.message || "خطا در دریافت داده‌ها برای پرینت";
-        showError(errorMessage);
-        printWindow.close();
-        return;
+    // Fetch all IDs matching current filters
+    try {
+      showWarning("در حال آماده‌سازی فایل پرینت برای تمامی موارد...");
+      const response = await realEstateApi.getPropertyList({
+        ...queryParams,
+        page: 1,
+        size: 10000,
+      });
+
+      const allIds = response.data.map(p => p.id);
+      if (allIds.length > 0) {
+        openPrintWindow(allIds);
+      } else {
+        showError("داده‌ای برای پرینت یافت نشد");
       }
+    } catch (error) {
+      showError("خطا در بارگذاری داده‌ها برای پرینت");
     }
-
-    const formatDate = (dateString: string) => {
-      const date = new Date(dateString);
-      const year = date.getFullYear() - 621;
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      const seconds = String(date.getSeconds()).padStart(2, '0');
-      return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
-    };
-
-    const tableRows = printData.map((property) => {
-      const propertyType = property.property_type?.title || '-';
-      const state = property.state?.title || '-';
-      const city = property.city_name || '-';
-      const price = property.price || property.sale_price || property.pre_sale_price || property.monthly_rent || '-';
-      const currency = property.currency || 'تومان';
-      const priceText = price !== '-' ? `${new Intl.NumberFormat('fa-IR').format(price)} ${currency}` : '-';
-      const createdDate = property.created_at ? formatDate(property.created_at) : '-';
-
-      return `
-        <tr>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${property.is_active ? 'بله' : 'خیر'}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${property.is_featured ? 'بله' : 'خیر'}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${property.is_published ? 'بله' : 'خیر'}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${createdDate}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${priceText}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${city}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${state}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${propertyType}</td>
-          <td style="text-align: center; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${property.id}</td>
-          <td style="text-align: right; padding: 8px; border-bottom: 0.5px solid #e2e8f0;">${property.title || '-'}</td>
-        </tr>
-      `;
-    }).join('');
-
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html dir="rtl">
-        <head>
-          <meta charset="utf-8">
-          <title>پرینت لیست املاک ${printAll ? '(همه)' : '(صفحه فعلی)'}</title>
-          <style>
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
-            body {
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              direction: rtl;
-              background: white;
-              padding: 20px;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-top: 20px;
-              font-size: 10px;
-            }
-            th {
-              background-color: #f8fafc;
-              color: #0f172a;
-              font-weight: bold;
-              padding: 8px;
-              text-align: right;
-              border-bottom: 1px solid #e2e8f0;
-              font-size: 11px;
-            }
-            td {
-              padding: 8px;
-              color: #0f172a;
-              border-bottom: 0.5px solid #e2e8f0;
-              word-wrap: break-word;
-            }
-            tr:nth-child(even) {
-              background-color: #f8fafc;
-            }
-            tr:nth-child(odd) {
-              background-color: white;
-            }
-            @media print {
-              @page {
-                size: A4 landscape;
-                margin: 1cm;
-              }
-              body {
-                padding: 0;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <table>
-            <thead>
-              <tr>
-                <th>فعال</th>
-                <th>تایید شده</th>
-                <th>ویژه</th>
-                <th>منتشر شده</th>
-                <th>تاریخ ایجاد</th>
-                <th>قیمت</th>
-                <th>شهر</th>
-                <th>وضعیت</th>
-                <th>نوع ملک</th>
-                <th>ID</th>
-                <th>عنوان</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${tableRows}
-            </tbody>
-          </table>
-          <script>
-            window.onload = function() {
-              window.print();
-              setTimeout(function() {
-                window.close();
-              }, 100);
-            };
-          </script>
-        </body>
-      </html>
-    `;
-
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
   };
-
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function'
@@ -654,39 +515,36 @@ export default function PropertyPage() {
           }}
           exportConfigs={[
             {
-              onExport: (filters, search) => handleExportExcel(filters as PropertyFilters, search, false),
-              buttonText: "خروجی اکسل (صفحه فعلی)",
+              onExport: (filters, search) => handleExcelExport(filters as PropertyFilters, search, false),
+              buttonText: `خروجی اکسل (صفحه فعلی)${isExcelLoading ? '...' : ''}`,
               value: "excel",
-              variant: "outline",
             },
             {
-              onExport: (filters, search) => handleExportExcel(filters as PropertyFilters, search, true),
+              onExport: (filters, search) => handleExcelExport(filters as PropertyFilters, search, true),
               buttonText: "خروجی اکسل (همه)",
               value: "excel_all",
-              variant: "outline",
             },
             {
-              onExport: (filters, search) => handleExportPDF(filters as PropertyFilters, search, false),
-              buttonText: "خروجی PDF (صفحه فعلی)",
+              onExport: (filters, search) => handlePdfExport(filters as PropertyFilters, search, false),
+              buttonText: `خروجی PDF (صفحه فعلی)${isPdfLoading ? '...' : ''}`,
               value: "pdf",
-              variant: "outline",
             },
             {
-              onExport: (filters, search) => handleExportPDF(filters as PropertyFilters, search, true),
+              onExport: (filters, search) => handlePdfExport(filters as PropertyFilters, search, true),
               buttonText: "خروجی PDF (همه)",
               value: "pdf_all",
-              variant: "outline",
             },
             {
-              onExport: async () => {
-                await handlePrint(true);
-              },
-              buttonText: "پرینت (همه)",
+              onExport: () => handlePrintAction(false),
+              buttonText: "خروجی پرینت (صفحه فعلی)",
+              value: "print",
+            },
+            {
+              onExport: () => handlePrintAction(true),
+              buttonText: "خروجی پرینت (همه)",
               value: "print_all",
-              variant: "outline",
             },
           ]}
-          onPrint={() => handlePrint(false)}
           filterConfig={propertyFilterConfig}
         />
       </Suspense>
