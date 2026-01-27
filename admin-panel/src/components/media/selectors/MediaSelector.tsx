@@ -16,6 +16,7 @@ interface MediaSelectorProps {
     className?: string;
     context?: 'media_library' | 'portfolio' | 'blog';
     contextId?: number | string;
+    initialFileType?: "image" | "video" | "audio" | "pdf" | "all";
 }
 
 export function MediaSelector({
@@ -26,10 +27,11 @@ export function MediaSelector({
     showLabel = true,
     className = "",
     context: overrideContext,
-    contextId: overrideContextId
+    contextId: overrideContextId,
+    initialFileType = "image"
 }: MediaSelectorProps) {
     const { context, contextId } = useMediaContext(overrideContext, overrideContextId);
-    
+
     const [showMediaSelector, setShowMediaSelector] = useState(false);
     const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
 
@@ -74,7 +76,7 @@ export function MediaSelector({
             {showLabel && (
                 <Label>{label}</Label>
             )}
-            
+
             <div className="flex items-center gap-4">
                 <div className={`relative ${sizeClasses[size]} border rounded-lg overflow-hidden`}>
                     {selectedMedia ? (
@@ -94,11 +96,11 @@ export function MediaSelector({
                         </div>
                     )}
                 </div>
-                
+
                 <div className="space-y-2">
-                    <Button 
-                        type="button" 
-                        variant="outline" 
+                    <Button
+                        type="button"
+                        variant="outline"
                         size={buttonSize[size]}
                         onClick={() => setShowMediaSelector(true)}
                         className="flex gap-2"
@@ -106,11 +108,11 @@ export function MediaSelector({
                         <ImagePlus className={iconSize[size]} />
                         مدیریت تصویر
                     </Button>
-                    
+
                     {selectedMedia && (
-                        <Button 
-                            type="button" 
-                            variant="outline" 
+                        <Button
+                            type="button"
+                            variant="outline"
                             size={buttonSize[size]}
                             onClick={handleRemoveImage}
                             className="text-destructive hover:text-destructive"
@@ -127,7 +129,7 @@ export function MediaSelector({
                 onClose={() => setShowMediaSelector(false)}
                 onSelect={handleMediaSelect}
                 selectMultiple={false}
-                initialFileType="image"
+                initialFileType={initialFileType}
                 showTabs={true}
                 activeTab={activeTab}
                 onTabChange={setActiveTab}

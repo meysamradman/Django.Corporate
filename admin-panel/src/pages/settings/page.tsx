@@ -1,17 +1,17 @@
 import { useState, useRef, lazy, Suspense } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { ProtectedButton, useUIPermissions } from '@/core/permissions';
-import { Settings, Phone, Smartphone, Mail, Share2, Save, Loader2 } from "lucide-react";
+import { Settings, Phone, Smartphone, Mail, Share2, Save, Loader2, GalleryHorizontal } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 
 const TabSkeleton = () => (
-  <div className="space-y-6">
-    <div className="space-y-4">
-      <Skeleton className="h-10 w-full" />
-      <Skeleton className="h-10 w-full" />
-      <Skeleton className="h-32 w-full" />
+    <div className="space-y-6">
+        <div className="space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-32 w-full" />
+        </div>
     </div>
-  </div>
 );
 
 const GeneralSettingsForm = lazy(() => import("@/components/settings").then(mod => ({ default: mod.GeneralSettingsForm })));
@@ -19,11 +19,12 @@ const ContactPhonesSection = lazy(() => import("@/components/settings").then(mod
 const ContactMobilesSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.ContactMobiles })));
 const ContactEmailsSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.ContactEmails })));
 const SocialMediaSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.SocialMediaSection })));
+const SlidersSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.SlidersSection })));
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState("general");
     const generalFormRef = useRef<{ handleSave: () => void; saving: boolean }>(null);
-    
+
     const { canManageSettings } = useUIPermissions();
 
     return (
@@ -50,6 +51,10 @@ export default function SettingsPage() {
                     <TabsTrigger value="social">
                         <Share2 className="h-4 w-4" />
                         شبکه‌های اجتماعی
+                    </TabsTrigger>
+                    <TabsTrigger value="sliders">
+                        <GalleryHorizontal className="h-4 w-4" />
+                        اسلایدرها
                     </TabsTrigger>
                 </TabsList>
 
@@ -89,6 +94,14 @@ export default function SettingsPage() {
                     {activeTab === "social" && (
                         <Suspense fallback={<TabSkeleton />}>
                             <SocialMediaSection />
+                        </Suspense>
+                    )}
+                </TabsContent>
+
+                <TabsContent value="sliders">
+                    {activeTab === "sliders" && (
+                        <Suspense fallback={<TabSkeleton />}>
+                            <SlidersSection />
                         </Suspense>
                     )}
                 </TabsContent>

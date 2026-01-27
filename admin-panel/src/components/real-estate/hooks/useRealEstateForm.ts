@@ -7,18 +7,14 @@ import { realEstateApi } from "@/api/real-estate";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { showError, showSuccess, extractFieldErrors, hasFieldErrors } from '@/core/toast';
 import { msg } from '@/core/messages';
+import { MEDIA_CONFIG } from '@/core/config/environment';
+import { useMediaConfig } from "@/components/media/hooks/useMediaConfig";
 import { propertyFormSchema, propertyFormDefaults, type PropertyFormValues } from '@/components/real-estate/validations/propertySchema';
 import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
 import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
 import type { PropertyMedia } from "@/types/real_estate/realEstateMedia";
-import { env } from "@/core/config/environment";
-import {
-    collectMediaIds,
-    collectMediaFilesAndIds,
-    collectMediaCovers,
-    parsePropertyMedia
-} from "@/components/real-estate/utils/propertyMediaUtils";
+import { collectModuleMediaIds as collectMediaIds, collectModuleMediaCovers as collectMediaCovers, parseModuleMedia as parseBlogMedia } from "@/components/media/utils/genericMediaUtils";
 import type { Media } from "@/types/shared/media";
 
 interface UsePropertyFormProps {
@@ -29,6 +25,7 @@ interface UsePropertyFormProps {
 export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+    const { data: mediaConfig } = useMediaConfig();
     const [activeTab, setActiveTab] = useState<string>("account");
     const [tempFloorPlans, setTempFloorPlans] = useState<any[]>([]);
 
@@ -62,7 +59,7 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
     useEffect(() => {
         if (property && isEditMode) {
             const parsedMedia = (property.property_media || property.media)
-                ? parsePropertyMedia(property.property_media || property.media || [])
+                ? parseBlogMedia(property.property_media || property.media || [])
                 : {
                     featuredImage: null,
                     imageGallery: [],
@@ -207,7 +204,10 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
 
     // Gallery Handlers (Internal helpers to update form state and trigger dirtiness)
     const updateMediaFormState = useCallback((newMedia: PropertyMedia) => {
-        const { allMediaIds } = collectMediaFilesAndIds(newMedia, form.getValues("og_image"));
+        const allMediaIds = collectMediaIds(newMedia);
+        if (form.getValues("og_image")?.id && !allMediaIds.includes(form.getValues("og_image").id)) {
+            allMediaIds.push(form.getValues("og_image").id);
+        }
         const mediaCovers = collectMediaCovers(newMedia);
 
         form.setValue("media_ids", allMediaIds, { shouldValidate: false, shouldDirty: true });
@@ -261,35 +261,25 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
         });
     }, [updateMediaFormState]);
 
-    const handleSubmit = form.handleSubmit(
-        (data) => {
-            // ALWAYS mutate when button is clicked to avoid "Not Dirty" false negatives
-            mutation.mutate(data);
-        },
-        (errors) => {
-            console.error('❌ [useRealEstateForm] HandleSubmit Validation Errors:', errors);
-            const firstErrorField = Object.keys(errors)[0];
-            if (firstErrorField) {
-                if (["title", "slug", "property_type", "state", "status"].includes(firstErrorField)) setActiveTab("account");
-                else if (["province", "city", "address", "latitude", "longitude", "neighborhood"].includes(firstErrorField)) setActiveTab("location");
-                else if (["land_area", "built_area", "bedrooms", "bathrooms", "price"].includes(firstErrorField)) setActiveTab("details");
-                showError(null, { customMessage: msg.error("checkForm") });
-            }
-        }
-    );
-
-    // Mutations
     const mutation = useMutation({
-        mutationFn: async (data: PropertyFormValues) => {
+        mutationFn: async (args: { data: PropertyFormValues; status: "draft" | "published" }) => {
+            const { data, status } = args;
             const validatedData = propertyFormSchema.parse(data);
 
-            const { allMediaFiles, allMediaIds } = collectMediaFilesAndIds(propertyMedia, validatedData.og_image);
+            const allMediaIds = collectMediaIds(propertyMedia);
+            if (validatedData.og_image_id && !allMediaIds.includes(validatedData.og_image_id)) {
+                allMediaIds.push(validatedData.og_image_id);
+            }
+            const allMediaFiles: File[] = [];
 
-            const uploadMax = env.REAL_ESTATE_MEDIA_UPLOAD_MAX;
+            // Use backend config if available, otherwise use frontend default
+            const uploadMax = mediaConfig?.REAL_ESTATE_MEDIA_UPLOAD_MAX ?? MEDIA_CONFIG.REAL_ESTATE_UPLOAD_MAX;
             const totalMedia = allMediaFiles.length + allMediaIds.length;
             if (totalMedia > uploadMax) {
                 throw new Error(`حداکثر ${uploadMax} فایل مدیا در هر بار آپلود مجاز است. شما ${totalMedia} فایل انتخاب کرده‌اید.`);
             }
+
+            const isPublished = status === "published";
 
             if (isEditMode && id) {
                 const propertyId = Number(id);
@@ -300,7 +290,7 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                 const updateData: any = {
                     ...validatedData,
                     slug: formatSlug(validatedData.slug),
-                    media_ids: mediaIds,
+                    media_ids: allMediaIds.length > 0 ? allMediaIds : mediaIds,
                     main_image_id: mainImageId,
                     media_covers: Object.keys(mediaCovers).length > 0 ? mediaCovers : undefined,
                     og_image: validatedData.og_image_id || undefined,
@@ -308,6 +298,7 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                     price: validatedData.price ?? undefined,
                     mortgage_amount: validatedData.mortgage_amount ?? undefined,
                     rent_amount: validatedData.rent_amount ?? undefined,
+                    is_published: isPublished,
                 };
                 delete updateData.og_image_id;
                 delete updateData.province;
@@ -327,6 +318,7 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                     price: validatedData.price ?? 0,
                     mortgage_amount: validatedData.mortgage_amount ?? 0,
                     rent_amount: validatedData.rent_amount ?? 0,
+                    is_published: isPublished,
                 };
                 if (validatedData.og_image_id) createData.og_image = validatedData.og_image_id;
 
@@ -341,11 +333,22 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                 }
             }
         },
-        onSuccess: (property) => {
+        onSuccess: (property, variables) => {
             queryClient.invalidateQueries({ queryKey: ["properties"] });
             if (isEditMode) queryClient.invalidateQueries({ queryKey: ["property", id] });
-            showSuccess(msg.crud(isEditMode ? "updated" : "created", { item: "ملک" }));
-            navigate(isEditMode ? "/real-estate/properties" : `/real-estate/properties/${property.id}/view`);
+
+            const isDraft = variables.status === "draft";
+            const successMessage = isDraft
+                ? msg.crud(isEditMode ? "updated" : "saved", { item: "پیش‌نویس ملک" })
+                : msg.crud(isEditMode ? "updated" : "created", { item: "ملک" });
+
+            showSuccess(successMessage);
+
+            if (isDraft) {
+                navigate("/real-estate/properties");
+            } else {
+                navigate(isEditMode ? "/real-estate/properties" : `/real-estate/properties/${property.id}/view`);
+            }
         },
         onError: (error: any) => {
             if (hasFieldErrors(error)) {
@@ -363,51 +366,23 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
         },
     });
 
-    const handleSaveDraft = form.handleSubmit(async (data) => {
-        const validatedData = propertyFormSchema.parse(data);
-        const { allMediaFiles, allMediaIds } = collectMediaFilesAndIds(propertyMedia, validatedData.og_image);
-        const mainImageId = propertyMedia.featuredImage?.id || null;
-        const mediaCovers = collectMediaCovers(propertyMedia);
-
-        const updateData: any = {
-            ...validatedData,
-            slug: formatSlug(validatedData.slug),
-            media_ids: allMediaIds,
-            main_image_id: mainImageId,
-            media_covers: Object.keys(mediaCovers).length > 0 ? mediaCovers : undefined,
-            is_published: false,
-        };
-
-        try {
-            if (isEditMode && id) {
-                const propertyId = Number(id);
-                if (allMediaFiles.length > 0) {
-                    await realEstateApi.updateProperty(propertyId, updateData);
-                    await realEstateApi.addMediaToProperty(propertyId, allMediaFiles, allMediaIds);
-                } else {
-                    await realEstateApi.updateProperty(propertyId, updateData);
+    const handleSubmit = (status: "draft" | "published") =>
+        form.handleSubmit(
+            (data) => mutation.mutate({ data, status }),
+            (errors) => {
+                console.error('❌ [useRealEstateForm] HandleSubmit Validation Errors:', errors);
+                const firstErrorField = Object.keys(errors)[0];
+                if (firstErrorField) {
+                    if (["title", "slug", "property_type", "state", "status"].includes(firstErrorField)) setActiveTab("account");
+                    else if (["province", "city", "address", "latitude", "longitude", "neighborhood"].includes(firstErrorField)) setActiveTab("location");
+                    else if (["land_area", "built_area", "bedrooms", "bathrooms", "price"].includes(firstErrorField)) setActiveTab("details");
+                    showError(null, { customMessage: msg.error("checkForm") });
                 }
-                queryClient.invalidateQueries({ queryKey: ["properties"] });
-                queryClient.invalidateQueries({ queryKey: ["property", id] });
-            } else {
-                const createData = { ...updateData };
-                delete createData.id;
-
-                if (allMediaFiles.length > 0) {
-                    const createdProperty = await realEstateApi.createProperty(createData);
-                    await realEstateApi.addMediaToProperty(createdProperty.id, allMediaFiles, allMediaIds);
-                } else {
-                    await realEstateApi.createProperty(createData);
-                }
-                queryClient.invalidateQueries({ queryKey: ["properties"] });
             }
+        );
 
-            showSuccess(msg.crud("saved", { item: "پیش‌نویس ملک" }));
-            navigate("/real-estate/properties");
-        } catch (error: any) {
-            showError(error);
-        }
-    });
+    const handleSaveDraft = handleSubmit("draft");
+    const handleFinalSubmit = handleSubmit("published");
 
     return {
         form,
@@ -421,7 +396,7 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
         propertyMedia,
         setPropertyMedia,
         isLoading,
-        handleSubmit,
+        handleSubmit: handleFinalSubmit,
         handleSaveDraft,
         handleFeaturedImageChange,
         handleGalleryChange,

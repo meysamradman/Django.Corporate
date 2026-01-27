@@ -39,6 +39,7 @@ from .instances import (
     form_permission,
     page_permission,
     real_estate_permission,
+    settings_permission,
     super_admin_permission,
 )
 
@@ -76,5 +77,6 @@ __all__ = [
     "form_permission",
     "page_permission",
     "real_estate_permission",
+    "settings_permission",
     "super_admin_permission",
 ]

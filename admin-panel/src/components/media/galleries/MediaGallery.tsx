@@ -13,6 +13,8 @@ import {
   Video as VideoIcon,
   FileText as PDFIcon
 } from "lucide-react";
+import { showError } from "@/core/toast";
+import { type MediaContextType, MODULE_MEDIA_CONFIGS } from "../constants";
 
 interface MediaGalleryProps {
   mediaItems: Media[];
@@ -20,9 +22,10 @@ interface MediaGalleryProps {
   mediaType: "image" | "video" | "audio" | "pdf";
   title: string;
   maxSelection?: number;
+  totalItemsCount?: number;
   isGallery?: boolean;
   disabled?: boolean;
-  context: "portfolio" | "blog" | "media_library";
+  context: MediaContextType;
   contextId?: number | string;
 }
 
@@ -32,29 +35,62 @@ export function MediaGallery({
   mediaType,
   title,
   maxSelection,
+  totalItemsCount,
   isGallery = false,
   disabled = false,
   context,
   contextId,
 }: MediaGalleryProps) {
   const [showMediaLibrary, setShowMediaLibrary] = useState(false);
-  const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
 
   const handleMediaSelect = (selectedMedia: Media | Media[]) => {
-    const newMedia = Array.isArray(selectedMedia) ? selectedMedia : [selectedMedia];
+    const newItems = Array.isArray(selectedMedia) ? selectedMedia : [selectedMedia];
 
-    const filteredMedia = newMedia.filter(media => {
+    // 1. Filter by media type
+    const filteredByType = newItems.filter(media => {
       if (mediaType === "pdf") {
         return media.media_type === "document" || media.media_type === "pdf";
       }
       return media.media_type === mediaType;
     });
 
-    const finalMedia = maxSelection
-      ? [...mediaItems, ...filteredMedia].slice(0, maxSelection)
-      : [...mediaItems, ...filteredMedia];
+    // 2. Prevent duplicates (by ID)
+    const existingIds = new Set(mediaItems.map(item => item.id));
+    const seenNewIds = new Set<number | string>();
 
-    onMediaSelect(finalMedia);
+    const uniqueNewItems = filteredByType.filter(item => {
+      if (!item.id || existingIds.has(item.id) || seenNewIds.has(item.id)) {
+        return false;
+      }
+      seenNewIds.add(item.id);
+      return true;
+    });
+
+    if (uniqueNewItems.length < filteredByType.length) {
+      showError("برخی از فایل‌های انتخابی تکراری بودند و نادیده گرفته شدند");
+    }
+
+    if (uniqueNewItems.length === 0) {
+      setShowMediaLibrary(false);
+      return;
+    }
+
+    // 3. Enforce max selection limit from MODULE_MEDIA_CONFIGS or prop
+    const effectiveMax = maxSelection || MODULE_MEDIA_CONFIGS[context]?.maxUploadLimit || 999;
+    const currentTotal = totalItemsCount !== undefined ? totalItemsCount : mediaItems.length;
+
+    if (currentTotal + uniqueNewItems.length > effectiveMax) {
+      showError(`حداکثر تعداد مجاز ${effectiveMax} عدد می‌باشد`);
+      const remainingSlots = effectiveMax - currentTotal;
+      if (remainingSlots <= 0) {
+        setShowMediaLibrary(false);
+        return;
+      }
+      onMediaSelect([...mediaItems, ...uniqueNewItems.slice(0, remainingSlots)]);
+    } else {
+      onMediaSelect([...mediaItems, ...uniqueNewItems]);
+    }
+
     setShowMediaLibrary(false);
   };
 
@@ -62,11 +98,6 @@ export function MediaGallery({
     const newMedia = [...mediaItems];
     newMedia.splice(index, 1);
     onMediaSelect(newMedia);
-  };
-
-  const handleUploadComplete = () => {
-    setShowMediaLibrary(true);
-    setActiveTab("select");
   };
 
   const getIconForMediaType = () => {
@@ -166,8 +197,9 @@ export function MediaGallery({
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            setActiveTab("select");
-                            setShowMediaLibrary(true);
+                            if (!disabled) {
+                              setShowMediaLibrary(true);
+                            }
                           }}
                           className="bg-wt/10 border-wt/20 text-static-w hover:bg-wt/20 backdrop-blur-md h-8 text-[11px]"
                         >
@@ -192,7 +224,6 @@ export function MediaGallery({
                   <div
                     onClick={() => {
                       if (!disabled) {
-                        setActiveTab("select");
                         setShowMediaLibrary(true);
                       }
                     }}
@@ -225,9 +256,6 @@ export function MediaGallery({
           selectMultiple={false}
           initialFileType="image"
           showTabs={true}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          onUploadComplete={handleUploadComplete}
           context={context}
           contextId={contextId}
         />
@@ -272,11 +300,11 @@ export function MediaGallery({
           {mediaItems.map((media, index) => (
             mediaType === "audio" ? (
               <div key={`audio-item-${media.id}`} className="group flex items-center gap-3 p-2.5 border border-br rounded-xl bg-wt hover:border-indigo-1/30 transition-all duration-200">
-                <div className="flex-shrink-0 w-9 h-9 bg-indigo-0 rounded-lg flex items-center justify-center">
+                <div className="shrink-0 w-9 h-9 bg-indigo-0 rounded-lg flex items-center justify-center">
                   <Music className="w-4 h-4 text-indigo-1" />
                 </div>
-                <div className="flex-grow min-w-0">
-                  <p className="text-font-s font-semibold truncate text-font-p">{media.title || media.original_file_name}</p>
+                <div className="grow min-w-0">
+                  <p className="text-font-p font-semibold truncate">{media.title || media.original_file_name}</p>
                   <p className="text-[10px] text-font-s/60 font-medium">
                     {media.file_size ? `${(media.file_size / 1024 / 1024).toFixed(2)} MB` : 'Size Unknown'}
                   </p>
@@ -294,11 +322,11 @@ export function MediaGallery({
               </div>
             ) : mediaType === "pdf" ? (
               <div key={`pdf-item-${media.id}`} className="group flex items-center gap-3 p-2.5 border border-br rounded-xl bg-wt hover:border-orange-1/30 transition-all duration-200">
-                <div className="flex-shrink-0 w-9 h-9 bg-orange-0 rounded-lg flex items-center justify-center">
+                <div className="shrink-0 w-9 h-9 bg-orange-0 rounded-lg flex items-center justify-center">
                   <PDFIcon className="w-4 h-4 text-orange-2" />
                 </div>
-                <div className="flex-grow min-w-0">
-                  <p className="text-font-s font-semibold truncate text-font-p">{media.title || media.original_file_name}</p>
+                <div className="grow min-w-0">
+                  <p className="text-font-p font-semibold truncate">{media.title || media.original_file_name}</p>
                   <p className="text-[10px] text-font-s/60 font-medium">
                     {media.file_size ? `${(media.file_size / 1024 / 1024).toFixed(2)} MB` : 'Size Unknown'}
                   </p>
@@ -371,13 +399,9 @@ export function MediaGallery({
         selectMultiple={true}
         initialFileType={mediaType === "pdf" ? "pdf" : mediaType}
         showTabs={true}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        onUploadComplete={handleUploadComplete}
         context={context}
         contextId={contextId}
       />
     </div>
   );
 }
-

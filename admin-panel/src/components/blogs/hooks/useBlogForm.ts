@@ -5,10 +5,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { blogApi } from "@/api/blogs/blogs";
 import { blogFormSchema, blogFormDefaults, type BlogFormValues } from "@/components/blogs/validations/blogSchema";
-import { collectMediaFilesAndIds, collectMediaIds, collectMediaCovers, parseBlogMedia } from "@/components/blogs/utils/blogMediaUtils";
+import { collectModuleMediaIds as collectMediaIds, collectModuleMediaCovers as collectMediaCovers, parseModuleMedia as parseBlogMedia } from "@/components/media/utils/genericMediaUtils";
 import { showError, showSuccess, hasFieldErrors, extractFieldErrors } from "@/core/toast";
 import { msg } from "@/core/messages";
-import { env } from "@/core/config/environment";
+import { MEDIA_CONFIG } from "@/core/config/environment";
+import { useMediaConfig } from "@/components/media/hooks/useMediaConfig";
 import { formatSlug } from '@/core/slug/generate';
 import type { BlogMedia } from "@/types/blog/blogMedia";
 
@@ -20,6 +21,7 @@ interface UseBlogFormProps {
 export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+    const { data: mediaConfig } = useMediaConfig();
     const [activeTab, setActiveTab] = useState<string>("account");
     const [blogMedia, setBlogMedia] = useState<BlogMedia>({
         featuredImage: null,
@@ -77,12 +79,14 @@ export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
     const mutation = useMutation({
         mutationFn: async (args: { data: BlogFormValues; status: "draft" | "published" }) => {
             const { data, status } = args;
-            const { allMediaFiles, allMediaIds } = collectMediaFilesAndIds(
-                blogMedia,
-                data.featuredImage
-            );
+            const allMediaIds = collectMediaIds(blogMedia);
+            if (data.featuredImage?.id && !allMediaIds.includes(data.featuredImage.id)) {
+                allMediaIds.push(data.featuredImage.id);
+            }
+            const allMediaFiles: File[] = [];
 
-            const uploadMax = env.BLOG_MEDIA_UPLOAD_MAX;
+            // Use backend config if available, otherwise use frontend default
+            const uploadMax = mediaConfig?.BLOG_MEDIA_UPLOAD_MAX ?? MEDIA_CONFIG.BLOG_UPLOAD_MAX;
             const totalMedia = allMediaFiles.length + allMediaIds.length;
             if (totalMedia > uploadMax) {
                 throw new Error(`حداکثر ${uploadMax} فایل مدیا در هر بار آپلود مجاز است. شما ${totalMedia} فایل انتخاب کرده‌اید.`);

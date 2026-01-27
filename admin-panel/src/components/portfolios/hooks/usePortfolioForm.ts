@@ -5,10 +5,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import { portfolioFormSchema, portfolioFormDefaults, type PortfolioFormValues } from "@/components/portfolios/validations/portfolioSchema";
-import { collectMediaFilesAndIds, collectMediaIds, collectMediaCovers, parsePortfolioMedia } from "@/components/portfolios/utils/portfolioMediaUtils";
+import { collectModuleMediaIds as collectMediaIds, collectModuleMediaCovers as collectMediaCovers, parseModuleMedia as parsePortfolioMedia } from "@/components/media/utils/genericMediaUtils";
 import { showError, showSuccess, hasFieldErrors, extractFieldErrors } from "@/core/toast";
 import { msg } from "@/core/messages";
-import { env } from "@/core/config/environment";
+import { MEDIA_CONFIG } from "@/core/config/environment";
+import { useMediaConfig } from "@/components/media/hooks/useMediaConfig";
 import { formatSlug } from '@/core/slug/generate';
 import type { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
 
@@ -20,6 +21,7 @@ interface UsePortfolioFormProps {
 export function usePortfolioForm({ id, isEditMode }: UsePortfolioFormProps) {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+    const { data: mediaConfig } = useMediaConfig();
     const [activeTab, setActiveTab] = useState<string>("account");
     const [portfolioMedia, setPortfolioMedia] = useState<PortfolioMedia>({
         featuredImage: null,
@@ -83,12 +85,14 @@ export function usePortfolioForm({ id, isEditMode }: UsePortfolioFormProps) {
     const mutation = useMutation({
         mutationFn: async (args: { data: PortfolioFormValues; status: "draft" | "published" }) => {
             const { data, status } = args;
-            const { allMediaFiles, allMediaIds } = collectMediaFilesAndIds(
-                portfolioMedia,
-                data.featuredImage
-            );
+            const allMediaIds = collectMediaIds(portfolioMedia);
+            if (data.featuredImage?.id && !allMediaIds.includes(data.featuredImage.id)) {
+                allMediaIds.push(data.featuredImage.id);
+            }
+            const allMediaFiles: File[] = [];
 
-            const uploadMax = env.PORTFOLIO_MEDIA_UPLOAD_MAX;
+            // Use backend config if available, otherwise use frontend default
+            const uploadMax = mediaConfig?.PORTFOLIO_MEDIA_UPLOAD_MAX ?? MEDIA_CONFIG.PORTFOLIO_UPLOAD_MAX;
             const totalMedia = allMediaFiles.length + allMediaIds.length;
             if (totalMedia > uploadMax) {
                 throw new Error(`حداکثر ${uploadMax} فایل مدیا در هر بار آپلود مجاز است. شما ${totalMedia} فایل انتخاب کرده‌اید.`);

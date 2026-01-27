@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
-import { getFileCategory, formatBytes, mediaService } from '@/components/media/services';
+import { getFileCategory, formatBytes } from '@/components/media/services';
 import { showError, showSuccess } from "@/core/toast";
 import { api } from '@/core/config/api';
 import { useMediaContext } from '../MediaContext';
+import { MEDIA_CONFIG } from '@/core/config/environment';
 
 export type MediaFile = {
   file: File;
@@ -38,111 +39,97 @@ export type UploadSettings = {
   };
 }
 
-export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' | 'blog', overrideContextId?: number | string) => {
+export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' | 'blog' | 'real_estate', overrideContextId?: number | string) => {
   const { context, contextId } = useMediaContext(overrideContext, overrideContextId);
-  
+
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  
-  const settings = mediaService.getUploadSettings();
-  
+
   const uploadSettings = {
     sizeLimit: {
-      image: settings.MEDIA_IMAGE_SIZE_LIMIT,
-      video: settings.MEDIA_VIDEO_SIZE_LIMIT,
-      audio: settings.MEDIA_AUDIO_SIZE_LIMIT,
-      document: settings.MEDIA_DOCUMENT_SIZE_LIMIT,
+      image: MEDIA_CONFIG.IMAGE_SIZE_LIMIT,
+      video: MEDIA_CONFIG.VIDEO_SIZE_LIMIT,
+      audio: MEDIA_CONFIG.AUDIO_SIZE_LIMIT,
+      document: MEDIA_CONFIG.PDF_SIZE_LIMIT,
     },
     allowedTypes: {
-      image: settings.MEDIA_ALLOWED_IMAGE_EXTENSIONS,
-      video: settings.MEDIA_ALLOWED_VIDEO_EXTENSIONS,
-      audio: settings.MEDIA_ALLOWED_AUDIO_EXTENSIONS,
-      document: settings.MEDIA_ALLOWED_PDF_EXTENSIONS,
+      image: MEDIA_CONFIG.IMAGE_EXTENSIONS as unknown as string[],
+      video: MEDIA_CONFIG.VIDEO_EXTENSIONS as unknown as string[],
+      audio: MEDIA_CONFIG.AUDIO_EXTENSIONS as unknown as string[],
+      document: MEDIA_CONFIG.PDF_EXTENSIONS as unknown as string[],
     },
     sizeLimitFormatted: {
-      image: formatBytes(settings.MEDIA_IMAGE_SIZE_LIMIT),
-      video: formatBytes(settings.MEDIA_VIDEO_SIZE_LIMIT),
-      audio: formatBytes(settings.MEDIA_AUDIO_SIZE_LIMIT),
-      document: formatBytes(settings.MEDIA_DOCUMENT_SIZE_LIMIT),
+      image: formatBytes(MEDIA_CONFIG.IMAGE_SIZE_LIMIT),
+      video: formatBytes(MEDIA_CONFIG.VIDEO_SIZE_LIMIT),
+      audio: formatBytes(MEDIA_CONFIG.AUDIO_SIZE_LIMIT),
+      document: formatBytes(MEDIA_CONFIG.PDF_SIZE_LIMIT),
     }
   };
 
   const processFiles = useCallback((filesToProcess: File[]) => {
     setValidationErrors([]);
-    
+
     const errors: string[] = [];
     const validFiles = filesToProcess.filter(file => {
       const ext = file.name.split('.').pop()?.toLowerCase() || '';
-      const category = getFileCategory(file);
-      
+      const category = getFileCategory(file) as keyof typeof uploadSettings.allowedTypes;
+
       if (!uploadSettings || !uploadSettings.allowedTypes || !uploadSettings.sizeLimit) {
         errors.push('خطا در دریافت تنظیمات آپلود. لطفا صفحه را رفرش کنید');
         return false;
       }
-      
+
       const allowedExts = uploadSettings.allowedTypes[category] || [];
       if (!ext || !allowedExts.includes(ext)) {
         errors.push(`فایل "${file.name}": پسوند "${ext}" برای نوع "${category}" مجاز نیست. پسوندهای مجاز: ${allowedExts.join(', ')}`);
         return false;
       }
-      
+
       const maxSize = uploadSettings.sizeLimit[category];
       if (!maxSize) {
         errors.push(`فایل "${file.name}": تنظیمات حجم فایل برای نوع "${category}" یافت نشد`);
         return false;
       }
-      
+
       if (file.size > maxSize) {
-        const maxSizeFormatted = uploadSettings.sizeLimitFormatted?.[category] || formatBytes(maxSize);
+        const maxSizeFormatted = uploadSettings.sizeLimitFormatted[category] || formatBytes(maxSize);
         const fileSizeFormatted = formatBytes(file.size);
         errors.push(`فایل "${file.name}": حجم فایل (${fileSizeFormatted}) از حد مجاز (${maxSizeFormatted}) بیشتر است`);
         return false;
       }
-      
-      if (!file.name || file.name.trim() === '') {
-        return false;
-      }
-      
+
+      if (!file.name || file.name.trim() === '') return false;
       const dangerousChars = /[<>:"/\\|?*\x00-\x1f]/;
-      if (dangerousChars.test(file.name)) {
-        return false;
-      }
-      
-      if (file.name.length > 255) {
-        return false;
-      }
-      
-      if (file.size === 0) {
-        return false;
-      }
-      
+      if (dangerousChars.test(file.name)) return false;
+      if (file.name.length > 255) return false;
+      if (file.size === 0) return false;
+
       return true;
     });
-    
-    const newFiles = validFiles.map(file => ({
+
+    const newFiles: MediaFile[] = validFiles.map(file => ({
       file,
       id: crypto.randomUUID(),
       progress: 0,
-      status: 'pending' as const,
+      status: 'pending',
       title: file.name.split('.')[0],
       alt_text: '',
       description: '',
       is_public: true,
       coverFile: null
     }));
-    
+
     if (errors.length > 0) {
       setValidationErrors(errors);
     }
-    
-    
+
     setFiles(prev => [...prev, ...newFiles]);
   }, [uploadSettings]);
 
   const updateFileMetadata = useCallback((id: string, field: keyof MediaFile, value: string | boolean | File | null) => {
-    setFiles(prev => prev.map(file => 
-      file.id === id ? { ...file, [field]: value } : file
+    setFiles(prev => prev.map(file =>
+      file.id === id ? { ...file, [field]: value } as MediaFile : file
     ));
   }, []);
 
@@ -151,8 +138,8 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
   }, []);
 
   const removeCoverFile = useCallback((id: string) => {
-    setFiles(prev => prev.map(file => 
-      file.id === id ? { ...file, coverFile: null } : file
+    setFiles(prev => prev.map(file =>
+      file.id === id ? { ...file, coverFile: null } as MediaFile : file
     ));
   }, []);
 
@@ -171,21 +158,17 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
         continue;
       }
 
-      setFiles(prev => prev.map(f => 
-        f.id === file.id ? { ...f, status: 'uploading', progress: 0 } : f
+      setFiles(prev => prev.map(f =>
+        f.id === file.id ? { ...f, status: 'uploading', progress: 0 } as MediaFile : f
       ));
 
       try {
         const formData = new FormData();
         formData.append('file', file.file);
-        
         if (file.alt_text) formData.append('alt_text', file.alt_text);
         if (file.title) formData.append('title', file.title);
-        
-        if (file.coverFile) {
-            formData.append('cover_image', file.coverFile);
-        }
-        
+        if (file.coverFile) formData.append('cover_image', file.coverFile);
+
         if (context && context !== 'media_library') {
           formData.append('context_type', context);
           const contextAction = contextId ? 'update' : 'create';
@@ -194,26 +177,25 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
 
         await api.upload('/admin/media/', formData);
 
-        setFiles(prev => prev.map(f => 
-          f.id === file.id ? { ...f, status: 'success', progress: 100 } : f
+        setFiles(prev => prev.map(f =>
+          f.id === file.id ? { ...f, status: 'success', progress: 100 } as MediaFile : f
         ));
-        
+
         successCount++;
-      } catch (error) {
-        
-        
-        setFiles(prev => prev.map(f => 
-          f.id === file.id ? { 
-            ...f, 
-            status: 'error', 
-            error: error instanceof Error ? error.message : 'Upload failed' 
-          } : f
+      } catch (error: any) {
+        setFiles(prev => prev.map(f =>
+          f.id === file.id ? {
+            ...f,
+            status: 'error',
+            error: error instanceof Error ? error.message : 'Upload failed'
+          } as MediaFile : f
         ));
       }
     }
 
+    setIsUploading(true); // Keep UI in upload state briefly
     setIsUploading(false);
-    
+
     if (successCount > 0) {
       showSuccess(`${successCount} فایل با موفقیت آپلود شد`);
     }

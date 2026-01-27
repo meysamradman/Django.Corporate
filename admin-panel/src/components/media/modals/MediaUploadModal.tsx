@@ -1,8 +1,8 @@
 import { useState, useCallback, type ChangeEvent } from 'react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogTitle, 
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
   DialogClose
 } from "@/components/elements/Dialog";
 import { Button } from "@/components/elements/Button";
@@ -28,8 +28,8 @@ interface MediaUploadModalProps {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
-export function MediaUploadModal({ 
-  isOpen, 
+export function MediaUploadModal({
+  isOpen,
   onClose,
   onUploadComplete,
   onMediaSelect: _onMediaSelect,
@@ -37,11 +37,11 @@ export function MediaUploadModal({
   contextId: overrideContextId
 }: MediaUploadModalProps) {
   const { context, contextId } = useMediaContext(overrideContext, overrideContextId);
-  
+
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const { hasModuleAction } = useUserPermissions();
   const canUploadMedia = hasModuleAction('media', 'create');
-  
+
   const {
     files,
     isUploading,
@@ -54,13 +54,13 @@ export function MediaUploadModal({
     uploadFiles,
     clearFiles
   } = useMediaUpload(context, contextId);
-  
+
   const isLoadingSettings = false;
 
   const handleCoverFileChange = useCallback((event: ChangeEvent<HTMLInputElement>, mediaFileId: string) => {
     const selectedCoverFile = event.target.files?.[0];
     if (!selectedCoverFile) return;
-    
+
     const fileCategory = mediaService.getFileCategory(selectedCoverFile);
     if (fileCategory !== 'image') {
       showError("کاور باید یک تصویر باشد");
@@ -72,7 +72,7 @@ export function MediaUploadModal({
       showError(`حجم فایل کاور بیش از حد مجاز است (${maxSize})`);
       return;
     }
-    
+
     updateFileMetadata(mediaFileId, 'coverFile', selectedCoverFile);
   }, [uploadSettings, updateFileMetadata]);
 
@@ -82,7 +82,7 @@ export function MediaUploadModal({
       return;
     }
     setUploadProgress(0);
-    
+
     const progressInterval = setInterval(() => {
       setUploadProgress(prev => {
         if (prev >= 90) return prev;
@@ -96,18 +96,18 @@ export function MediaUploadModal({
     setUploadProgress(100);
 
     if (result.successCount === result.totalCount && result.successCount > 0) {
-        clearFiles();
-        setTimeout(() => {
-          onUploadComplete();
-          onClose();
-          setUploadProgress(0);
-        }, 1500);
+      clearFiles();
+      setTimeout(() => {
+        onUploadComplete();
+        onClose();
+        setUploadProgress(0);
+      }, 1500);
     } else if (result.successCount > 0) {
-        clearFiles();
-        setTimeout(() => {
-          onUploadComplete();
-          setUploadProgress(0);
-        }, 1500);
+      clearFiles();
+      setTimeout(() => {
+        onUploadComplete();
+        setUploadProgress(0);
+      }, 1500);
     }
   };
 
@@ -125,7 +125,7 @@ export function MediaUploadModal({
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto p-0" showCloseButton={false}>
         <DialogTitle className="sr-only">آپلود رسانه</DialogTitle>
-        
+
         <div className="bg-gradient-to-r from-bg/80 to-bg/50 border-b px-6 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -147,7 +147,7 @@ export function MediaUploadModal({
             </div>
           </div>
         </div>
-        
+
         <div className="space-y-6 py-6">
           {canUploadMedia ? (
             <>
@@ -159,7 +159,7 @@ export function MediaUploadModal({
                   </div>
                 ) : (
                   <>
-                    <FileDropzone 
+                    <FileDropzone
                       onFilesAdded={(files) => {
                         if (!canUploadMedia) {
                           showError("اجازه آپلود رسانه را ندارید");
@@ -174,7 +174,7 @@ export function MediaUploadModal({
                       allowedTypes={uploadSettings?.allowedTypes || { image: [], video: [], audio: [], document: [] }}
                       disabled={!canUploadMedia || isUploading || isLoadingSettings}
                     />
-                    
+
                     {validationErrors && validationErrors.length > 0 && (
                       <div className="bg-red-0 border border-red-1/30 p-4 space-y-2">
                         <div className="flex items-start gap-2">
@@ -209,7 +209,7 @@ export function MediaUploadModal({
                   <FileList
                     files={files}
                     activeTab="upload"
-                    onTabChange={() => {}}
+                    onTabChange={() => { }}
                     onRemoveFile={removeFile}
                     onUpdateMetadata={updateFileMetadata}
                     onCoverFileChange={handleCoverFileChange}
@@ -228,22 +228,22 @@ export function MediaUploadModal({
             </div>
           )}
         </div>
-        
+
         {canUploadMedia && files.length > 0 && (
           <div className="bg-gradient-to-r from-bg/80 to-bg/50 border-t px-6 py-4">
             <div className="flex gap-3 justify-between">
               <div className="flex gap-3">
-                <Button 
-                  variant="outline" 
-                  onClick={handleClose} 
+                <Button
+                  variant="outline"
+                  onClick={handleClose}
                   disabled={isUploading}
                   className="hover:bg-font-s/10"
                 >
                   انصراف
                 </Button>
               </div>
-              <Button 
-                onClick={handleUpload} 
+              <Button
+                onClick={handleUpload}
                 disabled={isUploading || files.length === 0}
                 className="bg-primary hover:bg-primary/90 text-static-w gap-2 font-medium"
               >

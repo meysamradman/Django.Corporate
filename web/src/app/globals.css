@@ -149,7 +149,7 @@
   /* --- Header --- */
   --color-header-s: var(--header-s);
   --color-header-t: var(--header-t);
-    /* --- Footer --- */
+  /* --- Footer --- */
   --color-footer: var(--footer);
   --color-cprt: var(--cprt);
   /* --- Absolute Colors --- */
@@ -244,4 +244,59 @@
 
 .animate-ripple {
   animation: ripple 600ms ease-out;
+}
+
+/* Swiper RTL Styles */
+.swiper-button-prev,
+.swiper-button-next {
+  width: 3.5rem;
+  height: 3.5rem;
+  color: white;
+  /* Clean white color */
+  background: transparent;
+  /* No background as requested */
+  backdrop-filter: none;
+  border-radius: 0;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  /* For visibility on light backgrounds */
+}
+
+/* Hide default arrows from swiper css */
+.swiper-button-prev::after,
+.swiper-button-next::after {
+  display: none !important;
+}
+
+.swiper-button-prev {
+  left: 3rem !important;
+}
+
+.swiper-button-next {
+  right: 3rem !important;
+}
+
+.swiper-button-prev:hover,
+.swiper-button-next:hover {
+  background: transparent;
+  transform: scale(1.2);
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+}
+
+.swiper-pagination-custom {
+  bottom: 1rem;
+}
+
+.swiper-pagination-bullet {
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 1;
+  width: 0.75rem;
+  height: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.swiper-pagination-bullet-active {
+  background: white;
+  width: 2rem;
+  border-radius: 0.375rem;
 }

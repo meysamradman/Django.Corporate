@@ -136,10 +136,10 @@ export default function MediaPage() {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
-    
+
     // Clean up date_range from URL if it exists
     cleanupDateRangeFromURL();
-    
+
     const urlFilters: Partial<MediaFilter> = {};
 
     if (urlParams.get('search')) urlFilters.search = urlParams.get('search')!;
@@ -202,18 +202,18 @@ export default function MediaPage() {
   };
 
   const handleDateRangeChange = (range: { from?: string; to?: string }) => {
-    setFilters(prev => ({ 
-      ...prev, 
-      date_from: range.from || '', 
+    setFilters(prev => ({
+      ...prev,
+      date_from: range.from || '',
       date_to: range.to || '',
       date_range: range,
-      page: 1 
+      page: 1
     }));
 
     const url = new URL(window.location.href);
     // Remove date_range from URL (it shouldn't be there)
     url.searchParams.delete('date_range');
-    
+
     if (range.from) {
       url.searchParams.set('date_from', range.from);
     } else {

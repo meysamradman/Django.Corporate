@@ -39,35 +39,22 @@ export const env = {
   get IS_PROD(): boolean {
     return IS_PROD;
   },
-
-  get BLOG_MEDIA_UPLOAD_MAX(): number {
-    const value = import.meta.env.VITE_BLOG_MEDIA_UPLOAD_MAX;
-    return value ? parseInt(value, 10) : 10;
-  },
-
-  get PORTFOLIO_MEDIA_UPLOAD_MAX(): number {
-    const value = import.meta.env.VITE_PORTFOLIO_MEDIA_UPLOAD_MAX;
-    return value ? parseInt(value, 10) : 10;
-  },
-
-  get REAL_ESTATE_MEDIA_UPLOAD_MAX(): number {
-    const value = import.meta.env.VITE_REAL_ESTATE_MEDIA_UPLOAD_MAX;
-    return value ? parseInt(value, 10) : 50;
-  },
-
-  get BLOG_EXPORT_PRINT_MAX_ITEMS(): number {
-    const value = import.meta.env.VITE_BLOG_EXPORT_PRINT_MAX_ITEMS;
-    return value ? parseInt(value, 10) : 100;
-  },
-
-  get PORTFOLIO_EXPORT_PRINT_MAX_ITEMS(): number {
-    const value = import.meta.env.VITE_PORTFOLIO_EXPORT_PRINT_MAX_ITEMS;
-    return value ? parseInt(value, 10) : 100;
-  },
-
-  get REAL_ESTATE_EXPORT_PRINT_MAX_ITEMS(): number {
-    const value = import.meta.env.VITE_REAL_ESTATE_EXPORT_PRINT_MAX_ITEMS;
-    return value ? parseInt(value, 10) : 100;
-  },
 } as const;
 
+export const MEDIA_CONFIG = {
+  IMAGE_SIZE_LIMIT: 5000000,        // 5 MB
+  VIDEO_SIZE_LIMIT: 157286400,      // 150 MB
+  AUDIO_SIZE_LIMIT: 20971520,       // 20 MB
+  PDF_SIZE_LIMIT: 10485760,         // 10 MB
+
+  // Allowed extensions
+  IMAGE_EXTENSIONS: ['jpg', 'jpeg', 'webp', 'png', 'svg', 'gif'],
+  VIDEO_EXTENSIONS: ['mp4', 'webm'],
+  AUDIO_EXTENSIONS: ['mp3', 'ogg', 'aac', 'm4a'],
+  PDF_EXTENSIONS: ['pdf'],
+
+  // Upload count limits per module
+  PORTFOLIO_UPLOAD_MAX: 10,
+  BLOG_UPLOAD_MAX: 10,
+  REAL_ESTATE_UPLOAD_MAX: 30,
+} as const;

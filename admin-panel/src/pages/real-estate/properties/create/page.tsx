@@ -113,6 +113,7 @@ export default function PropertyCreatePage() {
       activeTab={activeTab}
       onTabChange={setActiveTab}
       onSubmit={handleSubmit}
+      onSaveDraft={handleSaveDraft}
       isPending={isPending}
       isSubmitting={form.formState.isSubmitting}
       isEditMode={false}

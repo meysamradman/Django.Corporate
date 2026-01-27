@@ -46,7 +46,7 @@ interface MediaLibraryModalProps {
   activeTab?: "select" | "upload";
   onTabChange?: (tab: "select" | "upload") => void;
   onUploadComplete?: () => void;
-  context?: 'media_library' | 'portfolio' | 'blog';
+  context?: 'media_library' | 'portfolio' | 'blog' | 'real_estate';
   contextId?: number | string;
 }
 
@@ -98,7 +98,7 @@ export function MediaLibraryModal({
     if (context === 'media_library') {
       return canUploadInMediaLibrary || canUploadMediaLegacy;
     }
-    if (context === 'portfolio' || context === 'blog') {
+    if (context === 'portfolio' || context === 'blog' || context === 'real_estate') {
       return true;
     }
     return canUploadInMediaLibrary || canUploadMediaLegacy;
@@ -385,11 +385,11 @@ export function MediaLibraryModal({
                   {validationErrors && validationErrors.length > 0 && (
                     <div className="bg-red-0 border border-red-1/30 p-4 space-y-2">
                       <div className="flex items-start gap-2">
-                        <AlertCircle className="w-5 h-5 text-red-1 flex-shrink-0 mt-0.5" />
+                        <AlertCircle className="w-5 h-5 text-red-1 shrink-0 mt-0.5" />
                         <div className="flex-1 space-y-1">
                           <p className="text-sm font-medium text-red-1">خطا در آپلود فایل:</p>
                           <ul className="list-disc list-inside space-y-1 text-sm text-red-1/80">
-                            {validationErrors.map((error, index) => (
+                            {validationErrors.map((error: string, index: number) => (
                               <li key={index}>{error}</li>
                             ))}
                           </ul>

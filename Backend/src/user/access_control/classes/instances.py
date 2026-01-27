@@ -94,6 +94,10 @@ class RealEstatePermission(RequireModuleAccess):
     def __init__(self):
         super().__init__('real_estate')
 
+class SettingsPermission(RequireModuleAccess):
+    def __init__(self):
+        super().__init__('settings')
+
 
 blog_permission = BlogPermission
 portfolio_permission = PortfolioPermission
@@ -111,6 +115,7 @@ chatbot_permission = ChatbotPermission
 form_permission = FormPermission
 page_permission = PagePermission
 real_estate_permission = RealEstatePermission
+settings_permission = SettingsPermission
 super_admin_permission = SuperAdminOnly
 
 __all__ = [
@@ -130,6 +135,7 @@ __all__ = [
     'FormPermission',
     'PagePermission',
     'RealEstatePermission',
+    'SettingsPermission',  # Added
     'blog_permission',
     'portfolio_permission',
     'analytics_permission',
@@ -146,5 +152,6 @@ __all__ = [
     'form_permission',
     'page_permission',
     'real_estate_permission',
+    'settings_permission',  # Added
     'super_admin_permission',
 ]

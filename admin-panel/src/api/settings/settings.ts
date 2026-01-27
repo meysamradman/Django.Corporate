@@ -13,7 +13,10 @@ import type {
     ContactEmailCreate,
     ContactEmailUpdate,
     SocialMediaCreate,
-    SocialMediaUpdate
+    SocialMediaUpdate,
+    Slider,
+    SliderCreate,
+    SliderUpdate
 } from "@/types/settings/generalSettings";
 
 class SettingsApi {
@@ -140,6 +143,33 @@ class SettingsApi {
 
     async deleteSocialMedia(id: number): Promise<void> {
         await api.delete(`${this.baseUrl}social-media/${id}/`);
+    }
+
+    async getSliders(): Promise<Slider[]> {
+        const response = await api.get<Slider[]>(
+            `${this.baseUrl}sliders/`
+        );
+        return response.data;
+    }
+
+    async createSlider(data: SliderCreate): Promise<Slider> {
+        const response = await api.post<Slider>(
+            `${this.baseUrl}sliders/`,
+            data
+        );
+        return response.data;
+    }
+
+    async updateSlider(id: number, data: SliderUpdate): Promise<Slider> {
+        const response = await api.patch<Slider>(
+            `${this.baseUrl}sliders/${id}/`,
+            data
+        );
+        return response.data;
+    }
+
+    async deleteSlider(id: number): Promise<void> {
+        await api.delete(`${this.baseUrl}sliders/${id}/`);
     }
 }
 

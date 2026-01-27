@@ -8,7 +8,7 @@ export const portfolioFormSchema = z.object({
     .min(1, { message: msg.portfolio("nameRequired") })
     .min(3, { message: msg.portfolio("nameMinLength") })
     .max(200, { message: msg.portfolio("nameMaxLength") }),
-  
+
   slug: z
     .string()
     .superRefine((val, ctx) => {
@@ -20,84 +20,84 @@ export const portfolioFormSchema = z.object({
         });
       }
     }),
-  
+
   short_description: z
     .string()
     .max(300, { message: msg.portfolio("shortDescMaxLength") })
     .optional(),
-  
+
   description: z
     .string()
     .optional(),
-  
+
   selectedCategories: z
     .array(z.any())
     .min(1, { message: msg.portfolio("categoryRequired") }),
-  
+
   selectedTags: z
     .array(z.any())
     .default([]),
-  
+
   selectedOptions: z
     .array(z.any())
     .default([]),
-  
+
   featuredImage: z
     .any()
     .nullable()
     .optional(),
-  
+
   meta_title: z
     .string()
     .max(70, { message: msg.validation("metaTitleMaxLength") })
     .optional(),
-  
+
   meta_description: z
     .string()
     .max(160, { message: msg.validation("metaDescMaxLength") })
     .optional(),
-  
+
   og_title: z
     .string()
     .max(70, { message: msg.validation("ogTitleMaxLength") })
     .optional(),
-  
+
   og_description: z
     .string()
     .max(160, { message: msg.validation("ogDescMaxLength") })
     .optional(),
-  
+
   og_image: z
     .any()
     .nullable()
     .optional(),
-  
+
   canonical_url: z
     .string()
     .url({ message: msg.validation("urlInvalid") })
     .optional()
     .or(z.literal("")),
-  
+
   robots_meta: z
     .string()
     .optional(),
-  
+
   is_public: z
     .boolean()
     .default(true),
-  
+
   is_active: z
     .boolean()
     .default(true),
-  
+
   is_featured: z
     .boolean()
     .default(false),
-  
+
   status: z
     .enum(["draft", "published"])
     .default("draft"),
-  
+
   extra_attributes: z
     .record(z.string(), z.any())
     .default({}),

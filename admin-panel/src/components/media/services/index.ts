@@ -1,5 +1,5 @@
 import { getUploadSettings, getUploadConfig, useUploadSettings } from './config';
-import { 
+import {
     getFileCategory,
     getImageAcceptTypes,
     validateFileSize,
@@ -19,21 +19,21 @@ import {
 export const mediaService = {
     getUploadSettings,
     getUploadConfig,
-    
+
     getImageAcceptTypes,
     validateFileSize,
     validateFileType,
     getFileCategory,
     formatBytes,
     validateFileAdvanced,
-    
+
     getImageUrl: GetImageUrl,
     getVideoUrl: GetVideoUrl,
     getMediaUrlFromObject: GetMediaUrlFromObject,
     getMediaAltText: GetMediaAltText,
     getMediaCoverUrl: GetMediaCoverUrl,
     getUserProfileImageUrl: GetUserProfileImageUrl,
-    
+
     config: getUploadConfig()
 };
 

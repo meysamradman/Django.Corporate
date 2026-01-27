@@ -6,6 +6,8 @@ import type { Media } from "@/types/shared/media";
 import { Image as ImageIcon, X, Video, Music, FileText } from "lucide-react";
 import { mediaService } from "@/components/media/services";
 import type { PropertyMedia } from "@/types/real_estate/realEstateMedia";
+import { getModuleMediaCount } from "@/components/media/utils/genericMediaUtils";
+import { MEDIA_MODULES } from "@/components/media/constants";
 
 const MediaLibraryModal = lazy(() => import("@/components/media/modals/MediaLibraryModal").then(mod => ({ default: mod.MediaLibraryModal })));
 
@@ -36,7 +38,6 @@ export default function RealEstateMedia(props: MediaTabProps) {
         propertyId
     } = props;
     const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
 
     const currentFeaturedImage = featuredImage || propertyMedia?.featuredImage;
 
@@ -58,6 +59,8 @@ export default function RealEstateMedia(props: MediaTabProps) {
         });
     };
 
+    const totalMediaCount = getModuleMediaCount(propertyMedia);
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col lg:flex-row gap-6">
@@ -77,8 +80,9 @@ export default function RealEstateMedia(props: MediaTabProps) {
                             title=""
                             isGallery={true}
                             disabled={!editMode}
-                            context="media_library"
+                            context={MEDIA_MODULES.REAL_ESTATE}
                             contextId={propertyId}
+                            totalItemsCount={totalMediaCount}
                         />
                     </CardWithIcon>
 
@@ -97,8 +101,9 @@ export default function RealEstateMedia(props: MediaTabProps) {
                                 title=""
                                 isGallery={false}
                                 disabled={!editMode}
-                                context="media_library"
+                                context={MEDIA_MODULES.REAL_ESTATE}
                                 contextId={propertyId}
+                                totalItemsCount={totalMediaCount}
                             />
                         </CardWithIcon>
 
@@ -116,8 +121,9 @@ export default function RealEstateMedia(props: MediaTabProps) {
                                 title=""
                                 isGallery={false}
                                 disabled={!editMode}
-                                context="media_library"
+                                context={MEDIA_MODULES.REAL_ESTATE}
                                 contextId={propertyId}
+                                totalItemsCount={totalMediaCount}
                             />
                         </CardWithIcon>
                     </div>
@@ -136,8 +142,9 @@ export default function RealEstateMedia(props: MediaTabProps) {
                             title=""
                             isGallery={false}
                             disabled={!editMode}
-                            context="media_library"
+                            context={MEDIA_MODULES.REAL_ESTATE}
                             contextId={propertyId}
+                            totalItemsCount={totalMediaCount}
                         />
                     </CardWithIcon>
                 </div>
@@ -233,10 +240,8 @@ export default function RealEstateMedia(props: MediaTabProps) {
                     onSelect={handleFeaturedImageSelect}
                     selectMultiple={false}
                     initialFileType="image"
-                    context="media_library"
+                    context={MEDIA_MODULES.REAL_ESTATE}
                     contextId={propertyId}
-                    activeTab={activeTab}
-                    onTabChange={setActiveTab}
                 />
             </Suspense>
         </div>

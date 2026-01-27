@@ -130,3 +130,35 @@ export interface SocialMediaUpdate {
     is_active?: boolean;
 }
 
+export interface Slider {
+    id: number;
+    title: string;
+    description: string;
+    image: Media | null;
+    video: Media | null;
+    link: string;
+    order: number;
+    is_active: boolean;
+    created_at: string;
+}
+
+export interface SliderCreate {
+    title: string;
+    description?: string;
+    image_id?: number | null;
+    video_id?: number | null;
+    link?: string;
+    order?: number;
+    is_active?: boolean;
+}
+
+export interface SliderUpdate {
+    title?: string;
+    description?: string;
+    image_id?: number | null;
+    video_id?: number | null;
+    link?: string;
+    order?: number;
+    is_active?: boolean;
+}
+
