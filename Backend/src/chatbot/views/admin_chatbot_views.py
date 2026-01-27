@@ -36,25 +36,45 @@ class AdminFAQViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         return FAQSerializer
     
     def list(self, request, *args, **kwargs):
-        cache_key = ChatbotCacheKeys.faqs_active()
-        cached_data = cache.get(cache_key)
+        from src.chatbot.services.admin.chatbot_service import ChatbotAdminService
         
-        if cached_data is not None:
-            return APIResponse.success(
+        data, is_cached = ChatbotAdminService.get_faq_list()
+        
+        if is_cached:
+             return APIResponse.success(
                 message=CHATBOT_SUCCESS.get('faq_list_retrieved', 'FAQs retrieved successfully'),
-                data=cached_data,
+                data=data,
                 status_code=status.HTTP_200_OK
             )
         
+        # If not cached, get queryset (data is queryset here if is_cached is False)
+        # Actually service returns queryset if not cached.
+        
+        # To be safe and compatible with DRF pagination if used (though cache stores whole list likely)
+        # The original code cached "response.data".
+        
         response = super().list(request, *args, **kwargs)
         if hasattr(response, 'data'):
-            cache.set(cache_key, response.data, 300)
+            ChatbotAdminService.cache_faq_list(response.data)
         return response
     
+    def perform_create(self, serializer):
+        from src.chatbot.services.admin.chatbot_service import ChatbotAdminService
+        super().perform_create(serializer)
+        ChatbotAdminService.invalidate_chatbot_cache()
+    
+    def perform_update(self, serializer):
+        from src.chatbot.services.admin.chatbot_service import ChatbotAdminService
+        super().perform_update(serializer)
+        ChatbotAdminService.invalidate_chatbot_cache()
+        
+    def perform_destroy(self, instance):
+        from src.chatbot.services.admin.chatbot_service import ChatbotAdminService
+        super().perform_destroy(instance)
+        ChatbotAdminService.invalidate_chatbot_cache()
+        
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
-        RuleBasedChatService.clear_cache()
-        ChatbotCacheManager.invalidate_faqs()
         if response.status_code == status.HTTP_201_CREATED:
             return APIResponse.success(
                 message=CHATBOT_SUCCESS['faq_created'],
@@ -65,8 +85,6 @@ class AdminFAQViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     def update(self, request, *args, **kwargs):
         response = super().update(request, *args, **kwargs)
-        RuleBasedChatService.clear_cache()
-        ChatbotCacheManager.invalidate_faqs()
         if response.status_code == status.HTTP_200_OK:
             return APIResponse.success(
                 message=CHATBOT_SUCCESS['faq_updated'],
@@ -76,10 +94,7 @@ class AdminFAQViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         return response
     
     def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
         super().destroy(request, *args, **kwargs)
-        RuleBasedChatService.clear_cache()
-        ChatbotCacheManager.invalidate_faqs()
         return APIResponse.success(
             message=CHATBOT_SUCCESS['faq_deleted'],
             status_code=status.HTTP_200_OK
@@ -104,23 +119,21 @@ class AdminChatbotSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
         return ChatbotSettings.objects.all()
     
     def list(self, request, *args, **kwargs):
-        cache_key = ChatbotCacheKeys.settings()
-        cached_data = cache.get(cache_key)
+        from src.chatbot.services.admin.chatbot_service import ChatbotAdminService
         
-        if cached_data is not None:
-            return APIResponse.success(
+        data, is_cached = ChatbotAdminService.get_settings()
+        
+        if is_cached:
+             return APIResponse.success(
                 message=CHATBOT_SUCCESS['settings_retrieved'],
-                data=cached_data,
+                data=data,
                 status_code=status.HTTP_200_OK
             )
-        
-        settings = self.get_queryset().first()
-        if not settings:
-            settings = ChatbotSettings.objects.create()
-        
-        serializer = self.get_serializer(settings)
+            
+        # If not cached, data is instance
+        serializer = self.get_serializer(data)
         serialized_data = serializer.data
-        cache.set(cache_key, serialized_data, 300)
+        ChatbotAdminService.cache_settings(serialized_data)
         
         return APIResponse.success(
             message=CHATBOT_SUCCESS['settings_retrieved'],
@@ -130,16 +143,19 @@ class AdminChatbotSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
     
     @action(detail=False, methods=['put', 'patch'], url_path='update')
     def update_settings(self, request, *args, **kwargs):
+        from src.chatbot.services.admin.chatbot_service import ChatbotAdminService
+        
         instance = self.get_queryset().first()
         if not instance:
             instance = ChatbotSettings.objects.create()
         
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
         
-        RuleBasedChatService.clear_cache()
-        ChatbotCacheManager.invalidate_settings()
+        ChatbotAdminService.update_settings(instance, serializer.validated_data)
+        
+        # Re-fetch to match serializer output if needed, or just use serializer data
+        # serializer.data will have updated fields
         
         return APIResponse.success(
             message=CHATBOT_SUCCESS['settings_updated'],

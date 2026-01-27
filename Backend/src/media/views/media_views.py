@@ -54,83 +54,14 @@ class MediaAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         date_from = request.query_params.get('date_from')
         date_to = request.query_params.get('date_to')
         is_active = request.query_params.get('is_active')
-        
-        if not file_type or file_type == 'all':
-            image_qs = ImageMedia.objects.all()
-            video_qs = VideoMedia.objects.select_related('cover_image').all()
-            audio_qs = AudioMedia.objects.select_related('cover_image').all()
-            document_qs = DocumentMedia.objects.select_related('cover_image').all()
-        elif file_type == 'image':
-            image_qs = ImageMedia.objects.all()
-            video_qs = VideoMedia.objects.none()
-            audio_qs = AudioMedia.objects.none()
-            document_qs = DocumentMedia.objects.none()
-        elif file_type == 'video':
-            image_qs = ImageMedia.objects.none()
-            video_qs = VideoMedia.objects.select_related('cover_image').all()
-            audio_qs = AudioMedia.objects.none()
-            document_qs = DocumentMedia.objects.none()
-        elif file_type == 'audio':
-            image_qs = ImageMedia.objects.none()
-            video_qs = VideoMedia.objects.none()
-            audio_qs = AudioMedia.objects.select_related('cover_image').all()
-            document_qs = DocumentMedia.objects.none()
-        elif file_type in ['document', 'pdf']:
-            image_qs = ImageMedia.objects.none()
-            video_qs = VideoMedia.objects.none()
-            audio_qs = AudioMedia.objects.none()
-            document_qs = DocumentMedia.objects.select_related('cover_image').all()
-        else:
-            image_qs = ImageMedia.objects.none()
-            video_qs = VideoMedia.objects.none()
-            audio_qs = AudioMedia.objects.none()
-            document_qs = DocumentMedia.objects.none()
-        
-        if search_term:
-            image_qs = image_qs.filter(title__icontains=search_term)
-            video_qs = video_qs.filter(title__icontains=search_term)
-            audio_qs = audio_qs.filter(title__icontains=search_term)
-            document_qs = document_qs.filter(title__icontains=search_term)
-        
-        if is_active is not None:
-            is_active_bool = is_active.lower() == 'true'
-            image_qs = image_qs.filter(is_active=is_active_bool)
-            video_qs = video_qs.filter(is_active=is_active_bool)
-            audio_qs = audio_qs.filter(is_active=is_active_bool)
-            document_qs = document_qs.filter(is_active=is_active_bool)
-        
-        if date_from:
-            try:
-                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
-                image_qs = image_qs.filter(created_at__date__gte=date_from_obj)
-                video_qs = video_qs.filter(created_at__date__gte=date_from_obj)
-                audio_qs = audio_qs.filter(created_at__date__gte=date_from_obj)
-                document_qs = document_qs.filter(created_at__date__gte=date_from_obj)
-            except ValueError:
-                pass
-        
-        if date_to:
-            try:
-                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
-                image_qs = image_qs.filter(created_at__date__lte=date_to_obj)
-                video_qs = video_qs.filter(created_at__date__lte=date_to_obj)
-                audio_qs = audio_qs.filter(created_at__date__lte=date_to_obj)
-                document_qs = document_qs.filter(created_at__date__lte=date_to_obj)
-            except ValueError:
-                pass
-        
-        all_media = []
-        
-        if not file_type or file_type == 'all':
-            all_media = list(image_qs) + list(video_qs) + list(audio_qs) + list(document_qs)
-        elif file_type == 'image':
-            all_media = list(image_qs)
-        elif file_type == 'video':
-            all_media = list(video_qs)
-        elif file_type == 'audio':
-            all_media = list(audio_qs)
-        elif file_type in ['document', 'pdf']:
-            all_media = list(document_qs)
+
+        all_media = MediaAdminService.get_filtered_media_list(
+            search=search_term,
+            file_type=file_type,
+            is_active=is_active,
+            date_from=date_from,
+            date_to=date_to
+        )
         
         all_media.sort(key=lambda x: x.created_at, reverse=True)
         
@@ -224,8 +155,15 @@ class MediaAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         media_id = kwargs.get("pk")
-        media = None
         
+        # Try to find which type of media this is, to reuse service logic or just keep this simple loop
+        # The service requires media_type.
+        # But we don't know the type here. 
+        # So we can keep the loop OR add a helper "get_media_by_id_agnostic" to service.
+        # For minimal change, keep loop here or move to Service as helper.
+        # I'll keep the loop here for now as it's retrieval logic, but it's cleaner to keep it here than modify service too much.
+        
+        media = None
         for model in [ImageMedia, VideoMedia, AudioMedia, DocumentMedia]:
             try:
                 if model in [VideoMedia, AudioMedia, DocumentMedia]:
@@ -356,54 +294,28 @@ class MediaAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='bulk-delete')
     def bulk_delete(self, request):
         media_data = request.data.get('media_data', [])
-        if not media_data:
+        
+        try:
+             deleted_count, failed_items = MediaAdminService.bulk_delete_media(media_data)
+             
+             return APIResponse.success(
+                message=MEDIA_SUCCESS["media_bulk_deleted"],
+                data={
+                    'deleted_count': deleted_count,
+                    'total_requested': len(media_data),
+                    'failed_items': failed_items
+                }
+            )
+        except ValidationError as e:
             return APIResponse.error(
-                message=MEDIA_ERRORS["media_data_invalid"],
+                message=e.message if hasattr(e, 'message') else str(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-        
-        if not isinstance(media_data, list):
+        except Exception:
             return APIResponse.error(
-                message=MEDIA_ERRORS["media_data_invalid"],
-                status_code=status.HTTP_400_BAD_REQUEST
+                message=MEDIA_ERRORS["media_delete_failed"],
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        
-        MAX_BULK_DELETE = 100
-        if len(media_data) > MAX_BULK_DELETE:
-            return APIResponse.error(
-                message=MEDIA_ERRORS["bulk_delete_limit_exceeded"].format(max_items=MAX_BULK_DELETE),
-                status_code=status.HTTP_400_BAD_REQUEST
-            )
-        
-        deleted_count = 0
-        failed_items = []
-        
-        with transaction.atomic():
-            for item in media_data:
-                try:
-                    media_id = item.get('id')
-                    media_type = item.get('type')
-                    if not media_id or not media_type:
-                        failed_items.append(item)
-                        continue
-                    
-                    MediaAdminService.delete_media_by_id_and_type(media_id, media_type)
-                    deleted_count += 1
-                except ProtectedError:
-                    failed_items.append(item)
-                    continue
-                except Exception:
-                    failed_items.append(item)
-                    continue
-        
-        return APIResponse.success(
-            message=MEDIA_SUCCESS["media_bulk_deleted"],
-            data={
-                'deleted_count': deleted_count,
-                'total_requested': len(media_data),
-                'failed_items': failed_items
-            }
-        )
 
 
 class MediaPublicViewSet(viewsets.ReadOnlyModelViewSet):
