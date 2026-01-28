@@ -9,17 +9,8 @@ from src.real_estate.services.admin import PropertyGeoService
 from src.real_estate.serializers.admin import PropertyAdminListSerializer
 from src.real_estate.messages.messages import PROPERTY_SUCCESS, PROPERTY_ERRORS
 
-
 class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
-    """
-    ViewSet برای عملیات جغرافیایی املاک (PostgreSQL معمولی)
     
-    Endpoints:
-    - GET /nearby/ - املاک نزدیک من
-    - GET /in-bbox/ - املاک در محدوده مستطیلی
-    - GET /in-polygon/ - املاک در چندضلعی
-    - GET /map-data/ - داده‌های بهینه برای نقشه
-    """
     permission_classes = [real_estate_permission]
     
     permission_map = {
@@ -32,15 +23,7 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='nearby')
     def nearby(self, request):
-        """
-        جستجوی املاک نزدیک
         
-        Query Params:
-        - latitude (required): عرض جغرافیایی
-        - longitude (required): طول جغرافیایی
-        - radius_km (optional): شعاع جستجو به کیلومتر (default: 2.0)
-        - limit (optional): تعداد نتایج (default: 20)
-        """
         try:
             latitude = request.query_params.get('latitude')
             longitude = request.query_params.get('longitude')
@@ -86,13 +69,7 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='in-bbox')
     def in_bbox(self, request):
-        """
-        جستجوی املاک در محدوده مستطیلی
         
-        Query Params:
-        - min_lat, max_lat, min_lon, max_lon (required)
-        - limit (optional): تعداد نتایج (default: 100)
-        """
         try:
             min_lat = request.query_params.get('min_lat')
             max_lat = request.query_params.get('max_lat')
@@ -142,20 +119,7 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     
     @action(detail=False, methods=['post'], url_path='in-polygon')
     def in_polygon(self, request):
-        """
-        جستجوی املاک در چندضلعی
         
-        Body (JSON):
-        {
-            "polygon": [
-                [lat1, lon1],
-                [lat2, lon2],
-                [lat3, lon3],
-                ...
-            ],
-            "limit": 100
-        }
-        """
         try:
             polygon_coords = request.data.get('polygon', [])
             
@@ -165,7 +129,6 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
-            # تبدیل به Decimal
             try:
                 polygon = [
                     (Decimal(str(lat)), Decimal(str(lon))) 
@@ -200,16 +163,7 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='map-data')
     def map_data(self, request):
-        """
-        داده‌های بهینه برای نمایش روی نقشه
         
-        Query Params:
-        - min_lat, max_lat, min_lon, max_lon (required)
-        - limit (optional): تعداد نتایج (default: 500)
-        
-        Returns:
-        - فقط فیلدهای ضروری برای نقشه (id, title, lat, lon, price, ...)
-        """
         try:
             min_lat = request.query_params.get('min_lat')
             max_lat = request.query_params.get('max_lat')

@@ -14,7 +14,6 @@ from src.ai.providers.registry import AIProviderRegistry
 from src.ai.messages.messages import AI_ERRORS
 from src.ai.providers.capabilities import ProviderAvailabilityManager
 
-
 class AIImageGenerationService:
     
     @classmethod

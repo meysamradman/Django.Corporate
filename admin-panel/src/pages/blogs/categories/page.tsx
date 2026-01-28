@@ -96,7 +96,6 @@ export default function CategoryPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries();
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'دسته‌بندی' }));
     },
     onError: (_error) => {
@@ -110,7 +109,6 @@ export default function CategoryPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries();
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'دسته‌بندی' }));
       setRowSelection({});
     },
@@ -201,7 +199,6 @@ export default function CategoryPage() {
       setClientFilters(newClientFilters);
     }
   }, []);
-
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 

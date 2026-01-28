@@ -71,7 +71,6 @@ export interface Blog extends Base {
     structured_data?: Record<string, any> | null;
     hreflang_data?: Record<string, any> | null;
 
-    // Analytics
     views_count?: number;
     web_views_count?: number;
     app_views_count?: number;

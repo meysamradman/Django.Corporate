@@ -96,8 +96,6 @@ class BlogPDFListExportService:
         logger.info(f"Generated PDF size: {len(pdf_content)} bytes. Returning response.")
         
         response = HttpResponse(pdf_content, content_type='application/pdf')
-        # Use RFC 6266 for non-ASCII filenames
         response['Content-Disposition'] = f"attachment; filename*=utf-8''{escape_uri_path(filename)}"
         return response
-
 

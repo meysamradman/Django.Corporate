@@ -7,7 +7,6 @@ from src.media.models.media import ImageMedia
 from src.page.models.seo import SEOMixin
 from src.page.utils.cache import PageCacheKeys, PageCacheManager
 
-
 class AboutPage(BaseModel, SEOMixin):
 
     title = models.CharField(
@@ -42,7 +41,6 @@ class AboutPage(BaseModel, SEOMixin):
         help_text="Main content of about page (HTML supported)"
     )
     
-    # 5. Relationships
     featured_image = models.ForeignKey(
         ImageMedia,
         on_delete=models.SET_NULL,
@@ -71,7 +69,6 @@ class AboutPage(BaseModel, SEOMixin):
                 self.pk = existing.pk
                 self.public_id = existing.public_id
         
-        # Set meta fields before validation
         if not self.meta_title and self.title:
             self.meta_title = self.title[:70]
         if not self.meta_description and self.short_description:

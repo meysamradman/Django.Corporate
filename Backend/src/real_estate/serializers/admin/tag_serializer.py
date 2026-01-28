@@ -2,7 +2,6 @@ from rest_framework import serializers
 from src.real_estate.models.tag import PropertyTag
 from src.real_estate.messages.messages import TAG_ERRORS
 
-
 class PropertyTagAdminListSerializer(serializers.ModelSerializer):
     property_count = serializers.IntegerField(read_only=True)
     
@@ -14,7 +13,6 @@ class PropertyTagAdminListSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
-
 
 class PropertyTagAdminDetailSerializer(serializers.ModelSerializer):
     property_count = serializers.IntegerField(read_only=True)
@@ -29,7 +27,6 @@ class PropertyTagAdminDetailSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
-
 
 class PropertyTagAdminCreateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -50,7 +47,6 @@ class PropertyTagAdminCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(TAG_ERRORS.get("tag_not_found", "This tag already exists"))
         return value
 
-
 class PropertyTagAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyTag
@@ -62,27 +58,22 @@ class PropertyTagAdminUpdateSerializer(serializers.ModelSerializer):
     
     def validate_slug(self, value):
         if value:
-            # Check if we're updating an existing instance
             if self.instance and hasattr(self.instance, 'id'):
                 if PropertyTag.objects.exclude(id=self.instance.id).filter(slug=value).exists():
                     raise serializers.ValidationError(TAG_ERRORS.get("tag_not_found", "This slug already exists"))
             else:
-                # If no instance, check if slug exists at all
                 if PropertyTag.objects.filter(slug=value).exists():
                     raise serializers.ValidationError(TAG_ERRORS.get("tag_not_found", "This slug already exists"))
         return value
 
     def validate_title(self, value):
-        # Check if we're updating an existing instance
         if self.instance and hasattr(self.instance, 'id'):
             if PropertyTag.objects.exclude(id=self.instance.id).filter(title=value).exists():
                 raise serializers.ValidationError(TAG_ERRORS.get("tag_not_found", "This tag already exists"))
         else:
-            # If no instance, check if title exists at all
             if PropertyTag.objects.filter(title=value).exists():
                 raise serializers.ValidationError(TAG_ERRORS.get("tag_not_found", "This tag already exists"))
         return value
-
 
 class PropertyTagAdminSerializer(PropertyTagAdminDetailSerializer):
     pass

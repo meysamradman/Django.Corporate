@@ -139,13 +139,7 @@ export const PERMISSIONS = {
   SETTINGS: {
     MANAGE: 'settings.manage',
   },
-  
-  // 🔒 REMOVED: PANEL - Panel Settings فقط برای Super Admin
-  // PANEL: {
-  //   MANAGE: 'panel.manage',
-  //   READ: 'panel.read',
-  // },
-  
+
   FORMS: {
     MANAGE: 'forms.manage',
   },
@@ -223,8 +217,6 @@ export type PermissionId =
   | typeof PERMISSIONS.EMAIL[keyof typeof PERMISSIONS.EMAIL]
   | typeof PERMISSIONS.TICKET[keyof typeof PERMISSIONS.TICKET]
   | typeof PERMISSIONS.SETTINGS[keyof typeof PERMISSIONS.SETTINGS]
-  // 🔒 REMOVED: PANEL - فقط برای Super Admin
-  // | typeof PERMISSIONS.PANEL[keyof typeof PERMISSIONS.PANEL]
   | typeof PERMISSIONS.FORMS[keyof typeof PERMISSIONS.FORMS]
   | typeof PERMISSIONS.PAGES[keyof typeof PERMISSIONS.PAGES]
   | typeof PERMISSIONS.CHATBOT[keyof typeof PERMISSIONS.CHATBOT]

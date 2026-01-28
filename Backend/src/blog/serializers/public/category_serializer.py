@@ -3,14 +3,12 @@ from src.media.serializers import MediaPublicSerializer
 from src.blog.models.category import BlogCategory
 from drf_spectacular.utils import extend_schema_field
 
-
 class BlogCategorySimplePublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogCategory
         fields = [
             'public_id', 'name', 'slug', 'created_at',
         ]
-
 
 class BlogCategoryPublicSerializer(serializers.ModelSerializer):
     parent = serializers.SerializerMethodField()

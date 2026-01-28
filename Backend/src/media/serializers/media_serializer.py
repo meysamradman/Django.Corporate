@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 
-
 class MediaCoverSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
     
@@ -16,7 +15,6 @@ class MediaCoverSerializer(serializers.ModelSerializer):
         if obj.file:
             return obj.file.url
         return None
-
 
 class BaseMediaSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
@@ -45,12 +43,10 @@ class BaseMediaSerializer(serializers.ModelSerializer):
             return 'document'
         return 'file'
 
-
 class ImageMediaSerializer(BaseMediaSerializer):
     class Meta(BaseMediaSerializer.Meta):
         model = ImageMedia
         fields = BaseMediaSerializer.Meta.fields
-
 
 class VideoMediaSerializer(BaseMediaSerializer):
     cover_image = MediaCoverSerializer(read_only=True)
@@ -66,7 +62,6 @@ class VideoMediaSerializer(BaseMediaSerializer):
                 return obj.cover_image.file.url
         return None
 
-
 class AudioMediaSerializer(BaseMediaSerializer):
     cover_image = MediaCoverSerializer(read_only=True)
     cover_image_url = serializers.SerializerMethodField()
@@ -80,7 +75,6 @@ class AudioMediaSerializer(BaseMediaSerializer):
             if hasattr(obj.cover_image, 'file') and obj.cover_image.file:
                 return obj.cover_image.file.url
         return None
-
 
 class DocumentMediaSerializer(BaseMediaSerializer):
     cover_image = MediaCoverSerializer(read_only=True)
@@ -100,7 +94,6 @@ class DocumentMediaSerializer(BaseMediaSerializer):
         if obj.mime_type == 'application/pdf':
             return 'pdf'
         return 'document'
-
 
 class MediaAdminSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
@@ -152,7 +145,6 @@ class MediaAdminSerializer(serializers.Serializer):
         elif isinstance(instance, DocumentMedia):
             return DocumentMediaSerializer(instance, context=self.context).data
         return super().to_representation(instance)
-
 
 class MediaPublicSerializer(serializers.Serializer):
     public_id = serializers.UUIDField(read_only=True)

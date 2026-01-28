@@ -83,7 +83,6 @@ export function MediaPreview({
         </div>
       )}
 
-
       <div className={cn(
         "absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent transition-opacity duration-300",
         isHovered ? "opacity-100" : "opacity-0"

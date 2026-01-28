@@ -47,7 +47,6 @@ export function getResourceIcon(resourceKey: string): ReactElement {
     'portfolio.option': <ListTree className="h-4 w-4 text-purple-1" />,
     'portfolio.option_value': <ListChecks className="h-4 w-4 text-pink-1" />,
     
-    // Legacy support (with underscore)
     blog_categories: <Folder className="h-4 w-4 text-emerald-1" />,
     blog_tags: <Tag className="h-4 w-4 text-teal-1" />,
     portfolio_categories: <Folder className="h-4 w-4 text-teal-1" />,
@@ -65,7 +64,6 @@ export function getResourceIcon(resourceKey: string): ReactElement {
     forms: <SquarePen className="h-4 w-4 text-green-1" />,
     pages: <BookOpenCheck className="h-4 w-4 text-pink-1" />,
     
-    // Real Estate
     real_estate: <Building2 className="h-4 w-4 text-orange-1" />,
     'real_estate.property': <Building2 className="h-4 w-4 text-orange-1" />,
     'real_estate.agent': <UserCheck className="h-4 w-4 text-blue-1" />,
@@ -76,16 +74,13 @@ export function getResourceIcon(resourceKey: string): ReactElement {
     'real_estate.feature': <Star className="h-4 w-4 text-yellow-1" />,
     'real_estate.tag': <Tag className="h-4 w-4 text-teal-1" />,
     
-    // Media subtypes
     'media.image': <ImageIcon className="h-4 w-4 text-pink-1" />,
     'media.video': <Video className="h-4 w-4 text-red-1" />,
     'media.audio': <Music className="h-4 w-4 text-purple-1" />,
     'media.document': <FileText className="h-4 w-4 text-blue-1" />,
   };
 
-  // Fallback برای resource keys با dot notation
   if (!resourceIconMap[resourceKey]) {
-    // اگر resource key با blog شروع شود
     if (resourceKey.startsWith('blog.')) {
       const parts = resourceKey.split('.');
       if (parts.length > 1) {
@@ -99,7 +94,6 @@ export function getResourceIcon(resourceKey: string): ReactElement {
       }
     }
     
-    // اگر resource key با portfolio شروع شود
     if (resourceKey.startsWith('portfolio.')) {
       const parts = resourceKey.split('.');
       if (parts.length > 1) {
@@ -113,13 +107,11 @@ export function getResourceIcon(resourceKey: string): ReactElement {
             return <ListTree className="h-4 w-4 text-purple-1" />;
         }
       }
-      // برای portfolio.option.value
       if (parts.length > 2 && parts[1] === 'option' && parts[2] === 'value') {
         return <ListChecks className="h-4 w-4 text-pink-1" />;
       }
     }
     
-    // اگر resource key با real_estate شروع شود
     if (resourceKey.startsWith('real_estate.')) {
       const parts = resourceKey.split('.');
       if (parts.length > 1) {
@@ -145,7 +137,6 @@ export function getResourceIcon(resourceKey: string): ReactElement {
       }
     }
     
-    // اگر resource key با media شروع شود
     if (resourceKey.startsWith('media.')) {
       const parts = resourceKey.split('.');
       if (parts.length > 1) {

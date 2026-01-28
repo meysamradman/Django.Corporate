@@ -3,14 +3,12 @@ from src.media.serializers import MediaPublicSerializer
 from src.portfolio.models.category import PortfolioCategory
 from drf_spectacular.utils import extend_schema_field
 
-
 class PortfolioCategorySimplePublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioCategory
         fields = [
             'public_id', 'name', 'slug', 'created_at',
         ]
-
 
 class PortfolioCategoryPublicSerializer(serializers.ModelSerializer):
     parent = serializers.SerializerMethodField()

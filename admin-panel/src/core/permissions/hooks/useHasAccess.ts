@@ -13,4 +13,3 @@ export const useHasAccess = (permission: string | string[]) => {
   }, [data, permission])
 }
 
-

@@ -37,7 +37,6 @@ class PortfolioPDFExportService:
         elements.append(Paragraph(rtl(portfolio.title), styles['title']))
         elements.append(HRFlowable(width="100%", thickness=1, color=clr.PRIMARY, spaceAfter=20))
         
-        # Main Image
         main_img = portfolio.get_main_image()
         rl_img = PDFBaseExportService.get_image(main_img)
         if rl_img:
@@ -91,4 +90,3 @@ class PortfolioPDFExportService:
         response['Content-Disposition'] = f"attachment; filename*=utf-8''{escape_uri_path(filename)}"
         return response
 
-    

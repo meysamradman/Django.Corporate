@@ -7,7 +7,6 @@ from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.models.property import Property
 from src.real_estate.messages.messages import AGENT_ERRORS
 
-
 class PropertyAgentAdminService:
     
     @staticmethod
@@ -41,7 +40,6 @@ class PropertyAgentAdminService:
                 Q(license_number__icontains=search)
             )
         
-        # Date filters
         if date_from:
             try:
                 date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
@@ -83,7 +81,6 @@ class PropertyAgentAdminService:
         if not user_id:
             raise ValidationError(AGENT_ERRORS["agent_create_failed"])
         
-        # Validate user is admin
         try:
             user = User.objects.get(id=user_id)
         except User.DoesNotExist:
@@ -99,7 +96,6 @@ class PropertyAgentAdminService:
         if PropertyAgent.objects.filter(user_id=user_id).exists():
             raise ValidationError(AGENT_ERRORS["user_already_has_agent"])
         
-        # Auto-generate slug from user's admin_profile
         if not validated_data.get('slug'):
             try:
                 admin_profile = user.admin_profile
@@ -114,7 +110,6 @@ class PropertyAgentAdminService:
             except Exception:
                 pass
         
-        # Auto-populate SEO fields
         if not validated_data.get('meta_title'):
             try:
                 admin_profile = user.admin_profile
@@ -151,7 +146,6 @@ class PropertyAgentAdminService:
         
         user_id = validated_data.pop('user_id', None)
         
-        # Validate user is admin if user_id is provided
         if user_id:
             try:
                 user = User.objects.get(id=user_id)
@@ -165,7 +159,6 @@ class PropertyAgentAdminService:
             if user_type != 'admin' or not is_staff or not is_admin_active:
                 raise ValidationError(AGENT_ERRORS["user_must_be_admin"])
         
-        # Auto-generate slug from user's admin_profile if needed
         if not validated_data.get('slug'):
             try:
                 if user_id:
@@ -185,7 +178,6 @@ class PropertyAgentAdminService:
             except Exception:
                 pass
         
-        # Auto-populate SEO fields if needed
         if not validated_data.get('meta_title'):
             try:
                 if user_id:

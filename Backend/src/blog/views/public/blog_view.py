@@ -15,7 +15,6 @@ from src.blog.serializers.public.blog_serializer import (
 from src.blog.services.public.blog_services import BlogPublicService
 from src.blog.filters.public.blog_filters import BlogPublicFilter
 
-
 class BlogPublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, SearchFilter]

@@ -10,7 +10,6 @@ import type {
   TicketListParams,
 } from "@/types/ticket/ticket";
 
-
 class TicketApi {
   private baseUrl = '/admin/tickets/';
   private messageBaseUrl = '/admin/ticket-messages/';

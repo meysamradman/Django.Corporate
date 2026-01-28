@@ -3,7 +3,6 @@ from src.panel.models import PanelSettings
 from src.media.serializers.media_serializer import MediaAdminSerializer
 from src.media.models.media import ImageMedia
 
-
 class PanelSettingsSerializer(serializers.ModelSerializer):
     logo_detail = MediaAdminSerializer(source='logo', read_only=True)
     favicon_detail = MediaAdminSerializer(source='favicon', read_only=True)

@@ -4,8 +4,6 @@ import { permissionApi } from '@/api/admins/permissions/permissions'
 import type { PermissionSnapshot } from '../types'
 
 export const usePermissionMap = () => {
-  // Use the same query key as PermissionProvider so they share the same data
-  // This prevents duplicate requests - PermissionProvider fetches once, others use cached data
   const query = useQuery({
     queryKey: ['permission-map'],
     queryFn: async () => {
@@ -40,5 +38,4 @@ export const usePermissionMap = () => {
     data: normalizedData,
   }
 }
-
 

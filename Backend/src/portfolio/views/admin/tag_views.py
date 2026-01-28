@@ -20,7 +20,6 @@ from src.user.access_control import portfolio_permission, SimpleAdminPermission,
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import TAG_SUCCESS, TAG_ERRORS
 
-
 class PortfolioTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [portfolio_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]

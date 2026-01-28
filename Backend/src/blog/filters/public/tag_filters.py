@@ -1,7 +1,6 @@
 from django_filters import rest_framework as filters
 from src.blog.models.tag import BlogTag
 
-
 class BlogTagPublicFilter(filters.FilterSet):
     name = filters.CharFilter(
         field_name='name',

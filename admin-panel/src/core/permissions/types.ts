@@ -20,4 +20,3 @@ export type PermissionSnapshot = {
   isSuper: boolean
 }
 
-

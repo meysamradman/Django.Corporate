@@ -2,7 +2,6 @@ from django.db import transaction
 from src.panel.models import PanelSettings
 from src.panel.utils.cache import PanelCacheManager
 
-
 class PanelSettingsService:
     
     @staticmethod

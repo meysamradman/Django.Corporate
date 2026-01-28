@@ -12,7 +12,6 @@ import { BlogMedia } from "@/components/blogs/list/view/BlogMedia.tsx";
 import { BlogSEO } from "@/components/blogs/list/view/BlogSEO.tsx";
 import { FloatingActions } from "@/components/elements/FloatingActions";
 
-
 export default function BlogViewPage() {
   const params = useParams();
   const navigate = useNavigate();
@@ -108,14 +107,11 @@ export default function BlogViewPage() {
         position="left"
       />
 
-      {/* Top Section: Carousel + Basic Info */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">
-        {/* Right Side: Carousel (Gallery) - Takes more space */}
         <div className="lg:col-span-7 xl:col-span-8 h-full">
           <BlogCarousel blog={blogData} className="h-full" />
         </div>
 
-        {/* Left Side: Basic Info Sidebar - Takes less space */}
         <div className="lg:col-span-5 xl:col-span-4 h-full">
           <div className="sticky top-4 self-start">
             <BlogInfo blog={blogData} />
@@ -123,7 +119,6 @@ export default function BlogViewPage() {
         </div>
       </div>
 
-      {/* Bottom Section: Tabs */}
       <div>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList>

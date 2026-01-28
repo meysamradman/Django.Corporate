@@ -23,10 +23,8 @@ export function RealEstateFeatures({ property }: PropertyFeaturesProps) {
         >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-y-4 gap-x-8">
                 {property.features.map((feature) => {
-                    // Determine image URL - utilizing both potential field names
                     const imageUrl = feature.image?.file_url || feature.image_url;
 
-                    // Generate full URL if a partial path or object exists
                     const fullImageUrl = imageUrl
                         ? mediaService.getMediaUrlFromObject({ file_url: imageUrl } as any)
                         : null;
@@ -36,7 +34,6 @@ export function RealEstateFeatures({ property }: PropertyFeaturesProps) {
                             key={feature.id}
                             className="flex items-center gap-3 p-2 rounded-lg hover:bg-bg-2/50 transition-colors group"
                         >
-                            {/* Icon Container */}
                             <div className="shrink-0">
                                 {fullImageUrl ? (
                                     <div className="relative w-6 h-6">
@@ -53,7 +50,6 @@ export function RealEstateFeatures({ property }: PropertyFeaturesProps) {
                                 )}
                             </div>
 
-                            {/* Feature Title */}
                             <span className="text-font-p font-medium">
                                 {feature.title}
                             </span>

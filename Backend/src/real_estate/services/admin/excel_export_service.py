@@ -14,15 +14,11 @@ try:
 except ImportError:
     XLSXWRITER_AVAILABLE = False
 
-
 class PropertyExcelExportService:
     
     @staticmethod
     def export_properties(queryset):
-        """
-        Export property listings to a professional Excel file with RTL support 
-        and Persian headers.
-        """
+        
         if not XLSXWRITER_AVAILABLE:
             raise ImportError(PROPERTY_ERRORS.get("property_export_failed", "XlsxWriter not installed"))
         
@@ -30,7 +26,6 @@ class PropertyExcelExportService:
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
         worksheet = workbook.add_worksheet('Properties List')
         
-        # Modern Styles
         header_fmt = workbook.add_format({
             'bold': True,
             'bg_color': '#2563eb',
@@ -51,7 +46,6 @@ class PropertyExcelExportService:
             'font_size': 10
         })
         
-        # RTL Setup
         worksheet.right_to_left()
         
         headers = [
@@ -70,7 +64,6 @@ class PropertyExcelExportService:
             worksheet.write(row, 3, prop.state.title if prop.state else "-", data_fmt)
             worksheet.write(row, 4, prop.city.name if prop.city else "-", data_fmt)
             
-            # Formatted Price
             price = prop.price or prop.sale_price or 0
             formatted_price = f"{price:,}" if price > 0 else "-"
             worksheet.write(row, 5, formatted_price, data_fmt)
@@ -84,7 +77,6 @@ class PropertyExcelExportService:
             worksheet.write(row, 12, prop.agency.name if prop.agency else "-", data_fmt)
             worksheet.write(row, 13, format_jalali_medium(prop.created_at), data_fmt)
             
-        # Optimal column widths
         worksheet.set_column(0, 0, 8)   # ID
         worksheet.set_column(1, 1, 40)  # Title
         worksheet.set_column(2, 4, 15)  # Type, State, City

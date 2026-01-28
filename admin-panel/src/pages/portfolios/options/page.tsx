@@ -89,7 +89,6 @@ export default function OptionPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolio-options'] });
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'گزینه نمونه‌کار' }));
     },
     onError: (_error) => {
@@ -103,7 +102,6 @@ export default function OptionPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries();
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'گزینه نمونه‌کار' }));
       setRowSelection({});
     },
@@ -200,7 +198,6 @@ export default function OptionPage() {
       setClientFilters(newClientFilters);
     }
   }, []);
-
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 

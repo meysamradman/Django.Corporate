@@ -1,7 +1,6 @@
 from django.db import models
 from django.db.models import Prefetch, Count, Q
 
-
 class PortfolioQuerySet(models.QuerySet):
     
     def published(self):
@@ -18,15 +17,7 @@ class PortfolioQuerySet(models.QuerySet):
         )
     
     def for_admin_listing(self):
-        """
-        Optimized for admin listing - High Performance
         
-        ✅ Optimizations:
-        - select_related for og_image
-        - annotate with SQL-level counts using models.F
-        - prefetch categories and tags
-        - prefetch main images only
-        """
         from src.portfolio.models.media import PortfolioImage
         from django.db.models.functions import Coalesce
         
@@ -41,7 +32,6 @@ class PortfolioQuerySet(models.QuerySet):
                 to_attr='main_image_prefetch'
             ),
         ).annotate(
-            # ✅ SQL-level counts for high performance
             total_images_count=Count('images', distinct=True),
             total_videos_count=Count('videos', distinct=True),
             total_audios_count=Count('audios', distinct=True),
@@ -49,7 +39,6 @@ class PortfolioQuerySet(models.QuerySet):
             categories_count=Count('categories', distinct=True),
             tags_count=Count('tags', distinct=True)
         ).annotate(
-            # ✅ Coalesce to ensure we don't have NULL
             total_media_count=Coalesce(
                 models.F('total_images_count') + 
                 models.F('total_videos_count') + 
@@ -60,8 +49,6 @@ class PortfolioQuerySet(models.QuerySet):
             )
         )
 
-
-    
     def for_public_listing(self):
         from src.portfolio.models.media import PortfolioImage
         return self.published().select_related('og_image').prefetch_related(
@@ -172,24 +159,17 @@ class PortfolioQuerySet(models.QuerySet):
         return self.filter(tags__slug=tag_slug)
     
     def filter_by_extra_attribute(self, key, value):
-        """
-        Filter portfolios by extra_attributes key-value pair
-        Example: Portfolio.objects.filter_by_extra_attribute('price', 1000000)
-        """
+        
         return self.filter(extra_attributes__has_key=key).filter(**{f'extra_attributes__{key}': value})
     
     def filter_by_price_range(self, min_price=None, max_price=None):
-        """
-        Filter portfolios by price range in extra_attributes
-        Example: Portfolio.objects.filter_by_price_range(min_price=1000000, max_price=10000000)
-        """
+        
         qs = self.filter(extra_attributes__has_key='price')
         if min_price is not None:
             qs = qs.filter(extra_attributes__price__gte=min_price)
         if max_price is not None:
             qs = qs.filter(extra_attributes__price__lte=max_price)
         return qs
-
 
 class PortfolioCategoryQuerySet(models.QuerySet):
     
@@ -208,7 +188,6 @@ class PortfolioCategoryQuerySet(models.QuerySet):
     def for_tree(self):
         return self.only('id', 'name', 'slug', 'depth', 'path', 'public_id')
 
-
 class PortfolioTagQuerySet(models.QuerySet):
     
     def public(self):
@@ -224,7 +203,6 @@ class PortfolioTagQuerySet(models.QuerySet):
             portfolio_count=Count('portfolio_tags',
                                 filter=Q(portfolio_tags__status='published'))
         )
-
 
 class PortfolioOptionQuerySet(models.QuerySet):
     

@@ -8,7 +8,6 @@ LEGACY_ROLE_NAMES = {
     'support_admin',
 }
 
-
 def _demote_removed_system_roles(valid_role_names: set[str], verbose: bool = True):
     demoted = []
     deleted = []
@@ -27,7 +26,6 @@ def _demote_removed_system_roles(valid_role_names: set[str], verbose: bool = Tru
             role.delete()
             deleted.append(role.name)
     return demoted, deleted
-
 
 def create_default_admin_roles(force_update=False, verbose=True):
     role_configs = get_all_role_configs()
@@ -91,10 +89,8 @@ def create_default_admin_roles(force_update=False, verbose=True):
         'total_processed': len(role_configs),
         'results': results
     }
-    
-                
-    return summary
 
+    return summary
 
 def ensure_admin_roles_exist():
     try:
@@ -104,7 +100,6 @@ def ensure_admin_roles_exist():
         return {'created': 0, 'updated': 0, 'skipped': 0, 'message': 'Roles already exist'}
     except Exception as e:
         return {'error': str(e)}
-
 
 def get_role_summary():
     try:

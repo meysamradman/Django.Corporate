@@ -1,7 +1,6 @@
 from rest_framework import serializers
 import json
 
-
 class PortfolioMediaSerializer(serializers.Serializer):
     media_ids = serializers.ListField(
         child=serializers.IntegerField(),

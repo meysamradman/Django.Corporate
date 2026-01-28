@@ -6,7 +6,6 @@ from src.portfolio.utils.cache import OptionCacheManager
 from src.analytics.utils.cache import AnalyticsCacheManager
 from .managers import PortfolioOptionQuerySet
 
-
 class PortfolioOption(BaseModel, SEOMixin):
     name = models.CharField(
         max_length=100,

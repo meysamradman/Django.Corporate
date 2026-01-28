@@ -23,11 +23,9 @@ interface RealtorCardProps {
 }
 
 export function RealEstateRealtorCard({ property }: RealtorCardProps) {
-    // Determine if we show Agent or Admin (fallback)
     const agent = property.agent;
     const isAgent = !!agent;
 
-    // Data Mapping
     const name = isAgent ? (agent.full_name || `${agent.first_name} ${agent.last_name}`) : "مدیر سیستم";
     const role = isAgent ? (agent.specialization || "مشاور املاک") : "ادمین کل";
     const phone = isAgent ? agent.phone : property.created_by || "-"; // Fallback to created_by if available
@@ -38,7 +36,6 @@ export function RealEstateRealtorCard({ property }: RealtorCardProps) {
     const license = isAgent ? agent.license_number : null;
     const isVerified = isAgent ? agent.is_verified : true; // Admins are verified
 
-    // Profile Image
     const profileUrl = isAgent && agent.profile_picture_url
         ? mediaService.getMediaUrlFromObject({ file_url: agent.profile_picture_url } as any)
         : null;
@@ -47,7 +44,6 @@ export function RealEstateRealtorCard({ property }: RealtorCardProps) {
         <div className="w-full space-y-6 sticky top-20 transition-all duration-300 ease-in-out self-start group">
             <Card className="overflow-hidden border-br hover:shadow-xl transition-all duration-500 relative bg-card group-hover:-translate-y-1">
                 <CardContent className="p-0">
-                    {/* Header Image / Profile Background */}
                     <div className="relative w-full aspect-4/3 overflow-hidden">
                         {profileUrl ? (
                             <MediaImage
@@ -63,7 +59,6 @@ export function RealEstateRealtorCard({ property }: RealtorCardProps) {
                             </div>
                         )}
 
-                        {/* Overlay Gradient */}
                         <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6">
                             <div className="flex items-center gap-2 mb-1">
                                 <h3 className="text-2xl font-bold text-white shadow-sm">{name}</h3>
@@ -81,10 +76,8 @@ export function RealEstateRealtorCard({ property }: RealtorCardProps) {
                         </div>
                     </div>
 
-                    {/* Contact Info Body */}
                     <div className="p-6 space-y-6 bg-card">
 
-                        {/* Social Icons */}
                         <div className="flex justify-center gap-4 border-b border-br pb-6">
                             {[Facebook, Twitter, Linkedin, Instagram].map((Icon, i) => (
                                 <a key={i} href="#" className="p-2.5 rounded-xl bg-bg-2 text-gray-2 hover:bg-primary hover:text-white transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-lg hover:shadow-primary/30">
@@ -94,7 +87,6 @@ export function RealEstateRealtorCard({ property }: RealtorCardProps) {
                         </div>
 
                         <div className="space-y-4">
-                            {/* Phone */}
                             {phone && phone !== "-" && (
                                 <div className="flex items-center justify-between group/item p-3 rounded-xl hover:bg-bg-2 transition-colors border border-transparent hover:border-br">
                                     <div className="flex items-center gap-3">
@@ -107,7 +99,6 @@ export function RealEstateRealtorCard({ property }: RealtorCardProps) {
                                 </div>
                             )}
 
-                            {/* Mobile */}
                             {mobile && mobile !== "-" && (
                                 <div className="flex items-center justify-between group/item p-3 rounded-xl hover:bg-bg-2 transition-colors border border-transparent hover:border-br">
                                     <div className="flex items-center gap-3">
@@ -120,7 +111,6 @@ export function RealEstateRealtorCard({ property }: RealtorCardProps) {
                                 </div>
                             )}
 
-                            {/* Email */}
                             {email && email !== "-" && (
                                 <div className="flex items-center justify-between group/item p-3 rounded-xl hover:bg-bg-2 transition-colors border border-transparent hover:border-br">
                                     <div className="flex items-center gap-3">
@@ -133,7 +123,6 @@ export function RealEstateRealtorCard({ property }: RealtorCardProps) {
                                 </div>
                             )}
 
-                            {/* License */}
                             {license && (
                                 <div className="flex items-center justify-between pt-2 px-2">
                                     <span className="text-xs text-font-s flex items-center gap-1">

@@ -75,7 +75,6 @@ export interface Portfolio extends Base {
 
     extra_attributes?: Record<string, any>;
 
-    // Analytics
     views_count?: number;
     web_views_count?: number;
     app_views_count?: number;

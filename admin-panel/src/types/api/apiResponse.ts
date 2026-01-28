@@ -37,4 +37,3 @@ export function hasErrors(response: ApiResponse<unknown>): response is ApiRespon
     return 'errors' in response && response.errors !== undefined;
 }
 
-

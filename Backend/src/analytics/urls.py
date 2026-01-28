@@ -7,11 +7,9 @@ router = DefaultRouter()
 router.register(r'analytics/admin/stats', AdminStatsViewSet, basename='admin-stats')
 
 urlpatterns = [
-    # Analytics - Page Views & Tracking
     path('analytics/admin/page-views/', PageViewsAnalyticsView.as_view(), name='admin-analytics-page-views'),
     path('analytics/admin/monthly-stats/', MonthlyStatsAnalyticsView.as_view(), name='admin-analytics-monthly-stats'),
     path('analytics/admin/clear/', ClearAnalyticsView.as_view(), name='admin-analytics-clear'),
     
-    # Stats - System Statistics (Dashboard)
     path('', include(router.urls)),
 ]

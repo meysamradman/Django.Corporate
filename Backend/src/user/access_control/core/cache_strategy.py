@@ -1,7 +1,6 @@
 from django.core.cache import cache
 from typing import Optional
 
-
 class PermissionCacheStrategy:
     
     SUPER_ADMIN_TIMEOUT = 600

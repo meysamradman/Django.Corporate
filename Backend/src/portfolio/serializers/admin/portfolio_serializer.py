@@ -16,7 +16,6 @@ from src.media.serializers.media_serializer import MediaAdminSerializer, MediaCo
 _MEDIA_LIST_LIMIT = settings.PORTFOLIO_MEDIA_LIST_LIMIT
 _MEDIA_DETAIL_LIMIT = settings.PORTFOLIO_MEDIA_DETAIL_LIMIT
 
-
 class PortfolioMediaAdminSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     public_id = serializers.UUIDField(read_only=True)
@@ -66,7 +65,6 @@ class PortfolioMediaAdminSerializer(serializers.Serializer):
                 media_detail['cover_image'] = MediaCoverSerializer(portfolio_cover, context=self.context).data
                 media_detail['cover_image_url'] = portfolio_cover.file.url if portfolio_cover.file else None
 
-
 class PortfolioAdminListSerializer(serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
     categories = PortfolioCategorySimpleAdminSerializer(many=True, read_only=True)
@@ -94,7 +92,6 @@ class PortfolioAdminListSerializer(serializers.ModelSerializer):
         ]
     
     def get_main_image(self, obj):
-        # ✅ Prefetch (main_image_prefetch) اولویت با
         main_images = getattr(obj, 'main_image_prefetch', [])
         if main_images:
             img_obj = main_images[0]
@@ -123,7 +120,6 @@ class PortfolioAdminListSerializer(serializers.ModelSerializer):
             'total': 3,
             'status': 'complete' if score == 3 else 'incomplete' if score > 0 else 'missing'
         }
-
 
 class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
@@ -290,7 +286,6 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
         cache.set(cache_key, completeness_data, 1800)
         return completeness_data
 
-
 class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
     categories = serializers.PrimaryKeyRelatedField(
         queryset=PortfolioCategory.objects.all(),
@@ -331,11 +326,7 @@ class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
         ]
     
     def validate(self, attrs):
-        # Validation logic moved to service for consistency
         return attrs
-    
-    # Logic moved to PortfolioAdminService
-
 
 class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
     categories = serializers.PrimaryKeyRelatedField(
@@ -391,9 +382,6 @@ class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
             'og_image', 'canonical_url', 'robots_meta',
             'categories', 'tags', 'options', 'media_ids', 'media_files', 'main_image_id', 'media_covers'
         ]
-    
-    # Logic moved to PortfolioAdminService
-
 
 class PortfolioAdminSerializer(PortfolioAdminDetailSerializer):
     pass

@@ -7,7 +7,6 @@ from src.core.cache import CacheService
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.analytics.utils.cache import AnalyticsCacheKeys, AnalyticsCacheManager
 
-
 class SystemStatsService:
     CACHE_TIMEOUT = 600
     REQUIRED_PERMISSION = 'analytics.system.read'
@@ -77,7 +76,6 @@ class SystemStatsService:
     @classmethod
     def _get_cache_status(cls) -> dict:
         try:
-            # استفاده از CacheService برای دریافت Redis info
             memory_info = CacheService.get_redis_info('memory')
             keyspace_info = CacheService.get_redis_info('keyspace')
             stats_info = CacheService.get_redis_info('stats')
@@ -127,8 +125,7 @@ class SystemStatsService:
                 
                 if vendor == 'postgresql':
                     cursor.execute("""
-                        SELECT pg_size_pretty(pg_database_size(%s)) as size,
-                               pg_database_size(%s) as size_bytes
+                        SELECT pg_size_pretty(pg_database_size(%s)), pg_database_size(%s);
                     """, [db_name, db_name])
                     row = cursor.fetchone()
                     if row:

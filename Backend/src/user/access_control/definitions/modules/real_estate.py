@@ -1,5 +1,4 @@
 REAL_ESTATE_PERMISSIONS = {
-    # Properties
     'real_estate.property.read': {
         'module': 'real_estate_properties',
         'action': 'read',
@@ -25,7 +24,6 @@ REAL_ESTATE_PERMISSIONS = {
         'description': 'Allow deleting properties',
     },
     
-    # Agents
     'real_estate.agent.read': {
         'module': 'real_estate_agents',
         'action': 'read',
@@ -51,7 +49,6 @@ REAL_ESTATE_PERMISSIONS = {
         'description': 'Allow deleting property agents',
     },
     
-    # Agencies
     'real_estate.agency.read': {
         'module': 'real_estate_agencies',
         'action': 'read',
@@ -77,7 +74,6 @@ REAL_ESTATE_PERMISSIONS = {
         'description': 'Allow deleting real estate agencies',
     },
     
-    # Property Types (Under Properties section)
     'real_estate.type.read': {
         'module': 'real_estate_properties',
         'action': 'read',
@@ -103,7 +99,6 @@ REAL_ESTATE_PERMISSIONS = {
         'description': 'Allow deleting property types',
     },
     
-    # Property States
     'real_estate.state.read': {
         'module': 'real_estate_properties',
         'action': 'read',
@@ -129,7 +124,6 @@ REAL_ESTATE_PERMISSIONS = {
         'description': 'Allow deleting property states',
     },
     
-    # Property Labels
     'real_estate.label.read': {
         'module': 'real_estate_properties',
         'action': 'read',
@@ -155,7 +149,6 @@ REAL_ESTATE_PERMISSIONS = {
         'description': 'Allow deleting property labels',
     },
     
-    # Property Features
     'real_estate.feature.read': {
         'module': 'real_estate_properties',
         'action': 'read',
@@ -181,7 +174,6 @@ REAL_ESTATE_PERMISSIONS = {
         'description': 'Allow deleting property features',
     },
     
-    # Property Tags
     'real_estate.tag.read': {
         'module': 'real_estate_properties',
         'action': 'read',
@@ -207,5 +199,4 @@ REAL_ESTATE_PERMISSIONS = {
         'description': 'Allow deleting property tags',
     },
 }
-
 

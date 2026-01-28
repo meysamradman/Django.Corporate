@@ -2,7 +2,6 @@ from django.db.models import Count, Q
 from src.portfolio.models.category import PortfolioCategory
 from src.portfolio.models.portfolio import Portfolio
 
-
 class PortfolioCategoryPublicService:
     @staticmethod
     def get_category_queryset(filters=None, search=None):

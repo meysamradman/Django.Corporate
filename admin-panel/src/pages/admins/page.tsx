@@ -55,7 +55,6 @@ export default function AdminsPage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
 
-
     if (urlParams.get('page')) {
       const page = parseInt(urlParams.get('page')!, 10);
       setPagination(prev => ({ ...prev, pageIndex: page - 1 }));
@@ -84,7 +83,6 @@ export default function AdminsPage() {
     if (urlParams.get('is_superuser') !== null) {
       newClientFilters.is_superuser = urlParams.get('is_superuser') === 'true';
     }
-    // در صفحه ادمین‌ها، همیشه user_role_type = 'admin'
     newClientFilters.user_role_type = 'admin';
     const dateFrom = urlParams.get('date_from');
     const dateTo = urlParams.get('date_to');
@@ -107,7 +105,6 @@ export default function AdminsPage() {
 
   const handleFilterChange = (filterId: keyof AdminFilters, value: unknown) => {
     if (filterId === 'user_role_type') {
-      // در صفحه ادمین‌ها، user_role_type همیشه admin است
       return;
     } else {
       baseHandleFilterChange(filterId as string, value);
@@ -196,24 +193,20 @@ export default function AdminsPage() {
   const actions = useMemo(() => {
     const adminActions: CardItemAction<AdminWithProfile>[] = [];
 
-    // Add View action
     adminActions.push({
       label: "مشاهده",
       icon: <Edit className="h-4 w-4" />,
       onClick: (admin: AdminWithProfile) => {
-        // چک کنیم آیا پروفایل خودش هست
         const isOwnProfile = currentUserId !== undefined && Number(currentUserId) === Number(admin.id);
         const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
 
         if (isOwnProfile) {
-          // اگه پروفایل خودشه، به ME view میریم (در حال حاضر view جدا نداریم، پس به edit میریم)
           if (isConsultant) {
             navigate('/agents/me/edit');
           } else {
             navigate('/admins/me/edit');
           }
         } else {
-          // اگه پروفایل دیگران، به route معمولی view میریم
           if (isConsultant) {
             navigate(`/agents/${admin.id}/edit`);
           } else {
@@ -227,19 +220,16 @@ export default function AdminsPage() {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (admin: AdminWithProfile) => {
-        // چک کنیم آیا پروفایل خودش هست
         const isOwnProfile = currentUserId !== undefined && Number(currentUserId) === Number(admin.id);
         const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
 
         if (isOwnProfile) {
-          // اگه پروفایل خودشه، به ME میریم
           if (isConsultant) {
             navigate('/agents/me/edit');
           } else {
             navigate('/admins/me/edit');
           }
         } else {
-          // اگه پروفایل دیگران، به route معمولی میریم
           if (isConsultant) {
             navigate(`/agents/${admin.id}/edit`);
           } else {
@@ -308,7 +298,6 @@ export default function AdminsPage() {
     return null;
   };
 
-
   const handlePaginationChange = (updaterOrValue: TablePaginationState | ((prev: TablePaginationState) => TablePaginationState)) => {
     const newPagination = typeof updaterOrValue === 'function'
       ? updaterOrValue(pagination)
@@ -321,7 +310,6 @@ export default function AdminsPage() {
     url.searchParams.set('size', String(newPagination.pageSize));
     window.history.replaceState({}, '', url.toString());
   };
-
 
   if (error) {
     return (
@@ -356,7 +344,6 @@ export default function AdminsPage() {
         ) : null}
       </PageHeader>
 
-      {/* Filters and Search Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-4">
         <div className="flex items-center gap-3 flex-wrap flex-1 justify-start">
           <div className="relative w-full sm:w-[240px]">
@@ -404,7 +391,6 @@ export default function AdminsPage() {
         </div>
       </div>
 
-      {/* Cards Grid */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <Loader />
@@ -422,7 +408,6 @@ export default function AdminsPage() {
               const avatarUrl = getAdminAvatarUrl(admin);
               const roleDisplay = getAdminRoleDisplay(admin);
               const createdDate = admin.created_at ? formatDate(admin.created_at) : "-";
-              // سوپرادمین همیشه admin هست
               const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
 
               return (
@@ -494,19 +479,16 @@ export default function AdminsPage() {
                     </>
                   }
                   onClick={(admin) => {
-                    // چک کنیم آیا پروفایل خودش هست
                     const isOwnProfile = currentUserId !== undefined && Number(currentUserId) === Number(admin.id);
                     const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
 
                     if (isOwnProfile) {
-                      // اگه پروفایل خودشه، به ME view میریم (در حال حاضر view جدا نداریم، پس به edit میریم)
                       if (isConsultant) {
                         navigate('/agents/me/edit');
                       } else {
                         navigate('/admins/me/edit');
                       }
                     } else {
-                      // اگه پروفایل دیگران، به route معمولی view میریم
                       if (isConsultant) {
                         navigate(`/agents/${admin.id}/edit`);
                       } else {

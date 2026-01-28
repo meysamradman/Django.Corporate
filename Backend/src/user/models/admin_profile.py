@@ -4,7 +4,6 @@ from django.db import models
 from src.core.models import BaseModel, Province, City
 from src.media.models.media import ImageMedia
 
-
 class AdminProfile(BaseModel):
     
     admin_user = models.OneToOneField(

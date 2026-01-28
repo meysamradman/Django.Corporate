@@ -1,7 +1,4 @@
-"""
-Professional PDF Base Service for export functionalities.
-Consolidates font registration, RTL processing, caching, and styling.
-"""
+
 
 import os
 import logging
@@ -36,9 +33,7 @@ try:
 except ImportError:
     REPORTLAB_AVAILABLE = False
 
-
 class PDFBaseExportService:
-    # Font paths
     FONT_PATHS = [
         ('iransansx', 'static/fonts/IRANSansXVF.ttf'),
         ('vazir', 'static/fonts/Vazir.ttf'),
@@ -75,7 +70,6 @@ class PDFBaseExportService:
         base_dir = str(settings.BASE_DIR)
         logger.info(f"Checking Persian font registration. BASE_DIR: {base_dir}")
         
-        # Primary font to return
         primary_font = 'iransansx'
         
         for font_name, font_path in PDFBaseExportService.FONT_PATHS:
@@ -84,19 +78,14 @@ class PDFBaseExportService:
                 full_paths.append(font_path)
             else:
                 full_paths.append(os.path.join(base_dir, font_path))
-                # Workspace root fallback
                 full_paths.append(os.path.join(os.path.dirname(base_dir), font_path))
-                # Backend subdir fallback
                 full_paths.append(os.path.join(base_dir, 'Backend', font_path))
             
             for path in full_paths:
                 if os.path.exists(path):
                     try:
-                        # Register the specific font
                         pdfmetrics.registerFont(TTFont(font_name, path))
                         
-                        # Fix for "Can't map determine family/bold/italic"
-                        # Explicitly map all variants to the same font file
                         from reportlab.pdfbase.pdfmetrics import registerFontFamily
                         registerFontFamily(font_name, normal=font_name, bold=font_name, italic=font_name, boldItalic=font_name)
                         
@@ -113,7 +102,6 @@ class PDFBaseExportService:
                         logger.error(f"Failed to register font {font_name} at {path}: {str(e)}")
                         continue
         
-        # Final check if primary was registered in this process
         registered = pdfmetrics.getRegisteredFontNames()
         if primary_font in registered:
             return primary_font
@@ -131,10 +119,8 @@ class PDFBaseExportService:
         if not text:
             return ""
         
-        # 1. Remove emojis and complex Unicode that crash ReportLab
         text = "".join(c for c in str(text) if ord(c) < 0x10000)
         
-        # 2. Reshape and Bidi for Persian support
         if ARABIC_RESHAPER_AVAILABLE:
             try:
                 reshaped = arabic_reshaper.reshape(text)
@@ -142,7 +128,6 @@ class PDFBaseExportService:
             except Exception:
                 pass
         
-        # 3. Escape XML special characters AFTER reshaping to avoid messing with sequences
         text = text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
         return text
 

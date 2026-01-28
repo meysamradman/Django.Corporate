@@ -4,7 +4,6 @@ from django.db import OperationalError
 from src.settings.models import GeneralSettings
 from src.settings.messages.messages import SETTINGS_ERRORS
 
-
 def get_general_settings():
     try:
         settings = GeneralSettings.objects.first()
@@ -18,7 +17,6 @@ def get_general_settings():
         raise ValidationError(SETTINGS_ERRORS["settings_database_error"])
     except Exception:
         raise ValidationError(SETTINGS_ERRORS["settings_retrieve_failed"])
-
 
 def update_general_settings(validated_data):
     settings = GeneralSettings.objects.first()

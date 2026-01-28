@@ -135,7 +135,6 @@ __all__ = [
     'RealEstateAgencyAdminCreateSerializer',
     'RealEstateAgencyAdminUpdateSerializer',
     'RealEstateAgencyAdminSerializer',
-    # Location serializers
     'RealEstateProvinceSerializer',
     'RealEstateCitySerializer',
     'RealEstateCityRegionSerializer',

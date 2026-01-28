@@ -487,7 +487,6 @@ export const useMenuData = () => {
       return { visible: false } as const;
     }
 
-    // ✅ If it's a Super Admin only item and we ARE Super Admin, show it even if no module is defined
     if (access.requireSuperAdmin && isSuperAdmin) {
       return { visible: true } as const;
     }

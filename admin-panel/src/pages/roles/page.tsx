@@ -48,7 +48,6 @@ export default function RolesPage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
 
-
     if (urlParams.get('page')) {
       const page = parseInt(urlParams.get('page')!, 10);
       setPagination(prev => ({ ...prev, pageIndex: page - 1 }));
@@ -207,7 +206,6 @@ export default function RolesPage() {
     }
     setDeleteConfirm({ open: false, isBulk: false });
   };
-
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function'

@@ -87,7 +87,6 @@ export default function RealEstateLocation(props: LocationTabProps) {
         }
     }, [cities, selectedCityId, pendingCityId]);
 
-
     useEffect(() => {
         const loadProvinces = async () => {
             try {
@@ -230,14 +229,12 @@ export default function RealEstateLocation(props: LocationTabProps) {
             <div className="flex flex-col lg:flex-row gap-6">
                 <div className="flex-1 min-w-0">
                     <div className="space-y-6">
-                        {/* Location Fields Card */}
                         <CardWithIcon
                             title="اطلاعات مکانی"
                             icon={MapPin}
                         >
                             <div className="grid grid-cols-1 gap-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {/* Province Selection */}
                                     <FormField label="استان" required error={isFormApproach ? errorsObj.province?.message : errorsObj?.province}>
                                         <Select
                                             value={selectedProvinceId ? String(selectedProvinceId) : ""}

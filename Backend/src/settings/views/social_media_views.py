@@ -15,7 +15,6 @@ from src.settings.services.social_media_service import (
 from src.settings.messages.messages import SETTINGS_SUCCESS, SETTINGS_ERRORS
 from src.user.access_control import PermissionRequiredMixin
 
-
 class SocialMediaViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     queryset = SocialMedia.objects.all()
     serializer_class = SocialMediaSerializer

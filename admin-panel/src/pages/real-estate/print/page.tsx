@@ -12,7 +12,6 @@ export default function PropertyPrintPage() {
     const idsParam = searchParams.get('ids');
     const type = searchParams.get('type');
 
-    // Parse property IDs from query string
     const propertyIds = idsParam
         ? idsParam.split(',').map(id => parseInt(id, 10)).filter(id => !isNaN(id))
         : [];
@@ -28,7 +27,6 @@ export default function PropertyPrintPage() {
         );
     }
 
-    // Determine which view to render
     if (type === 'detail' && propertyIds.length > 0) {
         return <PropertyDetailPrintView propertyId={propertyIds[0]} />;
     }

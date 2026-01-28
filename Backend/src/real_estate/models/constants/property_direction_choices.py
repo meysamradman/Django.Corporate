@@ -8,10 +8,8 @@ PROPERTY_DIRECTION_CHOICES = {
     "two_sided": "دو نبش",
 }
 
-
 def get_property_direction_label(code: str) -> str:
     return PROPERTY_DIRECTION_CHOICES.get(code, code)
-
 
 def get_property_direction_choices_list():
     return [(code, label) for code, label in PROPERTY_DIRECTION_CHOICES.items()]

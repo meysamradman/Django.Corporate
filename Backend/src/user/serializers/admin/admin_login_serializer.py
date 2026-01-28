@@ -2,7 +2,6 @@ from rest_framework import serializers
 from src.user.messages import AUTH_ERRORS
 from src.user.utils.mobile_validator import validate_mobile_number
 
-
 class AdminLoginSerializer(serializers.Serializer):
     mobile = serializers.CharField(required=True)
     password = serializers.CharField(required=True, write_only=True)

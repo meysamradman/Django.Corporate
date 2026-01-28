@@ -4,7 +4,6 @@ from src.ai.models import AIProvider, AIModel
 from src.ai.messages.messages import IMAGE_ERRORS
 from src.ai.services.image_generation_service import AIImageGenerationService
 
-
 class AIProviderSerializer(serializers.ModelSerializer):
     
     has_shared_api_key = serializers.SerializerMethodField()
@@ -32,7 +31,6 @@ class AIProviderSerializer(serializers.ModelSerializer):
             data['shared_api_key'] = '***' if instance.shared_api_key else None
         return data
 
-
 class AIProviderListSerializer(serializers.ModelSerializer):
     
     has_shared_api_key = serializers.SerializerMethodField()
@@ -57,7 +55,6 @@ class AIProviderListSerializer(serializers.ModelSerializer):
     
     def get_active_models_count(self, obj) -> int:
         return obj.models.filter(is_active=True).count()
-
 
 class AIImageGenerationRequestSerializer(serializers.Serializer):
     model_id = serializers.IntegerField(

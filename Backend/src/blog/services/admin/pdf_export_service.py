@@ -40,11 +40,9 @@ class BlogPDFExportService:
         doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=40, leftMargin=40, topMargin=50, bottomMargin=50, title=rtl(blog.title))
         elements = []
         
-        # Header & Title
         elements.append(Paragraph(rtl(blog.title), styles['title']))
         elements.append(HRFlowable(width="100%", thickness=2, color=clr.PRIMARY, spaceAfter=20))
         
-        # Metadata
         meta_data = [
             [rtl(PDF_LABELS.get('categories', 'دسته‌بندی:')), rtl(", ".join([c.name for c in blog.categories.all()[:3]]) or '-')],
             [rtl(PDF_LABELS.get('created_at', 'تاریخ ایجاد:')), rtl(format_jalali_long(blog.created_at))],
@@ -63,12 +61,10 @@ class BlogPDFExportService:
         elements.append(meta_table)
         elements.append(Spacer(1, 20))
 
-        # Description
         if blog.description:
             elements.append(Paragraph(rtl(PDF_LABELS.get('full_description', 'شرح کامل:')), styles['section']))
             elements.append(Paragraph(rtl(blog.description.replace("\n", "<br/>")), styles['content']))
 
-        # Footer
         meta_text = f"تاریخ تولید: {format_jalali_short(datetime.now())}"
         footer_func = PDFBaseExportService.get_generic_footer_func(font_name, meta_text)
         

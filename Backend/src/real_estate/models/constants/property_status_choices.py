@@ -9,6 +9,5 @@ PROPERTY_STATUS_CHOICES = {
 def get_property_status_label(code: str) -> str:
     return PROPERTY_STATUS_CHOICES.get(code, code)
 
-
 def get_property_status_choices_list():
     return [(code, label) for code, label in PROPERTY_STATUS_CHOICES.items()]

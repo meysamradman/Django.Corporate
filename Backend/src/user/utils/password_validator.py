@@ -3,7 +3,6 @@ from django.core.exceptions import ValidationError
 
 from src.user.messages import AUTH_ERRORS
 
-
 def validate_login_password(value):
     if value is None:
         raise ValidationError(AUTH_ERRORS["auth_password_empty"])

@@ -2,7 +2,6 @@ from django.core.cache import cache
 from django.conf import settings
 from src.core.cache import CacheService
 
-
 class CaptchaCacheKeys:
     
     REDIS_PREFIX = getattr(settings, 'CAPTCHA_REDIS_PREFIX', "captcha:")
@@ -15,7 +14,6 @@ class CaptchaCacheKeys:
     @staticmethod
     def all_keys_pattern():
         return f"{CaptchaCacheKeys.REDIS_PREFIX}*"
-
 
 class CaptchaCacheManager:
     

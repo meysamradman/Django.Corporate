@@ -7,7 +7,6 @@ from src.media.models.media import ImageMedia
 from src.real_estate.models.managers import PropertyTypeQuerySet
 from src.real_estate.utils.cache import TypeCacheManager
 
-
 class PropertyType(MP_Node, BaseModel, SEOMixin):
     
     title = models.CharField(
@@ -86,7 +85,6 @@ class PropertyType(MP_Node, BaseModel, SEOMixin):
         return f"/properties/type/{self.slug}/"
     
     def save(self, *args, **kwargs):
-        # Auto-generate SEO fields
         if not self.meta_title and self.title:
             self.meta_title = self.title[:70]
         
@@ -95,7 +93,6 @@ class PropertyType(MP_Node, BaseModel, SEOMixin):
             
         super().save(*args, **kwargs)
         
-        # Invalidate cache
         TypeCacheManager.invalidate_all()
     
     def delete(self, *args, **kwargs):
@@ -103,11 +100,11 @@ class PropertyType(MP_Node, BaseModel, SEOMixin):
         TypeCacheManager.invalidate_all()
     
     def is_root_level(self):
-        """بررسی اینکه آیا این نوع در سطح ریشه است"""
+        
         return self.depth == 1
     
     def is_leaf_node(self):
-        """بررسی اینکه آیا این نوع برگ است (فرزند ندارد)"""
+        
         return self.get_children().count() == 0
     
     def get_ancestors_list(self):
@@ -118,7 +115,7 @@ class PropertyType(MP_Node, BaseModel, SEOMixin):
         return ' > '.join(ancestors + [self.title])
     
     def generate_structured_data(self):
-        """Generate JSON-LD structured data for SEO"""
+        
         return {
             "@context": "https://schema.org",
             "@type": "CollectionPage",

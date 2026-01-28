@@ -11,7 +11,6 @@ try:
 except ImportError:
     REDIS_AVAILABLE = False
 
-
 class RedisManager:
     
     def __init__(self, cache_alias: str = 'default'):
@@ -116,30 +115,16 @@ class RedisManager:
         return False
     
     def get_redis_client(self):
-        """
-        دریافت raw Redis client برای عملیات پیشرفته (List, Set, etc.)
-        فقط برای عملیات‌هایی که در cache API نیستند
-        """
+        
         if not REDIS_AVAILABLE:
             return None
         try:
-            # استفاده از get_redis_connection با cache_alias ذخیره شده
             return get_redis_connection(self._cache_alias)
         except Exception:
             return None
     
     def list_push(self, key: str, value: Any, side: str = 'left') -> Optional[int]:
-        """
-        اضافه کردن به Redis List
         
-        Args:
-            key: List key
-            value: Value to push
-            side: 'left' (lpush) or 'right' (rpush)
-        
-        Returns:
-            Length of list after push, or None on error
-        """
         try:
             client = self.get_redis_client()
             if not client:
@@ -153,16 +138,7 @@ class RedisManager:
             return None
     
     def list_pop(self, key: str, side: str = 'right') -> Optional[Any]:
-        """
-        حذف از Redis List
         
-        Args:
-            key: List key
-            side: 'left' (lpop) or 'right' (rpop)
-        
-        Returns:
-            Popped value, or None on error/empty
-        """
         try:
             client = self.get_redis_client()
             if not client:
@@ -174,7 +150,6 @@ class RedisManager:
                 result = client.rpop(key)
             
             if result:
-                # Decode if bytes
                 if isinstance(result, bytes):
                     return result.decode('utf-8')
                 return result
@@ -183,7 +158,7 @@ class RedisManager:
             return None
     
     def list_length(self, key: str) -> int:
-        """طول List"""
+        
         try:
             client = self.get_redis_client()
             if not client:
@@ -193,7 +168,7 @@ class RedisManager:
             return 0
     
     def list_trim(self, key: str, start: int, end: int) -> bool:
-        """Trim کردن List"""
+        
         try:
             client = self.get_redis_client()
             if not client:
@@ -204,7 +179,7 @@ class RedisManager:
             return False
     
     def get_redis_info(self, section: Optional[str] = None) -> Optional[dict]:
-        """دریافت Redis info"""
+        
         try:
             client = self.get_redis_client()
             if not client:
@@ -212,7 +187,6 @@ class RedisManager:
             return client.info(section)
         except Exception:
             return None
-
 
 class SessionRedisManager(RedisManager):
     
@@ -253,7 +227,6 @@ class SessionRedisManager(RedisManager):
     def delete_user_session(self, session_key: str) -> bool:
         key = CacheKeyBuilder.user_session(session_key)
         return self.delete(key)
-
 
 class CacheService:
     
@@ -402,43 +375,39 @@ class CacheService:
     
     @classmethod
     def list_push(cls, key: str, value: Any, side: str = 'left') -> Optional[int]:
-        """Push به Redis List"""
+        
         return cls.get_default_manager().list_push(key, value, side)
     
     @classmethod
     def list_pop(cls, key: str, side: str = 'right') -> Optional[Any]:
-        """Pop از Redis List"""
+        
         return cls.get_default_manager().list_pop(key, side)
     
     @classmethod
     def list_length(cls, key: str) -> int:
-        """طول Redis List"""
+        
         return cls.get_default_manager().list_length(key)
     
     @classmethod
     def list_trim(cls, key: str, start: int, end: int) -> bool:
-        """Trim Redis List"""
+        
         return cls.get_default_manager().list_trim(key, start, end)
     
     @classmethod
     def get_redis_info(cls, section: Optional[str] = None) -> Optional[dict]:
-        """دریافت Redis info"""
+        
         return cls.get_default_manager().get_redis_info(section)
-    
-    # ============================================
-    # Real Estate Cache Methods
-    # ============================================
-    
+
     @classmethod
     def clear_property_cache(cls, property_id: int) -> int:
-        """Clear all cache for a specific property"""
+        
         from .keys import CacheKeyBuilder
         keys = CacheKeyBuilder.property_all_keys(property_id)
         return cls.delete_many(keys)
     
     @classmethod
     def clear_properties_cache(cls, property_ids: list[int]) -> int:
-        """Clear cache for multiple properties"""
+        
         from .keys import CacheKeyBuilder
         all_keys = []
         for pid in property_ids:
@@ -447,21 +416,19 @@ class CacheService:
     
     @classmethod
     def clear_property_lists(cls) -> int:
-        """Clear all property list caches"""
+        
         from .namespaces import CacheNamespace
         from .keys import CacheKeyBuilder
         pattern = CacheKeyBuilder.pattern(f"{CacheNamespace.PROPERTY_LIST}:admin")
         deleted = cls.delete_pattern(pattern)
-        # Clear featured list
         deleted += cls.delete(CacheKeyBuilder.property_featured())
         return deleted
     
     @classmethod
     def clear_property_statistics(cls) -> int:
-        """Clear property statistics cache"""
+        
         from .keys import CacheKeyBuilder
         return cls.delete(CacheKeyBuilder.property_statistics())
-
 
 def cache_result(key_builder: Callable, timeout: Optional[int] = None):
     def decorator(func: Callable) -> Callable:

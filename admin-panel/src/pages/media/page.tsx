@@ -137,7 +137,6 @@ export default function MediaPage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
 
-    // Clean up date_range from URL if it exists
     cleanupDateRangeFromURL();
 
     const urlFilters: Partial<MediaFilter> = {};
@@ -211,7 +210,6 @@ export default function MediaPage() {
     }));
 
     const url = new URL(window.location.href);
-    // Remove date_range from URL (it shouldn't be there)
     url.searchParams.delete('date_range');
 
     if (range.from) {
@@ -227,7 +225,6 @@ export default function MediaPage() {
     url.searchParams.set('page', '1');
     window.history.replaceState({}, '', url.toString());
   };
-
 
   const handleSelectItem = (itemId: number, checked: boolean) => {
     setSelectedItems(prev => ({
@@ -318,7 +315,6 @@ export default function MediaPage() {
   useEffect(() => {
     fetchMedia(filters);
   }, [fetchMedia, filters]);
-
 
   return (
     <div className="space-y-6">

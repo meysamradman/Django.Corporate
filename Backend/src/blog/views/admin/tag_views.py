@@ -20,7 +20,6 @@ from src.user.access_control import blog_permission, SimpleAdminPermission, Perm
 from src.core.responses.response import APIResponse
 from src.blog.messages.messages import TAG_SUCCESS, TAG_ERRORS
 
-
 class BlogTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [blog_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]

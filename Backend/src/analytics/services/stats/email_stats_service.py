@@ -5,7 +5,6 @@ from django.db.models import Count, Avg, Q, F
 from datetime import timedelta
 from src.analytics.utils.cache import AnalyticsCacheKeys, AnalyticsCacheManager
 
-
 class EmailStatsService:
     CACHE_TIMEOUT = 300
     REQUIRED_PERMISSION = 'analytics.emails.read'

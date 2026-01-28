@@ -97,7 +97,6 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       const currentUser = await authApi.getCurrentUser();
       setUser(currentUser);
 
-      // ✅ Invalidate permission-map after successful login
       queryClient.invalidateQueries({ queryKey: ['permission-map'] });
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
       queryClient.invalidateQueries({ queryKey: ['roles'] });
@@ -132,7 +131,6 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       const currentUser = await authApi.getCurrentUser();
       setUser(currentUser);
 
-      // ✅ Invalidate permission-map after successful login
       queryClient.invalidateQueries({ queryKey: ['permission-map'] });
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
       queryClient.invalidateQueries({ queryKey: ['roles'] });

@@ -25,7 +25,6 @@ __all__ = [
     'PropertyTagAdminViewSet',
     'PropertyAgentAdminViewSet',
     'RealEstateAgencyAdminViewSet',
-    # Location ViewSets
     'RealEstateProvinceViewSet',
     'RealEstateCityViewSet',
     'RealEstateCityRegionViewSet',

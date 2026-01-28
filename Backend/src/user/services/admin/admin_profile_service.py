@@ -7,9 +7,8 @@ from src.core.models import Province, City
 from src.user.messages import AUTH_ERRORS
 from src.media.models import ImageMedia
 
-
 def _clear_permission_cache(user_id):
-    """Helper function to clear permission cache (lazy import to avoid circular dependency)"""
+    
     try:
         from src.user.access_control import AdminPermissionCache, PermissionValidator, PermissionHelper
         AdminPermissionCache.clear_user_cache(user_id)
@@ -17,7 +16,6 @@ def _clear_permission_cache(user_id):
         PermissionHelper.clear_user_cache(user_id)
     except ImportError:
         pass
-
 
 class AdminProfileService:
     @staticmethod
@@ -78,8 +76,7 @@ class AdminProfileService:
                         setattr(profile, field, value)
                         fields_actually_updated.append(field)
                         update_needed = True
-            
-            
+
             if profile_picture is not None:
                 current_profile_picture = getattr(profile, 'profile_picture', None)
                 current_id = getattr(current_profile_picture, 'id', None) if current_profile_picture else None

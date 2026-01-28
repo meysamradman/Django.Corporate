@@ -7,14 +7,12 @@ from src.blog.models.category import BlogCategory
 from src.blog.serializers.public.category_serializer import BlogCategorySimplePublicSerializer
 from src.blog.serializers.public.tag_serializer import BlogTagPublicSerializer
 
-
 class BlogCategorySimplePublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogCategory
         fields = [
             'public_id', 'name', 'slug', 'created_at',
         ]
-
 
 class BlogPublicListSerializer(serializers.ModelSerializer):
     main_image_url = serializers.SerializerMethodField()
@@ -35,7 +33,6 @@ class BlogPublicListSerializer(serializers.ModelSerializer):
         except:
             pass
         return None
-
 
 class BlogMediaPublicSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
@@ -81,7 +78,6 @@ class BlogMediaPublicSerializer(serializers.Serializer):
             }
         return super().to_representation(instance)
 
-
 class BlogPublicDetailSerializer(serializers.ModelSerializer):
     categories = BlogCategorySimplePublicSerializer(many=True, read_only=True)
     tags = BlogTagPublicSerializer(many=True, read_only=True)
@@ -124,7 +120,6 @@ class BlogPublicDetailSerializer(serializers.ModelSerializer):
             'canonical_url': obj.get_canonical_url(),
             'structured_data': obj.generate_structured_data(),
         }
-
 
 class BlogPublicSerializer(BlogPublicDetailSerializer):
     pass

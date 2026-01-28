@@ -13,7 +13,6 @@ from src.core.responses.response import APIResponse
 from src.user.access_control import ai_permission, PermissionRequiredMixin
 import base64
 
-
 class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
     permission_classes = [ai_permission]

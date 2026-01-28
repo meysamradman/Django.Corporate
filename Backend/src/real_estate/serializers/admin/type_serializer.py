@@ -3,7 +3,6 @@ from src.real_estate.models.type import PropertyType
 from src.real_estate.messages import TYPE_ERRORS
 from src.media.serializers import MediaAdminSerializer
 
-
 class PropertyTypeAdminListSerializer(serializers.ModelSerializer):
     level = serializers.SerializerMethodField()
     has_children = serializers.SerializerMethodField()
@@ -38,7 +37,6 @@ class PropertyTypeAdminListSerializer(serializers.ModelSerializer):
         except:
             pass
         return None
-
 
 class PropertyTypeAdminDetailSerializer(serializers.ModelSerializer):
     parent = serializers.SerializerMethodField()
@@ -124,12 +122,10 @@ class PropertyTypeAdminDetailSerializer(serializers.ModelSerializer):
                 for p in properties
             ]
         except Exception as e:
-            # اگر خطا داد، لیست خالی برگردان
             return []
     
     def get_full_path_title(self, obj):
         return obj.get_full_path_title()
-
 
 class PropertyTypeAdminCreateSerializer(serializers.ModelSerializer):
     parent_id = serializers.PrimaryKeyRelatedField(
@@ -175,7 +171,6 @@ class PropertyTypeAdminCreateSerializer(serializers.ModelSerializer):
                 })
         
         return data
-
 
 class PropertyTypeAdminUpdateSerializer(serializers.ModelSerializer):
     parent_id = serializers.PrimaryKeyRelatedField(
@@ -236,7 +231,6 @@ class PropertyTypeAdminUpdateSerializer(serializers.ModelSerializer):
         
         return data
 
-
 class PropertyTypeTreeSerializer(serializers.ModelSerializer):
     children = serializers.SerializerMethodField()
     level = serializers.SerializerMethodField()
@@ -262,7 +256,6 @@ class PropertyTypeTreeSerializer(serializers.ModelSerializer):
             return obj.image.file.url
         return None
 
-
 class PropertyTypeSimpleAdminSerializer(serializers.ModelSerializer):
     level = serializers.SerializerMethodField()
     display_name = serializers.SerializerMethodField()
@@ -277,7 +270,6 @@ class PropertyTypeSimpleAdminSerializer(serializers.ModelSerializer):
     
     def get_display_name(self, obj):
         return str(obj)  # استفاده از __str__ که فلش داره
-
 
 class PropertyTypeAdminSerializer(PropertyTypeAdminDetailSerializer):
     pass

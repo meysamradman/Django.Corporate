@@ -10,7 +10,6 @@ from src.core.models import Province, City
 from src.media.models import ImageMedia
 from src.media.services.media_services import MediaAdminService as MediaService
 
-
 class AdminRegisterService:
     @classmethod
     def register_admin(cls, mobile, password, email=None, admin_user=None):
@@ -65,7 +64,6 @@ class AdminRegisterService:
         password = validated_data.get('password')
         user_type = validated_data.get('user_type', 'admin')
         
-        # Extended profile fields
         profile_fields = {
             'first_name': validated_data.get('first_name'),
             'last_name': validated_data.get('last_name'),
@@ -129,7 +127,6 @@ class AdminRegisterService:
             else:
                 raise ValidationError(AUTH_ERRORS["auth_email_or_mobile_required"])
 
-            # Common profile creation logic
             national_id = profile_fields.get('national_id')
             if national_id and national_id.strip():
                 if AdminProfile.objects.filter(national_id=national_id).exists():
@@ -167,7 +164,6 @@ class AdminRegisterService:
             admin.set_password(password)
             admin.save()
             
-            # handle consultation profile
             admin_role_type = validated_data.get('admin_role_type', 'admin')
             if admin_role_type == 'consultant':
                 cls._create_property_agent(admin, validated_data)
@@ -192,12 +188,10 @@ class AdminRegisterService:
         from src.media.models import ImageMedia
         from django.utils.text import slugify
         
-        # ایجاد slug منحصر به فرد از نام کاربر
         first_name = validated_data.get('first_name', '')
         last_name = validated_data.get('last_name', '')
         full_name = f"{first_name} {last_name}".strip()
         
-        # اگر نامی نداشت، از mobile یا email استفاده کن
         if not full_name:
             full_name = user.mobile or user.email or f"agent-{user.id}"
         
@@ -216,7 +210,6 @@ class AdminRegisterService:
             'specialization': validated_data.get('specialization', ''),
             'bio': validated_data.get('bio', ''),
             'is_verified': validated_data.get('is_verified', False),
-            # SEO fields (only fields from SEOMixin)
             'meta_title': validated_data.get('meta_title', ''),
             'meta_description': validated_data.get('meta_description', ''),
             'og_title': validated_data.get('og_title', ''),
@@ -225,7 +218,6 @@ class AdminRegisterService:
             'robots_meta': validated_data.get('robots_meta', ''),
         }
         
-        # Agency relationship
         agency_id = validated_data.get('agency_id')
         if agency_id:
             try:
@@ -233,7 +225,6 @@ class AdminRegisterService:
             except RealEstateAgency.DoesNotExist:
                 pass
         
-        # OG Image relationship
         og_image_id = validated_data.get('og_image_id')
         if og_image_id:
             try:
@@ -241,14 +232,12 @@ class AdminRegisterService:
             except ImageMedia.DoesNotExist:
                 pass
         
-        # پاکسازی مقادیر None
         agent_data = {k: v for k, v in agent_data.items() if v is not None}
         
         try:
             agent = PropertyAgent.objects.create(**agent_data)
             return agent
         except Exception as e:
-            # اگر خطا داد، کاربر رو حذف کن
             user.delete()
             raise ValidationError(f"خطا در ایجاد PropertyAgent: {str(e)}")
 

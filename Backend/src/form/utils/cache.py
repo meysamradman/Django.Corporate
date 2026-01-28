@@ -1,6 +1,5 @@
 from src.core.cache import CacheService
 
-
 class FormCacheKeys:
     
     @staticmethod
@@ -32,7 +31,6 @@ class FormCacheKeys:
         if platform:
             keys.append(FormCacheKeys.fields_for_platform(platform))
         return keys
-
 
 class FormCacheManager:
     

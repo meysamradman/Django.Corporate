@@ -64,7 +64,6 @@ export default function RealEstateMedia(props: MediaTabProps) {
     return (
         <div className="space-y-6">
             <div className="flex flex-col lg:flex-row gap-6">
-                {/* Main Galleries */}
                 <div className="flex-1 min-w-0 space-y-6">
                     <CardWithIcon
                         icon={ImageIcon}
@@ -149,7 +148,6 @@ export default function RealEstateMedia(props: MediaTabProps) {
                     </CardWithIcon>
                 </div>
 
-                {/* Sidebar: Featured Image */}
                 <div className="w-full lg:w-[380px] lg:flex-shrink-0">
                     <CardWithIcon
                         icon={ImageIcon}
@@ -168,7 +166,6 @@ export default function RealEstateMedia(props: MediaTabProps) {
                                         className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
                                     />
 
-                                    {/* Glassmorphism Details Overlay */}
                                     <div className="absolute inset-x-0 bottom-0 p-4 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
                                         <div className="bg-black/40 backdrop-blur-md rounded-xl p-3 border border-wt/10">
                                             <p className="text-static-w text-[11px] font-bold truncate">
@@ -186,7 +183,6 @@ export default function RealEstateMedia(props: MediaTabProps) {
                                         </div>
                                     </div>
 
-                                    {/* Action Buttons Overlay */}
                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
                                         <Button
                                             variant="outline"
@@ -208,7 +204,6 @@ export default function RealEstateMedia(props: MediaTabProps) {
                                         </Button>
                                     </div>
 
-                                    {/* Premium Badge */}
                                     <div className="absolute top-3 right-3 px-3 py-1.5 bg-indigo shadow-xl ring-4 ring-indigo/20 text-static-w text-[9px] font-black rounded-full uppercase tracking-[0.1em]">
                                         شاخص
                                     </div>
@@ -224,7 +219,6 @@ export default function RealEstateMedia(props: MediaTabProps) {
                                     <p className="font-bold text-font-p">انتخاب تصویر اصلی</p>
                                     <p className="text-font-xs text-font-s/60 mt-1">جهت انتخاب از کتابخانه کلیک کنید</p>
 
-                                    {/* Decoration */}
                                     <div className="absolute inset-4 border border-indigo-1/5 rounded-xl pointer-events-none" />
                                 </div>
                             )}

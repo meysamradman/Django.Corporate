@@ -16,7 +16,6 @@ from src.page.messages.messages import ABOUT_PAGE_SUCCESS, ABOUT_PAGE_ERRORS
 from src.user.access_control import PermissionRequiredMixin
 from src.page.utils.cache import PageCacheKeys, PageCacheManager
 
-
 class AboutPageViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     queryset = AboutPage.objects.all()

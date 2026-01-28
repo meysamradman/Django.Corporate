@@ -21,7 +21,6 @@ from src.ai.providers.openrouter import OpenRouterProvider, OpenRouterModelCache
 from src.ai.providers.huggingface import HuggingFaceProvider
 from src.media.serializers.media_serializer import MediaAdminSerializer
 
-
 class AIImageProviderViewSet(viewsets.ModelViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
     permission_classes = [ai_permission]
@@ -359,7 +358,6 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
             return True
         
         return False
-
 
 class AIImageGenerationViewSet(viewsets.ViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]

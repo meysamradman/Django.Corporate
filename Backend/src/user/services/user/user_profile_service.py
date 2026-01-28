@@ -5,7 +5,6 @@ from src.core.models import Province, City
 from src.user.messages import AUTH_ERRORS
 from src.media.models.media import ImageMedia
 
-
 class UserProfileService:
     @staticmethod
     def get_user_profile(user):

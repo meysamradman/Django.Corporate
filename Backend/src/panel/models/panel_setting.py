@@ -4,7 +4,6 @@ from src.core.models.base import BaseModel
 from src.media.models.media import ImageMedia
 from src.panel.utils.cache import PanelCacheKeys, PanelCacheManager
 
-
 class PanelSettings(BaseModel):
     panel_title = models.CharField(
         max_length=100,

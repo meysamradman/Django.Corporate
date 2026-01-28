@@ -2,7 +2,6 @@ from django.core.exceptions import ValidationError
 from src.user.messages import AUTH_ERRORS
 from src.user.models import UserProfile, AdminProfile
 
-
 def validate_phone_number(value):
     if not value:
         return value
@@ -20,13 +19,11 @@ def validate_phone_number(value):
     
     return cleaned_phone
 
-
 def validate_phone_number_optional(value):
     if not value or value.strip() == "":
         return None
     
     return validate_phone_number(value)
-
 
 def validate_phone_uniqueness(phone, user_id=None, profile_type='user'):
     if not phone:
@@ -51,7 +48,6 @@ def validate_phone_uniqueness(phone, user_id=None, profile_type='user'):
         raise ValidationError(AUTH_ERRORS["phone_already_used_admin"])
     
     return phone
-
 
 def validate_phone_number_with_uniqueness(value, user_id=None, profile_type='user'):
     validated_phone = validate_phone_number_optional(value)

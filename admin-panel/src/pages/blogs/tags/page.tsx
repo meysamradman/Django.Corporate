@@ -89,7 +89,6 @@ export default function TagPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blog-tags'] });
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'تگ' }));
     },
     onError: (_error) => {
@@ -103,7 +102,6 @@ export default function TagPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries();
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'تگ' }));
       setRowSelection({});
     },
@@ -161,7 +159,6 @@ export default function TagPage() {
   ];
   
   const columns = useTagColumns(rowActions) as ColumnDef<BlogTag>[];
-
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 

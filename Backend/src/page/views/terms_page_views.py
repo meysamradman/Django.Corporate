@@ -16,7 +16,6 @@ from src.page.messages.messages import TERMS_PAGE_SUCCESS, TERMS_PAGE_ERRORS
 from src.user.access_control import PermissionRequiredMixin
 from src.page.utils.cache import PageCacheKeys, PageCacheManager
 
-
 class TermsPageViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     queryset = TermsPage.objects.all()

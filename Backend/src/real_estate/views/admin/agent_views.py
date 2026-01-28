@@ -19,7 +19,6 @@ from src.real_estate.serializers.admin.agent_serializer import (
 from src.real_estate.services.admin.agent_services import PropertyAgentAdminService
 from src.real_estate.messages.messages import AGENT_SUCCESS, AGENT_ERRORS
 
-
 class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
     
@@ -128,9 +127,6 @@ class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         partial = kwargs.pop('partial', False)
         agent_id = kwargs.get('pk')
 
-        # fetch the instance and pass it to the serializer so instance-aware
-        # validators (like excluding current object when checking uniqueness)
-        # work correctly.
         agent = PropertyAgentAdminService.get_agent_by_id(agent_id)
         if not agent:
             return APIResponse.error(
@@ -138,7 +134,6 @@ class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
 
-        # make a mutable copy of incoming data
         data = request.data.copy()
 
         serializer = self.get_serializer(agent, data=data, partial=partial)

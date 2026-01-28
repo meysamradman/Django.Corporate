@@ -40,7 +40,6 @@ export default function AgencyMedia({
               variant="outline"
               size="sm"
               onClick={() => {
-                // TODO: Open media picker modal
                 showError("انتخاب رسانه هنوز پیاده‌سازی نشده است");
               }}
             >

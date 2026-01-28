@@ -4,7 +4,6 @@ from src.core.models.base import BaseModel
 from src.real_estate.models.floor_plan import RealEstateFloorPlan
 from src.media.models.media import ImageMedia
 
-
 class FloorPlanImage(BaseModel):
 
     floor_plan = models.ForeignKey(
@@ -68,7 +67,7 @@ class FloorPlanImage(BaseModel):
         ]
 
     def clean(self):
-        """Ensure only one main image per floor plan"""
+        
         if self.is_main:
             exists = FloorPlanImage.objects.filter(
                 floor_plan=self.floor_plan,

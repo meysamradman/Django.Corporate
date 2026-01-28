@@ -10,7 +10,6 @@ from src.core.models import Province, City
 from src.media.models import ImageMedia
 from src.media.services.media_services import MediaAdminService as MediaService
 
-
 class UserRegisterService:
     @classmethod
     def register_user(cls, identifier, password, admin_user=None):

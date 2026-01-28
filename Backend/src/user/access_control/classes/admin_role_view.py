@@ -50,23 +50,21 @@ class AdminRoleView(viewsets.ViewSet):
         return [SuperAdminOnly()]
     
     def get_queryset(self):
-        """بازیابی queryset با annotation برای users_count"""
+        
         return AdminRole.objects.annotate(
             users_count=Count('admin_user_roles', filter=models.Q(admin_user_roles__is_active=True))
         )
     
     def filter_queryset(self, queryset):
-        """استفاده از filter backend ها"""
+        
         for backend in list(self.filter_backends):
             queryset = backend().filter_queryset(self.request, queryset, self)
         return queryset
     
     def list(self, request):
         try:
-            # استفاده از filter_queryset برای اعمال filterset_class
             queryset = self.filter_queryset(self.get_queryset())
             
-            # ترتیب‌بندی manual از query params (برای سازگاری با کد قبلی)
             order_by = request.query_params.get('order_by')
             order_desc = request.query_params.get('order_desc', 'true').lower() in ('true', '1', 'yes')
             
@@ -79,7 +77,6 @@ class AdminRoleView(viewsets.ViewSet):
                 order_prefix = '-' if order_desc else ''
                 queryset = queryset.order_by(f'{order_prefix}{order_by}')
             
-            # Pagination
             paginator = self.pagination_class()
             page = paginator.paginate_queryset(queryset, request)
             if page is not None:
@@ -484,7 +481,6 @@ class AdminRoleView(viewsets.ViewSet):
             
             user = User.objects.get(id=user_id)
             
-            # Privacy check
             if str(user.id) != str(request.user.id) and not (request.user.is_superuser or getattr(request.user, 'is_admin_full', False)):
                 return APIResponse.error(
                     message=AUTH_ERRORS["auth_not_authorized"],
@@ -570,7 +566,6 @@ class AdminRoleView(viewsets.ViewSet):
                 'analytics.dashboard.read'
             }
             
-            # Group permissions by resource (extracted from perm_key)
             resource_map = {}
             
             for module_key, module_info in modules.items():
@@ -586,36 +581,24 @@ class AdminRoleView(viewsets.ViewSet):
                     if perm_key in base_permission_keys:
                         continue
                     
-                    # ❌ حذف permissions با requires_superadmin=True (admin permissions)
                     if perm_data.get('requires_superadmin', False):
                         continue
                     
                     if module_key == 'analytics' and perm_key not in ANALYTICS_USED_PERMISSIONS:
                         continue
                     
-                    # Extract resource from perm_key (everything except the last part which is action)
-                    # e.g., 'blog.category.read' -> 'blog.category', 'blog.read' -> 'blog'
                     perm_parts = perm_key.split('.')
                     if len(perm_parts) < 2:
                         continue
                     
-                    # Resource is all parts except the last one (action)
                     resource = '.'.join(perm_parts[:-1])
                     
                     if resource not in resource_map:
-                        # Generate display_name for nested resources
-                        # e.g., 'blog.category' -> 'Blog Categories', 'blog.tag' -> 'Blog Tags'
                         if resource == module_key:
-                            # Base module
                             display_name = module_info['display_name']
                         else:
-                            # Nested resource (e.g., blog.category, blog.tag)
-                            # Extract the nested part (e.g., 'category', 'tag')
                             nested_part = perm_parts[-2] if len(perm_parts) > 2 else resource.split('.')[-1]
-                            # Use the display_name from the permission and remove action part
-                            # e.g., 'View Blog Categories' -> 'Blog Categories'
                             perm_display = perm_data.get('display_name', '')
-                            # Remove action words from the beginning
                             action_words = ['View ', 'Create ', 'Update ', 'Delete ', 'Manage ', 'Edit ']
                             for action_word in action_words:
                                 if perm_display.startswith(action_word):
@@ -642,7 +625,6 @@ class AdminRoleView(viewsets.ViewSet):
                     })
                     permission_id += 1
             
-            # Convert resource_map to list
             permission_groups = list(resource_map.values())
             
             return APIResponse.success(

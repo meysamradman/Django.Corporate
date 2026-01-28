@@ -165,7 +165,6 @@ export const adminFormSchema = z.object({
     .nullable()
     .optional(),
 
-  // PropertyAgent fields (consultant only)
   license_number: z
     .string()
     .max(100, { message: msg.validation("maxLength", { field: "شماره پروانه", max: 100 }) })
@@ -201,7 +200,6 @@ export const adminFormSchema = z.object({
     .optional()
     .default(false),
 
-  // SEO fields for PropertyAgent
   meta_title: z
     .string()
     .max(70, { message: msg.validation("maxLength", { field: "عنوان متا", max: 70 }) })
@@ -256,14 +254,12 @@ export const adminFormDefaults: AdminFormValues = {
   is_active: true,
   role_id: "none",
   admin_role_type: "admin",
-  // PropertyAgent fields
   license_number: "",
   license_expire_date: "",
   specialization: "",
   agency_id: null,
   bio: "",
   is_verified: false,
-  // SEO fields
   meta_title: "",
   meta_description: "",
   meta_keywords: "",
@@ -271,7 +267,6 @@ export const adminFormDefaults: AdminFormValues = {
   og_description: "",
   og_image_id: null,
   og_image: null,
-  // Profile fields
   profile_first_name: "",
   profile_last_name: "",
   profile_birth_date: "",

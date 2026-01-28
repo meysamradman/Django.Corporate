@@ -6,7 +6,6 @@ from src.user.auth import UserJWTAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 
-
 class UserLogoutView(APIView):
     authentication_classes = [UserJWTAuthentication, JWTAuthentication]
     permission_classes = [IsAuthenticated]

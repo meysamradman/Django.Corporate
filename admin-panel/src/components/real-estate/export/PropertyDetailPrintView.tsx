@@ -64,7 +64,6 @@ export function PropertyDetailPrintView({ propertyId }: PropertyDetailPrintViewP
 
     return (
         <div className="min-h-screen bg-white text-right p-8 md:p-12" dir="rtl">
-            {/* Header Toolbar (no-print) */}
             <div className="no-print fixed top-0 left-0 right-0 bg-slate-50 border-b p-4 flex justify-between items-center z-50">
                 <button
                     onClick={() => window.print()}
@@ -80,9 +79,7 @@ export function PropertyDetailPrintView({ propertyId }: PropertyDetailPrintViewP
                 </button>
             </div>
 
-            {/* Print Content Area */}
             <div className="max-w-[210mm] mx-auto pt-16">
-                {/* Visual Official Header */}
                 <div className="border-b-8 border-slate-900 pb-8 mb-12 flex justify-between items-end">
                     <div>
                         <h1 className="text-3xl font-black text-slate-900 mb-2">{property.title}</h1>
@@ -94,7 +91,6 @@ export function PropertyDetailPrintView({ propertyId }: PropertyDetailPrintViewP
                     </div>
                 </div>
 
-                {/* Main Hero Image */}
                 {mainImageUrl && (
                     <div className="mb-12 w-full overflow-hidden rounded-4xl border-4 border-slate-50 shadow-2xl relative">
                         <img
@@ -106,7 +102,6 @@ export function PropertyDetailPrintView({ propertyId }: PropertyDetailPrintViewP
                     </div>
                 )}
 
-                {/* Property Brief Grid */}
                 <div className="grid grid-cols-3 gap-6 mb-12">
                     <div className="bg-slate-900 text-white flex-1 p-8 rounded-4xl shadow-2xl relative overflow-hidden text-center">
                         <div className="relative z-10 text-[10px] text-blue-400 font-bold mb-2 tracking-[0.3em] uppercase">Property Type</div>
@@ -123,7 +118,6 @@ export function PropertyDetailPrintView({ propertyId }: PropertyDetailPrintViewP
                     </div>
                 </div>
 
-                {/* Location Dashboard */}
                 <div className="grid grid-cols-4 gap-4 mb-10 bg-slate-50 p-6 rounded-4xl border border-slate-100">
                     <div>
                         <div className="text-[10px] text-slate-400 mb-1 font-bold">شهر</div>
@@ -143,14 +137,12 @@ export function PropertyDetailPrintView({ propertyId }: PropertyDetailPrintViewP
                     </div>
                 </div>
 
-                {/* Short Description */}
                 {property.short_description && (
                     <div className="mb-12 p-8 bg-blue-50/30 rounded-4xl border-r-8 border-blue-600 italic text-blue-900 text-lg leading-relaxed font-bold">
                         {property.short_description}
                     </div>
                 )}
 
-                {/* Detailed Features */}
                 <div className="mb-12 p-8 bg-slate-50 border border-slate-100 rounded-4xl">
                     <div className="text-[10px] text-slate-400 mb-4 font-black tracking-[0.3em] uppercase border-b border-slate-200 pb-2">Technical Features / امکانات فنی</div>
                     <div className="grid grid-cols-3 gap-y-4">
@@ -164,13 +156,11 @@ export function PropertyDetailPrintView({ propertyId }: PropertyDetailPrintViewP
                     </div>
                 </div>
 
-                {/* Description Content */}
                 <div
                     className="prose prose-slate max-w-none text-slate-800 text-lg leading-[2.4] text-justify mb-20 italic font-medium"
                     dangerouslySetInnerHTML={{ __html: property.description || property.short_description }}
                 />
 
-                {/* Official Footer */}
                 <div className="mt-40 pt-10 border-t-4 border-slate-900 flex justify-between items-center text-[12px] text-slate-400 font-black italic">
                     <div>سند رسمی استخراج شده از درگاه مدیریت املاک</div>
                     <div className="text-slate-900 font-black uppercase not-italic tracking-[0.5em] px-10">Real Estate Management System</div>

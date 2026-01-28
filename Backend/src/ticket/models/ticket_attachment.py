@@ -5,7 +5,6 @@ from src.core.models import BaseModel
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from .ticket_message import TicketMessage
 
-
 class TicketAttachment(BaseModel):
 
     ticket_message = models.ForeignKey(
@@ -63,7 +62,6 @@ class TicketAttachment(BaseModel):
         verbose_name_plural = "Ticket Attachments"
         ordering = ['created_at']
         indexes = [
-            # Composite index for common query pattern
             models.Index(fields=['ticket_message', 'created_at']),
         ]
         constraints = [

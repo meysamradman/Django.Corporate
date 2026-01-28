@@ -2,8 +2,6 @@ from typing import Dict, List
 from .config import PERMISSIONS
 from .module_mappings import MODULE_MAPPINGS
 
-
-
 def _create_permission_classes():
     from src.user.access_control.classes.admin_permission import RequireModuleAccess
     
@@ -28,6 +26,5 @@ def _create_permission_classes():
         globals()[class_name] = permission_class
 
 _create_permission_classes()
-
 
 __all__ = [f"{m.capitalize()}ManagerAccess" for m in MODULE_MAPPINGS.keys()]

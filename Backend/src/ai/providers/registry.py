@@ -2,7 +2,6 @@ from typing import Dict, Type, Optional, Any
 import inspect
 from .base import BaseProvider
 
-
 class AIProviderRegistry:
     _instance = None
     _providers: Dict[str, Type[BaseProvider]] = {}
@@ -79,7 +78,6 @@ class AIProviderRegistry:
     def clear(cls):
         cls._providers.clear()
         cls._initialized = False
-
 
 def get_provider_instance(name: str, api_key: str, config: Optional[Dict[str, Any]] = None) -> BaseProvider:
     registry = AIProviderRegistry()

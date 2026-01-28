@@ -14,7 +14,6 @@ from src.ai.providers.registry import AIProviderRegistry
 from src.ai.messages.messages import AI_ERRORS
 from src.ai.providers.capabilities import ProviderAvailabilityManager
 
-
 class AIAudioGenerationService:
     
     @classmethod
@@ -63,10 +62,7 @@ class AIAudioGenerationService:
     
     @classmethod
     def get_provider_instance(cls, provider_name: str, api_key: str, config: Optional[Dict] = None):
-        """
-        Get provider instance using AIProviderRegistry.
-        Dynamic provider loading without hardcoded imports.
-        """
+        
         provider_class = AIProviderRegistry.get(provider_name)
         if not provider_class:
             raise ValueError(AI_ERRORS["provider_not_supported"].format(provider_name=provider_name))

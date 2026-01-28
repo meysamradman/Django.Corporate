@@ -5,7 +5,6 @@ from django.utils import timezone
 from src.core.models.base import BaseModel
 from src.email.utils.cache import EmailCacheManager
 
-
 class EmailMessage(BaseModel):
 
     STATUS_CHOICES = [
@@ -23,7 +22,6 @@ class EmailMessage(BaseModel):
         ('api', 'API'),
     ]
     
-    # 1. Status/State Fields
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -41,7 +39,6 @@ class EmailMessage(BaseModel):
         help_text="Source where the email message originated from"
     )
     
-    # 2. Primary Content Fields
     subject = models.CharField(
         max_length=300,
         blank=True,
@@ -74,7 +71,6 @@ class EmailMessage(BaseModel):
         help_text="Sender's phone number"
     )
     
-    # 3. Description Fields
     message = models.TextField(
         blank=True,
         null=True,
@@ -88,7 +84,6 @@ class EmailMessage(BaseModel):
         help_text="Reply message content"
     )
     
-    # 5. Relationships
     replied_by = models.ForeignKey(
         'user.User',
         on_delete=models.SET_NULL,
@@ -100,7 +95,6 @@ class EmailMessage(BaseModel):
         help_text="Admin user who replied to this message"
     )
     
-    # Metadata Fields
     dynamic_fields = models.JSONField(
         default=dict,
         blank=True,
@@ -120,7 +114,6 @@ class EmailMessage(BaseModel):
         help_text="User agent string of the sender"
     )
     
-    # Timestamp Fields (additional to BaseModel timestamps)
     read_at = models.DateTimeField(
         blank=True,
         null=True,
@@ -168,25 +161,22 @@ class EmailMessage(BaseModel):
     
     @property
     def has_attachments(self):
-        """Check if message has attachments"""
+        
         return self.attachments.exists()
     
     @property
     def is_new(self):
-        """
-        Check if message status is 'new'.
-        Note: This overrides BaseModel.is_new property which checks if object is unsaved.
-        """
+        
         return self.status == 'new'
     
     @property
     def is_replied(self):
-        """Check if message has been replied to"""
+        
         return self.status == 'replied' and self.reply_message
     
     @property
     def is_draft(self):
-        """Check if message is a draft"""
+        
         return self.status == 'draft'
     
     def save_as_draft(self, admin_user):

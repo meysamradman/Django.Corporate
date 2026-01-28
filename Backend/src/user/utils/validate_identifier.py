@@ -2,8 +2,6 @@ from .mobile_validator import validate_mobile_number
 from .email_validator import validate_email_address
 from src.user.messages import AUTH_ERRORS
 
-
-
 def validate_identifier(identifier):
 
     identifier = identifier.strip()

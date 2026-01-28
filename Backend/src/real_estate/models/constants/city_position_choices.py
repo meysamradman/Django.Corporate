@@ -6,10 +6,8 @@ CITY_POSITION_CHOICES = {
     "out_of_city": "خارج از شهر",
 }
 
-
 def get_city_position_label(code: str) -> str:
     return CITY_POSITION_CHOICES.get(code, code)
-
 
 def get_city_position_choices_list():
     return [(code, label) for code, label in CITY_POSITION_CHOICES.items()]

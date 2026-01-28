@@ -15,7 +15,6 @@ interface UsePdfExportOptions {
 }
 
 export function usePdfExport(options?: UsePdfExportOptions) {
-    // Export single blog PDF
     const exportSingleBlog = useMutation({
         mutationFn: async (blogId: number) => {
             await exportBlogPdf(blogId);
@@ -31,7 +30,6 @@ export function usePdfExport(options?: UsePdfExportOptions) {
         },
     });
 
-    // Export blog list PDF
     const exportBlogList = useMutation({
         mutationFn: async (filters?: BlogExportParams) => {
             await exportBlogs(filters, 'pdf');

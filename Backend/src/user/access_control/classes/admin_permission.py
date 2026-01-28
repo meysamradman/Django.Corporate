@@ -11,7 +11,6 @@ from src.user.models import AdminUserRole
 from src.user.access_control.definitions import PermissionValidator
 from src.user.access_control.core.cache_strategy import PermissionCacheStrategy
 
-
 class AdminRolePermission(permissions.BasePermission):
     message = "Access denied. Admin permission required."
     cache_timeout = 300
@@ -189,7 +188,6 @@ class AdminRolePermission(permissions.BasePermission):
         except Exception:
             return False
 
-
 class RequireAdminRole(AdminRolePermission):
     
     def __init__(self, *required_roles):
@@ -215,7 +213,6 @@ class RequireAdminRole(AdminRolePermission):
             
         except Exception:
             return False
-
 
 class RequireModuleAccess(AdminRolePermission):
     
@@ -311,7 +308,6 @@ class RequireModuleAccess(AdminRolePermission):
         
         return action in allowed_actions or (action == 'view' and 'read' in allowed_actions) or (action == 'read' and 'view' in allowed_actions)
 
-
 def require_admin_roles(*roles):
     return RequireAdminRole(*roles)
 
@@ -326,7 +322,6 @@ def user_managers_only():
 
 def media_managers_only():
     return RequireAdminRole('super_admin', 'media_manager')
-
 
 class UserManagementPermission(AdminRolePermission):
     
@@ -351,12 +346,8 @@ class UserManagementPermission(AdminRolePermission):
         
         return self._check_admin_role_permissions(request.user, request.method, view)
 
-
 class IsAdminUser(permissions.BasePermission):
-    """
-    فقط یوزرهایی با user_type='admin' یا is_staff=True
-    جلوگیری کامل از دسترسی کاربران عادی به پنل ادمین
-    """
+    
     message = "دسترسی رد شد. این پنل فقط برای مدیران است."
     
     def has_permission(self, request, view):
@@ -366,26 +357,20 @@ class IsAdminUser(permissions.BasePermission):
         if not request.user.is_active:
             return False
         
-        # ✅ چک کردن user_type == 'admin' (مهم!)
         user_type = getattr(request.user, "user_type", None)
         if user_type != 'admin':
             return False
         
-        # ✅ چک کردن is_staff
         if not request.user.is_staff:
             return False
         
-        # ✅ چک کردن is_admin_active
         if not getattr(request.user, 'is_admin_active', False):
             return False
         
         return True
 
-
 class IsSuperAdmin(permissions.BasePermission):
-    """
-    فقط Super Admin (is_superuser یا is_admin_full)
-    """
+    
     message = "دسترسی رد شد. فقط مدیر کل سیستم می‌تواند به این بخش دسترسی داشته باشد."
     
     def has_permission(self, request, view):
@@ -395,17 +380,14 @@ class IsSuperAdmin(permissions.BasePermission):
         if not request.user.is_active:
             return False
         
-        # ✅ چک کردن user_type == 'admin'
         user_type = getattr(request.user, "user_type", None)
         if user_type != 'admin':
             return False
         
-        # ✅ چک کردن Super Admin
         return bool(
             request.user.is_superuser or 
             getattr(request.user, 'is_admin_full', False)
         )
-
 
 class SimpleAdminPermission(permissions.BasePermission):
     message = AUTH_ERRORS["auth_not_authorized"]
@@ -432,11 +414,9 @@ class SimpleAdminPermission(permissions.BasePermission):
         
         return True
 
-
 class SuperAdminOnly(RequireAdminRole):
     def __init__(self):
         super().__init__('super_admin')
-
 
 class RequirePermission(AdminRolePermission):
     
@@ -455,7 +435,6 @@ class RequirePermission(AdminRolePermission):
             return True
         
         return PermissionValidator.has_permission(request.user, self.permission_id)
-
 
 class AdminPermissionCache:
     
@@ -500,7 +479,6 @@ class AdminPermissionCache:
             cache.clear()
         except Exception:
             pass
-
 
 def _import_permission_classes():
     try:

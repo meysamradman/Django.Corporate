@@ -12,7 +12,6 @@ from src.core.security.throttling import UserLoginThrottle
 from src.core.security.captcha.services import CaptchaService
 from src.core.security.captcha.messages import CAPTCHA_ERRORS
 
-
 class UserLoginView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = [UserJWTAuthentication, JWTAuthentication]

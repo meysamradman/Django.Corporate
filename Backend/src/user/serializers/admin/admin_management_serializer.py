@@ -16,7 +16,6 @@ from src.real_estate.serializers.admin.agent_serializer import PropertyAgentAdmi
 from src.user.messages.role import ROLE_TEXT
 BASE_ADMIN_PERMISSIONS_SIMPLE = list(BASE_ADMIN_PERMISSIONS.keys())
 
-
 class AdminListSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
@@ -83,30 +82,25 @@ class AdminListSerializer(serializers.ModelSerializer):
         return assigned_roles
     
     def get_user_role_type(self, obj):
-        """تعیین اینکه کاربر admin است یا consultant"""
-        # SuperAdmin همیشه admin است نه consultant
+        
         if obj.is_superuser:
             return 'admin'
-        # چک کنیم که واقعاً PropertyAgent profile داره (نه فقط hasattr)
         try:
-            # بررسی کنیم آیا real_estate_agent_profile وجود داره و None نیست
             if hasattr(obj, 'real_estate_agent_profile') and obj.real_estate_agent_profile is not None:
                 return 'consultant'
         except Exception:
-            # اگر relation وجود نداره یا خطا بده، به عنوان admin در نظر بگیریم
             pass
-        # بقیه ادمین معمولی هستند
         return 'admin'
     
     def get_has_agent_profile(self, obj):
-        """چک کنیم که آیا PropertyAgent profile داره"""
+        
         try:
             return hasattr(obj, 'real_estate_agent_profile') and obj.real_estate_agent_profile is not None
         except Exception:
             return False
     
     def get_agent_profile(self, obj):
-        """دریافت agent_profile برای مشاورین"""
+        
         try:
             if hasattr(obj, 'real_estate_agent_profile') and obj.real_estate_agent_profile is not None:
                 return PropertyAgentAdminDetailSerializer(obj.real_estate_agent_profile, context=self.context).data
@@ -153,7 +147,6 @@ class AdminListSerializer(serializers.ModelSerializer):
             'has_permissions': len(assigned_roles) > 0,
             'base_permissions': BASE_ADMIN_PERMISSIONS_SIMPLE
         }
-
 
 class AdminDetailSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField()
@@ -222,7 +215,7 @@ class AdminDetailSerializer(serializers.ModelSerializer):
         return assigned_roles
     
     def get_user_role_type(self, obj):
-        """تعیین اینکه کاربر admin است یا consultant"""
+        
         if obj.is_superuser:
             return 'admin'
         try:
@@ -233,14 +226,14 @@ class AdminDetailSerializer(serializers.ModelSerializer):
         return 'admin'
     
     def get_has_agent_profile(self, obj):
-        """چک کنیم که آیا PropertyAgent profile داره"""
+        
         try:
             return hasattr(obj, 'real_estate_agent_profile') and obj.real_estate_agent_profile is not None
         except Exception:
             return False
     
     def get_agent_profile(self, obj):
-        """دریافت agent_profile برای مشاورین"""
+        
         try:
             if hasattr(obj, 'real_estate_agent_profile') and obj.real_estate_agent_profile is not None:
                 return PropertyAgentAdminDetailSerializer(obj.real_estate_agent_profile, context=self.context).data
@@ -336,7 +329,6 @@ class AdminDetailSerializer(serializers.ModelSerializer):
             }
         }
 
-
 class AdminUpdateSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
     mobile = serializers.CharField(required=False, allow_blank=True, allow_null=True)
@@ -415,11 +407,9 @@ class AdminUpdateSerializer(serializers.Serializer):
         admin_user = self.context.get('admin_user')
         user_id = self.context.get('user_id')
         
-        # چک کردن دسترسی سوپرادمین برای تغییر فیلد سوپرادمین
         if data.get('is_superuser') is True and not admin_user.is_superuser:
             raise serializers.ValidationError({'is_superuser': AUTH_ERRORS["auth_only_superuser_set"]})
 
-        # اگر کاربر مورد نظر مشاور است، نباید سوپرادمین شود
         if user_id:
             try:
                 user = User.objects.get(id=user_id)
@@ -494,7 +484,6 @@ class AdminUpdateSerializer(serializers.Serializer):
         except Exception as e:
             raise e
 
-
 class AdminFilterSerializer(serializers.Serializer):
     user_type = serializers.ChoiceField(
         choices=['all', 'admin', 'user'],
@@ -510,7 +499,6 @@ class AdminFilterSerializer(serializers.Serializer):
     is_superuser = serializers.BooleanField(required=False, allow_null=True)
     is_active = serializers.BooleanField(required=False, allow_null=True)
     search = serializers.CharField(required=False, allow_blank=True)
-
 
 class BulkDeleteSerializer(serializers.Serializer):
     ids = serializers.ListField(

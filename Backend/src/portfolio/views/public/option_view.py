@@ -11,7 +11,6 @@ from src.portfolio.services.public.option_services import PortfolioOptionPublicS
 from src.portfolio.filters.public.option_filters import PortfolioOptionPublicFilter
 from src.core.pagination import StandardLimitPagination
 
-
 class PortfolioOptionPublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     serializer_class = PortfolioOptionPublicSerializer

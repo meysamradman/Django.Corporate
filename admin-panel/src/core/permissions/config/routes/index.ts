@@ -1,4 +1,3 @@
-// Export all route modules
 export * from './dashboard';
 export * from './media';
 export * from './admin';
@@ -10,7 +9,6 @@ export * from './portfolio';
 export * from './realEstate';
 export * from './ai';
 
-// Import all routes and merge
 import { dashboardRoutes } from './dashboard';
 import { mediaRoutes } from './media';
 import { adminManagementRoutes, roleRoutes } from './admin';

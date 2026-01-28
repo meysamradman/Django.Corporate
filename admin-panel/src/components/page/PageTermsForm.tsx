@@ -63,7 +63,6 @@ export function PageTermsForm() {
         }
     };
 
-
     const handleSave = async () => {
         if (!title.trim()) {
             showError("عنوان صفحه الزامی است");

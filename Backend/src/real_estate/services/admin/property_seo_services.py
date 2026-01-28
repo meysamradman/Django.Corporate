@@ -1,7 +1,6 @@
 from src.real_estate.models.property import Property
 from src.real_estate.messages.messages import PROPERTY_ERRORS
 
-
 class PropertyAdminSEOService:
     
     @staticmethod

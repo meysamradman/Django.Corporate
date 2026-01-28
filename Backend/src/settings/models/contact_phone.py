@@ -3,12 +3,10 @@ from django.core.validators import RegexValidator
 
 from src.core.models.base import BaseModel
 
-
 phone_validator = RegexValidator(
     regex=r'^[0-9+\-\s()]+$',
     message="Phone number must contain only digits, +, -, (), and spaces."
 )
-
 
 class ContactPhone(BaseModel):
 
@@ -26,7 +24,6 @@ class ContactPhone(BaseModel):
         help_text="Label for phone number (e.g., Main Office, Support)"
     )
     
-    # Order Field
     order = models.PositiveIntegerField(
         default=0,
         db_index=True,

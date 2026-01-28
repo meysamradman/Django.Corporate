@@ -6,10 +6,7 @@ from src.core.utils.date_utils import format_jalali_date, format_jalali_datetime
 from src.core.utils.excel_base_service import ExcelBaseExportService
 
 class BlogExcelExportService:
-    """
-    Optimized Excel export service for Blog with sortable Persian dates.
-    """
-    
+
     EXPORT_FIELDS = [
         {'key': 'title', 'label': 'عنوان', 'width': 40, 'type': 'text'},
         {'key': 'short_description', 'label': 'خلاصه', 'width': 50, 'type': 'text'},

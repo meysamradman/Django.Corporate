@@ -97,4 +97,3 @@ class PortfolioPDFListExportService:
         response['Content-Disposition'] = f"attachment; filename*=utf-8''{escape_uri_path(filename)}"
         return response
 
-

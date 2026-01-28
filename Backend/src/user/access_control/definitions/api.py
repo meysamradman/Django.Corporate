@@ -9,33 +9,25 @@ from .validator import PermissionValidator
 from .config import BASE_ADMIN_PERMISSIONS
 from src.user.messages.permission import PERMISSION_SUCCESS, PERMISSION_ERRORS
 
-
 @api_view(["GET"])
 def get_permission_map(request):
-    """
-    Get permission map - accessible both before and after login.
-    Returns empty permissions for unauthenticated users.
-    """
+    
     try:
-        # Get all permissions (cached)
         cache_key_all_perms = UserCacheKeys.permission_map()
         all_permissions = cache.get(cache_key_all_perms)
         if all_permissions is None:
             all_permissions = PermissionRegistry.export_for_frontend()
             cache.set(cache_key_all_perms, all_permissions, 3600)
         
-        # Check if user is authenticated
         is_authenticated = request.user and request.user.is_authenticated
         
         if is_authenticated:
-            # Return full permissions for authenticated users
             user_permissions = PermissionValidator.get_user_permissions(request.user)
             base_permissions = list(BASE_ADMIN_PERMISSIONS.keys())
             is_superadmin = bool(
                 getattr(request.user, "is_superuser", False) or getattr(request.user, "is_admin_full", False)
             )
         else:
-            # Return empty permissions for unauthenticated users
             user_permissions = []
             base_permissions = []
             is_superadmin = False
@@ -57,13 +49,9 @@ def get_permission_map(request):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-
 @api_view(["POST"])
 def check_permission(request):
-    """
-    Check permissions - accessible both before and after login.
-    Returns False for all permissions if user is not authenticated.
-    """
+    
     try:
         permission_ids = request.data.get("permissions", [])
         if not isinstance(permission_ids, list):
@@ -72,14 +60,11 @@ def check_permission(request):
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Check if user is authenticated
         is_authenticated = request.user and request.user.is_authenticated
         
         if not is_authenticated:
-            # Return False for all permissions if not authenticated
             results = {perm_id: False for perm_id in permission_ids}
         else:
-            # Check permissions for authenticated users
             is_superadmin = bool(
                 getattr(request.user, "is_superuser", False) or getattr(request.user, "is_admin_full", False)
             )

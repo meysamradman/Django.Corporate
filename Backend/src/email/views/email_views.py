@@ -15,7 +15,6 @@ from src.email.serializers.email_serializer import (
 from src.email.services.email_service import EmailService
 from src.user.access_control import email_permission, PermissionRequiredMixin
 
-
 class EmailMessageViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     queryset = EmailMessage.objects.all()

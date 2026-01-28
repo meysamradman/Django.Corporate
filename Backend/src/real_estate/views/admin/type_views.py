@@ -19,7 +19,6 @@ from src.user.access_control import real_estate_permission, PermissionRequiredMi
 from src.core.responses.response import APIResponse
 from src.real_estate.messages import TYPE_SUCCESS, TYPE_ERRORS
 
-
 class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]

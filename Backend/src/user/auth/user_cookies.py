@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from django.conf import settings
 from config.django.base import AUTH_COOKIE_NAME, REFRESH_COOKIE_NAME
 
-
 class BaseCookie:
 
     @classmethod
@@ -60,7 +59,6 @@ class BaseCookie:
     @classmethod
     def get_samesite_setting(cls):
         raise NotImplementedError
-
 
 class UserCookie(BaseCookie):
     

@@ -20,7 +20,6 @@ class SliderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     }
 
     def get_queryset(self):
-        # Admin can see all, public sees active
         if self.request.user and self.request.user.is_staff:
             return Slider.objects.all()
         return Slider.objects.filter(is_active=True)

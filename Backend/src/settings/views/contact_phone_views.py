@@ -15,7 +15,6 @@ from src.settings.services.contact_phone_service import (
 from src.settings.messages.messages import SETTINGS_SUCCESS, SETTINGS_ERRORS
 from src.user.access_control import PermissionRequiredMixin
 
-
 class ContactPhoneViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     queryset = ContactPhone.objects.all()
     serializer_class = ContactPhoneSerializer

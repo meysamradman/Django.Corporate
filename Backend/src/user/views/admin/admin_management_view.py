@@ -28,7 +28,6 @@ from src.user.auth.admin_auth_mixin import AdminAuthMixin
 from src.user.access_control import SimpleAdminPermission, SuperAdminOnly, UserManagementPermission
 from src.core.pagination.pagination import StandardLimitPagination
 
-
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class AdminManagementView(AdminAuthMixin, APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
@@ -36,9 +35,6 @@ class AdminManagementView(AdminAuthMixin, APIView):
     pagination_class = StandardLimitPagination
 
     def get_permissions(self):
-        # Allow access to 'me' action for simple admins (self-profile access)
-        # Check both kwarg and view action attribute
-        # Also check resolver_match which is more reliable in newer DRF versions
         action = self.kwargs.get('action') or getattr(self, 'action', None)
         
         if not action and hasattr(self.request, 'resolver_match'):

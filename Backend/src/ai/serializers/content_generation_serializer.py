@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from src.ai.messages.messages import AI_ERRORS
 
-
 class AIContentGenerationRequestSerializer(serializers.Serializer):
     
     topic = serializers.CharField(
@@ -54,7 +53,6 @@ class AIContentGenerationRequestSerializer(serializers.Serializer):
         default=dict,
         help_text="Additional data for destination (e.g., category, tag, status)"
     )
-    
 
     def validate_topic(self, value):
         if not value or not value.strip():
@@ -65,7 +63,6 @@ class AIContentGenerationRequestSerializer(serializers.Serializer):
         if value < 100 or value > 2000:
             raise serializers.ValidationError(AI_ERRORS["invalid_word_count"])
         return value
-
 
 class AIContentGenerationResponseSerializer(serializers.Serializer):
     

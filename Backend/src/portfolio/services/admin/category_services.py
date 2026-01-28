@@ -10,7 +10,6 @@ from src.portfolio.utils.cache import CategoryCacheKeys, CategoryCacheManager
 from src.portfolio.messages.messages import CATEGORY_ERRORS
 from src.media.models.media import ImageMedia
 
-
 class PortfolioCategoryAdminService:
     
     @staticmethod
@@ -23,7 +22,6 @@ class PortfolioCategoryAdminService:
     def get_list_queryset(filters=None, order_by='created_at', order_desc=True, date_from=None, date_to=None):
         queryset = PortfolioCategoryAdminService.get_tree_queryset()
         
-        # Date filters
         if date_from:
             try:
                 date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()

@@ -6,7 +6,6 @@ from django.utils import timezone
 from django.core.cache import cache
 from src.core.cache import CacheService
 
-
 class AdminSessionExpiryMiddleware(MiddlewareMixin):
  
     SESSION_CHECK_CACHE_TTL = 5
@@ -31,27 +30,16 @@ class AdminSessionExpiryMiddleware(MiddlewareMixin):
         return False
     
     def process_request(self, request):
-        """
-        بررسی session قبل از پردازش request
         
-        بهینه‌سازی:
-        - Early exit برای non-admin paths
-        - Cache برای جلوگیری از query تکراری
-        - Redis check قبل از database
-        - Refresh خودکار session در هر request
-        """
         if not request.path.startswith('/api/admin/'):
             return None
         
-        # ✅ Skip برای OPTIONS requests (CORS preflight)
         if request.method == 'OPTIONS':
             return None
         
-        # Skip برای public endpoints (با secret path)
         if self._is_public_endpoint(request):
             return None
         
-        # ✅ Early exit: بعد از SessionMiddleware، request.session باید موجود باشد
         if not hasattr(request, 'session'):
             return None
         
@@ -59,7 +47,6 @@ class AdminSessionExpiryMiddleware(MiddlewareMixin):
         if not session_key:
             return self._create_401_response(request, 'No session key')
         
-        # ✅ بهینه‌سازی: چک کردن cache قبل از database query
         cache_key = f'session_valid_{session_key}'
         cached_result = cache.get(cache_key)
         
@@ -93,22 +80,13 @@ class AdminSessionExpiryMiddleware(MiddlewareMixin):
         return None
     
     def _handle_expired_session(self, request, session_key, session_obj=None):
-        """
-        مدیریت session منقضی شده
         
-        انجام می‌دهد:
-        1. پاک کردن از Redis
-        2. پاک کردن از Database (اگر session_obj داده شده)
-        3. Flush کردن request.session
-        4. علامت‌گذاری برای پاک کردن cookie
-        """
         try:
             session_manager = CacheService.get_session_manager()
             session_manager.delete_admin_session(session_key)
         except Exception as e:
             pass
         
-        # پاک کردن از Database
         if session_obj:
             try:
                 session_obj.delete()
@@ -120,22 +98,18 @@ class AdminSessionExpiryMiddleware(MiddlewareMixin):
             except Exception:
                 pass
         
-        # Flush کردن request.session
         try:
             request.session.flush()
         except Exception:
             pass
         
-        # علامت‌گذاری برای پاک کردن cookie در process_response
         request._session_expired = True
         request._expired_session_key = session_key
         
         return self._create_401_response(request, 'Session expired')
     
     def _create_401_response(self, request, reason='Session expired'):
-        """
-        ایجاد 401 response با CORS headers
-        """
+        
         response = JsonResponse(
             {
                 'metaData': {
@@ -148,7 +122,6 @@ class AdminSessionExpiryMiddleware(MiddlewareMixin):
             status=401
         )
         
-        # ✅ CORS headers برای frontend
         origin = request.META.get('HTTP_ORIGIN', 'http://localhost:3000')
         response['Access-Control-Allow-Origin'] = origin
         response['Access-Control-Allow-Credentials'] = 'true'
@@ -158,11 +131,7 @@ class AdminSessionExpiryMiddleware(MiddlewareMixin):
         return response
     
     def process_response(self, request, response):
-        """
-        پاک کردن cookie در صورت expiry
         
-        بهینه‌سازی: فقط در صورت نیاز cookie را پاک می‌کند
-        """
         if hasattr(request, '_session_expired') and request._session_expired:
             session_key = getattr(request, '_expired_session_key', 'unknown')[:20]
             
@@ -172,7 +141,6 @@ class AdminSessionExpiryMiddleware(MiddlewareMixin):
                 domain=settings.SESSION_COOKIE_DOMAIN
             )
             
-            # پاک کردن CSRF cookie
             response.delete_cookie(
                 'csrftoken',
                 path=settings.CSRF_COOKIE_PATH,

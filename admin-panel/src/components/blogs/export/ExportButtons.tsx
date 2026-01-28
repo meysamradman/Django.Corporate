@@ -43,7 +43,6 @@ export function ExportButtons({
             : [];
 
         if (ids.length === 0) {
-            // If no selection, could show a message or export all
             return;
         }
 

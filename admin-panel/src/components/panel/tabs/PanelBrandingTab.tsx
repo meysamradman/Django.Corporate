@@ -79,7 +79,6 @@ const PanelBrandingTab = forwardRef<PanelBrandingTabRef>((_props, ref) => {
                 formData.append('panel_title', data.panel_title);
             }
 
-            // Handle logo
             const currentLogo = panelSettings?.logo_detail || panelSettings?.logo;
             const logoWasRemoved = !selectedLogo && currentLogo;
             
@@ -89,7 +88,6 @@ const PanelBrandingTab = forwardRef<PanelBrandingTabRef>((_props, ref) => {
                 formData.append('remove_logo', 'true');
             }
 
-            // Handle favicon
             const currentFavicon = panelSettings?.favicon_detail || panelSettings?.favicon;
             const faviconWasRemoved = !selectedFavicon && currentFavicon;
             

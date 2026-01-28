@@ -34,14 +34,12 @@ export function buildQueryParams<T extends Record<string, unknown>>(
     order_desc: sorting.length > 0 ? sorting[0].desc : defaultOrderDesc,
   };
 
-  // اضافه کردن فیلترهای client-side
   Object.entries(clientFilters).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {
       params[key] = value;
     }
   });
 
-  // حذف مقادیر undefined
   Object.keys(params).forEach((key) => {
     if (params[key] === undefined) {
       delete params[key];
@@ -61,23 +59,19 @@ export function syncFiltersToURL(
 ): void {
   const url = new URL(window.location.href);
 
-  // پاک کردن تمام query params قدیمی
   url.search = "";
 
-  // اضافه کردن فیلترها
   Object.entries(filters).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== "") {
       url.searchParams.set(key, String(value));
     }
   });
 
-  // اضافه کردن pagination
   if (pagination) {
     url.searchParams.set("page", String(pagination.pageIndex + 1));
     url.searchParams.set("size", String(pagination.pageSize));
   }
 
-  // اضافه کردن sorting
   if (sorting && sorting.length > 0) {
     url.searchParams.set("order_by", sorting[0].id);
     url.searchParams.set("order_desc", String(sorting[0].desc));

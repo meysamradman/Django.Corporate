@@ -2,7 +2,6 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from src.core.models import BaseModel
 
-
 class RealEstateFloorPlan(BaseModel):
     
     property_obj = models.ForeignKey(
@@ -141,12 +140,12 @@ class RealEstateFloorPlan(BaseModel):
     
     @property
     def size_display(self):
-        """نمایش زیبای اندازه با واحد"""
+        
         return f"{self.floor_size} {self.get_size_unit_display()}"
     
     @property
     def price_display(self):
-        """نمایش زیبای قیمت"""
+        
         if self.price:
             return f"{self.currency} {self.price:,}"
         return "Price on request"

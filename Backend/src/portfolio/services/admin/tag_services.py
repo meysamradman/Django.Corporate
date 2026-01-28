@@ -9,7 +9,6 @@ from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.utils.cache import TagCacheKeys, TagCacheManager
 from src.portfolio.messages import TAG_ERRORS
 
-
 class PortfolioTagAdminService:
     
     @staticmethod
@@ -26,7 +25,6 @@ class PortfolioTagAdminService:
                 Q(description__icontains=search)
             )
         
-        # Date filters
         if date_from:
             try:
                 date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()

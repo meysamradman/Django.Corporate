@@ -74,14 +74,12 @@ FEATURE_CONFIG = {
     },
 }
 
-
 def get_url_mapping():
     mapping = {}
     for feature_key, config in FEATURE_CONFIG.items():
         for pattern in config['url_patterns']:
             mapping[pattern] = feature_key
     return mapping
-
 
 def get_module_to_feature_flag():
     mapping = {}
@@ -90,10 +88,8 @@ def get_module_to_feature_flag():
         mapping[module_name] = feature_key
     return mapping
 
-
 def get_feature_config(feature_key: str):
     return FEATURE_CONFIG.get(feature_key, {})
-
 
 def get_all_feature_keys():
     return list(FEATURE_CONFIG.keys())

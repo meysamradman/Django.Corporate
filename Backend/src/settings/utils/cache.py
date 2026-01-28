@@ -1,6 +1,5 @@
 from src.core.cache import CacheService
 
-
 class SettingsCacheKeys:
     
     @staticmethod
@@ -32,7 +31,6 @@ class SettingsCacheKeys:
             SettingsCacheKeys.contact_emails(),
             SettingsCacheKeys.social_media(),
         ]
-
 
 class SettingsCacheManager:
     

@@ -2,7 +2,6 @@ from django.db.models import Count, Q
 from src.portfolio.models.tag import PortfolioTag
 from src.portfolio.models.portfolio import Portfolio
 
-
 class PortfolioTagPublicService:
     @staticmethod
     def get_tag_queryset(filters=None, search=None):

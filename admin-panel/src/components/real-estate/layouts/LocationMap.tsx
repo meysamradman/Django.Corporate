@@ -6,7 +6,6 @@ import { MapPin, Loader2 } from "lucide-react";
 import { Label } from "@/components/elements/Label";
 import { showError } from "@/core/toast";
 
-
 const createCustomIcon = (isSelected: boolean) => {
   const color = isSelected ? "#3b82f6" : "#94A3B8";
 
@@ -391,7 +390,6 @@ export default function LocationMap({
             onNeighborhoodUpdate(extractedNeighborhood);
           }
 
-
           if (onRegionUpdate && address) {
             const normalizedAddress = toEnglishDigits(address);
 
@@ -480,7 +478,6 @@ export default function LocationMap({
           <span>در حال جستجوی منطقه و محله...</span>
         </div>
       )}
-
 
       {latitude && longitude && (
         <div className="text-xs text-muted-foreground space-y-1">

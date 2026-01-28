@@ -11,7 +11,6 @@ from .base import BaseProvider
 from src.ai.messages.messages import AI_ERRORS, IMAGE_ERRORS, CONTENT_ERRORS, CHAT_ERRORS
 from src.ai.utils.cache import AICacheKeys, AICacheManager
 
-
 class OpenRouterModelCache:
     
     @staticmethod
@@ -34,7 +33,6 @@ class OpenRouterModelCache:
     def clear_provider(provider_filter: Optional[str] = None):
         cache_key = AICacheKeys.provider_models('openrouter', provider_filter)
         cache.delete(cache_key)
-
 
 class OpenRouterProvider(BaseProvider):
     
@@ -265,33 +263,7 @@ class OpenRouterProvider(BaseProvider):
         keywords = kwargs.get('keywords', [])
         
         keywords_str = ", ".join(keywords) if keywords else ""
-        seo_prompt = f"""Create an SEO-optimized content with the following specifications:
-
-Topic: {topic}
-Word count: approximately {word_count} words
-Tone: {tone}
-Keywords: {keywords_str if keywords_str else "choose yourself"}
-
-Output must include:
-1. Main title (title) - attractive and SEO-friendly
-2. Meta title (meta_title) - maximum 60 characters
-3. Meta description (meta_description) - maximum 160 characters
-4. H1 heading
-5. Main content with HTML tags (p, h2, h3)
-6. Related keywords
-7. Word count
-
-Return output as JSON with the following structure:
-{{
-    "title": "...",
-    "meta_title": "...",
-    "meta_description": "...",
-    "h1": "...",
-    "content": "<p>...</p><h2>...</h2><p>...</p>",
-    "keywords": ["...", "..."],
-    "word_count": ...,
-    "slug": "..."
-}}"""
+        seo_prompt = f
 
         url = f"{self.BASE_URL}/chat/completions"
         

@@ -13,7 +13,6 @@ from src.portfolio.models.media import PortfolioImage, PortfolioVideo, Portfolio
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 
-
 class PortfolioAdminService:
     
     @staticmethod
@@ -70,7 +69,6 @@ class PortfolioAdminService:
                 Q(meta_description__icontains=search)
             )
         
-        # Date filters
         if date_from:
             try:
                 date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
@@ -115,8 +113,7 @@ class PortfolioAdminService:
     
     @staticmethod
     def get_main_image_for_model(portfolio_obj):
-        """Standardized main image retrieval with fallback logic"""
-        # 1. Try to get explicit main image
+        
         main_image_obj = PortfolioImage.objects.filter(
             portfolio=portfolio_obj,
             is_main=True
@@ -125,21 +122,18 @@ class PortfolioAdminService:
         if main_image_obj and main_image_obj.image:
             return main_image_obj.image
 
-        # 2. Fallback to any images
         first_image = PortfolioImage.objects.filter(
             portfolio=portfolio_obj
         ).select_related('image').order_by('order', 'created_at').first()
         if first_image and first_image.image:
             return first_image.image
 
-        # 3. Fallback to video cover
         first_video = PortfolioVideo.objects.filter(
             portfolio=portfolio_obj
         ).select_related('video__cover_image').order_by('order', 'created_at').first()
         if first_video and first_video.video and first_video.video.cover_image:
             return first_video.video.cover_image
 
-        # 4. Fallback to other media types covers
         audio = PortfolioAudio.objects.filter(
             portfolio=portfolio_obj
         ).select_related('audio__cover_image').first()
@@ -156,14 +150,12 @@ class PortfolioAdminService:
 
     @staticmethod
     def create_portfolio(validated_data, created_by=None):
-        # Support both standard model names and _ids for safety with frontend
         categories_ids = validated_data.pop('categories', validated_data.pop('categories_ids', []))
         tags_ids = validated_data.pop('tags', validated_data.pop('tags_ids', []))
         options_ids = validated_data.pop('options', validated_data.pop('options_ids', []))
         media_files = validated_data.pop('media_files', [])
         media_ids = validated_data.pop('media_ids', [])
         
-        # Unique Slug logic
         if not validated_data.get('slug') and validated_data.get('title'):
             from django.utils.text import slugify
             base_slug = slugify(validated_data['title'])
@@ -174,7 +166,6 @@ class PortfolioAdminService:
                 counter += 1
             validated_data['slug'] = slug
 
-        # SEO Logic
         if not validated_data.get('meta_title') and validated_data.get('title'):
             validated_data['meta_title'] = validated_data['title'][:70]
         if not validated_data.get('meta_description') and validated_data.get('short_description'):
@@ -211,7 +202,6 @@ class PortfolioAdminService:
         except Portfolio.DoesNotExist:
             raise ValidationError(PORTFOLIO_ERRORS["portfolio_not_found"])
         
-        # Support both standard model names and _ids for safety with frontend
         categories_val = validated_data.pop('categories', validated_data.pop('categories_ids', None))
         tags_val = validated_data.pop('tags', validated_data.pop('tags_ids', None))
         options_val = validated_data.pop('options', validated_data.pop('options_ids', None))
@@ -221,7 +211,6 @@ class PortfolioAdminService:
         main_image_id = main_image_id if main_image_id is not None else validated_data.pop('main_image_id', None)
         media_covers = media_covers if media_covers is not None else validated_data.pop('media_covers', None)
         
-        # Unique Slug logic
         if 'title' in validated_data and not validated_data.get('slug'):
             from django.utils.text import slugify
             base_slug = slugify(validated_data['title'])
@@ -232,7 +221,6 @@ class PortfolioAdminService:
                 counter += 1
             validated_data['slug'] = slug
             
-        # SEO Logic
         if 'title' in validated_data:
             if not validated_data.get('meta_title'):
                 validated_data['meta_title'] = validated_data['title'][:70]
@@ -425,7 +413,6 @@ class PortfolioAdminService:
         
         return deleted_count
 
-
 class PortfolioAdminStatusService:
     
     @staticmethod
@@ -464,7 +451,6 @@ class PortfolioAdminStatusService:
             'portfolio': portfolio,
             'seo_warnings': seo_warnings
         }
-
 
 class PortfolioAdminSEOService:
     

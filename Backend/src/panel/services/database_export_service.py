@@ -8,7 +8,6 @@ from django.db import connections
 from django.conf import settings
 from django.core.management import call_command
 
-
 def export_database_to_sql():
     try:
         db_conn = connections['default']
@@ -27,24 +26,14 @@ def export_database_to_sql():
     except Exception as e:
         raise Exception(f"Error exporting database: {str(e)}")
 
-
 def _check_silk_tables_exist(db_conn):
     try:
         with db_conn.cursor() as cursor:
-            cursor.execute("""
-                SELECT EXISTS (
-                    SELECT 1 
-                    FROM information_schema.tables 
-                    WHERE table_schema = 'public' 
-                    AND table_name LIKE 'silk_%'
-                    LIMIT 1
-                )
-            """)
+            cursor.execute()
             result = cursor.fetchone()
             return result[0] if result else False
     except Exception:
         return False
-
 
 def _export_with_pg_dump_gzip(db_config, exclude_silk=False):
     db_name = db_config['NAME']
@@ -120,7 +109,6 @@ def _export_with_pg_dump_gzip(db_config, exclude_silk=False):
     buffer.seek(0)
     return buffer
 
-
 def _export_with_django_to_sql_gzip(db_config, exclude_silk=False):
     try:
         import psycopg
@@ -167,13 +155,7 @@ def _export_with_django_to_sql_gzip(db_config, exclude_silk=False):
         sql_lines.append("SET row_security = off;")
         sql_lines.append("")
         
-        cur.execute("""
-            SELECT table_name 
-            FROM information_schema.tables 
-            WHERE table_schema = 'public' 
-            AND table_type = 'BASE TABLE'
-            ORDER BY table_name
-        """)
+        cur.execute()
         tables = cur.fetchall()
         
         for table_row in tables:
@@ -182,12 +164,7 @@ def _export_with_django_to_sql_gzip(db_config, exclude_silk=False):
             if table_name in EXCLUDED_TABLES:
                 continue
             
-            cur.execute(f"""
-                SELECT column_name, data_type, is_nullable, column_default
-                FROM information_schema.columns
-                WHERE table_schema = 'public' AND table_name = %s
-                ORDER BY ordinal_position
-            """, (table_name,))
+            cur.execute(f, (table_name,))
             columns = cur.fetchall()
             
             if not columns:
@@ -238,32 +215,19 @@ def _export_with_django_to_sql_gzip(db_config, exclude_silk=False):
         error_str = str(e)
         raise Exception(f"Database error: {error_str}")
 
-
 def get_database_export_filename():
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     return f'database_backup_{timestamp}.sql.gz'
-
 
 def get_database_size_info():
     try:
         db_conn = connections['default']
         with db_conn.cursor() as cursor:
             if 'postgresql' in db_conn.settings_dict['ENGINE']:
-                cursor.execute("""
-                    SELECT pg_size_pretty(pg_database_size(current_database())) as size,
-                           (SELECT count(*) FROM information_schema.tables 
-                            WHERE table_schema = 'public') as table_count
-                """)
+                cursor.execute()
                 result = cursor.fetchone()
                 
-                cursor.execute("""
-                    SELECT
-                        relname AS table_name,
-                        pg_size_pretty(pg_total_relation_size(relid)) AS total_size
-                    FROM pg_catalog.pg_statio_user_tables
-                    ORDER BY pg_total_relation_size(relid) DESC
-                    LIMIT 5;
-                """)
+                cursor.execute()
                 top_tables = cursor.fetchall()
                 top_tables_data = [{'name': row[0], 'size': row[1]} for row in top_tables]
 

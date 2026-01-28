@@ -7,7 +7,6 @@ from src.user.auth.user_cookies import UserCookie
 from src.user.serializers.user.user_register_serializer import UserRegisterSerializer
 from src.user.services.user.user_register_service import UserRegisterService
 
-
 class UserRegisterView(APIView):
     permission_classes = [AllowAny]
 

@@ -59,7 +59,6 @@ export function SocialMediaSection() {
         }
     };
 
-
     const handleOpenDialog = (socialMedia?: SocialMedia) => {
         if (socialMedia) {
             setEditingSocialMedia(socialMedia);

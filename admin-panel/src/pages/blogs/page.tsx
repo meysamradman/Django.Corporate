@@ -338,7 +338,6 @@ export default function BlogPage() {
   };
 
   const handlePrintAction = async (printAll: boolean = false) => {
-    // If not printing all, use selection or current page data
     if (!printAll) {
       const selectedIds = Object.keys(rowSelection).filter(key => (rowSelection as any)[key]).map(idx => data[parseInt(idx)].id);
       if (selectedIds.length > 0) {
@@ -349,7 +348,6 @@ export default function BlogPage() {
       return;
     }
 
-    // Fetch all IDs matching current filters
     try {
       showWarning("در حال آماده‌سازی فایل پرینت برای تمامی موارد...");
       const response = await blogApi.getBlogList({

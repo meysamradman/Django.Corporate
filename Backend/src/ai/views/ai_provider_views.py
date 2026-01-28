@@ -20,7 +20,6 @@ from src.user.access_control import ai_permission, PermissionRequiredMixin
 from src.user.access_control.definitions import PermissionValidator
 from src.core.responses.response import APIResponse
 
-
 class AIProviderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [ai_permission]
     
@@ -109,16 +108,7 @@ class AIProviderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='available')
     def available_providers(self, request):
-        """
-        برگرداندن لیست همه Provider های فعال
         
-        طبق سناریو MAIN_AI_SENARIO.md:
-        - همه Provider ها در همه تب‌ها نمایش داده می‌شوند
-        - حتی اگه Provider برای یک capability مدل نداشته باشد، توی تب نمایش داده می‌شه
-        - تشخیص داشتن/نداشتن مدل فقط در پاپ‌آپ مشخص می‌شه
-        - فقط Provider هایی که is_active=True هستند برگردونده می‌شن
-        """
-        # Permission is checked by PermissionRequiredMixin via permission_map
         is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
         
         providers = AIProvider.objects.filter(is_active=True).order_by('sort_order')
@@ -179,7 +169,6 @@ class AIProviderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             },
             status_code=status.HTTP_200_OK
         )
-
 
 class AIModelViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [ai_permission]
@@ -291,10 +280,7 @@ class AIModelViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def active_model(self, request):
-        """
-        Get the single active model for a provider+capability combination.
-        Required params: provider (slug), capability
-        """
+        
         provider_slug = request.query_params.get('provider')
         capability = request.query_params.get('capability')
         
@@ -319,8 +305,6 @@ class AIModelViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )
-    
-
 
 class AdminProviderSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [ai_permission]

@@ -26,24 +26,20 @@ export interface MediaFilter {
 }
 
 export interface MediaUploadSettings {
-  // File size limits (bytes)
   MEDIA_IMAGE_SIZE_LIMIT: number;
   MEDIA_VIDEO_SIZE_LIMIT: number;
   MEDIA_AUDIO_SIZE_LIMIT: number;
   MEDIA_DOCUMENT_SIZE_LIMIT: number;
 
-  // Allowed file extensions
   MEDIA_ALLOWED_IMAGE_EXTENSIONS: string[];
   MEDIA_ALLOWED_VIDEO_EXTENSIONS: string[];
   MEDIA_ALLOWED_AUDIO_EXTENSIONS: string[];
   MEDIA_ALLOWED_PDF_EXTENSIONS: string[];
 
-  // Upload count limits per module
   PORTFOLIO_MEDIA_UPLOAD_MAX: number;
   BLOG_MEDIA_UPLOAD_MAX: number;
   REAL_ESTATE_MEDIA_UPLOAD_MAX: number;
 
-  // Export print limits per module
   PORTFOLIO_EXPORT_PRINT_MAX_ITEMS: number;
   BLOG_EXPORT_PRINT_MAX_ITEMS: number;
   REAL_ESTATE_EXPORT_PRINT_MAX_ITEMS: number;

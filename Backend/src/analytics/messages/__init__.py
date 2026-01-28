@@ -1,4 +1,3 @@
-# Analytics Messages
 from .messages import ANALYTICS_SUCCESS, ANALYTICS_ERRORS
 
 __all__ = [

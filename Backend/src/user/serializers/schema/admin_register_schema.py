@@ -2,7 +2,6 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
 from src.user.messages import AUTH_SUCCESS
 from src.user.serializers.admin import AdminRegisterSerializer
 
-
 def admin_register_schema(view_func):
     return extend_schema(
         summary="Admin Registration",

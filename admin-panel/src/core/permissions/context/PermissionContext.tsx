@@ -23,14 +23,12 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       const res = await permissionApi.getMap();
       return res;
     },
-    // ✅ پنل ادمین: Session-based - فقط بعد از تغییرات refresh
     staleTime: Infinity,          // ✅ هیچ‌وقت stale نمی‌شه
     gcTime: Infinity,             // ✅ همیشه در memory - تا logout
     refetchOnWindowFocus: false,  // ✅ هیچ‌وقت refetch نشه
     refetchOnMount: false,        // ✅ فقط اولین بار - بعدش از memory
     refetchOnReconnect: false,    // ✅ هیچ‌وقت refetch نشه
     retry: (failureCount, error) => {
-      // ✅ Retry فقط برای 403 (unauthenticated) - حداکثر 2 بار
       if ((error as any)?.response?.status === 403 && failureCount < 2) {
         return true;
       }
@@ -38,7 +36,6 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
     },
     retryDelay: (attemptIndex) => Math.min(500 * 2 ** attemptIndex, 2000), // Exponential backoff: 500ms, 1s, 2s
     retryOnMount: false,
-    // ✅ فقط بعد از تغییر permissions (assign/revoke role) با refresh() به‌روز می‌شه
   });
 
   const permissionMap = useMemo(() => {
@@ -75,12 +72,10 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       if (!permissionMap) return false;
       if (permissionMap.is_superadmin) return true;
 
-      // Exact match
       if (permissionSet.has(permissionId)) return true;
 
       const parts = permissionId.split('.');
       if (parts.length < 2) {
-        // Handle single part permissions if any
         const resource = parts[0];
         return (
           permissionSet.has(`${resource}.*`) ||
@@ -92,7 +87,6 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       const actionPart = parts.pop()!;
       const resourcePart = parts.join('.');
 
-      // Check for parent permissions and manage/admin/wildcard
       let currentResource = resourcePart;
       while (currentResource) {
         if (
@@ -108,7 +102,6 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
         currentResource = currentResource.substring(0, lastDot);
       }
 
-      // 4. Check synonyms for the action
       const synonyms = ACTION_SYNONYMS[actionPart.toLowerCase()];
       if (synonyms) {
         if (synonyms.some(syn => permissionSet.has(`${resourcePart}.${syn}`))) {
@@ -116,9 +109,6 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
         }
       }
 
-      // 5. Try Smart Permission: Implicit read/view
-      // If user has ANY permission for this resource (e.g., blog.create), 
-      // they implicitly have 'read'/'view' access.
       if (actionPart === 'view' || actionPart === 'read') {
         const hasAnyForResource = Array.from(permissionSet).some(p => p.startsWith(resourcePart + '.'));
         if (hasAnyForResource) return true;

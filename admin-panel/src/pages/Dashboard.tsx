@@ -70,7 +70,6 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Card - Always Visible */}
       <CardWithIcon
         icon={LayoutDashboard}
         title={
@@ -105,10 +104,8 @@ export default function Dashboard() {
         {null}
       </CardWithIcon>
 
-      {/* Main Analytics Section */}
       {(canViewTraffic || canViewTrends) && (
         <div className="grid lg:grid-cols-12 gap-6 items-stretch">
-          {/* Traffic Source Chart (Left Side) */}
           {canViewTraffic && (
             <div className="lg:col-span-4 order-2 lg:order-1 flex flex-col h-full">
               <Suspense fallback={<Skeleton className="h-full w-full" />}>
@@ -117,7 +114,6 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Main Trends & Summary Cards (Right Side) */}
           {canViewTrends && (
             <div className={`${mainContentClass} space-y-6 order-1 lg:order-2 flex flex-col`}>
               <SummaryCards stats={stats} isLoading={statsLoading} />
@@ -131,7 +127,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Property Distribution Chart */}
       {canViewRealEstate && (
         <div className="grid grid-cols-1 gap-6">
           <Suspense fallback={<Skeleton className="h-[350px] w-full" />}>
@@ -140,17 +135,13 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Bottom Widgets */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-        {/* Quick Actions - Always Visible or minimal permission */}
         <QuickActionsWidget isLoading={isLoading} />
 
-        {/* Support Stats */}
         {canViewSupport && (
           <SupportStats stats={stats} isLoading={statsLoading} />
         )}
 
-        {/* System Stats */}
         {canViewSystem && (
           <Suspense fallback={<Skeleton className="h-full w-full" />}>
             <SystemStats systemStats={systemStats} isLoading={systemLoading} />

@@ -7,8 +7,6 @@ from src.user.models import User, UserProfile
 from src.user.services.user.user_profile_service import UserProfileService
 from src.media.services.media_services import MediaAdminService as MediaService
 
-
-
 class UserManagementService:
     @staticmethod
     def get_users_list(search=None, is_active=None, date_from=None, date_to=None, request=None):
@@ -34,7 +32,6 @@ class UserManagementService:
                 Q(user_profile__last_name__icontains=search)
             ).distinct()
         
-        # Date filters
         if date_from:
             try:
                 date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()

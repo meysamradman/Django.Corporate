@@ -16,12 +16,10 @@ export function useTableFilters<TFilters extends Record<string, unknown>>(
     [key: string]: (value: unknown, updateUrl: (url: URL) => void) => void;
   }
 ) {
-  // Clean up date_range from URL on mount
   useEffect(() => {
     cleanupDateRangeFromURL();
   }, []);
 
-  // Create handleFilterChange function
   const handleFilterChange = createFilterChangeHandler(
     setClientFilters,
     setSearchValue,

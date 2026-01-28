@@ -18,11 +18,8 @@ from src.real_estate.serializers.admin import (
 from src.core.responses.response import APIResponse
 from src.core.pagination.pagination import StandardLimitPagination
 
-
 class RealEstateProvinceViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    ViewSet for Real Estate Provinces (read-only)
-    """
+    
     queryset = Province.objects.filter(is_active=True).select_related('country').order_by('country__name', 'name')
     serializer_class = RealEstateProvinceSerializer
     permission_classes = [IsAuthenticated]
@@ -51,7 +48,7 @@ class RealEstateProvinceViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=True, methods=['get'], url_path='cities')
     def cities(self, request, pk=None):
-        """Get cities for a specific province"""
+        
         province = self.get_object()
         cache_key = f'real_estate_province_{province.id}_cities'
         cached_data = cache.get(cache_key)
@@ -73,11 +70,8 @@ class RealEstateProvinceViewSet(viewsets.ReadOnlyModelViewSet):
             data=data
         )
 
-
 class RealEstateCityViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    ViewSet for Real Estate Cities (read-only)
-    """
+    
     queryset = City.objects.filter(is_active=True).select_related('province', 'province__country').order_by('province__name', 'name')
     serializer_class = RealEstateCitySerializer
     permission_classes = [IsAuthenticated]
@@ -86,14 +80,12 @@ class RealEstateCityViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         province_id = self.request.query_params.get('province_id')
-        # ✅ فیلتر شهرهایی که ملک دارند
         has_properties = self.request.query_params.get('has_properties', 'false').lower() == 'true'
         
         if province_id:
             queryset = queryset.filter(province_id=province_id)
         
         if has_properties:
-            # فقط شهرهایی که حداقل یک ملک فعال دارند
             queryset = queryset.annotate(
                 property_count=Count('real_estate_properties', filter=Q(real_estate_properties__is_active=True))
             ).filter(property_count__gt=0)
@@ -115,7 +107,6 @@ class RealEstateCityViewSet(viewsets.ReadOnlyModelViewSet):
         
         queryset = self.get_queryset()
         
-        # اگر فیلتر has_properties فعال باشه، property_count رو هم برگردونیم
         if has_properties:
             data = [{
                 'id': city.id,
@@ -128,7 +119,6 @@ class RealEstateCityViewSet(viewsets.ReadOnlyModelViewSet):
             serializer = self.get_serializer(queryset, many=True)
             data = serializer.data
         
-        # Cache برای 30 دقیقه (چون data نسبتاً استاتیک است)
         cache.set(cache_key, data, 1800)
         
         return APIResponse.success(
@@ -138,7 +128,7 @@ class RealEstateCityViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=True, methods=['get'], url_path='regions')
     def regions(self, request, pk=None):
-        """Get city regions for a specific city (only for major cities)"""
+        
         city = self.get_object()
         cache_key = f'real_estate_city_{city.id}_city_regions'
         cached_data = cache.get(cache_key)
@@ -163,12 +153,8 @@ class RealEstateCityViewSet(viewsets.ReadOnlyModelViewSet):
             data=data
         )
 
-
 class RealEstateCityRegionViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    ViewSet for Real Estate City Regions (read-only) - simplified like Diwar
-    Only for major cities like Tehran (regions 1-22)
-    """
+    
     queryset = CityRegion.objects.filter(is_active=True).select_related('city', 'city__province').order_by('city', 'code')
     serializer_class = RealEstateCityRegionSerializer
     permission_classes = [IsAuthenticated]
@@ -207,7 +193,4 @@ class RealEstateCityRegionViewSet(viewsets.ReadOnlyModelViewSet):
             message="مناطق شهری با موفقیت دریافت شدند",
             data=data
         )
-
-
-# دیگه District ViewSet لازم نیست - منطق ساده شده
 

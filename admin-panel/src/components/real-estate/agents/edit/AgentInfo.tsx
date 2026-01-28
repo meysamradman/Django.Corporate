@@ -22,7 +22,6 @@ export default function AgentInfo({ formData, handleInputChange, editMode }: Bas
     const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(formData.province ?? null);
 
     useEffect(() => {
-        // load provinces on mount
         const loadProvinces = async () => {
             try {
                 setLoadingLocation(true);
@@ -38,12 +37,10 @@ export default function AgentInfo({ formData, handleInputChange, editMode }: Bas
     }, []);
 
     useEffect(() => {
-        // keep local selectedProvince in sync with formData (when editing existing agent)
         setSelectedProvinceId(formData.province ?? null);
     }, [formData.province]);
 
     useEffect(() => {
-        // load cities for selected province
         if (!selectedProvinceId) {
             setCities([]);
             return;
@@ -67,7 +64,6 @@ export default function AgentInfo({ formData, handleInputChange, editMode }: Bas
         const provinceId = value ? Number(value) : null;
         setSelectedProvinceId(provinceId);
         handleInputChange("province" as keyof PropertyAgent, provinceId);
-        // reset city when province changes
         handleInputChange("city" as keyof PropertyAgent, null);
     }, [handleInputChange]);
 

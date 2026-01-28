@@ -29,9 +29,8 @@ def save_user_profile(sender, instance, **kwargs):
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def invalidate_user_cache_on_status_change(sender, instance, **kwargs):
-    """Invalidate permission cache if admin-related status changes"""
+    
     if instance.user_type == 'admin' or instance.is_staff:
-        # Clear cache for any status change that might affect permissions
         from src.user.access_control import AdminPermissionCache, PermissionValidator, PermissionHelper
         from src.user.utils.cache import UserCacheManager
         
@@ -43,7 +42,7 @@ def invalidate_user_cache_on_status_change(sender, instance, **kwargs):
 
 @receiver(user_logged_in)
 def track_admin_login(sender, request, user, **kwargs):
-    """Tracks admin login performance"""
+    
     if user.is_staff and user.user_type == 'admin':
         profile = AdminProfile.objects.filter(admin_user=user).first()
         if profile:

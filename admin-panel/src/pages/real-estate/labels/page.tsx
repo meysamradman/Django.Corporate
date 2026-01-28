@@ -117,7 +117,6 @@ export default function PropertyLabelsPage() {
     mutationFn: (labelId: number) => realEstateApi.deleteLabel(labelId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-labels'] });
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'برچسب ملک' }));
     },
     onError: (_error) => {
@@ -129,7 +128,6 @@ export default function PropertyLabelsPage() {
     mutationFn: (labelIds: number[]) => Promise.all(labelIds.map(id => realEstateApi.deleteLabel(id))),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-labels'] });
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'برچسب‌های ملک' }));
       setRowSelection({});
     },
@@ -203,7 +201,6 @@ export default function PropertyLabelsPage() {
   ];
   
   const columns = usePropertyLabelColumns(rowActions, handleToggleActive) as ColumnDef<PropertyLabel>[];
-
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 

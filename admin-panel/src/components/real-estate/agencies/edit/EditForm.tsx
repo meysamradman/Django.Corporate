@@ -122,7 +122,6 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
         setIsMediaModalOpen(false);
     };
 
-
     const handleSave = async () => {
         if (isSaving) return;
 
@@ -161,7 +160,6 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
             } else if (selectedProfilePicture === null) {
                 profileData.profile_picture = null;
             }
-
 
             if (!agencyData) {
                 showError('اطلاعات آژانس یافت نشد');

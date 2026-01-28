@@ -16,7 +16,6 @@ from src.analytics.services.stats import (
     SystemStatsService
 )
 
-
 class AdminStatsViewSet(viewsets.ViewSet):
     permission_classes = [analytics_any_permission]
     
@@ -40,10 +39,7 @@ class AdminStatsViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'])
     def dashboard(self, request):
-        """
-        Get dashboard statistics (accessible to all authenticated admins)
-        Returns: Combined stats for dashboard widgets
-        """
+        
         clear_cache = request.query_params.get('clear_cache', '').lower() == 'true'
         
         if clear_cache:
@@ -57,7 +53,6 @@ class AdminStatsViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'])
     def users_stats(self, request):
-        # Permission is checked by get_permissions() - no need for manual check
         data = UserStatsService.get_stats()
         return APIResponse.success(
             data=data,
@@ -66,7 +61,6 @@ class AdminStatsViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'])
     def admins_stats(self, request):
-        # Permission is checked by get_permissions() - no need for manual check
         data = AdminStatsService.get_stats()
         return APIResponse.success(
             data=data,
@@ -75,7 +69,6 @@ class AdminStatsViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'])
     def content_stats(self, request):
-        # Permission is checked by get_permissions() - no need for manual check
         data = ContentStatsService.get_stats()
         return APIResponse.success(
             data=data,
@@ -84,7 +77,6 @@ class AdminStatsViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'])
     def content_trend(self, request):
-        # Permission is checked by get_permissions() - no need for manual check
         data = ContentStatsService.get_monthly_trend()
         return APIResponse.success(
             data=data,
@@ -93,7 +85,6 @@ class AdminStatsViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'])
     def tickets_stats(self, request):
-        # Permission is checked by get_permissions() - no need for manual check
         if request.query_params.get('clear_cache', '').lower() == 'true':
             TicketStatsService.clear_cache()
         
@@ -105,7 +96,6 @@ class AdminStatsViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'])
     def emails_stats(self, request):
-        # Permission is checked by get_permissions() - no need for manual check
         if request.query_params.get('clear_cache', '').lower() == 'true':
             EmailStatsService.clear_cache()
         
@@ -117,7 +107,6 @@ class AdminStatsViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'])
     def system_stats(self, request):
-        # Permission is checked by get_permissions() - no need for manual check
         if request.query_params.get('clear_cache', '').lower() == 'true':
             SystemStatsService.clear_cache()
         

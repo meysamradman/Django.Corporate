@@ -57,7 +57,6 @@ export default function ConsultantFields({ form }: ConsultantFieldsProps) {
 
   return (
     <div className="space-y-8">
-      {/* 1. اطلاعات حرفه‌ای مشاور */}
       <CardWithIcon
         icon={BadgeCheck}
         title="اطلاعات حرفه‌ای مشاور"
@@ -170,7 +169,6 @@ export default function ConsultantFields({ form }: ConsultantFieldsProps) {
         </div>
       </CardWithIcon>
 
-      {/* 2. تنظیمات سئو و نمایش پروفایل */}
       <CardWithIcon
         icon={Globe}
         title="تنظیمات سئو و نمایش پروفایل"

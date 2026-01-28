@@ -5,7 +5,6 @@ from src.real_estate.models.feature import PropertyFeature
 from src.real_estate.messages.messages import FEATURE_ERRORS
 from src.media.models.media import ImageMedia
 
-
 class PropertyFeatureAdminService:
     
     @staticmethod
@@ -23,7 +22,6 @@ class PropertyFeatureAdminService:
         if search:
             queryset = queryset.filter(title__icontains=search)
         
-        # Date filters
         if date_from:
             try:
                 date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
@@ -52,11 +50,9 @@ class PropertyFeatureAdminService:
     @staticmethod
     def create_feature(validated_data, created_by=None):
         with transaction.atomic():
-            # Handle image_id
             image_id = validated_data.pop('image_id', None)
             feature_obj = PropertyFeature.objects.create(**validated_data)
             
-            # Set image if provided
             if image_id:
                 try:
                     image = ImageMedia.objects.get(id=image_id)
@@ -75,13 +71,11 @@ class PropertyFeatureAdminService:
             raise PropertyFeature.DoesNotExist(FEATURE_ERRORS["feature_not_found"])
         
         with transaction.atomic():
-            # Handle image_id
             image_id = validated_data.pop('image_id', None)
             
             for field, value in validated_data.items():
                 setattr(feature_obj, field, value)
             
-            # Update image if provided
             if image_id is not None:
                 if image_id == 0 or image_id == '':
                     feature_obj.image = None

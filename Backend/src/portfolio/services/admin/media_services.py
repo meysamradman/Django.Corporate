@@ -7,13 +7,10 @@ from src.portfolio.utils.cache import PortfolioCacheManager
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia, detect_media_type_from_extension
 from src.media.services.media_services import MediaAdminService
 
-
-
 class PortfolioAdminMediaService:
     @staticmethod
     def get_main_image_for_model(portfolio_obj):
-        """Standardized main image retrieval with fallback logic"""
-        # 1. Try to get explicit main image
+        
         main_image_obj = PortfolioImage.objects.filter(
             portfolio=portfolio_obj,
             is_main=True
@@ -22,21 +19,18 @@ class PortfolioAdminMediaService:
         if main_image_obj and main_image_obj.image:
             return main_image_obj.image
 
-        # 2. Fallback to any images
         first_image = PortfolioImage.objects.filter(
             portfolio=portfolio_obj
         ).select_related('image').order_by('order', 'created_at').first()
         if first_image and first_image.image:
             return first_image.image
 
-        # 3. Fallback to video cover
         first_video = PortfolioVideo.objects.filter(
             portfolio=portfolio_obj
         ).select_related('video__cover_image').order_by('order', 'created_at').first()
         if first_video and first_video.video and first_video.video.cover_image:
             return first_video.video.cover_image
 
-        # 4. Fallback to other media types covers
         audio = PortfolioAudio.objects.filter(
             portfolio=portfolio_obj
         ).select_related('audio__cover_image').first()
@@ -253,8 +247,7 @@ class PortfolioAdminMediaService:
                     media_to_create.append(('document', document_dict[media_id]))
                 else:
                     failed_ids.append(media_id)
-            
-            
+
             if media_to_create:
                 next_order = PortfolioAdminMediaService.get_next_media_order(portfolio_id)
                 
@@ -356,7 +349,6 @@ class PortfolioAdminMediaService:
         except Portfolio.DoesNotExist:
             raise Portfolio.DoesNotExist("Portfolio not found")
         
-        # Prepare IDs lists
         media_to_remove = set()
         media_to_add = set()
         media_ids_count = 0
@@ -384,7 +376,6 @@ class PortfolioAdminMediaService:
             media_to_remove = all_current_ids - media_ids_set
             media_to_add = media_ids_set - all_current_ids
             
-            # If everything is removed
             if not media_ids_set:
                 media_to_remove = all_current_ids
                 media_to_add = set()
@@ -435,8 +426,7 @@ class PortfolioAdminMediaService:
                             portfolio_id=portfolio_id,
                             document_id__in=document_ids_to_remove
                         ).delete()
-                
-            
+
             if main_image_id is not None:
                 PortfolioImage.objects.filter(
                     portfolio_id=portfolio_id,
@@ -503,29 +493,25 @@ class PortfolioAdminMediaService:
 
     @staticmethod
     def set_main_image(portfolio_id, media_id):
-        """Standardized set main image logic"""
+        
         try:
             portfolio = Portfolio.objects.get(id=portfolio_id)
         except Portfolio.DoesNotExist:
             raise Portfolio.DoesNotExist("Portfolio not found")
 
         with transaction.atomic():
-            # Unset current main
             PortfolioImage.objects.filter(portfolio_id=portfolio_id, is_main=True).update(is_main=False)
             
-            # Try to find the image in the portfolio's images
             portfolio_image = PortfolioImage.objects.filter(portfolio_id=portfolio_id, image_id=media_id).first()
             
             if portfolio_image:
                 portfolio_image.is_main = True
                 portfolio_image.save(update_fields=['is_main'])
                 
-                # Update OG image if empty
                 if not portfolio.og_image:
                     portfolio.og_image = portfolio_image.image
                     portfolio.save(update_fields=['og_image'])
             else:
-                # If not found directly, newly add it
                 from src.media.models.media import ImageMedia
                 try:
                     media_image = ImageMedia.objects.get(id=media_id)

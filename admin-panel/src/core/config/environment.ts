@@ -47,13 +47,11 @@ export const MEDIA_CONFIG = {
   AUDIO_SIZE_LIMIT: 20971520,       // 20 MB
   PDF_SIZE_LIMIT: 10485760,         // 10 MB
 
-  // Allowed extensions
   IMAGE_EXTENSIONS: ['jpg', 'jpeg', 'webp', 'png', 'svg', 'gif'],
   VIDEO_EXTENSIONS: ['mp4', 'webm'],
   AUDIO_EXTENSIONS: ['mp3', 'ogg', 'aac', 'm4a'],
   PDF_EXTENSIONS: ['pdf'],
 
-  // Upload count limits per module
   PORTFOLIO_UPLOAD_MAX: 10,
   BLOG_UPLOAD_MAX: 10,
   REAL_ESTATE_UPLOAD_MAX: 30,

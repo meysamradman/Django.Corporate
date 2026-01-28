@@ -1,6 +1,5 @@
 from src.core.cache import CacheService
 
-
 class PageCacheKeys:
     
     @staticmethod
@@ -17,7 +16,6 @@ class PageCacheKeys:
             PageCacheKeys.about_page(),
             PageCacheKeys.terms_page(),
         ]
-
 
 class PageCacheManager:
     

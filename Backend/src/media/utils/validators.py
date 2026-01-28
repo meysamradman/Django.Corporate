@@ -5,7 +5,6 @@ from src.media.messages.messages import MEDIA_ERRORS
 ALLOWED_IMAGE_EXTENSIONS = settings.MEDIA_ALLOWED_EXTENSIONS.get('image', [])
 MAX_IMAGE_SIZE = settings.MEDIA_FILE_SIZE_LIMITS.get('image', 5 * 1024 * 1024)
 
-
 def validate_image_file(file):
     ext = file.name.split('.')[-1].lower()
     if ext not in ALLOWED_IMAGE_EXTENSIONS:

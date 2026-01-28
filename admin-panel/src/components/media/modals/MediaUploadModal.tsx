@@ -26,8 +26,6 @@ interface MediaUploadModalProps {
   contextId?: number | string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-
 export function MediaUploadModal({
   isOpen,
   onClose,

@@ -3,7 +3,6 @@ from src.core.models import BaseModel
 from src.real_estate.models.seo import SEOMixin
 from src.real_estate.models.managers import PropertyTagQuerySet
 
-
 class PropertyTag(BaseModel, SEOMixin):
     
     title = models.CharField(

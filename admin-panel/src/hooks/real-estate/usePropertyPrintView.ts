@@ -9,7 +9,6 @@ export const usePropertyPrintView = () => {
         const idsParam = ids.join(',');
         const url = `/real-estate/print?ids=${idsParam}${type === 'detail' ? '&type=detail' : ''}`;
 
-        // Open in a new tab/window
         window.open(url, '_blank', 'width=1024,height=768,menubar=no,toolbar=no,location=no,status=no');
     }, []);
 

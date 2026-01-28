@@ -148,7 +148,6 @@ export function BlogPrintView({ blogIds }: BlogPrintViewProps) {
 
     return (
         <div className="min-h-screen bg-white">
-            {/* Simple Control Bar */}
             <div className="no-print fixed top-0 left-0 right-0 bg-slate-50 border-b p-4 flex justify-between items-center z-50">
                 <button
                     onClick={() => window.print()}
@@ -164,9 +163,7 @@ export function BlogPrintView({ blogIds }: BlogPrintViewProps) {
                 </button>
             </div>
 
-            {/* Clean Print Layout */}
             <div className="print-container pt-20 pb-12 px-10 mx-auto xl:max-w-[297mm]">
-                {/* Header */}
                 <div className="pb-8 mb-8 border-b-2 border-slate-900 flex justify-between items-end">
                     <div className="text-right">
                         <h1 className="text-3xl font-black text-slate-900 mb-2">گزارش جامع لیست مقالات</h1>
@@ -179,7 +176,6 @@ export function BlogPrintView({ blogIds }: BlogPrintViewProps) {
                     </div>
                 </div>
 
-                {/* Main Table */}
                 <div className="border border-slate-300 rounded-lg overflow-hidden">
                     <table className="w-full border-collapse">
                         <thead>
@@ -212,7 +208,6 @@ export function BlogPrintView({ blogIds }: BlogPrintViewProps) {
                     </table>
                 </div>
 
-                {/* Simple Footer */}
                 <div className="mt-12 pt-6 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-400 font-bold">
                     <div className="uppercase tracking-widest">Official Management System</div>
                     <div>صفحه {toPersianDigits(1)} از {toPersianDigits(1)}</div>

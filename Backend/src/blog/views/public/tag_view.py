@@ -11,7 +11,6 @@ from src.blog.services.public.tag_services import BlogTagPublicService
 from src.blog.filters.public.tag_filters import BlogTagPublicFilter
 from src.core.pagination import StandardLimitPagination
 
-
 class BlogTagPublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     serializer_class = BlogTagPublicSerializer

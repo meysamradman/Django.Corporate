@@ -36,7 +36,6 @@ export interface Property extends Base {
   tags: PropertyTag[];
   features: PropertyFeature[];
 
-  // Simplified location fields
   province?: number | null;
   province_name?: string;
   city?: number | null;
@@ -185,7 +184,6 @@ export interface PropertyUpdateData extends Partial<Omit<Property,
   labels_ids?: number[];
   tags_ids?: number[];
   features_ids?: number[];
-  // Simplified location fields for updates
   province?: number | null;
   city?: number | null;
   region?: number | null;  // optional CityRegion

@@ -10,7 +10,6 @@ from src.user.services.user.user_profile_service import UserProfileService
 from src.user.auth import UserJWTAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-
 class UserProfileView(UserAuthMixin, APIView):
     authentication_classes = [UserJWTAuthentication, JWTAuthentication]
     permission_classes = [IsAuthenticated]

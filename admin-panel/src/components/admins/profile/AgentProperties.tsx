@@ -309,7 +309,6 @@ export function AgentProperties({ admin }: AgentPropertiesTabProps) {
 
   const columns = usePropertyColumns(rowActions, handleToggleActive) as ColumnDef<Property>[];
 
-
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function'
       ? updaterOrValue(pagination)

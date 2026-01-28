@@ -14,7 +14,6 @@ from src.ai.providers.capabilities import get_provider_capabilities, supports_fe
 from src.ai.providers.registry import AIProviderRegistry
 from src.ai.models import AIProvider, AdminProviderSettings
 
-
 class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     permission_classes = [ai_permission]
     

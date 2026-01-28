@@ -3,7 +3,6 @@ from .models import FeatureFlag
 
 CACHE_TTL = 300
 
-
 def is_feature_active(key: str) -> bool:
     cache_key = f'feature_flag:{key}'
     value = cache.get(cache_key)
@@ -18,7 +17,6 @@ def is_feature_active(key: str) -> bool:
 
     return value
 
-
 def invalidate_feature_flag_cache(key: str = None):
     if key:
         cache_key = f'feature_flag:{key}'
@@ -29,7 +27,6 @@ def invalidate_feature_flag_cache(key: str = None):
         for flag_key in flags:
             cache.delete(f'feature_flag:{flag_key}')
         cache.delete('feature_flags_api')
-
 
 def get_all_feature_flags() -> dict:
     flags = cache.get('feature_flags_api')

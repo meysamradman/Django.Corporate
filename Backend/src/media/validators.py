@@ -9,7 +9,6 @@ ALLOWED_EXTENSIONS = settings.MEDIA_ALLOWED_EXTENSIONS
 
 MAX_FILE_SIZES = settings.MEDIA_FILE_SIZE_LIMITS
 
-
 @deconstructible
 class FileSizeValidator:
     def __call__(self, data):
@@ -30,7 +29,6 @@ class FileSizeValidator:
                 f"File size exceeds maximum allowed size of {max_size // (1024 * 1024)}MB for {media_type}."
             )
 
-
 @deconstructible
 class SVGSafeValidator:
     def __call__(self, value):
@@ -47,7 +45,6 @@ class SVGSafeValidator:
                 raise ValidationError(
                     "SVG file contains potentially dangerous elements."
                 )
-
 
 @deconstructible
 class VideoSafeValidator:

@@ -9,13 +9,10 @@ from .classes import (
     AdminPermissionCache,
     IsAdminUser,  # ✅ اضافه شد
     IsSuperAdmin,  # ✅ اضافه شد
-    # Decorators
     require_admin_roles,
     require_module_access,
-    # Views
     AdminRoleView,
     AdminPermissionView,
-    # Utilities
     create_default_admin_roles,
     ensure_admin_roles_exist,
     get_role_summary,
@@ -109,7 +106,6 @@ __all__ = [
     "settings_permission",  # Added
     "super_admin_permission",
     
-    # ==================== Permission Definitions ====================
     "Permission",
     "PermissionRegistry",
     "PermissionValidator",

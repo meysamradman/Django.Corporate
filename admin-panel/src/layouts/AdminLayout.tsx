@@ -8,7 +8,6 @@ import { RoutePermissionGuard } from '@/core/permissions';
 import { FloatingAIChat } from '@/components/ai/chat/FloatingAIChat';
 import { FaviconManager } from '@/components/panel/FaviconManager';
 
-
 export function AdminLayout() {
   const location = useLocation();
   const {

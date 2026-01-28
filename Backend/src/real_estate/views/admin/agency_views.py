@@ -19,7 +19,6 @@ from src.real_estate.serializers.admin.agency_serializer import (
 from src.real_estate.services.admin.agency_services import RealEstateAgencyAdminService
 from src.real_estate.messages.messages import AGENCY_SUCCESS, AGENCY_ERRORS
 
-
 class RealEstateAgencyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
     
@@ -43,7 +42,6 @@ class RealEstateAgencyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSe
     def get_queryset(self):
         user = self.request.user
         
-        # 🔒 Role-based filtering
         is_super = getattr(user, 'is_superuser', False) or getattr(user, 'is_admin_full', False)
         if not is_super:
             has_agent_role = hasattr(user, 'admin_user_roles') and user.admin_user_roles.filter(
@@ -52,7 +50,6 @@ class RealEstateAgencyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSe
             ).exists()
             
             if has_agent_role:
-                # مشاورین املاک اجازه مشاهده لیست آژانس‌ها یا مدیریت آن‌ها را ندارند
                 return RealEstateAgency.objects.none()
 
         if self.action == 'list':

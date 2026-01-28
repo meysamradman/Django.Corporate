@@ -36,11 +36,9 @@ const ConsultantTab = lazy(() => import("@/components/admins/profile/Consultant.
 const AgentPropertiesTab = lazy(() => import("@/components/admins/profile/AgentProperties.tsx").then((mod) => ({ default: mod.AgentProperties })));
 const AdminPropertiesTab = lazy(() => import("@/components/admins/profile/Properties.tsx").then((mod) => ({ default: mod.Properties })));
 
-
 interface EditAdminFormProps {
     adminId: string;
 }
-
 
 export function EditAdminForm({ adminId }: EditAdminFormProps) {
 
@@ -88,7 +86,6 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
         bio: "",
         profileImage: null as any,
         birthDate: "",
-        // Consultant fields
         license_number: "",
         license_expire_date: "",
         specialization: "",
@@ -134,7 +131,6 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                     bio: adminData.profile?.bio || "",
                     profileImage: currentImageId === newImageId ? prev.profileImage : (adminData.profile?.profile_picture || null),
                     birthDate: adminData.profile?.birth_date || "",
-                    // Consultant fields
                     license_number: adminData.agent_profile?.license_number || "",
                     license_expire_date: adminData.agent_profile?.license_expire_date || "",
                     specialization: adminData.agent_profile?.specialization || "",
@@ -243,7 +239,6 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                 profileData.mobile = formData.mobile;
             }
 
-            // Consultant fields
             if (adminData?.user_role_type === 'consultant') {
                 profileData.agent_profile = {
                     license_number: formData.license_number || null,
@@ -260,7 +255,6 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                     og_image_id: formData.og_image_id || null,
                 };
             }
-
 
             if (!adminData) {
                 showError('اطلاعات ادمین یافت نشد');

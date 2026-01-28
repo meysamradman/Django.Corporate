@@ -13,7 +13,6 @@ from src.user.utils.phone_validator import validate_phone_number_with_uniqueness
 from src.user.access_control import get_role_config, is_super_admin_role, PermissionHelper
 from src.real_estate.serializers.admin.agent_serializer import PropertyAgentAdminDetailSerializer
 
-
 class ProfilePictureSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
 
@@ -30,7 +29,6 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
         if instance is None:
             return None
         return super().to_representation(instance)
-
 
 class AdminProfileSerializer(serializers.ModelSerializer):
     profile_picture = ProfilePictureSerializer(read_only=True)
@@ -63,7 +61,6 @@ class AdminProfileSerializer(serializers.ModelSerializer):
         if value and value > datetime.now().date():
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
         return value
-
 
 class AdminProfileUpdateSerializer(serializers.ModelSerializer):
     profile_picture = serializers.PrimaryKeyRelatedField(
@@ -167,7 +164,6 @@ class AdminProfileUpdateSerializer(serializers.ModelSerializer):
                 data['profile_picture'] = None
         
         return super().to_internal_value(data)
-
 
 class AdminCompleteProfileSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField()

@@ -9,15 +9,11 @@ from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
 from src.user.access_control import PermissionValidator, ai_permission
 from src.ai.utils.cache import AICacheManager
 
-
 class AIModelManagementViewSet(viewsets.ViewSet):
     permission_classes = [ai_permission]
     
     def list(self, request):
-        """
-        GET /api/admin/ai-models/
-        List all selected models stored in database
-        """
+        
         provider_id = request.query_params.get('provider')
         capability = request.query_params.get('capability')
         search = request.query_params.get('search')
@@ -150,17 +146,7 @@ class AIModelManagementViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['post'], url_path='select-model')
     def select_model(self, request):
-        """
-        POST /api/admin/ai-models/select-model/
-        Select/activate a model for a specific provider+capability.
-        Automatically deactivates other models with the same capability.
         
-        Required fields:
-        - provider: Provider slug
-        - capability: Capability type (chat, content, image, audio)
-        - model_id: Model identifier
-        - model_name: Model display name
-        """
         provider_slug = request.data.get('provider')
         capability = request.data.get('capability')
         model_id = request.data.get('model_id')

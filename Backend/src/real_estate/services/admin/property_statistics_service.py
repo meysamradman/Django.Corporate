@@ -14,7 +14,6 @@ from src.real_estate.models.agency import RealEstateAgency
 from src.real_estate.models.statistics import PropertyStatistics, AgentStatistics
 from src.real_estate.utils.cache import PropertyCacheKeys
 
-
 class PropertyStatisticsService:
     CACHE_TIMEOUT = 600
     
@@ -79,7 +78,6 @@ class PropertyStatisticsService:
         states_count = PropertyState.objects.count()
         states_with_properties = PropertyState.objects.filter(properties__isnull=False).distinct().count()
         
-        # Breakdown by usage_type
         usage_breakdown = list(PropertyState.objects.values('usage_type').annotate(
             count=Count('id'),
             with_properties=Count('properties', distinct=True)
@@ -158,8 +156,7 @@ class PropertyStatisticsService:
 
     @staticmethod
     def _get_financial_stats():
-        """Get aggregate financial stats from AgentStatistics"""
-        # Aggregate all time
+        
         total_sales = AgentStatistics.objects.aggregate(
             total=Sum('total_sales_value'),
             commissions=Sum('total_commissions'),
@@ -174,7 +171,7 @@ class PropertyStatisticsService:
 
     @staticmethod
     def _get_traffic_stats():
-        """Get Web vs App traffic stats for the last 30 days"""
+        
         last_30_days = timezone.now().date() - timedelta(days=30)
         
         stats = PropertyStatistics.objects.filter(date__gte=last_30_days).aggregate(
@@ -191,7 +188,7 @@ class PropertyStatisticsService:
 
     @staticmethod
     def _get_top_agents():
-        """Get top 5 performing agents"""
+        
         top_agents = AgentStatistics.objects.values(
             'agent__id', 
             'agent__user__admin_profile__first_name',
@@ -219,7 +216,7 @@ class PropertyStatisticsService:
     
     @classmethod
     def clear_cache(cls):
-        """پاک کردن cache آمار"""
+        
         cache_key = PropertyCacheKeys.statistics()
         cache.delete(cache_key)
 

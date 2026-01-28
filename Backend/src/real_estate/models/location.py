@@ -1,7 +1,6 @@
 from django.db import models
 from src.core.models import BaseModel, City
 
-
 class CityRegion(BaseModel):
 
     city = models.ForeignKey(

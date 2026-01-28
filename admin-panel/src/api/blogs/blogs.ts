@@ -345,5 +345,4 @@ export const blogApi = {
   },
 };
 
-// Export standalone functions
 export const { getBlogsByIds } = blogApi;

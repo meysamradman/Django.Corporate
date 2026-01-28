@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError
 from src.real_estate.models.state import PropertyState
 from src.real_estate.messages.messages import STATE_ERRORS
 
-
 class PropertyStateAdminService:
     
     @staticmethod
@@ -23,7 +22,6 @@ class PropertyStateAdminService:
         if search:
             queryset = queryset.filter(title__icontains=search)
         
-        # Date filters
         if date_from:
             try:
                 date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()

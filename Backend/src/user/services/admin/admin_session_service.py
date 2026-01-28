@@ -4,7 +4,6 @@ from django.conf import settings
 from rest_framework.exceptions import AuthenticationFailed
 from src.core.cache import CacheService
 
-
 class AdminSessionService:
     
     @staticmethod
@@ -29,7 +28,6 @@ class AdminSessionService:
             session_timeout
         )
         
-        # آپدیت last_login_admin
         user.last_login_admin = timezone.now()
         user.save(update_fields=['last_login_admin'])
         

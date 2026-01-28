@@ -107,7 +107,6 @@ export function TipTapEditor({
       formData.append('title', file.name.substring(0, 100));
       formData.append('alt_text', file.name.substring(0, 200));
 
-      // Use media_library context for editor uploads to ensure they work even without a parent entity
       formData.append('context_type', 'media_library');
 
       const response = await mediaApi.uploadMedia(formData);
@@ -359,7 +358,6 @@ export function TipTapEditor({
         >
           <Code2 className="h-4 w-4" />
         </Button>
-
 
         <Button
           type="button"

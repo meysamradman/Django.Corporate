@@ -14,7 +14,6 @@ from src.media.serializers.media_serializer import MediaAdminSerializer, MediaCo
 _MEDIA_LIST_LIMIT = settings.BLOG_MEDIA_LIST_LIMIT
 _MEDIA_DETAIL_LIMIT = settings.BLOG_MEDIA_DETAIL_LIMIT
 
-
 class BlogMediaAdminSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     public_id = serializers.UUIDField(read_only=True)
@@ -64,7 +63,6 @@ class BlogMediaAdminSerializer(serializers.Serializer):
                 media_detail['cover_image'] = MediaCoverSerializer(blog_cover, context=self.context).data
                 media_detail['cover_image_url'] = blog_cover.file.url if blog_cover.file else None
 
-
 class BlogAdminListSerializer(serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
     categories = BlogCategorySimpleAdminSerializer(many=True, read_only=True)
@@ -92,7 +90,6 @@ class BlogAdminListSerializer(serializers.ModelSerializer):
         ]
     
     def get_main_image(self, obj):
-        # ✅ Prefetch (main_image_prefetch) اولویت با
         main_images = getattr(obj, 'main_image_prefetch', [])
         if main_images:
             img_obj = main_images[0]
@@ -122,9 +119,6 @@ class BlogAdminListSerializer(serializers.ModelSerializer):
             'total': 3,
             'status': 'complete' if score == 3 else 'incomplete' if score > 0 else 'missing'
         }
-
-
-
 
 class BlogAdminDetailSerializer(serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
@@ -290,7 +284,6 @@ class BlogAdminDetailSerializer(serializers.ModelSerializer):
         cache.set(cache_key, completeness_data, 1800)
         return completeness_data
 
-
 class BlogAdminCreateSerializer(serializers.ModelSerializer):
     categories = serializers.PrimaryKeyRelatedField(
         queryset=BlogCategory.objects.all(),
@@ -330,11 +323,7 @@ class BlogAdminCreateSerializer(serializers.ModelSerializer):
         ]
     
     def validate(self, attrs):
-        # Validation logic moved to service for consistency
         return attrs
-    
-    # Logic moved to BlogAdminService
-
 
 class BlogAdminUpdateSerializer(serializers.ModelSerializer):
     categories = serializers.PrimaryKeyRelatedField(
@@ -383,9 +372,6 @@ class BlogAdminUpdateSerializer(serializers.ModelSerializer):
             'og_image', 'canonical_url', 'robots_meta',
             'categories', 'tags', 'media_ids', 'media_files', 'main_image_id', 'media_covers'
         ]
-    
-    # Logic moved to BlogAdminService
-
 
 class BlogAdminSerializer(BlogAdminDetailSerializer):
     pass

@@ -4,7 +4,6 @@ from src.core.models.base import BaseModel
 from src.blog.models.blog import Blog
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 
-
 class BlogImage(BaseModel):
     blog = models.ForeignKey(
         Blog,
@@ -68,7 +67,6 @@ class BlogImage(BaseModel):
 
     def __str__(self):
         return f"{self.blog.title} - {self.image.title or self.image.file.name}"
-
 
 class BlogVideo(BaseModel):
     blog = models.ForeignKey(
@@ -142,7 +140,6 @@ class BlogVideo(BaseModel):
     def __str__(self):
         return f"{self.blog.title} - Video {self.video.title or self.video.file.name}"
 
-
 class BlogAudio(BaseModel):
     blog = models.ForeignKey(
         Blog,
@@ -209,7 +206,6 @@ class BlogAudio(BaseModel):
     
     def __str__(self):
         return f"{self.blog.title} - Audio {self.audio.title or self.audio.file.name}"
-
 
 class BlogDocument(BaseModel):
     blog = models.ForeignKey(

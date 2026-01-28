@@ -5,7 +5,6 @@ from datetime import timedelta
 
 from src.user.messages import AUTH_ERRORS
 
-
 def generate_jwt_tokens(user):
     if not user:
         raise AuthenticationFailed(AUTH_ERRORS["auth_invalid_token"])
@@ -18,7 +17,6 @@ def generate_jwt_tokens(user):
         "access_token": str(refresh.access_token),
         "refresh_token": str(refresh),
     }
-
 
 def blacklist_jwt_token(token):
     try:
@@ -33,7 +31,6 @@ def blacklist_jwt_token(token):
         return True
     except Exception:
         return False
-
 
 def is_jwt_token_blacklisted(token):
     return (

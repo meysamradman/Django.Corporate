@@ -15,7 +15,6 @@ from src.user.access_control import real_estate_permission, PermissionRequiredMi
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.real_estate.messages.messages import PROPERTY_ERRORS
 
-
 class PropertyExportView(PermissionRequiredMixin, APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
     permission_classes = [real_estate_permission]

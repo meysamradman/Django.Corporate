@@ -11,7 +11,6 @@ from src.blog.services.public.category_services import BlogCategoryPublicService
 from src.blog.filters.public.category_filters import BlogCategoryPublicFilter
 from src.core.pagination import StandardLimitPagination
 
-
 class BlogCategoryPublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     serializer_class = BlogCategoryPublicSerializer

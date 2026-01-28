@@ -5,7 +5,6 @@ from rest_framework import serializers
 from src.form.models import ContactFormField
 from src.form.messages.messages import FORM_FIELD_ERRORS
 
-
 class ContactFormFieldSerializer(serializers.ModelSerializer):
     
     class Meta:
@@ -78,7 +77,6 @@ class ContactFormFieldSerializer(serializers.ModelSerializer):
         
         return value
 
-
 class ContactFormFieldCreateSerializer(ContactFormFieldSerializer):
     
     def validate_field_key(self, value):
@@ -91,7 +89,6 @@ class ContactFormFieldCreateSerializer(ContactFormFieldSerializer):
     
     class Meta(ContactFormFieldSerializer.Meta):
         pass
-
 
 class ContactFormFieldUpdateSerializer(ContactFormFieldSerializer):
     

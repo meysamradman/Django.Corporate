@@ -4,7 +4,6 @@ from django.core.validators import URLValidator
 from src.core.models.base import BaseModel
 from src.media.models.media import ImageMedia
 
-
 class SocialMedia(BaseModel):
 
     name = models.CharField(
@@ -21,7 +20,6 @@ class SocialMedia(BaseModel):
         validators=[URLValidator()]
     )
     
-    # 5. Relationships
     icon = models.ForeignKey(
         ImageMedia,
         on_delete=models.SET_NULL,
@@ -33,7 +31,6 @@ class SocialMedia(BaseModel):
         help_text="Social media icon or image"
     )
     
-    # Order Field
     order = models.PositiveIntegerField(
         default=0,
         db_index=True,
@@ -47,9 +44,7 @@ class SocialMedia(BaseModel):
         verbose_name_plural = "Social Media"
         ordering = ['order', '-created_at']
         indexes = [
-            # Composite index for filtering active items by order
             models.Index(fields=['is_active', 'order']),
-            # Note: name already has db_index=True (automatic index)
         ]
     
     def __str__(self):

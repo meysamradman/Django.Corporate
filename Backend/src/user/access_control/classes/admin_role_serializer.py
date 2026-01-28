@@ -6,7 +6,6 @@ from src.user.messages.permission import PERMISSION_ERRORS
 from src.user.access_control.definitions.config import AVAILABLE_MODULES, AVAILABLE_ACTIONS
 from src.user.access_control.definitions.registry import PermissionRegistry
 
-
 class AdminRoleSerializer(serializers.ModelSerializer):
     
     class Meta:
@@ -110,7 +109,6 @@ class AdminRoleSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(ROLE_ERRORS["level_invalid_range"])
         return value
 
-
 class AdminRoleAssignmentSerializer(serializers.ModelSerializer):
     role_name = serializers.CharField(source='role.name', read_only=True)
     role_display_name = serializers.CharField(source='role.display_name', read_only=True)
@@ -155,7 +153,6 @@ class AdminRoleAssignmentSerializer(serializers.ModelSerializer):
         
         return attrs
 
-
 class AdminRoleListSerializer(serializers.ModelSerializer):
     users_count = serializers.IntegerField(read_only=True)
     
@@ -167,7 +164,6 @@ class AdminRoleListSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
-
 
 class AdminRolePermissionsSerializer(serializers.ModelSerializer):
     
@@ -184,7 +180,6 @@ class AdminRolePermissionsSerializer(serializers.ModelSerializer):
             return {}
         serializer = AdminRoleSerializer()
         return serializer.validate_permissions(value)
-
 
 class UserRoleAssignmentSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()

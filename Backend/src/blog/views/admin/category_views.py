@@ -19,7 +19,6 @@ from src.user.access_control import blog_permission, PermissionRequiredMixin
 from src.core.responses.response import APIResponse
 from src.blog.messages.messages import CATEGORY_SUCCESS, CATEGORY_ERRORS
 
-
 class BlogCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [blog_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]

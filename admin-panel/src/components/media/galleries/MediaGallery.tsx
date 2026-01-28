@@ -46,7 +46,6 @@ export function MediaGallery({
   const handleMediaSelect = (selectedMedia: Media | Media[]) => {
     const newItems = Array.isArray(selectedMedia) ? selectedMedia : [selectedMedia];
 
-    // 1. Filter by media type
     const filteredByType = newItems.filter(media => {
       if (mediaType === "pdf") {
         return media.media_type === "document" || media.media_type === "pdf";
@@ -54,7 +53,6 @@ export function MediaGallery({
       return media.media_type === mediaType;
     });
 
-    // 2. Prevent duplicates (by ID)
     const existingIds = new Set(mediaItems.map(item => item.id));
     const seenNewIds = new Set<number | string>();
 
@@ -75,7 +73,6 @@ export function MediaGallery({
       return;
     }
 
-    // 3. Enforce max selection limit from MODULE_MEDIA_CONFIGS or prop
     const effectiveMax = maxSelection || MODULE_MEDIA_CONFIGS[context]?.maxUploadLimit || 999;
     const currentTotal = totalItemsCount !== undefined ? totalItemsCount : mediaItems.length;
 
@@ -140,7 +137,6 @@ export function MediaGallery({
 
         <div className="relative group overflow-hidden border border-br rounded-2xl bg-wt shadow-sm hover:shadow-md transition-all duration-300">
           <div className="flex flex-col md:flex-row min-h-[160px]">
-            {/* Media Icon/Type Indicator Section */}
             <div className={`w-full md:w-32 flex flex-col items-center justify-center gap-2 p-6 border-b md:border-b-0 md:border-l border-br ${mediaType === 'video' ? 'bg-purple-0/30' : mediaType === 'audio' ? 'bg-pink-0/30' : 'bg-orange-0/30'
               }`}>
               <div className={`w-12 h-12 rounded-2xl shadow-sm flex items-center justify-center ${mediaType === 'video' ? 'bg-purple-1 text-static-w' : mediaType === 'audio' ? 'bg-pink-1 text-static-w' : 'bg-orange-2 text-static-w'
@@ -154,7 +150,6 @@ export function MediaGallery({
               </span>
             </div>
 
-            {/* Info Section */}
             <div className="flex-1 p-5 flex flex-col justify-center min-w-0">
               <h4 className="text-font-m font-bold text-font-p truncate mb-1">
                 {mainMedia.title || mainMedia.original_file_name}
@@ -177,7 +172,6 @@ export function MediaGallery({
               </div>
             </div>
 
-            {/* Cover Image Section */}
             <div className="w-full md:w-[240px] p-4 bg-muted/5 border-t md:border-t-0 md:border-r border-br flex flex-col items-center justify-center">
               <label className="text-[10px] font-bold text-font-s/50 uppercase mb-3 self-start mr-1">
                 {mediaType === 'video' ? 'تصویر پیش‌نمایش (Poster)' : 'تصویر کاور'}

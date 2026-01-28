@@ -3,7 +3,6 @@ from src.real_estate.models.agency import RealEstateAgency
 from src.real_estate.messages.messages import AGENCY_ERRORS
 from src.media.serializers.media_serializer import MediaAdminSerializer
 
-
 class RealEstateAgencyAdminListSerializer(serializers.ModelSerializer):
     province_name = serializers.CharField(source='province.name', read_only=True)
     city_name = serializers.CharField(source='city.name', read_only=True)
@@ -29,7 +28,6 @@ class RealEstateAgencyAdminListSerializer(serializers.ModelSerializer):
             return obj.profile_picture.file.url
         return None
 
-
 class RealEstateAgencyAdminDetailSerializer(serializers.ModelSerializer):
     province_name = serializers.CharField(source='province.name', read_only=True)
     city_name = serializers.CharField(source='city.name', read_only=True)
@@ -53,7 +51,6 @@ class RealEstateAgencyAdminDetailSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
 
-
 class RealEstateAgencyAdminCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = RealEstateAgency
@@ -69,7 +66,7 @@ class RealEstateAgencyAdminCreateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_slug(self, value):
-        """Validate that slug is unique"""
+        
         if not value:
             raise serializers.ValidationError("نامک (Slug) الزامی است.")
         if RealEstateAgency.objects.filter(slug=value).exists():
@@ -80,7 +77,6 @@ class RealEstateAgencyAdminCreateSerializer(serializers.ModelSerializer):
         if RealEstateAgency.objects.filter(license_number=value).exists():
             raise serializers.ValidationError(AGENCY_ERRORS["license_number_exists"])
         return value
-
 
 class RealEstateAgencyAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -97,7 +93,7 @@ class RealEstateAgencyAdminUpdateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_slug(self, value):
-        """Validate that slug is unique (excluding current instance)"""
+        
         if not value:
             raise serializers.ValidationError("نامک (Slug) الزامی است.")
         if RealEstateAgency.objects.exclude(id=self.instance.id).filter(slug=value).exists():
@@ -108,7 +104,6 @@ class RealEstateAgencyAdminUpdateSerializer(serializers.ModelSerializer):
         if RealEstateAgency.objects.exclude(id=self.instance.id).filter(license_number=value).exists():
             raise serializers.ValidationError(AGENCY_ERRORS["license_number_exists"])
         return value
-
 
 class RealEstateAgencyAdminSerializer(RealEstateAgencyAdminDetailSerializer):
     pass

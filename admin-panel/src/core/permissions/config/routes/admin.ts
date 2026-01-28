@@ -10,7 +10,6 @@ export const adminManagementRoutes: RouteRule[] = [
     module: 'admin',
     action: "update",
     description: "ویرایش پروفایل من",
-    // همه ادمین‌ها می‌توانند پروفایل خودشون رو ویرایش کنند
   }),
   createRule({
     id: "admins-list",

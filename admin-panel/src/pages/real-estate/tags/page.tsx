@@ -119,7 +119,6 @@ export default function PropertyTagsPage() {
     mutationFn: (tagId: number) => realEstateApi.deleteTag(tagId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-tags'] });
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'تگ ملک' }));
     },
     onError: (_error) => {
@@ -131,7 +130,6 @@ export default function PropertyTagsPage() {
     mutationFn: (tagIds: number[]) => Promise.all(tagIds.map(id => realEstateApi.deleteTag(id))),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-tags'] });
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'تگ‌های ملک' }));
       setRowSelection({});
     },
@@ -205,7 +203,6 @@ export default function PropertyTagsPage() {
   ];
   
   const columns = usePropertyTagColumns(rowActions, handleToggleActive) as ColumnDef<PropertyTag>[];
-
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 

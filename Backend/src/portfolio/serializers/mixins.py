@@ -2,7 +2,6 @@ from rest_framework import serializers
 from django.core.cache import cache
 from src.portfolio.utils.cache import PortfolioCacheKeys
 
-
 class MainImageMixin:
     
     def get_main_image_url(self, obj):
@@ -27,7 +26,6 @@ class MainImageMixin:
         
         return url or None
 
-
 class SEODataMixin:
     
     def get_seo_data(self, obj):
@@ -39,7 +37,6 @@ class SEODataMixin:
             'canonical_url': obj.get_canonical_url(),
             'structured_data': obj.generate_structured_data(),
         }
-
 
 class CountsMixin:
     
@@ -54,7 +51,6 @@ class CountsMixin:
                       len(getattr(obj, 'portfolio_medias', [])) or 
                       obj.portfolio_medias.count())
 
-
 class SEOStatusMixin:
     
     def get_seo_status(self, obj):
@@ -68,7 +64,6 @@ class SEOStatusMixin:
             'total': 3,
             'status': 'complete' if score == 3 else 'incomplete' if score > 0 else 'missing'
         }
-
 
 class SEOCompletenessMixin:
     
@@ -102,7 +97,6 @@ class SEOCompletenessMixin:
                 'good_description_max': checks[8],
             }
         }
-
 
 class SEOPreviewMixin:
     

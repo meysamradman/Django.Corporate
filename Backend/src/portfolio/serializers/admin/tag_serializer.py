@@ -3,7 +3,6 @@ from src.portfolio.models.tag import PortfolioTag
 from src.portfolio.serializers.mixins import CountsMixin
 from src.portfolio.messages import TAG_ERRORS
 
-
 class PortfolioTagAdminListSerializer(CountsMixin, serializers.ModelSerializer):
     portfolio_count = serializers.IntegerField(read_only=True)
     
@@ -14,7 +13,6 @@ class PortfolioTagAdminListSerializer(CountsMixin, serializers.ModelSerializer):
             'is_active', 'portfolio_count', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
-
 
 class PortfolioTagAdminDetailSerializer(serializers.ModelSerializer):
     portfolio_count = serializers.SerializerMethodField()
@@ -48,7 +46,6 @@ class PortfolioTagAdminDetailSerializer(serializers.ModelSerializer):
             for p in portfolios
         ]
 
-
 class PortfolioTagAdminCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioTag
@@ -65,7 +62,6 @@ class PortfolioTagAdminCreateSerializer(serializers.ModelSerializer):
         if PortfolioTag.objects.filter(name=value).exists():
             raise serializers.ValidationError(TAG_ERRORS["tag_name_exists"])
         return value
-
 
 class PortfolioTagAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -88,13 +84,11 @@ class PortfolioTagAdminUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(TAG_ERRORS["tag_name_exists"])
         return value
 
-
 class PortfolioTagSimpleAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioTag
         fields = ['id', 'public_id', 'name', 'slug']
         read_only_fields = ['id', 'public_id']
-
 
 class PortfolioTagAdminSerializer(PortfolioTagAdminDetailSerializer):
     pass

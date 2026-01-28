@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from src.portfolio.models.option import PortfolioOption
 
-
 class PortfolioOptionPublicSerializer(serializers.ModelSerializer):
     portfolio_count = serializers.IntegerField(read_only=True)
 

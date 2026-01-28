@@ -35,7 +35,6 @@ from src.user.access_control import portfolio_permission, PermissionRequiredMixi
 from src.portfolio.messages.messages import PORTFOLIO_SUCCESS, PORTFOLIO_ERRORS
 from src.portfolio.utils.cache import PortfolioCacheManager
 
-
 class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [portfolio_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -45,7 +44,6 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     ordering = ['-created_at']
     pagination_class = StandardLimitPagination
     
-    # ✅ Permission map
     permission_map = {
         'list': 'portfolio.read',
         'retrieve': 'portfolio.read',
@@ -132,7 +130,7 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         return value.lower() in ('1', 'true', 'yes', 'on')
     
     def _merge_media_data(self, data, media_ids=None, media_files=None):
-        """Unified helper to merge media IDs and files into request data"""
+        
         if media_ids:
             if hasattr(data, 'setlist'):
                 data.setlist('media_ids', media_ids)
@@ -146,7 +144,7 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         return data
 
     def _extract_list(self, data, field_name, convert_to_int=False):
-        """Robust helper to extract list/array from data (JSON, CSV, or list)"""
+        
         import json
         value = data.get(field_name)
         if not value:
@@ -166,12 +164,10 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                     pass
             
             if not result:
-                # Fallback to comma separation
                 result = [v.strip() for v in value.split(',') if v.strip()]
         else:
             result = [value]
         
-        # Convert to integers if needed (for ID fields)
         if convert_to_int:
             converted = []
             for v in result:
@@ -202,7 +198,6 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         
         data = request.data.copy()
         
-        # Parse M2M and JSON fields that might be JSON strings from frontend
         for field in ['categories', 'tags', 'options', 'extra_attributes']:
             if field in data:
                 extracted = self._extract_list(data, field, convert_to_int=True) if field != 'extra_attributes' else data.get(field)
@@ -227,7 +222,6 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 created_by=request.user
             )
             
-            # Fetch for complete representation
             instance = Portfolio.objects.for_detail().get(id=portfolio.id)
             detail_serializer = PortfolioAdminDetailSerializer(instance, context={'request': request})
             
@@ -253,7 +247,6 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         
         data = request.data.copy()
         
-        # Parse M2M and JSON fields that might be JSON strings from frontend
         for field in ['categories', 'tags', 'options', 'extra_attributes']:
             if field in data:
                 extracted = self._extract_list(data, field, convert_to_int=True) if field != 'extra_attributes' else data.get(field)
@@ -297,7 +290,6 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 updated_by=request.user
             )
             
-            # Refresh and return
             updated_instance = Portfolio.objects.for_detail().get(pk=updated_instance.pk)
             detail_serializer = PortfolioAdminDetailSerializer(updated_instance, context={'request': request})
             
@@ -528,7 +520,6 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         try:
             PortfolioAdminMediaService.set_main_image(pk, media_id)
             
-            # Return refreshed object - Standardized behavior
             fresh_instance = Portfolio.objects.for_detail().get(pk=pk)
             serializer = PortfolioAdminDetailSerializer(fresh_instance)
             

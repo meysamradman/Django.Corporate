@@ -187,7 +187,6 @@ export function RealEstateAttributes({
 
     return (
         <div className="space-y-6">
-            {/* Standard Attributes Section */}
             <CardWithIcon
                 icon={Building2}
                 title="مشخصات تکمیلی (استاندارد)"
@@ -248,7 +247,6 @@ export function RealEstateAttributes({
                 </div>
             </CardWithIcon>
 
-            {/* Custom Attributes Table */}
             <CardWithIcon
                 icon={FileJson}
                 title="سایر اطلاعات و فیلدهای اضافی"
@@ -349,7 +347,6 @@ export function RealEstateAttributes({
                 )}
             </CardWithIcon>
 
-            {/* Dialogs */}
             {editMode && (
                 <>
                     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

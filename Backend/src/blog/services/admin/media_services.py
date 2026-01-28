@@ -7,12 +7,10 @@ from src.blog.utils.cache import BlogCacheManager
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia, detect_media_type_from_extension
 from src.media.services.media_services import MediaAdminService
 
-
 class BlogAdminMediaService:
     @staticmethod
     def get_main_image_for_model(blog_obj):
-        """Standardized main image retrieval with fallback logic"""
-        # 1. Try to get explicit main image
+        
         main_image_obj = BlogImage.objects.filter(
             blog=blog_obj,
             is_main=True
@@ -21,21 +19,18 @@ class BlogAdminMediaService:
         if main_image_obj and main_image_obj.image:
             return main_image_obj.image
 
-        # 2. Fallback to any images
         first_image = BlogImage.objects.filter(
             blog=blog_obj
         ).select_related('image').order_by('order', 'created_at').first()
         if first_image and first_image.image:
             return first_image.image
 
-        # 3. Fallback to video cover
         first_video = BlogVideo.objects.filter(
             blog=blog_obj
         ).select_related('video__cover_image').order_by('order', 'created_at').first()
         if first_video and first_video.video and first_video.video.cover_image:
             return first_video.video.cover_image
 
-        # 4. Fallback to other media types covers
         audio = BlogAudio.objects.filter(
             blog=blog_obj
         ).select_related('audio__cover_image').first()
@@ -354,7 +349,6 @@ class BlogAdminMediaService:
         except Blog.DoesNotExist:
             raise Blog.DoesNotExist("Blog not found")
         
-        # Prepare IDs lists
         media_to_remove = set()
         media_to_add = set()
         media_ids_count = 0
@@ -382,7 +376,6 @@ class BlogAdminMediaService:
             media_to_remove = all_current_ids - media_ids_set
             media_to_add = media_ids_set - all_current_ids
             
-            # If everything is removed
             if not media_ids_set:
                 media_to_remove = all_current_ids
                 media_to_add = set()
@@ -500,29 +493,25 @@ class BlogAdminMediaService:
 
     @staticmethod
     def set_main_image(blog_id, media_id):
-        """Standardized set main image logic"""
+        
         try:
             blog = Blog.objects.get(id=blog_id)
         except Blog.DoesNotExist:
             raise Blog.DoesNotExist("Blog not found")
 
         with transaction.atomic():
-            # Unset current main
             BlogImage.objects.filter(blog_id=blog_id, is_main=True).update(is_main=False)
             
-            # Try to find the image in the blog's images
             blog_image = BlogImage.objects.filter(blog_id=blog_id, image_id=media_id).first()
             
             if blog_image:
                 blog_image.is_main = True
                 blog_image.save(update_fields=['is_main'])
                 
-                # Update OG image if empty
                 if not blog.og_image:
                     blog.og_image = blog_image.image
                     blog.save(update_fields=['og_image'])
             else:
-                # If not found directly, newly add it
                 from src.media.models.media import ImageMedia
                 try:
                     media_image = ImageMedia.objects.get(id=media_id)

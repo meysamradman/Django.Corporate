@@ -54,14 +54,12 @@ export function useRealEstateTaxonomyForm<T extends FieldValues>({
     const { watch, setValue, reset, setError } = form;
     const titleValue = watch(titleFieldName as any);
 
-    // Fetch data for edit mode
     const { data: item, isLoading } = useQuery({
         queryKey: fetchQueryKey || [],
         queryFn: fetchQueryFn || (async () => null),
         enabled: isEditMode && !!fetchQueryKey && !!fetchQueryFn,
     });
 
-    // Reset form with fetched data
     useEffect(() => {
         if (isEditMode && item) {
             reset(item);
@@ -71,7 +69,6 @@ export function useRealEstateTaxonomyForm<T extends FieldValues>({
         }
     }, [isEditMode, item, reset]);
 
-    // Auto-generate slug from title
     useEffect(() => {
         if (autoSlug && titleValue && !isEditMode) {
             const generatedSlug = generateSlug(titleValue);
@@ -124,15 +121,12 @@ export function useRealEstateTaxonomyForm<T extends FieldValues>({
         (errors) => {
             const errorFields = Object.keys(errors);
             if (errorFields.length > 0) {
-                // Media tab fields
                 if (errorFields.some(field => field === 'image_id')) {
                     setActiveTab('media');
                 }
-                // Settings tab fields
                 else if (errorFields.some(field => ['display_order', 'is_active', 'is_public'].includes(field))) {
                     setActiveTab('settings');
                 }
-                // Account tab fields (default)
                 else {
                     setActiveTab('account');
                 }

@@ -8,7 +8,6 @@ from src.real_estate.models.managers import PropertyAgentQuerySet
 
 User = get_user_model()
 
-
 class PropertyAgent(BaseModel, SEOMixin):
     user = models.OneToOneField(
         User,
@@ -131,7 +130,7 @@ class PropertyAgent(BaseModel, SEOMixin):
         ]
     
     def __str__(self):
-        """Return agent's full name from AdminProfile"""
+        
         try:
             if hasattr(self.user, 'admin_profile'):
                 profile = self.user.admin_profile
@@ -143,7 +142,7 @@ class PropertyAgent(BaseModel, SEOMixin):
     
     @property
     def full_name(self):
-        """Get full name from AdminProfile"""
+        
         try:
             if hasattr(self.user, 'admin_profile'):
                 profile = self.user.admin_profile
@@ -155,7 +154,7 @@ class PropertyAgent(BaseModel, SEOMixin):
     
     @property
     def first_name(self):
-        """Get first name from AdminProfile"""
+        
         try:
             if hasattr(self.user, 'admin_profile'):
                 return self.user.admin_profile.first_name or ""
@@ -165,7 +164,7 @@ class PropertyAgent(BaseModel, SEOMixin):
     
     @property
     def last_name(self):
-        """Get last name from AdminProfile"""
+        
         try:
             if hasattr(self.user, 'admin_profile'):
                 return self.user.admin_profile.last_name or ""
@@ -175,12 +174,12 @@ class PropertyAgent(BaseModel, SEOMixin):
     
     @property
     def phone(self):
-        """Get mobile from User (used for login and contact)"""
+        
         return self.user.mobile if self.user else ""
     
     @property
     def email(self):
-        """Get email from User"""
+        
         return self.user.email if self.user else ""
     
     def get_public_url(self):
@@ -189,7 +188,7 @@ class PropertyAgent(BaseModel, SEOMixin):
         return f"/agent/{self.public_id}/"
     
     def clean(self):
-        """Validate that user is an admin user"""
+        
         from django.core.exceptions import ValidationError
         from src.real_estate.messages.messages import AGENT_ERRORS
         
@@ -205,10 +204,8 @@ class PropertyAgent(BaseModel, SEOMixin):
                 })
     
     def save(self, *args, **kwargs):
-        # Validate user is admin before saving
         self.full_clean()
         
-        # Auto-populate SEO fields
         if not self.meta_title and self.full_name:
             self.meta_title = f"{self.full_name} - Real Estate Agent"[:70]
         

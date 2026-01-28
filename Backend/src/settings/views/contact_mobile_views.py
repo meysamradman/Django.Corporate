@@ -15,7 +15,6 @@ from src.settings.services.contact_mobile_service import (
 from src.settings.messages.messages import SETTINGS_SUCCESS, SETTINGS_ERRORS
 from src.user.access_control import PermissionRequiredMixin
 
-
 class ContactMobileViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     queryset = ContactMobile.objects.all()
     serializer_class = ContactMobileSerializer

@@ -19,7 +19,6 @@ from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.user.access_control import media_permission, PermissionRequiredMixin
 from src.user.access_control.definitions.validator import PermissionValidator
 
-
 class MediaAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
     permission_classes = [media_permission]
@@ -155,14 +154,7 @@ class MediaAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         media_id = kwargs.get("pk")
-        
-        # Try to find which type of media this is, to reuse service logic or just keep this simple loop
-        # The service requires media_type.
-        # But we don't know the type here. 
-        # So we can keep the loop OR add a helper "get_media_by_id_agnostic" to service.
-        # For minimal change, keep loop here or move to Service as helper.
-        # I'll keep the loop here for now as it's retrieval logic, but it's cleaner to keep it here than modify service too much.
-        
+
         media = None
         for model in [ImageMedia, VideoMedia, AudioMedia, DocumentMedia]:
             try:
@@ -316,7 +308,6 @@ class MediaAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=MEDIA_ERRORS["media_delete_failed"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
 
 class MediaPublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]

@@ -82,9 +82,6 @@ ROLE_TEXT = {
         "display_name_short": "سوپر ادمین",
         "description": "دسترسی کامل به تمام سیستم.",
     },
-    # NOTE: The following roles are app-specific (Corporate apps)
-    # They are kept here for backward compatibility and display purposes
-    # In a fully modular setup, these would be defined in corporate/blog/portfolio apps
     "content_manager": {
         "display_name": "Content Manager",
         "display_name_short": "Content",
@@ -140,7 +137,6 @@ ROLE_TEXT = {
         "display_name_short": "Settings",
         "description": "Controls global configuration, integrations, and security preferences.",
     },
-    # 🔒 REMOVED: "panel_manager" - Panel Settings فقط برای Super Admin
     "user_manager": {
         "display_name": "مدیر کاربران",
         "display_name_short": "کاربران",

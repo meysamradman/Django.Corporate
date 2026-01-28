@@ -3,9 +3,7 @@ from django.contrib.postgres.indexes import BrinIndex
 from src.core.models import BaseModel
 
 class AdminPerformanceStatistics(BaseModel):
-    """
-    آمار عملکردی ادمین‌ها به صورت ماهانه برای ارزیابی بهره‌وری
-    """
+    
     admin = models.ForeignKey(
         'user.AdminProfile',
         on_delete=models.CASCADE,
@@ -14,17 +12,14 @@ class AdminPerformanceStatistics(BaseModel):
     year = models.PositiveIntegerField()
     month = models.PositiveIntegerField()
     
-    # Workload & Efficiency
     tickets_resolved = models.PositiveIntegerField(default=0)
     emails_replied = models.PositiveIntegerField(default=0)
     avg_response_time_minutes = models.PositiveIntegerField(default=0)
     
-    # Content Creation
     properties_created = models.PositiveIntegerField(default=0)
     blogs_created = models.PositiveIntegerField(default=0)
     portfolios_created = models.PositiveIntegerField(default=0)
     
-    # System Activity
     login_count = models.PositiveIntegerField(default=0)
     
     class Meta:

@@ -3,12 +3,10 @@ from django.core.validators import RegexValidator
 
 from src.core.models.base import BaseModel
 
-
 mobile_validator = RegexValidator(
     regex=r'^(09|\+989)[0-9]{9}$',
     message="Mobile number must start with 09 or +989 and be 11 digits."
 )
-
 
 class ContactMobile(BaseModel):
 
@@ -27,7 +25,6 @@ class ContactMobile(BaseModel):
         help_text="Label for mobile number (e.g., Support, Sales)"
     )
     
-    # Order Field
     order = models.PositiveIntegerField(
         default=0,
         db_index=True,

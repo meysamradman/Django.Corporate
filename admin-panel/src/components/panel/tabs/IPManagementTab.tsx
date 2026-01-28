@@ -21,25 +21,21 @@ export function IPManagementTab() {
   const [addWhitelistDialog, setAddWhitelistDialog] = useState(false);
   const [whitelistIP, setWhitelistIP] = useState('');
 
-  // دریافت لیست IPهای ban شده
   const { data: bannedIPs = [], isLoading: loadingBanned } = useQuery({
     queryKey: ['banned-ips'],
     queryFn: ipManagementApi.getBannedIPs,
   });
 
-  // دریافت IP فعلی
   const { data: currentIP } = useQuery({
     queryKey: ['current-ip'],
     queryFn: ipManagementApi.getCurrentIP,
   });
 
-  // دریافت لیست whitelist
   const { data: whitelist = [], isLoading: loadingWhitelist } = useQuery({
     queryKey: ['ip-whitelist'],
     queryFn: ipManagementApi.getWhitelist,
   });
 
-  // رفع ban
   const unbanMutation = useMutation({
     mutationFn: ipManagementApi.unbanIP,
     onSuccess: () => {
@@ -51,7 +47,6 @@ export function IPManagementTab() {
     },
   });
 
-  // Ban کردن
   const banMutation = useMutation({
     mutationFn: ({ ip, reason }: { ip: string; reason?: string }) => ipManagementApi.banIP(ip, reason),
     onSuccess: () => {
@@ -67,7 +62,6 @@ export function IPManagementTab() {
     },
   });
 
-  // اضافه کردن به whitelist
   const addToWhitelistMutation = useMutation({
     mutationFn: ipManagementApi.addToWhitelist,
     onSuccess: () => {
@@ -83,7 +77,6 @@ export function IPManagementTab() {
     },
   });
 
-  // حذف از whitelist
   const removeFromWhitelistMutation = useMutation({
     mutationFn: ipManagementApi.removeFromWhitelist,
     onSuccess: () => {
@@ -96,7 +89,6 @@ export function IPManagementTab() {
     },
   });
 
-  // اضافه کردن IP فعلی به whitelist
   const addCurrentIPMutation = useMutation({
     mutationFn: ipManagementApi.addCurrentIPToWhitelist,
     onSuccess: () => {
@@ -140,7 +132,6 @@ export function IPManagementTab() {
 
   return (
     <div className="space-y-6">
-      {/* IP فعلی */}
       {currentIP && (
         <Card>
           <CardHeader>
@@ -186,7 +177,6 @@ export function IPManagementTab() {
         </Card>
       )}
 
-      {/* Ban کردن IP */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -250,7 +240,6 @@ export function IPManagementTab() {
         </CardContent>
       </Card>
 
-      {/* لیست IPهای ban شده */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -302,7 +291,6 @@ export function IPManagementTab() {
         </CardContent>
       </Card>
 
-      {/* مدیریت Whitelist */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -312,7 +300,6 @@ export function IPManagementTab() {
           <CardDescription>IPهای که در whitelist هستند و هرگز ban نمی‌شوند</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* دکمه اضافه کردن IP فعلی */}
           {currentIP && !currentIP.is_whitelisted && (
             <Button
               variant="outline"
@@ -324,7 +311,6 @@ export function IPManagementTab() {
             </Button>
           )}
 
-          {/* دکمه اضافه کردن IP جدید */}
           <Dialog open={addWhitelistDialog} onOpenChange={setAddWhitelistDialog}>
             <DialogTrigger asChild>
               <Button variant="outline">
@@ -365,7 +351,6 @@ export function IPManagementTab() {
             </DialogContent>
           </Dialog>
 
-          {/* لیست IPهای whitelist */}
           {loadingWhitelist ? (
             <div className="text-center py-4">در حال بارگذاری...</div>
           ) : whitelist.length === 0 ? (

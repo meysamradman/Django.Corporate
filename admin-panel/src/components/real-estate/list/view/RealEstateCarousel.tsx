@@ -15,34 +15,28 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
-  // Main carousel با RTL direction
   const [mainRef, mainApi] = useEmblaCarousel({
     loop: true,
     direction: 'rtl', // برای RTL
     align: 'center',
   });
 
-  // Thumbnail carousel با RTL direction
   const [thumbRef, thumbApi] = useEmblaCarousel({
     containScroll: 'keepSnaps',
     dragFree: true,
     direction: 'rtl', // برای RTL
   });
 
-  // Lightbox carousel با RTL direction
   const [lightboxRef, lightboxApi] = useEmblaCarousel({
     loop: true,
     direction: 'rtl', // برای RTL
   });
 
-  // استخراج عکس شاخص و گالری
   const allMedia = property.media || property.property_media || [];
 
-  // فیلتر فقط عکس شاخص و گالری (تصاویر و ویدئوها)
   const galleryItems = allMedia
     .filter((item: any) => {
       const media = item.media_detail || item.media || item;
-      // فقط image و video برای گالری
       return media?.media_type === 'image' || media?.media_type === 'video';
     })
     .map((item: any) => {
@@ -64,10 +58,8 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
     })
     .filter((item: any) => item.url !== '');
 
-  // اضافه کردن عکس شاخص به ابتدای گالری اگر وجود دارد
   const mediaItems: any[] = [];
 
-  // عکس شاخص (main_image)
   if (property.main_image?.file_url || property.main_image?.url) {
     const mainImageUrl = mediaService.getMediaUrlFromObject(property.main_image as any);
     if (mainImageUrl) {
@@ -83,15 +75,12 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
     }
   }
 
-  // گالری (بقیه عکس‌ها و ویدئوها)
   galleryItems.forEach(item => {
-    // اگر این آیتم همان عکس شاخص نیست، اضافه کن
     if (!item.isMainImage) {
       mediaItems.push(item);
     }
   });
 
-  // Sync selected index
   const onSelect = useCallback(() => {
     if (!mainApi) return;
     setSelectedIndex(mainApi.selectedScrollSnap());
@@ -107,13 +96,11 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
     };
   }, [mainApi, onSelect]);
 
-  // Sync thumbnails with main carousel
   useEffect(() => {
     if (!thumbApi) return;
     thumbApi.scrollTo(selectedIndex);
   }, [selectedIndex, thumbApi]);
 
-  // Sync lightbox with main carousel
   useEffect(() => {
     if (!lightboxApi || !isLightboxOpen) return;
     lightboxApi.scrollTo(selectedIndex);
@@ -135,7 +122,6 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
     [mainApi]
   );
 
-  // اگر رسانه‌ای وجود نداشت
   if (mediaItems.length === 0) {
     return (
       <div className={cn("relative w-full h-[500px] rounded-xl border border-br bg-bg flex items-center justify-center", className)}>
@@ -149,10 +135,8 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
 
   return (
     <>
-      {/* Main Gallery */}
       <Card className={className}>
         <CardContent className="space-y-4">
-          {/* Main Carousel */}
           <div className="relative w-full h-[500px] rounded-xl overflow-hidden bg-bg-2 group">
             <div ref={mainRef} className="overflow-hidden h-full">
               <div className="flex h-full" dir="rtl">
@@ -174,7 +158,6 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
                             poster={item.coverUrl}
                             preload="metadata"
                           />
-                          {/* آیکون Play برای ویدئو */}
                           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                             <div className="size-16 rounded-full bg-static-b/60 backdrop-blur-sm flex items-center justify-center">
                               <Play className="w-8 h-8 text-static-w fill-static-w" />
@@ -189,14 +172,12 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
                           loading={index === 0 ? "eager" : "lazy"}
                         />
                       )}
-                      {/* Badge برای عکس شاخص */}
                       {item.isMainImage && (
                         <div className="absolute top-3 left-3 px-3 py-1.5 rounded-md bg-primary text-static-w text-xs font-bold shadow-lg z-10">
                           عکس شاخص
                         </div>
                       )}
 
-                      {/* Expand Button */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -214,12 +195,10 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
               </div>
             </div>
 
-            {/* Counter */}
             <div className="absolute top-4 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-lg bg-static-b/60 backdrop-blur-sm text-static-w text-sm font-medium z-10">
               {selectedIndex + 1} / {mediaItems.length}
             </div>
 
-            {/* Navigation Buttons */}
             {mediaItems.length > 1 && (
               <>
                 <button
@@ -240,7 +219,6 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
             )}
           </div>
 
-          {/* Thumbnail Gallery */}
           {mediaItems.length > 1 && (
             <div className="relative pt-2">
               <div ref={thumbRef} className="overflow-hidden">
@@ -262,13 +240,11 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
                         className="w-full h-full object-cover"
                         loading="lazy"
                       />
-                      {/* Badge عکس شاخص */}
                       {item.isMainImage && (
                         <div className="absolute top-1 right-1 px-2 py-1 rounded bg-primary text-static-w text-[11px] font-bold shadow-md z-10">
                           شاخص
                         </div>
                       )}
-                      {/* آیکون Play برای thumbnail ویدئو */}
                       {item.type === 'video' && (
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="size-6 rounded-full bg-static-b/80 flex items-center justify-center">
@@ -288,7 +264,6 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
         </CardContent>
       </Card>
 
-      {/* Lightbox Modal */}
       {isLightboxOpen && (
         <div className="fixed inset-0 z-50 bg-static-b/95 backdrop-blur-md flex items-center justify-center">
           <button

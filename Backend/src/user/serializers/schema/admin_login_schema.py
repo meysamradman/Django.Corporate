@@ -2,7 +2,6 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
 
 from src.user.serializers.admin.admin_login_serializer import AdminLoginSerializer
 
-
 def admin_login_schema(view_func):
     return extend_schema(
         request=AdminLoginSerializer,

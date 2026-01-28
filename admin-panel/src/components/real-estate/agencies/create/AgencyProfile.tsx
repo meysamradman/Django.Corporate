@@ -37,7 +37,6 @@ export default function AgencyProfile({
     setSelectedMedia(selectedMedia);
   };
 
-  // بارگذاری استان‌ها
   useEffect(() => {
     const fetchProvinces = async () => {
       setLoadingProvinces(true);
@@ -58,7 +57,6 @@ export default function AgencyProfile({
     fetchProvinces();
   }, []);
 
-  // بارگذاری شهرها بر اساس استان انتخاب شده
   useEffect(() => {
     if (selectedProvinceId) {
       const fetchCities = async () => {

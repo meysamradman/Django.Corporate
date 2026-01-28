@@ -6,7 +6,6 @@ from src.ai.providers.registry import AIProviderRegistry
 from src.ai.messages.messages import CHAT_ERRORS, SETTINGS_ERRORS, AI_ERRORS
 from src.ai.providers.capabilities import ProviderAvailabilityManager
 
-
 class AIChatService:
     
     @classmethod

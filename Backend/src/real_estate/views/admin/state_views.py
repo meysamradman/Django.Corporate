@@ -19,7 +19,6 @@ from src.real_estate.serializers.admin.state_serializer import (
 from src.real_estate.services.admin.state_services import PropertyStateAdminService
 from src.real_estate.messages.messages import STATE_SUCCESS, STATE_ERRORS
 
-
 class PropertyStateAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
     
@@ -146,9 +145,7 @@ class PropertyStateAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='field-options')
     def field_options(self, request):
-        """
-        Returns field options for property state form
-        """
+        
         from src.real_estate.models.constants import get_listing_type_choices_list
         return APIResponse.success(
             data={

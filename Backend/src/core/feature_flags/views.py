@@ -13,13 +13,11 @@ from src.user.access_control import PermissionRequiredMixin
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.core.responses.response import APIResponse
 
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def feature_flags_api(request):
     flags = get_all_feature_flags()
     return Response(flags)
-
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -30,7 +28,6 @@ def feature_flag_detail(request, key):
         'is_active': is_feature_active(key)
     })
 
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def feature_config_api(request):
@@ -38,7 +35,6 @@ def feature_config_api(request):
         'features': FEATURE_CONFIG,
         'module_to_feature_flag': get_module_to_feature_flag()
     })
-
 
 class FeatureFlagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     queryset = FeatureFlag.objects.all()

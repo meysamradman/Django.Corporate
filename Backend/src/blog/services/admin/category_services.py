@@ -10,7 +10,6 @@ from src.blog.utils.cache import CategoryCacheKeys, CategoryCacheManager
 from src.blog.messages.messages import CATEGORY_ERRORS
 from src.media.models.media import ImageMedia
 
-
 class BlogCategoryAdminService:
     
     @staticmethod
@@ -23,7 +22,6 @@ class BlogCategoryAdminService:
     def get_list_queryset(filters=None, order_by='created_at', order_desc=True, date_from=None, date_to=None):
         queryset = BlogCategoryAdminService.get_tree_queryset()
         
-        # Date filters
         if date_from:
             try:
                 date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()

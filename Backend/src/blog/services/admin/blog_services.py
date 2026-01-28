@@ -13,7 +13,6 @@ from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentM
 from src.blog.services.admin.media_services import BlogAdminMediaService
 from src.blog.messages.messages import BLOG_ERRORS
 
-
 class BlogAdminService:
     
     @staticmethod
@@ -70,7 +69,6 @@ class BlogAdminService:
                 Q(meta_description__icontains=search)
             )
         
-        # Date filters
         if date_from:
             try:
                 date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
@@ -114,8 +112,7 @@ class BlogAdminService:
     
     @staticmethod
     def get_main_image_for_model(blog_obj):
-        """Standardized main image retrieval with fallback logic"""
-        # 1. Try to get explicit main image
+        
         main_image_obj = BlogImage.objects.filter(
             blog=blog_obj,
             is_main=True
@@ -124,21 +121,18 @@ class BlogAdminService:
         if main_image_obj and main_image_obj.image:
             return main_image_obj.image
 
-        # 2. Fallback to any images
         first_image = BlogImage.objects.filter(
             blog=blog_obj
         ).select_related('image').order_by('order', 'created_at').first()
         if first_image and first_image.image:
             return first_image.image
 
-        # 3. Fallback to video cover
         first_video = BlogVideo.objects.filter(
             blog=blog_obj
         ).select_related('video__cover_image').order_by('order', 'created_at').first()
         if first_video and first_video.video and first_video.video.cover_image:
             return first_video.video.cover_image
 
-        # 4. Fallback to other media types covers
         audio = BlogAudio.objects.filter(
             blog=blog_obj
         ).select_related('audio__cover_image').first()
@@ -155,13 +149,11 @@ class BlogAdminService:
 
     @staticmethod
     def create_blog(validated_data, created_by=None):
-        # Support both standard model names and _ids for safety with frontend
         categories_ids = validated_data.pop('categories', validated_data.pop('categories_ids', []))
         tags_ids = validated_data.pop('tags', validated_data.pop('tags_ids', []))
         media_files = validated_data.pop('media_files', [])
         media_ids = validated_data.pop('media_ids', [])
         
-        # Unique Slug logic
         if not validated_data.get('slug') and validated_data.get('title'):
             from django.utils.text import slugify
             base_slug = slugify(validated_data['title'])
@@ -172,7 +164,6 @@ class BlogAdminService:
                 counter += 1
             validated_data['slug'] = slug
 
-        # SEO Logic
         if not validated_data.get('meta_title') and validated_data.get('title'):
             validated_data['meta_title'] = validated_data['title'][:70]
         if not validated_data.get('meta_description') and validated_data.get('short_description'):
@@ -207,7 +198,6 @@ class BlogAdminService:
         except Blog.DoesNotExist:
             raise ValidationError(BLOG_ERRORS["blog_not_found"])
         
-        # Support both standard model names and _ids for safety with frontend
         categories_val = validated_data.pop('categories', validated_data.pop('categories_ids', None))
         tags_val = validated_data.pop('tags', validated_data.pop('tags_ids', None))
         
@@ -216,7 +206,6 @@ class BlogAdminService:
         main_image_id = main_image_id if main_image_id is not None else validated_data.pop('main_image_id', None)
         media_covers = media_covers if media_covers is not None else validated_data.pop('media_covers', None)
         
-        # Unique Slug logic
         if 'title' in validated_data and not validated_data.get('slug'):
             from django.utils.text import slugify
             base_slug = slugify(validated_data['title'])
@@ -227,7 +216,6 @@ class BlogAdminService:
                 counter += 1
             validated_data['slug'] = slug
             
-        # SEO Logic
         if 'title' in validated_data:
             if not validated_data.get('meta_title'):
                 validated_data['meta_title'] = validated_data['title'][:70]
@@ -418,7 +406,6 @@ class BlogAdminService:
         
         return deleted_count
 
-
 class BlogAdminStatusService:
     
     @staticmethod
@@ -457,7 +444,6 @@ class BlogAdminStatusService:
             'blog': blog,
             'seo_warnings': seo_warnings
         }
-
 
 class BlogAdminSEOService:
     

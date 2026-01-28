@@ -3,7 +3,6 @@ from rest_framework.response import Response
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 
-
 class APIResponse(JSONRenderer):
     
     @staticmethod

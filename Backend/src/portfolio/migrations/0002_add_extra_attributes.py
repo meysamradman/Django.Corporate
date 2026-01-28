@@ -1,8 +1,6 @@
-# Generated manually for adding extra_attributes to Portfolio
 
 from django.db import migrations, models
 from django.contrib.postgres.indexes import GinIndex
-
 
 class Migration(migrations.Migration):
 

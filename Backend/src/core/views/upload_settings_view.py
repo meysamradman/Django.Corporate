@@ -22,24 +22,20 @@ class UploadSettingsView(APIView):
             )
         
         settings_data = {
-            # File size limits (bytes)
             'MEDIA_IMAGE_SIZE_LIMIT': settings.MEDIA_FILE_SIZE_LIMITS.get('image'),
             'MEDIA_VIDEO_SIZE_LIMIT': settings.MEDIA_FILE_SIZE_LIMITS.get('video'),
             'MEDIA_AUDIO_SIZE_LIMIT': settings.MEDIA_FILE_SIZE_LIMITS.get('audio'),
             'MEDIA_DOCUMENT_SIZE_LIMIT': settings.MEDIA_FILE_SIZE_LIMITS.get('pdf'),
             
-            # Allowed file extensions
             'MEDIA_ALLOWED_IMAGE_EXTENSIONS': settings.MEDIA_ALLOWED_EXTENSIONS.get('image', []),
             'MEDIA_ALLOWED_VIDEO_EXTENSIONS': settings.MEDIA_ALLOWED_EXTENSIONS.get('video', []),
             'MEDIA_ALLOWED_AUDIO_EXTENSIONS': settings.MEDIA_ALLOWED_EXTENSIONS.get('audio', []),
             'MEDIA_ALLOWED_PDF_EXTENSIONS': settings.MEDIA_ALLOWED_EXTENSIONS.get('pdf', []),
             
-            # Upload count limits per module
             'PORTFOLIO_MEDIA_UPLOAD_MAX': settings.PORTFOLIO_MEDIA_UPLOAD_MAX,
             'BLOG_MEDIA_UPLOAD_MAX': settings.BLOG_MEDIA_UPLOAD_MAX,
             'REAL_ESTATE_MEDIA_UPLOAD_MAX': settings.REAL_ESTATE_MEDIA_UPLOAD_MAX,
             
-            # Export print limits per module
             'PORTFOLIO_EXPORT_PRINT_MAX_ITEMS': settings.PORTFOLIO_EXPORT_PRINT_MAX_ITEMS,
             'BLOG_EXPORT_PRINT_MAX_ITEMS': settings.BLOG_EXPORT_PRINT_MAX_ITEMS,
             'REAL_ESTATE_EXPORT_PRINT_MAX_ITEMS': settings.REAL_ESTATE_EXPORT_PRINT_MAX_ITEMS,

@@ -59,7 +59,6 @@ export function BlogDetailPrintView({ blogId }: BlogDetailPrintViewProps) {
 
     return (
         <div className="min-h-screen bg-white text-right p-8 md:p-12" dir="rtl">
-            {/* Header Toolbar (no-print) */}
             <div className="no-print fixed top-0 left-0 right-0 bg-slate-50 border-b p-4 flex justify-between items-center z-50">
                 <button
                     onClick={() => window.print()}
@@ -75,9 +74,7 @@ export function BlogDetailPrintView({ blogId }: BlogDetailPrintViewProps) {
                 </button>
             </div>
 
-            {/* Print Content Area */}
             <div className="max-w-[210mm] mx-auto pt-16">
-                {/* Visual Official Header */}
                 <div className="border-b-4 border-slate-900 pb-6 mb-10 flex justify-between items-end">
                     <div>
                         <h1 className="text-3xl font-black text-slate-900 mb-2">{blog.title}</h1>
@@ -89,7 +86,6 @@ export function BlogDetailPrintView({ blogId }: BlogDetailPrintViewProps) {
                     </div>
                 </div>
 
-                {/* Main Image */}
                 {mainImageUrl && (
                     <div className="mb-10 w-full overflow-hidden rounded-3xl border-2 border-slate-100 shadow-sm">
                         <img
@@ -100,7 +96,6 @@ export function BlogDetailPrintView({ blogId }: BlogDetailPrintViewProps) {
                     </div>
                 )}
 
-                {/* Metadata Dashboard */}
                 <div className="grid grid-cols-4 gap-4 mb-10 bg-slate-50 p-6 rounded-4xl border border-slate-100">
                     <div>
                         <div className="text-[10px] text-slate-400 mb-1 font-bold">دسته‌بندی</div>
@@ -128,20 +123,17 @@ export function BlogDetailPrintView({ blogId }: BlogDetailPrintViewProps) {
                     </div>
                 </div>
 
-                {/* Short Description */}
                 {blog.short_description && (
                     <div className="mb-12 p-8 bg-blue-50/30 rounded-4xl border-r-8 border-blue-600 italic text-blue-900 text-lg leading-relaxed font-bold">
                         {blog.short_description}
                     </div>
                 )}
 
-                {/* Content */}
                 <div
                     className="prose prose-slate max-w-none text-slate-800 text-lg leading-[2.2] text-justify mb-20"
                     dangerouslySetInnerHTML={{ __html: blog.description }}
                 />
 
-                {/* Tags */}
                 {blog.tags && blog.tags.length > 0 && (
                     <div className="mt-20 pt-10 border-t border-slate-100">
                         <div className="text-sm font-black text-slate-400 mb-4 uppercase tracking-widest">موضوعات مرتبط (برچسب‌ها)</div>
@@ -155,7 +147,6 @@ export function BlogDetailPrintView({ blogId }: BlogDetailPrintViewProps) {
                     </div>
                 )}
 
-                {/* Official Footer */}
                 <div className="mt-32 pt-10 border-t-2 border-slate-900 flex justify-between items-center text-[11px] text-slate-400 font-black italic">
                     <div>سند رسمی استخراج شده از درگاه مدیریت محتوا</div>
                     <div className="text-slate-900 font-black uppercase not-italic tracking-widest px-10">Corporate Management System</div>

@@ -7,7 +7,6 @@ from src.email.models.email_attachment import EmailAttachment
 from src.email.models.email_message import EmailMessage
 from src.email.services.email_stats_service import EmailStatsService
 
-
 @receiver(message_received)
 def convert_email_to_email_message(sender, message: Message, **kwargs):
     try:
@@ -48,23 +47,17 @@ def convert_email_to_email_message(sender, message: Message, **kwargs):
     except Exception:
         pass
 
-
 @receiver(post_save, sender=EmailMessage)
 def track_email_analytics(sender, instance, created, **kwargs):
-    """
-    Tracks email analytics on creation and status changes
-    """
+    
     if created:
         EmailStatsService.track_new_email(instance)
     else:
-        # Check if status changed
         status_changed = hasattr(instance, '_old_status') and instance._old_status != instance.status
         if status_changed:
             EmailStatsService.track_status_change(instance, instance._old_status, instance.status)
             
-            # Admin Performance Tracking
             if instance.status == 'replied' and instance.replied_by:
-                # Get AdminProfile
                 from src.user.models.admin_profile import AdminProfile
                 profile = AdminProfile.objects.filter(admin_user=instance.replied_by).first()
                 if profile:

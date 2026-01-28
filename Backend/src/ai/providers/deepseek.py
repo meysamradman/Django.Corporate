@@ -8,7 +8,6 @@ from django.utils.text import slugify
 from .base import BaseProvider
 from src.ai.messages.messages import DEEPSEEK_PROMPTS, DEEPSEEK_ERRORS, DEEPSEEK_SYSTEM_MESSAGES, AI_SYSTEM_MESSAGES
 
-
 class DeepSeekProvider(BaseProvider):
     
     BASE_URL = os.getenv('DEEPSEEK_API_BASE_URL', 'https://api.deepseek.com/v1')
@@ -188,9 +187,6 @@ class DeepSeekProvider(BaseProvider):
                     messages.append({"role": role, "content": content})
         
         if kwargs.get('image'):
-            # Note: DeepSeek API compatibility for vision might vary, but standard format is often supported.
-            # If standard DeepSeek doesn't support vision, this will likely fail or be ignored by the model.
-            # However, implementation follows the requested "all providers" logic.
             import base64
             image_file = kwargs['image']
             if hasattr(image_file, 'read'):

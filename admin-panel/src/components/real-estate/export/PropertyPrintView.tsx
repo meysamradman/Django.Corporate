@@ -53,7 +53,6 @@ export function PropertyPrintView({ propertyIds }: PropertyPrintViewProps) {
 
     return (
         <div className="min-h-screen bg-white" dir="rtl">
-            {/* Header Toolbar (no-print) */}
             <div className="no-print fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md border-b p-4 flex justify-between items-center z-50">
                 <div className="flex items-center gap-4">
                     <button
@@ -75,9 +74,7 @@ export function PropertyPrintView({ propertyIds }: PropertyPrintViewProps) {
                 </button>
             </div>
 
-            {/* Print Content Area */}
             <div className="print-container pt-20 pb-16 px-10 mx-auto xl:max-w-[297mm]">
-                {/* Official Header - Portfolio Style Parity */}
                 <div className="pb-8 mb-10 border-b-[3px] border-slate-900 flex justify-between items-end">
                     <div className="text-right">
                         <h1 className="text-4xl font-black text-slate-900 mb-2 tracking-tighter">گزارش جامع لیست املاک</h1>
@@ -90,7 +87,6 @@ export function PropertyPrintView({ propertyIds }: PropertyPrintViewProps) {
                     </div>
                 </div>
 
-                {/* Data Table - Fixed cut-off by removing overflow-hidden */}
                 <div className="border border-slate-300 rounded-2xl overflow-visible shadow-sm">
                     <table className="w-full border-collapse text-right table-fixed">
                         <thead>
@@ -150,7 +146,6 @@ export function PropertyPrintView({ propertyIds }: PropertyPrintViewProps) {
                     </table>
                 </div>
 
-                {/* Footer Section */}
                 <div className="mt-12 pt-6 border-t-2 border-slate-900 flex justify-between items-center text-[10px] text-slate-500 font-black">
                     <div className="uppercase tracking-[0.2em] font-bold">Official Real Estate Management Report</div>
                     <div className="text-slate-400 px-10 italic">این گزارش به صورت خودکار از پنل مدیریت استخراج شده است.</div>

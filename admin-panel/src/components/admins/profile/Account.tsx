@@ -333,7 +333,6 @@ export function Account({
                                                 </div>
                                             )}
 
-
                                         </div>
                                     )}
                                 </div>

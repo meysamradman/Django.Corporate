@@ -37,7 +37,6 @@ export function RealEstateInfo({ property }: PropertyBasicInfoProps) {
         }).format(date);
     };
 
-    // فرمت کردن قیمت
     const formatPrice = (price: number | string) => {
         if (!price) return "توافقی";
         return new Intl.NumberFormat('fa-IR').format(Number(price));
@@ -61,7 +60,6 @@ export function RealEstateInfo({ property }: PropertyBasicInfoProps) {
     return (
         <Card className="overflow-hidden">
             <CardContent className="pt-0 pb-0">
-                {/* Status Cards */}
                 <div className="pb-6 border-b -mx-6 px-6">
                     <div className="grid grid-cols-2 gap-3">
                         <div className={`col-span-2 flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${(() => {
@@ -174,10 +172,8 @@ export function RealEstateInfo({ property }: PropertyBasicInfoProps) {
                     </div>
                 </div>
 
-                {/* Basic Info */}
                 <div className="pt-4">
                     <div className="space-y-4">
-                        {/* Title Section */}
                         <div className="bg-bg">
                             <div className="p-5">
                                 <h3 className="text-font-p font-bold text-lg leading-tight mb-2">
@@ -190,7 +186,6 @@ export function RealEstateInfo({ property }: PropertyBasicInfoProps) {
                             </div>
                         </div>
 
-                        {/* Details Section */}
                         <div className="space-y-0 [&>div:not(:last-child)]:border-b [&>div:not(:last-child)]:border-br">
                             <div className="flex items-center justify-between gap-3 py-3">
                                 <div className="flex items-center gap-2">
@@ -284,7 +279,6 @@ export function RealEstateInfo({ property }: PropertyBasicInfoProps) {
                             )}
                         </div>
 
-                        {/* Media Section */}
                         <div className="pt-4 border-t border-br">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-2">

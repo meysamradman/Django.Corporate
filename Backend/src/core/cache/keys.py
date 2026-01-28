@@ -3,7 +3,6 @@ from .namespaces import CacheNamespace
 import hashlib
 import json
 
-
 class CacheKeyBuilder:
     
     @staticmethod
@@ -233,60 +232,56 @@ class CacheKeyBuilder:
     @staticmethod
     def ai_admin_settings(admin_id: int, provider_id: int) -> str:
         return CacheKeyBuilder._build(CacheNamespace.AI_PROVIDER, "settings", admin_id, provider_id)
-    
-    # ============================================
-    # Real Estate Cache Keys
-    # ============================================
-    
+
     @staticmethod
     def property_list_admin(params: dict) -> str:
-        """Cache key for property admin list with filters"""
+        
         params_hash = CacheKeyBuilder._hash_params(params)
         return CacheKeyBuilder._build(CacheNamespace.PROPERTY_LIST, "admin", params_hash)
     
     @staticmethod
     def property_detail(property_id: int) -> str:
-        """Cache key for property detail"""
+        
         return CacheKeyBuilder._build(CacheNamespace.PROPERTY_DETAIL, property_id)
     
     @staticmethod
     def property_main_image(property_id: int) -> str:
-        """Cache key for property main image"""
+        
         return CacheKeyBuilder._build(CacheNamespace.PROPERTY_DETAIL, property_id, "main_image")
     
     @staticmethod
     def property_seo_data(property_id: int) -> str:
-        """Cache key for property SEO data"""
+        
         return CacheKeyBuilder._build(CacheNamespace.PROPERTY_SEO, property_id, "data")
     
     @staticmethod
     def property_seo_preview(property_id: int) -> str:
-        """Cache key for property SEO preview"""
+        
         return CacheKeyBuilder._build(CacheNamespace.PROPERTY_SEO, property_id, "preview")
     
     @staticmethod
     def property_seo_completeness(property_id: int) -> str:
-        """Cache key for property SEO completeness check"""
+        
         return CacheKeyBuilder._build(CacheNamespace.PROPERTY_SEO, property_id, "completeness")
     
     @staticmethod
     def property_structured_data(property_id: int) -> str:
-        """Cache key for property structured data (Schema.org)"""
+        
         return CacheKeyBuilder._build(CacheNamespace.PROPERTY_DETAIL, property_id, "structured")
     
     @staticmethod
     def property_statistics() -> str:
-        """Cache key for property statistics"""
+        
         return CacheKeyBuilder._build(CacheNamespace.PROPERTY_STATS, "general")
     
     @staticmethod
     def property_featured() -> str:
-        """Cache key for featured properties"""
+        
         return CacheKeyBuilder._build(CacheNamespace.PROPERTY_LIST, "featured")
     
     @staticmethod
     def property_all_keys(property_id: int) -> list[str]:
-        """Get all cache keys for a specific property"""
+        
         return [
             CacheKeyBuilder.property_detail(property_id),
             CacheKeyBuilder.property_main_image(property_id),

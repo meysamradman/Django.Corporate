@@ -2,7 +2,6 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from src.core.models.base import BaseModel
 
-
 class FeatureFlag(BaseModel):
     key = models.CharField(
         max_length=50,

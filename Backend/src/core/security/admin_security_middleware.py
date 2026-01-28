@@ -2,7 +2,6 @@ from django.http import JsonResponse
 from django.conf import settings
 from src.core.security.ip_management import IPBanService
 
-
 class AdminSecurityMiddleware:
     
     def __init__(self, get_response):
@@ -50,8 +49,7 @@ class AdminSecurityMiddleware:
                         'error': 'Access denied',
                         'message': 'دسترسی از این IP مجاز نیست'
                     }, status=403)
-            
-        
+
         return self.get_response(request)
     
     def _get_client_ip(self, request):

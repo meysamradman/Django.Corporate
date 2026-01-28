@@ -1,7 +1,6 @@
 from django.core.cache import cache
 from src.core.cache import CacheService
 
-
 class AnalyticsCacheKeys:
     
     @staticmethod
@@ -67,7 +66,6 @@ class AnalyticsCacheKeys:
             AnalyticsCacheKeys.ai(),
             AnalyticsCacheKeys.activity_log(),
         ]
-
 
 class AnalyticsCacheManager:
     

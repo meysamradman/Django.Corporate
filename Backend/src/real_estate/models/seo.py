@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class SEOMixin(models.Model):
     meta_title = models.CharField(
         max_length=70,

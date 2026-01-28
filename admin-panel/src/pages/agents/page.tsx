@@ -104,7 +104,6 @@ export default function AgentsPage() {
 
   const handleFilterChange = (filterId: keyof AdminFilters, value: unknown) => {
     if (filterId === 'user_role_type') {
-      // در صفحه مشاورین، user_role_type همیشه consultant است
       return;
     } else {
       baseHandleFilterChange(filterId as string, value);
@@ -197,14 +196,11 @@ export default function AgentsPage() {
     const targetId = admin?.id ? Number(admin.id) : null;
     const isOwnProfile = userId !== null && targetId !== null && userId === targetId;
 
-    // چک کنیم که یوزر فعلی واقعاً مشاور هست یا نه
     const currentUserIsAgent = user?.user_role_type === 'consultant' || user?.has_agent_profile;
 
     if (isOwnProfile && currentUserIsAgent) {
-      // فقط اگه هم پروفایل خودش باشه هم یوزر فعلی مشاور باشه
       navigate('/agents/me/edit');
     } else {
-      // در غیر این صورت به route معمولی میریم
       navigate(`/agents/${admin.id}/edit`);
     }
   };
@@ -333,7 +329,6 @@ export default function AgentsPage() {
         ) : null}
       </PageHeader>
 
-      {/* Filters and Search Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-4">
         <div className="flex items-center gap-3 flex-wrap flex-1 justify-start">
           <div className="relative w-full sm:w-[240px]">
@@ -381,7 +376,6 @@ export default function AgentsPage() {
         </div>
       </div>
 
-      {/* Cards Grid */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <Loader />

@@ -10,7 +10,6 @@ SENDER_TYPE_CHOICES = [
     ('admin', 'Admin'),
 ]
 
-
 class TicketMessage(BaseModel):
 
     sender_type = models.CharField(
@@ -21,13 +20,11 @@ class TicketMessage(BaseModel):
         help_text="Type of sender (user or admin)"
     )
     
-    # 3. Description Fields
     message = models.TextField(
         verbose_name="Message",
         help_text="Message content"
     )
     
-    # 4. Boolean Flags
     is_read = models.BooleanField(
         default=False,
         db_index=True,
@@ -35,7 +32,6 @@ class TicketMessage(BaseModel):
         help_text="Whether this message has been read"
     )
     
-    # 5. Relationships
     ticket = models.ForeignKey(
         Ticket,
         on_delete=models.CASCADE,
@@ -71,7 +67,6 @@ class TicketMessage(BaseModel):
         verbose_name_plural = "Ticket Messages"
         ordering = ['created_at']
         indexes = [
-            # Composite indexes for common query patterns
             models.Index(fields=['ticket', 'created_at']),
             models.Index(fields=['sender_type', 'created_at']),
             models.Index(fields=['is_read', 'created_at']),

@@ -7,7 +7,6 @@ from django.dispatch import receiver
 from django.utils import timezone
 from src.core.models import BaseModel
 
-
 class AdminRole(BaseModel):
     ADMIN_ROLES = (
         ('super_admin', 'Super Admin'),
@@ -78,8 +77,6 @@ class AdminRole(BaseModel):
 
     def __str__(self):
         return self.display_name
-
-
 
 class AdminUserRole(BaseModel):
     user = models.ForeignKey(
@@ -169,7 +166,6 @@ class AdminUserRole(BaseModel):
             return timezone.now() > self.expires_at
         return False
 
-
 @receiver(pre_save, sender=AdminUserRole)
 def validate_admin_user_role(sender, instance, **kwargs):
     if (instance.role and instance.role.name == 'super_admin' and 
@@ -177,7 +173,6 @@ def validate_admin_user_role(sender, instance, **kwargs):
         raise ValidationError(
             "The 'super_admin' role can only be assigned to users with is_superuser=True."
         )
-
 
 @receiver([post_save, post_delete], sender=AdminUserRole, dispatch_uid="clear_admin_user_cache")
 def clear_admin_user_cache(sender, instance, **kwargs):
@@ -205,7 +200,6 @@ def clear_admin_role_cache(sender, instance, **kwargs):
         
         from src.user.utils.cache import UserCacheManager
         UserCacheManager.invalidate_profile(user_id)
-
 
 class Role(BaseModel):
     name = models.CharField(
@@ -241,7 +235,6 @@ class Role(BaseModel):
     def __str__(self):
         return self.name
 
-
 class CustomPermission(BaseModel):
     name = models.CharField(
         max_length=255,
@@ -276,7 +269,6 @@ class CustomPermission(BaseModel):
     def __str__(self):
         return self.name
 
-
 class UserRole(BaseModel):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -307,7 +299,6 @@ class UserRole(BaseModel):
 
     def __str__(self):
         return f"{self.user} - {self.role}"
-
 
 class RolePermission(BaseModel):
     role = models.ForeignKey(

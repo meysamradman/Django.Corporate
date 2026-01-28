@@ -8,7 +8,6 @@ export type UserStatus = 'active' | 'inactive' | 'all';
 export type UserType = 'admin' | 'user';
 export type UserRoleType = 'admin' | 'consultant';
 
-// فیلدهای PropertyAgent برای مشاورین املاک
 export interface PropertyAgentProfile {
     id: number;
     public_id: string;
@@ -27,7 +26,6 @@ export interface PropertyAgentProfile {
     is_verified: boolean;
     is_active: boolean;
     slug: string;
-    // SEO fields
     meta_title: string;
     meta_description: string;
     meta_keywords: string;
@@ -114,7 +112,6 @@ export interface AdminCreateRequest {
     notes?: string;
     profile_picture_id?: number;
     
-    // فیلدهای مشاور املاک
     license_number?: string;
     license_expire_date?: string;
     specialization?: string;
@@ -144,7 +141,6 @@ export interface AdminUpdateRequest {
     notes?: string;
     profile_picture_id?: number;
     
-    // فیلدهای مشاور املاک
     license_number?: string;
     license_expire_date?: string;
     specialization?: string;

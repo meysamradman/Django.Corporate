@@ -2,7 +2,6 @@ from rest_framework import serializers
 from src.user.messages import AUTH_ERRORS
 from src.user.utils.validate_identifier import validate_identifier
 
-
 class UserLoginSerializer(serializers.Serializer):
     identifier = serializers.CharField(required=True)
     password = serializers.CharField(required=False, write_only=True, allow_blank=True)

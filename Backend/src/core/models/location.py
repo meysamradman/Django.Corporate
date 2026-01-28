@@ -1,7 +1,6 @@
 from django.db import models
 from .base import BaseModel
 
-
 class Country(BaseModel):
 
     name = models.CharField(
@@ -27,7 +26,7 @@ class Country(BaseModel):
     
     @classmethod
     def get_iran(cls):
-        """دریافت رکورد ایران (کشور پیش‌فرض)"""
+        
         iran, _ = cls.objects.get_or_create(
             code='IRN',
             defaults={
@@ -50,7 +49,6 @@ class Country(BaseModel):
     
     def __str__(self):
         return self.name
-
 
 class Province(BaseModel):
 
@@ -108,7 +106,6 @@ class Province(BaseModel):
     
     def __str__(self):
         return self.name
-
 
 class City(BaseModel):
 

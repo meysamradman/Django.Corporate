@@ -4,7 +4,6 @@ from src.user.utils.jwt_tokens import generate_jwt_tokens
 from django.core.exceptions import ValidationError
 from rest_framework.exceptions import AuthenticationFailed
 
-
 class UserAuthService:
     @staticmethod
     def authenticate_user(identifier, password=None, otp=None, login_type='password', user_type='user'):

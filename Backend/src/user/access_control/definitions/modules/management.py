@@ -40,7 +40,6 @@ MANAGEMENT_PERMISSIONS = {
         'permission_category': 'management',
     },
     
-    # Content Module Master Toggles
     'blog.manage': {
         'module': 'blog',
         'action': 'manage',

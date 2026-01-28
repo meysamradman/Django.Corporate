@@ -3,7 +3,6 @@ from django.utils import timezone
 import json
 import hashlib
 
-
 class TrackingService:
     
     @staticmethod

@@ -8,7 +8,6 @@ from src.real_estate.models.property import Property
 from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.messages.messages import AGENCY_ERRORS
 
-
 class RealEstateAgencyAdminService:
     
     @staticmethod
@@ -38,7 +37,6 @@ class RealEstateAgencyAdminService:
                 Q(license_number__icontains=search)
             )
         
-        # Date filters
         if date_from:
             try:
                 date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()

@@ -117,7 +117,6 @@ export default function PropertyFeaturesPage() {
     mutationFn: (featureId: number) => realEstateApi.deleteFeature(featureId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-features'] });
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'ویژگی ملک' }));
     },
     onError: (_error) => {
@@ -129,7 +128,6 @@ export default function PropertyFeaturesPage() {
     mutationFn: (featureIds: number[]) => Promise.all(featureIds.map(id => realEstateApi.deleteFeature(id))),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-features'] });
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'ویژگی‌های ملک' }));
       setRowSelection({});
     },
@@ -203,7 +201,6 @@ export default function PropertyFeaturesPage() {
   ];
   
   const columns = usePropertyFeatureColumns(rowActions, handleToggleActive) as ColumnDef<PropertyFeature>[];
-
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 

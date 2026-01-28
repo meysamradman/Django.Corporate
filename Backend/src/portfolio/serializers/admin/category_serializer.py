@@ -4,7 +4,6 @@ from src.portfolio.serializers.mixins import SEODataMixin, CountsMixin
 from src.media.serializers import MediaAdminSerializer
 from src.portfolio.messages import CATEGORY_ERRORS
 
-
 class PortfolioCategoryAdminListSerializer(CountsMixin, serializers.ModelSerializer):
     level = serializers.SerializerMethodField()
     has_children = serializers.SerializerMethodField()
@@ -40,7 +39,6 @@ class PortfolioCategoryAdminListSerializer(CountsMixin, serializers.ModelSeriali
         except:
             pass
         return None
-
 
 class PortfolioCategoryAdminDetailSerializer(SEODataMixin, serializers.ModelSerializer):
     parent = serializers.SerializerMethodField()
@@ -133,7 +131,6 @@ class PortfolioCategoryAdminDetailSerializer(SEODataMixin, serializers.ModelSeri
             for p in portfolios
         ]
 
-
 class PortfolioCategoryAdminCreateSerializer(serializers.ModelSerializer):
     parent_id = serializers.PrimaryKeyRelatedField(
         queryset=PortfolioCategory.objects.filter(is_active=True),
@@ -178,7 +175,6 @@ class PortfolioCategoryAdminCreateSerializer(serializers.ModelSerializer):
                 })
         
         return data
-
 
 class PortfolioCategoryAdminUpdateSerializer(serializers.ModelSerializer):
     parent_id = serializers.PrimaryKeyRelatedField(
@@ -239,7 +235,6 @@ class PortfolioCategoryAdminUpdateSerializer(serializers.ModelSerializer):
         
         return data
 
-
 class PortfolioCategoryTreeSerializer(serializers.ModelSerializer):
     children = serializers.SerializerMethodField()
     level = serializers.SerializerMethodField()
@@ -266,7 +261,6 @@ class PortfolioCategoryTreeSerializer(serializers.ModelSerializer):
             return obj.image.file.url
         return None
 
-
 class PortfolioCategorySimpleAdminSerializer(serializers.ModelSerializer):
     level = serializers.SerializerMethodField()
     display_name = serializers.SerializerMethodField()
@@ -281,7 +275,6 @@ class PortfolioCategorySimpleAdminSerializer(serializers.ModelSerializer):
     
     def get_display_name(self, obj):
         return f"{'» ' * (obj.get_depth() - 1)}{obj.name}"
-
 
 class PortfolioCategoryAdminSerializer(PortfolioCategoryAdminDetailSerializer):
     pass

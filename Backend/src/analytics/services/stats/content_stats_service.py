@@ -3,7 +3,6 @@ from django.core.cache import cache
 from django.utils import timezone
 from src.analytics.utils.cache import AnalyticsCacheKeys, AnalyticsCacheManager
 
-
 class ContentStatsService:
     CACHE_TIMEOUT = 300
     REQUIRED_PERMISSION = 'analytics.content.read'
@@ -35,14 +34,10 @@ class ContentStatsService:
         now = timezone.now()
         trends = []
         
-        # Get last 6 months
         for i in range(5, -1, -1):
-            # Calculate range for the month
-            # target_date is roughly start of month
             month_date = now.date() - timedelta(days=30 * i)
             start_date = month_date.replace(day=1)
             
-            # Simple Persian month names (approximate)
             gregorian_month = start_date.month
             approximate_jalali_month = ((gregorian_month + 1) % 12) + 1
             persian_month_names = [
@@ -60,7 +55,6 @@ class ContentStatsService:
                 'agents': 0
             }
 
-            # Property Trend
             if apps.is_installed('src.real_estate'):
                 from src.real_estate.models.property import Property
                 from src.real_estate.models.statistics import PropertyInquiry

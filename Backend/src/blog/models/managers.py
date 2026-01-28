@@ -1,7 +1,6 @@
 from django.db import models
 from django.db.models import Prefetch, Count, Q
 
-
 class BlogQuerySet(models.QuerySet):
     
     def published(self):
@@ -18,15 +17,7 @@ class BlogQuerySet(models.QuerySet):
         )
     
     def for_admin_listing(self):
-        """
-        Optimized for admin listing - High Performance
         
-        ✅ Optimizations:
-        - select_related for og_image
-        - annotate with SQL-level counts using models.F
-        - prefetch categories and tags
-        - prefetch main images only
-        """
         from src.blog.models.media import BlogImage
         from django.db.models.functions import Coalesce
         
@@ -41,7 +32,6 @@ class BlogQuerySet(models.QuerySet):
                 to_attr='main_image_prefetch'
             ),
         ).annotate(
-            # ✅ SQL-level counts for high performance
             total_images_count=Count('images', distinct=True),
             total_videos_count=Count('videos', distinct=True),
             total_audios_count=Count('audios', distinct=True),
@@ -49,7 +39,6 @@ class BlogQuerySet(models.QuerySet):
             categories_count=Count('categories', distinct=True),
             tags_count=Count('tags', distinct=True)
         ).annotate(
-            # ✅ Coalesce to ensure we don't have NULL
             total_media_count=Coalesce(
                 models.F('total_images_count') + 
                 models.F('total_videos_count') + 
@@ -168,7 +157,6 @@ class BlogQuerySet(models.QuerySet):
     def by_tag(self, tag_slug):
         return self.filter(tags__slug=tag_slug)
 
-
 class BlogCategoryQuerySet(models.QuerySet):
     
     def public(self):
@@ -186,7 +174,6 @@ class BlogCategoryQuerySet(models.QuerySet):
     def for_tree(self):
         return self.only('id', 'name', 'slug', 'depth', 'path', 'public_id')
 
-
 class BlogTagQuerySet(models.QuerySet):
     
     def public(self):
@@ -202,5 +189,4 @@ class BlogTagQuerySet(models.QuerySet):
             blog_count=Count('blog_tags',
                                 filter=Q(blog_tags__status='published'))
         )
-
 

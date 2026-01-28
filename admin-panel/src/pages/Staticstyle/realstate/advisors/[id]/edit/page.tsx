@@ -14,7 +14,6 @@ import {
   Loader2, Save, List, Settings,
 } from "lucide-react";
 
-// نوع داده استاتیک برای مشاورین املاک
 interface AdvisorItem {
   id: number;
   name: string;
@@ -30,7 +29,6 @@ interface AdvisorItem {
   address?: string;
 }
 
-// داده استاتیک نمونه
 const getStaticAdvisorData = (id: string): AdvisorItem | null => {
   const staticData: AdvisorItem[] = [
     {

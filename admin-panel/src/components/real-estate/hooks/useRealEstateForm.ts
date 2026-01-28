@@ -29,12 +29,10 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
     const [activeTab, setActiveTab] = useState<string>("account");
     const [tempFloorPlans, setTempFloorPlans] = useState<any[]>([]);
 
-    // Taxonomies
     const [selectedLabels, setSelectedLabels] = useState<PropertyLabel[]>([]);
     const [selectedTags, setSelectedTags] = useState<PropertyTag[]>([]);
     const [selectedFeatures, setSelectedFeatures] = useState<PropertyFeature[]>([]);
 
-    // Media
     const [propertyMedia, setPropertyMedia] = useState<PropertyMedia>({
         featuredImage: null,
         imageGallery: [],
@@ -55,7 +53,6 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
         enabled: !!id && isEditMode,
     });
 
-    // Handle Initial Data Loading
     useEffect(() => {
         if (property && isEditMode) {
             const parsedMedia = (property.property_media || property.media)
@@ -134,7 +131,6 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
         }
     }, [property, isEditMode, form]);
 
-    // Auto-generate slug from title
     const titleValue = form.watch("title");
     useEffect(() => {
         if (titleValue && !isEditMode) {
@@ -143,7 +139,6 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
         }
     }, [titleValue, form, isEditMode]);
 
-    // Taxonomies Handlers
     const handleLabelToggle = useCallback((label: PropertyLabel) => {
         setSelectedLabels(prev => {
             const newLabels = prev.find(l => l.id === label.id)
@@ -202,7 +197,6 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
         form.setValue(field as keyof PropertyFormValues, value, { shouldValidate: false, shouldDirty: true });
     }, [form]);
 
-    // Gallery Handlers (Internal helpers to update form state and trigger dirtiness)
     const updateMediaFormState = useCallback((newMedia: PropertyMedia) => {
         const allMediaIds = collectMediaIds(newMedia);
         if (form.getValues("og_image")?.id && !allMediaIds.includes(form.getValues("og_image").id)) {
@@ -214,7 +208,6 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
         form.setValue("media_covers", mediaCovers, { shouldValidate: false, shouldDirty: true });
     }, [form]);
 
-    // Media Handlers
     const handleFeaturedImageChange = useCallback((media: Media | null) => {
         setPropertyMedia(prev => {
             const newState = { ...prev, featuredImage: media };
@@ -272,7 +265,6 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
             }
             const allMediaFiles: File[] = [];
 
-            // Use backend config if available, otherwise use frontend default
             const uploadMax = mediaConfig?.REAL_ESTATE_MEDIA_UPLOAD_MAX ?? MEDIA_CONFIG.REAL_ESTATE_UPLOAD_MAX;
             const totalMedia = allMediaFiles.length + allMediaIds.length;
             if (totalMedia > uploadMax) {

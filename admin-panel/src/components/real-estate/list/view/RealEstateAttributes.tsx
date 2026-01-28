@@ -15,7 +15,6 @@ export function RealEstateAttributes({ property }: ExtraAttributesInfoTabProps) 
   const [valueLabels, setValueLabels] = useState<Record<string, Record<string, string>>>({});
   const [isLoading, setIsLoading] = useState(true);
 
-  // Receiving labels from API to convert code to Farsi
   useEffect(() => {
     const fetchLabels = async () => {
       try {
@@ -83,7 +82,6 @@ export function RealEstateAttributes({ property }: ExtraAttributesInfoTabProps) 
 
   return (
     <TabsContent value="advanced" className="space-y-6 mt-0 outline-none">
-      {/* Standard Section */}
       {predefinedAttributes.length > 0 && (
         <CardWithIcon
           icon={Building2}
@@ -118,7 +116,6 @@ export function RealEstateAttributes({ property }: ExtraAttributesInfoTabProps) 
         </CardWithIcon>
       )}
 
-      {/* Custom Attributes Section */}
       {customAttributes.length > 0 && (
         <CardWithIcon
           icon={Key}
@@ -148,7 +145,6 @@ export function RealEstateAttributes({ property }: ExtraAttributesInfoTabProps) 
         </CardWithIcon>
       )}
 
-      {/* Summary Footer */}
       <div className="flex items-center gap-2 p-4 bg-blue-0/10 border border-blue-1/20 rounded-xl">
         <Settings className="w-5 h-5 text-blue-1" />
         <span className="font-medium text-blue-2">

@@ -30,7 +30,6 @@ from src.user.access_control import (
 )
 from src.core.pagination.pagination import StandardLimitPagination
 
-
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class UserManagementView(PermissionRequiredMixin, AdminAuthMixin, APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]

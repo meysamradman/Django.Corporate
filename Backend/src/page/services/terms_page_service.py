@@ -6,7 +6,6 @@ from src.page.models import TermsPage
 from src.page.messages.messages import TERMS_PAGE_ERRORS
 from src.page.utils.cache import PageCacheKeys, PageCacheManager
 
-
 def get_terms_page():
     cache_key = PageCacheKeys.terms_page()
     page = cache.get(cache_key)
@@ -19,7 +18,6 @@ def get_terms_page():
             raise ValidationError(TERMS_PAGE_ERRORS["terms_page_retrieve_failed"])
     
     return page
-
 
 @transaction.atomic
 def update_terms_page(validated_data):

@@ -10,7 +10,6 @@ from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
 from src.user.services.admin.admin_auth_service import AdminAuthService
 from src.core.cache import CacheService
 
-
 @method_decorator(csrf_exempt, name='dispatch')
 class AdminLogoutView(APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]
@@ -27,7 +26,6 @@ class AdminLogoutView(APIView):
             cookie_path = settings.CSRF_COOKIE_PATH
             cookie_domain = settings.CSRF_COOKIE_DOMAIN
         
-        # Django 6.0 delete_cookie() only accepts: key, path, domain
         response.delete_cookie(
             cookie_name,
             path=cookie_path,

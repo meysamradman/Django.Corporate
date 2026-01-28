@@ -59,7 +59,6 @@ export function PortfolioDetailPrintView({ portfolioId }: PortfolioDetailPrintVi
 
     return (
         <div className="min-h-screen bg-white text-right p-8 md:p-12" dir="rtl">
-            {/* Header Toolbar (no-print) */}
             <div className="no-print fixed top-0 left-0 right-0 bg-slate-50 border-b p-4 flex justify-between items-center z-50">
                 <button
                     onClick={() => window.print()}
@@ -75,9 +74,7 @@ export function PortfolioDetailPrintView({ portfolioId }: PortfolioDetailPrintVi
                 </button>
             </div>
 
-            {/* Print Content Area */}
             <div className="max-w-[210mm] mx-auto pt-16">
-                {/* Visual Official Header */}
                 <div className="border-b-8 border-slate-900 pb-8 mb-12 flex justify-between items-end">
                     <div>
                         <h1 className="text-4xl font-black text-slate-900 mb-2">{portfolio.title}</h1>
@@ -89,7 +86,6 @@ export function PortfolioDetailPrintView({ portfolioId }: PortfolioDetailPrintVi
                     </div>
                 </div>
 
-                {/* Main Hero Image */}
                 {mainImageUrl && (
                     <div className="mb-12 w-full overflow-hidden rounded-4xl border-4 border-slate-50 shadow-2xl relative">
                         <img
@@ -101,7 +97,6 @@ export function PortfolioDetailPrintView({ portfolioId }: PortfolioDetailPrintVi
                     </div>
                 )}
 
-                {/* Project Brief Grid */}
                 <div className="grid grid-cols-3 gap-6 mb-12">
                     <div className="bg-slate-900 text-white flex-1 p-8 rounded-4xl shadow-2xl relative overflow-hidden">
                         <div className="relative z-10 text-[10px] text-blue-400 font-bold mb-2 tracking-[0.3em] uppercase">Project Category</div>
@@ -118,7 +113,6 @@ export function PortfolioDetailPrintView({ portfolioId }: PortfolioDetailPrintVi
                     </div>
                 </div>
 
-                {/* Technical Options Grid */}
                 {portfolio.options && portfolio.options.length > 0 && (
                     <div className="mb-12 p-8 bg-slate-50 border border-slate-100 rounded-4xl">
                         <div className="text-[10px] text-slate-400 mb-4 font-black tracking-[0.3em] uppercase border-b border-slate-200 pb-2">Technical Capabilities</div>
@@ -133,12 +127,10 @@ export function PortfolioDetailPrintView({ portfolioId }: PortfolioDetailPrintVi
                     </div>
                 )}
 
-                {/* Description Content */}
                 <div className="prose prose-slate max-w-none text-slate-800 text-xl leading-[2.4] text-justify mb-20 italic font-medium">
                     {portfolio.short_description || portfolio.description || 'No description available for this project.'}
                 </div>
 
-                {/* Formal Footer */}
                 <div className="mt-40 pt-10 border-t-4 border-slate-900 flex justify-between items-center text-[12px] text-slate-400 font-black italic">
                     <div>سند مهندسی و مستندات واحد فنی</div>
                     <div className="text-slate-900 font-black uppercase not-italic tracking-[0.5em] px-10">Management System</div>

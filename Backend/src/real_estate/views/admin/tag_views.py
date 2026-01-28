@@ -19,7 +19,6 @@ from src.real_estate.serializers.admin.tag_serializer import (
 from src.real_estate.services.admin.tag_services import PropertyTagAdminService
 from src.real_estate.messages.messages import TAG_SUCCESS, TAG_ERRORS
 
-
 class PropertyTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
     

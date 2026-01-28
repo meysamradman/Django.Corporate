@@ -1,7 +1,6 @@
 from django.core.exceptions import ValidationError
 from src.user.messages import AUTH_ERRORS
 
-
 def validate_mobile_number(value):
 
     value = value.strip().replace(" ", "")

@@ -3,7 +3,6 @@ from src.blog.models.tag import BlogTag
 from src.blog.serializers.mixins import CountsMixin
 from src.blog.messages import TAG_ERRORS
 
-
 class BlogTagAdminListSerializer(CountsMixin, serializers.ModelSerializer):
     blog_count = serializers.IntegerField(read_only=True)
     
@@ -14,7 +13,6 @@ class BlogTagAdminListSerializer(CountsMixin, serializers.ModelSerializer):
             'is_active', 'blog_count', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
-
 
 class BlogTagAdminDetailSerializer(serializers.ModelSerializer):
     blog_count = serializers.SerializerMethodField()
@@ -48,7 +46,6 @@ class BlogTagAdminDetailSerializer(serializers.ModelSerializer):
             for p in blogs
         ]
 
-
 class BlogTagAdminCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogTag
@@ -65,7 +62,6 @@ class BlogTagAdminCreateSerializer(serializers.ModelSerializer):
         if BlogTag.objects.filter(name=value).exists():
             raise serializers.ValidationError(TAG_ERRORS["tag_name_exists"])
         return value
-
 
 class BlogTagAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -88,13 +84,11 @@ class BlogTagAdminUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(TAG_ERRORS["tag_name_exists"])
         return value
 
-
 class BlogTagSimpleAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogTag
         fields = ['id', 'public_id', 'name', 'slug']
         read_only_fields = ['id', 'public_id']
-
 
 class BlogTagAdminSerializer(BlogTagAdminDetailSerializer):
     pass

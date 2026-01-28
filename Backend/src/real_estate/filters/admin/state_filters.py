@@ -3,7 +3,6 @@ from django.db.models import Q, Count
 from src.real_estate.models.state import PropertyState
 from src.real_estate.models.constants import LISTING_TYPE_CHOICES
 
-
 class PropertyStateAdminFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method='filter_search', label='Search')
     is_active = django_filters.BooleanFilter(field_name='is_active', label='Active Status')

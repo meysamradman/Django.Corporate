@@ -2,7 +2,6 @@ from django.db import models
 from src.core.models import BaseModel
 from src.real_estate.models.managers import PropertyLabelQuerySet
 
-
 class PropertyLabel(BaseModel):
     title = models.CharField(
         max_length=50,

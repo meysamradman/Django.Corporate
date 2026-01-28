@@ -174,7 +174,6 @@ export function AdvancedSettings({ admin }: AdvancedSettingsTabProps) {
         });
     };
 
-
     const handleCancel = () => {
         const originalAssignments = filteredAvailableRoles.map((role: Role) => ({
             roleId: role.id,

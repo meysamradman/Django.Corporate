@@ -15,7 +15,6 @@ from src.portfolio.serializers.public.portfolio_serializer import (
 from src.portfolio.services.public.portfolio_services import PortfolioPublicService
 from src.portfolio.filters.public.portfolio_filters import PortfolioPublicFilter
 
-
 class PortfolioPublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, SearchFilter]

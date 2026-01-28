@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class DailyStats(models.Model):
     
     date = models.DateField(unique=True, db_index=True)
@@ -15,7 +14,6 @@ class DailyStats(models.Model):
     desktop_visits = models.PositiveIntegerField(default=0)
     tablet_visits = models.PositiveIntegerField(default=0)
     
-    # Platform/Source distributions
     sources_distribution = models.JSONField(default=dict, blank=True)
     
     site_id = models.CharField(max_length=50, default='default', db_index=True)

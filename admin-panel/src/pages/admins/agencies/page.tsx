@@ -57,7 +57,6 @@ export default function AdminsAgenciesPage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
 
-
     if (urlParams.get('page')) {
       const page = parseInt(urlParams.get('page')!, 10);
       setPagination(prev => ({ ...prev, pageIndex: page - 1 }));
@@ -179,7 +178,6 @@ export default function AdminsAgenciesPage() {
   const actions = useMemo(() => {
     const agencyActions: CardItemAction<any>[] = [];
 
-    // Add View action
     agencyActions.push({
       label: "مشاهده",
       icon: <Edit className="h-4 w-4" />,
@@ -188,7 +186,6 @@ export default function AdminsAgenciesPage() {
       },
     });
 
-    // Add Edit action
     agencyActions.push({
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
@@ -197,7 +194,6 @@ export default function AdminsAgenciesPage() {
       },
     });
 
-    // Add Delete action
     agencyActions.push({
       label: "حذف",
       icon: <Trash2 className="h-4 w-4" />,
@@ -222,7 +218,6 @@ export default function AdminsAgenciesPage() {
       ? mediaService.getMediaUrlFromObject(agency.logo)
       : null;
   };
-
 
   const handlePaginationChange = (updaterOrValue: TablePaginationState | ((prev: TablePaginationState) => TablePaginationState)) => {
     const newPagination = typeof updaterOrValue === 'function'
@@ -271,7 +266,6 @@ export default function AdminsAgenciesPage() {
         </ProtectedButton>
       </PageHeader>
 
-      {/* Filters and Search Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-4">
         <div className="flex items-center gap-3 flex-wrap flex-1 justify-start">
           <div className="relative w-full sm:w-[240px]">
@@ -310,7 +304,6 @@ export default function AdminsAgenciesPage() {
         </div>
       </div>
 
-      {/* Cards Grid */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <Loader />
@@ -442,5 +435,4 @@ export default function AdminsAgenciesPage() {
     </div>
   );
 }
-
 

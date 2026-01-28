@@ -22,22 +22,11 @@ app_name = 'user'
 ADMIN_SECRET = getattr(settings, 'ADMIN_URL_SECRET', 'x7K9mP2qL5nR8tY3vZ6wC4fH1jN0bM')
 
 urlpatterns = [
-    # ========================================
-    # 🏺 Honeypot (Decoy URLs)
-    # ========================================
-    # فقط یک آدرس فریبنده استاندارد برای لاگ کردن تلاش‌های غیرمجاز
     path('admin/login/', FakeAdminLoginView.as_view(), name='admin-login-honeypot'),
 
-    # ========================================
-    # 🔒 Secure Admin Auth (Protected by Secret)
-    # ========================================
-    # ورود و کپچا هر دو پشت آدرس سکرت هستند برای امنیت حداکثری
     path(f'admin/{ADMIN_SECRET}/auth/login/', AdminLoginView.as_view(), name='admin-login'),
     path(f'admin/{ADMIN_SECRET}/auth/captcha/', include('src.core.security.captcha.urls', namespace='captcha-secret')),
 
-    # ========================================
-    # 🛡️ General Admin API Endpoints
-    # ========================================
     path('admin/auth/logout/', AdminLogoutView.as_view(), name='admin-logout'),
     path('admin/auth/register/', AdminRegisterView.as_view(), name='admin-register'),
     path('admin/management/', AdminManagementView.as_view(), name='admin-management'),
@@ -54,9 +43,6 @@ urlpatterns = [
     path('admin/roles/bulk-delete/', AdminRoleView.as_view({'post': 'bulk_delete'}), name='admin-roles-bulk-delete'),
 ]
 
-# ========================================
-# 🔑 Router-based API Endpoints
-# ========================================
 router = DefaultRouter()
 router.register(r'admin/roles', AdminRoleView, basename='admin-roles')
 router.register(r'admin/permissions', AdminPermissionView, basename='admin-permissions')
@@ -67,9 +53,6 @@ router.register(r'cities', CityViewSet, basename='cities')
 urlpatterns += [
     path('', include(router.urls)),
     
-    # ========================================
-    # 👤 Regular User & Common Auth URLs
-    # ========================================
     path('user/login/', UserLoginView.as_view(), name='user-login'),
     path('user/register/', UserRegisterView.as_view(), name='user-register'),
     path('user/logout/', UserLogoutView.as_view(), name='user-logout'),

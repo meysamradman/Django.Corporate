@@ -10,7 +10,6 @@ from src.real_estate.utils.cache import TypeCacheKeys, TypeCacheManager
 from src.real_estate.messages import TYPE_ERRORS
 from src.media.models.media import ImageMedia
 
-
 class PropertyTypeAdminService:
     
     @staticmethod
@@ -23,7 +22,6 @@ class PropertyTypeAdminService:
     def get_list_queryset(filters=None, order_by='created_at', order_desc=True, date_from=None, date_to=None):
         queryset = PropertyTypeAdminService.get_tree_queryset()
         
-        # Date filters
         if date_from:
             try:
                 date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()

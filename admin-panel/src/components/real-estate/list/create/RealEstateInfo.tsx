@@ -73,7 +73,6 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
     const onFeatureToggle = isFormApproach ? null : (props as any).onFeatureToggle;
     const onFeatureRemove = isFormApproach ? null : (props as any).onFeatureRemove;
     const descriptionValue = isFormApproach ? watch?.("description") : formData?.description;
-    // در form approach، selectedLabels/Tags/Features از props می‌آید
     const formSelectedLabels = isFormApproach ? (props as BaseInfoTabFormProps).selectedLabels : selectedLabels || [];
     const formSelectedTags = isFormApproach ? (props as BaseInfoTabFormProps).selectedTags : selectedTags || [];
     const formSelectedFeatures = isFormApproach ? (props as BaseInfoTabFormProps).selectedFeatures : selectedFeatures || [];
@@ -101,7 +100,6 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
     const [loadingAgencies, setLoadingAgencies] = useState(true);
     const [statusOptions, setStatusOptions] = useState<[string, string][]>([]);
     const [loadingOptions, setLoadingOptions] = useState(true);
-
 
     useEffect(() => {
         const fetchData = async () => {
@@ -174,7 +172,6 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
 
         fetchData();
     }, []);
-
 
     const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -258,7 +255,6 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
             handleInputChange?.("status", value);
         }
     };
-
 
     return (
         <div className="space-y-6">
@@ -383,7 +379,6 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
                         borderColor="border-b-blue-1"
                     >
                         <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
-                            {/* Property Type */}
                             <FormField
                                 label="نوع ملک"
                                 required
@@ -408,7 +403,6 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
                                 </Select>
                             </FormField>
 
-                            {/* Property State/Category */}
                             <FormField
                                 label="وضعیت ملک"
                                 required
@@ -433,7 +427,6 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
                                 </Select>
                             </FormField>
 
-                            {/* Transaction Status (Lifecycle) */}
                             <FormField
                                 label="وضعیت معامله"
                                 required
@@ -458,7 +451,6 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
                                 </Select>
                             </FormField>
 
-                            {/* Consultant */}
                             <FormField
                                 label="مشاور مسئول"
                                 error={errors?.agent}
@@ -483,7 +475,6 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
                                 </Select>
                             </FormField>
 
-                            {/* Agency */}
                             <FormField
                                 label="آژانس املاک"
                                 error={isFormApproach ? errors.agency?.message : errors?.agency}
@@ -510,7 +501,6 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
                         </div>
                     </CardWithIcon>
                 </div>
-
 
                 <div className="w-full lg:w-[420px] lg:flex-shrink-0">
                     <CardWithIcon

@@ -2,7 +2,6 @@ import django_filters
 from django.db.models import Q, Count
 from src.blog.models.category import BlogCategory
 
-
 class BlogCategoryAdminFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method='filter_search', label='Search')
     is_active = django_filters.BooleanFilter(field_name='is_active', label='Active Status')

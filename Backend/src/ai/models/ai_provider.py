@@ -11,8 +11,6 @@ import hashlib
 from src.core.models.base import BaseModel
 from src.ai.utils.cache import AICacheKeys, AICacheManager
 
-
-
 class EncryptedAPIKeyMixin:
 
     @staticmethod
@@ -50,7 +48,6 @@ class EncryptedAPIKeyMixin:
         except Exception as e:
             raise ValidationError(f"API key decryption error: {str(e)}")
 
-
 class CacheMixin:
     CACHE_TIMEOUT = 300
     
@@ -74,7 +71,6 @@ class CacheMixin:
         elif cls.__name__ == 'AIProvider':
             AICacheManager.invalidate_providers()
 
-
 class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
     name = models.CharField(
         max_length=100,
@@ -97,7 +93,6 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
         help_text="Human-readable provider name"
     )
     
-    # 3. Description Fields
     description = models.TextField(
         blank=True,
         verbose_name="Description",
@@ -114,7 +109,6 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
         help_text="Base URL for API requests"
     )
     
-    # ⭐ Dynamic Provider Configuration
     provider_class = models.CharField(
         max_length=200,
         blank=True,
@@ -125,18 +119,9 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
         default=dict,
         blank=True,
         verbose_name="Capabilities",
-        help_text="""
-        Provider capabilities configuration:
-        {
-            "chat": {"supported": true, "has_dynamic_models": false, "models": [...]},
-            "content": {"supported": true, "has_dynamic_models": false},
-            "image": {"supported": true, "has_dynamic_models": true},
-            "audio": {"supported": false}
-        }
-        """
+        help_text="Provider capabilities options"
     )
     
-    # 4. Boolean Flags
     allow_personal_keys = models.BooleanField(
         default=True,
         db_index=True,
@@ -150,7 +135,6 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
         help_text="Whether normal admins can use shared API key"
     )
     
-    # Configuration & Security
     shared_api_key = models.TextField(
         blank=True,
         verbose_name="Shared API Key (Encrypted)",
@@ -163,7 +147,6 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
         help_text="Additional provider configuration"
     )
     
-    # Statistics
     total_requests = models.BigIntegerField(
         default=0,
         verbose_name="Total Requests",
@@ -188,12 +171,9 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
         verbose_name_plural = "AI Providers"
         ordering = ['sort_order', 'name']
         indexes = [
-            # Composite indexes for common query patterns
             models.Index(fields=['slug', 'is_active']),
             models.Index(fields=['is_active', 'sort_order']),
             models.Index(fields=['allow_shared_for_normal_admins', 'is_active']),
-            # Note: name and slug already have db_index=True and unique=True (automatic indexes)
-            # Note: BaseModel already provides indexes for public_id, is_active, created_at
         ]
     
     def __str__(self):
@@ -231,41 +211,23 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
         return self.capabilities.get(capability, {}).get('models', [])
     
     def get_provider_instance(self, api_key: str, config: dict = None):
-        """
-        ⭐ Dynamic instantiation - بدون hardcode!
         
-        ایجاد instance از provider class بدون import مستقیم
-        
-        Args:
-            api_key: API key برای provider
-            config: تنظیمات اضافی (اختیاری)
-        
-        Returns:
-            Instance از Provider class
-        
-        Raises:
-            ValueError: اگر provider_class تنظیم نشده باشد
-            ImportError: اگر کلاس پیدا نشد
-        """
         if not self.provider_class:
             raise ValueError(f"Provider class not configured for {self.slug}")
         
         import importlib
         
-        # Parse class path: src.ai.providers.openai.OpenAIProvider
         try:
             module_path, class_name = self.provider_class.rsplit('.', 1)
         except ValueError:
             raise ValueError(f"Invalid provider_class format: {self.provider_class}")
         
-        # Import dynamically
         try:
             module = importlib.import_module(module_path)
             provider_class = getattr(module, class_name)
         except (ImportError, AttributeError) as e:
             raise ImportError(f"Failed to import {self.provider_class}: {e}")
         
-        # Create instance
         return provider_class(api_key=api_key, config=config or self.config)
     
     def increment_usage(self):
@@ -302,36 +264,25 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
         
         return provider
 
-
 class AIModelManager(models.Manager):
-    """
-    Custom manager for AIModel to handle active model selection.
-    Ensures only one model is active per provider+capability combination.
-    """
-    
+
     def get_active_model(self, provider_slug: str, capability: str):
-        """
-        Get the single active model for a provider+capability combination.
-        Returns None if no active model exists.
-        """
+        
         cache_key = f"active_model_{provider_slug}_{capability}"
         model_id = cache.get(cache_key)
         
         if model_id is not None:
-            # Get model from cache ID
             try:
                 return self.select_related('provider').get(id=model_id)
             except self.model.DoesNotExist:
                 cache.delete(cache_key)
         
-        # Not in cache, query database
         models = self.filter(
             provider__slug=provider_slug,
             provider__is_active=True,
             is_active=True
         ).select_related('provider')
         
-        # Filter by capability
         model = None
         for m in models:
             if capability in m.capabilities:
@@ -339,18 +290,12 @@ class AIModelManager(models.Manager):
                 break
         
         if model:
-            # Cache only the ID, not the entire model object
             cache.set(cache_key, model.id, 300)  # 5 min cache
         
         return model
     
     def deactivate_other_models(self, provider_id: int, capability: str, exclude_id: int = None):
-        """
-        Deactivate all other models for the same provider+capability.
-        Used when activating a new model.
-        CRITICAL: Only deactivates models with THE EXACT SAME capability.
-        Different capabilities remain active.
-        """
+        
         queryset = self.filter(
             provider_id=provider_id,
             is_active=True
@@ -359,8 +304,6 @@ class AIModelManager(models.Manager):
         if exclude_id:
             queryset = queryset.exclude(id=exclude_id)
         
-        # Filter by capability and deactivate
-        # IMPORTANT: Only deactivate if capability exists in model's capabilities list
         deactivated_count = 0
         for model in queryset:
             if capability in model.capabilities:
@@ -375,14 +318,8 @@ class AIModelManager(models.Manager):
         
         return deactivated_count
 
-
 class AIModel(BaseModel, CacheMixin):
-    """
-    AI Model model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Content → Relationships → Configuration → Statistics
     
-    IMPORTANT: Only ONE model should be active per provider+capability combination.
-    """
     CAPABILITY_CHOICES = [
         ('chat', 'Chat / Text Generation'),
         ('content', 'Content Generation'),
@@ -395,7 +332,6 @@ class AIModel(BaseModel, CacheMixin):
         ('vision', 'Vision / Image Understanding'),
     ]
     
-    # 2. Primary Content Fields
     name = models.CharField(
         max_length=150,
         db_index=True,
@@ -413,14 +349,12 @@ class AIModel(BaseModel, CacheMixin):
         help_text="Human-readable model name"
     )
     
-    # 3. Description Fields
     description = models.TextField(
         blank=True,
         verbose_name="Description",
         help_text="Model description"
     )
     
-    # 5. Relationships
     provider = models.ForeignKey(
         AIProvider,
         on_delete=models.CASCADE,
@@ -430,7 +364,6 @@ class AIModel(BaseModel, CacheMixin):
         help_text="AI provider that owns this model"
     )
     
-    # Configuration
     capabilities = models.JSONField(
         default=list,
         verbose_name="Capabilities",
@@ -443,7 +376,6 @@ class AIModel(BaseModel, CacheMixin):
         help_text="Additional model configuration"
     )
     
-    # Pricing & Limits
     pricing_input = models.DecimalField(
         max_digits=10,
         decimal_places=6,
@@ -473,7 +405,6 @@ class AIModel(BaseModel, CacheMixin):
         help_text="Maximum context window size in tokens"
     )
     
-    # Statistics
     total_requests = models.BigIntegerField(
         default=0,
         verbose_name="Total Requests",
@@ -492,7 +423,6 @@ class AIModel(BaseModel, CacheMixin):
         help_text="Order for displaying models within provider"
     )
     
-    # Custom Manager
     objects = AIModelManager()
     
     class Meta(BaseModel.Meta):
@@ -502,19 +432,14 @@ class AIModel(BaseModel, CacheMixin):
         ordering = ['provider', 'sort_order', 'name']
         unique_together = ['provider', 'model_id']
         indexes = [
-            # Composite indexes for common query patterns
             models.Index(fields=['provider', 'is_active', 'sort_order']),
-            # Note: name already has db_index=True (automatic index)
-            # Note: BaseModel already provides indexes for public_id, is_active, created_at
         ]
     
     def __str__(self):
         return f"{self.provider.name} - {self.display_name}"
     
     def save(self, *args, **kwargs):
-        """
-        Override save to ensure only one model is active per provider+capability.
-        """
+        
         is_new = self.pk is None
         was_active = False
         
@@ -525,7 +450,6 @@ class AIModel(BaseModel, CacheMixin):
             except AIModel.DoesNotExist:
                 pass
         
-        # If activating this model, deactivate others with same capabilities
         if self.is_active and (is_new or not was_active):
             for capability in self.capabilities:
                 AIModel.objects.deactivate_other_models(
@@ -540,7 +464,6 @@ class AIModel(BaseModel, CacheMixin):
             AICacheManager.invalidate_models_by_provider(self.provider.slug)
             AICacheManager.invalidate_models()
             
-            # Clear active model cache for all capabilities
             for capability in self.capabilities:
                 cache_key = f"active_model_{self.provider.slug}_{capability}"
                 cache.delete(cache_key)
@@ -684,13 +607,8 @@ class AIModel(BaseModel, CacheMixin):
             id__in=cached_ids
         ).select_related('provider').order_by('provider__sort_order', 'sort_order'))
 
-
 class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
-    """
-    Admin provider settings model following DJANGO_MODEL_STANDARDS.md conventions.
-    Field ordering: Relationships → Configuration → Usage Limits → Statistics
-    """
-    # 5. Relationships
+    
     admin = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -708,7 +626,6 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
         help_text="AI provider these settings are for"
     )
     
-    # Configuration
     personal_api_key = models.TextField(
         blank=True,
         verbose_name="Personal API Key (Encrypted)",
@@ -721,7 +638,6 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
         help_text="Whether to use shared API key instead of personal"
     )
     
-    # Usage Limits
     monthly_limit = models.IntegerField(
         default=1000,
         verbose_name="Monthly Limit",
@@ -733,7 +649,6 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
         help_text="Current monthly usage count"
     )
     
-    # Statistics
     total_requests = models.BigIntegerField(
         default=0,
         verbose_name="Total Requests",
@@ -753,11 +668,9 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
         ordering = ['-created_at']
         unique_together = ['admin', 'provider']
         indexes = [
-            # Composite indexes for common query patterns
             models.Index(fields=['admin', 'provider']),
             models.Index(fields=['admin', 'is_active']),
             models.Index(fields=['use_shared_api', 'is_active']),
-            # Note: BaseModel already provides indexes for public_id, is_active, created_at
         ]
     
     def __str__(self):
@@ -779,9 +692,7 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
         return self.decrypt_key(self.personal_api_key)
     
     def get_api_key(self) -> str:
-        """
-        Get API key with priority: Personal > Shared
-        """
+        
         personal_key = self.get_personal_api_key()
         if personal_key and personal_key.strip():
             return personal_key

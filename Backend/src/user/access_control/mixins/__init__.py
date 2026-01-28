@@ -1,6 +1,4 @@
-"""
-Permission Mixins
-"""
+
 
 from .permission_mixin import PermissionRequiredMixin, RealEstatePermissionMixin
 

@@ -15,7 +15,6 @@ import type { Media } from "@/types/shared/media";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { agencyFormSchema, agencyFormDefaults, type AgencyFormValues } from '@/components/real-estate/validations/agencySchema';
 
-
 const TabSkeleton = () => (
     <div className="mt-0 space-y-6">
         <div className="flex flex-col lg:flex-row gap-6">
@@ -62,7 +61,6 @@ export default function AdminsAgenciesCreatePage() {
         mode: "onSubmit",
     });
 
-    // ✅ Auto-generate slug from name
     const handleInputChange = (field: string, value: any) => {
         if (field === "name" && typeof value === "string") {
             const generatedSlug = generateSlug(value);
@@ -99,9 +97,6 @@ export default function AdminsAgenciesCreatePage() {
                 og_description: data.og_description || undefined,
             };
 
-            // Backend will auto-generate slug from name
-            // No need to send slug explicitly
-
             if (selectedLogo?.id) {
                 agencyData.profile_picture = selectedLogo.id;
             }
@@ -110,12 +105,10 @@ export default function AdminsAgenciesCreatePage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['agencies'] });
-            // ✅ از msg.crud استفاده کنید
             showSuccess(msg.crud('created', { item: 'آژانس' }));
             navigate("/admins/agencies");
         },
         onError: (error: any) => {
-            // ✅ Field Errors → Inline + Toast کلی
             if (hasFieldErrors(error)) {
                 const fieldErrors = extractFieldErrors(error);
 
@@ -137,12 +130,9 @@ export default function AdminsAgenciesCreatePage() {
                     });
                 });
 
-                // Toast کلی برای راهنمایی کاربر
                 showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
             } 
-            // ✅ General Errors → فقط Toast
             else {
-                // showError خودش تصمیم می‌گیرد (بک‌اند یا frontend)
                 showError(error);
             }
         },
@@ -230,5 +220,4 @@ export default function AdminsAgenciesCreatePage() {
         </div>
     );
 }
-
 

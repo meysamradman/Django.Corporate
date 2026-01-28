@@ -2,7 +2,6 @@ from rest_framework import serializers
 from src.chatbot.models.faq import FAQ
 from src.chatbot.messages.messages import CHATBOT_ERRORS
 
-
 class FAQSerializer(serializers.ModelSerializer):
     class Meta:
         model = FAQ
@@ -17,7 +16,6 @@ class FAQSerializer(serializers.ModelSerializer):
         if not answer:
             raise serializers.ValidationError({"answer": CHATBOT_ERRORS['answer_required']})
         return data
-
 
 class FAQListSerializer(serializers.ModelSerializer):
     class Meta:

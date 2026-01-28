@@ -51,4 +51,3 @@ export function AdminTabsFormWrapper({
 
 export default AdminTabsFormWrapper;
 
-

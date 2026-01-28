@@ -52,7 +52,6 @@ export function StatisticsPermissionsCard({
     isPermissionSelected(p.id)
   ).length;
 
-  // بررسی اینکه آیا analytics.manage یا analytics.stats.manage انتخاب شده است
   const analyticsManagePermission = filteredPermissions.find(
     (p) => p.original_key === "analytics.manage" || p.original_key === "analytics.stats.manage"
   );
@@ -91,7 +90,6 @@ export function StatisticsPermissionsCard({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {/* نمایش analytics.manage */}
           {analyticsManagePermission && (
             <div
               className={`relative flex items-center gap-4 p-4 rounded-lg border transition-all duration-200 ${
@@ -143,7 +141,6 @@ export function StatisticsPermissionsCard({
             </div>
           )}
           
-          {/* نمایش permissions جزئی (فقط اگر analytics.manage انتخاب نشده باشد) */}
           {!isAnalyticsManageSelected && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredPermissions

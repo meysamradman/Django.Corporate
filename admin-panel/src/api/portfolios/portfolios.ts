@@ -159,7 +159,6 @@ export const portfolioApi = {
     return response.data;
   },
 
-
   exportPortfolioPdf: async (portfolioId: number): Promise<void> => {
     const { exportPortfolioPdf } = await import('./export');
     return exportPortfolioPdf(portfolioId);
@@ -425,5 +424,4 @@ export const portfolioApi = {
   },
 };
 
-// Export standalone functions
 export const { getPortfoliosByIds } = portfolioApi;

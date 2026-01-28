@@ -2,7 +2,6 @@ from src.core.cache import CacheService
 from typing import List, Dict, Any, Optional
 from src.ai.utils.cache import AICacheKeys, AICacheManager
 
-
 class AICacheService:
     
     PROVIDER_TTL = 300

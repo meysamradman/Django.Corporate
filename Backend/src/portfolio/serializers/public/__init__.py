@@ -8,7 +8,6 @@ from .option_serializer import PortfolioOptionPublicSerializer
 from .tag_serializer import PortfolioTagPublicSerializer
 from .category_serializer import PortfolioCategoryPublicSerializer
 
-
 __all__ = [
     'PortfolioPublicSerializer',
     'PortfolioPublicListSerializer',

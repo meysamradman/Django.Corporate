@@ -119,7 +119,6 @@ export default function PropertyTypesPage() {
     mutationFn: (typeId: number) => realEstateApi.deleteType(typeId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-types'] });
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'نوع ملک' }));
     },
     onError: (_error) => {
@@ -131,7 +130,6 @@ export default function PropertyTypesPage() {
     mutationFn: (typeIds: number[]) => Promise.all(typeIds.map(id => realEstateApi.deleteType(id))),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-types'] });
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'نوع‌های ملک' }));
       setRowSelection({});
     },
@@ -205,7 +203,6 @@ export default function PropertyTypesPage() {
   ];
   
   const columns = usePropertyTypeColumns(rowActions, handleToggleActive) as ColumnDef<PropertyType>[];
-
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 

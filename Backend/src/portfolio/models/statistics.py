@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.postgres.indexes import BrinIndex
 from src.analytics.choices import ANALYTICS_SOURCE_CHOICES
 
-
 class PortfolioStatistics(models.Model):
     portfolio = models.ForeignKey(
         'portfolio.Portfolio',
@@ -39,7 +38,6 @@ class PortfolioStatistics(models.Model):
         help_text="Number of shares on this date"
     )
     
-    # Source breakdown
     web_views = models.IntegerField(
         default=0,
         verbose_name="Web Views",
@@ -51,7 +49,6 @@ class PortfolioStatistics(models.Model):
         help_text="Views from app on this date"
     )
     
-    # Distributions
     countries = models.JSONField(default=dict, blank=True)
     platforms = models.JSONField(default=dict, blank=True)
     
@@ -70,11 +67,8 @@ class PortfolioStatistics(models.Model):
     def __str__(self):
         return f"{self.portfolio.title} - {self.date}"
 
-
 class PortfolioViewLog(models.Model):
-    """
-    لاگ بازدیدهای نمونه‌کار (برای آمارهای دقیق‌تر)
-    """
+    
     portfolio = models.ForeignKey(
         'portfolio.Portfolio',
         on_delete=models.CASCADE,
@@ -102,7 +96,6 @@ class PortfolioViewLog(models.Model):
         help_text="User who viewed (if authenticated)"
     )
     
-    # Anonymous tracking
     ip_address = models.GenericIPAddressField(
         db_index=True,
         verbose_name="IP Address"
@@ -118,7 +111,6 @@ class PortfolioViewLog(models.Model):
         help_text="Browser user agent string"
     )
     
-    # Referrer tracking
     referrer = models.URLField(
         blank=True,
         null=True,
@@ -126,7 +118,6 @@ class PortfolioViewLog(models.Model):
         help_text="URL of the referrer page"
     )
     
-    # Timestamp
     viewed_at = models.DateTimeField(
         auto_now_add=True,
         db_index=True,

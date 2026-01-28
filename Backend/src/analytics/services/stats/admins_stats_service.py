@@ -5,7 +5,6 @@ from src.analytics.utils.cache import AnalyticsCacheKeys, AnalyticsCacheManager
 
 User = get_user_model()
 
-
 class AdminStatsService:
     CACHE_TIMEOUT = 300
     REQUIRED_PERMISSION = 'analytics.admins.read'

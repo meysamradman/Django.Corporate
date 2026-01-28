@@ -3,7 +3,6 @@ from django.core.validators import EmailValidator
 
 from src.core.models.base import BaseModel
 
-
 class ContactEmail(BaseModel):
 
     email = models.EmailField(
@@ -21,7 +20,6 @@ class ContactEmail(BaseModel):
         help_text="Label for email (e.g., Support, Sales, Info)"
     )
     
-    # Order Field
     order = models.PositiveIntegerField(
         default=0,
         db_index=True,
@@ -35,9 +33,7 @@ class ContactEmail(BaseModel):
         verbose_name_plural = "Contact Emails"
         ordering = ['order', '-created_at']
         indexes = [
-            # Composite index for filtering active items by order
             models.Index(fields=['is_active', 'order']),
-            # Email already has unique=True which creates an index
         ]
     
     def __str__(self):

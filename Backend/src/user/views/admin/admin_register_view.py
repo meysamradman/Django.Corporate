@@ -12,7 +12,6 @@ from src.user.models import User
 from src.user.auth.admin_auth_mixin import AdminAuthMixin
 from src.user.access_control import SimpleAdminPermission
 
-
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class AdminRegisterView(AdminAuthMixin, APIView):
     authentication_classes = [CSRFExemptSessionAuthentication]

@@ -42,7 +42,6 @@ export function PanelDatabaseTab() {
                 headerClassName="pb-3"
             >
                 <div className="space-y-4">
-                    {/* Stats Section Skeleton */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-secondary/5 rounded-lg p-3">
                             <Skeleton className="h-3 w-24 mb-2" />
@@ -54,13 +53,11 @@ export function PanelDatabaseTab() {
                         </div>
                     </div>
                     
-                    {/* Description Skeleton */}
                     <div className="space-y-2">
                         <Skeleton className="h-4 w-full" />
                         <Skeleton className="h-3 w-3/4" />
                     </div>
                     
-                    {/* Top Tables Skeleton */}
                     <div className="border border-border rounded-lg overflow-hidden">
                         <div className="bg-secondary/5 px-4 py-2 border-b border-border">
                             <Skeleton className="h-3 w-40" />
@@ -75,7 +72,6 @@ export function PanelDatabaseTab() {
                         </div>
                     </div>
                     
-                    {/* Button Skeleton */}
                     <Skeleton className="h-10 w-full" />
                 </div>
             </CardWithIcon>
@@ -93,7 +89,6 @@ export function PanelDatabaseTab() {
             headerClassName="pb-3"
         >
             <div className="space-y-6">
-                {/* Stats Section */}
                 {dbInfo && (
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-secondary/5 rounded-lg p-3">
@@ -116,7 +111,6 @@ export function PanelDatabaseTab() {
                     </p>
                 </div>
 
-                {/* Top Tables Section */}
                 {dbInfo?.top_tables && dbInfo.top_tables.length > 0 && (
                     <div className="border border-border rounded-lg overflow-hidden">
                         <div className="bg-secondary/5 px-4 py-2 border-b border-border">
@@ -139,7 +133,6 @@ export function PanelDatabaseTab() {
                             setIsDownloading(true);
                             await downloadDatabaseExport();
                         } catch (error) {
-                            // Error handled in downloadDatabaseExport
                         } finally {
                             setIsDownloading(false);
                         }

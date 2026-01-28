@@ -25,7 +25,6 @@ export interface PortfolioFilters {
   [key: string]: string | boolean | number | { from?: string; to?: string } | undefined;
 }
 
-// DEPRECATED: Use PortfolioCategoryListParams from category/portfolioCategoryFilter.ts instead
 export interface CategoryListParams {
   search?: string;
   page?: number;
@@ -41,7 +40,6 @@ export interface CategoryListParams {
   tree?: boolean;
 }
 
-// DEPRECATED: Use PortfolioTagListParams from tags/portfolioTagFilter.ts instead
 export interface TagListParams {
   search?: string;
   page?: number;

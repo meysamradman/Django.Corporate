@@ -15,7 +15,6 @@ from .modules.analytics import ANALYTICS_PERMISSIONS
 from .modules.management import MANAGEMENT_PERMISSIONS
 from .modules.real_estate import REAL_ESTATE_PERMISSIONS
 
-
 BASE_ADMIN_PERMISSIONS = BASE_PERMISSIONS
 
 PERMISSIONS: Dict[str, Dict[str, Any]] = {
@@ -42,7 +41,6 @@ class RoleConfig:
     is_system_role: bool
     default_permissions: Dict[str, Any]
 
-
 def _get_role_text(role_name: str) -> Dict[str, str]:
     defaults = {
         'display_name': role_name,
@@ -55,7 +53,6 @@ def _get_role_text(role_name: str) -> Dict[str, str]:
         'display_name_short': text.get('display_name_short', defaults['display_name_short']),
         'description': text.get('description', defaults['description']),
     }
-
 
 def _build_role_config(
     name: str,
@@ -73,7 +70,6 @@ def _build_role_config(
         is_system_role=is_system_role,
         default_permissions=permissions,
     )
-
 
 SYSTEM_ROLES: Dict[str, RoleConfig] = {
     'super_admin': _build_role_config(
@@ -264,7 +260,6 @@ CONSULTANT_RESTRICTIONS = {
     'can_be_superuser': False,
 }
 
-
 def is_role_forbidden_for_consultant(role) -> Tuple[bool, str]:
 
     forbidden_roles = CONSULTANT_RESTRICTIONS['forbidden_roles']
@@ -282,11 +277,9 @@ def is_role_forbidden_for_consultant(role) -> Tuple[bool, str]:
     else:
         role_modules = []
     
-    # اگر دسترسی کامل دارد
     if 'all' in role_modules:
         return True, "نقش‌های با دسترسی کامل برای مشاورین املاک مجاز نیست"
     
-    # بررسی ماژول‌های ممنوع
     for forbidden_module in forbidden_modules:
         if forbidden_module in role_modules:
             return True, f"نقش‌های با دسترسی به '{forbidden_module}' برای مشاورین املاک مجاز نیست"
@@ -439,7 +432,6 @@ AVAILABLE_ACTIONS = {
     }
 }
 
-
 PERMISSION_VALIDATION_RULES = {
     'allowed_modules': set(AVAILABLE_MODULES.keys()),
     'allowed_actions': set(AVAILABLE_ACTIONS.keys()),
@@ -448,26 +440,20 @@ PERMISSION_VALIDATION_RULES = {
     'max_level': 10
 }
 
-
 def get_all_permissions() -> Dict[str, Dict[str, Any]]:
     return PERMISSIONS.copy()
-
 
 def get_permission(permission_id: str) -> Dict[str, Any] | None:
     return PERMISSIONS.get(permission_id)
 
-
 def get_permissions_by_module(module: str) -> List[Tuple[str, Dict[str, Any]]]:
     return [(pid, p) for pid, p in PERMISSIONS.items() if p['module'] == module]
-
 
 def get_permissions_by_action(action: str) -> List[Tuple[str, Dict[str, Any]]]:
     return [(pid, p) for pid, p in PERMISSIONS.items() if p['action'] == action]
 
-
 def get_role_config(role_name: str) -> Optional[RoleConfig]:
     return SYSTEM_ROLES.get(role_name)
-
 
 def get_role_display_name(role_name: str, short: bool = False) -> str:
     config = get_role_config(role_name)
@@ -476,23 +462,18 @@ def get_role_display_name(role_name: str, short: bool = False) -> str:
     
     return config.display_name_short if short else config.display_name
 
-
 def get_default_permissions(role_name: str) -> Dict[str, Any]:
     config = get_role_config(role_name)
     return config.default_permissions if config else {}
 
-
 def is_super_admin_role(role_name: str) -> bool:
     return role_name == 'super_admin'
-
 
 def get_system_roles() -> List[RoleConfig]:
     return sorted(SYSTEM_ROLES.values(), key=lambda x: x.level)
 
-
 def get_available_roles(current_user_level: int = 10) -> List[RoleConfig]:
     return [role for role in get_system_roles() if role.level > current_user_level]
-
 
 def get_user_role_display_text(user) -> str:
     if not user:
@@ -515,16 +496,13 @@ def get_user_role_display_text(user) -> str:
     main_role = roles[0]
     return get_role_display_name(main_role, short=True)
 
-
 def get_module_display_name(module_name: str) -> str:
     module_info = AVAILABLE_MODULES.get(module_name, {})
     return module_info.get('display_name', module_name)
 
-
 def get_action_display_name(action_name: str) -> str:
     action_info = AVAILABLE_ACTIONS.get(action_name, {})
     return action_info.get('display_name', action_name)
-
 
 def validate_role_permissions(permissions: Dict[str, Any]) -> tuple[bool, List[str]]:
     errors = []
@@ -552,14 +530,12 @@ def validate_role_permissions(permissions: Dict[str, Any]) -> tuple[bool, List[s
     
     return len(errors) == 0, errors
 
-
 def get_role_permissions_for_creation(role_name: str) -> Dict[str, Any]:
     config = get_role_config(role_name)
     if not config:
         return {}
     
     return config.default_permissions
-
 
 def get_all_role_configs() -> Dict[str, Dict[str, Any]]:
     configs = {}

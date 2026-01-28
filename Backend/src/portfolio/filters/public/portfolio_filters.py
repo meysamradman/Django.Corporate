@@ -1,7 +1,6 @@
 from django_filters import rest_framework as filters
 from src.portfolio.models.portfolio import Portfolio
 
-
 class PortfolioPublicFilter(filters.FilterSet):
     category_slug = filters.CharFilter(
         field_name='categories__slug',

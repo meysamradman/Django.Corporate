@@ -58,7 +58,6 @@ export const PERMISSION_TRANSLATIONS = {
     'Portfolio': 'نمونه کار',
     'Blog': 'وبلاگ',
 
-    // Real Estate
     'Properties': 'املاک',
     'Agents': 'مشاوران',
     'Agencies': 'آژانس‌ها',
@@ -82,7 +81,6 @@ export const PERMISSION_TRANSLATIONS = {
     'real_estate.feature': 'ویژگی‌های ملک',
     'real_estate.tag': 'تگ‌های ملک',
 
-    // Media subtypes (from display_name)
     'Upload Images': 'آپلود تصاویر',
     'Upload Videos': 'آپلود ویدیوها',
     'Upload Audio': 'آپلود فایل‌های صوتی',
@@ -99,14 +97,12 @@ export const PERMISSION_TRANSLATIONS = {
     'Edit All Media Types': 'ویرایش همه انواع رسانه',
     'Delete All Media Types': 'حذف همه انواع رسانه',
 
-    // Module Master (Full Access)
     'Full Access to Real Estate': 'دسترسی کامل به املاک',
     'Full Access to Blog': 'دسترسی کامل به وبلاگ',
     'Full Access to Portfolio': 'دسترسی کامل به نمونه‌کار',
     'Full Access to Admin Management': 'دسترسی کامل به مدیریت ادمین‌ها',
     'Full Access to User Management': 'دسترسی کامل به مدیریت کاربران',
 
-    // Management Module Permissions
     'Manage Forms': 'مدیریت فرم‌ها',
     'Manage Settings': 'مدیریت تنظیمات',
     'Manage Chatbot': 'مدیریت چت‌بات',
@@ -308,7 +304,6 @@ export const PERMISSION_TRANSLATIONS = {
     'portfolio items': 'آیتم‌های نمونه کار',
     'admin roles': 'نقش‌های ادمین',
 
-    // Media Upload
     'Upload Images': 'آپلود تصاویر',
     'Upload Videos': 'آپلود ویدیوها',
     'Upload Audio': 'آپلود فایل‌های صوتی',
@@ -342,7 +337,6 @@ export const PERMISSION_TRANSLATIONS = {
     'Delete any media file (very dangerous - may break content)': 'حذف هر نوع فایل رسانه‌ای (بسیار خطرناک - ممکن است محتوا را خراب کند)',
     'Full access to media library (view, upload, update, delete all types)': 'دسترسی کامل به کتابخانه رسانه (مشاهده، آپلود، ویرایش، حذف همه انواع)',
 
-    // Real Estate
     'View Properties': 'مشاهده املاک',
     'Create Property': 'ایجاد ملک',
     'Update Property': 'ویرایش ملک',

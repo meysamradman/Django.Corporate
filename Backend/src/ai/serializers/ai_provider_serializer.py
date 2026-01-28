@@ -5,7 +5,6 @@ from src.ai.models import AIProvider, AIModel, AdminProviderSettings
 from src.ai.messages.messages import IMAGE_ERRORS
 from src.ai.utils.state_machine import ModelAccessState
 
-
 class AIProviderListSerializer(serializers.ModelSerializer):
     models_count = serializers.SerializerMethodField()
     has_shared_api = serializers.SerializerMethodField()
@@ -58,7 +57,6 @@ class AIProviderListSerializer(serializers.ModelSerializer):
         
         return bool(personal_setting and personal_setting.personal_api_key)
 
-
 class AIProviderDetailSerializer(serializers.ModelSerializer):
     models_count = serializers.SerializerMethodField()
     has_shared_api = serializers.SerializerMethodField()
@@ -104,7 +102,6 @@ class AIProviderDetailSerializer(serializers.ModelSerializer):
             return "***"
         return None
 
-
 class AIProviderCreateUpdateSerializer(serializers.ModelSerializer):
     shared_api_key = serializers.CharField(allow_blank=True, required=False)
     
@@ -141,7 +138,6 @@ class AIProviderCreateUpdateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(IMAGE_ERRORS['provider_name_duplicate'])
         return value
 
-
 class AIModelListSerializer(serializers.ModelSerializer):
     provider_name = serializers.CharField(source='provider.display_name', read_only=True)
     provider_slug = serializers.CharField(source='provider.slug', read_only=True)
@@ -160,7 +156,6 @@ class AIModelListSerializer(serializers.ModelSerializer):
     
     def get_is_free(self, obj):
         return obj.pricing_input is None or obj.pricing_input == 0
-
 
 class AIModelDetailSerializer(serializers.ModelSerializer):
     provider = AIProviderListSerializer(read_only=True)
@@ -212,7 +207,6 @@ class AIModelDetailSerializer(serializers.ModelSerializer):
         if request and request.user:
             return obj.get_usage_info(request.user)
         return None
-
 
 class AIModelCreateUpdateSerializer(serializers.ModelSerializer):
     provider_id = serializers.IntegerField(write_only=True)
@@ -283,7 +277,6 @@ class AIModelCreateUpdateSerializer(serializers.ModelSerializer):
             validated_data['provider_id'] = validated_data.pop('provider_id')
         return super().update(instance, validated_data)
 
-
 class AdminProviderSettingsSerializer(serializers.ModelSerializer):
     provider_name = serializers.CharField(source='provider.display_name', read_only=True)
     provider_slug = serializers.CharField(source='provider.slug', read_only=True)
@@ -341,7 +334,6 @@ class AdminProviderSettingsSerializer(serializers.ModelSerializer):
         if request and request.user:
             return obj.get_actions(request.user)
         return None
-
 
 class AdminProviderSettingsUpdateSerializer(serializers.ModelSerializer):
     provider_id = serializers.IntegerField(write_only=True, required=False)

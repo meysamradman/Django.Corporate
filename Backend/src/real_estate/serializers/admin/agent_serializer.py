@@ -5,12 +5,10 @@ from src.core.models import Province, City
 from src.real_estate.messages.messages import AGENT_ERRORS
 from src.media.serializers.media_serializer import MediaAdminSerializer
 
-
 class RealEstateAgencySimpleAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = RealEstateAgency
         fields = ['id', 'public_id', 'name', 'slug']
-
 
 class PropertyAgentAdminListSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(read_only=True)
@@ -36,10 +34,8 @@ class PropertyAgentAdminListSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
     
     def get_profile_picture_url(self, obj):
-        # اول از PropertyAgent خودش بخوان
         if obj.profile_picture and obj.profile_picture.file:
             return obj.profile_picture.file.url
-        # اگر نبود، از AdminProfile بخوان (برای سازگاری با قبل)
         try:
             if obj.user and hasattr(obj.user, 'admin_profile'):
                 profile = obj.user.admin_profile
@@ -48,7 +44,6 @@ class PropertyAgentAdminListSerializer(serializers.ModelSerializer):
         except Exception:
             pass
         return None
-
 
 class PropertyAgentAdminDetailSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(read_only=True)
@@ -82,11 +77,9 @@ class PropertyAgentAdminDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
     
     def get_profile_picture(self, obj):
-        # اول از PropertyAgent خودش بخوان
         if obj.profile_picture:
             from src.media.serializers.media_serializer import MediaAdminSerializer
             return MediaAdminSerializer(obj.profile_picture).data
-        # اگر نبود، از AdminProfile بخوان (برای سازگاری با قبل)
         try:
             if obj.user and hasattr(obj.user, 'admin_profile'):
                 profile = obj.user.admin_profile
@@ -96,7 +89,6 @@ class PropertyAgentAdminDetailSerializer(serializers.ModelSerializer):
         except Exception:
             pass
         return None
-
 
 class PropertyAgentAdminCreateSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(write_only=True)
@@ -115,7 +107,7 @@ class PropertyAgentAdminCreateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_slug(self, value):
-        """Validate that slug is unique"""
+        
         if not value:
             raise serializers.ValidationError("نامک (Slug) الزامی است.")
         if PropertyAgent.objects.filter(slug=value).exists():
@@ -123,7 +115,7 @@ class PropertyAgentAdminCreateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_user_id(self, value):
-        """Validate that user is an admin user"""
+        
         from django.contrib.auth import get_user_model
         User = get_user_model()
         
@@ -146,7 +138,6 @@ class PropertyAgentAdminCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(AGENT_ERRORS["license_number_exists"])
         return value
 
-
 class PropertyAgentAdminUpdateSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(write_only=True, required=False)
     
@@ -164,7 +155,7 @@ class PropertyAgentAdminUpdateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_slug(self, value):
-        """Validate that slug is unique (excluding current instance)"""
+        
         if not value:
             raise serializers.ValidationError("نامک (Slug) الزامی است.")
         if PropertyAgent.objects.exclude(id=self.instance.id).filter(slug=value).exists():
@@ -172,7 +163,7 @@ class PropertyAgentAdminUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_user_id(self, value):
-        """Validate that user is an admin user"""
+        
         from django.contrib.auth import get_user_model
         User = get_user_model()
         
@@ -194,7 +185,6 @@ class PropertyAgentAdminUpdateSerializer(serializers.ModelSerializer):
         if PropertyAgent.objects.exclude(id=self.instance.id).filter(license_number=value).exists():
             raise serializers.ValidationError(AGENT_ERRORS["license_number_exists"])
         return value
-
 
 class PropertyAgentAdminSerializer(PropertyAgentAdminDetailSerializer):
     pass

@@ -9,7 +9,6 @@ from src.real_estate.models.property import Property
 from src.real_estate.utils.cache import PropertyTagCacheManager, PropertyTagCacheKeys
 from src.real_estate.messages.messages import TAG_ERRORS
 
-
 class PropertyTagAdminService:
     
     @staticmethod
@@ -30,7 +29,6 @@ class PropertyTagAdminService:
                 Q(description__icontains=search)
             )
         
-        # Date filters
         if date_from:
             try:
                 date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()

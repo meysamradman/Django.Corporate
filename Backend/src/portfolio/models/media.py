@@ -4,7 +4,6 @@ from src.core.models.base import BaseModel
 from src.portfolio.models.portfolio import Portfolio
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 
-
 class PortfolioImage(BaseModel):
     portfolio = models.ForeignKey(
         Portfolio,
@@ -68,7 +67,6 @@ class PortfolioImage(BaseModel):
 
     def __str__(self):
         return f"{self.portfolio.title} - {self.image.title or self.image.file.name}"
-
 
 class PortfolioVideo(BaseModel):
     portfolio = models.ForeignKey(
@@ -142,7 +140,6 @@ class PortfolioVideo(BaseModel):
     def __str__(self):
         return f"{self.portfolio.title} - Video {self.video.title or self.video.file.name}"
 
-
 class PortfolioAudio(BaseModel):
     portfolio = models.ForeignKey(
         Portfolio,
@@ -209,7 +206,6 @@ class PortfolioAudio(BaseModel):
     
     def __str__(self):
         return f"{self.portfolio.title} - Audio {self.audio.title or self.audio.file.name}"
-
 
 class PortfolioDocument(BaseModel):
     portfolio = models.ForeignKey(

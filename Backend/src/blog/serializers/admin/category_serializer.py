@@ -4,7 +4,6 @@ from src.blog.serializers.mixins import SEODataMixin, CountsMixin
 from src.media.serializers import MediaAdminSerializer
 from src.blog.messages import CATEGORY_ERRORS
 
-
 class BlogCategoryAdminListSerializer(CountsMixin, serializers.ModelSerializer):
     level = serializers.SerializerMethodField()
     has_children = serializers.SerializerMethodField()
@@ -40,7 +39,6 @@ class BlogCategoryAdminListSerializer(CountsMixin, serializers.ModelSerializer):
         except:
             pass
         return None
-
 
 class BlogCategoryAdminDetailSerializer(SEODataMixin, serializers.ModelSerializer):
     parent = serializers.SerializerMethodField()
@@ -133,7 +131,6 @@ class BlogCategoryAdminDetailSerializer(SEODataMixin, serializers.ModelSerialize
             for p in blogs
         ]
 
-
 class BlogCategoryAdminCreateSerializer(serializers.ModelSerializer):
     parent_id = serializers.PrimaryKeyRelatedField(
         queryset=BlogCategory.objects.filter(is_active=True),
@@ -178,7 +175,6 @@ class BlogCategoryAdminCreateSerializer(serializers.ModelSerializer):
                 })
         
         return data
-
 
 class BlogCategoryAdminUpdateSerializer(serializers.ModelSerializer):
     parent_id = serializers.PrimaryKeyRelatedField(
@@ -239,7 +235,6 @@ class BlogCategoryAdminUpdateSerializer(serializers.ModelSerializer):
         
         return data
 
-
 class BlogCategoryTreeSerializer(serializers.ModelSerializer):
     children = serializers.SerializerMethodField()
     level = serializers.SerializerMethodField()
@@ -266,7 +261,6 @@ class BlogCategoryTreeSerializer(serializers.ModelSerializer):
             return obj.image.file.url
         return None
 
-
 class BlogCategorySimpleAdminSerializer(serializers.ModelSerializer):
     level = serializers.SerializerMethodField()
     display_name = serializers.SerializerMethodField()
@@ -281,7 +275,6 @@ class BlogCategorySimpleAdminSerializer(serializers.ModelSerializer):
     
     def get_display_name(self, obj):
         return f"{'» ' * (obj.get_depth() - 1)}{obj.name}"
-
 
 class BlogCategoryAdminSerializer(BlogCategoryAdminDetailSerializer):
     pass

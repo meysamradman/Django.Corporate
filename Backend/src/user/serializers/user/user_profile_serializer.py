@@ -10,7 +10,6 @@ from src.user.messages import AUTH_ERRORS
 from src.user.utils.mobile_validator import validate_mobile_number
 from src.user.utils.phone_validator import validate_phone_number_with_uniqueness
 
-
 class ProfilePictureSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
 
@@ -22,7 +21,6 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
         if obj and obj.file:
             return obj.file.url
         return None
-
 
 class UserProfileSerializer(serializers.ModelSerializer):
     profile_picture = ProfilePictureSerializer(read_only=True)
@@ -64,7 +62,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     def validate_national_id(self, value):
         return validate_national_id_format(value)
-
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     profile_picture = serializers.PrimaryKeyRelatedField(

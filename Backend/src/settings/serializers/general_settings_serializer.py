@@ -2,7 +2,6 @@ from rest_framework import serializers
 from src.settings.models import GeneralSettings
 from src.media.serializers.media_serializer import ImageMediaSerializer
 
-
 class GeneralSettingsSerializer(serializers.ModelSerializer):
     enamad_image_data = ImageMediaSerializer(source='enamad_image', read_only=True)
     logo_image_data = ImageMediaSerializer(source='logo_image', read_only=True)

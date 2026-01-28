@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from src.form.messages.messages import FORM_FIELD_ERRORS
 
-
 class ContactFormSubmissionCreateSerializer(serializers.Serializer):
     
     form_data = serializers.DictField(

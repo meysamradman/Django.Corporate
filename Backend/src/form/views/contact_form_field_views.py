@@ -26,7 +26,6 @@ from src.form.messages.messages import FORM_FIELD_SUCCESS, FORM_FIELD_ERRORS
 from src.user.access_control import PermissionRequiredMixin
 from src.form.utils.cache import FormCacheKeys, FormCacheManager
 
-
 class ContactFormFieldViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     queryset = ContactFormField.objects.all()
@@ -44,7 +43,6 @@ class ContactFormFieldViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         'update': 'forms.manage',
         'partial_update': 'forms.manage',
         'destroy': 'forms.manage',
-        # 'get_fields_for_platform' is public (AllowAny) - not in permission_map
     }
     permission_denied_message = FORM_FIELD_ERRORS.get('permission_denied', 'شما اجازه دسترسی به این بخش را ندارید')
     

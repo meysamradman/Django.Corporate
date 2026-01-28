@@ -4,7 +4,6 @@ from django.db import models
 from src.core.models import BaseModel, Province, City
 from src.media.models.media import ImageMedia
 
-
 class UserProfile(BaseModel):
 
     user = models.OneToOneField(
@@ -16,7 +15,6 @@ class UserProfile(BaseModel):
         help_text="The user this profile belongs to"
     )
     
-    # 2. Primary Content Fields
     first_name = models.CharField(
         max_length=30,
         null=True,
@@ -32,7 +30,6 @@ class UserProfile(BaseModel):
         help_text="The last name of the user"
     )
     
-    # 3. Description Fields
     bio = models.TextField(
         null=True,
         blank=True,
@@ -46,7 +43,6 @@ class UserProfile(BaseModel):
         help_text="The address of the user"
     )
     
-    # 5. Relationships (Secondary)
     profile_picture = models.ForeignKey(
         ImageMedia,
         on_delete=models.SET_NULL,
@@ -78,7 +74,6 @@ class UserProfile(BaseModel):
         help_text="User's city"
     )
     
-    # Metadata Fields
     birth_date = models.DateField(
         null=True,
         blank=True,

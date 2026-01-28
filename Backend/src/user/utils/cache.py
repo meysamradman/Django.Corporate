@@ -2,7 +2,6 @@ from django.core.cache import cache
 from typing import Optional
 from src.core.cache import CacheKeyBuilder, CacheService
 
-
 class UserCacheKeys:
     
     @staticmethod
@@ -74,7 +73,6 @@ class UserCacheKeys:
         if user_id:
             return CacheKeyBuilder.pattern(f"admin:perms:{user_id}")
         return CacheKeyBuilder.pattern("admin:perms")
-
 
 class UserCacheManager:
     

@@ -7,7 +7,6 @@ import re
 from .base import BaseProvider
 from src.ai.messages.messages import AI_ERRORS, GEMINI_ERRORS, GEMINI_PROMPTS
 
-
 class GeminiProvider(BaseProvider):
     
     BASE_URL = os.getenv('GEMINI_API_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta')
@@ -232,13 +231,10 @@ class GeminiProvider(BaseProvider):
             image_file = kwargs['image']
             if hasattr(image_file, 'read'):
                 image_content = image_file.read()
-                # Gemini expects raw bytes for blob in 'inline_data'? 
-                # Actually, correct format for Gemini API (REST) is inlineData with base64
                 if isinstance(image_content, str):
                     image_content = image_content.encode('utf-8')
                 base64_image = base64.b64encode(image_content).decode('utf-8')
                 
-                # Determine mime type
                 mime_type = "image/jpeg"
                 if hasattr(image_file, 'content_type'):
                     mime_type = image_file.content_type

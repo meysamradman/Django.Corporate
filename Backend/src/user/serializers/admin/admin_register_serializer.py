@@ -14,9 +14,6 @@ from src.user.messages import AUTH_ERRORS
 from src.user.utils.national_id_validator import validate_national_id_format
 from src.user.access_control import is_role_forbidden_for_consultant
 
-
-
-
 class AdminRegisterSerializer(serializers.Serializer):
     mobile = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
@@ -30,7 +27,6 @@ class AdminRegisterSerializer(serializers.Serializer):
         required=False
     )
     
-    # نوع ادمین: ادمین معمولی یا مشاور املاک
     admin_role_type = serializers.ChoiceField(
         choices=[('admin', 'Admin'), ('consultant', 'Real Estate Consultant')],
         default='admin',
@@ -39,7 +35,6 @@ class AdminRegisterSerializer(serializers.Serializer):
     
     profile = serializers.DictField(required=False, allow_empty=True)
     
-    # فیلدهای AdminProfile (برای همه admin users)
     first_name = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=50)
     last_name = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=50)
     birth_date = serializers.DateField(required=False, allow_null=True)
@@ -55,14 +50,12 @@ class AdminRegisterSerializer(serializers.Serializer):
     
     role_id = serializers.IntegerField(required=False, allow_null=True)
     
-    # فیلدهای PropertyAgent (فقط برای مشاورین املاک)
     license_number = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=100)
     license_expire_date = serializers.DateField(required=False, allow_null=True)
     specialization = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=200)
     agency_id = serializers.IntegerField(required=False, allow_null=True)
     is_verified = serializers.BooleanField(required=False, default=False)
     
-    # فیلدهای SEO برای PropertyAgent (اختیاری) - فقط فیلدهای SEOMixin
     meta_title = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=70)
     meta_description = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=300)
     og_title = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=70)
@@ -189,23 +182,22 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
     
     def validate_license_number(self, value):
-        """اعتبارسنجی شماره پروانه مشاور"""
+        
         if not value or value.strip() == "":
             return None
-        # چک یکتا بودن
         from src.real_estate.models import PropertyAgent
         if PropertyAgent.objects.filter(license_number=value).exists():
             raise serializers.ValidationError("شماره پروانه تکراری است")
         return value.strip()
     
     def validate_license_expire_date(self, value):
-        """اعتبارسنجی تاریخ انقضای پروانه"""
+        
         if value and value < datetime.now().date():
             raise serializers.ValidationError("تاریخ انقضای پروانه نمی‌تواند در گذشته باشد")
         return value
     
     def validate_agency_id(self, value):
-        """اعتبارسنجی آژانس املاک"""
+        
         if value is None:
             return value
         try:
@@ -216,7 +208,7 @@ class AdminRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError("آژانس یافت نشد")
     
     def validate_og_image_id(self, value):
-        """اعتبارسنجی تصویر OG"""
+        
         if value is None:
             return value
         try:
@@ -238,7 +230,6 @@ class AdminRegisterSerializer(serializers.Serializer):
                 'non_field_errors': AUTH_ERRORS.get("auth_email_or_mobile_required")
             })
         
-        # پردازش profile data
         profile_data = data.get('profile', {})
         if profile_data:
             for field in ['first_name', 'last_name', 'birth_date', 'national_id', 'address', 'phone', 'bio', 'province_id', 'city_id']:
@@ -253,17 +244,14 @@ class AdminRegisterSerializer(serializers.Serializer):
                 'profile_picture': AUTH_ERRORS.get("auth_validation_error")
             })
         
-        # اعتبارسنجی فیلدهای PropertyAgent برای مشاورین املاک
         admin_role_type = data.get('admin_role_type', 'admin')
         
         if admin_role_type == 'consultant':
-            # مشاور املاک نمی‌تواند سوپرادمین باشد
             if data.get('is_superuser') is True:
                 raise serializers.ValidationError({
                     'is_superuser': "مشاورین املاک نمی‌توانند دسترسی سوپرادمین داشته باشند"
                 })
             
-            # مشاور املاک نمی‌تواند نقش‌های ممنوعه داشته باشد
             role_id = data.get('role_id')
             if role_id:
                 try:
@@ -276,19 +264,16 @@ class AdminRegisterSerializer(serializers.Serializer):
                 except AdminRole.DoesNotExist:
                     pass
 
-            # برای مشاورین، license_number اجباری است
             if not data.get('license_number'):
                 raise serializers.ValidationError({
                     'license_number': 'شماره پروانه برای مشاورین املاک الزامی است'
                 })
-            # چک کنیم first_name و last_name برای PropertyAgent داشته باشیم
             if not data.get('first_name') or not data.get('last_name'):
                 raise serializers.ValidationError({
                     'non_field_errors': 'نام و نام خانوادگی برای مشاورین املاک الزامی است'
                 })
         
         return data
-
 
 class AdminCreateRegularUserSerializer(serializers.Serializer):
     identifier = serializers.CharField(required=True)

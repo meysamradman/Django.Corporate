@@ -287,7 +287,6 @@ export const aiApi = {
         }>> => {
             const endpoint = '/admin/ai-chat/send-message/';
 
-            // If we have a file, we must use FormData
             if (data.file) {
                 const formData = new FormData();
                 formData.append('message', data.message);
@@ -302,9 +301,6 @@ export const aiApi = {
                     formData.append('conversation_history', JSON.stringify(data.conversation_history));
                 }
 
-                // API helper usually handles content-type for FormData automatically,
-                // but let's make sure our api wrapper supports it.
-                // Assuming api.post handles FormData correctly (most axios wrappers do)
                 return await api.post<{
                     message: string;
                     reply: string;
@@ -313,7 +309,6 @@ export const aiApi = {
                 }>(endpoint, formData as unknown as Record<string, unknown>);
             }
 
-            // Normal JSON request
             return await api.post<{
                 message: string;
                 reply: string;

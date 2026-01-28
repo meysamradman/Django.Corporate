@@ -26,10 +26,8 @@ export function DataTableRowActions<TData>({
 
   const availableActions = actions
     .filter((action) => {
-      // 1. Condition check (contextual visibility)
       if (action.condition && !action.condition(item)) return false;
 
-      // 2. Permission check (security visibility)
       if (action.permission) {
         const permissions = Array.isArray(action.permission) ? action.permission : [action.permission];
         const hasAccess = action.requireAllPermissions
@@ -44,7 +42,6 @@ export function DataTableRowActions<TData>({
       return true;
     })
     .map((action) => {
-      // 3. Logic check (contextual enablement)
       let isDisabled = action.isDisabled ? action.isDisabled(item) : false;
       return { ...action, isDisabled };
     });

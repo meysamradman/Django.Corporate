@@ -4,7 +4,6 @@ from .serializers import CaptchaResponseSerializer, CaptchaVerifySerializer
 from .views import CaptchaGenerateView, CaptchaVerifyView
 from .mixins import CaptchaRequiredMixin
 
-
 __all__ = [
     'CaptchaService',
     'CaptchaResponseSerializer',

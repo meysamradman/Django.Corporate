@@ -15,7 +15,6 @@ from src.settings.services.contact_email_service import (
 from src.settings.messages.messages import SETTINGS_SUCCESS, SETTINGS_ERRORS
 from src.user.access_control import PermissionRequiredMixin
 
-
 class ContactEmailViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     queryset = ContactEmail.objects.all()
     serializer_class = ContactEmailSerializer

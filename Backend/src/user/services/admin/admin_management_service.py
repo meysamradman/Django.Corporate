@@ -9,7 +9,6 @@ from src.media.models import ImageMedia
 from src.media.services.media_services import MediaAdminService as MediaService
 from src.user.services.admin.admin_profile_service import AdminProfileService
 
-
 def _clear_permission_cache(user_id):
     try:
         from src.user.access_control import AdminPermissionCache, PermissionValidator, PermissionHelper
@@ -18,7 +17,6 @@ def _clear_permission_cache(user_id):
         PermissionHelper.clear_user_cache(user_id)
     except ImportError:
         pass
-
 
 class AdminManagementService:
     @staticmethod

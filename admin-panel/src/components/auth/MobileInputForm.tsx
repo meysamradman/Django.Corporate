@@ -84,7 +84,6 @@ export function MobileInputForm({
     }
   });
 
-
   const isLoading = loading || isSubmitting || captchaLoading;
 
   return (

@@ -17,7 +17,6 @@ from src.real_estate.serializers.admin.feature_serializer import (
 from src.real_estate.services.admin.feature_services import PropertyFeatureAdminService
 from src.real_estate.messages.messages import FEATURE_SUCCESS, FEATURE_ERRORS
 
-
 class PropertyFeatureAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
     

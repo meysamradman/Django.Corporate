@@ -243,13 +243,10 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
           <div className="flex flex-col flex-wrap gap-2 md:flex-row md:items-center md:gap-2">
             {customHeaderActions}
             {filterConfig.map((filter) => {
-              // ✅ Check if it's a non-column filter FIRST to avoid warning
               const isNonColumnFilter = ['category', 'property_type', 'date_from', 'date_to', 'date_range', 'date_range_dropdown'].includes(filter.columnId);
 
-              // Only call getColumn if it's not a non-column filter
               const column = isNonColumnFilter ? null : table.getColumn(filter.columnId);
 
-              // Skip if no column found and it's not a non-column filter
               if (!column && !isNonColumnFilter) return null;
 
               if (filter.type === 'hierarchical') {
@@ -267,7 +264,6 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
               }
 
               if (filter.type === 'date_range') {
-                // Get range from filters, or construct from date_from/date_to
                 const rangeValue = clientFilters[filter.columnId as keyof TClientFilters] as { from?: string; to?: string } | undefined;
                 const dateFrom = clientFilters['date_from' as keyof TClientFilters] as string | undefined;
                 const dateTo = clientFilters['date_to' as keyof TClientFilters] as string | undefined;
@@ -280,9 +276,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                     title={filter.title}
                     value={currentRange}
                     onChange={(range) => {
-                      // Store the range object for UI
                       onFilterChange(filter.columnId, range);
-                      // Also set date_from and date_to for backend compatibility
                       onFilterChange('date_from', range.from);
                       onFilterChange('date_to', range.to);
                     }}
@@ -292,7 +286,6 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
               }
 
               if (filter.type === 'date_range_dropdown') {
-                // Get range from filters, or construct from date_from/date_to
                 const rangeValue = clientFilters[filter.columnId as keyof TClientFilters] as { from?: string; to?: string } | undefined;
                 const dateFrom = clientFilters['date_from' as keyof TClientFilters] as string | undefined;
                 const dateTo = clientFilters['date_to' as keyof TClientFilters] as string | undefined;
@@ -306,9 +299,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                     options={(filter.options || []) as DateRangeOption[]}
                     value={currentRange}
                     onChange={(range) => {
-                      // Store the range object for UI
                       onFilterChange(filter.columnId, range);
-                      // Also set date_from and date_to for backend compatibility
                       onFilterChange('date_from', range.from);
                       onFilterChange('date_to', range.to);
                     }}
@@ -343,7 +334,6 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                 );
               }
 
-              // Default to faceted filter for backward compatibility
               return (
                 <DataTableFacetedFilterSimple
                   key={filter.columnId}

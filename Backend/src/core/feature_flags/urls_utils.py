@@ -2,7 +2,6 @@ from django.urls import include, path
 from .services import is_feature_active
 from .models import FeatureFlag
 
-
 def feature_urls(feature_key: str, prefix: str, urlconf: str):
     try:
         flag_exists = FeatureFlag.objects.filter(key=feature_key).exists()
@@ -15,7 +14,6 @@ def feature_urls(feature_key: str, prefix: str, urlconf: str):
     except Exception:
         return [path(prefix, include(urlconf))]
     return []
-
 
 def feature_path(feature_key: str, prefix: str, view, name: str = None):
     try:

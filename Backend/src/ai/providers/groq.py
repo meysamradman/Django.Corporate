@@ -8,7 +8,6 @@ from .base import BaseProvider
 from src.ai.utils.cache import AICacheKeys
 from src.ai.messages.messages import GROQ_ERRORS, GROQ_PROMPTS, AI_SYSTEM_MESSAGES, DEEPSEEK_SYSTEM_MESSAGES
 
-
 class GroqProvider(BaseProvider):
     
     BASE_URL = os.getenv('GROQ_API_BASE_URL', 'https://api.groq.com/openai/v1')

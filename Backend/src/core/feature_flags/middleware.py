@@ -20,7 +20,6 @@ EXEMPT_PATHS = [
 
 FEATURE_URL_MAPPING = get_url_mapping()
 
-
 class FeatureFlagMiddleware(MiddlewareMixin):
     
     def process_request(self, request):

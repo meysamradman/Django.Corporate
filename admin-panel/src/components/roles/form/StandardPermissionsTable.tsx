@@ -56,7 +56,6 @@ export function StandardPermissionsTable({
   getResourceIcon,
   allPermissions = [],
 }: StandardPermissionsTableProps) {
-  // بررسی اینکه آیا admin.manage انتخاب شده است
   const isAdminManageSelected = useMemo(() => {
     const adminManagePerm = allPermissions.find((p: any) => {
       const pKey = (p as any).original_key || `${(p as any).resource || ''}.${(p as any).action || ''}`;

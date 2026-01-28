@@ -11,9 +11,7 @@ def save_ai_content_to_portfolio(
     destination_data: Dict[str, Any],
     admin
 ) -> Dict[str, Any]:
-    """
-    Save AI-generated content to Portfolio.
-    """
+    
     try:
         with transaction.atomic():
             base_slug = content_data.get('slug', slugify(content_data['title']))

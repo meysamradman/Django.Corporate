@@ -27,7 +27,6 @@ const getMailboxes = (counts?: EmailSidebarProps['mailboxCounts']): MailboxItem[
   { id: "trash", label: "سطل زباله", icon: <Trash2 className="size-4" />, count: counts?.trash },
 ];
 
-
 export function EmailSidebar({ selectedMailbox, onMailboxChange, onComposeClick, mailboxCounts }: EmailSidebarProps) {
   const mailboxes = getMailboxes(mailboxCounts);
   

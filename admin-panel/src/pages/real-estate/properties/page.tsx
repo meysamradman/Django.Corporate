@@ -235,7 +235,6 @@ export default function PropertyPage() {
     mutationFn: (propertyId: number) => realEstateApi.deleteProperty(propertyId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['properties'] });
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'ملک' }));
     },
     onError: (_error) => {
@@ -247,7 +246,6 @@ export default function PropertyPage() {
     mutationFn: (propertyIds: number[]) => realEstateApi.bulkDeleteProperties(propertyIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['properties'] });
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'ملک‌ها' }));
       setRowSelection({});
     },
@@ -385,7 +383,6 @@ export default function PropertyPage() {
   };
 
   const handlePrintAction = async (printAll: boolean = false) => {
-    // If not printing all, use selection or current page data
     if (!printAll) {
       const selectedIds = Object.keys(rowSelection).filter(key => (rowSelection as any)[key]).map(idx => data[parseInt(idx)].id);
       if (selectedIds.length > 0) {
@@ -396,7 +393,6 @@ export default function PropertyPage() {
       return;
     }
 
-    // Fetch all IDs matching current filters
     try {
       showWarning("در حال آماده‌سازی فایل پرینت برای تمامی موارد...");
       const response = await realEstateApi.getPropertyList({

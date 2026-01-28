@@ -9,7 +9,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class SecurityLoggingMiddleware(MiddlewareMixin):
     
     def process_request(self, request):
@@ -39,7 +38,6 @@ class SecurityLoggingMiddleware(MiddlewareMixin):
         
         if attempts >= 5:
             pass
-
 
 class RateLimitMiddleware(MiddlewareMixin):
     
@@ -72,7 +70,6 @@ class RateLimitMiddleware(MiddlewareMixin):
         cache_key = f"rate_limit_{operation_type}_{ip}"
         requests = cache.get(cache_key, 0)
         
-        # 🔧 افزایش محدودیت‌ها برای rate limiting
         limits = {
             'admin_login': 10,    # 🔧 افزایش یافته: 5 → 10
             'captcha': 30,        # 🔧 افزایش یافته: 10 → 30
@@ -86,7 +83,6 @@ class RateLimitMiddleware(MiddlewareMixin):
         cache.set(cache_key, requests + 1, timeout=60)
         return False
 
-
 class CSRFExemptAdminMiddleware(MiddlewareMixin):
     
     def process_view(self, request, callback, callback_args, callback_kwargs):
@@ -98,39 +94,22 @@ class CSRFExemptAdminMiddleware(MiddlewareMixin):
             
         return None
 
-
-# AdminSessionExpiryMiddleware به user/middleware منتقل شد
-# این middleware اکنون در src.user.middleware.admin_session_middleware قرار دارد
-# برای بهینه‌سازی امنیت و سرعت بهینه‌سازی شده است
-
-
 class SecurityHeadersMiddleware(MiddlewareMixin):
-    """
-    اضافه کردن Security Headers به همه Response ها
-    رفع مشکلات OWASP ZAP Scan
-    """
-    
+
     def process_response(self, request, response):
-        # Anti-clickjacking (OWASP ZAP: Missing Anti-clickjacking Header)
         response['X-Frame-Options'] = 'DENY'
         
-        # Content type sniffing prevention (OWASP ZAP: X-Content-Type-Options Missing)
         response['X-Content-Type-Options'] = 'nosniff'
         
-        # XSS Protection
         response['X-XSS-Protection'] = '1; mode=block'
         
-        # Referrer Policy
         response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
         
-        # Permissions Policy
         response['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
         
-        # CSP for API responses (Anti-clickjacking)
         if '/api/' in request.path:
             response['Content-Security-Policy'] = "frame-ancestors 'none'"
         
-        # Remove Server header to prevent version leakage
         if 'Server' in response:
             del response['Server']
         

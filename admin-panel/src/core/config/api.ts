@@ -6,7 +6,6 @@ import { sessionManager } from '../auth/session';
 import { env } from './environment';
 import { handleRateLimitError } from '../utils/rateLimitHandler';
 
-// 🔧 Rate Limit Handling: تعداد تلاش مجدد و تأخیر exponential backoff
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY_BASE = 1000; // 1 second
 
@@ -63,9 +62,7 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: number };
     const endpoint = originalRequest?.url || 'unknown';
 
-    // 🔧 Rate Limit Handling: اگر 429 شد، چند بار retry کن
     if (error.response?.status === 429 && originalRequest && !originalRequest._retry) {
-      // ثبت خطای rate limit
       const retryAfterHeader = error.response.headers['retry-after'];
       const retryAfter = retryAfterHeader ? parseInt(retryAfterHeader, 10) : 60;
 
@@ -76,16 +73,13 @@ axiosInstance.interceptors.response.use(
       if (originalRequest._retry < MAX_RETRY_ATTEMPTS) {
         originalRequest._retry++;
 
-        // Exponential backoff: 1s, 2s, 4s
         const delay = RETRY_DELAY_BASE * Math.pow(2, originalRequest._retry - 1);
 
-        // منتظر بمون و دوباره امتحان کن
         await new Promise(resolve => setTimeout(resolve, delay));
         return axiosInstance(originalRequest);
       }
     }
 
-    // Session expiry handling
     if (error.response?.status === 401) {
       sessionManager.handleExpiredSession();
     }
@@ -162,10 +156,8 @@ export const api = {
       onDownloadProgress,
     });
 
-    // Check if the response is actually JSON (error) even though we asked for a blob
     const contentType = response.headers['content-type'];
     if (contentType && contentType.includes('application/json')) {
-      // It's likely an error message disguised as a blob
       const text = await response.data.text();
       try {
         const errorData = JSON.parse(text);

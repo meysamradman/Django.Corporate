@@ -101,7 +101,6 @@ export default function Info({
         <div className="mt-8 space-y-4">
           <Label className="text-base font-semibold text-font-p mb-2 block">نوع دسترسی کاربر</Label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Admin Selection Card */}
             <div
               onClick={() => {
                 if (editMode) {
@@ -135,7 +134,6 @@ export default function Info({
               </div>
             </div>
 
-            {/* Consultant Selection Card */}
             <div
               onClick={() => {
                 if (editMode) {

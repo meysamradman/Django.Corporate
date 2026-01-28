@@ -10,7 +10,6 @@ const normalizePathname = (pathname: string): string => {
     return "/";
   }
 
-  // حذف trailing slash (به جز root)
   if (pathname.length > 1 && pathname.endsWith("/")) {
     return pathname.slice(0, -1);
   }

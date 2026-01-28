@@ -22,7 +22,6 @@ BASE_ADMIN_PERMISSIONS_SIMPLE = list(BASE_ADMIN_PERMISSIONS.keys())
 from src.user.models import AdminUserRole
 import os
 
-
 @method_decorator(csrf_exempt, name='dispatch')
 class AdminLoginView(APIView):
     authentication_classes = []

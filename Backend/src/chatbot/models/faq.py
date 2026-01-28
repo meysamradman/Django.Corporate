@@ -2,7 +2,6 @@ from django.db import models
 from src.core.models import BaseModel
 from src.chatbot.utils.cache import ChatbotCacheManager
 
-
 class FAQ(BaseModel):
 
     question = models.CharField(
@@ -12,7 +11,6 @@ class FAQ(BaseModel):
         help_text="Frequently asked question"
     )
     
-    # 3. Description Fields
     answer = models.TextField(
         verbose_name="Answer",
         help_text="Answer to the question"
@@ -29,7 +27,6 @@ class FAQ(BaseModel):
         help_text="Patterns for matching user queries"
     )
     
-    # Order Field
     order = models.PositiveIntegerField(
         default=0,
         db_index=True,

@@ -6,13 +6,10 @@ from src.user.services.admin_performance_service import AdminPerformanceService
 
 @receiver(post_save, sender=Ticket)
 def track_ticket_analytics(sender, instance, created, **kwargs):
-    """
-    Tracks ticket analytics on creation and updates
-    """
+    
     if created:
         TicketStatsService.track_new_ticket(instance)
     else:
-        # Check if status or priority changed
         status_changed = hasattr(instance, '_old_status') and instance._old_status != instance.status
         priority_changed = hasattr(instance, '_old_priority') and instance._old_priority != instance.priority
         
@@ -23,9 +20,7 @@ def track_ticket_analytics(sender, instance, created, **kwargs):
                 old_priority=getattr(instance, '_old_priority', None)
             )
             
-        # Admin Performance Tracking
         if status_changed and instance.status == 'resolved' and instance.assigned_admin:
-            # Calculate response time if needed
             response_time = None
             if instance.created_at:
                 diff = timezone.now() - instance.created_at

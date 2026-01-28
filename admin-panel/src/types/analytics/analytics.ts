@@ -64,7 +64,6 @@ export interface DashboardStats {
   total_inquiries: number;
   new_inquiries: number;
 
-  // Advanced Real Estate Metrics
   total_views: number;
   total_favorites: number;
   total_listing_value: number;

@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import Dict, List, Set, Optional, Any
 from .config import PERMISSIONS
 
-
 @dataclass(frozen=True)
 class Permission:
     id: str
@@ -13,7 +12,6 @@ class Permission:
     requires_superadmin: bool = False
     is_standalone: bool = False
     permission_category: Optional[str] = None
-
 
 class PermissionRegistry:
     _permissions: Dict[str, Permission] = {}
@@ -60,7 +58,6 @@ class PermissionRegistry:
             },
             "modules": list(cls.get_modules()),
         }
-
 
 for perm_id, perm_data in PERMISSIONS.items():
     PermissionRegistry.register(Permission(

@@ -19,19 +19,14 @@ from src.real_estate.services.admin import FloorPlanMediaService
 from src.real_estate.messages import FLOOR_PLAN_SUCCESS, FLOOR_PLAN_ERRORS
 from src.user.access_control import real_estate_permission, PermissionRequiredMixin
 
-
 class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
-    """
-    ViewSet for managing Floor Plans in admin panel
-    دقیقاً مثل Portfolio با APIResponse و Messages
-    """
+    
     permission_classes = [real_estate_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'description', 'unit_type']
     ordering_fields = ['created_at', 'updated_at', 'display_order', 'floor_number', 'price']
     ordering = ['property_obj', 'display_order', 'floor_number']
     
-    # Permission map
     permission_map = {
         'list': 'real_estate.read',
         'retrieve': 'real_estate.read',
@@ -47,7 +42,7 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_denied_message = FLOOR_PLAN_ERRORS["floor_plan_not_authorized"]
     
     def get_queryset(self):
-        """Optimized queryset with related data"""
+        
         if self.action == 'list':
             return RealEstateFloorPlan.objects.select_related(
                 'property_obj'
@@ -64,7 +59,7 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             return RealEstateFloorPlan.objects.all()
     
     def get_serializer_class(self):
-        """Return appropriate serializer based on action"""
+        
         if self.action == 'list':
             return FloorPlanAdminListSerializer
         elif self.action == 'create':
@@ -75,10 +70,9 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             return FloorPlanAdminDetailSerializer
     
     def list(self, request, *args, **kwargs):
-        """List all floor plans"""
+        
         queryset = self.filter_queryset(self.get_queryset())
         
-        # Filter by property if provided
         property_id = request.query_params.get('property_id')
         if property_id:
             queryset = queryset.filter(property_obj_id=property_id)
@@ -91,7 +85,7 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         )
     
     def retrieve(self, request, *args, **kwargs):
-        """Get single floor plan"""
+        
         try:
             instance = self.get_object()
         except RealEstateFloorPlan.DoesNotExist:
@@ -108,12 +102,10 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         )
     
     def create(self, request, *args, **kwargs):
-        """Create new floor plan"""
-        # Extract media data
+        
         image_ids = self._extract_image_ids(request)
         image_files = request.FILES.getlist('image_files')
         
-        # Validate upload limit
         upload_max = getattr(settings, 'FLOOR_PLAN_IMAGE_UPLOAD_MAX', 10)
         total_images = len(image_ids) + len(image_files)
         if total_images > upload_max:
@@ -126,13 +118,11 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 ]
             })
         
-        # Validate and create
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
         floor_plan = serializer.save()
         
-        # Add images if provided
         if image_files or image_ids:
             FloorPlanMediaService.add_images_bulk(
                 floor_plan_id=floor_plan.id,
@@ -141,7 +131,6 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
             floor_plan.refresh_from_db()
         
-        # Return detail
         floor_plan = RealEstateFloorPlan.objects.prefetch_related('images__image').get(id=floor_plan.id)
         detail_serializer = FloorPlanAdminDetailSerializer(floor_plan)
         
@@ -152,21 +141,18 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        """Update floor plan"""
+        
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         
-        # Extract media sync data
         image_ids = self._extract_image_ids(request)
         main_image_id = request.data.get('main_image_id')
         
-        # Validate and update
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         
         floor_plan = serializer.save()
         
-        # Sync images if provided
         if image_ids is not None:
             FloorPlanMediaService.sync_images(
                 floor_plan_id=floor_plan.id,
@@ -175,7 +161,6 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
             floor_plan.refresh_from_db()
         
-        # Return updated detail
         floor_plan = RealEstateFloorPlan.objects.prefetch_related('images__image').get(pk=floor_plan.pk)
         detail_serializer = FloorPlanAdminDetailSerializer(floor_plan)
         
@@ -186,7 +171,7 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         )
     
     def destroy(self, request, *args, **kwargs):
-        """Delete floor plan"""
+        
         instance = self.get_object()
         instance.delete()
         
@@ -197,11 +182,7 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], url_path='add-images')
     def add_images(self, request, pk=None):
-        """
-        Add images to floor plan
-        POST /floor-plans/{id}/add-images/
-        Body: image_files (files), image_ids (list)
-        """
+        
         floor_plan = self.get_object()
         
         image_ids = self._extract_image_ids(request)
@@ -241,11 +222,7 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], url_path='remove-image')
     def remove_image(self, request, pk=None):
-        """
-        Remove single image from floor plan
-        POST /floor-plans/{id}/remove-image/
-        Body: image_id (int)
-        """
+        
         floor_plan = self.get_object()
         image_id = request.data.get('image_id')
         
@@ -283,11 +260,7 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], url_path='set-main-image')
     def set_main_image(self, request, pk=None):
-        """
-        Set main image for floor plan
-        POST /floor-plans/{id}/set-main-image/
-        Body: image_id (int)
-        """
+        
         floor_plan = self.get_object()
         image_id = request.data.get('image_id')
         
@@ -319,11 +292,7 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], url_path='sync-images')
     def sync_images(self, request, pk=None):
-        """
-        Sync floor plan images (replace all)
-        POST /floor-plans/{id}/sync-images/
-        Body: image_ids (list), main_image_id (int, optional)
-        """
+        
         floor_plan = self.get_object()
         image_ids = self._extract_image_ids(request)
         main_image_id = request.data.get('main_image_id')
@@ -355,7 +324,7 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
     
     def _extract_image_ids(self, request):
-        """Extract image IDs from request (JSON, comma-separated, or list)"""
+        
         import json
         
         image_ids = []

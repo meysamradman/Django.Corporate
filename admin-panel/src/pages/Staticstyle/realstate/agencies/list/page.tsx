@@ -10,7 +10,6 @@ import { Avatar, AvatarFallback } from "@/components/elements/Avatar";
 import { PaginationControls } from "@/components/shared/Pagination";
 import { Plus, Search, Phone, Mail, Award, Edit, Trash2, Eye, Star, MapPin, Building2 } from "lucide-react";
 
-// نوع داده استاتیک برای آژانس‌های املاک
 interface AgencyItem {
   id: number;
   name: string;
@@ -25,7 +24,6 @@ interface AgencyItem {
   is_active: boolean;
 }
 
-// داده‌های استاتیک نمونه
 const staticAgencyData: AgencyItem[] = [
   {
     id: 1,
@@ -115,9 +113,7 @@ export default function AgenciesListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
 
-  // فیلتر کردن داده‌ها
   const filteredData = staticAgencyData.filter((item) => {
-    // جستجو
     if (searchValue) {
       const searchLower = searchValue.toLowerCase();
       const matchesSearch =
@@ -129,12 +125,10 @@ export default function AgenciesListPage() {
       if (!matchesSearch) return false;
     }
 
-    // فیلتر وضعیت
     if (statusFilter !== "all" && item.status !== statusFilter) {
       return false;
     }
 
-    // فیلتر ویژه
     if (featuredFilter !== "all") {
       const isFeatured = featuredFilter === "true";
       if (item.is_featured !== isFeatured) {
@@ -145,7 +139,6 @@ export default function AgenciesListPage() {
     return true;
   });
 
-  // Pagination
   const totalPages = Math.ceil(filteredData.length / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
@@ -171,7 +164,6 @@ export default function AgenciesListPage() {
         </Button>
       </PageHeader>
 
-      {/* فیلترها و جستجو */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4">
@@ -221,7 +213,6 @@ export default function AgenciesListPage() {
         </CardContent>
       </Card>
 
-      {/* کارت‌های آژانس‌ها */}
       {paginatedData.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
@@ -334,7 +325,6 @@ export default function AgenciesListPage() {
             })}
           </div>
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <Card>
               <CardContent className="pt-6">

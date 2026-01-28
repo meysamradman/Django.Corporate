@@ -6,13 +6,11 @@ from src.form.models import ContactFormField
 from src.form.messages.messages import FORM_FIELD_ERRORS
 from src.form.utils.cache import FormCacheKeys, FormCacheManager
 
-
 def get_contact_form_fields(is_active=None):
     queryset = ContactFormField.objects.all()
     if is_active is not None:
         queryset = queryset.filter(is_active=is_active)
     return queryset.order_by('order', 'field_key')
-
 
 def get_contact_form_field(field_id=None, public_id=None, field_key=None):
     if field_id:
@@ -44,7 +42,6 @@ def get_contact_form_field(field_id=None, public_id=None, field_key=None):
     except ContactFormField.DoesNotExist:
         raise ContactFormField.DoesNotExist(FORM_FIELD_ERRORS['field_not_found'])
 
-
 def get_active_fields_for_platform(platform):
     if platform not in ['website', 'mobile_app']:
         raise ValidationError(FORM_FIELD_ERRORS['invalid_platform'])
@@ -54,7 +51,6 @@ def get_active_fields_for_platform(platform):
         platforms__contains=[platform]
     ).order_by('order', 'field_key')
 
-
 @transaction.atomic
 def create_contact_form_field(validated_data):
     try:
@@ -63,7 +59,6 @@ def create_contact_form_field(validated_data):
         return field
     except Exception as e:
         raise ValidationError(FORM_FIELD_ERRORS['field_create_error'].format(error=str(e)))
-
 
 @transaction.atomic
 def update_contact_form_field(field, validated_data):
@@ -75,7 +70,6 @@ def update_contact_form_field(field, validated_data):
         return field
     except Exception as e:
         raise ValidationError(FORM_FIELD_ERRORS['field_update_error'].format(error=str(e)))
-
 
 @transaction.atomic
 def delete_contact_form_field(field):

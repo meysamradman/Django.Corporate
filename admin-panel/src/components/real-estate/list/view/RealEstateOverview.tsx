@@ -65,7 +65,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
   const labelsCount = property.labels?.length || 0;
   const tagsCount = property.tags?.length || 0;
 
-  // State for floor plan images (lazy loaded)
   const [floorPlanImages, setFloorPlanImages] = useState<Record<number, FloorPlanImage[]>>({});
   const [loadingImages, setLoadingImages] = useState<Record<number, boolean>>({});
 
@@ -75,7 +74,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
   };
 
   const loadFloorPlanImages = async (floorPlanId: number) => {
-    // If already loaded, don't load again
     if (floorPlanImages[floorPlanId]) return;
 
     try {
@@ -251,7 +249,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
         </CardWithIcon>
       </div>
 
-      {/* Details Section - Two Column Layout */}
       <CardWithIcon
         icon={Info}
         title="جزئیات"
@@ -261,7 +258,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
         contentClassName="space-y-0"
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Column 1 */}
           <div className="space-y-4">
             {property.property_type && (
               <div className="flex justify-between items-start border-b pb-3">
@@ -295,7 +291,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
             )}
           </div>
 
-          {/* Column 2 */}
           <div className="space-y-4">
             {property.price && (
               <div className="flex justify-between items-start border-b pb-3">
@@ -311,7 +306,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
             )}
           </div>
 
-          {/* Column 3 */}
           <div className="space-y-4">
             {property.land_area && (
               <div className="flex justify-between items-start border-b pb-3">
@@ -323,9 +317,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
         </div>
       </CardWithIcon>
 
-      {/* Additional Details Section */}
-
-      {/* Address Section with Google Maps */}
       {(property.address || property.city_name || property.province_name || property.postal_code || property.neighborhood) && (
         <CardWithIcon
           icon={MapPin}
@@ -392,10 +383,8 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
         </CardWithIcon>
       )}
 
-      {/* Features Section - Separated as requested */}
       <RealEstateFeatures property={property} />
 
-      {/* Floor Plans Section */}
       {property.floor_plans && property.floor_plans.length > 0 && (
         <CardWithIcon
           icon={Home}
@@ -410,7 +399,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
             collapsible
             className="w-full"
             onValueChange={(value) => {
-              // Load images when accordion opens
               if (value) {
                 const floorPlanId = parseInt(value.replace('floor-plan-', ''));
                 if (floorPlanId && property.floor_plans?.some(fp => fp.id === floorPlanId)) {
@@ -457,14 +445,12 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
                   </AccordionTrigger>
                   <AccordionContent className="pt-0 pb-4 pr-4">
                     <div className="space-y-4">
-                      {/* Description */}
                       {floorPlan.description && (
                         <div className="text-font-s bg-bg/50 rounded-lg p-4">
                           <p className="text-justify leading-relaxed">{floorPlan.description}</p>
                         </div>
                       )}
 
-                      {/* Images */}
                       {(images.length > 0 || isLoading || (floorPlan.main_image && (floorPlan.main_image.file_url || floorPlan.main_image.url))) && (
                         <div className="space-y-3">
                           <h5 className="text-font-s font-medium ">تصاویر پلان:</h5>
@@ -516,7 +502,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
                         </div>
                       )}
 
-                      {/* Additional Info */}
                       {(floorPlan.floor_number !== null && floorPlan.floor_number !== undefined) || floorPlan.unit_type ? (
                         <div className="flex flex-wrap gap-4 text-font-s pt-2 border-t">
                           {floorPlan.floor_number !== null && floorPlan.floor_number !== undefined && (

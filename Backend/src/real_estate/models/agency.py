@@ -6,7 +6,6 @@ from src.real_estate.models.seo import SEOMixin
 from src.core.models import City, Province
 from src.real_estate.models.managers import RealEstateAgencyQuerySet
 
-
 class RealEstateAgency(BaseModel, SEOMixin):
     name = models.CharField(
         max_length=200,
@@ -122,7 +121,6 @@ class RealEstateAgency(BaseModel, SEOMixin):
         verbose_name_plural = 'Real Estate Agencies'
         ordering = ['-rating', 'name']
         indexes = [
-            # Composite indexes for common query patterns
             models.Index(fields=['is_active', '-rating']),
             models.Index(fields=['province', 'is_active']),
             models.Index(fields=['city', 'is_active']),

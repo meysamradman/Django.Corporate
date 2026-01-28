@@ -1,12 +1,8 @@
 from django.db import models
 from django.db.models import Prefetch, Count, Q
 
-
 class PropertyQuerySet(models.QuerySet):
-    """
-    Custom QuerySet for Property model with performance optimizations
-    """
-    
+
     def published(self):
         return self.filter(is_published=True, is_public=True)
     
@@ -14,10 +10,7 @@ class PropertyQuerySet(models.QuerySet):
         return self.filter(is_active=True)
     
     def without_seo(self):
-        """
-        Defer SEO fields for better performance in listing queries
-        Usage: Property.objects.published().without_seo()
-        """
+        
         return self.defer(
             'meta_title', 'meta_description',
             'og_title', 'og_description', 'og_image_id',
@@ -52,16 +45,7 @@ class PropertyQuerySet(models.QuerySet):
         )
     
     def for_admin_listing(self):
-        """
-        Optimized for admin listing - High Performance (Divar Scale)
         
-        ✅ Optimizations:
-        - select_related for ALL single FKs used in list (including og_image)
-        - annotate(total_media_count) in SQL to avoid Python-level counts
-        - removed defer() on fields used by the Serializer (meta_title, meta_description)
-        - only() strictly limited to fields needed by the serializer
-        - Prefetch for agents to avoid heavy JOINs
-        """
         from django.db.models import Prefetch, Count, PositiveIntegerField
         from django.db.models.functions import Coalesce
         from src.real_estate.models.media import PropertyImage, PropertyVideo, PropertyAudio, PropertyDocument
@@ -121,7 +105,6 @@ class PropertyQuerySet(models.QuerySet):
 
         ).annotate(
 
-            # ✅ SQL-level counts for high performance
             labels_count=Count('labels', distinct=True),
             tags_count=Count('tags', distinct=True),
             features_count=Count('features', distinct=True),
@@ -130,7 +113,6 @@ class PropertyQuerySet(models.QuerySet):
             total_audios_count=Count('audios', distinct=True),
             total_docs_count=Count('documents', distinct=True),
         ).annotate(
-            # ✅ Coalesce to ensure we don't have NULL
             total_media_count=Coalesce(
                 models.F('total_images_count') + 
                 models.F('total_videos_count') + 
@@ -141,7 +123,6 @@ class PropertyQuerySet(models.QuerySet):
             )
         ).defer(
 
-            # ✅ Only heavy fields that are NOT used in the list serializer
             'og_title', 'og_description',
             'canonical_url', 'robots_meta',
             'structured_data', 'hreflang_data',
@@ -166,19 +147,13 @@ class PropertyQuerySet(models.QuerySet):
             'og_image_id', # ✅ Needed for SQL join, must be in only()
         )
 
-
-    
     def for_public_listing(self):
-        """
-        Optimized for public listing - SEO fields deferred for performance
-        """
+        
         return self.published().with_relations().defer(
-            # SEO fields - only needed on detail page
             'meta_title', 'meta_description',
             'og_title', 'og_description', 'og_image_id',
             'canonical_url', 'robots_meta',
             'structured_data', 'hreflang_data',
-            # Heavy fields
             'description',
             'address',
             'extra_attributes',
@@ -324,30 +299,16 @@ class PropertyQuerySet(models.QuerySet):
             qs = qs.filter(is_featured=filters['featured'])
         
         return qs
-    
-    # ==================== Geo Methods (PostgreSQL Standard) ====================
-    
+
     def with_map_coords(self):
-        """املاک با مختصات برای نمایش روی نقشه"""
+        
         return self.filter(
             latitude__isnull=False,
             longitude__isnull=False
         )
     
     def nearby(self, latitude, longitude, radius_km=2.0):
-        """
-        جستجوی املاک نزدیک با bbox ساده (بهینه شده)
         
-        Args:
-            latitude: عرض جغرافیایی
-            longitude: طول جغرافیایی  
-            radius_km: شعاع به کیلومتر
-        
-        Returns:
-            QuerySet املاک در bbox (مستطیل) مشخص شده
-        
-        Note: این متد از PropertyGeoService استفاده می‌کند
-        """
         from src.real_estate.services.admin.property_geo_services import PropertyGeoService
         return PropertyGeoService.search_nearby(
             latitude=latitude,
@@ -357,11 +318,7 @@ class PropertyQuerySet(models.QuerySet):
         )
     
     def in_bbox(self, min_lat, max_lat, min_lon, max_lon):
-        """
-        جستجوی در محدوده مستطیلی
         
-        Note: این متد از PropertyGeoService استفاده می‌کند
-        """
         from src.real_estate.services.admin.property_geo_services import PropertyGeoService
         return PropertyGeoService.search_in_bbox(
             min_lat=min_lat,
@@ -371,31 +328,29 @@ class PropertyQuerySet(models.QuerySet):
             queryset=self
         )
 
-
 class PropertyTypeQuerySet(models.QuerySet):
     
     def active(self):
         return self.filter(is_active=True)
     
     def public(self):
-        """Active types only"""
+        
         return self.filter(is_active=True)
     
     def with_counts(self):
-        """Annotate with property count"""
+        
         return self.annotate(
             property_count=Count('properties', 
                                 filter=Q(properties__is_published=True))
         )
     
     def roots(self):
-        """Get only root types (depth=1)"""
+        
         return self.filter(depth=1)
     
     def for_tree(self):
-        """Optimized fields for tree display"""
+        
         return self.only('id', 'title', 'slug', 'depth', 'path', 'public_id', 'display_order')
-
 
 class PropertyStateQuerySet(models.QuerySet):
     
@@ -408,7 +363,6 @@ class PropertyStateQuerySet(models.QuerySet):
                                 filter=Q(properties__is_published=True))
         )
 
-
 class PropertyLabelQuerySet(models.QuerySet):
     
     def active(self):
@@ -419,7 +373,6 @@ class PropertyLabelQuerySet(models.QuerySet):
             properties_count=Count('properties', 
                                 filter=Q(properties__is_published=True))
         )
-
 
 class PropertyFeatureQuerySet(models.QuerySet):
     
@@ -434,7 +387,6 @@ class PropertyFeatureQuerySet(models.QuerySet):
             properties_count=Count('properties', 
                                 filter=Q(properties__is_published=True))
         )
-
 
 class PropertyTagQuerySet(models.QuerySet):
     
@@ -455,9 +407,6 @@ class PropertyTagQuerySet(models.QuerySet):
                                 filter=Q(properties__is_published=True, properties__is_public=True))
         )
 
-
-
-
 class RealEstateAgencyQuerySet(models.QuerySet):
     
     def active(self):
@@ -473,7 +422,6 @@ class RealEstateAgencyQuerySet(models.QuerySet):
                                 filter=Q(properties__is_published=True))
         )
 
-
 class PropertyAgentQuerySet(models.QuerySet):
     
     def active(self):
@@ -483,11 +431,11 @@ class PropertyAgentQuerySet(models.QuerySet):
         return self.filter(is_verified=True)
     
     def with_agency(self):
-        """Load agent with agency, user, and city relations to avoid N+1"""
+        
         return self.select_related('agency', 'agency__city', 'user', 'city', 'avatar', 'cover_image')
     
     def with_counts(self):
-        """Annotate with property count"""
+        
         return self.annotate(
             properties_count=Count('properties', 
                                 filter=Q(properties__is_published=True))
@@ -500,5 +448,5 @@ class PropertyAgentQuerySet(models.QuerySet):
         return self.filter(agency_id=agency_id)
     
     def independent(self):
-        """Agents without agency"""
+        
         return self.filter(agency__isnull=True)

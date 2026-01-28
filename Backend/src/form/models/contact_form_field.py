@@ -3,7 +3,6 @@ from django.core.validators import MinLengthValidator
 
 from src.core.models.base import BaseModel
 
-
 class ContactFormField(BaseModel):
 
     FIELD_TYPE_CHOICES = [
@@ -19,7 +18,6 @@ class ContactFormField(BaseModel):
         ('url', 'URL'),
     ]
 
-    # 1. Status/State Fields
     field_type = models.CharField(
         max_length=20,
         choices=FIELD_TYPE_CHOICES,
@@ -29,7 +27,6 @@ class ContactFormField(BaseModel):
         help_text="Type of field (text, email, select, etc.)"
     )
 
-    # 2. Primary Content Fields
     field_key = models.CharField(
         max_length=100,
         unique=True,
@@ -51,7 +48,6 @@ class ContactFormField(BaseModel):
         help_text="Placeholder text inside the field (optional)"
     )
 
-    # 4. Boolean Flags
     required = models.BooleanField(
         default=True,
         db_index=True,
@@ -59,7 +55,6 @@ class ContactFormField(BaseModel):
         help_text="Whether this field is required"
     )
 
-    # Order Field
     order = models.PositiveIntegerField(
         default=0,
         db_index=True,
@@ -67,7 +62,6 @@ class ContactFormField(BaseModel):
         help_text="Display order in form (lower numbers appear first)"
     )
 
-    # Metadata Fields
     platforms = models.JSONField(
         default=list,
         verbose_name="Platforms",

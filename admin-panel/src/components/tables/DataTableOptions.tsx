@@ -10,7 +10,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/elements/DropdownMenu"
 
-
 interface DataTableViewOptionsProps<TData> {
   table: Table<TData>
 }
@@ -18,7 +17,6 @@ interface DataTableViewOptionsProps<TData> {
 export function DataTableViewOptions<TData>({
   table,
 }: DataTableViewOptionsProps<TData>) {
-
 
   return (
     <DropdownMenu>

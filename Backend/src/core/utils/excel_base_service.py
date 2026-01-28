@@ -1,7 +1,4 @@
-"""
-Professional Excel Base Service for export functionalities.
-Consolidates formatting, styling, and sortable date logic.
-"""
+
 
 from io import BytesIO
 from datetime import datetime
@@ -13,7 +10,6 @@ try:
     XLSXWRITER_AVAILABLE = True
 except ImportError:
     XLSXWRITER_AVAILABLE = False
-
 
 class ExcelBaseExportService:
     @staticmethod
@@ -44,7 +40,6 @@ class ExcelBaseExportService:
     def write_headers(worksheet, fields, header_format, default_col_format=None):
         for col, field in enumerate(fields):
             worksheet.write(0, col, field['label'], header_format)
-            # Set reading_order: 2 for RTL support in older viewers
             options = {'reading_order': 2}
             worksheet.set_column(col, col, field['width'], default_col_format, options)
 

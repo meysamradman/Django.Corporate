@@ -348,7 +348,6 @@ function MenuItemsList({ items }: MenuItemsListProps) {
     });
   }, []);
 
-
   return (
     <div className="space-y-1">
       {groupedItems.map((group, groupIndex) => {

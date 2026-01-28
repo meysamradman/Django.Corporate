@@ -13,7 +13,6 @@ SUSPICIOUS_USER_AGENTS = [
     'scanner', 'exploit', 'hack', 'attack'
 ]
 
-
 @method_decorator(csrf_exempt, name='dispatch')
 class FakeAdminLoginView(APIView):
     authentication_classes = []

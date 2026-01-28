@@ -5,7 +5,6 @@ from src.chatbot.models.faq import FAQ
 from src.chatbot.models.settings import ChatbotSettings
 from src.chatbot.utils.cache import ChatbotCacheKeys, ChatbotCacheManager
 
-
 class RuleBasedChatService:
     CACHE_TIMEOUT = 3600
     

@@ -26,7 +26,6 @@ def get_country_from_ip(ip_address):
     
     return ''
 
-
 def get_country_name(ip_address):
     if not ip_address or ip_address in ['127.0.0.1', 'localhost', '::1']:
         return ''

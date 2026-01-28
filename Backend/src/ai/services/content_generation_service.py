@@ -7,7 +7,6 @@ from src.ai.providers.registry import AIProviderRegistry
 from src.ai.messages.messages import AI_ERRORS, SETTINGS_ERRORS
 from src.ai.providers.capabilities import ProviderAvailabilityManager
 
-
 class AIContentGenerationService:
     
     @classmethod

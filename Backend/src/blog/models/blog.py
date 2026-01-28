@@ -7,7 +7,6 @@ from src.blog.models.tag import BlogTag
 from src.blog.utils.cache import BlogCacheKeys, BlogCacheManager
 from .managers import BlogQuerySet
 
-
 class Blog(BaseModel, SEOMixin):
     STATUS_CHOICES = (
         ('draft', 'Draft'),
@@ -80,7 +79,6 @@ class Blog(BaseModel, SEOMixin):
         help_text="Tags associated with this blog post"
     )
     
-    # Analytics fields
     views_count = models.PositiveIntegerField(
         default=0,
         db_index=True,

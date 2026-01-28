@@ -39,14 +39,12 @@ export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
 
     const { watch, setValue, reset, setError } = form;
 
-    // Fetch data for edit mode
     const { data: blog, isLoading } = useQuery({
         queryKey: ['blog', Number(id)],
         queryFn: () => blogApi.getBlogById(Number(id)),
         enabled: isEditMode && !!id,
     });
 
-    // Reset form and media when blog data is loaded
     useEffect(() => {
         if (isEditMode && blog) {
             reset({
@@ -85,7 +83,6 @@ export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
             }
             const allMediaFiles: File[] = [];
 
-            // Use backend config if available, otherwise use frontend default
             const uploadMax = mediaConfig?.BLOG_MEDIA_UPLOAD_MAX ?? MEDIA_CONFIG.BLOG_UPLOAD_MAX;
             const totalMedia = allMediaFiles.length + allMediaIds.length;
             if (totalMedia > uploadMax) {
@@ -204,15 +201,12 @@ export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
             (errors) => {
                 const errorFields = Object.keys(errors);
                 if (errorFields.length > 0) {
-                    // Media tab fields
                     if (errorFields.some(field => ['featuredImage', 'images', 'videos', 'audios', 'documents'].includes(field))) {
                         setActiveTab('media');
                     }
-                    // SEO tab fields
                     else if (errorFields.some(field => ['meta_title', 'meta_description', 'og_title', 'og_description', 'og_image', 'canonical_url', 'robots_meta'].includes(field))) {
                         setActiveTab('seo');
                     }
-                    // Account tab fields (default)
                     else {
                         setActiveTab('account');
                     }

@@ -35,7 +35,6 @@ from src.user.access_control import blog_permission, PermissionRequiredMixin
 from src.blog.messages.messages import BLOG_SUCCESS, BLOG_ERRORS
 from src.blog.utils.cache import BlogCacheManager
 
-
 class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [blog_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -45,7 +44,6 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     ordering = ['-created_at']
     pagination_class = StandardLimitPagination
     
-    # ✅ Permission map - یکجا تعریف
     permission_map = {
         'list': 'blog.read',
         'retrieve': 'blog.read',
@@ -131,7 +129,7 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         return value.lower() in ('1', 'true', 'yes', 'on')
     
     def _merge_media_data(self, data, media_ids=None, media_files=None):
-        """Unified helper to merge media IDs and files into request data"""
+        
         if media_ids:
             if hasattr(data, 'setlist'):
                 data.setlist('media_ids', media_ids)
@@ -145,7 +143,7 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         return data
 
     def _extract_list(self, data, field_name, convert_to_int=False):
-        """Robust helper to extract list/array from data (JSON, CSV, or list)"""
+        
         import json
         value = data.get(field_name)
         if not value:
@@ -165,12 +163,10 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                     pass
             
             if not result:
-                # Fallback to comma separation
                 result = [v.strip() for v in value.split(',') if v.strip()]
         else:
             result = [value]
         
-        # Convert to integers if needed (for ID fields)
         if convert_to_int:
             converted = []
             for v in result:
@@ -201,7 +197,6 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         
         data = request.data.copy()
         
-        # Parse M2M fields that might be JSON strings from frontend
         for field in ['categories', 'tags']:
             if field in data:
                 extracted = self._extract_list(data, field, convert_to_int=True)
@@ -220,7 +215,6 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 created_by=request.user
             )
             
-            # Fetch for complete representation
             instance = Blog.objects.for_detail().get(id=blog.id)
             detail_serializer = BlogAdminDetailSerializer(instance, context={'request': request})
             
@@ -246,7 +240,6 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         
         data = request.data.copy()
         
-        # Parse M2M fields that might be JSON strings from frontend
         for field in ['categories', 'tags']:
             if field in data:
                 extracted = self._extract_list(data, field, convert_to_int=True)
@@ -284,7 +277,6 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 updated_by=request.user
             )
             
-            # Refresh and return
             updated_instance = Blog.objects.for_detail().get(pk=updated_instance.pk)
             detail_serializer = BlogAdminDetailSerializer(updated_instance, context={'request': request})
             
@@ -515,7 +507,6 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         try:
             BlogAdminMediaService.set_main_image(pk, media_id)
             
-            # Return refreshed object - Standardized behavior
             fresh_instance = Blog.objects.for_detail().get(pk=pk)
             serializer = BlogAdminDetailSerializer(fresh_instance)
             

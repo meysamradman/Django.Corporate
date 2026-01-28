@@ -41,7 +41,6 @@ export function AdminPermissionsCard({
     return null;
   }
 
-  // بررسی اینکه آیا admin.manage انتخاب شده است
   const isAdminManageSelected = useMemo(() => {
     return resources.some((r) => {
       const managePerm = r.permissions.find(
@@ -95,7 +94,6 @@ export function AdminPermissionsCard({
             
             return (
               <div key={resource.resource} className="space-y-3">
-                {/* نمایش admin.manage */}
                 {managePerm && managePerm.id && (
                   <div
                     className={`relative flex items-center gap-4 p-4 rounded-lg border transition-all duration-200 ${
@@ -147,7 +145,6 @@ export function AdminPermissionsCard({
                   </div>
                 )}
                 
-                {/* نمایش permissions جزئی (فقط اگر admin.manage انتخاب نشده باشد) */}
                 {!isManageSelected && !isAdminManageSelected && otherPerms.length > 0 && (
                   <div className="pl-4 space-y-2 border-r-2 border-br">
                     {otherPerms.map((perm) => {

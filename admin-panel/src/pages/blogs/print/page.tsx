@@ -14,7 +14,6 @@ export default function BlogPrintPage() {
     const idsParam = searchParams.get('ids');
     const type = searchParams.get('type');
 
-    // Parse blog IDs from query string
     const blogIds = idsParam
         ? idsParam.split(',').map(id => parseInt(id, 10)).filter(id => !isNaN(id))
         : [];

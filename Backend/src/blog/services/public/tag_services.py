@@ -2,7 +2,6 @@ from django.db.models import Count, Q
 from src.blog.models.tag import BlogTag
 from src.blog.models.blog import Blog
 
-
 class BlogTagPublicService:
     @staticmethod
     def get_tag_queryset(filters=None, search=None):

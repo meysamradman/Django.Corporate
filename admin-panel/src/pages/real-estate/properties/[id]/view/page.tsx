@@ -44,9 +44,7 @@ export default function PropertyViewPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        {/* Top Section Skeleton: Carousel + Basic Info */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-125">
-          {/* Main Gallery Skeleton */}
           <div className="lg:col-span-7 xl:col-span-8 h-full bg-card rounded-xl border border-br p-6">
             <Skeleton className="h-125 w-full rounded-xl" />
             <div className="flex gap-3 mt-4 overflow-hidden">
@@ -55,7 +53,6 @@ export default function PropertyViewPage() {
               ))}
             </div>
           </div>
-          {/* Basic Info Skeleton */}
           <div className="lg:col-span-5 xl:col-span-4 h-full bg-card rounded-xl border border-br p-6">
             <div className="space-y-4">
               <div className="grid grid-cols-4 gap-3 mb-6">
@@ -76,7 +73,6 @@ export default function PropertyViewPage() {
           </div>
         </div>
 
-        {/* Bottom Section Skeleton: Sidebar + Tabs */}
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           <div className="lg:col-span-2 bg-card rounded-xl border border-br p-6 self-start">
             <div className="space-y-6">
@@ -114,8 +110,6 @@ export default function PropertyViewPage() {
       </div>
     );
   }
-
-
 
   if (error || !propertyData) {
     return (
@@ -159,7 +153,6 @@ export default function PropertyViewPage() {
         ]}
         position="left"
       />
-
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-125">
         <div className="lg:col-span-7 xl:col-span-8 h-full">

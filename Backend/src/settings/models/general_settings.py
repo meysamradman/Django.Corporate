@@ -6,7 +6,6 @@ from src.core.models.base import BaseModel
 from src.media.models.media import ImageMedia
 from src.settings.utils.cache import SettingsCacheKeys, SettingsCacheManager
 
-
 class GeneralSettings(BaseModel):
 
     site_name = models.CharField(
@@ -22,7 +21,6 @@ class GeneralSettings(BaseModel):
         help_text="Copyright text (e.g., All rights reserved © 2024)"
     )
     
-    # 5. Relationships
     logo_image = models.ForeignKey(
         ImageMedia,
         on_delete=models.SET_NULL,
@@ -54,7 +52,6 @@ class GeneralSettings(BaseModel):
         help_text="Electronic trust symbol image"
     )
     
-    # Metadata Fields
     copyright_link = models.URLField(
         max_length=500,
         blank=True,

@@ -20,7 +20,6 @@ TICKET_PRIORITY_CHOICES = [
     ('urgent', 'Urgent'),
 ]
 
-
 class Ticket(BaseModel):
 
     status = models.CharField(
@@ -40,7 +39,6 @@ class Ticket(BaseModel):
         help_text="Priority level of the ticket"
     )
     
-    # 2. Primary Content Fields
     subject = models.CharField(
         max_length=500,
         db_index=True,
@@ -48,13 +46,11 @@ class Ticket(BaseModel):
         help_text="Ticket subject"
     )
     
-    # 3. Description Fields
     description = models.TextField(
         verbose_name="Description",
         help_text="Detailed description of the ticket issue"
     )
     
-    # 5. Relationships
     user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -76,7 +72,6 @@ class Ticket(BaseModel):
         help_text="Admin user assigned to handle this ticket"
     )
     
-    # Timestamp Fields
     last_replied_at = models.DateTimeField(
         null=True,
         blank=True,

@@ -6,14 +6,11 @@ from src.real_estate.models.statistics import AgentStatistics, AgencyStatistics
 class DealsService:
     @classmethod
     def process_deal_closure(cls, property_obj):
-        """
-        پردازش نهایی معامله (فروش یا اجاره) و بروزرسانی شاخص‌های کلیدی (KPI)
-        """
+        
         property_obj.closed_at = timezone.now()
         property_obj.is_published = False
         property_obj.save(update_fields=['closed_at', 'is_published'])
         
-        # محاسبه زمان معامله (تعداد روزها)
         listing_time = 0
         if property_obj.published_at:
             delta = property_obj.closed_at - property_obj.published_at
@@ -34,7 +31,6 @@ class DealsService:
             month=now.month
         )
         
-        # بروزرسانی تعداد معاملات
         is_sale = property_obj.state.slug == 'sale' if property_obj.state else True
         if is_sale:
             stats.properties_sold = F('properties_sold') + 1
@@ -46,8 +42,6 @@ class DealsService:
         stats.save()
         stats.refresh_from_db()
         
-        # محاسبه KPI های پیشرفته (Recalculate Averages)
-        # توجه: در پروژه‌های بزرگ این بخش می‌تواند توسط یک تسک پس‌زمینه انجام شود
         all_agent_listings = property_obj.agent.properties.all()
         total_listed = all_agent_listings.count()
         total_closed = all_agent_listings.filter(closed_at__isnull=False).count()
@@ -77,7 +71,6 @@ class DealsService:
             month=now.month
         )
         
-        # بروزرسانی آمارهای آژانس (مشابه مشاور)
         is_sale = property_obj.state.slug == 'sale' if property_obj.state else True
         if is_sale:
             stats.properties_sold = F('properties_sold') + 1
@@ -87,4 +80,3 @@ class DealsService:
             stats.properties_rented = F('properties_rented') + 1
             
         stats.save()
-        # در اینجا هم می‌توان KPIهای تجمعی آژانس را بروزرسانی کرد

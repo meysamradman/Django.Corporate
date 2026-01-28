@@ -30,7 +30,6 @@ from src.real_estate.models.constants import (
 _MEDIA_LIST_LIMIT = getattr(settings, 'REAL_ESTATE_MEDIA_LIST_LIMIT', 5)
 _MEDIA_DETAIL_LIMIT = getattr(settings, 'REAL_ESTATE_MEDIA_DETAIL_LIMIT', 50)
 
-
 class PropertyMediaAdminSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     public_id = serializers.UUIDField(read_only=True)
@@ -80,36 +79,30 @@ class PropertyMediaAdminSerializer(serializers.Serializer):
                 media_detail['cover_image'] = MediaCoverSerializer(property_cover, context=self.context).data
                 media_detail['cover_image_url'] = property_cover.file.url if property_cover.file else None
 
-
 class PropertyTypeSimpleAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyType
         fields = ['id', 'public_id', 'title', 'display_order']
-
 
 class PropertyStateSimpleAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyState
         fields = ['id', 'public_id', 'title']
 
-
 class PropertyLabelSimpleAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyLabel
         fields = ['id', 'public_id', 'title']
-
 
 class PropertyFeatureSimpleAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyFeature
         fields = ['id', 'public_id', 'title', 'group']
 
-
 class PropertyTagSimpleAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyTag
         fields = ['id', 'public_id', 'title', 'slug']
-
 
 class PropertyAgentSimpleAdminSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(read_only=True)
@@ -118,12 +111,10 @@ class PropertyAgentSimpleAdminSerializer(serializers.ModelSerializer):
         model = PropertyAgent
         fields = ['id', 'public_id', 'first_name', 'last_name', 'full_name', 'phone', 'email', 'license_number']
 
-
 class RealEstateAgencySimpleAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = RealEstateAgency
         fields = ['id', 'public_id', 'name', 'slug', 'phone', 'email', 'license_number']
-
 
 class PropertyAdminListSerializer(serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
@@ -174,13 +165,10 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
     primary_audio = serializers.SerializerMethodField()
     primary_document = serializers.SerializerMethodField()
 
-    
     def get_media_count(self, obj):
-        # ✅ SQL Annotation استفاده از
         return getattr(obj, 'total_media_count', 0)
     
     def get_main_image(self, obj):
-        # ✅ Prefetch (main_image_prefetch) اولویت با
         main_images = getattr(obj, 'main_image_prefetch', [])
         if main_images:
             img_obj = main_images[0]
@@ -216,7 +204,6 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
                 except Exception:
                     pass
                 
-                # Documents might have a custom title on the 'item' (PropertyDocument)
                 title = getattr(item, 'title', None) or getattr(media_obj, 'title', None)
                 
                 return {
@@ -226,7 +213,6 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
                     'media_id': media_obj.id
                 }
         return None
-
 
     def get_primary_video(self, obj):
         return self._get_media_preview(obj, 'primary_video_prefetch', 'video')
@@ -240,7 +226,6 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
     def get_seo_status(self, obj):
         has_meta_title = bool(obj.meta_title)
         has_meta_description = bool(obj.meta_description)
-        # ✅ select_related('og_image') یا استفاده از ID برای جلوگیری از کوئری
         has_og_image = bool(getattr(obj, 'og_image_id', None))
         
         score = sum([has_meta_title, has_meta_description, has_og_image])
@@ -251,21 +236,16 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
         }
     
     def get_city_name(self, obj):
-        # Already select_related
         return obj.city.name if obj.city_id and hasattr(obj, 'city') else None
     
     def get_province_name(self, obj):
-        # Already select_related
         return obj.province.name if obj.province_id and hasattr(obj, 'province') else None
     
     def get_district_name(self, obj):
-        # Already select_related (region)
         return obj.region.name if obj.region_id and hasattr(obj, 'region') else None
 
     def get_region_name(self, obj):
-        # Already select_related
         return obj.region.name if obj.region_id and hasattr(obj, 'region') else None
-
 
 class PropertyAdminDetailSerializer(serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
@@ -322,7 +302,6 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         
-        # Convert latitude and longitude to float for frontend (Leaflet/Google Maps)
         if 'latitude' in data and data['latitude'] is not None:
             try:
                 data['latitude'] = float(data['latitude'])
@@ -482,19 +461,16 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
         return obj.region.name if obj.region else None
     
     def get_country_name(self, obj):
-        # همیشه ایران چون فیلد country در مدل نداریم
         return "ایران"
     
     def get_floor_plans(self, obj):
         from src.real_estate.serializers.admin.floor_plan_serializer import FloorPlanAdminListSerializer
         
-        # Get active floor plans with images prefetched
         floor_plans = obj.floor_plans.prefetch_related(
             'images__image'
         ).filter(is_active=True).order_by('display_order', 'floor_number')
         
         return FloorPlanAdminListSerializer(floor_plans, many=True, context=self.context).data
-
 
 class PropertyAdminCreateSerializer(serializers.ModelSerializer):
     labels_ids = serializers.ListField(
@@ -518,12 +494,10 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
         required=False
     )
     
-    # Relaxed constraints for optional fields during creation
     land_area = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
     built_area = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
     description = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     
-    # ✅ OPTIMIZED: Room fields with validation
     bedrooms = serializers.IntegerField(
         required=False,
         allow_null=True,
@@ -551,7 +525,6 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
         help_text="Year built (Solar calendar - calculated dynamically)"
     )
 
-    # Location fields - simplified like Diwar
     province = serializers.PrimaryKeyRelatedField(
         queryset=Province.objects.all(),
         help_text="Province (selected from dropdown)"
@@ -573,7 +546,6 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
         help_text="Neighborhood name (from map or manual input)"
     )
     
-    # Override slug field to support Persian and English characters
     slug = serializers.CharField(
         max_length=120,
         required=False,
@@ -601,16 +573,14 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
             'labels_ids', 'tags_ids', 'features_ids',
             'media_files',
         ]
-        # Remove slug from validators to handle uniqueness manually
         extra_kwargs = {
             'slug': {'validators': []},
         }
     
     def to_internal_value(self, data):
-        """Override to quantize latitude/longitude before model validation"""
+        
         from decimal import Decimal, ROUND_DOWN
 
-        # Process latitude
         if 'latitude' in data and data['latitude'] is not None:
             if isinstance(data['latitude'], str):
                 try:
@@ -625,7 +595,6 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
             if isinstance(lat_value, Decimal):
                 data['latitude'] = lat_value.quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
 
-        # Process longitude
         if 'longitude' in data and data['longitude'] is not None:
             if isinstance(data['longitude'], str):
                 try:
@@ -645,7 +614,6 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         
-        # Convert latitude and longitude to float for frontend (Leaflet/Google Maps)
         if 'latitude' in data and data['latitude'] is not None:
             try:
                 data['latitude'] = float(data['latitude'])
@@ -661,18 +629,15 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
         return data
 
     def validate(self, attrs):
-        # Validate location fields - simplified like Diwar
         if not attrs.get('province'):
             raise serializers.ValidationError("استان الزامی است.")
         if not attrs.get('city'):
             raise serializers.ValidationError("شهر الزامی است.")
 
-        # Validate region belongs to selected city (if provided)
         if attrs.get('region'):
             if attrs['region'].city_id != attrs['city'].id:
                 raise serializers.ValidationError("منطقه انتخاب شده متعلق به این شهر نیست.")
         
-        # ✅ Validate optimized fields
         if attrs.get('bedrooms') is not None:
             if attrs['bedrooms'] < 0 or attrs['bedrooms'] > 20:
                 raise serializers.ValidationError({"bedrooms": "تعداد خواب باید بین 0 تا 20 باشد."})
@@ -684,56 +649,45 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
         if attrs.get('parking_spaces') is not None:
             if attrs['parking_spaces'] < 0 or attrs['parking_spaces'] > 20:
                 raise serializers.ValidationError({"parking_spaces": "تعداد پارکینگ باید بین 0 تا 20 باشد."})
-        
-        # year_built: Django validates automatically via model choices
-        # No manual validation needed here!
-        
-        # ✅ Validate document_type against constants
+
         if attrs.get('document_type'):
             if attrs['document_type'] not in DOCUMENT_TYPE_CHOICES:
                 raise serializers.ValidationError({
                     "document_type": f"نوع سند نامعتبر است. مقادیر مجاز: {', '.join(DOCUMENT_TYPE_CHOICES.keys())}"
                 })
         
-        # ✅ Validate extra_attributes constants
         extra_attrs = attrs.get('extra_attributes', {})
         if extra_attrs and isinstance(extra_attrs, dict):
-            # Validate space_type (for short-term rentals)
             if 'space_type' in extra_attrs:
                 if extra_attrs['space_type'] not in SPACE_TYPE_CHOICES:
                     raise serializers.ValidationError({
                         "extra_attributes": f"نوع فضا نامعتبر: {extra_attrs['space_type']}. مقادیر مجاز: {', '.join(SPACE_TYPE_CHOICES.keys())}"
                     })
             
-            # Validate construction_status (for pre-sale/projects)
             if 'construction_status' in extra_attrs:
                 if extra_attrs['construction_status'] not in CONSTRUCTION_STATUS_CHOICES:
                     raise serializers.ValidationError({
                         "extra_attributes": f"وضعیت ساخت نامعتبر: {extra_attrs['construction_status']}. مقادیر مجاز: {', '.join(CONSTRUCTION_STATUS_CHOICES.keys())}"
                     })
             
-            # Validate property_condition
             if 'property_condition' in extra_attrs:
                 if extra_attrs['property_condition'] not in PROPERTY_CONDITION_CHOICES:
                     raise serializers.ValidationError({
                         "extra_attributes": f"وضعیت ملک نامعتبر: {extra_attrs['property_condition']}. مقادیر مجاز: {', '.join(PROPERTY_CONDITION_CHOICES.keys())}"
                     })
             
-            # Validate property_direction
             if 'property_direction' in extra_attrs:
                 if extra_attrs['property_direction'] not in PROPERTY_DIRECTION_CHOICES:
                     raise serializers.ValidationError({
                         "extra_attributes": f"جهت ملک نامعتبر: {extra_attrs['property_direction']}. مقادیر مجاز: {', '.join(PROPERTY_DIRECTION_CHOICES.keys())}"
                     })
             
-            # Validate city_position
             if 'city_position' in extra_attrs:
                 if extra_attrs['city_position'] not in CITY_POSITION_CHOICES:
                     raise serializers.ValidationError({
                         "extra_attributes": f"موقعیت شهری نامعتبر: {extra_attrs['city_position']}. مقادیر مجاز: {', '.join(CITY_POSITION_CHOICES.keys())}"
                     })
             
-            # Validate unit_type
             if 'unit_type' in extra_attrs:
                 if extra_attrs['unit_type'] not in UNIT_TYPE_CHOICES:
                     raise serializers.ValidationError({
@@ -741,7 +695,6 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
                     })
 
         return attrs
-
 
 class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
     labels = serializers.PrimaryKeyRelatedField(
@@ -817,7 +770,6 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         help_text="تعداد طبقات ساختمان (اختیاری)"
     )
 
-    # ✅ Making relational fields writeable (overriding detail-only versions)
     property_type = serializers.PrimaryKeyRelatedField(
         queryset=PropertyType.objects.all(), 
         required=False,
@@ -858,7 +810,6 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         allow_null=True,
         help_text="Province (auto-filled from city or region)"
     )
-    # country stays in Meta.fields but not as an explicit field here if we don't want to validate it against a queryset
     
     class Meta:
         model = Property
@@ -881,10 +832,9 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         ]
 
     def to_internal_value(self, data):
-        """Override to quantize latitude/longitude before model validation"""
+        
         from decimal import Decimal, ROUND_DOWN
 
-        # Process latitude
         if 'latitude' in data and data['latitude'] not in [None, '']:
             if isinstance(data['latitude'], str):
                 try:
@@ -899,7 +849,6 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
             if isinstance(lat_value, Decimal):
                 data['latitude'] = lat_value.quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
 
-        # Process longitude
         if 'longitude' in data and data['longitude'] not in [None, '']:
             if isinstance(data['longitude'], str):
                 try:
@@ -916,14 +865,10 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
 
         return super().to_internal_value(data)
 
-    # to_representation is now inherited from PropertyAdminDetailSerializer
-
     def validate(self, attrs):
-        # Quantize latitude and longitude to prevent validation errors
         from decimal import Decimal, ROUND_DOWN
 
         if 'latitude' in attrs and attrs['latitude'] is not None:
-            # Ensure latitude is quantized to 8 decimal places
             if isinstance(attrs['latitude'], Decimal):
                 attrs['latitude'] = attrs['latitude'].quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
             else:
@@ -931,14 +876,12 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
                 attrs['latitude'] = lat_value.quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
 
         if 'longitude' in attrs and attrs['longitude'] is not None:
-            # Ensure longitude is quantized to 8 decimal places
             if isinstance(attrs['longitude'], Decimal):
                 attrs['longitude'] = attrs['longitude'].quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
             else:
                 lng_value = Decimal(str(attrs['longitude']))
                 attrs['longitude'] = lng_value.quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
 
-        # ✅ Validate optimized fields
         if attrs.get('bedrooms') is not None:
             if attrs['bedrooms'] < 0 or attrs['bedrooms'] > 20:
                 raise serializers.ValidationError({"bedrooms": "تعداد خواب باید بین 0 تا 20 باشد."})
@@ -950,92 +893,72 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         if attrs.get('parking_spaces') is not None:
             if attrs['parking_spaces'] < 0 or attrs['parking_spaces'] > 20:
                 raise serializers.ValidationError({"parking_spaces": "تعداد پارکینگ باید بین 0 تا 20 باشد."})
-        
-        # year_built: Django validates automatically via model choices
-        # No manual validation needed here!
-        
-        # ✅ Validate document_type against constants
+
         if attrs.get('document_type'):
             if attrs['document_type'] not in DOCUMENT_TYPE_CHOICES:
                 raise serializers.ValidationError({
                     "document_type": f"نوع سند نامعتبر است. مقادیر مجاز: {', '.join(DOCUMENT_TYPE_CHOICES.keys())}"
                 })
         
-        # ✅ Validate extra_attributes constants
         extra_attrs = attrs.get('extra_attributes', {})
         if extra_attrs and isinstance(extra_attrs, dict):
-            # Validate space_type (for short-term rentals)
             if 'space_type' in extra_attrs:
                 if extra_attrs['space_type'] not in SPACE_TYPE_CHOICES:
                     raise serializers.ValidationError({
                         "extra_attributes": f"نوع فضا نامعتبر: {extra_attrs['space_type']}. مقادیر مجاز: {', '.join(SPACE_TYPE_CHOICES.keys())}"
                     })
             
-            # Validate construction_status (for pre-sale/projects)
             if 'construction_status' in extra_attrs:
                 if extra_attrs['construction_status'] not in CONSTRUCTION_STATUS_CHOICES:
                     raise serializers.ValidationError({
                         "extra_attributes": f"وضعیت ساخت نامعتبر: {extra_attrs['construction_status']}. مقادیر مجاز: {', '.join(CONSTRUCTION_STATUS_CHOICES.keys())}"
                     })
             
-            # Validate property_condition
             if 'property_condition' in extra_attrs:
                 if extra_attrs['property_condition'] not in PROPERTY_CONDITION_CHOICES:
                     raise serializers.ValidationError({
                         "extra_attributes": f"وضعیت ملک نامعتبر: {extra_attrs['property_condition']}. مقادیر مجاز: {', '.join(PROPERTY_CONDITION_CHOICES.keys())}"
                     })
             
-            # Validate property_direction
             if 'property_direction' in extra_attrs:
                 if extra_attrs['property_direction'] not in PROPERTY_DIRECTION_CHOICES:
                     raise serializers.ValidationError({
                         "extra_attributes": f"جهت ملک نامعتبر: {extra_attrs['property_direction']}. مقادیر مجاز: {', '.join(PROPERTY_DIRECTION_CHOICES.keys())}"
                     })
             
-            # Validate city_position
             if 'city_position' in extra_attrs:
                 if extra_attrs['city_position'] not in CITY_POSITION_CHOICES:
                     raise serializers.ValidationError({
                         "extra_attributes": f"موقعیت شهری نامعتبر: {extra_attrs['city_position']}. مقادیر مجاز: {', '.join(CITY_POSITION_CHOICES.keys())}"
                     })
             
-            # Validate unit_type
             if 'unit_type' in extra_attrs:
                 if extra_attrs['unit_type'] not in UNIT_TYPE_CHOICES:
                     raise serializers.ValidationError({
                         "extra_attributes": f"نوع واحد نامعتبر: {extra_attrs['unit_type']}. مقادیر مجاز: {', '.join(UNIT_TYPE_CHOICES.keys())}"
                     })
 
-        # Handle location fields - region is now optional
         region = attrs.get('region')
         city = attrs.get('city')
 
-        # If region is provided, validate it and populate city/province/country
         if region:
-            # Validate region belongs to city (if city is also provided)
             if city and region.city_id != city.id:
                 raise serializers.ValidationError({
                     'region': 'منطقه انتخاب شده متعلق به این شهر نیست.'
                 })
 
-            # Populate city, province, country from region
             attrs['city'] = region.city
             attrs['province'] = region.city.province
             attrs['country'] = region.city.province.country
 
-        # If no region but city is provided, just use the city info
         elif city:
             attrs['province'] = city.province
             attrs['country'] = city.province.country
-            # region remains None (optional)
 
-        # If neither region nor city provided, try to keep existing values
         elif self.instance:
-            # Keep existing location data if no new location provided
             pass
 
         return attrs
-
 
 class PropertyAdminSerializer(PropertyAdminDetailSerializer):
     pass

@@ -64,7 +64,6 @@ export function createFilterChangeHandler<TFilters extends Record<string, unknow
   return (filterId: string | number, value: unknown) => {
     const filterKey = filterId as string;
 
-    // Handle custom handlers first
     if (customHandlers && customHandlers[filterKey]) {
       const updateUrl = (url: URL) => {
         url.searchParams.set('page', '1');
@@ -87,7 +86,6 @@ export function createFilterChangeHandler<TFilters extends Record<string, unknow
       url.searchParams.set('page', '1');
       window.history.replaceState({}, '', url.toString());
     } else if (filterKey === "date_range") {
-      // Handle date_range separately - don't save it to URL, only save date_from and date_to
       const range = value as { from?: string; to?: string } | undefined;
       
       setClientFilters(prev => ({
@@ -99,10 +97,8 @@ export function createFilterChangeHandler<TFilters extends Record<string, unknow
       setPagination(prev => ({ ...prev, pageIndex: 0 }));
 
       const url = new URL(window.location.href);
-      // Remove date_range from URL (it shouldn't be there)
       url.searchParams.delete('date_range');
       
-      // Update date_from and date_to
       if (range?.from) {
         url.searchParams.set('date_from', range.from);
       } else {

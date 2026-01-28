@@ -8,14 +8,12 @@ from src.portfolio.serializers.public.category_serializer import PortfolioCatego
 from src.portfolio.serializers.public.option_serializer import PortfolioOptionPublicSerializer
 from src.portfolio.serializers.public.tag_serializer import PortfolioTagPublicSerializer
 
-
 class PortfolioCategorySimplePublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioCategory
         fields = [
             'public_id', 'name', 'slug', 'created_at',
         ]
-
 
 class PortfolioPublicListSerializer(serializers.ModelSerializer):
     main_image_url = serializers.SerializerMethodField()
@@ -36,7 +34,6 @@ class PortfolioPublicListSerializer(serializers.ModelSerializer):
         except:
             pass
         return None
-
 
 class PortfolioMediaPublicSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
@@ -82,7 +79,6 @@ class PortfolioMediaPublicSerializer(serializers.Serializer):
             }
         return super().to_representation(instance)
 
-
 class PortfolioPublicDetailSerializer(serializers.ModelSerializer):
     categories = PortfolioCategorySimplePublicSerializer(many=True, read_only=True)
     options = PortfolioOptionPublicSerializer(many=True, read_only=True)
@@ -126,7 +122,6 @@ class PortfolioPublicDetailSerializer(serializers.ModelSerializer):
             'canonical_url': obj.get_canonical_url(),
             'structured_data': obj.generate_structured_data(),
         }
-
 
 class PortfolioPublicSerializer(PortfolioPublicDetailSerializer):
     pass

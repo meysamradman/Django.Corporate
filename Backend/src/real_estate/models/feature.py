@@ -3,7 +3,6 @@ from src.core.models import BaseModel
 from src.real_estate.models.managers import PropertyFeatureQuerySet
 from src.media.models.media import ImageMedia
 
-
 class PropertyFeature(BaseModel):
     
     title = models.CharField(

@@ -11,7 +11,6 @@ from src.portfolio.services.public.tag_services import PortfolioTagPublicService
 from src.portfolio.filters.public.tag_filters import PortfolioTagPublicFilter
 from src.core.pagination import StandardLimitPagination
 
-
 class PortfolioTagPublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     serializer_class = PortfolioTagPublicSerializer

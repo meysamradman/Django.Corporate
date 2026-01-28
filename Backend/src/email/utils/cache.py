@@ -1,7 +1,6 @@
 from src.core.cache import CacheService
 from src.analytics.utils.cache import AnalyticsCacheManager
 
-
 class EmailCacheKeys:
     
     @staticmethod
@@ -18,7 +17,6 @@ class EmailCacheKeys:
         if message_id:
             keys.append(EmailCacheKeys.message(message_id))
         return keys
-
 
 class EmailCacheManager:
     

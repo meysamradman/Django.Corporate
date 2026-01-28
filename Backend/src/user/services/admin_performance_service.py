@@ -24,9 +24,7 @@ class AdminPerformanceService:
 
     @classmethod
     def track_task_completion(cls, admin_profile, task_type='ticket', response_time_minutes=None):
-        """
-        Tracks ticket resolution or email reply
-        """
+        
         stats = cls._get_monthly_stats(admin_profile)
         
         update_data = {
@@ -39,7 +37,6 @@ class AdminPerformanceService:
             update_data['emails_replied'] = F('emails_replied') + 1
             
         if response_time_minutes is not None:
-            # We refresh to get current values for average calculation
             stats.refresh_from_db()
             current_avg = stats.avg_response_time_minutes
             total_tasks = stats.tickets_resolved + stats.emails_replied + 1 # +1 for the current one
@@ -52,9 +49,7 @@ class AdminPerformanceService:
 
     @classmethod
     def track_content_creation(cls, admin_profile, content_type):
-        """
-        Tracks creation of Blog, Portfolio, or Property
-        """
+        
         stats = cls._get_monthly_stats(admin_profile)
         
         field_map = {
@@ -72,9 +67,7 @@ class AdminPerformanceService:
 
     @classmethod
     def track_login(cls, admin_profile):
-        """
-        Tracks admin login
-        """
+        
         stats = cls._get_monthly_stats(admin_profile)
         AdminPerformanceStatistics.objects.filter(pk=stats.pk).update(
             login_count=F('login_count') + 1,

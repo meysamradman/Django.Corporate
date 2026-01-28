@@ -40,7 +40,6 @@ export function SlidersSection() {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [sliderToDelete, setSliderToDelete] = useState<number | null>(null);
 
-    // Form States
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [link, setLink] = useState("");
@@ -74,9 +73,6 @@ export function SlidersSection() {
             setLink(slider.link);
             setOrder(slider.order);
             setIsActive(slider.is_active);
-            // In a real scenario, we might need to fetch the full media object if the slider 
-            // only returned IDs or if we need to reconstruct the Media object from the nested data.
-            // Assuming slider.image and slider.video are nested objects from the API now.
             setSelectedImage(slider.image as unknown as Media || null);
             setSelectedVideo(slider.video as unknown as Media || null);
         } else {

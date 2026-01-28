@@ -2,7 +2,6 @@ from rest_framework import serializers
 from src.ai.models import AIProvider
 from src.ai.messages.messages import AI_ERRORS
 
-
 class AIAudioGenerationRequestSerializer(serializers.Serializer):
     
     model_id = serializers.IntegerField(

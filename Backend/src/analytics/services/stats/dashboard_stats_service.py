@@ -7,7 +7,6 @@ from src.analytics.utils.cache import AnalyticsCacheKeys, AnalyticsCacheManager
 
 User = get_user_model()
 
-
 class DashboardStatsService:
     CACHE_TIMEOUT = 300
     
@@ -59,7 +58,6 @@ class DashboardStatsService:
             stats['total_portfolio_tags'] = PortfolioTag.objects.count()
             stats['total_portfolio_options'] = PortfolioOption.objects.count()
             
-            # Engagement
             stats['total_portfolios_views'] = Portfolio.objects.aggregate(total=Sum('views_count'))['total'] or 0
             stats['total_portfolios_web_views'] = Portfolio.objects.aggregate(total=Sum('web_views_count'))['total'] or 0
             stats['total_portfolios_app_views'] = Portfolio.objects.aggregate(total=Sum('app_views_count'))['total'] or 0
@@ -83,7 +81,6 @@ class DashboardStatsService:
             stats['total_blog_categories'] = BlogCategory.objects.count()
             stats['total_blog_tags'] = BlogTag.objects.count()
             
-            # Engagement
             stats['total_posts_views'] = Blog.objects.aggregate(total=Sum('views_count'))['total'] or 0
             stats['total_posts_web_views'] = Blog.objects.aggregate(total=Sum('web_views_count'))['total'] or 0
             stats['total_posts_app_views'] = Blog.objects.aggregate(total=Sum('app_views_count'))['total'] or 0
@@ -100,7 +97,6 @@ class DashboardStatsService:
         if apps.is_installed('src.email') and apps.is_installed('src.ticket'):
             stats['communication_performance'] = cls._get_communication_stats()
         
-        # 5. Admin Performance (Leaderboard)
         if apps.is_installed('src.user'):
             stats['admin_leaderboard'] = cls._get_admin_performance()
         
@@ -116,20 +112,15 @@ class DashboardStatsService:
             stats['total_inquiries'] = PropertyInquiry.objects.count()
             stats['new_inquiries'] = PropertyInquiry.objects.filter(status='new').count()
 
-            # --- Advanced Real Estate Metrics ---
-            
-            # 1. Market Sentiment (Professional Insight)
             from src.real_estate.services.analytics.market_analysis_service import MarketAnalysisService
             stats['property_sentiment'] = MarketAnalysisService.get_market_sentiment()
 
-            # 2. Engagement
             stats['total_views'] = Property.objects.aggregate(total=Sum('views_count'))['total'] or 0
             stats['total_web_views'] = Property.objects.aggregate(total=Sum('web_views_count'))['total'] or 0
             stats['total_app_views'] = Property.objects.aggregate(total=Sum('app_views_count'))['total'] or 0
             stats['total_favorites'] = Property.objects.aggregate(total=Sum('favorites_count'))['total'] or 0
             stats['total_inquiries'] = Property.objects.aggregate(total=Sum('inquiries_count'))['total'] or 0
 
-            # 3. Agency & Agent Performance (Professional Scenario)
             from src.real_estate.models.statistics import AgentStatistics, AgencyStatistics
             now = timezone.now()
             
@@ -154,21 +145,17 @@ class DashboardStatsService:
                 'avg_closure_days': round(float(agency_summary['avg_time'] or 0), 1)
             }
             
-            # Financials (Total Listing Value for Sale)
-            # Using new robust usage_type field
             stats['total_listing_value'] = Property.objects.filter(
                 state__usage_type='sale',
                 is_published=True
             ).aggregate(total=Sum('price'))['total'] or 0
 
-            # Distribution by Type
             stats['properties_by_type'] = list(Property.objects.values(
                 'property_type__title'
             ).annotate(
                 count=Count('id')
             ).order_by('-count'))
             
-            # Distribution by State (Listing Status)
             stats['properties_by_state'] = list(Property.objects.values(
                 'state__title'
             ).annotate(
@@ -185,9 +172,7 @@ class DashboardStatsService:
     
     @classmethod
     def _get_communication_stats(cls) -> dict:
-        """
-        Aggregates professional communication metrics from stats models
-        """
+        
         from src.email.models.statistics import EmailStatistics
         from src.ticket.models.statistics import TicketStatistics
         from src.email.models.email_message import EmailMessage
@@ -229,13 +214,10 @@ class DashboardStatsService:
 
     @classmethod
     def _get_admin_performance(cls) -> list:
-        """
-        Calculates staff performance leaderboard for the current month
-        """
+        
         from src.user.models.statistics import AdminPerformanceStatistics
         now = timezone.now()
         
-        # Get top 10 admins by resolved tasks
         stats = AdminPerformanceStatistics.objects.filter(
             year=now.year, month=now.month
         ).select_related('admin__admin_user').order_by('-tickets_resolved', '-emails_replied')[:10]

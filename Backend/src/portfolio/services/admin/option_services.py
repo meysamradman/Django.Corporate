@@ -6,7 +6,6 @@ from src.portfolio.models.option import PortfolioOption
 from src.portfolio.utils.cache import OptionCacheKeys, OptionCacheManager
 from src.portfolio.messages.messages import OPTION_ERRORS
 
-
 class PortfolioOptionAdminService:
     
     @staticmethod
@@ -25,7 +24,6 @@ class PortfolioOptionAdminService:
                 Q(description__icontains=search)
             )
         
-        # Date filters
         if date_from:
             try:
                 date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()

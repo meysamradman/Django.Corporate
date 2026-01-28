@@ -11,7 +11,6 @@ from src.analytics.models import DailyStats, PageView
 from src.analytics.messages import ANALYTICS_SUCCESS, ANALYTICS_ERRORS
 from src.user.access_control import analytics_permission
 
-
 class PageViewsAnalyticsView(APIView):
     permission_classes = [analytics_permission]
     
@@ -32,7 +31,6 @@ class PageViewsAnalyticsView(APIView):
             status_code=status.HTTP_200_OK
         )
 
-
 class MonthlyStatsAnalyticsView(APIView):
     permission_classes = [analytics_permission]
     
@@ -44,20 +42,16 @@ class MonthlyStatsAnalyticsView(APIView):
             from datetime import datetime
             from calendar import monthrange
             
-            # Get last 6 months
             now = timezone.now()
             monthly_data = []
             
             for i in range(5, -1, -1):
-                # Calculate month start and end
                 target_date = now - timedelta(days=30 * i)
                 month_start = target_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
                 
-                # Calculate month end
                 last_day = monthrange(month_start.year, month_start.month)[1]
                 month_end = month_start.replace(day=last_day, hour=23, minute=59, second=59)
                 
-                # Get stats for this month
                 month_stats = DailyStats.objects.filter(
                     date__gte=month_start.date(),
                     date__lte=month_end.date()
@@ -66,14 +60,9 @@ class MonthlyStatsAnalyticsView(APIView):
                     mobile=Sum('mobile_visits'),
                 )
                 
-                # Get Persian (Jalali) month name
-                # Simple conversion: Gregorian month to approximate Jalali month
-                # Note: This is approximate, for accurate conversion use jdatetime library
                 gregorian_month = month_start.month
                 gregorian_year = month_start.year
                 
-                # Approximate Jalali month (Gregorian month + ~2 months offset)
-                # This is a simple approximation, not 100% accurate
                 approximate_jalali_month = ((gregorian_month + 1) % 12) + 1
                 
                 persian_month_names = [
@@ -81,7 +70,6 @@ class MonthlyStatsAnalyticsView(APIView):
                     'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
                 ]
                 
-                # Use approximate month (better than English names)
                 month_name = persian_month_names[approximate_jalali_month - 1] if 1 <= approximate_jalali_month <= 12 else 'نامشخص'
                 
                 monthly_data.append({
@@ -101,7 +89,6 @@ class MonthlyStatsAnalyticsView(APIView):
             data=data,
             status_code=status.HTTP_200_OK
         )
-
 
 class ClearAnalyticsView(APIView):
     permission_classes = [analytics_permission]

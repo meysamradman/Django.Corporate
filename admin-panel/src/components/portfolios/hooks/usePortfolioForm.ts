@@ -39,14 +39,12 @@ export function usePortfolioForm({ id, isEditMode }: UsePortfolioFormProps) {
 
     const { reset, setError } = form;
 
-    // Fetch data for edit mode
     const { data: portfolio, isLoading } = useQuery({
         queryKey: ['portfolio', Number(id)],
         queryFn: () => portfolioApi.getPortfolioById(Number(id)),
         enabled: isEditMode && !!id,
     });
 
-    // Reset form and media when portfolio data is loaded
     useEffect(() => {
         if (isEditMode && portfolio) {
             reset({
@@ -72,10 +70,6 @@ export function usePortfolioForm({ id, isEditMode }: UsePortfolioFormProps) {
             });
 
             if (portfolio.portfolio_media) {
-                // We need to cast because parsePortfolioMedia expects any[] but portfolio_media is PortfolioMedia[]?
-                // Actually parsePortfolioMedia implementation showed it takes `any[]`.
-                // portfolio.portfolio_media is PortfolioMedia[] ? No, let's check parsePortfolioMedia again if needed.
-                // But generally the field name is portfolio_media as per type definition.
                 const parsedMedia = parsePortfolioMedia(portfolio.portfolio_media as any[]);
                 setPortfolioMedia(parsedMedia);
             }
@@ -91,7 +85,6 @@ export function usePortfolioForm({ id, isEditMode }: UsePortfolioFormProps) {
             }
             const allMediaFiles: File[] = [];
 
-            // Use backend config if available, otherwise use frontend default
             const uploadMax = mediaConfig?.PORTFOLIO_MEDIA_UPLOAD_MAX ?? MEDIA_CONFIG.PORTFOLIO_UPLOAD_MAX;
             const totalMedia = allMediaFiles.length + allMediaIds.length;
             if (totalMedia > uploadMax) {
@@ -216,19 +209,15 @@ export function usePortfolioForm({ id, isEditMode }: UsePortfolioFormProps) {
             (errors) => {
                 const errorFields = Object.keys(errors);
                 if (errorFields.length > 0) {
-                    // Media tab fields
                     if (errorFields.some(field => ['featuredImage', 'images', 'videos', 'audios', 'documents'].includes(field))) {
                         setActiveTab('media');
                     }
-                    // SEO tab fields
                     else if (errorFields.some(field => ['meta_title', 'meta_description', 'og_title', 'og_description', 'og_image', 'canonical_url', 'robots_meta'].includes(field))) {
                         setActiveTab('seo');
                     }
-                    // Extra tab fields
                     else if (errorFields.some(field => ['selectedOptions', 'extra_attributes'].includes(field))) {
                         setActiveTab('extra');
                     }
-                    // Account tab fields (default)
                     else {
                         setActiveTab('account');
                     }

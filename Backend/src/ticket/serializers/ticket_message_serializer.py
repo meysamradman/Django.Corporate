@@ -7,7 +7,6 @@ from src.user.serializers.user.user_public_serializer import UserPublicSerialize
 from src.user.serializers.admin.admin_profile_serializer import AdminProfileSerializer
 from .ticket_attachment_serializer import TicketAttachmentSerializer
 
-
 class TicketMessageSerializer(serializers.ModelSerializer):
     sender_user = UserPublicSerializer(read_only=True)
     sender_admin = AdminProfileSerializer(read_only=True)
@@ -33,7 +32,6 @@ class TicketMessageSerializer(serializers.ModelSerializer):
     def get_attachments(self, obj):
         attachments = obj.attachments.all().order_by('created_at')
         return TicketAttachmentSerializer(attachments, many=True).data
-
 
 class TicketMessageCreateSerializer(serializers.ModelSerializer):
     attachment_ids = serializers.ListField(

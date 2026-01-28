@@ -2,7 +2,6 @@ from django.core.exceptions import ValidationError
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.media.messages.messages import MEDIA_ERRORS
 
-
 class MediaAdminService:
 
     @staticmethod
@@ -238,7 +237,6 @@ class MediaAdminService:
                     continue
                     
         return deleted_count, failed_items
-
 
 class MediaPublicService:
 

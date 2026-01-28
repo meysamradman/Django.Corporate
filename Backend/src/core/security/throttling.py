@@ -2,16 +2,13 @@ from django.core.cache import cache
 from django.utils import timezone
 from datetime import timedelta
 
-
 def _get_anon_throttle():
     from rest_framework.throttling import AnonRateThrottle
     return AnonRateThrottle
 
-
 def _get_user_throttle():
     from rest_framework.throttling import UserRateThrottle
     return UserRateThrottle
-
 
 def _create_safe_throttle_classes():
     AnonRateThrottle = _get_anon_throttle()
@@ -65,10 +62,8 @@ def _create_safe_throttle_classes():
     
     return SafeAnonRateThrottle, SafeUserRateThrottle
 
-
 _safe_anon_throttle_class = None
 _safe_user_throttle_class = None
-
 
 def get_safe_anon_throttle():
     global _safe_anon_throttle_class
@@ -76,13 +71,11 @@ def get_safe_anon_throttle():
         _safe_anon_throttle_class, _ = _create_safe_throttle_classes()
     return _safe_anon_throttle_class
 
-
 def get_safe_user_throttle():
     global _safe_user_throttle_class
     if _safe_user_throttle_class is None:
         _, _safe_user_throttle_class = _create_safe_throttle_classes()
     return _safe_user_throttle_class
-
 
 def __getattr__(name):
     if name == 'SafeAnonRateThrottle':
@@ -90,7 +83,6 @@ def __getattr__(name):
     elif name == 'SafeUserRateThrottle':
         return get_safe_user_throttle()
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
-
 
 class AdminLoginThrottle:
     scope = 'admin_login'
@@ -112,7 +104,6 @@ class AdminLoginThrottle:
         
         return AdminLoginThrottleImpl(*args, **kwargs)
 
-
 class UserLoginThrottle:
     scope = 'user_login'
     
@@ -133,7 +124,6 @@ class UserLoginThrottle:
         
         return UserLoginThrottleImpl(*args, **kwargs)
 
-
 class AdminAPIThrottle:
     scope = 'admin'
     
@@ -149,7 +139,6 @@ class AdminAPIThrottle:
                 return None
         
         return AdminAPIThrottleImpl(*args, **kwargs)
-
 
 class AdminManagementThrottle:
     scope = 'admin_management'
@@ -167,7 +156,6 @@ class AdminManagementThrottle:
         
         return AdminManagementThrottleImpl(*args, **kwargs)
 
-
 class AdminUserCreationThrottle:
     scope = 'admin_user_creation'
     
@@ -183,7 +171,6 @@ class AdminUserCreationThrottle:
                 return None
         
         return AdminUserCreationThrottleImpl(*args, **kwargs)
-
 
 class AdminBulkOperationThrottle:
     scope = 'admin_bulk_ops'
@@ -201,7 +188,6 @@ class AdminBulkOperationThrottle:
         
         return AdminBulkOperationThrottleImpl(*args, **kwargs)
 
-
 class AdminHeavyWorkThrottle:
     scope = 'admin_heavy_work'
     
@@ -218,7 +204,6 @@ class AdminHeavyWorkThrottle:
         
         return AdminHeavyWorkThrottleImpl(*args, **kwargs)
 
-
 class CaptchaThrottle:
     scope = 'captcha'
     
@@ -233,7 +218,6 @@ class CaptchaThrottle:
                 return f"captcha_{self.scope}_{ident}"
         
         return CaptchaThrottleImpl(*args, **kwargs)
-
 
 class FailedLoginThrottle:
     scope = 'failed_login'
@@ -269,7 +253,6 @@ class FailedLoginThrottle:
                 return super().throttle_failure()
         
         return FailedLoginThrottleImpl(*args, **kwargs)
-
 
 class SecurityThrottle:
     scope = 'security'

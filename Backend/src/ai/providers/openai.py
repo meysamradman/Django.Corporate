@@ -8,7 +8,6 @@ import re
 from .base import BaseProvider
 from src.ai.messages.messages import AI_ERRORS, AI_SYSTEM_MESSAGES, OPENAI_ERRORS, OPENAI_PROMPTS
 
-
 class OpenAIProvider(BaseProvider):
     
     BASE_URL = os.getenv('OPENAI_API_BASE_URL', 'https://api.openai.com/v1')
@@ -96,18 +95,7 @@ class OpenAIProvider(BaseProvider):
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         
-        full_prompt = f"""Write a professional SEO-optimized content in Persian (Farsi) language.
-
-Topic: {prompt}
-
-Requirements:
-- Word count: approximately {word_count} words
-- Style: {tone}
-- Content should be SEO optimized
-- Natural keyword usage
-- Logical and readable structure
-
-Write the content as plain text without special formatting."""
+        full_prompt = f
         
         payload = {
             "model": self.content_model,
@@ -239,10 +227,8 @@ Write the content as plain text without special formatting."""
                     messages.append({"role": role, "content": content})
         
         if kwargs.get('image'):
-            # Vision model request
             import base64
             
-            # Read and encode image
             image_file = kwargs['image']
             if hasattr(image_file, 'read'):
                 image_content = image_file.read()

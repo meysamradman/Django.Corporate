@@ -11,7 +11,6 @@ from src.ticket.utils.cache import TicketCacheManager
 from src.analytics.utils.cache import AnalyticsCacheManager
 from src.user.access_control import ticket_permission, PermissionRequiredMixin
 
-
 class AdminTicketViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [ticket_permission]
     
@@ -45,12 +44,7 @@ class AdminTicketViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        # Standard update (e.g. priority or assignment) can stay default or use service wrapper
-        # For consistency with caching, we might want to manually handle it or assume service handles it if we override perform_update.
-        # But for now, let's keep standard update but add cache invalidation (or move to service if complex)
         
-        # Actually, let's defer to super for basic fields, but we should handle cache.
-        # The previous code did super().update then invalidation.
         response = super().update(request, *args, **kwargs)
         if response.status_code == status.HTTP_200_OK:
             ticket = self.get_object()
@@ -108,11 +102,7 @@ class AdminTicketViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                     message=TICKET_ERRORS['status_required'],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
-            
-            # Validation logic moved to service, we just catch validation errors usually
-            # But specific error messages might be needed.
-            # Service raises ValidationError for invalid status.
-            
+
             TicketAdminService.update_status(ticket, new_status)
             serializer = TicketDetailSerializer(ticket)
             

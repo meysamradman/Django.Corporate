@@ -108,12 +108,10 @@ export default function CreateUserPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['users'] });
-            // ✅ از msg.crud استفاده کنید
             showSuccess(msg.crud('created', { item: 'کاربر' }));
             navigate("/users");
         },
         onError: (error: any) => {
-            // ✅ Field Errors → Inline + Toast کلی
             if (hasFieldErrors(error)) {
                 const fieldErrors = extractFieldErrors(error);
 
@@ -138,12 +136,9 @@ export default function CreateUserPage() {
                     });
                 });
 
-                // Toast کلی برای راهنمایی کاربر
                 showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
             }
-            // ✅ General Errors → فقط Toast
             else {
-                // showError خودش تصمیم می‌گیرد (بک‌اند یا frontend)
                 showError(error);
             }
         },

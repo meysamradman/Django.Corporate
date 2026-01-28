@@ -1,11 +1,8 @@
 from rest_framework import serializers
 import json
 
-
 class FloorPlanMediaSerializer(serializers.Serializer):
-    """
-    Serializer برای مدیریت تصاویر Floor Plan (مثل PortfolioMediaSerializer)
-    """
+    
     media_ids = serializers.ListField(
         child=serializers.IntegerField(),
         required=False,
@@ -25,7 +22,7 @@ class FloorPlanMediaSerializer(serializers.Serializer):
         return value
 
     def to_internal_value(self, data):
-        """Parse media_ids from various formats (JSON string, comma-separated, list, int)"""
+        
         processed_data = data.copy() if hasattr(data, 'copy') else dict(data)
         
         media_ids_str = processed_data.get('media_ids')

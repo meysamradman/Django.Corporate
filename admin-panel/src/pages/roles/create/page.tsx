@@ -44,7 +44,6 @@ const StandardPermissionsTable = lazy(
   () => import("@/components/roles/form").then(mod => ({ default: mod.StandardPermissionsTable }))
 );
 
-
 const StatisticsPermissionsCard = lazy(
   () => import("@/components/roles/form").then(mod => ({ default: mod.StatisticsPermissionsCard }))
 );
@@ -52,7 +51,6 @@ const StatisticsPermissionsCard = lazy(
 const AIPermissionsCard = lazy(
   () => import("@/components/roles/form").then(mod => ({ default: mod.AIPermissionsCard }))
 );
-
 
 const ManagementPermissionsCard = lazy(
   () => import("@/components/roles/form").then(mod => ({ default: mod.ManagementPermissionsCard }))
@@ -62,7 +60,6 @@ const RoleBasicInfoForm = lazy(
   () => import("@/components/roles/form").then(mod => ({ default: mod.RoleInfoForm }))
 );
 
-// استخراج permissions از API به صورت داینامیک
 const getAnalyticsPermissions = (permissions: any[]): string[] => {
   if (!permissions || !Array.isArray(permissions)) return [];
 
@@ -131,20 +128,15 @@ export default function CreateRolePage() {
       const resource = (toggledPerm as any)?.resource || '';
       const action = (toggledPerm as any)?.action || '';
 
-      // Check if this is a 'manage' permission
       const isManageAction = action?.toLowerCase() === 'manage';
 
       if (isManageAction) {
         if (isCurrentlySelected) {
           newPermissions = prev.filter(id => id !== permissionId);
         } else {
-          // Selecting 'manage' -> optionally clear child permissions of the same resource
-          // However, for consistency with 'Smart Permissions', we can keep them or just add 'manage'.
-          // The UI will handle disabling child checkboxes if 'manage' is selected.
           newPermissions = [...prev, permissionId];
         }
       } else {
-        // Not a manage action. Check if parent 'manage' is selected.
         const parentManagePerm = allPermissions.find((p: any) =>
           p.resource === resource && p.action?.toLowerCase() === 'manage'
         );
@@ -159,12 +151,10 @@ export default function CreateRolePage() {
           : [...prev, permissionId];
       }
 
-      // SMART LOGIC: Handle View dependencies for all standard resources
       const isOpAction = ['create', 'edit', 'delete', 'update', 'post', 'patch', 'destroy', 'remove'].includes(action.toLowerCase());
       const isViewAction = ['view', 'read', 'get', 'list'].includes(action.toLowerCase());
 
       if (isOpAction && !isCurrentlySelected) {
-        // Adding an OP action -> Ensure VIEW is also added
         const viewPerm = allPermissions.find((p: any) =>
           p.resource === resource && ['view', 'read'].includes(p.action.toLowerCase())
         );
@@ -172,7 +162,6 @@ export default function CreateRolePage() {
           newPermissions.push(viewPerm.id);
         }
       } else if (isViewAction && isCurrentlySelected) {
-        // Removing VIEW -> Ensure all OP actions for this resource are also removed
         const opPermIds = allPermissions
           .filter((p: any) =>
             p.resource === resource &&
@@ -342,7 +331,6 @@ export default function CreateRolePage() {
 
   const organizedPermissions = useMemo(() => getOrganizedPermissions(), [permissions]);
 
-  // استخراج permissions از API به صورت داینامیک
   const analyticsUsedPermissions = useMemo(() => {
     return getAnalyticsPermissions(permissions || []);
   }, [permissions]);
@@ -351,13 +339,11 @@ export default function CreateRolePage() {
     return getAIPermissions(permissions || []);
   }, [permissions]);
 
-  // تشخیص منابع Standalone (is_standalone: True)
   const isStandaloneResource = (resource: any) => {
     const perms = resource.permissions || [];
     return perms.some((p: any) => p.is_standalone === true);
   };
 
-  // تشخیص منابع که Master Toggle دارند (content_master)
   const hasContentMasterToggle = (resource: any) => {
     const perms = resource.permissions || [];
     return perms.some((p: any) =>
@@ -367,44 +353,33 @@ export default function CreateRolePage() {
     );
   };
 
-  // تشخیص منابع Admin-only (requires_superadmin: True)
   const isAdminOnlyResource = (resource: any) => {
     const perms = resource.permissions || [];
-    // اگر همه permissions نیاز به superadmin داشته باشند، admin-only است
     if (perms.length === 0) return false;
     return perms.every((p: any) => p.requires_superadmin === true);
   };
 
-  // منابع Standalone (settings, forms, chatbot, panel, pages)
-  // توجه: analytics و ai جداگانه نمایش داده می‌شوند
   const standaloneResources = useMemo(() => {
     return organizedPermissions.filter((r: any) => {
-      // حذف analytics و ai (جداگانه نمایش داده می‌شوند)
       if (r.resource === 'analytics' || r.resource?.startsWith('analytics.')) {
         return false;
       }
       if (r.resource === 'ai' || r.resource?.startsWith('ai.')) {
         return false;
       }
-      // حذف منابعی که Master Toggle دارند
       if (hasContentMasterToggle(r)) {
         return false;
       }
-      // فقط resources با is_standalone: true
       return isStandaloneResource(r);
     });
   }, [organizedPermissions]);
 
-  // منابع Analytics
   const analyticsResources = useMemo(() => {
     const filtered = organizedPermissions.filter((r: any) => {
-      // بررسی: resource name می‌تواند 'analytics' یا 'analytics.stats' و غیره باشد
       return r.resource === 'analytics' || r.resource?.startsWith('analytics.');
     });
 
-    // اگر چند resource analytics داریم، همه را در یک resource merge کنیم
     if (filtered.length > 1) {
-      // حذف permissions تکراری بر اساس id
       const permissionMap = new Map<number, any>();
       filtered.forEach((r: any) => {
         r.permissions?.forEach((perm: any) => {
@@ -425,16 +400,12 @@ export default function CreateRolePage() {
     return filtered;
   }, [organizedPermissions]);
 
-  // منابع AI
   const aiResources = useMemo(() => {
     const filtered = organizedPermissions.filter((r: any) => {
-      // بررسی: resource name می‌تواند 'ai' یا 'ai.chat' و غیره باشد
       return r.resource === 'ai' || r.resource?.startsWith('ai.');
     });
 
-    // اگر چند resource ai داریم، همه را در یک resource merge کنیم
     if (filtered.length > 1) {
-      // حذف permissions تکراری بر اساس id
       const permissionMap = new Map<number, any>();
       filtered.forEach((r: any) => {
         r.permissions?.forEach((perm: any) => {
@@ -455,21 +426,17 @@ export default function CreateRolePage() {
     return filtered;
   }, [organizedPermissions]);
 
-  // منابع Standard (محتوا و داده - CRUD)
   const standardResources = useMemo(() => {
     return organizedPermissions.filter((r: any) => {
-      // حذف analytics و ai (جداگانه نمایش داده می‌شوند)
       if (r.resource === 'analytics' || r.resource?.startsWith('analytics.')) {
         return false;
       }
       if (r.resource === 'ai' || r.resource?.startsWith('ai.')) {
         return false;
       }
-      // حذف منابعی که Master Toggle دارند (content_master)
       if (hasContentMasterToggle(r)) {
         return false;
       }
-      // حذف standalone و admin-only
       if (isStandaloneResource(r)) {
         return false;
       }
@@ -479,7 +446,6 @@ export default function CreateRolePage() {
       return true;
     });
   }, [organizedPermissions]);
-
 
   const handleFormSubmit = () => {
     handleSubmit(onSubmit)();
@@ -537,8 +503,6 @@ export default function CreateRolePage() {
           ) : permissions && permissions.length > 0 ? (
             <div className="space-y-8">
 
-              {/* بخش 1: مجوزهای محتوا و داده (CRUD) - اول نمایش داده می‌شود */}
-
               {standardResources.length > 0 && (
                 <Card className="border-2 border-dashed border-green-500/20 bg-green-500/5">
                   <CardHeader>
@@ -557,7 +521,6 @@ export default function CreateRolePage() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-8">
-                    {/* Module Master Toggles - High level "Full Access" switches for Content Modules */}
                     {(() => {
                       const moduleMasterPerms = permissions
                         ?.flatMap((g: any) => g.permissions)
@@ -624,7 +587,6 @@ export default function CreateRolePage() {
                 </Card>
               )}
 
-              {/* بخش 2: دسترسی‌های کلیدی سیستم (Standalone) */}
               {analyticsResources.length > 0 && analyticsResources[0]?.permissions?.length > 0 && (
                 <StatisticsPermissionsCard
                   permissions={analyticsResources[0].permissions}
@@ -674,7 +636,6 @@ export default function CreateRolePage() {
                   getResourceIcon={getResourceIcon}
                 />
               )}
-
 
               {selectedPermissions.length > 0 && (
                 <div className="p-3 bg-bg/50">

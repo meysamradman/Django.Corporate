@@ -61,7 +61,6 @@ export const GeneralSettingsForm = forwardRef<GeneralSettingsFormRef>((_props, r
         }
     };
 
-
     const handleSave = async () => {
         try {
             setSaving(true);

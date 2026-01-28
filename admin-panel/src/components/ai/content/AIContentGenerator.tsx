@@ -58,7 +58,6 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
                 setDestinations(response.data);
             }
         } catch {
-            // Ignore error
         }
     };
 

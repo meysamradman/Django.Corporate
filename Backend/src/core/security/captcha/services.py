@@ -8,7 +8,6 @@ from src.core.security.captcha.cache import CaptchaCacheManager, CaptchaCacheKey
 CAPTCHA_DIGITS = string.digits
 CAPTCHA_LENGTH = getattr(settings, 'CAPTCHA_LENGTH', 4)
 
-
 class CaptchaService:
 
     @classmethod

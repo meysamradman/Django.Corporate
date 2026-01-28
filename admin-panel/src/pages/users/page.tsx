@@ -48,7 +48,6 @@ export default function UsersPage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
 
-
     if (urlParams.get('page')) {
       const page = parseInt(urlParams.get('page')!, 10);
       setPagination(prev => ({ ...prev, pageIndex: page - 1 }));
@@ -195,7 +194,6 @@ export default function UsersPage() {
       permission: "users.delete",
     },
   ]);
-
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function'

@@ -28,17 +28,14 @@ export default function Permissions({
   const roleId = watch("role_id");
   const adminRoleType = watch("admin_role_type");
 
-  // ماژول‌های ممنوع برای مشاور طبق سناریو
   const FORBIDDEN_MODULES = ['admin', 'users', 'settings', 'panel', 'ai', 'pages', 'real_estate_agents', 'real_estate_agencies'];
 
   const filteredRoles = useMemo(() => {
     if (adminRoleType !== "consultant") return roles;
 
     return roles.filter(role => {
-      // ۱. حذف سوپرادمین
       if (role.name === "super_admin") return false;
 
-      // ۲. حذف نقش‌هایی که به ماژول‌های ممنوع دسترسی دارند
       const roleModules = role.permissions?.modules || [];
       if (roleModules.includes('all')) return false;
 

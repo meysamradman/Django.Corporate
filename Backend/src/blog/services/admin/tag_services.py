@@ -9,7 +9,6 @@ from src.blog.models.blog import Blog
 from src.blog.utils.cache import TagCacheKeys, TagCacheManager
 from src.blog.messages import TAG_ERRORS
 
-
 class BlogTagAdminService:
     
     @staticmethod
@@ -26,7 +25,6 @@ class BlogTagAdminService:
                 Q(description__icontains=search)
             )
         
-        # Date filters
         if date_from:
             try:
                 date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()

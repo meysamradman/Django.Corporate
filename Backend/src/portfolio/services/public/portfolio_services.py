@@ -4,7 +4,6 @@ from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.models.media import PortfolioImage
 from src.portfolio.utils.cache import PortfolioCacheKeys
 
-
 class PortfolioPublicService:
     @staticmethod
     def get_portfolio_queryset(filters=None, search=None):

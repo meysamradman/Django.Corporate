@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.postgres.indexes import BrinIndex
 from src.analytics.choices import ANALYTICS_SOURCE_CHOICES
 
-
 class PropertyStatistics(models.Model):
     property = models.ForeignKey(
         'real_estate.Property',
@@ -44,7 +43,6 @@ class PropertyStatistics(models.Model):
         help_text="Number of shares on this date"
     )
     
-    # Source breakdown
     web_views = models.IntegerField(
         default=0,
         verbose_name="Web Views",
@@ -56,7 +54,6 @@ class PropertyStatistics(models.Model):
         help_text="Views from app on this date"
     )
     
-    # Distributions
     countries = models.JSONField(default=dict, blank=True)
     platforms = models.JSONField(default=dict, blank=True)
     
@@ -74,7 +71,6 @@ class PropertyStatistics(models.Model):
     
     def __str__(self):
         return f"{self.property.title} - {self.date}"
-
 
 class AgentStatistics(models.Model):
     agent = models.ForeignKey(
@@ -122,7 +118,6 @@ class AgentStatistics(models.Model):
         help_text="Total commissions earned this month"
     )
     
-    # Advanced KPIs (Professional Scenario)
     conversion_rate = models.DecimalField(
         max_digits=5, decimal_places=2, default=0,
         verbose_name="Conversion Rate (%)",
@@ -157,11 +152,8 @@ class AgentStatistics(models.Model):
     def __str__(self):
         return f"{self.agent.full_name} - {self.year}/{self.month:02d}"
 
-
 class AgencyStatistics(models.Model):
-    """
-    آمار ماهانه آژانس‌ها
-    """
+    
     agency = models.ForeignKey(
         'real_estate.RealEstateAgency',
         on_delete=models.CASCADE,
@@ -181,7 +173,6 @@ class AgencyStatistics(models.Model):
         help_text="Month for these statistics (1-12)"
     )
     
-    # Monthly metrics
     active_agents = models.IntegerField(
         default=0,
         verbose_name="Active Agents",
@@ -218,7 +209,6 @@ class AgencyStatistics(models.Model):
         help_text="Number of new clients acquired this month"
     )
     
-    # Advanced KPIs (Professional Scenario)
     conversion_rate = models.DecimalField(
         max_digits=5, decimal_places=2, default=0,
         verbose_name="Agency Conversion Rate (%)"
@@ -246,14 +236,8 @@ class AgencyStatistics(models.Model):
     def __str__(self):
         return f"{self.agency.name} - {self.year}/{self.month:02d}"
 
-
 class PropertyViewLog(models.Model):
-    """
-    لاگ بازدیدهای املاک (برای آمارهای دقیق‌تر)
     
-    توجه: این جدول می‌تواند خیلی بزرگ شود
-    باید از time-series database یا partitioning استفاده کرد
-    """
     property = models.ForeignKey(
         'real_estate.Property',
         on_delete=models.CASCADE,
@@ -280,7 +264,6 @@ class PropertyViewLog(models.Model):
         help_text="User who viewed (if authenticated)"
     )
     
-    # Anonymous tracking
     ip_address = models.GenericIPAddressField(
         db_index=True,
         verbose_name="IP Address",
@@ -297,7 +280,6 @@ class PropertyViewLog(models.Model):
         help_text="Browser user agent string"
     )
     
-    # Referrer tracking
     referrer = models.URLField(
         blank=True,
         null=True,
@@ -305,7 +287,6 @@ class PropertyViewLog(models.Model):
         help_text="URL of the referrer page"
     )
     
-    # Timestamp
     viewed_at = models.DateTimeField(
         auto_now_add=True,
         db_index=True,
@@ -323,17 +304,13 @@ class PropertyViewLog(models.Model):
             models.Index(fields=['-viewed_at']),
             BrinIndex(fields=['viewed_at']),  # PostgreSQL BRIN for time-series
         ]
-        # Consider partitioning by date for large datasets
     
     def __str__(self):
         user_str = self.user.email if self.user else self.ip_address
         return f"{self.property.title} - {user_str} - {self.viewed_at}"
 
-
 class PropertyInquiry(models.Model):
-    """
-    استعلام‌های املاک (درخواست اطلاعات بیشتر)
-    """
+    
     property = models.ForeignKey(
         'real_estate.Property',
         on_delete=models.CASCADE,
@@ -350,7 +327,6 @@ class PropertyInquiry(models.Model):
         verbose_name="User"
     )
     
-    # Contact info (for anonymous users)
     name = models.CharField(
         max_length=200,
         verbose_name="Name"
@@ -364,7 +340,6 @@ class PropertyInquiry(models.Model):
         verbose_name="Phone"
     )
     
-    # Inquiry details
     message = models.TextField(
         verbose_name="Message"
     )
@@ -380,7 +355,6 @@ class PropertyInquiry(models.Model):
         verbose_name="Inquiry Type"
     )
     
-    # Status
     status = models.CharField(
         max_length=20,
         choices=[
@@ -393,7 +367,6 @@ class PropertyInquiry(models.Model):
         verbose_name="Status"
     )
     
-    # Timestamps
     created_at = models.DateTimeField(
         auto_now_add=True,
         db_index=True,
@@ -419,12 +392,8 @@ class PropertyInquiry(models.Model):
     def __str__(self):
         return f"{self.property.title} - {self.name} - {self.created_at}"
 
-
 class PropertyTypeStatistics(models.Model):
-    """
-    آمار تجمیعی روزانه بر اساس نوع ملک (آپارتمان، ویلا و ...)
-    برای تحلیل تقاضای بازار
-    """
+    
     property_type = models.ForeignKey(
         'real_estate.PropertyType',
         on_delete=models.CASCADE,
@@ -449,12 +418,8 @@ class PropertyTypeStatistics(models.Model):
     def __str__(self):
         return f"{self.property_type.title} - {self.date}"
 
-
 class PropertyStateStatistics(models.Model):
-    """
-    آمار تجمیعی روزانه بر اساس وضعیت ملک (فروشی، اجاره‌ای و ...)
-    برای تحلیل رفتار بازار
-    """
+    
     state = models.ForeignKey(
         'real_estate.PropertyState',
         on_delete=models.CASCADE,
@@ -479,23 +444,17 @@ class PropertyStateStatistics(models.Model):
     def __str__(self):
         return f"{self.state.title} - {self.date}"
 
-
 class RegionalStatistics(models.Model):
-    """
-    آمار تجمیعی منطقه‌ای (استان، شهر، منطقه)
-    برای تحلیل مناطق پرطرفدار و قیمت‌های میانگین
-    """
+    
     province = models.ForeignKey('core.Province', on_delete=models.CASCADE)
     city = models.ForeignKey('core.City', on_delete=models.CASCADE)
     region = models.ForeignKey('real_estate.CityRegion', on_delete=models.CASCADE, null=True, blank=True)
     
     date = models.DateField(db_index=True)
     
-    # Engagement
     views = models.PositiveIntegerField(default=0)
     inquiries = models.PositiveIntegerField(default=0)
     
-    # Market Data (Snapshots)
     avg_price_sale = models.BigIntegerField(default=0) # میانگین قیمت فروش
     avg_rent_monthly = models.BigIntegerField(default=0) # میانگین اجاره ماهانه
     total_active_listings = models.PositiveIntegerField(default=0)

@@ -84,7 +84,6 @@ export default function AgencyViewContent({ agencyId }: AgencyViewContentProps) 
 
     return (
         <div className="space-y-6">
-            {/* Profile Header - Same as Edit */}
             <div className="rounded-lg border p-6">
                 <div className="flex items-start gap-6">
                     <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
@@ -153,14 +152,12 @@ export default function AgencyViewContent({ agencyId }: AgencyViewContentProps) 
                 </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex justify-end">
                 <Button onClick={() => navigate(`/admins/agencies/${agencyId}/edit`)}>
                     ویرایش آژانس
                 </Button>
             </div>
 
-            {/* Tabs - Same structure as Edit */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList>
                     <TabsTrigger value="base-info">

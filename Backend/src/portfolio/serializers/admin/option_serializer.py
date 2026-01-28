@@ -3,7 +3,6 @@ from src.portfolio.models.option import PortfolioOption
 from src.portfolio.serializers.mixins import CountsMixin
 from src.portfolio.messages import OPTION_ERRORS
 
-
 class PortfolioOptionAdminListSerializer(CountsMixin, serializers.ModelSerializer):
     portfolio_count = serializers.SerializerMethodField()
     
@@ -17,7 +16,6 @@ class PortfolioOptionAdminListSerializer(CountsMixin, serializers.ModelSerialize
     
     def get_portfolio_count(self, obj):
         return getattr(obj, 'portfolio_count', obj.portfolio_options.count())
-
 
 class PortfolioOptionAdminDetailSerializer(serializers.ModelSerializer):
     portfolio_count = serializers.SerializerMethodField()
@@ -70,7 +68,6 @@ class PortfolioOptionAdminDetailSerializer(serializers.ModelSerializer):
             for p in portfolios
         ]
 
-
 class PortfolioOptionAdminCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioOption
@@ -99,7 +96,6 @@ class PortfolioOptionAdminCreateSerializer(serializers.ModelSerializer):
         if not value or not value.strip():
             raise serializers.ValidationError(OPTION_ERRORS["option_slug_required"])
         return value
-
 
 class PortfolioOptionAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -132,19 +128,16 @@ class PortfolioOptionAdminUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(OPTION_ERRORS["option_slug_required"])
         return value
 
-
 class PortfolioOptionSimpleAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioOption
         fields = ['id', 'public_id', 'name', 'slug']
         read_only_fields = ['id', 'public_id']
 
-
 class PortfolioOptionGroupedAdminSerializer(serializers.Serializer):
     key = serializers.CharField()
     options = PortfolioOptionSimpleAdminSerializer(many=True)
     total_count = serializers.IntegerField()
-
 
 class PortfolioOptionAdminSerializer(PortfolioOptionAdminDetailSerializer):
     pass

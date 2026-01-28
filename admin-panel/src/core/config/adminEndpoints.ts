@@ -5,7 +5,6 @@ function getAdminEndpoint(path: string): string {
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   const finalPath = cleanPath.endsWith('/') ? cleanPath : `${cleanPath}/`;
 
-  // اگر مسیر شامل auth/login یا auth/captcha باشد، از secret استفاده می‌کنیم
   if (cleanPath.startsWith('auth/login') || cleanPath.startsWith('auth/captcha')) {
     return `/admin/${secret}/${finalPath}`;
   }
@@ -14,13 +13,10 @@ function getAdminEndpoint(path: string): string {
 }
 
 export const adminEndpoints = {
-  // Authentication
   login: () => getAdminEndpoint('auth/login'),
   logout: () => getAdminEndpoint('auth/logout'),
   register: () => getAdminEndpoint('auth/register'),
   csrfToken: () => getAdminEndpoint('auth/login'),
-  // Captcha باید با full path باشه چون از getPublic استفاده می‌کنه
-  // توجه: baseURL قبلاً /api داره، پس نباید دوباره /api بذاریم
   captchaGenerate: () => {
     const secret = env.ADMIN_URL_SECRET;
     return `/admin/${secret}/auth/captcha/generate/`;

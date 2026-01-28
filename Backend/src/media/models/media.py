@@ -102,10 +102,7 @@ class AbstractMedia(BaseModel):
         abstract = True
         ordering = ['-created_at']
         indexes = [
-            # Composite index for filtering active media with descending date order
-            # Note: BaseModel has ['is_active', 'created_at'] (ascending), this is descending
             models.Index(fields=['is_active', '-created_at']),
-            # Note: title already has db_index=True (automatic index)
         ]
 
     def clean(self):
@@ -134,9 +131,7 @@ class AbstractMedia(BaseModel):
         return self.file.url if self.file else None
 
 class AbstractImageMedia(AbstractMedia):
-    """
-    Abstract base model for image media files.
-    """
+    
     file = models.ImageField(
         upload_to=upload_media_path,
         verbose_name="Image File",
@@ -164,9 +159,7 @@ class AbstractImageMedia(AbstractMedia):
             raise ValidationError(f"Image too large. Maximum: {max_size_mb:.1f} MB")
 
 class AbstractVideoMedia(AbstractMedia):
-    """
-    Abstract base model for video media files.
-    """
+    
     file = models.FileField(
         upload_to=upload_media_path,
         verbose_name="Video File",
@@ -212,9 +205,7 @@ class AbstractVideoMedia(AbstractMedia):
             raise ValidationError("Cover must be an ImageMedia instance.")
 
 class AbstractAudioMedia(AbstractMedia):
-    """
-    Abstract base model for audio media files.
-    """
+    
     file = models.FileField(
         upload_to=upload_media_path,
         verbose_name="Audio File",
@@ -260,9 +251,7 @@ class AbstractAudioMedia(AbstractMedia):
             raise ValidationError("Cover must be an ImageMedia instance.")
 
 class AbstractDocumentMedia(AbstractMedia):
-    """
-    Abstract base model for document media files.
-    """
+    
     file = models.FileField(
         upload_to=upload_media_path,
         verbose_name="Document File",

@@ -156,7 +156,6 @@ export default function AdvisorsListPage() {
         </Button>
       </PageHeader>
 
-      {/* فیلترها و جستجو */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4">
@@ -206,7 +205,6 @@ export default function AdvisorsListPage() {
         </CardContent>
       </Card>
 
-      {/* کارت‌های مشاورین */}
       {paginatedData.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
@@ -315,7 +313,6 @@ export default function AdvisorsListPage() {
             })}
           </div>
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <Card>
               <CardContent className="pt-6">

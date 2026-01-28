@@ -43,7 +43,6 @@ export const VisitorTrendChart: FC<{ isLoading?: boolean }> = ({
   isLoading: externalLoading,
 }) => {
   const [timeRange, setTimeRange] = useState("year");
-  // MOCK DATA FOR UI REVIEW
   const chartData = [
     { month: "فروردین", sale_properties: 65, rent_properties: 40, inquiries: 120, properties: 105 },
     { month: "اردیبهشت", sale_properties: 59, rent_properties: 45, inquiries: 135, properties: 104 },
@@ -58,7 +57,6 @@ export const VisitorTrendChart: FC<{ isLoading?: boolean }> = ({
     { month: "بهمن", sale_properties: 100, rent_properties: 85, inquiries: 240, properties: 185 },
     { month: "اسفند", sale_properties: 110, rent_properties: 90, inquiries: 260, properties: 200 },
   ];
-  // END MOCK DATA
 
   /*
   const { data: trendData, isLoading: trendLoading } = useContentTrend();
@@ -68,7 +66,6 @@ export const VisitorTrendChart: FC<{ isLoading?: boolean }> = ({
   }, [trendData]);
   */
 
-  // Override loading for mock
   const isLoading = false;
 
   const metrics = useMemo(() => {

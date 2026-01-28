@@ -7,18 +7,9 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.middleware.csrf import get_token
 from rest_framework import exceptions
 
-
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class AdminAuthMixin:
-    """
-    Mixin برای Admin Views (Session-based Authentication)
-    
-    ویژگی‌ها:
-    - CSRF token management
-    - User status validation
-    - Error handling
-    """
-    
+
     def dispatch(self, request, *args, **kwargs):
         try:
             get_token(request)
@@ -32,9 +23,7 @@ class AdminAuthMixin:
             raise PermissionDenied(AUTH_ERRORS["auth_not_authorized"])
     
     def _check_user_status(self, request):
-        """
-        بررسی وضعیت کاربر (برای Admin)
-        """
+        
         try:
             user = User.objects.get(pk=request.user.pk)
             

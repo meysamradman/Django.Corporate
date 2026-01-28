@@ -8,7 +8,6 @@ from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.user.access_control.classes import IsSuperAdmin
 from .service import IPBanService
 
-
 class IPManagementViewSet(viewsets.ViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
     permission_classes = [IsSuperAdmin]
@@ -160,8 +159,7 @@ class IPManagementViewSet(viewsets.ViewSet):
                 if IPBanService.is_banned(ip):
                     IPBanService.unban_ip(ip)
                     IPBanService.reset_attempts(ip)
-                
-                
+
                 return APIResponse.success(
                     message=f"IP {ip} به whitelist اضافه شد"
                 )

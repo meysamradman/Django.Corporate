@@ -120,14 +120,11 @@ export default function PortfolioViewPage() {
         position="left"
       />
 
-      {/* Top Section: Carousel + Basic Info */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">
-        {/* Right Side: Carousel (Gallery) - Takes more space */}
         <div className="lg:col-span-7 xl:col-span-8 h-full">
           <PortfolioCarousel portfolio={portfolioData} className="h-full" />
         </div>
 
-        {/* Left Side: Basic Info Sidebar - Takes less space */}
         <div className="lg:col-span-5 xl:col-span-4 h-full">
           <div className="sticky top-4 self-start">
             <PortfolioInfo portfolio={portfolioData} />
@@ -135,7 +132,6 @@ export default function PortfolioViewPage() {
         </div>
       </div>
 
-      {/* Bottom Section: Tabs */}
       <div>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList>

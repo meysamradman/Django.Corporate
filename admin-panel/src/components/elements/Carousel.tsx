@@ -75,7 +75,6 @@ function Carousel({
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {
-      // برای RTL: ArrowLeft = بعدی، ArrowRight = قبلی
       if (event.key === "ArrowLeft") {
         event.preventDefault()
         scrollNext() // در RTL، فلش چپ = حرکت به راست = بعدی

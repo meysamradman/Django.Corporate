@@ -60,13 +60,11 @@ export function RealEstateMedia({ property }: MediaInfoTabProps) {
 
   const allMedia = property.media || property.property_media || [];
   
-  // فایل‌های صوتی
   const audios = allMedia.filter((item: any) => {
     const media = item.media_detail || item.media || item;
     return media?.media_type === 'audio';
   });
   
-  // اسناد (PDF)
   const documents = allMedia.filter((item: any) => {
     const media = item.media_detail || item.media || item;
     return media?.media_type === 'document' || media?.media_type === 'pdf';

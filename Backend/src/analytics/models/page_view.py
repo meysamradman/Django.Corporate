@@ -2,7 +2,6 @@ from django.db import models
 from src.core.models import BaseModel
 from src.analytics.choices import ANALYTICS_SOURCE_CHOICES, DEVICE_CHOICES
 
-
 class PageView(BaseModel):
 
     source = models.CharField(max_length=10, choices=ANALYTICS_SOURCE_CHOICES, db_index=True)

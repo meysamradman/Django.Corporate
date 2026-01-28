@@ -2,7 +2,6 @@ from django.db.models import Count, Q
 from src.blog.models.category import BlogCategory
 from src.blog.models.blog import Blog
 
-
 class BlogCategoryPublicService:
     @staticmethod
     def get_category_queryset(filters=None, search=None):

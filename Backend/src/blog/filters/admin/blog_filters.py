@@ -2,7 +2,6 @@ import django_filters
 from django.db.models import Q, Count
 from src.blog.models.blog import Blog
 
-
 class BlogAdminFilter(django_filters.FilterSet):
     status = django_filters.CharFilter(
         method='filter_status',
@@ -218,7 +217,6 @@ class BlogAdminFilter(django_filters.FilterSet):
         return queryset
 
     def filter_categories_in(self, queryset, name, value):
-        # Kept for backward compatibility if needed, though redundant with category
         if value:
             try:
                 category_ids = [int(id.strip()) for id in value.split(',') if id.strip()]
@@ -227,7 +225,6 @@ class BlogAdminFilter(django_filters.FilterSet):
             except ValueError:
                 pass
         return queryset
-
 
 class BlogSEOFilter(django_filters.FilterSet):
     title_length_good = django_filters.BooleanFilter(

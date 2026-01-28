@@ -31,7 +31,6 @@ const STATE_COLORS = [
 ];
 
 export const PropertyDistributionChart: FC<PropertyDistributionChartProps> = ({ stats, isLoading = false }) => {
-    // MOCK DATA FOR UI REVIEW
     const typeData = [
         { name: "آپارتمان", value: 145 },
         { name: "ویلا", value: 89 },
@@ -45,7 +44,6 @@ export const PropertyDistributionChart: FC<PropertyDistributionChartProps> = ({ 
         { name: "اجاره", value: 95 },
         { name: "پیش‌فروش", value: 42 },
     ];
-    // END MOCK DATA
 
     /*
     const typeData = useMemo(() => {
@@ -109,7 +107,6 @@ export const PropertyDistributionChart: FC<PropertyDistributionChartProps> = ({ 
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                    {/* Property Types */}
                     <div className="flex flex-col items-center">
                         <div className="flex items-center gap-2 mb-4 self-start mr-4">
                             <Home className="w-4 h-4 text-primary" />
@@ -148,7 +145,6 @@ export const PropertyDistributionChart: FC<PropertyDistributionChartProps> = ({ 
                         </div>
                     </div>
 
-                    {/* Property States */}
                     <div className="flex flex-col items-center">
                         <div className="flex items-center gap-2 mb-4 self-start mr-4">
                             <Building2 className="w-4 h-4 text-primary" />

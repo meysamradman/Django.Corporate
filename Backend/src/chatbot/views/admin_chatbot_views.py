@@ -13,7 +13,6 @@ from src.chatbot.messages.messages import CHATBOT_SUCCESS, CHATBOT_ERRORS
 from src.user.access_control import PermissionRequiredMixin
 from src.chatbot.utils.cache import ChatbotCacheKeys, ChatbotCacheManager
 
-
 class AdminFAQViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     serializer_class = FAQSerializer
     
@@ -46,13 +45,7 @@ class AdminFAQViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 data=data,
                 status_code=status.HTTP_200_OK
             )
-        
-        # If not cached, get queryset (data is queryset here if is_cached is False)
-        # Actually service returns queryset if not cached.
-        
-        # To be safe and compatible with DRF pagination if used (though cache stores whole list likely)
-        # The original code cached "response.data".
-        
+
         response = super().list(request, *args, **kwargs)
         if hasattr(response, 'data'):
             ChatbotAdminService.cache_faq_list(response.data)
@@ -100,7 +93,6 @@ class AdminFAQViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             status_code=status.HTTP_200_OK
         )
 
-
 class AdminChatbotSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     serializer_class = ChatbotSettingsSerializer
     
@@ -130,7 +122,6 @@ class AdminChatbotSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
                 status_code=status.HTTP_200_OK
             )
             
-        # If not cached, data is instance
         serializer = self.get_serializer(data)
         serialized_data = serializer.data
         ChatbotAdminService.cache_settings(serialized_data)
@@ -153,10 +144,7 @@ class AdminChatbotSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
         serializer.is_valid(raise_exception=True)
         
         ChatbotAdminService.update_settings(instance, serializer.validated_data)
-        
-        # Re-fetch to match serializer output if needed, or just use serializer data
-        # serializer.data will have updated fields
-        
+
         return APIResponse.success(
             message=CHATBOT_SUCCESS['settings_updated'],
             data=serializer.data,

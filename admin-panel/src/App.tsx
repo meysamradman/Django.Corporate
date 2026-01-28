@@ -98,7 +98,6 @@ import PropertyTagsPage from './pages/real-estate/tags/page';
 import PropertyTagCreatePage from './pages/real-estate/tags/create/page';
 import PropertyTagEditPage from './pages/real-estate/tags/[id]/edit/page';
 import PropertyTagViewPage from './pages/real-estate/tags/[id]/view/page';
-// Agents and Agencies pages removed from top-level routes — managed via Admins section now.
 import RealEstateStatisticsPage from './pages/real-estate/statistics/page';
 
 import RealEstateStaticPage from './pages/Staticstyle/realstate/page';
@@ -112,7 +111,6 @@ import AgenciesListPageStatic from './pages/Staticstyle/realstate/agencies/list/
 import AgencyViewPageStatic from './pages/Staticstyle/realstate/agencies/[id]/view/page';
 import AgencyEditPageStatic from './pages/Staticstyle/realstate/agencies/[id]/edit/page';
 
-// Redirect components for old agent routes
 function AgentRedirectView() {
   const { id } = useParams<{ id: string }>();
   return <Navigate to={`/agents/${id}/edit`} replace />;
@@ -162,7 +160,6 @@ function App() {
                       <Route path=":id/view" element={<AdminsViewPage />} />
                       <Route path=":id/edit" element={<AdminsEditPage />} />
                       <Route path="permissions" element={<AdminsPermissionsPage />} />
-                      {/* Redirect old agents routes to new location */}
                       <Route path="agents" element={<Navigate to="/agents" replace />} />
                       <Route path="agents/:id/view" element={<AgentRedirectView />} />
                       <Route path="agents/:id/edit" element={<AgentRedirectEdit />} />
@@ -282,7 +279,6 @@ function App() {
                         <Route path=":id/edit" element={<PropertyTagEditPage />} />
                         <Route path=":id/view" element={<PropertyTagViewPage />} />
                       </Route>
-                      {/* Agents and Agencies routes removed from real-estate section — managed via Admins now */}
                     </Route>
                     <Route path="staticstyle">
                       <Route path="realstate">
@@ -302,7 +298,6 @@ function App() {
                     </Route>
                   </Route>
 
-                  {/* Isolated Print Routes - No Sidebar */}
                   <Route path="/blogs/print" element={<ProtectedRoute><BlogPrintPage /></ProtectedRoute>} />
                   <Route path="/portfolios/print" element={<ProtectedRoute><PortfolioPrintPage /></ProtectedRoute>} />
                   <Route path="/real-estate/print" element={<ProtectedRoute><PropertyPrintPage /></ProtectedRoute>} />

@@ -3,7 +3,6 @@ from django.core.validators import validate_email
 
 from src.user.messages import AUTH_ERRORS
 
-
 def validate_email_address(value):
     try:
         validate_email(value)

@@ -3,7 +3,6 @@ from rest_framework import serializers
 from src.email.models.email_attachment import EmailAttachment
 from src.email.models.email_message import EmailMessage
 
-
 class EmailAttachmentSerializer(serializers.ModelSerializer):
     
     file_size_formatted = serializers.ReadOnlyField()
@@ -20,7 +19,6 @@ class EmailAttachmentSerializer(serializers.ModelSerializer):
             'created_at',
         ]
         read_only_fields = ['id', 'file_size', 'file_size_formatted', 'content_type', 'created_at']
-
 
 class EmailMessageSerializer(serializers.ModelSerializer):
     
@@ -80,7 +78,6 @@ class EmailMessageSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
-
 
 class EmailMessageCreateSerializer(serializers.ModelSerializer):
     

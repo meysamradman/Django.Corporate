@@ -48,13 +48,11 @@ export function TreeSelect({
 }: TreeSelectProps) {
     const [open, setOpen] = React.useState(false)
 
-    // Memoize selected item finding to avoid re-calculation on every render
     const selectedItem = React.useMemo(() =>
         value ? data.find((item) => String(item.id) === String(value)) : null
         , [data, value])
 
     const handleSelect = (currentValue: string) => {
-        // If "null" string is passed (from special option), treat as null
         if (currentValue === "null") {
             onChange(null)
         } else {
@@ -68,9 +66,6 @@ export function TreeSelect({
         const isSelected = String(value) === String(item.id)
         const Icon = level === 1 ? FolderOpen : Folder
 
-        // Calculate indentation
-        // Using inline style for padding is the most efficient way for arbitrary depth levels
-        // instead of generating hundreds of tailwind classes.
         const indentStyle = {
             paddingRight: dir === 'rtl' ? `${(level - 1) * 1.5}rem` : 0,
             paddingLeft: dir === 'ltr' ? `${(level - 1) * 1.5}rem` : 0
@@ -85,7 +80,6 @@ export function TreeSelect({
                 className={cn(
                     "flex items-center gap-2 cursor-pointer w-full py-2.5", // Added slightly more padding for touch targets
                     dir === "rtl" ? "text-right" : "text-left",
-                    // Reset padding to manage it internally via style
                     "px-2"
                 )}
             >
@@ -93,14 +87,12 @@ export function TreeSelect({
                     className="flex items-center gap-2 flex-1 min-w-0"
                     style={indentStyle}
                 >
-                    {/* Visual Guide Hierarchical Lines */}
                     {level > 1 && (
                         <div className="flex gap-1 shrink-0 text-border select-none opacity-50">
                             <span className="is-rtl:-scale-x-100">└</span>
                         </div>
                     )}
 
-                    {/* Icon - Placed next to text (Standard RTL/LTR Tree flow) */}
                     <Icon
                         className={cn(
                             "w-4 h-4 shrink-0 transition-colors",
@@ -112,7 +104,6 @@ export function TreeSelect({
                         {item.name}
                     </span>
 
-                    {/* Checkmark for selection visibility */}
                     {isSelected && (
                         <Check
                             className={cn(
@@ -151,26 +142,22 @@ export function TreeSelect({
                 </Button>
             </PopoverTrigger>
 
-            {/* Popover content width matches trigger, aligns correctly */}
             <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
                 <Command dir={dir} className="w-full">
                     <CommandInput placeholder={searchPlaceholder} className="text-start" />
 
-                    {/* Increased max-height to 400px for better desktop utilization, optimized scroll */}
                     <CommandList className={cn(
                         "max-h-[400px] overflow-y-auto overflow-x-hidden",
                         "scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent" // If you have custom scrollbar plugins
                     )}>
                         <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">{emptyText}</CommandEmpty>
                         <CommandGroup>
-                            {/* Default "No Parent" Option - Sticky or just top of list */}
                             <CommandItem
                                 value="null"
                                 keywords={["بدون والد", "mother", "مادر", "root"]}
                                 onSelect={() => handleSelect("null")}
                                 className={cn(
                                     "flex items-center gap-2 cursor-pointer font-medium mb-1",
-                                    // Use global theme colors consistently
                                     "text-font-p hover:bg-bg"
                                 )}
                             >

@@ -96,4 +96,3 @@ export const ProtectedButton: FC<Props> = ({
 
 export default ProtectedButton;
 
-

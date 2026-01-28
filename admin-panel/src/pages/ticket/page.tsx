@@ -151,8 +151,6 @@ export default function TicketPage() {
     }
   }, [replyToTicket, createMessage, refetch, selectedTicket]);
 
-
-
   const filteredTickets = useMemo(() => {
     let filtered = tickets;
 

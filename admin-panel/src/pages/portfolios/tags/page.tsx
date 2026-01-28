@@ -89,7 +89,6 @@ export default function TagPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolio-tags'] });
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'تگ نمونه‌کار' }));
     },
     onError: (_error) => {
@@ -103,7 +102,6 @@ export default function TagPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries();
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'تگ نمونه‌کار' }));
       setRowSelection({});
     },
@@ -161,7 +159,6 @@ export default function TagPage() {
   ];
   
   const columns = useTagColumns(rowActions) as ColumnDef<PortfolioTag>[];
-
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function' 

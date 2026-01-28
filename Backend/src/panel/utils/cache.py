@@ -1,12 +1,10 @@
 from src.core.cache import CacheService
 
-
 class PanelCacheKeys:
     
     @staticmethod
     def panel_settings():
         return "panel_settings"
-
 
 class PanelCacheManager:
     

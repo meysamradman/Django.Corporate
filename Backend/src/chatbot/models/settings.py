@@ -3,7 +3,6 @@ from django.core.cache import cache
 from src.core.models import BaseModel
 from src.chatbot.utils.cache import ChatbotCacheKeys, ChatbotCacheManager
 
-
 class ChatbotSettings(BaseModel):
 
     is_enabled = models.BooleanField(
@@ -13,7 +12,6 @@ class ChatbotSettings(BaseModel):
         help_text="Whether the chatbot is enabled"
     )
     
-    # 2. Primary Content Fields
     welcome_message = models.CharField(
         max_length=500,
         default="Hello! How can I help you?",
@@ -27,7 +25,6 @@ class ChatbotSettings(BaseModel):
         help_text="Message displayed when chatbot doesn't understand the query"
     )
     
-    # Configuration Fields
     rate_limit_per_minute = models.IntegerField(
         default=5,
         verbose_name="Rate Limit Per Minute",
@@ -40,8 +37,6 @@ class ChatbotSettings(BaseModel):
         verbose_name_plural = "Chatbot Settings"
         ordering = ['-created_at']
         indexes = [
-            # Note: is_enabled already has db_index=True (automatic index)
-            # BaseModel already provides indexes for public_id, is_active, created_at
         ]
     
     def __str__(self):

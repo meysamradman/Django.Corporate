@@ -67,15 +67,12 @@ export async function exportBlogsToExcel(
         );
     }
 
-    // Transform data
     const excelData = transformBlogData(blogs);
 
-    // Create worksheet
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     worksheet['!views'] = [{ RTL: true }];
     worksheet['!dir'] = 'rtl';
 
-    // Set column widths
     const columnWidths = [
         { wch: 40 }, // عنوان
         { wch: 15 }, // وضعیت
@@ -88,17 +85,14 @@ export async function exportBlogsToExcel(
     ];
     worksheet['!cols'] = columnWidths;
 
-    // Create workbook
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'وبلاگ‌ها');
 
-    // Global RTL property for Workbook
     if (!workbook.Workbook) workbook.Workbook = {};
     if (!workbook.Workbook.Views) workbook.Workbook.Views = [];
     if (workbook.Workbook.Views.length === 0) workbook.Workbook.Views.push({ RTL: true });
     else workbook.Workbook.Views[0].RTL = true;
 
-    // Add metadata
     workbook.Props = {
         Title: 'گزارش وبلاگ‌ها',
         Subject: 'Export وبلاگ‌ها',
@@ -106,7 +100,6 @@ export async function exportBlogsToExcel(
         CreatedDate: new Date(),
     };
 
-    // Write file
     XLSX.writeFile(workbook, `${filename}.xlsx`, {
         bookType: 'xlsx',
         type: 'binary',

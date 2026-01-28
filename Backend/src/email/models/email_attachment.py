@@ -6,11 +6,9 @@ from django.utils import timezone
 
 from src.email.utils.cache import EmailCacheManager
 
-
 def email_attachment_upload_path(instance, filename):
     today = timezone.now().date()
     return f'email_attachments/{today.year}/{today.month:02d}/{today.day:02d}/{filename}'
-
 
 class EmailAttachment(models.Model):
 
@@ -23,7 +21,6 @@ class EmailAttachment(models.Model):
         help_text="Email message this attachment belongs to"
     )
     
-    # 2. Primary Content Fields
     filename = models.CharField(
         max_length=255,
         null=False,
@@ -37,7 +34,6 @@ class EmailAttachment(models.Model):
         help_text="Attachment file"
     )
     
-    # Metadata Fields
     file_size = models.PositiveIntegerField(
         verbose_name="File Size",
         help_text="File size in bytes"
@@ -49,7 +45,6 @@ class EmailAttachment(models.Model):
         help_text="MIME type of the file"
     )
     
-    # Timestamp Fields
     created_at = models.DateTimeField(
         auto_now_add=True,
         db_index=True,

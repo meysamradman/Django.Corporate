@@ -184,10 +184,8 @@ export function RealEstateStatisticsOverview() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Financial Overview - Top Relevance */}
       <FinancialStatsCards data={stats?.financials} isLoading={isLoading} />
 
-      {/* Main Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="کل املاک"
@@ -231,9 +229,7 @@ export function RealEstateStatisticsOverview() {
         />
       </div>
 
-      {/* Charts Section */}
       <div className="grid gap-4 md:grid-cols-3">
-        {/* Main Activity Chart - Takes 2/3 width */}
         <div className="md:col-span-2">
           <PropertiesChart
             monthlyStats={monthlyStats || []}
@@ -241,7 +237,6 @@ export function RealEstateStatisticsOverview() {
             isLoading={isLoading}
           />
         </div>
-        {/* Traffic Sources Chart - Takes 1/3 width */}
         <div className="md:col-span-1">
           <TrafficSourceChart
             data={stats?.traffic}
@@ -250,12 +245,10 @@ export function RealEstateStatisticsOverview() {
         </div>
       </div>
 
-      {/* Agents & Agencies Section - Two Columns */}
       <div className="grid gap-6 md:grid-cols-2">
         <TopAgentsList agents={stats?.top_agents} isLoading={isLoading} />
 
         <div className="space-y-4">
-          {/* Detailed Stats Cards for Agents/Agencies */}
           <div className="grid gap-4 sm:grid-cols-2">
             <StatCard
               title="مشاورین فعال"
@@ -301,7 +294,6 @@ export function RealEstateStatisticsOverview() {
         </div>
       </div>
 
-      {/* Attribute Distribution - Grid 4 cols */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="انواع ملک استفاده شده"

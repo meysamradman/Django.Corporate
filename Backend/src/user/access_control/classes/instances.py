@@ -13,7 +13,6 @@ class AnalyticsPermission(RequireModuleAccess):
     def __init__(self):
         super().__init__('analytics')
 
-
 class AnalyticsAnyPermission(AdminRolePermission):
     def has_permission(self, request, view):
         if getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False):
@@ -48,7 +47,6 @@ class AdminPermission(RequireModuleAccess):
 class AIPermission(RequireModuleAccess):
     def __init__(self):
         super().__init__('ai')
-
 
 class AIAnyPermission(AdminRolePermission):
     def has_permission(self, request, view):
@@ -97,7 +95,6 @@ class RealEstatePermission(RequireModuleAccess):
 class SettingsPermission(RequireModuleAccess):
     def __init__(self):
         super().__init__('settings')
-
 
 blog_permission = BlogPermission
 portfolio_permission = PortfolioPermission

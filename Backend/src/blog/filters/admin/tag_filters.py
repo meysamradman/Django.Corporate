@@ -2,7 +2,6 @@ import django_filters
 from django.db.models import Q, Count
 from src.blog.models.tag import BlogTag
 
-
 class BlogTagAdminFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method='filter_search', label='Search')
     

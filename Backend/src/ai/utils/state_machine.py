@@ -1,6 +1,5 @@
 from enum import Enum
 
-
 class ModelAccessState(str, Enum):
     AVAILABLE_SHARED = "available_shared"
     AVAILABLE_PERSONAL = "available_personal"
@@ -9,8 +8,6 @@ class ModelAccessState(str, Enum):
     
     @classmethod
     def calculate(cls, provider, model, admin):
-        # Local import to avoid circular import between models and services
-        # src.ai.models.ai_provider -> src.ai.services.state_machine -> src.ai.models
         from src.ai.models import AdminProviderSettings
 
         if model and not model.is_active:

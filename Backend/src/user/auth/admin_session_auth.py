@@ -7,7 +7,6 @@ from src.core.cache import CacheService
 
 User = get_user_model()
 
-
 class CSRFExemptSessionAuthentication(BaseAuthentication):
     
     def __init__(self):
@@ -100,7 +99,6 @@ class CSRFExemptSessionAuthentication(BaseAuthentication):
             CacheService.set(cache_key, timezone.now().isoformat(), session_timeout)
         except Exception:
             pass
-
 
 class AdminSessionAuthentication(BaseAuthentication):
     

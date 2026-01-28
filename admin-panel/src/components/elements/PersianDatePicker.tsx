@@ -98,7 +98,6 @@ export function PersianDatePicker({
   const monthEnd = endOfMonth(currentDate);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  // Get previous month's last days
   const prevMonth = subMonths(currentDate, 1);
   const prevMonthEnd = endOfMonth(prevMonth);
   const prevMonthDays = eachDayOfInterval({
@@ -106,7 +105,6 @@ export function PersianDatePicker({
     end: prevMonthEnd
   });
 
-  // Get next month's first days
   const nextMonth = addMonths(currentDate, 1);
   const nextMonthStart = startOfMonth(nextMonth);
   const nextMonthDays = eachDayOfInterval({
@@ -114,22 +112,17 @@ export function PersianDatePicker({
     end: addMonths(nextMonthStart, 1)
   });
 
-  // Get first day weekday (0 = Saturday, 6 = Friday)
   const firstDayWeekday = monthStart.getDay();
 
-  // Build calendar grid: 6 rows × 7 columns = 42 days
   const allDays: Date[] = [];
 
-  // Add previous month's trailing days
   if (firstDayWeekday > 0) {
     const trailingDays = prevMonthDays.slice(-firstDayWeekday);
     allDays.push(...trailingDays);
   }
 
-  // Add current month's days
   allDays.push(...days);
 
-  // Add next month's leading days to complete 42 days
   const remainingDays = 42 - allDays.length;
   if (remainingDays > 0) {
     const leadingDays = nextMonthDays.slice(0, remainingDays);
@@ -172,7 +165,6 @@ export function PersianDatePicker({
         )}
         dir="rtl"
       >
-        {/* Header with month/year navigation */}
         <div className="flex items-center justify-between p-3 border-b border-input">
           <div className="flex gap-1">
             <Button
@@ -237,7 +229,6 @@ export function PersianDatePicker({
           </div>
         </div>
 
-        {/* Year Selector */}
         {showYearSelector && (
           <div className="grid grid-cols-4 gap-2 p-3 border-b border-input max-h-[240px] overflow-y-auto">
             {Array.from({ length: 16 }, (_, i) => yearRange.start + i).map((year) => {
@@ -278,7 +269,6 @@ export function PersianDatePicker({
           </div>
         )}
 
-        {/* Weekday Headers */}
         <div className="grid grid-cols-7 gap-1 px-2 pt-2">
           {weekdayNames.map((day) => (
             <div
@@ -290,7 +280,6 @@ export function PersianDatePicker({
           ))}
         </div>
 
-        {/* Calendar Days */}
         <div className="grid grid-cols-7 gap-1 p-2">
           {allDays.map((day, index) => {
             const isSelected = selectedDate && isSameDay(day, selectedDate);
@@ -323,7 +312,6 @@ export function PersianDatePicker({
           })}
         </div>
 
-        {/* Today Button */}
         <div className="p-2 border-t border-input">
           <Button
             variant="outline"

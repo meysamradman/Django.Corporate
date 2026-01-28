@@ -144,7 +144,6 @@ export function EditUserForm({ userData }: EditUserFormProps) {
             }
             
                                     await adminApi.updateUserByType(userData.id, updateData, 'user');
-                        // ✅ از msg.crud استفاده کنید
                         showSuccess(msg.crud('updated', { item: 'پروفایل کاربر' }));
             setEditMode(false);
         } catch (error: any) {

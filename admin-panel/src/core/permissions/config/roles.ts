@@ -220,7 +220,6 @@ export const getUserRoleDisplayText = (user: any): string => {
     roleText = getRoleDisplayName('super_admin', true);
   } else if (roles.length > 0) {
     const mainRole = roles[0];
-    // First check if the role object itself has a display_name (from backend)
     if (typeof mainRole === 'object' && mainRole?.display_name) {
       roleText = mainRole.display_name;
     } else {
@@ -233,8 +232,6 @@ export const getUserRoleDisplayText = (user: any): string => {
     }
   }
 
-  // Append User Type if available
-  // user_role_type values: 'admin' | 'consultant'
   let typeText = '';
   if (user?.user_role_type === 'admin') {
     typeText = 'ادمین';

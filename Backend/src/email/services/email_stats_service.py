@@ -19,17 +19,13 @@ class EmailStatsService:
 
     @classmethod
     def track_new_email(cls, email_message):
-        """
-        Tracks a new email creation
-        """
+        
         stats = cls._get_today_stats()
         
-        # Increment volume
         EmailStatistics.objects.filter(id=stats.id).update(
             total_received=F('total_received') + 1
         )
         
-        # Update distributions
         stats.refresh_from_db()
         
         status = email_message.status
@@ -41,22 +37,18 @@ class EmailStatsService:
 
     @classmethod
     def track_status_change(cls, email_message, old_status, new_status):
-        """
-        Tracks an email status change
-        """
+        
         stats = cls._get_today_stats()
         
         if old_status == new_status:
             return
 
-        # Special case for 'replied'
         update_data = {}
         if new_status == 'replied' and old_status != 'replied':
             EmailStatistics.objects.filter(id=stats.id).update(
                 total_replied=F('total_replied') + 1
             )
         
-        # Update distribution
         stats.refresh_from_db()
         if old_status in stats.status_distribution:
             stats.status_distribution[old_status] = max(0, stats.status_distribution[old_status] - 1)

@@ -4,7 +4,6 @@ from src.core.responses.response import APIResponse
 from . import CAPTCHA_ERRORS
 from .services import CaptchaService
 
-
 class CaptchaRequiredMixin:
     
     def validate_captcha(self, request_data):

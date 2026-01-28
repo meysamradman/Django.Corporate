@@ -32,9 +32,7 @@ class PropertyPDFListExportService:
 
     @staticmethod
     def export_properties_pdf(queryset):
-        """
-        Export a high-resolution PDF list of properties matching filters.
-        """
+        
         if not REPORTLAB_AVAILABLE:
             raise ImportError(PROPERTY_ERRORS.get("property_export_failed", "Export failed - ReportLab not found"))
             
@@ -44,7 +42,6 @@ class PropertyPDFListExportService:
         clr = PDFBaseExportService.get_colors()
         styles = PDFBaseExportService.get_styles(font_name)
         
-        # Setup modern document
         doc = SimpleDocTemplate(
             buffer, 
             pagesize=landscape(A4), 
@@ -55,11 +52,9 @@ class PropertyPDFListExportService:
         )
         elements = []
         
-        # Title
         elements.append(Paragraph(rtl("گزارش لیست املاک"), styles['table_title']))
         elements.append(Spacer(1, 10))
         
-        # Table data construction
         headers = [rtl(f['label']) for f in PropertyPDFListExportService.EXPORT_FIELDS]
         table_data = [headers]
         
@@ -94,11 +89,9 @@ class PropertyPDFListExportService:
         if len(table_data) <= 1:
             table_data.append([rtl("موردی یافت نشد")] + [""] * (len(headers) - 1))
 
-        # Column sizing
         col_widths = [f['width'] * inch for f in PropertyPDFListExportService.EXPORT_FIELDS]
         table = Table(table_data, colWidths=col_widths, repeatRows=1)
         
-        # Premium Styling
         table.setStyle(TableStyle([
             ('FONTNAME', (0, 0), (-1, -1), font_name),
             ('FONTSIZE', (0, 0), (-1, 0), 10),
@@ -115,7 +108,6 @@ class PropertyPDFListExportService:
         
         elements.append(table)
         
-        # Meta Footer
         count_text = f"تعداد: {len(table_data)-1}"
         footer_text = f"گزارش املاک شرکت | {count_text} | {format_jalali_medium(datetime.now())}"
         footer_func = PDFBaseExportService.get_generic_footer_func(font_name, footer_text)

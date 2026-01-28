@@ -3,7 +3,6 @@ from src.user.messages import AUTH_ERRORS
 from src.user.utils.mobile_validator import validate_mobile_number
 from src.user.utils.otp_validator import validate_otp
 
-
 class SendOTPSerializer(serializers.Serializer):
     identifier = serializers.CharField(required=True)
 

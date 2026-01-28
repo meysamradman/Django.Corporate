@@ -10,7 +10,6 @@ import { ApiError } from '@/types/api/apiError';
 import { mediaService } from '@/components/media/services';
 import type { Media } from '@/types/shared/media';
 
-// Utility function for formatting dates
 const formatDate = (dateString: string) => {
     if (!dateString) return '';
     try {
@@ -74,10 +73,8 @@ export default function AgencyViewContent({ agencyId }: AgencyViewContentProps) 
 
     return (
         <div className="space-y-6">
-            {/* Header Card */}
             <Card className="p-6">
                 <div className="flex flex-col md:flex-row gap-6">
-                    {/* Agency Logo */}
                     <div className="flex-shrink-0">
                         {agencyData.logo?.file_url ? (
                             <img
@@ -92,7 +89,6 @@ export default function AgencyViewContent({ agencyId }: AgencyViewContentProps) 
                         )}
                     </div>
 
-                    {/* Basic Info */}
                     <div className="flex-1">
                         <div className="flex items-start justify-between">
                             <div>
@@ -149,7 +145,6 @@ export default function AgencyViewContent({ agencyId }: AgencyViewContentProps) 
                 </div>
             </Card>
 
-            {/* Contact Information */}
             <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                     <Mail className="w-5 h-5 text-blue-2" />
@@ -193,7 +188,6 @@ export default function AgencyViewContent({ agencyId }: AgencyViewContentProps) 
                 </div>
             </Card>
 
-            {/* Business Information */}
             <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                     <Building2 className="w-5 h-5 text-blue-2" />
@@ -230,7 +224,6 @@ export default function AgencyViewContent({ agencyId }: AgencyViewContentProps) 
                 </div>
             </Card>
 
-            {/* System Information */}
             <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4">اطلاعات سیستم</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">

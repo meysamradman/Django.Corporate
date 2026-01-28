@@ -89,7 +89,6 @@ export const agencyFormSchema = z.object({
         .default(true)
         .optional(),
 
-
     rating: z
         .number()
         .min(0, { message: msg.realEstate().validation.agencyRatingMin })

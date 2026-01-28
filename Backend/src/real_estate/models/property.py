@@ -18,7 +18,6 @@ from src.real_estate.utils.cache import PropertyCacheKeys, PropertyCacheManager
 from src.real_estate.models.managers import PropertyQuerySet
 from src.real_estate.models.constants import PROPERTY_STATUS_CHOICES
 
-
 class Property(BaseModel, SEOMixin):
 
     title = models.CharField(max_length=100, db_index=True, verbose_name="Title")
@@ -58,12 +57,10 @@ class Property(BaseModel, SEOMixin):
     tags = models.ManyToManyField(PropertyTag, blank=True, related_name='properties')
     features = models.ManyToManyField(PropertyFeature, blank=True, related_name='properties')
 
-    # Location fields
     neighborhood = models.CharField(max_length=120, blank=True)
     address = models.TextField()
     postal_code = models.CharField(max_length=20, blank=True)
     
-    # Geographic coordinates (Standard - Decimal)
     latitude = models.DecimalField(
         max_digits=10, 
         decimal_places=8, 
@@ -396,7 +393,6 @@ class Property(BaseModel, SEOMixin):
         help_text="Number of storage rooms (optional, 0 = No storage)"
     )
     
-    # Document fields - Keep db_index (frequently filtered)
     document_type = models.CharField(
         max_length=32,
         null=True,
@@ -411,7 +407,6 @@ class Property(BaseModel, SEOMixin):
         help_text="Whether the property has any ownership document"
     )
     
-    # Status fields - db_index removed (covered by partial indexes)
     is_published = models.BooleanField(
         default=False,
         verbose_name="Published",
@@ -449,7 +444,6 @@ class Property(BaseModel, SEOMixin):
         help_text="Lifecycle status of the listing (Active -> Pending -> Sold)"
     )
     
-    # Analytics fields - Keep db_index for views_count (sorting)
     views_count = models.IntegerField(
         default=0,
         db_index=True,
@@ -537,7 +531,6 @@ class Property(BaseModel, SEOMixin):
                 name='idx_featured_props'
             ),
             
-            # ✅ NEW: Index بهینه برای admin listing با ordering
             models.Index(
                 fields=['is_active', '-created_at', 'id'],
                 name='idx_admin_list_order'
@@ -802,7 +795,6 @@ class Property(BaseModel, SEOMixin):
                 })
     
     def save(self, *args, **kwargs):
-        # Auto-generate SEO fields
         if not self.meta_title and self.title:
             self.meta_title = self.title[:70]
         
@@ -829,14 +821,11 @@ class Property(BaseModel, SEOMixin):
         if self.city_id and not self.province_id:
             self.province = self.city.province
         
-        # Set published_at on first publish
         if self.is_published and not self.published_at:
             from django.utils import timezone
             self.published_at = timezone.now()
 
         is_new = self.pk is None
-        # No matter if new or existing, call super().save to ensure all mixins (BaseModel, models.Model) are called.
-        # super() will resolve to BaseModel.save (which calls full_clean + models.Model.save)
         super().save(*args, **kwargs)
 
         if is_new:

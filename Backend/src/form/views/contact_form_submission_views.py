@@ -7,7 +7,6 @@ from src.form.serializers import ContactFormSubmissionCreateSerializer
 from src.form.services.contact_form_submission_service import create_contact_form_submission
 from src.form.messages.messages import FORM_SUBMISSION_SUCCESS, FORM_SUBMISSION_ERRORS
 
-
 class ContactFormSubmissionViewSet(viewsets.ModelViewSet):
     
     serializer_class = ContactFormSubmissionCreateSerializer

@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from src.user.models import User
 
-
 class UserPublicSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
     

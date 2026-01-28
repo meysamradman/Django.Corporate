@@ -1,7 +1,6 @@
 from django_filters import rest_framework as filters
 from src.portfolio.models.tag import PortfolioTag
 
-
 class PortfolioTagPublicFilter(filters.FilterSet):
     name = filters.CharFilter(
         field_name='name',

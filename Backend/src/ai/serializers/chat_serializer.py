@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from src.ai.messages.messages import CHAT_ERRORS
 
-
 class AIChatMessageSerializer(serializers.Serializer):
     
     role = serializers.ChoiceField(
@@ -15,7 +14,6 @@ class AIChatMessageSerializer(serializers.Serializer):
         required=True,
         help_text="Message content"
     )
-
 
 class AIChatRequestSerializer(serializers.Serializer):
     
@@ -88,7 +86,6 @@ class AIChatRequestSerializer(serializers.Serializer):
         if not value or not value.strip():
             raise serializers.ValidationError(CHAT_ERRORS["validation_error"])
         return value.strip()
-
 
 class AIChatResponseSerializer(serializers.Serializer):
     

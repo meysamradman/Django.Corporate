@@ -18,9 +18,7 @@ if REPORTLAB_AVAILABLE:
 class PropertyPDFExportService:
     @staticmethod
     def export_property_pdf(property_instance):
-        """
-        Export a single property to a professional PDF document.
-        """
+        
         if not REPORTLAB_AVAILABLE:
             raise ImportError("ReportLab is not installed.")
             
@@ -34,7 +32,6 @@ class PropertyPDFExportService:
             logger.error("PDF config colors missing.")
             raise ValueError("Config failed.")
 
-        # Page dimension setup
         doc = SimpleDocTemplate(
             buffer, 
             pagesize=A4, 
@@ -45,18 +42,15 @@ class PropertyPDFExportService:
         )
         elements = []
         
-        # 1. Title Section
         elements.append(Paragraph(rtl(property_instance.title), styles['title']))
         elements.append(HRFlowable(width="100%", thickness=1, color=clr.PRIMARY, spaceAfter=20))
         
-        # 2. Main Image
         main_img = property_instance.get_main_image()
         rl_img = PDFBaseExportService.get_image(main_img)
         if rl_img:
             elements.append(rl_img)
             elements.append(Spacer(1, 20))
 
-        # 3. Status and Numerical Data
         status_map = {
             'active': 'فعال', 
             'pending': 'در حال معامله', 
@@ -65,11 +59,9 @@ class PropertyPDFExportService:
             'archived': 'بایگانی شده'
         }
         
-        # Price Formatting
         price = property_instance.price or property_instance.sale_price or property_instance.monthly_rent
         formatted_price = f"{price:,} {property_instance.currency or 'تومان'}" if price else "-"
 
-        # Metadata Table (Detailed view)
         meta_data = [
             [rtl(PDF_LABELS.get('status', 'وضعیت')), rtl(status_map.get(property_instance.status, property_instance.status))],
             [rtl(PDF_LABELS.get('property_type', 'نوع ملک')), rtl(property_instance.property_type.title if property_instance.property_type else "-")],
@@ -93,7 +85,6 @@ class PropertyPDFExportService:
         elements.append(meta_table)
         elements.append(Spacer(1, 25))
 
-        # 4. Features Selection
         features_list = property_instance.features.all()
         if features_list.exists():
             elements.append(Paragraph(rtl(PDF_LABELS.get('features', 'ویژگی‌ها')), styles['section']))
@@ -101,7 +92,6 @@ class PropertyPDFExportService:
             elements.append(Paragraph(rtl(features_text), styles['content']))
             elements.append(Spacer(1, 15))
 
-        # 5. Tags Selection
         tags_list = property_instance.tags.all()
         if tags_list.exists():
             elements.append(Paragraph(rtl(PDF_LABELS.get('tags', 'کلیدواژه‌ها')), styles['section']))
@@ -109,12 +99,10 @@ class PropertyPDFExportService:
             elements.append(Paragraph(rtl(tags_text), styles['content']))
             elements.append(Spacer(1, 15))
 
-        # 6. Description
         if property_instance.description:
             elements.append(Paragraph(rtl("توضیحات تکمیلی"), styles['section']))
             elements.append(Paragraph(rtl(property_instance.description.replace('\n', '<br/>')), styles['content']))
 
-        # Footer branding
         footer_func = PDFBaseExportService.get_generic_footer_func(
             font_name, 
             f"گزارش ملک | {format_jalali_medium(datetime.now())}"

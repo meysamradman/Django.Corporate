@@ -4,7 +4,6 @@ from src.blog.models.blog import Blog
 from src.blog.models.media import BlogImage
 from src.blog.utils.cache import BlogCacheKeys
 
-
 class BlogPublicService:
     @staticmethod
     def get_blog_queryset(filters=None, search=None):

@@ -31,11 +31,9 @@ const AgencySEOTab = lazy(() => import("@/components/agencies/profile/AgencySEO"
 const AgencySettingsTab = lazy(() => import("@/components/agencies/profile/AgencySettings").then((mod) => ({ default: mod.AgencySettings })));
 const AgencyProfileHeader = lazy(() => import("@/components/agencies/profile/AgencyProfileHeader").then((mod) => ({ default: mod.AgencyProfileHeader })));
 
-
 interface EditAgencyFormProps {
     agencyId: string;
 }
-
 
 export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
 

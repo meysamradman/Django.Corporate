@@ -238,7 +238,6 @@ export function MediaDetailsModal({
     }
   };
 
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[80vw] lg:max-w-5xl xl:max-w-6xl max-h-[90vh] overflow-y-auto p-0" showCloseButton={false} aria-describedby="media-details-description">

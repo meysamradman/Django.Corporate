@@ -141,11 +141,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = 'Users'
         ordering = ['-created_at']
         indexes = [
-            # Composite indexes for common query patterns (equality → sort)
             models.Index(fields=['user_type', 'is_admin_active', '-created_at'], name='user_type_admin_active_idx'),
             models.Index(fields=['is_staff', 'is_admin_active', '-created_at'], name='user_staff_admin_idx'),
             models.Index(fields=['is_active', '-created_at'], name='user_active_created_idx'),
-            # Note: mobile, email, and public_id already have unique=True/db_index=True (automatic indexes)
         ]
         constraints = [
             models.CheckConstraint(
@@ -176,5 +174,3 @@ class User(AbstractBaseUser, PermissionsMixin):
     def is_full_admin_user(self):
         return self.is_admin_full and self.has_admin_access()
 
-
- 

@@ -9,7 +9,6 @@ from src.core.security.throttling import CaptchaThrottle
 
 from src.user.utils.otp_validator import get_otp_length
 
-
 class SendOTPView(APIView):
     permission_classes = [AllowAny]
     throttle_classes = [CaptchaThrottle]

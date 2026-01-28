@@ -58,7 +58,6 @@ export function PortfolioAttributes({ portfolio }: ExtraAttributesInfoTabProps) 
         </div>
       </CardWithIcon>
 
-      {/* نمایش همه ویژگی‌ها به صورت Badge */}
       <CardWithIcon
         icon={Settings}
         title="خلاصه تمام ویژگی‌ها"

@@ -4,7 +4,6 @@ from src.core.models.base import BaseModel
 from src.real_estate.models.property import Property
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 
-
 class PropertyImage(BaseModel):
     property = models.ForeignKey(
         Property,
@@ -68,7 +67,6 @@ class PropertyImage(BaseModel):
 
     def __str__(self):
         return f"{self.property.title} - {self.image.title or self.image.file.name}"
-
 
 class PropertyVideo(BaseModel):
     property = models.ForeignKey(
@@ -142,7 +140,6 @@ class PropertyVideo(BaseModel):
     def __str__(self):
         return f"{self.property.title} - Video {self.video.title or self.video.file.name}"
 
-
 class PropertyAudio(BaseModel):
     property = models.ForeignKey(
         Property,
@@ -209,7 +206,6 @@ class PropertyAudio(BaseModel):
     
     def __str__(self):
         return f"{self.property.title} - Audio {self.audio.title or self.audio.file.name}"
-
 
 class PropertyDocument(BaseModel):
     property = models.ForeignKey(

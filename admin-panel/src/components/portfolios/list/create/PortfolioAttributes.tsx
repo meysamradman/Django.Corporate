@@ -90,7 +90,6 @@ export function PortfolioAttributes(props: ExtraAttributesTabProps) {
             return;
         }
 
-        // اگر در حال ویرایش نیستیم و کلید تکراری است
         if (!editingKey && currentAttributes[fieldKey.trim()]) {
             showError("این نام فیلد قبلاً استفاده شده است");
             return;
@@ -103,7 +102,6 @@ export function PortfolioAttributes(props: ExtraAttributesTabProps) {
             [fieldKey.trim()]: fieldValue.trim() || null
         };
         
-        // اگر در حال ویرایش بودیم و نام فیلد تغییر کرده، کلید قدیمی را حذف می‌کنیم
         if (editingKey && editingKey !== fieldKey.trim()) {
             delete newAttributes[editingKey];
         }

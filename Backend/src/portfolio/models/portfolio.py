@@ -8,7 +8,6 @@ from src.portfolio.models.tag import PortfolioTag
 from src.portfolio.utils.cache import PortfolioCacheKeys, PortfolioCacheManager
 from .managers import PortfolioQuerySet
 
-
 class Portfolio(BaseModel, SEOMixin):
     STATUS_CHOICES = (
         ('draft', 'Draft'),
@@ -95,7 +94,6 @@ class Portfolio(BaseModel, SEOMixin):
         help_text="Flexible attributes for custom fields (price, brand, specifications, etc.)"
     )
     
-    # Analytics fields
     views_count = models.PositiveIntegerField(
         default=0,
         db_index=True,
@@ -128,7 +126,6 @@ class Portfolio(BaseModel, SEOMixin):
         indexes = [
             models.Index(fields=['status', 'is_public', '-created_at']),
             models.Index(fields=['is_featured', 'status', '-created_at']),
-            # GIN Index for JSON field (PostgreSQL)
             GinIndex(fields=['extra_attributes'], name='idx_portfolio_gin_extra_attrs'),
         ]
 

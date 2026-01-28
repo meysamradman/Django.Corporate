@@ -126,7 +126,6 @@ export default function CreateAdminPage() {
                 (profileData as any).profile_picture = selectedMedia.id;
             }
 
-            // اضافه کردن فیلدهای مشاور املاک
             if (data.admin_role_type === "consultant") {
                 const agentProfile: Record<string, unknown> = {};
                 if (data.license_number) agentProfile.license_number = data.license_number;
@@ -135,7 +134,6 @@ export default function CreateAdminPage() {
                 if (data.agency_id) agentProfile.agency_id = data.agency_id;
                 if (typeof data.is_verified === 'boolean') agentProfile.is_verified = data.is_verified;
 
-                // فیلدهای SEO
                 if (data.meta_title) agentProfile.meta_title = data.meta_title;
                 if (data.meta_description) agentProfile.meta_description = data.meta_description;
                 if (data.meta_keywords) agentProfile.meta_keywords = data.meta_keywords;
@@ -152,12 +150,10 @@ export default function CreateAdminPage() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admins'] });
-            // ✅ از msg.crud استفاده کنید
             showSuccess(msg.crud('created', { item: 'ادمین' }));
             navigate("/admins");
         },
         onError: (error: any) => {
-            // ✅ Field Errors → Inline + Toast کلی
             if (hasFieldErrors(error)) {
                 const fieldErrors = extractFieldErrors(error);
 
@@ -183,12 +179,9 @@ export default function CreateAdminPage() {
                     });
                 });
 
-                // Toast کلی برای راهنمایی کاربر
                 showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
             }
-            // ✅ General Errors → فقط Toast
             else {
-                // showError خودش تصمیم می‌گیرد (بک‌اند یا frontend)
                 showError(error);
             }
         },

@@ -218,7 +218,6 @@ export default function EditRolePage() {
       const resource = (toggledPerm as any)?.resource || '';
       const action = (toggledPerm as any)?.action || '';
 
-      // Check if this is a 'manage' permission
       const isManageAction = action?.toLowerCase() === 'manage';
 
       if (isManageAction) {
@@ -228,7 +227,6 @@ export default function EditRolePage() {
           newPermissions = [...prev, permissionId];
         }
       } else {
-        // Not a manage action. Check if parent 'manage' is selected.
         const parentManagePerm = allPermissions.find((p: any) =>
           p.resource === resource && p.action?.toLowerCase() === 'manage'
         );
@@ -243,12 +241,10 @@ export default function EditRolePage() {
           : [...prev, permissionId];
       }
 
-      // SMART LOGIC: Handle View dependencies for all standard resources
       const isOpAction = ['create', 'edit', 'delete', 'update', 'post', 'patch', 'destroy', 'remove'].includes(action.toLowerCase());
       const isViewAction = ['view', 'read', 'get', 'list'].includes(action.toLowerCase());
 
       if (isOpAction && !isCurrentlySelected) {
-        // Adding an OP action -> Ensure VIEW is also added
         const viewPerm = allPermissions.find((p: any) =>
           p.resource === resource && ['view', 'read'].includes(p.action.toLowerCase())
         );
@@ -256,7 +252,6 @@ export default function EditRolePage() {
           newPermissions.push(viewPerm.id);
         }
       } else if (isViewAction && isCurrentlySelected) {
-        // Removing VIEW -> Ensure all OP actions for this resource are also removed
         const opPermIds = allPermissions
           .filter((p: any) =>
             p.resource === resource &&
@@ -363,7 +358,6 @@ export default function EditRolePage() {
     return perms.some((p: any) => p.is_standalone === true);
   };
 
-  // تشخیص منابع که Master Toggle دارند (content_master)
   const hasContentMasterToggle = (resource: any) => {
     const perms = resource.permissions || [];
     return perms.some((p: any) =>
@@ -381,14 +375,12 @@ export default function EditRolePage() {
 
   const standaloneResources = useMemo(() => {
     return organizedPermissions.filter((r: any) => {
-      // حذف analytics و ai (جداگانه نمایش داده می‌شوند)
       if (r.resource === 'analytics' || r.resource?.startsWith('analytics.')) {
         return false;
       }
       if (r.resource === 'ai' || r.resource?.startsWith('ai.')) {
         return false;
       }
-      // حذف منابعی که Master Toggle دارند
       if (hasContentMasterToggle(r)) {
         return false;
       }
@@ -398,12 +390,10 @@ export default function EditRolePage() {
 
   const analyticsResources = useMemo(() => {
     const filtered = organizedPermissions.filter((r: any) => {
-      // بررسی: resource name می‌تواند 'analytics' یا 'analytics.stats' و غیره باشد
       return r.resource === 'analytics' || r.resource?.startsWith('analytics.');
     });
 
     if (filtered.length > 1) {
-      // حذف permissions تکراری بر اساس id
       const permissionMap = new Map<number, any>();
       filtered.forEach((r: any) => {
         r.permissions?.forEach((perm: any) => {
@@ -430,7 +420,6 @@ export default function EditRolePage() {
     });
 
     if (filtered.length > 1) {
-      // حذف permissions تکراری بر اساس id
       const permissionMap = new Map<number, any>();
       filtered.forEach((r: any) => {
         r.permissions?.forEach((perm: any) => {
@@ -468,7 +457,6 @@ export default function EditRolePage() {
       if (r.resource === 'ai' || r.resource?.startsWith('ai.')) {
         return false;
       }
-      // حذف منابعی که Master Toggle دارند (content_master)
       if (hasContentMasterToggle(r)) {
         return false;
       }
@@ -504,7 +492,6 @@ export default function EditRolePage() {
       }
     }
   }, [organizedPermissions, allDisplayedResources]);
-
 
   const onSubmit = async (data: RoleFormData) => {
     try {
@@ -648,8 +635,6 @@ export default function EditRolePage() {
           ) : permissions && permissions.length > 0 ? (
             <div className="space-y-8">
 
-              {/* بخش 1: مجوزهای محتوا و داده (CRUD) - اول نمایش داده می‌شود */}
-
               {standardResources.length > 0 && (
                 <Card className="border-2 border-dashed border-green-500/20 bg-green-500/5">
                   <CardHeader>
@@ -668,7 +653,6 @@ export default function EditRolePage() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-8">
-                    {/* Module Master Toggles - High level "Full Access" switches for Content Modules */}
                     {(() => {
                       const moduleMasterPerms = permissions
                         ?.flatMap((g: any) => g.permissions)
@@ -735,7 +719,6 @@ export default function EditRolePage() {
                 </Card>
               )}
 
-              {/* بخش 2: دسترسی‌های کلیدی سیستم (Standalone) */}
               {analyticsResources.length > 0 && analyticsResources[0]?.permissions?.length > 0 && (
                 <StatisticsPermissionsCard
                   permissions={analyticsResources[0].permissions}
@@ -785,7 +768,6 @@ export default function EditRolePage() {
                   getResourceIcon={getResourceIcon}
                 />
               )}
-
 
               {selectedPermissions.length > 0 && (
                 <div className="p-3 bg-bg/50">

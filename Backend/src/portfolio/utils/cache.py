@@ -1,7 +1,6 @@
 from django.core.cache import cache
 from src.core.cache import CacheKeyBuilder, CacheService
 
-
 class PortfolioCacheKeys:
     
     @staticmethod
@@ -40,7 +39,6 @@ class PortfolioCacheKeys:
     def all_keys(portfolio_id):
         return CacheKeyBuilder.portfolio_all_keys(portfolio_id)
 
-
 class PortfolioCacheManager:
     
     @staticmethod
@@ -54,7 +52,6 @@ class PortfolioCacheManager:
     @staticmethod
     def invalidate_all_lists():
         return CacheService.clear_portfolio_lists()
-
 
 class CategoryCacheKeys:
     
@@ -96,7 +93,6 @@ class CategoryCacheKeys:
             limits = [5, 10, 15, 20]
         return [CategoryCacheKeys.popular(limit) for limit in limits]
 
-
 class CategoryCacheManager:
     
     @staticmethod
@@ -112,7 +108,6 @@ class CategoryCacheManager:
         popular_keys = CategoryCacheKeys.all_popular_keys()
         if popular_keys:
             cache.delete_many(popular_keys)
-
 
 class TagCacheKeys:
     
@@ -131,7 +126,6 @@ class TagCacheKeys:
             keys.extend([TagCacheKeys.tag(tid) for tid in tag_ids])
         return keys
 
-
 class TagCacheManager:
     
     @staticmethod
@@ -149,7 +143,6 @@ class TagCacheManager:
     def invalidate_all():
         cache.delete(TagCacheKeys.popular())
 
-
 class OptionCacheKeys:
     
     @staticmethod
@@ -166,7 +159,6 @@ class OptionCacheKeys:
         if option_ids:
             keys.extend([OptionCacheKeys.option(oid) for oid in option_ids])
         return keys
-
 
 class OptionCacheManager:
     

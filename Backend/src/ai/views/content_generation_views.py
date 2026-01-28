@@ -18,7 +18,6 @@ from src.ai.providers.huggingface import HuggingFaceProvider
 from src.ai.models import AIProvider, AdminProviderSettings
 from src.ai.utils.destination_handler import ContentDestinationHandler
 
-
 class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     permission_classes = [ai_permission]
     
@@ -61,9 +60,7 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             
     @action(detail=False, methods=['get'])
     def destinations(self, request):
-        """
-        Get all registered content destinations.
-        """
+        
         destinations = ContentDestinationRegistry.get_all_destinations()
         return APIResponse.success(
             message='لیست مقاصد دریافت شد',

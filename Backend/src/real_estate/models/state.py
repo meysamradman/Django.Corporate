@@ -2,9 +2,7 @@ from django.db import models
 from src.core.models import BaseModel
 from src.real_estate.models.managers import PropertyStateQuerySet
 
-
 from src.real_estate.models.constants import LISTING_TYPE_CHOICES
-
 
 class PropertyState(BaseModel):
     title = models.CharField(

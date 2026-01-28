@@ -78,7 +78,6 @@ const MODULE_NAMES = {
   REAL_ESTATE_TAG: 'real_estate.tag',
 } as const;
 
-// Auto-generate mapping from permissions API
 const generateModuleMapping = (permissionsData: any[]): Record<string, string> => {
   const mapping: Record<string, string> = {};
 
@@ -92,11 +91,8 @@ const generateModuleMapping = (permissionsData: any[]): Record<string, string> =
       const parts = originalKey.split('.');
 
       if (parts.length > 2) {
-        // Nested resource (e.g., 'blog.category.read' -> 'blog.category')
         const nestedResource = parts.slice(0, -1).join('.');
 
-        // Create frontend-to-backend mapping (e.g., 'blog_categories' -> 'blog.category')
-        // Convert dot notation to underscore for frontend (legacy compatibility)
         const frontendName = nestedResource.replace(/\./g, '_');
         if (!mapping[frontendName]) {
           mapping[frontendName] = nestedResource;
@@ -178,7 +174,6 @@ export function useUserPermissions() {
   const { user } = useAuth();
   const { data: permissionsData } = usePermissions();
 
-  // Auto-generate mapping from permissions API
   const FRONTEND_TO_BACKEND_MODULE_MAP = useMemo(() => {
     return generateModuleMapping(permissionsData || []);
   }, [permissionsData]);
@@ -252,15 +247,12 @@ export function useUserPermissions() {
       const normalizedAction = normalizeModuleAction(lastPart);
 
       if (normalizedAction && lastPart !== '') {
-        // Add to base module (e.g., 'real_estate' from 'real_estate.property.read')
         const baseResource = parts[0];
         const baseActionSet = map.get(baseResource) ?? new Set<ModuleAction>();
         baseActionSet.add(normalizedAction);
         map.set(baseResource, baseActionSet);
 
-        // Add to nested module if exists (e.g., 'real_estate.property' from 'real_estate.property.read')
         if (parts.length > 2) {
-          // Join all parts except the last one (action)
           const nestedResource = parts.slice(0, -1).join('.');
           const nestedActionSet = map.get(nestedResource) ?? new Set<ModuleAction>();
           nestedActionSet.add(normalizedAction);
@@ -331,11 +323,9 @@ export function useUserPermissions() {
     return false;
   }, [isSuperAdmin, permissions]);
 
-  // Check module action without checking parent (strict checking for nested modules)
   const hasModuleActionStrict = useCallback((resource: string, action: ModuleAction | ModuleAction[]): boolean => {
     if (!resource) return false;
 
-    // Map frontend module name to backend module name if needed
     const backendResource = FRONTEND_TO_BACKEND_MODULE_MAP[resource] || resource;
 
     const actionList = Array.isArray(action) ? action : (ACTION_SYNONYMS[action] || [action]);
@@ -390,7 +380,6 @@ export function useUserPermissions() {
   const hasModuleAction = useCallback((resource: string, action: ModuleAction | ModuleAction[]): boolean => {
     if (!resource) return false;
 
-    // Map frontend module name to backend module name if needed
     const backendResource = FRONTEND_TO_BACKEND_MODULE_MAP[resource] || resource;
 
     const actionList = Array.isArray(action) ? action : (ACTION_SYNONYMS[action] || [action]);
@@ -415,8 +404,6 @@ export function useUserPermissions() {
       }
     }
 
-    // Check parent module if nested module not found (e.g., check 'real_estate' for 'real_estate.property')
-    // This is useful for fallback modules, but NOT for primary nested modules
     if (backendResource.includes('.')) {
       const parentResource = backendResource.split('.')[0];
       const parentActions = moduleActionMap.get(parentResource);

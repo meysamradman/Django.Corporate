@@ -60,7 +60,6 @@ export function AIPermissionsCard({
     (p) => p.original_key === "ai.manage"
   );
   
-  // استفاده مستقیم از selectedPermissions برای محاسبه دقیق‌تر
   const isAiManageSelected = useMemo(() => {
     if (!aiManagePermission?.id) return false;
     return _selectedPermissions.includes(aiManagePermission.id);
@@ -219,7 +218,6 @@ export function AIPermissionsCard({
         )}
         
         <div className="space-y-4">
-          {/* نمایش ai.manage */}
           {aiManagePermission && (
             <div
               className={`relative flex items-center gap-4 p-4 rounded-lg border transition-all duration-200 ${
@@ -280,7 +278,6 @@ export function AIPermissionsCard({
             </div>
           )}
           
-          {/* نمایش permissions جزئی (فقط اگر ai.manage انتخاب نشده باشد) */}
           {!isAiManageSelected && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredPermissions

@@ -132,7 +132,6 @@ export default function PropertyStatesPage() {
     mutationFn: (stateId: number) => realEstateApi.deleteState(stateId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-states'] });
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'وضعیت ملک' }));
     },
     onError: (_error) => {
@@ -144,7 +143,6 @@ export default function PropertyStatesPage() {
     mutationFn: (stateIds: number[]) => Promise.all(stateIds.map(id => realEstateApi.deleteState(id))),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-states'] });
-      // ✅ از msg.crud استفاده کنید
       showSuccess(msg.crud('deleted', { item: 'وضعیت‌های ملک' }));
       setRowSelection({});
     },
@@ -218,7 +216,6 @@ export default function PropertyStatesPage() {
   ];
 
   const columns = usePropertyStateColumns(rowActions, handleToggleActive) as ColumnDef<PropertyState>[];
-
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === 'function'

@@ -12,8 +12,6 @@ from src.user.serializers.location_serializer import (
 from src.core.responses.response import APIResponse
 from src.core.pagination.pagination import StandardLimitPagination
 
-
-
 class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Province.objects.filter(is_active=True).order_by('name')
     permission_classes = [IsAuthenticated]
@@ -128,7 +126,6 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
             message=AUTH_SUCCESS["location_provinces_retrieved"],
             data=provinces_list
         )
-
 
 class CityViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = City.objects.filter(is_active=True).select_related('province').order_by('province__name', 'name')

@@ -9,7 +9,6 @@ import type {
   EmailStats
 } from "@/types/email/emailMessage";
 
-
 class EmailApi {
   private baseUrl = '/email/messages/';
 

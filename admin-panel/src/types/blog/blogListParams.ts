@@ -25,7 +25,6 @@ export interface BlogFilters {
   [key: string]: string | boolean | number | { from?: string; to?: string } | undefined;
 }
 
-// DEPRECATED: Use BlogCategoryListParams from category/blogCategoryFilter.ts instead
 export interface CategoryListParams {
   search?: string;
   page?: number;
@@ -40,7 +39,6 @@ export interface CategoryListParams {
   order_desc?: boolean;
 }
 
-// DEPRECATED: Use BlogTagListParams from tags/blogTagFilter.ts instead
 export interface TagListParams {
   search?: string;
   page?: number;

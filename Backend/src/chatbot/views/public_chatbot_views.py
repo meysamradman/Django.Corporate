@@ -7,7 +7,6 @@ from src.core.responses.response import APIResponse
 from src.chatbot.services.rule_based_service import RuleBasedChatService
 from src.chatbot.messages.messages import CHATBOT_SUCCESS, CHATBOT_ERRORS
 
-
 class PublicChatbotViewSet(viewsets.ViewSet):
     permission_classes = [AllowAny]
     

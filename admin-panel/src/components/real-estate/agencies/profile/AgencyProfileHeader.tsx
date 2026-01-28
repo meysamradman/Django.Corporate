@@ -55,7 +55,6 @@ export function AgencyProfileHeader({ agency, selectedLogo, onLogoChange, agency
 
             const queryKeyForInvalidate = agencyId || String(agency?.id);
 
-            // Update callback whether image is set or removed
             if (onLogoChange) {
                 const updatedLogo: Media | null = (updatedAgency.logo as unknown as Media) ?? null;
                 onLogoChange(updatedLogo);

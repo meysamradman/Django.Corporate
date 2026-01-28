@@ -2,7 +2,6 @@ from rest_framework import serializers
 from src.ticket.models.ticket_attachment import TicketAttachment
 from src.media.serializers.media_serializer import MediaAdminSerializer
 
-
 class TicketAttachmentSerializer(serializers.ModelSerializer):
     media = serializers.SerializerMethodField()
     media_type = serializers.SerializerMethodField()

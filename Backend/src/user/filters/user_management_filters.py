@@ -2,11 +2,8 @@ import django_filters
 from django.db.models import Q
 from src.user.models.user import User
 
-
 class UserManagementAdminFilter(django_filters.FilterSet):
-    """
-    Filter برای مدیریت Regular Users (کاربران عادی)
-    """
+    
     search = django_filters.CharFilter(method='filter_search', label='Search')
     is_active = django_filters.BooleanFilter(field_name='is_active', label='Active Status')
     
@@ -56,7 +53,7 @@ class UserManagementAdminFilter(django_filters.FilterSet):
         fields = []
     
     def filter_search(self, queryset, name, value):
-        """جستجو در email, mobile, first_name, last_name"""
+        
         if not value:
             return queryset
         
@@ -68,13 +65,11 @@ class UserManagementAdminFilter(django_filters.FilterSet):
         )
     
     def filter_has_profile(self, queryset, name, value):
-        """فیلتر کاربرانی که پروفایل کامل دارند"""
+        
         if value is None:
             return queryset
         
         if value:
-            # کاربرانی که پروفایل دارند
             return queryset.filter(user_profile__isnull=False)
         else:
-            # کاربرانی که پروفایل ندارند
             return queryset.filter(user_profile__isnull=True)

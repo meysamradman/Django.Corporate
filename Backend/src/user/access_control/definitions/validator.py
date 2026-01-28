@@ -7,7 +7,6 @@ from .module_mappings import MODULE_MAPPINGS
 from src.user.utils.cache import UserCacheKeys, UserCacheManager
 from src.user.models import AdminUserRole
 
-
 class PermissionValidator:
     CACHE_TIMEOUT = 300
     
@@ -44,29 +43,22 @@ class PermissionValidator:
 
         module_perms = PermissionValidator._get_user_module_permissions(user)
         
-        # Check global "all" module permissions
         global_actions = module_perms.get('all', set())
         if "all" in global_actions or "manage" in global_actions or perm.action in global_actions:
             return True
             
-        # Check specific module permissions
-        # Try exact module match first
         module_actions = module_perms.get(perm.module, set())
         if "all" in module_actions or "manage" in module_actions or perm.action in module_actions:
             return True
             
-        # SMART PERMISSION: If requesting 'read' or 'view', and user has ANY action in this module
         if perm.action in ['read', 'view'] and module_actions:
             return True
             
-        # Check if any parent module has access (e.g., 'real_estate' for 'real_estate.property')
-        # This is for nested module support
         for user_module, actions in module_perms.items():
             if user_module == 'all': continue
             if perm.module.startswith(user_module + '.'):
                 if "all" in actions or "manage" in actions or perm.action in actions:
                     return True
-                # SMART PERMISSION: Sub-module implicit read (if parent has any action)
                 if perm.action in ['read', 'view'] and actions:
                     return True
                     
@@ -83,12 +75,8 @@ class PermissionValidator:
         if not context_type or context_type == 'media_library':
             return False
         
-        # Generic context-based permission check
-        # Checks if user has module access for the context type
         module_perms = PermissionValidator._get_user_module_permissions(user)
         
-        # Check if user has required action on the context module
-        # (Using 'all' actions as fallback)
         for mod in ['all', context_type]:
             actions = module_perms.get(mod, set())
             if "all" in actions or "manage" in actions or context_action in actions:
@@ -179,7 +167,6 @@ class PermissionValidator:
                 if perm.requires_superadmin and not is_superadmin:
                     continue
                 
-                # Check global access
                 global_actions = module_perms.get('all', set())
                 has_global = "all" in global_actions or "manage" in global_actions or perm.action in global_actions
                 
@@ -188,7 +175,6 @@ class PermissionValidator:
                         granted.append(perm_id)
                     continue
                     
-                # Check module-specific access
                 module_actions = module_perms.get(perm.module, set())
                 has_module_access = "all" in module_actions or "manage" in module_actions or perm.action in module_actions
                 
@@ -197,7 +183,6 @@ class PermissionValidator:
                         granted.append(perm_id)
                     continue
                     
-                # Check parent module access
                 for user_module, actions in module_perms.items():
                     if user_module == 'all': continue
                     if perm.module.startswith(user_module + '.'):
@@ -206,17 +191,14 @@ class PermissionValidator:
                                 granted.append(perm_id)
                             break
         
-        # SMART PERMISSION: Final pass to ensure all modules with ANY permission have READ access
         for perm_id, perm in PermissionRegistry.get_all().items():
             if perm_id in granted: continue
             if perm.requires_superadmin and not is_superadmin:
                 continue
             
             if perm.action in ['read', 'view']:
-                # If we have any permission for this module or sub-module
                 has_any_in_module = any(g.startswith(perm.module + '.') or g == perm_id for g in granted)
                 if not has_any_in_module:
-                    # Check if any granted permission belongs to this module
                     for g_id in granted:
                         g_perm = PermissionRegistry.get(g_id)
                         if g_perm and g_perm.module == perm.module:
@@ -256,7 +238,6 @@ class PermissionValidator:
             redis_cache_key = UserCacheKeys.user_module_perms(cache_key_id)
             cached_result = cache.get(redis_cache_key)
             if cached_result is not None:
-                # Convert back to sets
                 return {k: set(v) for k, v in cached_result.items()}
         
         module_to_actions: Dict[str, Set[str]] = {}
@@ -273,7 +254,6 @@ class PermissionValidator:
                 if not isinstance(role_perms, dict):
                     continue
                     
-                # Extract modules and actions from this specific role
                 if 'specific_permissions' in role_perms:
                     specific_perms = role_perms.get('specific_permissions', [])
                     if isinstance(specific_perms, list):
@@ -283,12 +263,10 @@ class PermissionValidator:
                                 perm_action = perm.get('action')
                                 if not perm_module: continue
                                 
-                                # Setup target modules (self + siblings from mappings)
                                 target_modules = {perm_module}
                                 if perm_module in MODULE_MAPPINGS:
                                     target_modules.update(MODULE_MAPPINGS[perm_module])
                                     
-                                # Normalize actions
                                 normalized_actions = set()
                                 if perm_action:
                                     if perm_action in ['read', 'view']:
@@ -298,18 +276,15 @@ class PermissionValidator:
                                     else:
                                         normalized_actions.add(perm_action)
                                 
-                                # Apply to all target modules
                                 for mod in target_modules:
                                     if mod not in module_to_actions:
                                         module_to_actions[mod] = set()
                                     module_to_actions[mod].update(normalized_actions)
                 else:
-                    # Legacy format (modules list + actions list)
                     role_modules = role_perms.get("modules", [])
                     role_actions = role_perms.get("actions", [])
                     
                     if isinstance(role_modules, list) and isinstance(role_actions, list):
-                        # Normalize actions
                         normalized_actions = set()
                         for action in role_actions:
                             if action in ['read', 'view']:
@@ -320,7 +295,6 @@ class PermissionValidator:
                                 normalized_actions.add(action)
                         
                         for mod in role_modules:
-                            # Cleanup/Expand module
                             target_modules = {mod}
                             if mod in MODULE_MAPPINGS:
                                 target_modules.update(MODULE_MAPPINGS[mod])
@@ -332,7 +306,6 @@ class PermissionValidator:
             
             if cache_key_id:
                 redis_cache_key = UserCacheKeys.user_module_perms(cache_key_id)
-                # Store as lists for JSON serialization in Redis
                 cache.set(
                     redis_cache_key, 
                     {k: list(v) for k, v in module_to_actions.items()}, 
@@ -346,7 +319,7 @@ class PermissionValidator:
 
     @staticmethod
     def _get_user_modules_actions(user) -> Tuple[Set[str], Set[str]]:
-        """Deprecated: Use _get_user_module_permissions instead for scoped checks."""
+        
         module_perms = PermissionValidator._get_user_module_permissions(user)
         modules = set(module_perms.keys())
         actions = set()

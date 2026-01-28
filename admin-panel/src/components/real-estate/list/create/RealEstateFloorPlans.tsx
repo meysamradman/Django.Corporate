@@ -252,7 +252,6 @@ export default function RealEstateFloorPlans({
         borderColor="border-b-blue-1"
       >
         <div className="space-y-6">
-          {/* Header Info for empty state */}
           {!propertyId && floorPlans.length === 0 && !isAdding && (
             <div className="flex items-start gap-4 p-5 bg-indigo-0/30 border border-indigo-1/10 rounded-2xl">
               <div className="flex-shrink-0 w-10 h-10 bg-indigo rounded-xl flex items-center justify-center shadow-lg shadow-indigo/20">
@@ -269,7 +268,6 @@ export default function RealEstateFloorPlans({
             </div>
           )}
 
-          {/* ADD ACTION / FORM SECTION */}
           {isAdding ? (
             <div className="border border-indigo-1/20 rounded-2xl p-6 bg-indigo-0/5 shadow-sm space-y-6 animate-in fade-in slide-in-from-top-4 duration-300">
               <div className="flex items-center justify-between gap-4 mb-2">
@@ -411,7 +409,6 @@ export default function RealEstateFloorPlans({
             </div>
           )}
 
-          {/* Existing Floor Plans */}
           {floorPlans.length > 0 && (
             <div className="space-y-4 mt-6">
               <div className="flex items-center gap-3 mb-2 px-1">
@@ -421,7 +418,6 @@ export default function RealEstateFloorPlans({
               {floorPlans.map((plan, index) => (
                 <div key={plan.id || `temp-${index}`} className="relative border border-br rounded-2xl p-5 bg-wt hover:border-indigo-1/20 transition-all duration-300">
                   <div className="flex flex-col lg:flex-row items-start gap-6">
-                    {/* Visual Preview (if images exist) */}
                     {plan.images && plan.images.length > 0 && (
                       <div className="w-full lg:w-48 aspect-[4/3] rounded-xl overflow-hidden border border-br bg-muted/5 flex-shrink-0">
                         <img src={mediaService.getMediaUrlFromObject(plan.images[0])} alt={plan.title} className="w-full h-full object-cover" />
@@ -438,9 +434,7 @@ export default function RealEstateFloorPlans({
                         </Button>
                       </div>
 
-                      {/* Floor Plan Details - NEUTRAL STYLING */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {/* Size */}
                         <div className="bg-bg p-3 rounded-2xl border border-br/50 group/detail transition-all">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 bg-wt rounded-xl flex items-center justify-center border border-br/30 shadow-sm">
@@ -455,7 +449,6 @@ export default function RealEstateFloorPlans({
                           </div>
                         </div>
 
-                        {/* Bedrooms */}
                         {plan.bedrooms !== null && (
                           <div className="bg-bg p-3 rounded-2xl border border-br/50 group/detail transition-all">
                             <div className="flex items-center gap-3">
@@ -470,7 +463,6 @@ export default function RealEstateFloorPlans({
                           </div>
                         )}
 
-                        {/* Bathrooms */}
                         {plan.bathrooms !== null && (
                           <div className="bg-bg p-3 rounded-2xl border border-br/50 group/detail transition-all">
                             <div className="flex items-center gap-3">
@@ -485,7 +477,6 @@ export default function RealEstateFloorPlans({
                           </div>
                         )}
 
-                        {/* Price */}
                         {plan.price !== null && (
                           <div className="bg-bg p-3 rounded-2xl border border-br/50 group/detail transition-all">
                             <div className="flex items-center gap-3">
@@ -503,7 +494,6 @@ export default function RealEstateFloorPlans({
                         )}
                       </div>
 
-                      {/* Additional Badges info */}
                       {(plan.floor_number !== null || plan.unit_type) && (
                         <div className="flex flex-wrap gap-2 pt-1">
                           {plan.floor_number !== null && (

@@ -9,7 +9,6 @@ from src.ticket.utils.cache import TicketCacheManager
 from src.analytics.utils.cache import AnalyticsCacheManager
 from src.user.access_control import ticket_permission, PermissionRequiredMixin
 
-
 class AdminTicketMessageViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [ticket_permission]
     

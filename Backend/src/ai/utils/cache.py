@@ -1,7 +1,6 @@
 from django.core.cache import cache
 from src.core.cache import CacheKeyBuilder, CacheService
 
-
 class AICacheKeys:
     
     @staticmethod
@@ -52,7 +51,6 @@ class AICacheKeys:
         if admin_id:
             return f"ai_settings_{admin_id}_*"
         return "ai_settings_*"
-
 
 class AICacheManager:
     

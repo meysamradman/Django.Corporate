@@ -13,7 +13,6 @@ import {
   Loader2, Save, List,
 } from "lucide-react";
 
-// نوع داده استاتیک برای املاک
 interface RealEstateItem {
   id: number;
   title: string;
@@ -36,7 +35,6 @@ interface RealEstateItem {
   robots_meta?: string;
 }
 
-// داده استاتیک نمونه
 const getStaticRealEstateData = (id: string): RealEstateItem | null => {
   const staticData: RealEstateItem[] = [
     {

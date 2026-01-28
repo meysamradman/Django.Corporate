@@ -2,7 +2,6 @@ from src.ticket.models.ticket_message import TicketMessage
 from src.ticket.models.ticket_attachment import TicketAttachment
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 
-
 class TicketMessageService:
     
     @staticmethod

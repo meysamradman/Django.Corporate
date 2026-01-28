@@ -3,7 +3,6 @@ from src.page.models import TermsPage
 from src.media.serializers.media_serializer import ImageMediaSerializer
 from src.page.messages import TERMS_PAGE_ERRORS
 
-
 class TermsPageSerializer(serializers.ModelSerializer):
     featured_image_data = ImageMediaSerializer(
         source='featured_image',
@@ -77,7 +76,6 @@ class TermsPageSerializer(serializers.ModelSerializer):
     
     def get_computed_canonical_url(self, obj):
         return obj.get_canonical_url()
-
 
 class TermsPageUpdateSerializer(serializers.ModelSerializer):
     class Meta:

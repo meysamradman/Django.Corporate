@@ -49,7 +49,6 @@ export default function AISettingsPage() {
     toggleUseSharedApiMutation.mutate({ providerId, useSharedApi: checked });
   };
 
-
   if (isLoadingBackendProviders) {
     return (
       <div className="space-y-6">

@@ -71,14 +71,11 @@ export function PersianDateRangePicker({
 
   const handleDateClick = (date: Date) => {
     if (!startDate || (startDate && endDate)) {
-      // Start new selection
       setStartDate(date);
       setEndDate(null);
       setHoverDate(null);
     } else if (startDate && !endDate) {
-      // Complete selection
       if (isBefore(date, startDate)) {
-        // If clicked date is before start, swap them
         setEndDate(startDate);
         setStartDate(date);
       } else {
@@ -125,7 +122,6 @@ export function PersianDateRangePicker({
     setOpen(false);
   };
 
-
   const formatJalaliDate = (date: Date): string => {
     try {
       const day = format(date, 'd', { locale: faIR });
@@ -155,15 +151,9 @@ export function PersianDateRangePicker({
     const persianYear = format(month, 'yyyy', { locale: faIR });
     const weekdayNames = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
 
-    // Get first day of month weekday
-    // In Jalali: Saturday = 0, Sunday = 1, ..., Friday = 6
     const firstDayWeekday = monthStart.getDay();
-    // Adjust for RTL: Persian week starts with Saturday (ش)
-    // getDay() returns: 0=Saturday, 1=Sunday, ..., 6=Friday
-    // We need: 0=Saturday (ش), 1=Sunday (ی), ..., 6=Friday (ج)
     const adjustedFirstDay = firstDayWeekday;
 
-    // Get previous month's last days to fill the grid
     const prevMonth = subMonths(month, 1);
     const prevMonthEnd = endOfMonth(prevMonth);
     const prevMonthDays = eachDayOfInterval({
@@ -171,7 +161,6 @@ export function PersianDateRangePicker({
       end: prevMonthEnd
     });
 
-    // Get next month's first days to fill the grid
     const nextMonth = addMonths(month, 1);
     const nextMonthStart = startOfMonth(nextMonth);
     const nextMonthDays = eachDayOfInterval({
@@ -179,19 +168,15 @@ export function PersianDateRangePicker({
       end: addMonths(nextMonthStart, 1)
     });
 
-    // Build calendar grid: 6 rows × 7 columns = 42 days
     const allDays: Date[] = [];
 
-    // Add previous month's trailing days
     if (adjustedFirstDay > 0) {
       const trailingDays = prevMonthDays.slice(-adjustedFirstDay);
       allDays.push(...trailingDays);
     }
 
-    // Add current month's days
     allDays.push(...days);
 
-    // Add next month's leading days to complete 42 days
     const remainingDays = 42 - allDays.length;
     if (remainingDays > 0) {
       const leadingDays = nextMonthDays.slice(0, remainingDays);
@@ -234,7 +219,6 @@ export function PersianDateRangePicker({
 
     return (
       <div className="w-full">
-        {/* Month Header */}
         <div className="flex items-center justify-between px-3 py-2 border-b border-input">
           <div className="flex items-center gap-2">
             <Button
@@ -277,7 +261,6 @@ export function PersianDateRangePicker({
           </div>
         </div>
 
-        {/* Weekday Headers */}
         <div className="grid grid-cols-7 gap-0.5 px-2 pt-2">
           {weekdayNames.map((day) => (
             <div
@@ -289,7 +272,6 @@ export function PersianDateRangePicker({
           ))}
         </div>
 
-        {/* Calendar Days */}
         <div className="grid grid-cols-7 gap-0.5 p-2">
           {allDays.map((day, index) => {
             const isInRange = isDateInRange(day);
@@ -376,18 +358,15 @@ export function PersianDateRangePicker({
         dir="rtl"
       >
         <div className="flex gap-0 p-4">
-          {/* Left Calendar */}
           <div className="w-[280px] border-l border-input pl-4">
             {renderCalendar(leftMonth, true)}
           </div>
 
-          {/* Right Calendar */}
           <div className="w-[280px] pr-4">
             {renderCalendar(rightMonth, false)}
           </div>
         </div>
 
-        {/* Footer Actions */}
         <div className="flex items-center justify-between p-3 border-t border-input">
           <Button
             variant="outline"

@@ -3,7 +3,6 @@ from django.db.models import Q, Count
 from src.real_estate.models.property import Property
 from src.real_estate.models.constants import PROPERTY_STATUS_CHOICES
 
-
 class PropertyAdminFilter(django_filters.FilterSet):
     status = django_filters.CharFilter(
         method='filter_status',
@@ -112,7 +111,6 @@ class PropertyAdminFilter(django_filters.FilterSet):
         help_text="Filter by region code (single or comma-separated)"
     )
 
-    # Standardized aliases for multi-select parity
     property_types__in = django_filters.CharFilter(
         method='filter_property_type',
         help_text="Alias for property_type"

@@ -36,7 +36,6 @@ from src.real_estate.services.admin import (
 from src.real_estate.utils.cache import PropertyCacheManager
 from src.real_estate.messages.messages import PROPERTY_SUCCESS, PROPERTY_ERRORS
 
-
 class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -147,7 +146,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         )
     
     def _merge_media_data(self, data, media_ids=None, media_files=None):
-        """Unified helper to merge media IDs and files into request data"""
+        
         if media_ids is not None:
             if hasattr(data, 'setlist'):
                 data.setlist('media_ids', media_ids)
@@ -162,7 +161,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         return data
 
     def _extract_list(self, data, field_name, convert_to_int=False):
-        """Robust helper to extract list/array from data (JSON, CSV, or list)"""
+        
         import json
         value = data.get(field_name)
         if not value:
@@ -182,12 +181,10 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                     pass
             
             if not result:
-                # Fallback to comma separation
                 result = [v.strip() for v in value.split(',') if v.strip()]
         else:
             result = [value]
         
-        # Convert to integers if needed (for ID fields)
         if convert_to_int:
             converted = []
             for v in result:
@@ -203,13 +200,11 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         return self._extract_list(request.data, 'media_ids')
 
     def create(self, request, *args, **kwargs):
-        # Extract M2M IDs manually because multipart-form data doesn't auto-parse nested lists well
         media_ids = self._extract_media_ids(request)
         media_files = request.FILES.getlist('media_files')
         
         data = request.data.copy()
         
-        # Parse M2M and JSON fields from frontend
         for field in ['labels', 'tags', 'features', 'extra_attributes']:
             if field in data:
                 if field == 'extra_attributes':
@@ -237,7 +232,6 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 created_by=request.user
             )
             
-            # Fetch for complete representation
             instance = PropertyAdminService.get_property_detail(property_obj.id)
             detail_serializer = PropertyAdminDetailSerializer(instance, context={'request': request})
             
@@ -256,7 +250,6 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         
-        # Bridge attributes from request to serializer manually for multipart support
         media_ids = self._extract_media_ids(request)
         media_files = request.FILES.getlist('media_files')
         main_image_id = request.data.get('main_image_id')
@@ -264,7 +257,6 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         
         data = request.data.copy()
         
-        # Parse M2M and JSON fields from frontend
         for field in ['labels', 'tags', 'features', 'extra_attributes']:
             if field in data:
                 if field == 'extra_attributes':
@@ -311,7 +303,6 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 updated_by=request.user
             )
             
-            # Refresh and return
             fresh_instance = PropertyAdminService.get_property_detail(updated_instance.id)
             detail_serializer = PropertyAdminDetailSerializer(fresh_instance, context={'request': request})
             
@@ -464,8 +455,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=PROPERTY_ERRORS["property_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-    
-    
+
     @action(detail=True, methods=['post'])
     def set_main_image(self, request, pk=None):
         media_id = request.data.get('media_id')
@@ -479,7 +469,6 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         try:
             PropertyAdminService.set_main_image(pk, media_id)
             
-            # Return refreshed object - Standardized behavior
             fresh_instance = PropertyAdminService.get_property_detail(pk)
             serializer = PropertyAdminDetailSerializer(fresh_instance, context={'request': request})
             
@@ -650,7 +639,6 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 created_by=request.user
             )
             
-            # Return full refreshed object to the frontend
             property_obj = PropertyAdminService.get_property_detail(pk)
             serializer = PropertyAdminDetailSerializer(property_obj)
             
@@ -672,11 +660,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], url_path='remove-media')
     def remove_media(self, request, pk=None):
-        """
-        Remove single media from property
-        POST /property/{id}/remove-media/
-        Body: media_id (int), media_type (str: image/video/audio/document)
-        """
+        
         property_obj = self.get_object()
         media_id = request.data.get('media_id')
         media_type = request.data.get('media_type', 'image')
@@ -727,10 +711,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='field-options')
     def field_options(self, request):
-        """
-        Returns field options/choices for property form fields
-        Dynamically retrieves choices from Property model and Constants
-        """
+        
         from src.real_estate.models.property import Property
         from src.real_estate.models.constants import (
             get_document_type_choices_list,
@@ -780,10 +761,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='export')
     def export(self, request):
-        """
-        Export property listings in Excel or PDF format
-        GET /property/export/?format=excel|pdf&[filters]
-        """
+        
         queryset = self.filter_queryset(self.get_queryset())
         export_format = request.query_params.get('format', 'excel').lower()
         
@@ -791,7 +769,6 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         
         try:
             if export_format == 'pdf':
-                # Optimization for PDF build
                 queryset = queryset.select_related('property_type', 'state', 'city')
                 return PropertyPDFListExportService.export_properties_pdf(queryset)
             else:
@@ -813,19 +790,14 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='export-pdf')
     def export_pdf(self, request, pk=None):
-        """
-        Export a single property record in professional PDF format
-        GET /property/{id}/export-pdf/
-        """
+        
         try:
-            # Prefetch for better performance and complete data
             instance = Property.objects.prefetch_related(
                 'labels', 'tags', 'features', 'images__image'
             ).select_related(
                 'property_type', 'state', 'city', 'province', 'agent', 'agency'
             ).get(pk=pk)
             
-            # Use the dedicated single-property PDF service
             from src.real_estate.services.admin.pdf_export_service import PropertyPDFExportService
             return PropertyPDFExportService.export_property_pdf(instance)
         except Property.DoesNotExist:

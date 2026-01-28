@@ -456,7 +456,6 @@ export default function RealEstateListPage() {
   );
   const pageCount = Math.ceil(sortedData.length / pagination.pageSize);
 
-
   const handleToggleActive = (item: RealEstateItem) => {
   };
 

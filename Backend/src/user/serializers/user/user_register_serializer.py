@@ -9,7 +9,6 @@ from src.media.utils.validators import validate_image_file
 from src.user.messages import AUTH_ERRORS
 from src.user.utils.national_id_validator import validate_national_id_format
 
-
 class UserRegisterSerializer(serializers.Serializer):
     identifier = serializers.CharField(required=True)
     password = serializers.CharField(write_only=True, required=True, min_length=6)

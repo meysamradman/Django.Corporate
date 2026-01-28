@@ -2,11 +2,8 @@ import django_filters
 from django.db.models import Q, Count
 from src.user.models.roles import AdminRole
 
-
 class AdminRoleAdminFilter(django_filters.FilterSet):
-    """
-    Filter برای Admin Roles با حفظ منطق دسترسی و نقش‌ها
-    """
+    
     search = django_filters.CharFilter(method='filter_search', label='Search')
     is_active = django_filters.BooleanFilter(field_name='is_active', label='Active Status')
     is_system_role = django_filters.BooleanFilter(field_name='is_system_role', label='System Role')
@@ -83,7 +80,7 @@ class AdminRoleAdminFilter(django_filters.FilterSet):
         fields = []
     
     def filter_search(self, queryset, name, value):
-        """جستجو در name و display_name"""
+        
         if not value:
             return queryset
         
@@ -94,7 +91,7 @@ class AdminRoleAdminFilter(django_filters.FilterSet):
         )
     
     def filter_users_count_min(self, queryset, name, value):
-        """فیلتر تعداد کاربران حداقل"""
+        
         if value is None:
             return queryset
         
@@ -103,7 +100,7 @@ class AdminRoleAdminFilter(django_filters.FilterSet):
         ).filter(users_count__gte=value)
     
     def filter_users_count_max(self, queryset, name, value):
-        """فیلتر تعداد کاربران حداکثر"""
+        
         if value is None:
             return queryset
         

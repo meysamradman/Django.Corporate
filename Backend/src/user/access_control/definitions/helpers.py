@@ -2,7 +2,6 @@ from django.core.cache import cache
 from typing import Dict, List, Set, Any
 from src.user.utils.cache import UserCacheKeys, UserCacheManager
 
-
 class PermissionHelper:
     
     CACHE_TIMEOUT = 300

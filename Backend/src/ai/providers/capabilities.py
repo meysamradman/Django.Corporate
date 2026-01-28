@@ -1,6 +1,5 @@
 from src.ai.models import AIProvider
 
-
 PROVIDER_CAPABILITIES = {
     'openrouter': {
         'supports_chat': True,
@@ -159,7 +158,6 @@ PROVIDER_CAPABILITIES = {
     },
 }
 
-
 def get_provider_capabilities(provider_name: str) -> dict:
     return PROVIDER_CAPABILITIES.get(provider_name, {
         'supports_chat': False,
@@ -168,7 +166,6 @@ def get_provider_capabilities(provider_name: str) -> dict:
         'models': {'chat': [], 'content': [], 'image': []},
         'default_models': {'chat': None, 'content': None, 'image': None},
     })
-
 
 def get_available_models(provider_name: str, model_type: str):
     caps = get_provider_capabilities(provider_name)
@@ -179,16 +176,13 @@ def get_available_models(provider_name: str, model_type: str):
     
     return models
 
-
 def supports_feature(provider_name: str, feature: str) -> bool:
     caps = get_provider_capabilities(provider_name)
     return caps.get(f'supports_{feature}', False)
 
-
 def get_default_model(provider_name: str, model_type: str) -> str:
     caps = get_provider_capabilities(provider_name)
     return caps.get('default_models', {}).get(model_type)
-
 
 class ProviderAvailabilityManager:
     

@@ -39,7 +39,6 @@ export function UserProfileHeader({ user, formData, onProfileImageChange }: Prof
             
             const updatedUser = await adminApi.updateUserByType(user.id, updateData, 'user');
             
-            // Update callback whether image is set or removed
             if (onProfileImageChange) {
                 onProfileImageChange(updatedUser?.profile?.profile_picture || null);
             }

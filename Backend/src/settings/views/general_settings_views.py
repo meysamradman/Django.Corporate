@@ -13,7 +13,6 @@ from src.settings.messages.messages import SETTINGS_SUCCESS, SETTINGS_ERRORS
 from src.user.access_control import PermissionRequiredMixin
 from src.settings.utils.cache import SettingsCacheKeys, SettingsCacheManager
 
-
 class GeneralSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     queryset = GeneralSettings.objects.all()

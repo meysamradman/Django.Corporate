@@ -7,7 +7,6 @@ from src.form.models import ContactFormField
 from src.form.messages.messages import FORM_SUBMISSION_ERRORS
 from src.email.models.email_message import EmailMessage
 
-
 def validate_form_submission(form_data, platform):
     if not isinstance(form_data, dict):
         raise ValidationError(FORM_SUBMISSION_ERRORS['validation_error'])
@@ -55,7 +54,6 @@ def validate_form_submission(form_data, platform):
         'errors': errors
     }
 
-
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
@@ -63,7 +61,6 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
-
 
 @transaction.atomic
 def create_contact_form_submission(validated_data, request=None):

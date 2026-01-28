@@ -12,19 +12,11 @@ from src.real_estate.models.media import PropertyImage, PropertyVideo, PropertyA
 from src.real_estate.utils.cache import PropertyCacheManager, PropertyCacheKeys
 from src.real_estate.messages.messages import PROPERTY_ERRORS
 
-
 class PropertyYearService:
-    """
-    سرویس ساده برای مدیریت سال ساخت
-    فقط برای API endpoint - منطق اصلی در Model است
-    """
-    
+
     @staticmethod
     def get_year_choices_for_dropdown():
-        """
-        لیست سال‌های مجاز برای dropdown در پنل ادمین
-        از Model.get_year_built_choices() استفاده می‌کند
-        """
+        
         from src.real_estate.models.property import Property
         
         cache_key = 'property_year_choices'
@@ -33,25 +25,20 @@ class PropertyYearService:
         if cached_choices:
             return cached_choices
         
-        # دریافت CHOICES از Model
         choices_tuples = Property.get_year_built_choices()
         
-        # تبدیل به فرمت مناسب برای API
         year_choices = [
             {'value': year, 'label': label}
             for year, label in choices_tuples
         ]
         
-        # کش برای 1 ساعت
         cache.set(cache_key, year_choices, 3600)
         
         return year_choices
     
     @staticmethod
     def get_year_range_info():
-        """
-        اطلاعات محدوده سال‌های مجاز
-        """
+        
         from src.real_estate.models.property import Property
         
         return {
@@ -61,7 +48,6 @@ class PropertyYearService:
             'buffer': Property.YEAR_BUFFER,
             'total_choices': Property.get_year_max() - Property.YEAR_MIN + 1
         }
-
 
 class PropertyAdminService:
     
@@ -134,7 +120,6 @@ class PropertyAdminService:
                 Q(meta_description__icontains=search)
             ).distinct()
         
-        # Date filters
         if date_from:
             try:
                 date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
@@ -176,13 +161,10 @@ class PropertyAdminService:
     def create_property(validated_data, created_by=None):
         from src.real_estate.services.admin.property_media_services import PropertyAdminMediaService
         
-        # Consistent extraction - support both model instances and IDs
         labels_val = validated_data.pop('labels', validated_data.pop('labels_ids', []))
         tags_val = validated_data.pop('tags', validated_data.pop('tags_ids', []))
         features_val = validated_data.pop('features', validated_data.pop('features_ids', []))
         
-        # Convert to instances/IDs list (PrimaryKeyRelatedField gives us instances already)
-        # .set() accepts both instances and IDs, so we can pass directly
         labels_ids = labels_val if labels_val else []
         tags_ids = tags_val if tags_val else []
         features_ids = features_val if features_val else []
@@ -190,16 +172,13 @@ class PropertyAdminService:
         media_files = validated_data.pop('media_files', [])
         media_ids = validated_data.pop('media_ids', [])
         
-        # ✅ Auto-assign agent if not provided
         if not validated_data.get('agent') and created_by and created_by.is_authenticated:
             from src.real_estate.models.agent import PropertyAgent
             import uuid
             
-            # Try to get existing agent for this user
             agent = PropertyAgent.objects.filter(user=created_by).first()
             
             if not agent:
-                # Create new agent for this user
                 license_num = f'AUTO-{uuid.uuid4().hex[:8].upper()}'
                 agent_slug = f'agent-{created_by.id}-{uuid.uuid4().hex[:6]}'
                 
@@ -213,7 +192,6 @@ class PropertyAdminService:
             
             validated_data['agent'] = agent
 
-        # ✅ slug generation
         if not validated_data.get('slug') and validated_data.get('title'):
             base_slug = slugify(validated_data['title'])
             slug = base_slug
@@ -246,7 +224,6 @@ class PropertyAdminService:
         if not validated_data.get('og_description') and validated_data.get('meta_description'):
             validated_data['og_description'] = validated_data['meta_description']
         
-        # Validate canonical_url
         if 'canonical_url' in validated_data and validated_data.get('canonical_url'):
             canonical_url = validated_data['canonical_url']
             if not canonical_url.startswith(('http://', 'https://')):
@@ -278,12 +255,7 @@ class PropertyAdminService:
             property_obj = Property.objects.get(id=property_id)
         except Property.DoesNotExist:
             raise ValidationError(PROPERTY_ERRORS["property_not_found"])
-        
-        # Consistent extraction: prefer direct args, fallback to popped validated_data
-        
-        # Consistent extraction: prefer args, fallback to popped validated_data
-        # Consistent extraction: prefer direct args, fallback to popped validated_data
-        # We handle both plural names and _ids for maximum frontend compatibility
+
         labels_val = validated_data.pop('labels', validated_data.pop('labels_ids', None))
         tags_val = validated_data.pop('tags', validated_data.pop('tags_ids', None))
         features_val = validated_data.pop('features', validated_data.pop('features_ids', None))
@@ -293,7 +265,6 @@ class PropertyAdminService:
         main_image_id = main_image_id if main_image_id is not None else validated_data.pop('main_image_id', None)
         media_covers = media_covers if media_covers is not None else validated_data.pop('media_covers', None)
         
-        # Extract location info for manual handling if needed
         city = validated_data.get('city')
         province = validated_data.get('province')
         region = validated_data.get('region')
@@ -308,7 +279,6 @@ class PropertyAdminService:
                 counter += 1
             validated_data['slug'] = slug
             
-        # SEO Logic
         if 'title' in validated_data:
             if not validated_data.get('meta_title'):
                 validated_data['meta_title'] = validated_data['title'][:70]
@@ -326,12 +296,10 @@ class PropertyAdminService:
                 validated_data['og_description'] = validated_data.get('meta_description') or property_obj.meta_description
 
         with transaction.atomic():
-            # Mandatory fields and explicit setters for critical ones
             if province: property_obj.province = province
             if city: property_obj.city = city
             if region: property_obj.region = region
             
-            # Update other fields safely
             for field, value in validated_data.items():
                 if hasattr(property_obj, field):
                     try:
@@ -341,12 +309,10 @@ class PropertyAdminService:
             
             property_obj.save()
             
-            # M2M updates - Ensure we use .set() correctly
             if labels_val is not None: property_obj.labels.set(labels_val)
             if tags_val is not None: property_obj.tags.set(tags_val)
             if features_val is not None: property_obj.features.set(features_val)
             
-            # Media handling
             if media_files:
                 from src.real_estate.services.admin.property_media_services import PropertyAdminMediaService
                 media_result = PropertyAdminMediaService.add_media_bulk(
@@ -368,10 +334,8 @@ class PropertyAdminService:
                     media_covers=media_covers
                 )
         
-        # FORCE DB REFRESH before return
         property_obj.refresh_from_db()
         
-        # Clear all possible cache keys
         PropertyCacheManager.invalidate_property(property_id)
         PropertyCacheManager.invalidate_list()
         
@@ -446,11 +410,10 @@ class PropertyAdminService:
     
     @staticmethod
     def get_property_statistics():
-        """استفاده از PropertyStatisticsService برای آمار"""
+        
         from src.real_estate.services.admin.property_statistics_service import PropertyStatisticsService
         stats = PropertyStatisticsService.get_statistics()
         
-        # اضافه کردن recent_properties برای backward compatibility
         recent_properties = Property.objects.for_admin_listing()[:5]
         from src.real_estate.serializers.admin.property_serializer import PropertyAdminListSerializer
         recent_serializer = PropertyAdminListSerializer(recent_properties, many=True)
@@ -511,7 +474,6 @@ class PropertyAdminService:
         
         cache.set(cache_key, report_data, 600)
         return report_data
-
 
 class PropertyAdminStatusService:
     

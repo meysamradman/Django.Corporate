@@ -2,7 +2,6 @@ from django.core.exceptions import ValidationError
 from src.user.models import UserProfile, AdminProfile, User
 from src.user.messages import AUTH_ERRORS
 
-
 def validate_national_id_format(value):
     if not value:
         return None
@@ -17,7 +16,6 @@ def validate_national_id_format(value):
         raise ValidationError(AUTH_ERRORS.get("national_id_invalid_length"))
         
     return value
-
 
 def validate_national_id_uniqueness(value, user_id=None, profile_type='user'):
     if not value or value == '':
@@ -43,7 +41,6 @@ def validate_national_id_uniqueness(value, user_id=None, profile_type='user'):
         raise ValidationError(AUTH_ERRORS.get("national_id_exists"))
         
     return value
-
 
 def validate_national_id(value, user_id=None, profile_type='user'):
     if not value or value == '':

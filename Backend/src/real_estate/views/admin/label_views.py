@@ -17,7 +17,6 @@ from src.real_estate.serializers.admin.label_serializer import (
 from src.real_estate.services.admin.label_services import PropertyLabelAdminService
 from src.real_estate.messages.messages import LABEL_SUCCESS, LABEL_ERRORS
 
-
 class PropertyLabelAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
     

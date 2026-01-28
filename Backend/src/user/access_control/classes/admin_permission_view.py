@@ -21,7 +21,7 @@ class AdminPermissionView(viewsets.ViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
     
     def get_permissions(self):
-        """فقط Super Admin - تمام عملیات مدیریت پرمیژن‌ها"""
+        
         return [SuperAdminOnly()]
     
     @action(detail=False, methods=['post'])

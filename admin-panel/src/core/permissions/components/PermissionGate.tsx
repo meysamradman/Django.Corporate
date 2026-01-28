@@ -40,4 +40,3 @@ export const PermissionGate: FC<Props> = ({
 
 export default PermissionGate;
 
-

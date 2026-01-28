@@ -1,6 +1,5 @@
 from src.core.cache import CacheService
 
-
 class ChatbotCacheKeys:
     
     @staticmethod
@@ -17,7 +16,6 @@ class ChatbotCacheKeys:
             ChatbotCacheKeys.faqs_active(),
             ChatbotCacheKeys.settings(),
         ]
-
 
 class ChatbotCacheManager:
     

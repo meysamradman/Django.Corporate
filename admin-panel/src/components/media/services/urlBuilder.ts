@@ -1,7 +1,6 @@
 import type { Media } from '@/types/shared/media';
 import { env } from '@/core/config/environment';
 
-
 export const GetImageUrl = (imageName: string): string => {
     if (!imageName) return '';
     if (imageName.startsWith('/')) {

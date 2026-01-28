@@ -40,7 +40,6 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
   const [open, setOpen] = useState(false)
   const [selectedLabel, setSelectedLabel] = useState<string>("")
 
-  // Handle multi-select value parsing
   const selectedValues = new Set<string>();
   if (multiSelect) {
     if (Array.isArray(value)) {
@@ -62,7 +61,6 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
 
   useEffect(() => {
     if (multiSelect) {
-      // Logic for multi-select label is handled in render
       return;
     }
 
@@ -94,8 +92,6 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
       for (const item of items) {
         if (item.value === searchVal) {
           const id = item.id;
-          // Determine consistency with TValue type based on current value type or id type
-          // This assumes TValue is consistent with id type (number or string)
           return id as unknown as TValue;
         }
         if (item.children?.length) {
@@ -117,16 +113,13 @@ export function DataTableHierarchicalFilter<TValue extends string | number>({
         newSet.add(newValue);
       }
 
-      // Convert back to IDs
       const newValues: TValue[] = [];
       newSet.forEach(val => {
         const found = findItemValue(items, val);
         if (found !== undefined) newValues.push(found);
       });
 
-      // @ts-ignore - Generic type issue with array callback
       onChange(newValues.length > 0 ? newValues : undefined);
-      // Don't close on multi-select
     } else {
       onChange(itemValue);
       setOpen(false);

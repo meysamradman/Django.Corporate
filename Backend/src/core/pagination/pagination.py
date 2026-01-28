@@ -1,6 +1,5 @@
 from rest_framework.pagination import LimitOffsetPagination, CursorPagination
 
-
 class ExtraSmallLimitPagination(LimitOffsetPagination):
     default_limit = 5
     max_limit = 10

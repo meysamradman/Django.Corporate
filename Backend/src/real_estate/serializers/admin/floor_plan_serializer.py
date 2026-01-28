@@ -3,18 +3,16 @@ from src.real_estate.models.floor_plan import RealEstateFloorPlan
 from src.real_estate.models.floor_plan_media import FloorPlanImage
 from src.media.serializers.media_serializer import ImageMediaSerializer, MediaAdminSerializer
 
-
 class FloorPlanImageSerializer(serializers.ModelSerializer):
-    """Serializer for FloorPlanImage (image details in floor plan)"""
+    
     image = ImageMediaSerializer(read_only=True)
     
     class Meta:
         model = FloorPlanImage
         fields = ['id', 'image', 'is_main', 'order', 'title', 'created_at']
 
-
 class FloorPlanAdminListSerializer(serializers.ModelSerializer):
-    """Serializer for listing floor plans (minimal fields)"""
+    
     property_title = serializers.CharField(source='property_obj.title', read_only=True)
     main_image = serializers.SerializerMethodField()
     image_count = serializers.SerializerMethodField()
@@ -31,19 +29,18 @@ class FloorPlanAdminListSerializer(serializers.ModelSerializer):
         ]
     
     def get_main_image(self, obj):
-        """Get main image"""
+        
         main_img = obj.images.filter(is_main=True).select_related('image').first()
         if main_img and main_img.image:
             return ImageMediaSerializer(main_img.image).data
         return None
     
     def get_image_count(self, obj):
-        """Count total images"""
+        
         return obj.images.count()
 
-
 class FloorPlanAdminDetailSerializer(serializers.ModelSerializer):
-    """Serializer for floor plan details (all fields + images)"""
+    
     property_title = serializers.CharField(source='property_obj.title', read_only=True)
     property_slug = serializers.CharField(source='property_obj.slug', read_only=True)
     images = FloorPlanImageSerializer(many=True, read_only=True)
@@ -64,10 +61,8 @@ class FloorPlanAdminDetailSerializer(serializers.ModelSerializer):
             'is_active', 'created_at', 'updated_at'
         ]
 
-
 class FloorPlanAdminCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating floor plan"""
-    
+
     class Meta:
         model = RealEstateFloorPlan
         fields = [
@@ -81,15 +76,13 @@ class FloorPlanAdminCreateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_slug(self, value):
-        """Ensure slug is unique"""
+        
         if RealEstateFloorPlan.objects.filter(slug=value).exists():
             raise serializers.ValidationError("این نامک قبلاً استفاده شده است.")
         return value
 
-
 class FloorPlanAdminUpdateSerializer(serializers.ModelSerializer):
-    """Serializer for updating floor plan"""
-    
+
     class Meta:
         model = RealEstateFloorPlan
         fields = [
@@ -103,7 +96,7 @@ class FloorPlanAdminUpdateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_slug(self, value):
-        """Ensure slug is unique (excluding current instance)"""
+        
         instance = self.instance
         if instance and RealEstateFloorPlan.objects.filter(slug=value).exclude(pk=instance.pk).exists():
             raise serializers.ValidationError("این نامک قبلاً استفاده شده است.")

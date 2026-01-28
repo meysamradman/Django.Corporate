@@ -52,7 +52,6 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
 
     return (
         <div className="space-y-8 pb-10">
-            {/* Physical Attributes Card */}
             <CardWithIcon
                 icon={Layers}
                 title="مشخصات فیزیکی و ابعاد"
@@ -153,7 +152,6 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
                 </div>
             </CardWithIcon>
 
-            {/* Rooms and Facilities Card */}
             <CardWithIcon
                 icon={Home}
                 title="امکانات و فضاها"
@@ -162,7 +160,6 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
                 borderColor="border-b-purple-1"
             >
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {/* Bedrooms */}
                     <div className="space-y-2">
                         <div className="flex items-center gap-2 mb-1">
                             <Key className="w-4 h-4 text-purple-2" />
@@ -187,7 +184,6 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
                         {errors?.bedrooms && <p className="text-xs text-red-1">{errors.bedrooms}</p>}
                     </div>
 
-                    {/* Bathrooms */}
                     <div className="space-y-2">
                         <div className="flex items-center gap-2 mb-1">
                             <Box className="w-4 h-4 text-purple-2" />
@@ -212,7 +208,6 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
                         {errors?.bathrooms && <p className="text-xs text-red-1">{errors.bathrooms}</p>}
                     </div>
 
-                    {/* Parking */}
                     <div className="space-y-2">
                         <div className="flex items-center gap-2 mb-1">
                             <Car className="w-4 h-4 text-purple-2" />
@@ -237,7 +232,6 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
                         {errors?.parking_spaces && <p className="text-xs text-red-1">{errors.parking_spaces}</p>}
                     </div>
 
-                    {/* Storage */}
                     <div className="space-y-2">
                         <div className="flex items-center gap-2 mb-1">
                             <Box className="w-4 h-4 text-purple-2" />
@@ -262,7 +256,6 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
                         {errors?.storage_rooms && <p className="text-xs text-red-1">{errors.storage_rooms}</p>}
                     </div>
 
-                    {/* Kitchens */}
                     <div className="space-y-2">
                         <div className="flex items-center gap-2 mb-1">
                             <Utensils className="w-4 h-4 text-purple-2" />
@@ -286,7 +279,6 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
                         </Select>
                     </div>
 
-                    {/* Living Rooms */}
                     <div className="space-y-2">
                         <div className="flex items-center gap-2 mb-1">
                             <Sofa className="w-4 h-4 text-purple-2" />
@@ -312,7 +304,6 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
                 </div>
             </CardWithIcon>
 
-            {/* Price and Conditions Card */}
             <CardWithIcon
                 icon={DollarSign}
                 title="قیمت و شرایط مالی"
@@ -321,7 +312,6 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
                 borderColor="border-b-green-1"
             >
                 <div className="space-y-8">
-                    {/* Sale Section */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <FormFieldInput
                             label="قیمت پکیج / کل (فروش)"
@@ -372,7 +362,6 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
 
                     <div className="h-px bg-br/50 w-full" />
 
-                    {/* Rental Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <FormFieldInput
                             label="مبلغ رهن / ودیعه"

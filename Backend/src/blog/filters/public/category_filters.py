@@ -1,7 +1,6 @@
 from django_filters import rest_framework as filters
 from src.blog.models.category import BlogCategory
 
-
 class BlogCategoryPublicFilter(filters.FilterSet):
     name = filters.CharFilter(
         field_name='name',
