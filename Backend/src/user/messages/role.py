@@ -157,7 +157,7 @@ ROLE_TEXT = {
         "description": "مدیریت آژانس املاک و مشاورین زیرمجموعه.",
     },
     "real_estate_manager": {
-        "display_name": "مدبر املاک",
+        "display_name": "مدیر املاک",
         "display_name_short": "مدیر املاک",
         "description": "مدیریت کل سیستم املاک.",
     },

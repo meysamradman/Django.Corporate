@@ -108,6 +108,10 @@ export const PERMISSION_TRANSLATIONS = {
     'ticket_manager': 'مدیر تیکت',
     'chatbot_manager': 'مدیر چت‌بات',
     'ai_manager': 'مدیر AI',
+    'real_estate_manager': 'مدیر املاک',
+    'agency_manager': 'مدیر آژانس',
+    'property_agent': 'مشاور املاک',
+    'real_estate_parent_only': 'مدیریت کل املاک',
   },
 
   roleDescriptions: {
@@ -129,6 +133,10 @@ export const PERMISSION_TRANSLATIONS = {
     'ticket_manager': 'مدیریت تیکت‌های پشتیبانی، پاسخ‌ها و درخواست‌های مشتریان.',
     'chatbot_manager': 'مدیریت تنظیمات چت‌بات، سوالات متداول و پاسخ‌های خودکار.',
     'ai_manager': 'مدیریت سرویس‌های هوش مصنوعی، پرامپت‌ها و تنظیمات مرتبط.',
+    'real_estate_manager': 'مدیریت کل سیستم املاک شامل ملک‌ها، مشاوران و آژانس‌ها.',
+    'agency_manager': 'مدیریت آژانس املاک و مشاوران زیرمجموعه آن.',
+    'property_agent': 'مدیریت املاک و فایل‌های شخصی مشاور.',
+    'real_estate_parent_only': 'دسترسی فقط به سطح مدیریت کل املاک (بدون زیرمجموعه‌ها).',
   },
 
   cardDescriptions: {

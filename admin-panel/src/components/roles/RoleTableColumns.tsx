@@ -14,20 +14,20 @@ export const useRoleColumns = (rowActions: DataTableRowAction<Role>[]): ColumnDe
       id: "select",
       header: ({ table }) => (
         <div className="flex items-center justify-center">
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="انتخاب همه"
-        />
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="انتخاب همه"
+          />
         </div>
       ),
       cell: ({ row }) => (
         <div className="flex items-center justify-center">
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="انتخاب ردیف"
-        />
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="انتخاب ردیف"
+          />
         </div>
       ),
       enableSorting: false,
@@ -42,12 +42,9 @@ export const useRoleColumns = (rowActions: DataTableRowAction<Role>[]): ColumnDe
       cell: ({ row }) => {
         const slug = row.original.name;
         const backendDisplayName = row.original.display_name;
-        const isSystemRole = row.original.is_system_role;
 
-        const localizedName = isSystemRole
-          ? (getPermissionTranslation(slug, 'role') || backendDisplayName || slug)
-          : (backendDisplayName || slug);
-        
+        const localizedName = getPermissionTranslation(slug, 'role') || backendDisplayName || slug;
+
         return (
           <div className="table-cell-primary table-cell-wide">
             {localizedName}
