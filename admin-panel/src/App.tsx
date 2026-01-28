@@ -5,7 +5,6 @@ import { PermissionProvider } from './core/permissions';
 import { AIChatProvider } from './components/ai/chat/AIChatContext';
 import { RouteProgress } from './lib/loaders';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
-import { Toaster } from './components/elements/Sonner';
 import { TooltipProvider } from './components/elements/Tooltip';
 import { AdminLayout } from './layouts/AdminLayout';
 import { AuthLayout } from './layouts/AuthLayout';
@@ -304,11 +303,11 @@ function App() {
 
                   <Route path="/dashboard" element={<Navigate to="/" replace />} />
                 </Routes>
-                <Toaster
-                  position="top-right"
-                  closeButton
-                  duration={4000}
-                />
+                oaster
+                sition="top-right"
+                oseButton
+                ration={4000}
+
               </AIChatProvider>
             </PermissionProvider>
           </AuthProvider>
