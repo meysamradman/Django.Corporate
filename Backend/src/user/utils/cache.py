@@ -14,6 +14,10 @@ class UserCacheKeys:
         return CacheKeyBuilder.user_modules(user_id)
     
     @staticmethod
+    def user_module_perms(user_id: int):
+        return CacheKeyBuilder.user_module_perms(user_id)
+    
+    @staticmethod
     def admin_permissions(user_id: int):
         return CacheKeyBuilder.admin_permissions(user_id)
     
@@ -62,6 +66,10 @@ class UserCacheKeys:
         return CacheKeyBuilder.pattern("user:modules")
     
     @staticmethod
+    def user_module_perms_pattern():
+        return CacheKeyBuilder.pattern("user:mod:perms")
+    
+    @staticmethod
     def admin_perm_pattern(user_id: Optional[int] = None):
         if user_id:
             return CacheKeyBuilder.pattern(f"admin:perms:{user_id}")
@@ -80,6 +88,7 @@ class UserCacheManager:
             keys = [
                 UserCacheKeys.user_permissions(user_id),
                 UserCacheKeys.user_modules_actions(user_id),
+                UserCacheKeys.user_module_perms(user_id),
                 UserCacheKeys.admin_permissions(user_id),
                 UserCacheKeys.admin_perms(user_id),
                 UserCacheKeys.admin_simple_perms(user_id),
@@ -93,6 +102,7 @@ class UserCacheManager:
             try:
                 cache.delete_pattern(UserCacheKeys.user_permissions_pattern())
                 cache.delete_pattern(UserCacheKeys.user_modules_actions_pattern())
+                cache.delete_pattern(UserCacheKeys.user_module_perms_pattern())
                 cache.delete_pattern(UserCacheKeys.admin_perm_pattern())
             except (AttributeError, NotImplementedError):
                 pass

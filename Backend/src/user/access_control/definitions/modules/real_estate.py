@@ -81,7 +81,7 @@ REAL_ESTATE_PERMISSIONS = {
     'real_estate.type.read': {
         'module': 'real_estate_properties',
         'action': 'read',
-        'display_name': 'View Property Types',
+        'display_name': 'View Property Type',
         'description': 'Allow viewing property types',
     },
     'real_estate.type.create': {

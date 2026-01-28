@@ -40,6 +40,10 @@ class CacheKeyBuilder:
         return CacheKeyBuilder._build(CacheNamespace.USER_MODULES, user_id)
     
     @staticmethod
+    def user_module_perms(user_id: int) -> str:
+        return CacheKeyBuilder._build(CacheNamespace.USER_MODULE_PERMS, user_id)
+    
+    @staticmethod
     def admin_permissions(user_id: int) -> str:
         return CacheKeyBuilder._build(CacheNamespace.ADMIN_PERMISSIONS, user_id)
     

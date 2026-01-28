@@ -75,21 +75,53 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       if (!permissionMap) return false;
       if (permissionMap.is_superadmin) return true;
 
+      // Exact match
       if (permissionSet.has(permissionId)) return true;
 
-      const [resource, action] = permissionId.split('.');
-
-      if (resource) {
-        if (permissionSet.has(`${resource}.*`)) return true;
-
-        if (permissionSet.has(`${resource}.manage`) || permissionSet.has(`${resource}.admin`)) return true;
+      const parts = permissionId.split('.');
+      if (parts.length < 2) {
+        // Handle single part permissions if any
+        const resource = parts[0];
+        return (
+          permissionSet.has(`${resource}.*`) ||
+          permissionSet.has(`${resource}.manage`) ||
+          permissionSet.has(`${resource}.admin`)
+        );
       }
 
-      if (resource && action) {
-        const synonyms = ACTION_SYNONYMS[action.toLowerCase()];
-        if (synonyms) {
-          return synonyms.some(syn => permissionSet.has(`${resource}.${syn}`));
+      const actionPart = parts.pop()!;
+      const resourcePart = parts.join('.');
+
+      // Check for parent permissions and manage/admin/wildcard
+      let currentResource = resourcePart;
+      while (currentResource) {
+        if (
+          permissionSet.has(`${currentResource}.*`) ||
+          permissionSet.has(`${currentResource}.manage`) ||
+          permissionSet.has(`${currentResource}.admin`)
+        ) {
+          return true;
         }
+
+        const lastDot = currentResource.lastIndexOf('.');
+        if (lastDot === -1) break;
+        currentResource = currentResource.substring(0, lastDot);
+      }
+
+      // 4. Check synonyms for the action
+      const synonyms = ACTION_SYNONYMS[actionPart.toLowerCase()];
+      if (synonyms) {
+        if (synonyms.some(syn => permissionSet.has(`${resourcePart}.${syn}`))) {
+          return true;
+        }
+      }
+
+      // 5. Try Smart Permission: Implicit read/view
+      // If user has ANY permission for this resource (e.g., blog.create), 
+      // they implicitly have 'read'/'view' access.
+      if (actionPart === 'view' || actionPart === 'read') {
+        const hasAnyForResource = Array.from(permissionSet).some(p => p.startsWith(resourcePart + '.'));
+        if (hasAnyForResource) return true;
       }
 
       return false;

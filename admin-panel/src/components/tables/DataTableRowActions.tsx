@@ -26,11 +26,10 @@ export function DataTableRowActions<TData>({
 
   const availableActions = actions
     .filter((action) => {
-      return !action.condition || action.condition(item);
-    })
-    .map((action) => {
-      let isDisabled = false;
-      
+      // 1. Condition check (contextual visibility)
+      if (action.condition && !action.condition(item)) return false;
+
+      // 2. Permission check (security visibility)
       if (action.permission) {
         const permissions = Array.isArray(action.permission) ? action.permission : [action.permission];
         const hasAccess = action.requireAllPermissions
@@ -38,13 +37,15 @@ export function DataTableRowActions<TData>({
           : permissions.length === 1
             ? hasPermission(permissions[0])
             : hasAnyPermission(permissions);
-        isDisabled = !hasAccess;
+
+        if (!hasAccess) return false;
       }
-      
-      if (!isDisabled && action.isDisabled) {
-        isDisabled = action.isDisabled(item);
-      }
-      
+
+      return true;
+    })
+    .map((action) => {
+      // 3. Logic check (contextual enablement)
+      let isDisabled = action.isDisabled ? action.isDisabled(item) : false;
       return { ...action, isDisabled };
     });
 

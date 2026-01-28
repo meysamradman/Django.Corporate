@@ -88,6 +88,7 @@ export function StandardPermissionsTable({
             <TableHead className="text-center">ایجاد</TableHead>
             <TableHead className="text-center">ویرایش</TableHead>
             <TableHead className="text-center">حذف</TableHead>
+            <TableHead className="text-center">مدیریت</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -96,7 +97,11 @@ export function StandardPermissionsTable({
             const createPerm = getActionPermission(resource.permissions, "create");
             const editPerm = getActionPermission(resource.permissions, "edit");
             const deletePerm = getActionPermission(resource.permissions, "delete");
+            const managePerm = getActionPermission(resource.permissions, "manage");
+
             const hasError = logicalPermissionErrors.includes(resource.resource);
+
+            const isManageSelected = managePerm && isPermissionSelected(managePerm.id);
 
             return (
               <TableRow key={resource.resource}>
@@ -118,26 +123,39 @@ export function StandardPermissionsTable({
                   {viewPerm ? (
                     <div className="flex justify-center relative group">
                       <div className="relative">
-                        <Checkbox
-                          checked={isPermissionSelected(viewPerm.id)}
-                          disabled={
-                            (!isSuperAdmin && viewPerm.requires_superadmin) ||
-                            (resource.resource === 'admin' && isAdminManageSelected)
-                          }
-                          onCheckedChange={() => {
-                            if (
-                              (isSuperAdmin || !viewPerm.requires_superadmin) &&
-                              !(resource.resource === 'admin' && isAdminManageSelected)
-                            ) {
-                              onTogglePermission(viewPerm.id);
-                            }
-                          }}
-                          className={
-                            hasError
-                              ? "border-amber-1 data-[state=unchecked]:bg-amber"
-                              : ""
-                          }
-                        />
+                        {(() => {
+                          const isAnyOpSelected =
+                            isManageSelected ||
+                            (createPerm && isPermissionSelected(createPerm.id)) ||
+                            (editPerm && isPermissionSelected(editPerm.id)) ||
+                            (deletePerm && isPermissionSelected(deletePerm.id));
+
+                          return (
+                            <Checkbox
+                              checked={isPermissionSelected(viewPerm.id) || isAnyOpSelected}
+                              disabled={
+                                (!isSuperAdmin && viewPerm.requires_superadmin) ||
+                                (resource.resource === 'admin' && isAdminManageSelected) ||
+                                isAnyOpSelected
+                              }
+                              title={isAnyOpSelected ? "دسترسی مشاهده به دلیل انتخاب عملیات دیگر اجباری است" : ""}
+                              onCheckedChange={() => {
+                                if (
+                                  (isSuperAdmin || !viewPerm.requires_superadmin) &&
+                                  !(resource.resource === 'admin' && isAdminManageSelected) &&
+                                  !isAnyOpSelected
+                                ) {
+                                  onTogglePermission(viewPerm.id);
+                                }
+                              }}
+                              className={
+                                hasError
+                                  ? "border-amber-1 data-[state=unchecked]:bg-amber"
+                                  : ""
+                              }
+                            />
+                          );
+                        })()}
                         {hasError && (
                           <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5 pointer-events-none">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-1 opacity-75"></span>
@@ -168,8 +186,9 @@ export function StandardPermissionsTable({
                   ) : (
                     <div className="flex justify-center relative group">
                       <Checkbox
-                        checked={isPermissionSelected(createPerm?.id)}
+                        checked={isManageSelected || isPermissionSelected(createPerm?.id)}
                         disabled={
+                          isManageSelected ||
                           (!isSuperAdmin && createPerm?.requires_superadmin) ||
                           (resource.resource === 'admin' && isAdminManageSelected)
                         }
@@ -177,7 +196,8 @@ export function StandardPermissionsTable({
                           if (
                             createPerm &&
                             (isSuperAdmin || !createPerm.requires_superadmin) &&
-                            !(resource.resource === 'admin' && isAdminManageSelected)
+                            !(resource.resource === 'admin' && isAdminManageSelected) &&
+                            !isManageSelected
                           ) {
                             onTogglePermission(createPerm.id);
                           }
@@ -197,8 +217,9 @@ export function StandardPermissionsTable({
                 <TableCell className="text-center">
                   <div className="flex justify-center relative group">
                     <Checkbox
-                      checked={isPermissionSelected(editPerm?.id)}
+                      checked={isManageSelected || isPermissionSelected(editPerm?.id)}
                       disabled={
+                        isManageSelected ||
                         (!isSuperAdmin && editPerm?.requires_superadmin) ||
                         (resource.resource === 'admin' && isAdminManageSelected)
                       }
@@ -206,7 +227,8 @@ export function StandardPermissionsTable({
                         if (
                           editPerm &&
                           (isSuperAdmin || !editPerm.requires_superadmin) &&
-                          !(resource.resource === 'admin' && isAdminManageSelected)
+                          !(resource.resource === 'admin' && isAdminManageSelected) &&
+                          !isManageSelected
                         ) {
                           onTogglePermission(editPerm.id);
                         }
@@ -225,8 +247,9 @@ export function StandardPermissionsTable({
                 <TableCell className="text-center">
                   <div className="flex justify-center relative group">
                     <Checkbox
-                      checked={isPermissionSelected(deletePerm?.id)}
+                      checked={isManageSelected || isPermissionSelected(deletePerm?.id)}
                       disabled={
+                        isManageSelected ||
                         (!isSuperAdmin && deletePerm?.requires_superadmin) ||
                         (resource.resource === 'admin' && isAdminManageSelected)
                       }
@@ -234,7 +257,8 @@ export function StandardPermissionsTable({
                         if (
                           deletePerm &&
                           (isSuperAdmin || !deletePerm.requires_superadmin) &&
-                          !(resource.resource === 'admin' && isAdminManageSelected)
+                          !(resource.resource === 'admin' && isAdminManageSelected) &&
+                          !isManageSelected
                         ) {
                           onTogglePermission(deletePerm.id);
                         }
@@ -247,6 +271,30 @@ export function StandardPermissionsTable({
                       >
                         <Shield className="h-3 w-3" />
                       </div>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell className="text-center">
+                  <div className="flex justify-center relative group">
+                    {managePerm ? (
+                      <Checkbox
+                        checked={isManageSelected}
+                        disabled={
+                          (!isSuperAdmin && managePerm.requires_superadmin) ||
+                          (resource.resource === 'admin' && isAdminManageSelected)
+                        }
+                        onCheckedChange={() => {
+                          if (
+                            (isSuperAdmin || !managePerm.requires_superadmin) &&
+                            !(resource.resource === 'admin' && isAdminManageSelected)
+                          ) {
+                            onTogglePermission(managePerm.id);
+                          }
+                        }}
+                        className="border-primary data-[state=checked]:bg-primary"
+                      />
+                    ) : (
+                      <span className="text-sm text-font-s">-</span>
                     )}
                   </div>
                 </TableCell>

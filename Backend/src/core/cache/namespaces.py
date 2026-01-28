@@ -12,6 +12,7 @@ class CacheNamespace:
     USER_PERMISSIONS: Final[str] = "user:perms"
     USER_PROFILE: Final[str] = "user:profile"
     USER_MODULES: Final[str] = "user:modules"
+    USER_MODULE_PERMS: Final[str] = "user:mod:perms"
     
     ADMIN_PERMISSIONS: Final[str] = "admin:perms"
     ADMIN_ROLES: Final[str] = "admin:roles"

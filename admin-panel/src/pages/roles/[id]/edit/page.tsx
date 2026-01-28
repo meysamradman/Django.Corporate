@@ -17,17 +17,18 @@ import { extractFieldErrors, hasFieldErrors, showError } from '@/core/toast';
 import { useUserPermissions } from "@/core/permissions";
 import {
   StandardPermissionsTable,
-  PermissionWarningAlert,
   StatisticsPermissionsCard,
   AIPermissionsCard,
   ManagementPermissionsCard,
   RoleInfoForm,
 } from "@/components/roles/form";
 import { getResourceIcon } from "@/components/roles/form/utils";
+import { getPermissionTranslation } from "@/core/messages/permissions";
+import { Switch } from "@/components/elements/Switch";
 
 const getAnalyticsPermissions = (permissions: any[]): string[] => {
   if (!permissions || !Array.isArray(permissions)) return [];
-  
+
   const analyticsPerms: string[] = [];
   permissions.forEach((group: any) => {
     if (group.resource === 'analytics' || group.resource?.startsWith('analytics.')) {
@@ -39,13 +40,13 @@ const getAnalyticsPermissions = (permissions: any[]): string[] => {
       });
     }
   });
-  
+
   return analyticsPerms;
 };
 
 const getAIPermissions = (permissions: any[]): string[] => {
   if (!permissions || !Array.isArray(permissions)) return [];
-  
+
   const aiPerms: string[] = [];
   permissions.forEach((group: any) => {
     if (group.resource === 'ai' || group.resource?.startsWith('ai.')) {
@@ -57,7 +58,7 @@ const getAIPermissions = (permissions: any[]): string[] => {
       });
     }
   });
-  
+
   return aiPerms;
 };
 
@@ -78,7 +79,7 @@ export default function EditRolePage() {
   const { data: permissions, isLoading: permissionsLoading, error: permissionsError } = usePermissions();
   const { data: basePermissions } = useBasePermissions();
   const { isSuperAdmin } = useUserPermissions();
-  
+
   const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
 
   const form = useForm<RoleFormData>({
@@ -106,42 +107,42 @@ export default function EditRolePage() {
     if (role && permissions) {
       const basePermissionIds = getBasePermissionIds(permissions);
       const rolePermissionIds: number[] = [];
-      
+
       if (role.permissions?.specific_permissions && Array.isArray(role.permissions.specific_permissions)) {
         const specificPerms = role.permissions.specific_permissions;
-        
+
         permissions.forEach(group => {
           group.permissions.forEach(permission => {
             if (basePermissionIds.includes(permission.id)) {
               return;
             }
-            
+
             const hasPermission = specificPerms.some((perm: any) => {
               const permOriginalKey = (permission as any).original_key;
-              
+
               if (permOriginalKey && perm.permission_key) {
                 return perm.permission_key === permOriginalKey;
               }
-              
+
               if (permission.resource === 'analytics' && permOriginalKey) {
                 return perm.permission_key === permOriginalKey;
               }
-              
+
               if (permission.is_standalone && permOriginalKey) {
                 return perm.permission_key === permOriginalKey;
               }
-              
+
               const permModule = (perm.module || perm.resource || '').toLowerCase();
               const permissionResource = (permission.resource || '').toLowerCase();
               const permResourceMatch = permModule === permissionResource;
-              
+
               const backendAction = (perm.action || '').toLowerCase();
               const frontendAction = (permission.action || '').toLowerCase();
               const permActionMatch = backendAction === frontendAction;
-              
+
               return permResourceMatch && permActionMatch;
             });
-            
+
             if (hasPermission) {
               rolePermissionIds.push(permission.id);
             }
@@ -150,60 +151,60 @@ export default function EditRolePage() {
       } else {
         const roleModules = role.permissions?.modules || [];
         const roleActions = role.permissions?.actions || [];
-        
+
         if (roleModules.length === 0 && roleActions.length === 0) {
           setSelectedPermissions([...basePermissionIds]);
           return;
         }
-        
+
         permissions.forEach(group => {
           group.permissions.forEach(permission => {
             if (basePermissionIds.includes(permission.id)) {
               return;
             }
-            
+
             const hasModule = roleModules.includes('all') || roleModules.includes(permission.resource);
             const hasAction = roleActions.includes('all') || roleActions.includes(permission.action?.toLowerCase());
-            
+
             if (hasModule && hasAction) {
               rolePermissionIds.push(permission.id);
             }
           });
         });
       }
-      
+
       const uniqueIds = Array.from(new Set([...basePermissionIds, ...rolePermissionIds]))
         .filter(id => typeof id === 'number' && !isNaN(id));
-      
+
       setSelectedPermissions(prev => {
         const prevSet = new Set(prev);
         const newSet = new Set(uniqueIds);
-        
-        if (prevSet.size !== newSet.size || 
-            !Array.from(prevSet).every(id => newSet.has(id))) {
+
+        if (prevSet.size !== newSet.size ||
+          !Array.from(prevSet).every(id => newSet.has(id))) {
           return uniqueIds;
         }
         return prev;
       });
     }
   }, [role, permissions, basePermissions]);
-  
+
   const getBasePermissionIds = (permissionGroups: any[]) => {
     if (!basePermissions || !Array.isArray(basePermissions)) return [];
-    
+
     const basePermissionIds: number[] = [];
-    
+
     basePermissions.forEach((basePerm: any) => {
       permissionGroups.forEach(group => {
         group.permissions.forEach((permission: any) => {
-          if (permission.resource === basePerm.resource && 
-              permission.action === basePerm.action) {
+          if (permission.resource === basePerm.resource &&
+            permission.action === basePerm.action) {
             basePermissionIds.push(permission.id);
           }
         });
       });
     });
-    
+
     return basePermissionIds;
   };
 
@@ -212,129 +213,85 @@ export default function EditRolePage() {
       const allPermissions = permissions?.flatMap(g => g.permissions) || [];
       const toggledPerm = allPermissions.find((p: any) => p.id === permissionId);
       const isCurrentlySelected = prev.includes(permissionId);
-      
+
       let newPermissions: number[];
-      const originalKey = (toggledPerm as any)?.original_key || '';
       const resource = (toggledPerm as any)?.resource || '';
       const action = (toggledPerm as any)?.action || '';
-      
-      const permKey = originalKey || `${resource}.${action}`;
-      
-      if (permKey === 'admin.manage' || (resource === 'admin' && action?.toLowerCase() === 'manage')) {
+
+      // Check if this is a 'manage' permission
+      const isManageAction = action?.toLowerCase() === 'manage';
+
+      if (isManageAction) {
         if (isCurrentlySelected) {
           newPermissions = prev.filter(id => id !== permissionId);
         } else {
-          const adminPermissionIds = allPermissions
-            .filter((p: any) => {
-              const pKey = (p as any).original_key || `${(p as any).resource || ''}.${(p as any).action || ''}`;
-              return (pKey.startsWith('admin.') && pKey !== 'admin.manage') || 
-                     ((p as any).resource === 'admin' && (p as any).action?.toLowerCase() !== 'manage');
-            })
-            .map((p: any) => p.id);
-          newPermissions = [...prev.filter(id => !adminPermissionIds.includes(id)), permissionId];
+          newPermissions = [...prev, permissionId];
         }
-      } 
-      else if ((permKey.startsWith('admin.') && permKey !== 'admin.manage') || 
-               (resource === 'admin' && action?.toLowerCase() !== 'manage')) {
-        const adminManagePerm = allPermissions.find((p: any) => {
-          const pKey = (p as any).original_key || `${(p as any).resource || ''}.${(p as any).action || ''}`;
-          return pKey === 'admin.manage' || ((p as any).resource === 'admin' && (p as any).action?.toLowerCase() === 'manage');
-        });
-        const isAdminManageSelected = adminManagePerm && prev.includes(adminManagePerm.id);
-        
-        if (isAdminManageSelected) {
-          return prev; // اگر admin.manage فعال است، اجازه انتخاب permissions جزئی را نده
-        }
-        
-        newPermissions = prev.includes(permissionId)
-          ? prev.filter(id => id !== permissionId)
-          : [...prev, permissionId];
-      }
-      else if (permKey === 'analytics.manage' || permKey === 'analytics.stats.manage') {
-        if (isCurrentlySelected) {
-          newPermissions = prev.filter(id => id !== permissionId);
-        } else {
-          const analyticsPermissionIds = allPermissions
-            .filter((p: any) => {
-              const pKey = (p as any).original_key || `${(p as any).resource || ''}.${(p as any).action || ''}`;
-              return (pKey.startsWith('analytics.') && pKey !== 'analytics.manage' && pKey !== 'analytics.stats.manage') ||
-                     ((p as any).resource === 'analytics' && (p as any).action?.toLowerCase() !== 'manage');
-            })
-            .map((p: any) => p.id);
-          newPermissions = [...prev.filter(id => !analyticsPermissionIds.includes(id)), permissionId];
-        }
-      }
-      else if ((permKey.startsWith('analytics.') && permKey !== 'analytics.manage' && permKey !== 'analytics.stats.manage') ||
-               (resource === 'analytics' && action?.toLowerCase() !== 'manage')) {
-        const analyticsManagePerm = allPermissions.find((p: any) => {
-          const pKey = (p as any).original_key || `${(p as any).resource || ''}.${(p as any).action || ''}`;
-          return pKey === 'analytics.manage' || pKey === 'analytics.stats.manage' ||
-                 ((p as any).resource === 'analytics' && (p as any).action?.toLowerCase() === 'manage');
-        });
-        const isAnalyticsManageSelected = analyticsManagePerm && prev.includes(analyticsManagePerm.id);
-        
-        if (isAnalyticsManageSelected) {
-          return prev; // اگر analytics.manage فعال است، اجازه انتخاب permissions جزئی را نده
-        }
-        
-        newPermissions = prev.includes(permissionId)
-          ? prev.filter(id => id !== permissionId)
-          : [...prev, permissionId];
-      }
-      else if (originalKey === 'ai.manage') {
-        if (isCurrentlySelected) {
-          newPermissions = prev.filter(id => id !== permissionId);
-        } else {
-          const aiPermissionIds = allPermissions
-            .filter((p: any) => (p as any).original_key?.startsWith('ai.') && (p as any).original_key !== 'ai.manage')
-            .map((p: any) => p.id);
-          newPermissions = [...prev.filter(id => !aiPermissionIds.includes(id)), permissionId];
-        }
-      } 
-      else if (originalKey.startsWith('ai.')) {
-        const aiManagePerm = allPermissions.find((p: any) => (p as any).original_key === 'ai.manage');
-        const isAiManageSelected = aiManagePerm && prev.includes(aiManagePerm.id);
-        
-        if (isAiManageSelected) {
+      } else {
+        // Not a manage action. Check if parent 'manage' is selected.
+        const parentManagePerm = allPermissions.find((p: any) =>
+          p.resource === resource && p.action?.toLowerCase() === 'manage'
+        );
+        const isParentManageSelected = parentManagePerm && prev.includes(parentManagePerm.id);
+
+        if (isParentManageSelected) {
           return prev;
         }
-        
-        newPermissions = prev.includes(permissionId)
-          ? prev.filter(id => id !== permissionId)
-          : [...prev, permissionId];
-      } 
-      else {
-        newPermissions = prev.includes(permissionId)
+
+        newPermissions = isCurrentlySelected
           ? prev.filter(id => id !== permissionId)
           : [...prev, permissionId];
       }
-      
+
+      // SMART LOGIC: Handle View dependencies for all standard resources
+      const isOpAction = ['create', 'edit', 'delete', 'update', 'post', 'patch', 'destroy', 'remove'].includes(action.toLowerCase());
+      const isViewAction = ['view', 'read', 'get', 'list'].includes(action.toLowerCase());
+
+      if (isOpAction && !isCurrentlySelected) {
+        // Adding an OP action -> Ensure VIEW is also added
+        const viewPerm = allPermissions.find((p: any) =>
+          p.resource === resource && ['view', 'read'].includes(p.action.toLowerCase())
+        );
+        if (viewPerm && !newPermissions.includes(viewPerm.id)) {
+          newPermissions.push(viewPerm.id);
+        }
+      } else if (isViewAction && isCurrentlySelected) {
+        // Removing VIEW -> Ensure all OP actions for this resource are also removed
+        const opPermIds = allPermissions
+          .filter((p: any) =>
+            p.resource === resource &&
+            ['create', 'edit', 'delete', 'update', 'post', 'put', 'patch', 'destroy', 'remove'].includes(p.action.toLowerCase())
+          )
+          .map((p: any) => p.id);
+        newPermissions = newPermissions.filter(id => !opPermIds.includes(id));
+      }
+
       setValue("permission_ids", newPermissions, { shouldValidate: true });
-      
+
       return newPermissions;
     });
   };
 
   const toggleAllResourcePermissions = (resourcePermissions: any[]) => {
     const resourcePermissionIds = resourcePermissions.map(p => p.id);
-    
+
     const allSelected = resourcePermissionIds.every(id => selectedPermissions.includes(id));
-    
+
     setSelectedPermissions(prev => {
       const newSelected = allSelected
         ? prev.filter(id => !resourcePermissionIds.includes(id))
         : (() => {
-            const updated = [...prev];
-            resourcePermissionIds.forEach(id => {
-              if (!updated.includes(id)) {
-                updated.push(id);
-              }
-            });
-            return updated;
-          })();
-      
+          const updated = [...prev];
+          resourcePermissionIds.forEach(id => {
+            if (!updated.includes(id)) {
+              updated.push(id);
+            }
+          });
+          return updated;
+        })();
+
       setValue("permission_ids", newSelected, { shouldValidate: true });
-      
+
       return newSelected;
     });
   };
@@ -351,16 +308,16 @@ export default function EditRolePage() {
 
   const getOrganizedPermissions = () => {
     if (!permissions) return [];
-    
+
     const basePermissionIds = getBasePermissionIds(permissions);
-    
+
     const resourceMap: Record<string, any> = {};
-    
+
     permissions.forEach(group => {
       const filteredPermissions = group.permissions.filter((p: any) => !basePermissionIds.includes(p.id));
-      
+
       if (filteredPermissions.length === 0) return;
-      
+
       if (!resourceMap[group.resource]) {
         resourceMap[group.resource] = {
           resource: group.resource,
@@ -368,10 +325,10 @@ export default function EditRolePage() {
           permissions: []
         };
       }
-      
+
       resourceMap[group.resource].permissions.push(...filteredPermissions);
     });
-    
+
     return Object.values(resourceMap);
   };
 
@@ -383,27 +340,37 @@ export default function EditRolePage() {
       'delete': ['delete', 'remove', 'destroy'],
       'manage': ['manage', 'admin']
     };
-    
+
     const variants = actionVariants[action] || [action];
-    
-    return resourcePermissions.find(p => 
+
+    return resourcePermissions.find(p =>
       variants.includes(p.action.toLowerCase())
     );
   };
 
   const organizedPermissions = useMemo(() => getOrganizedPermissions(), [permissions]);
-  
+
   const analyticsUsedPermissions = useMemo(() => {
     return getAnalyticsPermissions(permissions || []);
   }, [permissions]);
-  
+
   const aiUsedPermissions = useMemo(() => {
     return getAIPermissions(permissions || []);
   }, [permissions]);
-  
+
   const isStandaloneResource = (resource: any) => {
     const perms = resource.permissions || [];
     return perms.some((p: any) => p.is_standalone === true);
+  };
+
+  // تشخیص منابع که Master Toggle دارند (content_master)
+  const hasContentMasterToggle = (resource: any) => {
+    const perms = resource.permissions || [];
+    return perms.some((p: any) =>
+      p.is_standalone === true &&
+      p.action?.toLowerCase() === 'manage' &&
+      p.permission_category === 'content_master'
+    );
   };
 
   const isAdminOnlyResource = (resource: any) => {
@@ -421,6 +388,10 @@ export default function EditRolePage() {
       if (r.resource === 'ai' || r.resource?.startsWith('ai.')) {
         return false;
       }
+      // حذف منابعی که Master Toggle دارند
+      if (hasContentMasterToggle(r)) {
+        return false;
+      }
       return isStandaloneResource(r);
     });
   }, [organizedPermissions]);
@@ -430,7 +401,7 @@ export default function EditRolePage() {
       // بررسی: resource name می‌تواند 'analytics' یا 'analytics.stats' و غیره باشد
       return r.resource === 'analytics' || r.resource?.startsWith('analytics.');
     });
-    
+
     if (filtered.length > 1) {
       // حذف permissions تکراری بر اساس id
       const permissionMap = new Map<number, any>();
@@ -441,7 +412,7 @@ export default function EditRolePage() {
           }
         });
       });
-      
+
       const mergedResource = {
         resource: 'analytics',
         display_name: filtered[0]?.display_name || 'Analytics',
@@ -449,7 +420,7 @@ export default function EditRolePage() {
       };
       return [mergedResource];
     }
-    
+
     return filtered;
   }, [organizedPermissions]);
 
@@ -457,7 +428,7 @@ export default function EditRolePage() {
     const filtered = organizedPermissions.filter((r: any) => {
       return r.resource === 'ai' || r.resource?.startsWith('ai.');
     });
-    
+
     if (filtered.length > 1) {
       // حذف permissions تکراری بر اساس id
       const permissionMap = new Map<number, any>();
@@ -468,7 +439,7 @@ export default function EditRolePage() {
           }
         });
       });
-      
+
       const mergedResource = {
         resource: 'ai',
         display_name: filtered[0]?.display_name || 'AI Tools',
@@ -476,7 +447,7 @@ export default function EditRolePage() {
       };
       return [mergedResource];
     }
-    
+
     return filtered;
   }, [organizedPermissions]);
 
@@ -495,6 +466,10 @@ export default function EditRolePage() {
         return false;
       }
       if (r.resource === 'ai' || r.resource?.startsWith('ai.')) {
+        return false;
+      }
+      // حذف منابعی که Master Toggle دارند (content_master)
+      if (hasContentMasterToggle(r)) {
         return false;
       }
       if (isStandaloneResource(r)) {
@@ -522,49 +497,25 @@ export default function EditRolePage() {
     if (organizedPermissions.length > 0) {
       const displayedResourceNames = new Set(allDisplayedResources.map((r: any) => r.resource));
       const allResourceNames = new Set(organizedPermissions.map((r: any) => r.resource));
-      
+
       const missing = Array.from(allResourceNames).filter(name => !displayedResourceNames.has(name));
-      
+
       if (missing.length > 0) {
       }
     }
   }, [organizedPermissions, allDisplayedResources]);
 
 
-  const logicalPermissionErrors = useMemo(() => {
-    const errors: string[] = [];
-    
-    standardResources.forEach((resource: any) => {
-      const viewPerm = getActionPermission(resource.permissions, 'view');
-      
-      if (!viewPerm) return;
-      
-      const hasView = isPermissionSelected(viewPerm.id);
-      
-      const otherActions = ['create', 'edit', 'delete'];
-      const hasOtherAction = otherActions.some(action => {
-        const perm = getActionPermission(resource.permissions, action);
-        return perm && isPermissionSelected(perm.id);
-      });
-      
-      if (hasOtherAction && !hasView) {
-        errors.push(resource.resource);
-      }
-    });
-    
-    return errors;
-  }, [standardResources, selectedPermissions]);
-
   const onSubmit = async (data: RoleFormData) => {
     try {
       const basePermissionIds = getBasePermissionIds(permissions || []);
-      
+
       const userSelectedPermissions = selectedPermissions.filter(
         id => !basePermissionIds.includes(id)
       );
-      
-      const selectedPermsData: Array<{module: string; action: string; permission_key?: string}> = [];
-      
+
+      const selectedPermsData: Array<{ module: string; action: string; permission_key?: string }> = [];
+
       if (permissions) {
         permissions.forEach((group: any) => {
           group.permissions.forEach((perm: any) => {
@@ -586,7 +537,7 @@ export default function EditRolePage() {
         });
       }
 
-      const permissionsPayload = selectedPermsData.length > 0 
+      const permissionsPayload = selectedPermsData.length > 0
         ? { specific_permissions: selectedPermsData }
         : {};
 
@@ -600,9 +551,9 @@ export default function EditRolePage() {
         id: roleId,
         data: payload,
       });
-      
+
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       navigate("/roles");
     } catch (error: any) {
       if (hasFieldErrors(error)) {
@@ -683,141 +634,179 @@ export default function EditRolePage() {
             </p>
           }
         >
-            {permissionsLoading ? (
-              <div className="space-y-2">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-4 bg-bg animate-pulse rounded" />
-                ))}
-              </div>
-            ) : permissionsError ? (
-              <div className="text-center text-red-1 py-8">
-                <p>خطا در بارگیری دسترسی‌ها</p>
-                <p className="text-sm mt-2">{String(permissionsError)}</p>
-              </div>
-            ) : permissions && permissions.length > 0 ? (
-              <div className="space-y-8">
-                
-                {/* بخش 1: مجوزهای محتوا و داده (CRUD) - اول نمایش داده می‌شود */}
-                <PermissionWarningAlert
-                  logicalPermissionErrors={logicalPermissionErrors}
-                  standardResources={standardResources}
+          {permissionsLoading ? (
+            <div className="space-y-2">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-4 bg-bg animate-pulse rounded" />
+              ))}
+            </div>
+          ) : permissionsError ? (
+            <div className="text-center text-red-1 py-8">
+              <p>خطا در بارگیری دسترسی‌ها</p>
+              <p className="text-sm mt-2">{String(permissionsError)}</p>
+            </div>
+          ) : permissions && permissions.length > 0 ? (
+            <div className="space-y-8">
+
+              {/* بخش 1: مجوزهای محتوا و داده (CRUD) - اول نمایش داده می‌شود */}
+
+              {standardResources.length > 0 && (
+                <Card className="border-2 border-dashed border-green-500/20 bg-green-500/5">
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-green-500/10">
+                        <ShieldCheck className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <CardTitle>
+                          مجوزهای محتوا و داده
+                        </CardTitle>
+                        <p className="text-sm text-font-s mt-1">
+                          دسترسی‌های جزئی برای مدیریت محتوا (مشاهده، ایجاد، ویرایش، حذف)
+                        </p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-8">
+                    {/* Module Master Toggles - High level "Full Access" switches for Content Modules */}
+                    {(() => {
+                      const moduleMasterPerms = permissions
+                        ?.flatMap((g: any) => g.permissions)
+                        .filter((p: any) =>
+                          p.is_standalone === true &&
+                          p.action?.toLowerCase() === 'manage' &&
+                          p.permission_category === 'content_master'
+                        );
+
+                      if (!moduleMasterPerms || moduleMasterPerms.length === 0) return null;
+
+                      return (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-6 border-b border-dashed border-green-500/20">
+                          {moduleMasterPerms.map((perm: any) => (
+                            <div
+                              key={perm.id}
+                              className={`flex items-center justify-between p-4 rounded-xl border transition-all duration-200 ${isPermissionSelected(perm.id)
+                                ? "bg-green-500/10 border-green-500/30"
+                                : "bg-card border-br hover:border-green-500/20"
+                                }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-lg ${isPermissionSelected(perm.id) ? "bg-green-500/20" : "bg-bg"}`}>
+                                  {getResourceIcon(perm.resource)}
+                                </div>
+                                <div>
+                                  <h4 className={`text-sm font-semibold ${isPermissionSelected(perm.id) ? "text-green-700" : "text-font-p"}`}>
+                                    {getPermissionTranslation(perm.display_name, "resource")}
+                                  </h4>
+                                  <p className="text-xs text-font-s">دسترسی کامل و یکپارچه</p>
+                                </div>
+                              </div>
+                              <Switch
+                                checked={isPermissionSelected(perm.id)}
+                                onCheckedChange={() => togglePermission(perm.id)}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+
+                    <StandardPermissionsTable
+                      resources={standardResources}
+                      selectedPermissions={selectedPermissions}
+                      isSuperAdmin={isSuperAdmin}
+                      logicalPermissionErrors={[]}
+                      onTogglePermission={togglePermission}
+                      onToggleAllResourcePermissions={toggleAllResourcePermissions}
+                      allPermissions={permissions?.flatMap((g: any) => g.permissions) || []}
+                      onToggleAllStandardPermissions={(checked, permissionIds) => {
+                        const newSelected = checked
+                          ? [...selectedPermissions, ...permissionIds.filter(id => !selectedPermissions.includes(id))]
+                          : selectedPermissions.filter(id => !permissionIds.includes(id));
+                        setSelectedPermissions(newSelected);
+                        setValue("permission_ids", newSelected, { shouldValidate: true });
+                      }}
+                      isPermissionSelected={isPermissionSelected}
+                      areAllResourcePermissionsSelected={areAllResourcePermissionsSelected}
+                      getActionPermission={getActionPermission}
+                      getResourceIcon={getResourceIcon}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* بخش 2: دسترسی‌های کلیدی سیستم (Standalone) */}
+              {analyticsResources.length > 0 && analyticsResources[0]?.permissions?.length > 0 && (
+                <StatisticsPermissionsCard
+                  permissions={analyticsResources[0].permissions}
+                  selectedPermissions={selectedPermissions}
+                  isSuperAdmin={isSuperAdmin}
+                  statisticsUsedPermissions={analyticsUsedPermissions}
+                  onTogglePermission={togglePermission}
+                  onToggleAllStatistics={(checked, statsPermIds) => {
+                    const newSelected = checked
+                      ? [...selectedPermissions, ...statsPermIds.filter((id: number) => !selectedPermissions.includes(id))]
+                      : selectedPermissions.filter((id: number) => !statsPermIds.includes(id));
+                    setSelectedPermissions(newSelected);
+                    setValue("permission_ids", newSelected, { shouldValidate: true });
+                  }}
+                  isPermissionSelected={isPermissionSelected}
                   getResourceIcon={getResourceIcon}
                 />
+              )}
 
-                {standardResources.length > 0 && (
-                  <Card className="border-2 border-dashed border-green-500/20 bg-green-500/5">
-                    <CardHeader>
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-500/10">
-                          <ShieldCheck className="h-5 w-5 text-green-600" />
-                        </div>
-                        <div>
-                          <CardTitle>
-                            مجوزهای محتوا و داده
-                          </CardTitle>
-                          <p className="text-sm text-font-s mt-1">
-                            دسترسی‌های جزئی برای مدیریت محتوا (مشاهده، ایجاد، ویرایش، حذف)
-                          </p>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <StandardPermissionsTable
-                        resources={standardResources}
-                        selectedPermissions={selectedPermissions}
-                        isSuperAdmin={isSuperAdmin}
-                        logicalPermissionErrors={logicalPermissionErrors}
-                        onTogglePermission={togglePermission}
-                        onToggleAllResourcePermissions={toggleAllResourcePermissions}
-                        allPermissions={permissions?.flatMap((g: any) => g.permissions) || []}
-                        onToggleAllStandardPermissions={(checked, permissionIds) => {
-                                    const newSelected = checked
-                                      ? [...selectedPermissions, ...permissionIds.filter(id => !selectedPermissions.includes(id))]
-                                      : selectedPermissions.filter(id => !permissionIds.includes(id));
-                                    setSelectedPermissions(newSelected);
-                                    setValue("permission_ids", newSelected, { shouldValidate: true });
-                                  }}
-                        isPermissionSelected={isPermissionSelected}
-                        areAllResourcePermissionsSelected={areAllResourcePermissionsSelected}
-                        getActionPermission={getActionPermission}
-                        getResourceIcon={getResourceIcon}
-                      />
-                    </CardContent>
-                  </Card>
-                )}
+              {aiResources.length > 0 && aiResources[0]?.permissions?.length > 0 && (
+                <AIPermissionsCard
+                  permissions={aiResources[0].permissions}
+                  selectedPermissions={selectedPermissions}
+                  isSuperAdmin={isSuperAdmin}
+                  aiUsedPermissions={aiUsedPermissions}
+                  onTogglePermission={togglePermission}
+                  onToggleAllAI={(checked, aiPermIds) => {
+                    const newSelected = checked
+                      ? [...selectedPermissions, ...aiPermIds.filter((id: number) => !selectedPermissions.includes(id))]
+                      : selectedPermissions.filter((id: number) => !aiPermIds.includes(id));
+                    setSelectedPermissions(newSelected);
+                    setValue("permission_ids", newSelected, { shouldValidate: true });
+                  }}
+                  isPermissionSelected={isPermissionSelected}
+                  getResourceIcon={getResourceIcon}
+                  allPermissions={permissions?.flatMap((g: any) => g.permissions) || []}
+                />
+              )}
 
-                {/* بخش 2: دسترسی‌های کلیدی سیستم (Standalone) */}
-                {analyticsResources.length > 0 && analyticsResources[0]?.permissions?.length > 0 && (
-                  <StatisticsPermissionsCard
-                    permissions={analyticsResources[0].permissions}
-                    selectedPermissions={selectedPermissions}
-                    isSuperAdmin={isSuperAdmin}
-                    statisticsUsedPermissions={analyticsUsedPermissions}
-                    onTogglePermission={togglePermission}
-                    onToggleAllStatistics={(checked, statsPermIds) => {
-                              const newSelected = checked
-                                ? [...selectedPermissions, ...statsPermIds.filter((id: number) => !selectedPermissions.includes(id))]
-                                : selectedPermissions.filter((id: number) => !statsPermIds.includes(id));
-                              setSelectedPermissions(newSelected);
-                              setValue("permission_ids", newSelected, { shouldValidate: true });
-                            }}
-                    isPermissionSelected={isPermissionSelected}
-                    getResourceIcon={getResourceIcon}
-                  />
-                )}
+              {standaloneResources.length > 0 && (
+                <ManagementPermissionsCard
+                  resources={standaloneResources}
+                  selectedPermissions={selectedPermissions}
+                  isSuperAdmin={isSuperAdmin}
+                  onTogglePermission={togglePermission}
+                  isPermissionSelected={isPermissionSelected}
+                  getResourceIcon={getResourceIcon}
+                />
+              )}
 
-                {aiResources.length > 0 && aiResources[0]?.permissions?.length > 0 && (
-                  <AIPermissionsCard
-                    permissions={aiResources[0].permissions}
-                    selectedPermissions={selectedPermissions}
-                    isSuperAdmin={isSuperAdmin}
-                    aiUsedPermissions={aiUsedPermissions}
-                    onTogglePermission={togglePermission}
-                    onToggleAllAI={(checked, aiPermIds) => {
-                              const newSelected = checked
-                                ? [...selectedPermissions, ...aiPermIds.filter((id: number) => !selectedPermissions.includes(id))]
-                                : selectedPermissions.filter((id: number) => !aiPermIds.includes(id));
-                              setSelectedPermissions(newSelected);
-                              setValue("permission_ids", newSelected, { shouldValidate: true });
-                            }}
-                    isPermissionSelected={isPermissionSelected}
-                    getResourceIcon={getResourceIcon}
-                    allPermissions={permissions?.flatMap((g: any) => g.permissions) || []}
-                  />
-                )}
 
-                {standaloneResources.length > 0 && (
-                  <ManagementPermissionsCard
-                    resources={standaloneResources}
-                    selectedPermissions={selectedPermissions}
-                    isSuperAdmin={isSuperAdmin}
-                    onTogglePermission={togglePermission}
-                    isPermissionSelected={isPermissionSelected}
-                    getResourceIcon={getResourceIcon}
-                  />
-                )}
-
-                
-                {selectedPermissions.length > 0 && (
-                  <div className="p-3 bg-bg/50">
-                    <div className="text-sm font-medium">
-                      دسترسی‌های انتخاب شده: {selectedPermissions.length}
-                    </div>
+              {selectedPermissions.length > 0 && (
+                <div className="p-3 bg-bg/50">
+                  <div className="text-sm font-medium">
+                    دسترسی‌های انتخاب شده: {selectedPermissions.length}
                   </div>
-                )}
-                
-                {errors.permission_ids?.message && (
-                  <div className="flex items-start gap-2 text-sm text-destructive mt-4 p-3 bg-destructive/10">
-                    <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    <span>{String(errors.permission_ids.message)}</span>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center text-font-s py-8">
-                دسترسی‌ای موجود نیست
-              </div>
-            )}
+                </div>
+              )}
+
+              {errors.permission_ids?.message && (
+                <div className="flex items-start gap-2 text-sm text-destructive mt-4 p-3 bg-destructive/10">
+                  <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <span>{String(errors.permission_ids.message)}</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center text-font-s py-8">
+              دسترسی‌ای موجود نیست
+            </div>
+          )}
         </CardWithIcon>
 
         <RoleInfoForm
@@ -830,8 +819,8 @@ export default function EditRolePage() {
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
-        <Button 
-          onClick={handleFormSubmit} 
+        <Button
+          onClick={handleFormSubmit}
           size="lg"
           disabled={updateRoleMutation.isPending}
         >

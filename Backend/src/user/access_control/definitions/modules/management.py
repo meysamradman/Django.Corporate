@@ -5,6 +5,7 @@ MANAGEMENT_PERMISSIONS = {
         'display_name': 'Manage Forms',
         'description': 'Allow full access to contact form fields (view, create, update, delete)',
         'is_standalone': True,
+        'permission_category': 'management',
     },
     'settings.manage': {
         'module': 'settings',
@@ -12,6 +13,7 @@ MANAGEMENT_PERMISSIONS = {
         'display_name': 'Manage Settings',
         'description': 'Allow full access to website general settings (view and update)',
         'is_standalone': True,
+        'permission_category': 'management',
     },
     'chatbot.manage': {
         'module': 'chatbot',
@@ -19,6 +21,7 @@ MANAGEMENT_PERMISSIONS = {
         'display_name': 'Manage Chatbot',
         'description': 'Full access to chatbot settings and FAQs',
         'is_standalone': True,
+        'permission_category': 'management',
     },
     'pages.manage': {
         'module': 'pages',
@@ -26,6 +29,7 @@ MANAGEMENT_PERMISSIONS = {
         'display_name': 'Manage Static Pages',
         'description': 'Allow full access to static pages (view, update)',
         'is_standalone': True,
+        'permission_category': 'management',
     },
     'panel.manage': {
         'module': 'panel',
@@ -33,5 +37,49 @@ MANAGEMENT_PERMISSIONS = {
         'display_name': 'Manage Panel Settings',
         'description': 'Allow full access to panel settings (view, update, logo upload)',
         'is_standalone': True,
+        'permission_category': 'management',
+    },
+    
+    # Content Module Master Toggles
+    'blog.manage': {
+        'module': 'blog',
+        'action': 'manage',
+        'display_name': 'Full Access to Blog',
+        'description': 'Total access to blog posts, categories, and tags',
+        'is_standalone': True,
+        'permission_category': 'content_master',
+    },
+    'portfolio.manage': {
+        'module': 'portfolio',
+        'action': 'manage',
+        'display_name': 'Full Access to Portfolio',
+        'description': 'Total access to portfolio items, categories, tags, and options',
+        'is_standalone': True,
+        'permission_category': 'content_master',
+    },
+    'real_estate.manage': {
+        'module': 'real_estate',
+        'action': 'manage',
+        'display_name': 'Full Access to Real Estate',
+        'description': 'Total access to properties, agents, and agencies',
+        'is_standalone': True,
+        'permission_category': 'content_master',
+    },
+    'admin.manage': {
+        'module': 'admin',
+        'action': 'manage',
+        'display_name': 'Full Access to Admin Management',
+        'description': 'Total access to admin users and roles',
+        'is_standalone': True,
+        'permission_category': 'content_master',
+        'requires_superadmin': True,
+    },
+    'users.manage': {
+        'module': 'users',
+        'action': 'manage',
+        'display_name': 'Full Access to User Management',
+        'description': 'Total access to regular users',
+        'is_standalone': True,
+        'permission_category': 'content_master',
     },
 }

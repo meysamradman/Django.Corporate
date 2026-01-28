@@ -27,13 +27,6 @@ USERS_PERMISSIONS = {
         'description': 'Allow deleting admin users',
         'requires_superadmin': True,
     },
-    'admin.manage': {
-        'module': 'admin',
-        'action': 'manage',
-        'display_name': 'Manage Admins',
-        'description': 'Allow full access to admin management (view, create, update, delete)',
-        'requires_superadmin': True,
-    },
     'users.read': {
         'module': 'users',
         'action': 'read',
@@ -57,11 +50,5 @@ USERS_PERMISSIONS = {
         'action': 'delete',
         'display_name': 'Delete User',
         'description': 'Allow deleting regular users',
-    },
-    'users.manage': {
-        'module': 'users',
-        'action': 'manage',
-        'display_name': 'Manage Users',
-        'description': 'Allow full access to user management (view, create, update, delete)',
     },
 }

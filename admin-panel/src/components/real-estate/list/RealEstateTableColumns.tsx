@@ -62,7 +62,7 @@ export const usePropertyColumns = (
         return (
           <ProtectedLink
             to={`/real-estate/properties/${property.id}/view`}
-            permission="real_estate.property.update"
+            permission="real_estate.property.read"
             className="flex items-center gap-3"
           >
             <Avatar className="table-avatar">

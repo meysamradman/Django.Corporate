@@ -637,6 +637,7 @@ class AdminRoleView(viewsets.ViewSet):
                         'description': perm_data['description'],
                         'is_standalone': perm_data.get('is_standalone', False),
                         'requires_superadmin': perm_data.get('requires_superadmin', False),
+                        'permission_category': perm_data.get('permission_category'),
                         'original_key': perm_key
                     })
                     permission_id += 1

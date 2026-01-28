@@ -309,7 +309,7 @@ export default function PropertyPage() {
       label: "مشاهده",
       icon: <Eye className="h-4 w-4" />,
       onClick: (property) => navigate(`/real-estate/properties/${property.id}/view`),
-      permission: "real_estate.property.view",
+      permission: "real_estate.property.read",
     },
     {
       label: "ویرایش",
@@ -328,7 +328,7 @@ export default function PropertyPage() {
       label: "خروجی PDF",
       icon: <FileText className="h-4 w-4" />,
       onClick: (property) => exportSinglePropertyPdf(property.id),
-      permission: "real_estate.property.view",
+      permission: "real_estate.property.read",
     },
   ];
 

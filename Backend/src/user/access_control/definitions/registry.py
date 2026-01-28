@@ -12,6 +12,7 @@ class Permission:
     description: str
     requires_superadmin: bool = False
     is_standalone: bool = False
+    permission_category: Optional[str] = None
 
 
 class PermissionRegistry:
@@ -53,6 +54,7 @@ class PermissionRegistry:
                     "description": perm.description,
                     "requires_superadmin": perm.requires_superadmin,
                     "is_standalone": perm.is_standalone,
+                    "permission_category": perm.permission_category,
                 }
                 for perm_id, perm in cls._permissions.items()
             },
@@ -69,4 +71,5 @@ for perm_id, perm_data in PERMISSIONS.items():
         description=perm_data['description'],
         requires_superadmin=perm_data.get('requires_superadmin', False),
         is_standalone=perm_data.get('is_standalone', False),
+        permission_category=perm_data.get('permission_category'),
     ))
