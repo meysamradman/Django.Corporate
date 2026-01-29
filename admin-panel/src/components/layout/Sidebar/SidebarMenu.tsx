@@ -42,6 +42,12 @@ import {
   FilePlus,
   Building2,
   Building,
+  GalleryHorizontal,
+  Smartphone,
+  Phone,
+  Share2,
+  Globe,
+  Settings2,
 } from "lucide-react"
 import { useMemo, useCallback } from "react"
 import { useUserPermissions } from "@/core/permissions/hooks/useUserPermissions"
@@ -356,27 +362,50 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
     ]
   },
   {
-    title: "تنظیمات",
+    title: "تنظیمات و پیکربندی",
     items: [
       {
-        title: "تنظیمات",
-        icon: Settings,
+        title: "تنظیمات وب‌سایت",
+        icon: Globe,
+        access: { module: "settings", allowReadOnly: true, roles: ["super_admin", "agency_manager"] },
         items: [
-          { title: "تنظیمات پنل ادمین", isTitle: true, access: { requireSuperAdmin: true } },
-          { title: "تنظیمات پنل", url: "/panel", icon: LayoutDashboard, access: { requireSuperAdmin: true } },
-          { title: "ویژگی‌های سیستم", url: "/panel?tab=feature-flags", icon: Flag, access: { requireSuperAdmin: true } },
-          { title: "تنظیمات هوش مصنوعی", isTitle: true, access: { requireSuperAdmin: true } },
-          { title: "مدیریت Provider ها", url: "/ai/settings", icon: Cpu, access: { module: "ai", actions: ["manage"], roles: ["super_admin"] } },
-          { title: "انتخاب مدل‌ها", url: "/ai/models", icon: List, access: { module: "ai", actions: ["manage"], requireSuperAdmin: true } },
-          { title: "تنظیمات وب‌سایت و اپلیکیشن", isTitle: true, access: { roles: ["super_admin", "agency_manager"] } },
-          { title: "تنظیمات عمومی", url: "/settings", icon: Settings, access: { module: "settings", actions: ["manage"], roles: ["super_admin", "agency_manager"] } },
-          { title: "چت‌بات", url: "/chatbot", icon: Bot, access: { module: "chatbot", actions: ["manage"], roles: ["super_admin", "agency_manager"] } },
-          { title: "فرم‌ها", url: "/form-builder", icon: FileCheck, access: { module: "forms", allowReadOnly: true, roles: ["super_admin", "agency_manager"] } },
-          { title: "ایجاد فیلد جدید", url: "/form-builder?action=create-field", icon: Plus, access: { module: "forms", actions: ["create"], roles: ["super_admin", "agency_manager"] } },
-          { title: "درباره ما", url: "/page/about", icon: Info, access: { module: "pages", actions: ["manage"], roles: ["super_admin"] } },
-          { title: "قوانین و مقررات", url: "/page/terms", icon: FileText, access: { module: "pages", actions: ["manage"], roles: ["super_admin"] } },
-        ],
+          { title: "تنظیمات عمومی", url: "/settings?tab=general", icon: Settings },
+          { title: "مدیریت اسلایدرها", url: "/settings?tab=sliders", icon: GalleryHorizontal },
+          { title: "ارتباطات و تماس", isTitle: true },
+          { title: "شماره‌های تماس", url: "/settings?tab=phones", icon: Phone },
+          { title: "شماره‌های موبایل", url: "/settings?tab=mobiles", icon: Smartphone },
+          { title: "ایمیل‌های ارتباطی", url: "/settings?tab=emails", icon: Mail },
+          { title: "شبکه‌های اجتماعی", url: "/settings?tab=social", icon: Share2 },
+        ]
       },
+      {
+        title: "تعاملات و فرم‌ها",
+        icon: Bot,
+        items: [
+          { title: "چت‌بات (AI)", url: "/chatbot", icon: Bot, access: { module: "chatbot", actions: ["manage"] } },
+          { title: "فرم‌ساز هوشمند", url: "/form-builder", icon: FileCheck, access: { module: "forms", allowReadOnly: true } },
+          { title: "ایجاد فیلد جدید", url: "/form-builder?action=create-field", icon: Plus, access: { module: "forms", actions: ["create"] } },
+        ]
+      },
+      {
+        title: "مدیریت سیستم",
+        icon: Settings2,
+        access: { requireSuperAdmin: true },
+        items: [
+          { title: "پنل ادمین", url: "/panel", icon: LayoutDashboard },
+          { title: "ویژگی‌های سیستم", url: "/panel?tab=feature-flags", icon: Flag },
+          { title: "مدیریت مدل‌های AI", url: "/ai/models", icon: Cpu },
+          { title: "تنظیمات Providerها", url: "/ai/settings", icon: Cpu },
+        ]
+      },
+      {
+        title: "محتوای ثابت",
+        icon: Info,
+        items: [
+          { title: "درباره ما", url: "/page/about", icon: Info, access: { module: "pages", actions: ["manage"] } },
+          { title: "قوانین و مقررات", url: "/page/terms", icon: FileText, access: { module: "pages", actions: ["manage"] } },
+        ]
+      }
     ]
   },
 ];
