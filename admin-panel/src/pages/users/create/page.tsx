@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, lazy } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,49 +8,9 @@ import { extractFieldErrors, hasFieldErrors } from '@/core/toast';
 import { showSuccess, showError } from '@/core/toast';
 import { msg } from '@/core/messages';
 import { userFormSchema, userFormDefaults, type UserFormValues } from "@/components/users/validations/userSchema";
-import { Button } from "@/components/elements/Button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
-import { Skeleton } from "@/components/elements/Skeleton";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Loader2, Save, User, UserCircle } from "lucide-react";
+import { User, UserCircle } from "lucide-react";
 import type { Media } from "@/types/shared/media";
-
-const TabSkeleton = () => (
-    <div className="mt-0 space-y-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-            <div className="flex-1 min-w-0">
-                <CardWithIcon
-                    icon={User}
-                    title="اطلاعات پایه"
-                    iconBgColor="bg-blue"
-                    iconColor="stroke-blue-2"
-                    borderColor="border-b-blue-1"
-                >
-                    <div className="space-y-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <Skeleton className="h-4 w-16" />
-                                <Skeleton className="h-10 w-full" />
-                            </div>
-                            <div className="space-y-2">
-                                <Skeleton className="h-4 w-24" />
-                                <Skeleton className="h-10 w-full" />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Skeleton className="h-4 w-20" />
-                            <Skeleton className="h-10 w-full" />
-                        </div>
-                        <div className="space-y-2">
-                            <Skeleton className="h-4 w-16" />
-                            <Skeleton className="h-10 w-full" />
-                        </div>
-                    </div>
-                </CardWithIcon>
-            </div>
-        </div>
-    </div>
-);
+import { UserFormLayout } from "@/components/page-patterns/UserFormLayout";
 
 const BaseInfoTab = lazy(() => import("@/components/users/create/UserInfo"));
 const ProfileTab = lazy(() => import("@/components/users/create/UserProfile"));
@@ -59,7 +19,6 @@ export default function CreateUserPage() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState<string>("base-info");
-    const [editMode] = useState(true);
     const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
 
     const form = useForm<UserFormValues>({
@@ -153,61 +112,38 @@ export default function CreateUserPage() {
     };
 
     return (
-        <div className="space-y-6 pb-28 relative">
-
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList>
-                    <TabsTrigger value="base-info">
-                        <User className="w-4 h-4" />
-                        اطلاعات پایه
-                    </TabsTrigger>
-                    <TabsTrigger value="profile">
-                        <UserCircle className="w-4 h-4" />
-                        پروفایل
-                    </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="base-info">
-                    <Suspense fallback={<TabSkeleton />}>
+        <UserFormLayout
+            title="افزودن کاربر"
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            onSave={handleSubmit}
+            isSaving={createUserMutation.isPending}
+            tabs={[
+                {
+                    id: "base-info",
+                    label: "اطلاعات پایه",
+                    icon: <User className="w-4 h-4" />,
+                    content: (
                         <BaseInfoTab
                             form={form}
-                            editMode={editMode}
+                            editMode={true}
                         />
-                    </Suspense>
-                </TabsContent>
-                <TabsContent value="profile">
-                    <Suspense fallback={<TabSkeleton />}>
+                    ),
+                },
+                {
+                    id: "profile",
+                    label: "پروفایل",
+                    icon: <UserCircle className="w-4 h-4" />,
+                    content: (
                         <ProfileTab
                             form={form}
                             selectedMedia={selectedMedia}
                             setSelectedMedia={setSelectedMedia}
-                            editMode={editMode}
+                            editMode={true}
                         />
-                    </Suspense>
-                </TabsContent>
-            </Tabs>
-
-            {editMode && (
-                <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
-                    <Button
-                        onClick={handleSubmit}
-                        size="lg"
-                        disabled={createUserMutation.isPending}
-                    >
-                        {createUserMutation.isPending ? (
-                            <>
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                                در حال ذخیره...
-                            </>
-                        ) : (
-                            <>
-                                <Save className="h-5 w-5" />
-                                ذخیره
-                            </>
-                        )}
-                    </Button>
-                </div>
-            )}
-        </div>
+                    ),
+                },
+            ]}
+        />
     );
 }

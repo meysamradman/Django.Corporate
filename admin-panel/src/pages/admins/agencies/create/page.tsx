@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, lazy } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,43 +6,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate/properties";
 import { showSuccess, showError, extractFieldErrors, hasFieldErrors } from '@/core/toast';
 import { msg } from '@/core/messages';
-import { Button } from "@/components/elements/Button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
-import { Skeleton } from "@/components/elements/Skeleton";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Loader2, Save, Building2, UserCircle, Search } from "lucide-react";
+import { Building2, UserCircle, Search } from "lucide-react";
 import type { Media } from "@/types/shared/media";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { agencyFormSchema, agencyFormDefaults, type AgencyFormValues } from '@/components/real-estate/validations/agencySchema';
-
-const TabSkeleton = () => (
-    <div className="mt-0 space-y-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-            <div className="flex-1 min-w-0">
-                <CardWithIcon
-                    icon={Building2}
-                    title="اطلاعات پایه"
-                    iconBgColor="bg-blue"
-                    iconColor="stroke-blue-2"
-                    borderColor="border-b-blue-1"
-                >
-                    <div className="space-y-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <Skeleton className="h-4 w-16" />
-                                <Skeleton className="h-10 w-full" />
-                            </div>
-                            <div className="space-y-2">
-                                <Skeleton className="h-4 w-24" />
-                                <Skeleton className="h-10 w-full" />
-                            </div>
-                        </div>
-                    </div>
-                </CardWithIcon>
-            </div>
-        </div>
-    </div>
-);
+import { UserFormLayout } from "@/components/page-patterns/UserFormLayout";
 
 const BaseInfoTab = lazy(() => import("@/components/real-estate/agencies/edit/AgencyInfo"));
 const ProfileTab = lazy(() => import("@/components/real-estate/agencies/create/AgencyProfile"));
@@ -52,7 +20,6 @@ export default function AdminsAgenciesCreatePage() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState<string>("account");
-    const [editMode] = useState(true);
     const [selectedLogo, setSelectedLogo] = useState<Media | null>(null);
 
     const form = useForm<AgencyFormValues>({
@@ -131,7 +98,7 @@ export default function AdminsAgenciesCreatePage() {
                 });
 
                 showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
-            } 
+            }
             else {
                 showError(error);
             }
@@ -147,77 +114,52 @@ export default function AdminsAgenciesCreatePage() {
     };
 
     return (
-        <div className="space-y-6">
-
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList>
-                    <TabsTrigger value="account">
-                        <Building2 className="h-4 w-4" />
-                        اطلاعات پایه
-                    </TabsTrigger>
-                    <TabsTrigger value="profile">
-                        <UserCircle className="h-4 w-4" />
-                        پروفایل
-                    </TabsTrigger>
-                    <TabsTrigger value="seo">
-                        <Search className="h-4 w-4" />
-                        سئو
-                    </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="account">
-                    <Suspense fallback={<TabSkeleton />}>
+        <UserFormLayout
+            title="افزودن آژانس"
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            onSave={handleSubmit}
+            isSaving={createAgencyMutation.isPending}
+            tabs={[
+                {
+                    id: "account",
+                    label: "اطلاعات پایه",
+                    icon: <Building2 className="h-4 w-4" />,
+                    content: (
                         <BaseInfoTab
                             form={form}
-                            editMode={editMode}
+                            editMode={true}
                             handleInputChange={handleInputChange}
                         />
-                    </Suspense>
-                </TabsContent>
-
-                <TabsContent value="profile">
-                    <Suspense fallback={<TabSkeleton />}>
+                    ),
+                },
+                {
+                    id: "profile",
+                    label: "پروفایل",
+                    icon: <UserCircle className="h-4 w-4" />,
+                    content: (
                         <ProfileTab
                             form={form}
                             selectedMedia={selectedLogo}
                             setSelectedMedia={setSelectedLogo}
-                            editMode={editMode}
+                            editMode={true}
                         />
-                    </Suspense>
-                </TabsContent>
-
-                <TabsContent value="seo">
-                    <Suspense fallback={<TabSkeleton />}>
+                    ),
+                },
+                {
+                    id: "seo",
+                    label: "سئو",
+                    icon: <Search className="h-4 w-4" />,
+                    content: (
                         <SEOTab
                             form={form}
-                            editMode={editMode}
+                            editMode={true}
                         />
-                    </Suspense>
-                </TabsContent>
-            </Tabs>
-
-            {editMode && (
-                <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
-                    <Button
-                        onClick={handleSubmit}
-                        size="lg"
-                        disabled={createAgencyMutation.isPending}
-                    >
-                        {createAgencyMutation.isPending ? (
-                            <>
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                                در حال ذخیره...
-                            </>
-                        ) : (
-                            <>
-                                <Save className="h-5 w-5" />
-                                ذخیره
-                            </>
-                        )}
-                    </Button>
-                </div>
-            )}
-        </div>
+                    ),
+                },
+            ]}
+        />
     );
 }
+
 

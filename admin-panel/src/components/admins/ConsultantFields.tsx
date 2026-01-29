@@ -10,7 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate/properties";
 import { Loader } from "@/components/elements/Loader";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { FormField } from "@/components/forms/FormField";
+import { FormField } from "@/components/shared/FormField";
 import { PersianDatePicker } from "@/components/elements/PersianDatePicker";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { mediaService } from "@/components/media/services";

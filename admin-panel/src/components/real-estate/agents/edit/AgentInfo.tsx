@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { TabsContent } from "@/components/elements/Tabs";
-import { FormFieldInput, FormFieldTextarea } from "@/components/forms/FormField";
+import { FormFieldInput, FormFieldTextarea } from "@/components/shared/FormField";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { Label } from "@/components/elements/Label";
 import { Switch } from "@/components/elements/Switch";
@@ -189,7 +189,7 @@ export default function AgentInfo({ formData, handleInputChange, editMode }: Bas
                     </CardWithIcon>
                 </div>
 
-                <div className="w-full lg:w-[420px] lg:flex-shrink-0">
+                <div className="w-full lg:w-[420px] lg:shrink-0">
                     <CardWithIcon
                         icon={Settings}
                         title="تنظیمات"

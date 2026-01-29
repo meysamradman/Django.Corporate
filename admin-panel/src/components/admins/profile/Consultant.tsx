@@ -4,7 +4,7 @@ import { Button } from "@/components/elements/Button";
 import { Textarea } from "@/components/elements/Textarea";
 import { TabsContent } from "@/components/elements/Tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
-import { FormField } from "@/components/forms/FormField";
+import { FormField } from "@/components/shared/FormField";
 import {
     Globe,
     CheckCircle2,

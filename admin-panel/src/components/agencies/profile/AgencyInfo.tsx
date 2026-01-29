@@ -1,7 +1,7 @@
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { Button } from "@/components/elements/Button";
-import { FormField } from "@/components/forms/FormField";
+import { FormField } from "@/components/shared/FormField";
 import { Building2, Mail, MapPin } from "lucide-react";
 import type { RealEstateAgency } from "@/types/real_estate/agency/realEstateAgency";
 import type { AgencyFormData } from "@/types/real_estate/agency/realEstateAgency";

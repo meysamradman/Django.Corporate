@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,12 +11,11 @@ import { showSuccess, showError } from '@/core/toast';
 import { msg } from '@/core/messages';
 import { adminFormSchema, adminFormDefaults } from "@/components/admins/validations/adminSchema";
 import type { AdminFormValues } from "@/components/admins/validations/adminSchema";
-import { Button } from "@/components/elements/Button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Loader2, Save, User, UserCircle, ShieldCheck, Building2 } from "lucide-react";
+import { User, UserCircle, ShieldCheck, Building2 } from "lucide-react";
 import type { Media } from "@/types/shared/media";
+import { UserFormLayout, type UserFormTab } from "@/components/page-patterns/UserFormLayout";
 
 const TabSkeleton = () => (
     <div className="mt-0 space-y-6">
@@ -79,20 +78,7 @@ export default function CreateAdminPage() {
 
     const createAdminMutation = useMutation({
         mutationFn: async (data: AdminFormValues) => {
-            const profileData: Partial<{
-                first_name: string | null;
-                last_name: string | null;
-                birth_date: string | null;
-                national_id: string | null;
-                phone: string | null;
-                province: number | null;
-                city: number | null;
-                address: string | null;
-                department: string | null;
-                position: string | null;
-                bio: string | null;
-                notes: string | null;
-            }> = {};
+            const profileData: Record<string, any> = {};
 
             profileData.first_name = data.profile_first_name || null;
             profileData.last_name = data.profile_last_name || null;
@@ -123,7 +109,7 @@ export default function CreateAdminPage() {
             }
 
             if (selectedMedia?.id) {
-                (profileData as any).profile_picture = selectedMedia.id;
+                profileData.profile_picture = selectedMedia.id;
             }
 
             if (data.admin_role_type === "consultant") {
@@ -212,93 +198,59 @@ export default function CreateAdminPage() {
         createAdminMutation.mutate(data);
     };
 
+    const tabs: UserFormTab[] = useMemo(() => [
+        {
+            id: "base-info",
+            label: "اطلاعات پایه",
+            icon: <User className="w-4 h-4" />,
+            content: <BaseInfoTab form={form} editMode={editMode} />
+        },
+        {
+            id: "profile",
+            label: "پروفایل",
+            icon: <UserCircle className="w-4 h-4" />,
+            content: (
+                <ProfileTab
+                    form={form}
+                    selectedMedia={selectedMedia}
+                    setSelectedMedia={setSelectedMedia}
+                    editMode={editMode}
+                />
+            )
+        },
+        {
+            id: "consultant",
+            label: "اطلاعات مشاور",
+            icon: <Building2 className="w-4 h-4" />,
+            isVisible: form.watch("admin_role_type") === "consultant",
+            content: <ConsultantFields form={form} isEdit={false} />
+        },
+        {
+            id: "permissions",
+            label: "دسترسی‌ها",
+            icon: <ShieldCheck className="w-4 h-4" />,
+            content: (
+                <PermissionsTab
+                    form={form}
+                    roles={roles}
+                    loadingRoles={loadingRoles}
+                    rolesError={rolesError}
+                    editMode={editMode}
+                />
+            )
+        }
+    ], [form, editMode, selectedMedia, setSelectedMedia, roles, loadingRoles, rolesError, form.watch("admin_role_type")]);
+
     return (
-        <div className="space-y-6 pb-28 relative">
-
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList>
-                    <TabsTrigger value="base-info">
-                        <User className="w-4 h-4" />
-                        اطلاعات پایه
-                    </TabsTrigger>
-                    <TabsTrigger value="profile">
-                        <UserCircle className="w-4 h-4" />
-                        پروفایل
-                    </TabsTrigger>
-                    {form.watch("admin_role_type") === "consultant" && (
-                        <TabsTrigger value="consultant">
-                            <Building2 className="w-4 h-4" />
-                            اطلاعات مشاور
-                        </TabsTrigger>
-                    )}
-                    <TabsTrigger value="permissions">
-                        <ShieldCheck className="w-4 h-4" />
-                        دسترسی‌ها
-                    </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="base-info">
-                    <Suspense fallback={<TabSkeleton />}>
-                        <BaseInfoTab
-                            form={form}
-                            editMode={editMode}
-                        />
-                    </Suspense>
-                </TabsContent>
-                <TabsContent value="profile">
-                    <Suspense fallback={<TabSkeleton />}>
-                        <ProfileTab
-                            form={form}
-                            selectedMedia={selectedMedia}
-                            setSelectedMedia={setSelectedMedia}
-                            editMode={editMode}
-                        />
-                    </Suspense>
-                </TabsContent>
-                {form.watch("admin_role_type") === "consultant" && (
-                    <TabsContent value="consultant">
-                        <Suspense fallback={<TabSkeleton />}>
-                            <ConsultantFields
-                                form={form}
-                                isEdit={false}
-                            />
-                        </Suspense>
-                    </TabsContent>
-                )}
-                <TabsContent value="permissions">
-                    <Suspense fallback={<TabSkeleton />}>
-                        <PermissionsTab
-                            form={form}
-                            roles={roles}
-                            loadingRoles={loadingRoles}
-                            rolesError={rolesError}
-                            editMode={editMode}
-                        />
-                    </Suspense>
-                </TabsContent>
-            </Tabs>
-
-            {editMode && (
-                <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
-                    <Button
-                        onClick={handleSubmit}
-                        size="lg"
-                        disabled={createAdminMutation.isPending}
-                    >
-                        {createAdminMutation.isPending ? (
-                            <>
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                                در حال ذخیره...
-                            </>
-                        ) : (
-                            <>
-                                <Save className="h-5 w-5" />
-                                ذخیره
-                            </>
-                        )}
-                    </Button>
-                </div>
-            )}
-        </div>
+        <UserFormLayout
+            title="افزودن ادمین"
+            description="ایجاد ادمین جدید در سیستم"
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            tabs={tabs}
+            onSave={handleSubmit}
+            isSaving={createAdminMutation.isPending}
+            skeleton={<TabSkeleton />}
+        />
     );
 }

@@ -1,13 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { useNavigate, Link } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useAdminFilterOptions } from "@/components/admins/AdminTableFilters";
 import { DataTableDateRangeFilter } from "@/components/tables/DataTableDateRangeFilter";
 import type { AdminWithProfile, AdminListParams, AdminFilters } from "@/types/auth/admin";
 import { useAuth } from "@/core/auth/AuthContext";
 import { adminApi } from "@/api/admins/admins";
-import { Edit, Trash2, Plus, Search, Building2, UserCog } from "lucide-react";
+import { Edit, Trash2, Plus, Search, Building2, UserCog, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { showSuccess, showError } from '@/core/toast';
@@ -18,13 +17,11 @@ import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 import { CardItem, type CardItemAction } from "@/components/elements/CardItem";
 import { mediaService } from "@/components/media/services";
 import { formatDate } from "@/core/utils/format";
-import { Mail, Phone } from "lucide-react";
-import { getPermissionTranslation } from "@/core/messages/permissions";
 import { PaginationControls } from "@/components/shared/Pagination";
-import { Loader } from "@/components/elements/Loader";
 import { DataTableFacetedFilterSimple } from "@/components/tables/DataTableFacetedFilterSimple";
 import { getConfirm } from '@/core/messages';
 import { Badge } from "@/components/elements/Badge";
+import { CardListLayout } from "@/components/page-patterns/CardListLayout";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -156,17 +153,6 @@ export default function AdminsPage() {
     },
   });
 
-  const bulkDeleteMutation = useMutation({
-    mutationFn: (adminIds: number[]) => adminApi.bulkDeleteAdmins(adminIds),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admins'] });
-      showSuccess("با موفقیت حذف شد");
-    },
-    onError: () => {
-      showError("خطای سرور");
-    },
-  });
-
   const handleDeleteAdmin = (adminId: number | string) => {
     setDeleteConfirm({
       open: true,
@@ -177,9 +163,7 @@ export default function AdminsPage() {
 
   const handleConfirmDelete = async () => {
     try {
-      if (deleteConfirm.isBulk && deleteConfirm.adminIds) {
-        await bulkDeleteMutation.mutateAsync(deleteConfirm.adminIds);
-      } else if (!deleteConfirm.isBulk && deleteConfirm.adminId) {
+      if (deleteConfirm.adminId) {
         await deleteAdminMutation.mutateAsync(deleteConfirm.adminId);
       }
     } catch (error) {
@@ -194,29 +178,6 @@ export default function AdminsPage() {
     const adminActions: CardItemAction<AdminWithProfile>[] = [];
 
     adminActions.push({
-      label: "مشاهده",
-      icon: <Edit className="h-4 w-4" />,
-      onClick: (admin: AdminWithProfile) => {
-        const isOwnProfile = currentUserId !== undefined && Number(currentUserId) === Number(admin.id);
-        const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
-
-        if (isOwnProfile) {
-          if (isConsultant) {
-            navigate('/agents/me/edit');
-          } else {
-            navigate('/admins/me/edit');
-          }
-        } else {
-          if (isConsultant) {
-            navigate(`/agents/${admin.id}/edit`);
-          } else {
-            navigate(`/admins/${admin.id}/edit`);
-          }
-        }
-      },
-    });
-
-    adminActions.push({
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (admin: AdminWithProfile) => {
@@ -224,17 +185,11 @@ export default function AdminsPage() {
         const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
 
         if (isOwnProfile) {
-          if (isConsultant) {
-            navigate('/agents/me/edit');
-          } else {
-            navigate('/admins/me/edit');
-          }
+          if (isConsultant) navigate('/agents/me/edit');
+          else navigate('/admins/me/edit');
         } else {
-          if (isConsultant) {
-            navigate(`/agents/${admin.id}/edit`);
-          } else {
-            navigate(`/admins/${admin.id}/edit`);
-          }
+          if (isConsultant) navigate(`/agents/${admin.id}/edit`);
+          else navigate(`/admins/${admin.id}/edit`);
         }
       },
       isDisabled: (admin: AdminWithProfile) => {
@@ -279,32 +234,17 @@ export default function AdminsPage() {
   };
 
   const getAdminRoleDisplay = (admin: AdminWithProfile) => {
-    if (admin.is_superuser) {
-      return getPermissionTranslation('super_admin', 'role') || "سوپر ادمین";
-    }
+    if (admin.is_superuser) return "سوپر ادمین";
     const roles = admin.roles || [];
     if (roles.length > 0) {
-      const roleNames = roles.map((role: any) => {
-        if (typeof role === 'string') {
-          return getPermissionTranslation(role, 'role') || role;
-        }
-        if (role.is_system_role) {
-          return getPermissionTranslation(role.name, 'role') || role.display_name || role.name;
-        }
-        return role.display_name || role.name;
-      });
-      return roleNames.join(", ");
+      return roles.map((role: any) => role.display_name || role.name).join(", ");
     }
     return null;
   };
 
   const handlePaginationChange = (updaterOrValue: TablePaginationState | ((prev: TablePaginationState) => TablePaginationState)) => {
-    const newPagination = typeof updaterOrValue === 'function'
-      ? updaterOrValue(pagination)
-      : updaterOrValue;
-
+    const newPagination = typeof updaterOrValue === 'function' ? updaterOrValue(pagination) : updaterOrValue;
     setPagination(newPagination);
-
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
@@ -313,39 +253,29 @@ export default function AdminsPage() {
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="مدیریت ادمین‌ها" />
+      <CardListLayout title="مدیریت ادمین‌ها">
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
-          <Button
-            onClick={() => window.location.reload()}
-            className="mt-4"
-          >
-            تلاش مجدد
-          </Button>
+          <Button onClick={() => window.location.reload()}>تلاش مجدد</Button>
         </div>
-      </div>
+      </CardListLayout>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="مدیریت ادمین‌ها" description="لیست ادمین‌های سیستم">
-        {isSuperAdmin ? (
-          <Button
-            size="sm"
-            asChild
-          >
-            <Link to="/admins/create">
-              <Plus />
-              افزودن ادمین
-            </Link>
-          </Button>
-        ) : null}
-      </PageHeader>
-
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-4">
-        <div className="flex items-center gap-3 flex-wrap flex-1 justify-start">
+    <CardListLayout
+      title="مدیریت ادمین‌ها"
+      description="لیست ادمین‌های سیستم"
+      headerActions={isSuperAdmin && (
+        <Button size="sm" asChild>
+          <Link to="/admins/create">
+            <Plus />
+            افزودن ادمین
+          </Link>
+        </Button>
+      )}
+      filters={
+        <>
           <div className="relative w-full sm:w-[240px]">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-font-s pointer-events-none" />
             <Input
@@ -376,7 +306,7 @@ export default function AdminsPage() {
 
           <DataTableDateRangeFilter
             title="بازه تاریخ"
-            value={(clientFilters as any).date_range || { from: clientFilters.date_from as string || undefined, to: clientFilters.date_to as string || undefined }}
+            value={(clientFilters as any).date_range || { from: clientFilters.date_from || undefined, to: clientFilters.date_to || undefined }}
             onChange={(range) => {
               handleFilterChange('date_range', range);
               handleFilterChange('date_from', range.from);
@@ -384,137 +314,105 @@ export default function AdminsPage() {
             }}
             placeholder="انتخاب بازه تاریخ"
           />
-        </div>
-
-        <div className="text-sm font-medium text-font-p">
-          {isLoading ? "در حال بارگذاری..." : `نمایش ${data.length} ادمین${response?.pagination?.count ? ` از ${response.pagination.count}` : ''}`}
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader />
-        </div>
-      ) : data.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-font-s">هیچ ادمینی یافت نشد</p>
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {data.map((admin) => {
-              const fullName = getAdminFullName(admin);
-              const initial = getAdminInitial(admin);
-              const avatarUrl = getAdminAvatarUrl(admin);
-              const roleDisplay = getAdminRoleDisplay(admin);
-              const createdDate = admin.created_at ? formatDate(admin.created_at) : "-";
-              const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
-
-              return (
-                <CardItem
-                  key={admin.id}
-                  item={admin}
-                  avatar={{
-                    src: avatarUrl || undefined,
-                    fallback: initial,
-                    alt: fullName,
-                  }}
-                  title={fullName}
-                  status={{
-                    label: admin.is_active ? "فعال" : "مرخصی",
-                    variant: admin.is_active ? "green" : "red",
-                  }}
-                  actions={actions}
-                  content={
-                    <>
-                      <div className="mb-3">
-                        {isConsultant ? (
-                          <Badge variant="blue" className="flex items-center gap-1 text-xs w-fit">
-                            <Building2 className="size-3" />
-                            مشاور املاک
-                          </Badge>
-                        ) : (
-                          <Badge variant="purple" className="flex items-center gap-1 text-xs w-fit">
-                            <UserCog className="size-3" />
-                            ادمین
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 mb-3">
-                        <div className="text-right">
-                          <p className="text-xs text-font-s mb-1">نقش</p>
-                          <p className="text-sm font-medium text-font-p">{roleDisplay || "بدون نقش"}</p>
-                        </div>
-                        <div className="text-left">
-                          <p className="text-xs text-font-s mb-1">تاریخ استخدام</p>
-                          <p className="text-sm font-medium text-font-p">{createdDate}</p>
-                        </div>
-                      </div>
-                    </>
-                  }
-                  footer={
-                    <>
-                      {admin.mobile ? (
-                        <div className="flex items-center gap-2 text-sm text-font-s">
-                          <Phone className="size-4 shrink-0" />
-                          <span dir="ltr">{admin.mobile}</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 text-sm text-font-s">
-                          <Phone className="size-4 shrink-0" />
-                          <span>-</span>
-                        </div>
-                      )}
-                      {admin.email ? (
-                        <div className="flex items-center gap-2 text-sm text-font-s">
-                          <Mail className="size-4 shrink-0" />
-                          <span className="truncate" dir="ltr">{admin.email}</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 text-sm text-font-s">
-                          <Mail className="size-4 shrink-0" />
-                          <span>وارد نشده</span>
-                        </div>
-                      )}
-                    </>
-                  }
-                  onClick={(admin) => {
-                    const isOwnProfile = currentUserId !== undefined && Number(currentUserId) === Number(admin.id);
-                    const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
-
-                    if (isOwnProfile) {
-                      if (isConsultant) {
-                        navigate('/agents/me/edit');
-                      } else {
-                        navigate('/admins/me/edit');
-                      }
-                    } else {
-                      if (isConsultant) {
-                        navigate(`/agents/${admin.id}/edit`);
-                      } else {
-                        navigate(`/admins/${admin.id}/edit`);
-                      }
-                    }
-                  }}
-                />
-              );
-            })}
-          </div>
-
-          <PaginationControls
-            currentPage={pagination.pageIndex + 1}
-            totalPages={pageCount}
-            onPageChange={(page) => handlePaginationChange({ ...pagination, pageIndex: page - 1 })}
-            pageSize={pagination.pageSize}
-            onPageSizeChange={(size) => handlePaginationChange({ ...pagination, pageSize: size, pageIndex: 0 })}
-            pageSizeOptions={[10, 20, 50]}
-            showPageSize={true}
-            showInfo={true}
-            totalCount={response?.pagination?.count || data.length}
-            className="mt-6"
-          />
         </>
-      )}
+      }
+      stats={!isLoading && `نمایش ${data.length} ادمین${response?.pagination?.count ? ` از ${response.pagination.count}` : ''}`}
+      isLoading={isLoading}
+      isEmpty={!isLoading && data.length === 0}
+      emptyMessage="هیچ ادمینی یافت نشد"
+      pagination={
+        <PaginationControls
+          currentPage={pagination.pageIndex + 1}
+          totalPages={pageCount}
+          onPageChange={(page) => handlePaginationChange({ ...pagination, pageIndex: page - 1 })}
+          pageSize={pagination.pageSize}
+          onPageSizeChange={(size) => handlePaginationChange({ ...pagination, pageSize: size, pageIndex: 0 })}
+          pageSizeOptions={[10, 20, 50]}
+          showPageSize={true}
+          showInfo={true}
+          totalCount={response?.pagination?.count || data.length}
+        />
+      }
+    >
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {data.map((admin) => {
+          const fullName = getAdminFullName(admin);
+          const initial = getAdminInitial(admin);
+          const avatarUrl = getAdminAvatarUrl(admin);
+          const roleDisplay = getAdminRoleDisplay(admin);
+          const createdDate = admin.created_at ? formatDate(admin.created_at) : "-";
+          const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
+
+          return (
+            <CardItem
+              key={admin.id}
+              item={admin}
+              avatar={{
+                src: avatarUrl || undefined,
+                fallback: initial,
+                alt: fullName,
+              }}
+              title={fullName}
+              status={{
+                label: admin.is_active ? "فعال" : "مرخصی",
+                variant: admin.is_active ? "green" : "red",
+              }}
+              actions={actions}
+              content={
+                <>
+                  <div className="mb-3">
+                    {isConsultant ? (
+                      <Badge variant="blue" className="flex items-center gap-1 text-xs w-fit">
+                        <Building2 className="size-3" />
+                        مشاور املاک
+                      </Badge>
+                    ) : (
+                      <Badge variant="purple" className="flex items-center gap-1 text-xs w-fit">
+                        <UserCog className="size-3" />
+                        ادمین
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 mb-3">
+                    <div className="text-right">
+                      <p className="text-xs text-font-s mb-1">نقش</p>
+                      <p className="text-sm font-medium text-font-p">{roleDisplay || "بدون نقش"}</p>
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs text-font-s mb-1">تاریخ استخدام</p>
+                      <p className="text-sm font-medium text-font-p">{createdDate}</p>
+                    </div>
+                  </div>
+                </>
+              }
+              footer={
+                <>
+                  <div className="flex items-center gap-2 text-sm text-font-s">
+                    <Phone className="size-4 shrink-0" />
+                    <span dir="ltr">{admin.mobile || "-"}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-font-s">
+                    <Mail className="size-4 shrink-0" />
+                    <span className="truncate" dir="ltr">{admin.email || "وارد نشده"}</span>
+                  </div>
+                </>
+              }
+              onClick={(admin) => {
+                const isOwnProfile = currentUserId !== undefined && Number(currentUserId) === Number(admin.id);
+                const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
+
+                if (isOwnProfile) {
+                  if (isConsultant) navigate('/agents/me/edit');
+                  else navigate('/admins/me/edit');
+                } else {
+                  if (isConsultant) navigate(`/agents/${admin.id}/edit`);
+                  else navigate(`/admins/${admin.id}/edit`);
+                }
+              }}
+            />
+          );
+        })}
+      </div>
 
       <AlertDialog
         open={deleteConfirm.open}
@@ -524,25 +422,21 @@ export default function AdminsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>تایید حذف</AlertDialogTitle>
             <AlertDialogDescription>
-              {deleteConfirm.isBulk
-                ? getConfirm('bulkDelete', { item: 'ادمین', count: deleteConfirm.adminIds?.length || 0 })
-                : getConfirm('delete', { item: 'ادمین' })
-              }
+              {getConfirm('delete', { item: 'ادمین' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>
-              لغو
-            </AlertDialogCancel>
+            <AlertDialogCancel>لغو</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className="bg-red-1 text-static-w hover:bg-red-2"
+              className="bg-red-0 text-red-1 border border-red-1 hover:bg-red-1 hover:text-wt transition-colors"
             >
               حذف
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </CardListLayout>
   );
 }
+

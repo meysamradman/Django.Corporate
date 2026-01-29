@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/elements/Button';
-import { FormField } from '@/components/forms/FormField';
+import { FormField } from "@/components/shared/FormField";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/elements/InputOtp';
 import { otpLoginSchema } from './validations/loginSchema';
 import { filterNumericOnly } from '@/core/filters/numeric';
@@ -180,9 +180,9 @@ function OTPLoginForm({
           >
             {resendTimer > 0 ? `ارسال مجدد (${formatResendTimer()})` : "ارسال کد"}
           </Button>
-          <Button 
-            type="submit" 
-            className="flex-1 h-12 text-base font-semibold rounded-lg" 
+          <Button
+            type="submit"
+            className="flex-1 h-12 text-base font-semibold rounded-lg"
             disabled={isLoading}
           >
             {isLoading ? (

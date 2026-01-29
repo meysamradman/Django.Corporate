@@ -1,6 +1,6 @@
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
-import { FormField } from "@/components/forms/FormField";
+import { FormField } from "@/components/shared/FormField";
 import type { UseFormReturn } from "react-hook-form";
 import type { AgencyFormValues } from "@/components/real-estate/validations/agencySchema";
 import { Settings } from "lucide-react";
