@@ -10,7 +10,7 @@ import { msg } from '@/core/messages';
 import { userFormSchema, userFormDefaults, type UserFormValues } from "@/components/users/validations/userSchema";
 import { User, UserCircle } from "lucide-react";
 import type { Media } from "@/types/shared/media";
-import { UserFormLayout } from "@/components/page-patterns/UserFormLayout";
+import { TabbedPageLayout } from "@/components/page-patterns/TabbedPageLayout";
 
 const BaseInfoTab = lazy(() => import("@/components/users/create/UserInfo"));
 const ProfileTab = lazy(() => import("@/components/users/create/UserProfile"));
@@ -112,7 +112,7 @@ export default function CreateUserPage() {
     };
 
     return (
-        <UserFormLayout
+        <TabbedPageLayout
             title="افزودن کاربر"
             activeTab={activeTab}
             onTabChange={setActiveTab}

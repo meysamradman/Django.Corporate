@@ -8,6 +8,7 @@ import type { EmailMessage } from "@/types/email/emailMessage";
 import type { MailboxType } from "@/components/email/types";
 import { showSuccess, showError } from "@/core/toast";
 import { useQueryClient } from '@tanstack/react-query';
+import { MessagingLayout } from "@/components/page-patterns/MessagingLayout";
 
 const EmailDetailView = lazy(() => import("@/components/email").then(mod => ({ default: mod.EmailDetailView })));
 const ComposeEmailDialog = lazy(() => import("@/components/email/EmailComposeDialog.tsx").then(mod => ({ default: mod.EmailComposeDialog })));
@@ -279,86 +280,80 @@ export default function EmailPage() {
   }, [emails]);
 
   return (
-    <div className="flex h-[calc(100vh-4rem-4rem)] bg-card overflow-hidden border shadow-[rgb(0_0_0/2%)_0px_6px_24px_0px,rgb(0_0_0/2%)_0px_0px_0px_1px]">
-      <div className="w-64 flex-shrink-0 h-full overflow-hidden bg-card">
+    <MessagingLayout
+      sidebar={
         <EmailSidebar
           selectedMailbox={selectedMailbox}
           onMailboxChange={handleMailboxChange}
           onComposeClick={() => setComposeOpen(true)}
           mailboxCounts={mailboxCounts}
         />
-      </div>
-
-      <div className="w-[1px] h-full bg-gray-200 flex-shrink-0"></div>
-
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {selectedEmail ? (
-          <EmailDetailView
-            email={selectedEmail}
-            onReply={handleReplyEmail}
-            onDelete={handleDeleteEmail}
-            onPublish={handlePublishDraft}
-            onToggleStar={handleToggleStar}
-            mailbox={selectedMailbox}
-          />
-        ) : (
-          <>
-            <div className="border-b p-4 flex-shrink-0">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-3 flex-1">
-                  <Checkbox
-                    checked={
-                      filteredEmails.length > 0 && filteredEmails.every(e => selectedEmails.has(e.id))
-                        ? true
-                        : filteredEmails.some(e => selectedEmails.has(e.id))
-                          ? "indeterminate"
-                          : false
-                    }
-                    onCheckedChange={() => handleSelectAll(filteredEmails)}
-                    aria-label="انتخاب همه"
-                  />
-                  <EmailSearch value={searchQuery} onChange={setSearchQuery} />
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <EmailToolbar
-                    selectedCount={selectedEmails.size}
-                    totalCount={filteredEmails.length}
-                    onSelectAll={() => handleSelectAll(filteredEmails)}
-                    onRefresh={fetchEmails}
-                    onMarkAsRead={handleMarkAsRead}
-                    onMarkAsUnread={handleMarkAsUnread}
-                    mailbox={selectedMailbox}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <EmailList
-              emails={filteredEmails}
-              selectedEmails={selectedEmails}
-              onSelectEmail={handleSelectEmail}
-              onEmailClick={handleEmailClick}
-              onToggleStar={handleToggleStar}
-              mailbox={selectedMailbox}
-              loading={loading}
+      }
+      toolbar={!selectedEmail && (
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 flex-1">
+            <Checkbox
+              checked={
+                filteredEmails.length > 0 && filteredEmails.every(e => selectedEmails.has(e.id))
+                  ? true
+                  : filteredEmails.some(e => selectedEmails.has(e.id))
+                    ? "indeterminate"
+                    : false
+              }
+              onCheckedChange={() => handleSelectAll(filteredEmails)}
+              aria-label="انتخاب همه"
             />
-          </>
-        )}
-      </div>
+            <EmailSearch value={searchQuery} onChange={setSearchQuery} />
+          </div>
 
-      <ComposeEmailDialog
-        open={composeOpen}
-        onOpenChange={(open) => {
-          setComposeOpen(open);
-          if (!open) {
-            setReplyToEmail(null);
-          }
-        }}
-        onSend={handleSendEmail}
-        onSaveDraft={handleSaveDraft}
-        replyTo={replyToEmail}
-      />
-    </div>
+          <div className="flex items-center gap-2">
+            <EmailToolbar
+              selectedCount={selectedEmails.size}
+              totalCount={filteredEmails.length}
+              onSelectAll={() => handleSelectAll(filteredEmails)}
+              onRefresh={fetchEmails}
+              onMarkAsRead={handleMarkAsRead}
+              onMarkAsUnread={handleMarkAsUnread}
+              mailbox={selectedMailbox}
+            />
+          </div>
+        </div>
+      )}
+      dialogs={
+        <ComposeEmailDialog
+          open={composeOpen}
+          onOpenChange={(open) => {
+            setComposeOpen(open);
+            if (!open) {
+              setReplyToEmail(null);
+            }
+          }}
+          onSend={handleSendEmail}
+          onSaveDraft={handleSaveDraft}
+          replyTo={replyToEmail}
+        />
+      }
+    >
+      {selectedEmail ? (
+        <EmailDetailView
+          email={selectedEmail}
+          onReply={handleReplyEmail}
+          onDelete={handleDeleteEmail}
+          onPublish={handlePublishDraft}
+          onToggleStar={handleToggleStar}
+          mailbox={selectedMailbox}
+        />
+      ) : (
+        <EmailList
+          emails={filteredEmails}
+          selectedEmails={selectedEmails}
+          onSelectEmail={handleSelectEmail}
+          onEmailClick={handleEmailClick}
+          onToggleStar={handleToggleStar}
+          mailbox={selectedMailbox}
+          loading={loading}
+        />
+      )}
+    </MessagingLayout>
   );
 }

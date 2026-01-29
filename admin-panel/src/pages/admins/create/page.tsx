@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { User, UserCircle, ShieldCheck, Building2 } from "lucide-react";
 import type { Media } from "@/types/shared/media";
-import { UserFormLayout, type UserFormTab } from "@/components/page-patterns/UserFormLayout";
+import { TabbedPageLayout, type TabbedPageTab } from "@/components/page-patterns/TabbedPageLayout";
 
 const TabSkeleton = () => (
     <div className="mt-0 space-y-6">
@@ -198,7 +198,7 @@ export default function CreateAdminPage() {
         createAdminMutation.mutate(data);
     };
 
-    const tabs: UserFormTab[] = useMemo(() => [
+    const tabs: TabbedPageTab[] = useMemo(() => [
         {
             id: "base-info",
             label: "اطلاعات پایه",
@@ -242,7 +242,7 @@ export default function CreateAdminPage() {
     ], [form, editMode, selectedMedia, setSelectedMedia, roles, loadingRoles, rolesError, form.watch("admin_role_type")]);
 
     return (
-        <UserFormLayout
+        <TabbedPageLayout
             title="افزودن ادمین"
             description="ایجاد ادمین جدید در سیستم"
             activeTab={activeTab}

@@ -1,11 +1,12 @@
-import { ReactNode, Suspense } from "react";
+import type { ReactNode } from "react";
+import { Suspense } from "react";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
 import { Loader2, Save } from "lucide-react";
 import { cn } from "@/core/utils/cn";
 
-export interface UserFormTab {
+export interface TabbedPageTab {
     id: string;
     label: string;
     icon?: ReactNode;
@@ -13,12 +14,12 @@ export interface UserFormTab {
     isVisible?: boolean;
 }
 
-export interface UserFormLayoutProps {
+export interface TabbedPageLayoutProps {
     title: string;
     description?: string;
     activeTab: string;
     onTabChange: (value: string) => void;
-    tabs: UserFormTab[];
+    tabs: TabbedPageTab[];
     onSave: () => void;
     isSaving?: boolean;
     saveLabel?: string;
@@ -28,11 +29,11 @@ export interface UserFormLayoutProps {
 }
 
 /**
- * UserFormLayout
- * A standardized layout for Create and Edit pages.
+ * TabbedPageLayout
+ * A standardized layout for Create, Edit, and Settings pages.
  * Centralizes Header, Tabs, and the Sticky Action Bar.
  */
-export function UserFormLayout({
+export function TabbedPageLayout({
     title,
     description,
     activeTab,
@@ -44,7 +45,7 @@ export function UserFormLayout({
     extraActions,
     isLoading = false,
     skeleton,
-}: UserFormLayoutProps) {
+}: TabbedPageLayoutProps) {
     const visibleTabs = tabs.filter((tab) => tab.isVisible !== false);
 
     return (

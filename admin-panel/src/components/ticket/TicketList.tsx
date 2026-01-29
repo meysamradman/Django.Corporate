@@ -1,6 +1,7 @@
 import { TicketItem } from "./TicketItem.tsx";
 import { Skeleton } from "@/components/elements/Skeleton";
 import type { Ticket } from "@/types/ticket/ticket";
+import { MessageSquareOff } from "lucide-react";
 
 interface TicketListProps {
   tickets: Ticket[];
@@ -24,7 +25,7 @@ export function TicketList({
           {[...Array(8)].map((_, i) => (
             <div key={i} className="p-4 space-y-3">
               <div className="flex items-start gap-4">
-                <Skeleton className="h-10 w-10 rounded-full flex-shrink-0" />
+                <Skeleton className="h-10 w-10 rounded-full shrink-0" />
                 <div className="flex-1 space-y-2 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <Skeleton className="h-5 w-32" />
@@ -47,8 +48,12 @@ export function TicketList({
 
   if (tickets.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center text-font-s">تیکتی یافت نشد</div>
+      <div className="flex-1 flex flex-col items-center justify-center p-8 animate-in fade-in zoom-in duration-300">
+        <div className="bg-bg p-6 rounded-full mb-4">
+          <MessageSquareOff className="size-12 text-font-s opacity-40" />
+        </div>
+        <div className="text-center font-medium text-font-s">تیکتی یافت نشد</div>
+        <p className="text-sm text-font-s opacity-60 mt-1">در این بخش در حال حاضر تیکتی وجود ندارد</p>
       </div>
     );
   }

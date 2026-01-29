@@ -10,7 +10,7 @@ import { Building2, UserCircle, Search } from "lucide-react";
 import type { Media } from "@/types/shared/media";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { agencyFormSchema, agencyFormDefaults, type AgencyFormValues } from '@/components/real-estate/validations/agencySchema';
-import { UserFormLayout } from "@/components/page-patterns/UserFormLayout";
+import { TabbedPageLayout } from "@/components/page-patterns/TabbedPageLayout";
 
 const BaseInfoTab = lazy(() => import("@/components/real-estate/agencies/edit/AgencyInfo"));
 const ProfileTab = lazy(() => import("@/components/real-estate/agencies/create/AgencyProfile"));
@@ -114,7 +114,7 @@ export default function AdminsAgenciesCreatePage() {
     };
 
     return (
-        <UserFormLayout
+        <TabbedPageLayout
             title="افزودن آژانس"
             activeTab={activeTab}
             onTabChange={setActiveTab}

@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/elements/Checkbox";
 import { useTicketList, useTicket, useTicketMessages, useCreateTicketMessage, useUpdateTicketStatus, useDeleteTicket, useMarkTicketAsRead } from "@/components/ticket/hooks/useTicket";
 import type { Ticket, TicketStatusType } from "@/types/ticket/ticket";
 import { showSuccess } from "@/core/toast";
+import { MessagingLayout } from "@/components/page-patterns/MessagingLayout";
 
 const TicketDetailView = lazy(() => import("@/components/ticket").then(mod => ({ default: mod.TicketDetail })));
 const ReplyTicketDialog = lazy(() => import("@/components/ticket/TicketReplyDialog.tsx").then(mod => ({ default: mod.TicketReplyDialog })));
@@ -188,74 +189,67 @@ export default function TicketPage() {
   }, [tickets]);
 
   return (
-    <div className="flex h-[calc(100vh-4rem-4rem)] bg-card overflow-hidden border shadow-[rgb(0_0_0/2%)_0px_6px_24px_0px,rgb(0_0_0/2%)_0px_0px_0px_1px]">
-      <div className="w-64 flex-shrink-0 h-full overflow-hidden bg-card">
+    <MessagingLayout
+      sidebar={
         <TicketSidebar
           selectedStatus={selectedStatus}
           onStatusChange={handleStatusChange}
           statusCounts={statusCounts}
         />
-      </div>
-
-      <div className="w-[1px] h-full bg-gray-200 flex-shrink-0"></div>
-
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {selectedTicket ? (
-          <TicketDetailView
-            ticket={ticketDetail || selectedTicket}
-            messages={ticketMessages}
-            onReply={handleReplyTicket}
-            onDelete={handleDeleteTicket}
-            onStatusChange={handleStatusChangeForTicket}
-          />
-        ) : (
-          <>
-            <div className="border-b p-4 flex-shrink-0">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-3 flex-1">
-                  <Checkbox
-                    checked={
-                      filteredTickets.length > 0 && filteredTickets.every(t => selectedTickets.has(t.id))
-                        ? true
-                        : filteredTickets.some(t => selectedTickets.has(t.id))
-                          ? "indeterminate"
-                          : false
-                    }
-                    onCheckedChange={() => handleSelectAll(filteredTickets)}
-                    aria-label="انتخاب همه"
-                  />
-                  <TicketSearch value={searchQuery} onChange={setSearchQuery} />
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <TicketToolbar onRefresh={handleRefresh} />
-                </div>
-              </div>
-            </div>
-
-            <TicketList
-              tickets={filteredTickets}
-              selectedTickets={selectedTickets}
-              onSelectTicket={handleSelectTicket}
-              onTicketClick={handleTicketClick}
-              loading={isLoading}
+      }
+      toolbar={!selectedTicket && (
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 flex-1">
+            <Checkbox
+              checked={
+                filteredTickets.length > 0 && filteredTickets.every(t => selectedTickets.has(t.id))
+                  ? true
+                  : filteredTickets.some(t => selectedTickets.has(t.id))
+                    ? "indeterminate"
+                    : false
+              }
+              onCheckedChange={() => handleSelectAll(filteredTickets)}
+              aria-label="انتخاب همه"
             />
-          </>
-        )}
-      </div>
-
-      <ReplyTicketDialog
-        open={replyOpen}
-        onOpenChange={(open) => {
-          setReplyOpen(open);
-          if (!open) {
-            setReplyToTicket(null);
-          }
-        }}
-        onSend={handleSendReply}
-        ticket={replyToTicket}
-      />
-    </div>
+            <TicketSearch value={searchQuery} onChange={setSearchQuery} />
+          </div>
+          <div className="flex items-center gap-2">
+            <TicketToolbar onRefresh={handleRefresh} />
+          </div>
+        </div>
+      )}
+      dialogs={
+        <ReplyTicketDialog
+          open={replyOpen}
+          onOpenChange={(open) => {
+            setReplyOpen(open);
+            if (!open) {
+              setReplyToTicket(null);
+            }
+          }}
+          onSend={handleSendReply}
+          ticket={replyToTicket}
+        />
+      }
+    >
+      {selectedTicket ? (
+        <TicketDetailView
+          ticket={ticketDetail || selectedTicket}
+          messages={ticketMessages}
+          onReply={handleReplyTicket}
+          onDelete={handleDeleteTicket}
+          onStatusChange={handleStatusChangeForTicket}
+        />
+      ) : (
+        <TicketList
+          tickets={filteredTickets}
+          selectedTickets={selectedTickets}
+          onSelectTicket={handleSelectTicket}
+          onTicketClick={handleTicketClick}
+          loading={isLoading}
+        />
+      )}
+    </MessagingLayout>
   );
 }
 
