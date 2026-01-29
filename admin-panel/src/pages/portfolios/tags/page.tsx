@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { DataTable } from "@/components/tables/DataTable";
 import { useTagColumns } from "@/components/portfolios/tags/list/TagTableColumns";
 import { useTagFilterOptions, getTagFilterConfig } from "@/components/portfolios/tags/list/TagTableFilters";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, FolderPlus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
 import { showSuccess, showError } from '@/core/toast';
@@ -29,12 +29,16 @@ import type { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
 import type { ColumnDef } from "@tanstack/react-table";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import type { DataTableRowAction } from "@/types/shared/table";
+import { PortfolioTagSide } from "@/components/portfolios/tags/PortfolioTagSide";
 
 export default function TagPage() {
-  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { booleanFilterOptions } = useTagFilterOptions();
   const tagFilterConfig = getTagFilterConfig(booleanFilterOptions);
+
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
 
   const [pagination, setPagination] = useState<TablePaginationState>({
     pageIndex: 0,
@@ -82,6 +86,17 @@ export default function TagPage() {
 
   const data: PortfolioTag[] = Array.isArray(tags?.data) ? tags.data : [];
   const pageCount = tags?.pagination?.total_pages || 1;
+
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      setEditId(null);
+      setIsDrawerOpen(true);
+
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("action");
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const deleteTagMutation = useMutation({
     mutationFn: (tagId: number) => {
@@ -144,11 +159,16 @@ export default function TagPage() {
     setDeleteConfirm({ open: false, isBulk: false });
   };
 
+  const handleEdit = (tag: PortfolioTag) => {
+    setEditId(tag.id);
+    setIsDrawerOpen(true);
+  };
+
   const rowActions: DataTableRowAction<PortfolioTag>[] = [
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
-      onClick: (tag) => navigate(`/portfolios/tags/${tag.id}/edit`),
+      onClick: (tag) => handleEdit(tag),
     },
     {
       label: "حذف",
@@ -157,16 +177,16 @@ export default function TagPage() {
       isDestructive: true,
     },
   ];
-  
+
   const columns = useTagColumns(rowActions) as ColumnDef<PortfolioTag>[];
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
-    const newPagination = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(pagination) 
+    const newPagination = typeof updaterOrValue === 'function'
+      ? updaterOrValue(pagination)
       : updaterOrValue;
-    
+
     setPagination(newPagination);
-    
+
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
@@ -174,12 +194,12 @@ export default function TagPage() {
   };
 
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(sorting) 
+    const newSorting = typeof updaterOrValue === 'function'
+      ? updaterOrValue(sorting)
       : updaterOrValue;
-    
+
     setSorting(newSorting);
-    
+
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -197,8 +217,8 @@ export default function TagPage() {
         <PageHeader title="مدیریت تگ‌ها" />
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             className="mt-4"
           >
             تلاش مجدد
@@ -209,72 +229,83 @@ export default function TagPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="مدیریت تگ‌ها">
-        <ProtectedButton 
-          permission="portfolio.create"
-          size="sm" 
-          asChild
+    <>
+      <div className="space-y-6">
+        <PageHeader title="مدیریت تگ‌ها">
+          <ProtectedButton
+            permission="portfolio.create"
+            size="sm"
+            asChild
+          >
+            <Link to="?action=create">
+              <FolderPlus className="h-4 w-4" />
+              افزودن تگ
+            </Link>
+          </ProtectedButton>
+        </PageHeader>
+
+        <DataTable
+          columns={columns}
+          data={data}
+          pageCount={pageCount}
+          isLoading={isLoading}
+          onPaginationChange={handlePaginationChange}
+          onSortingChange={handleSortingChange}
+          onRowSelectionChange={setRowSelection}
+          clientFilters={clientFilters}
+          onFilterChange={handleFilterChange}
+          state={{
+            pagination,
+            sorting,
+            rowSelection,
+          }}
+          searchValue={searchValue}
+          pageSizeOptions={[10, 20, 50]}
+          deleteConfig={{
+            onDeleteSelected: handleDeleteSelected,
+            permission: "portfolio.delete",
+            denyMessage: "اجازه حذف تگ ندارید",
+          }}
+          filterConfig={tagFilterConfig}
+        />
+
+        <AlertDialog
+          open={deleteConfirm.open}
+          onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
         >
-          <Link to="/portfolios/tags/create">
-            <Edit className="h-4 w-4" />
-            افزودن تگ
-          </Link>
-        </ProtectedButton>
-      </PageHeader>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>تایید حذف</AlertDialogTitle>
+              <AlertDialogDescription>
+                {deleteConfirm.isBulk
+                  ? `آیا از حذف ${deleteConfirm.tagIds?.length || 0} تگ انتخاب شده مطمئن هستید؟`
+                  : "آیا از حذف این تگ مطمئن هستید؟"
+                }
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>
+                لغو
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConfirmDelete}
+                className="bg-destructive text-static-w hover:bg-destructive/90"
+              >
+                حذف
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
 
-      <DataTable
-        columns={columns}
-        data={data}
-        pageCount={pageCount}
-        isLoading={isLoading}
-        onPaginationChange={handlePaginationChange}
-        onSortingChange={handleSortingChange}
-        onRowSelectionChange={setRowSelection}
-        clientFilters={clientFilters}
-        onFilterChange={handleFilterChange}
-        state={{
-          pagination,
-          sorting,
-          rowSelection,
+      <PortfolioTagSide
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['portfolio-tags'] });
         }}
-        searchValue={searchValue}
-        pageSizeOptions={[10, 20, 50]}
-        deleteConfig={{
-          onDeleteSelected: handleDeleteSelected,
-          permission: "portfolio.delete",
-          denyMessage: "اجازه حذف تگ ندارید",
-        }}
-        filterConfig={tagFilterConfig}
+        editId={editId}
       />
-
-      <AlertDialog 
-        open={deleteConfirm.open} 
-        onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>تایید حذف</AlertDialogTitle>
-            <AlertDialogDescription>
-              {deleteConfirm.isBulk
-                ? `آیا از حذف ${deleteConfirm.tagIds?.length || 0} تگ انتخاب شده مطمئن هستید؟`
-                : "آیا از حذف این تگ مطمئن هستید؟"
-              }
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>
-              لغو
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              className="bg-destructive text-static-w hover:bg-destructive/90"
-            >
-              حذف
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+    </>
   );
 }

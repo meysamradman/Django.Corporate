@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { DataTable } from "@/components/tables/DataTable";
 import { useCategoryColumns } from "@/components/blogs/categories/list/CategoryTableColumns";
@@ -26,14 +26,28 @@ import {
 } from "@/components/elements/AlertDialog";
 
 import type { BlogCategory } from "@/types/blog/category/blogCategory";
+import { BlogCategorySide } from "@/components/blogs/categories/BlogCategorySide";
 import type { ColumnDef } from "@tanstack/react-table";
 import { blogApi } from "@/api/blogs/blogs";
 import type { DataTableRowAction } from "@/types/shared/table";
 import type { CategoryListParams } from "@/types/blog/blogListParams";
 
 export default function CategoryPage() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      setEditId(null);
+      setIsDrawerOpen(true);
+
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("action");
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
   const { booleanFilterOptions } = useCategoryFilterOptions();
   const categoryFilterConfig = getCategoryFilterConfig(booleanFilterOptions);
 
@@ -145,11 +159,16 @@ export default function CategoryPage() {
     setDeleteConfirm({ open: false, isBulk: false });
   };
 
+  const handleEditCategory = (id: number) => {
+    setEditId(id);
+    setIsDrawerOpen(true);
+  };
+
   const rowActions: DataTableRowAction<BlogCategory>[] = [
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
-      onClick: (category) => navigate(`/blogs/categories/${category.id}/edit`),
+      onClick: (category) => handleEditCategory(Number(category.id)),
     },
     {
       label: "حذف",
@@ -158,12 +177,12 @@ export default function CategoryPage() {
       isDestructive: true,
     },
   ];
-  
+
   const columns = useCategoryColumns(rowActions) as ColumnDef<BlogCategory>[];
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    
+
     if (urlParams.get('page')) {
       const page = parseInt(urlParams.get('page')!, 10);
       if (!isNaN(page) && page > 0) {
@@ -176,17 +195,17 @@ export default function CategoryPage() {
         setPagination(prev => ({ ...prev, pageSize: size }));
       }
     }
-    
+
     if (urlParams.get('order_by') && urlParams.get('order_desc') !== null) {
       const orderBy = urlParams.get('order_by')!;
       const orderDesc = urlParams.get('order_desc') === 'true';
       setSorting([{ id: orderBy, desc: orderDesc }]);
     }
-    
+
     if (urlParams.get('search')) {
       setSearchValue(urlParams.get('search')!);
     }
-    
+
     const newClientFilters: Record<string, unknown> = {};
     if (urlParams.get('is_active') !== null) {
       newClientFilters.is_active = urlParams.get('is_active');
@@ -194,19 +213,19 @@ export default function CategoryPage() {
     if (urlParams.get('is_public') !== null) {
       newClientFilters.is_public = urlParams.get('is_public');
     }
-    
+
     if (Object.keys(newClientFilters).length > 0) {
       setClientFilters(newClientFilters);
     }
   }, []);
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
-    const newPagination = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(pagination) 
+    const newPagination = typeof updaterOrValue === 'function'
+      ? updaterOrValue(pagination)
       : updaterOrValue;
-    
+
     setPagination(newPagination);
-    
+
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
@@ -214,12 +233,12 @@ export default function CategoryPage() {
   };
 
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(sorting) 
+    const newSorting = typeof updaterOrValue === 'function'
+      ? updaterOrValue(sorting)
       : updaterOrValue;
-    
+
     setSorting(newSorting);
-    
+
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -237,8 +256,8 @@ export default function CategoryPage() {
         <PageHeader title="مدیریت دسته‌بندی‌ها" />
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             className="mt-4"
           >
             تلاش مجدد
@@ -251,15 +270,16 @@ export default function CategoryPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="مدیریت دسته‌بندی‌ها">
-        <ProtectedButton 
+        <ProtectedButton
           permission="blog.create"
-          size="sm" 
-          asChild
+          size="sm"
+          onClick={() => {
+            setEditId(null);
+            setIsDrawerOpen(true);
+          }}
         >
-          <Link to="/blogs/categories/create">
-            <Edit className="h-4 w-4" />
-            افزودن دسته‌بندی بلاگ
-          </Link>
+          <Edit className="h-4 w-4" />
+          افزودن دسته‌بندی بلاگ
         </ProtectedButton>
       </PageHeader>
 
@@ -288,8 +308,18 @@ export default function CategoryPage() {
         filterConfig={categoryFilterConfig}
       />
 
-      <AlertDialog 
-        open={deleteConfirm.open} 
+      <BlogCategorySide
+        isOpen={isDrawerOpen}
+        editId={editId}
+        onClose={() => {
+          setIsDrawerOpen(false);
+          setEditId(null);
+        }}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['blog-categories'] })}
+      />
+
+      <AlertDialog
+        open={deleteConfirm.open}
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
       >
         <AlertDialogContent>

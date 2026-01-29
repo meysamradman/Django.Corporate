@@ -1,6 +1,6 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense, useEffect } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
-import { useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { usePropertyStateColumns } from "@/components/real-estate/states/StateTableColumns";
 import { usePropertyStateFilterOptions, getPropertyStateFilterConfig } from "@/components/real-estate/states/StateTableFilters";
@@ -27,14 +27,19 @@ import {
 } from "@/components/elements/AlertDialog";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { Edit, Trash2 } from "lucide-react";
+import { PropertyStateSide } from "@/components/real-estate/states/PropertyStateSide";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
 
 export default function PropertyStatesPage() {
-  const navigate = useNavigate();
+
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { booleanFilterOptions } = usePropertyStateFilterOptions();
   const [usageTypeOptions, setUsageTypeOptions] = useState<{ label: string; value: string }[]>([]);
+
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
 
   const [pagination, setPagination] = useState<TablePaginationState>(() => {
     if (typeof window !== 'undefined') {
@@ -84,7 +89,7 @@ export default function PropertyStatesPage() {
 
   const [_fieldOptions, setFieldOptions] = useState<any>(null);
 
-  useState(() => {
+  useEffect(() => {
     const fetchOptions = async () => {
       try {
         const options = await realEstateApi.getStateFieldOptions();
@@ -94,7 +99,17 @@ export default function PropertyStatesPage() {
       }
     };
     fetchOptions();
-  });
+  }, []);
+
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      setEditId(null);
+      setIsDrawerOpen(true);
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("action");
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const { handleFilterChange } = useTableFilters(
     setClientFilters,
@@ -203,7 +218,10 @@ export default function PropertyStatesPage() {
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
-      onClick: (state) => navigate(`/real-estate/states/${state.id}/edit`),
+      onClick: (state) => {
+        setEditId(state.id);
+        setIsDrawerOpen(true);
+      },
       permission: "real_estate.state.update",
     },
     {
@@ -268,7 +286,10 @@ export default function PropertyStatesPage() {
         <ProtectedButton
           permission="real_estate.state.create"
           size="sm"
-          onClick={() => navigate('/real-estate/states/create')}
+          onClick={() => {
+            setEditId(null);
+            setIsDrawerOpen(true);
+          }}
         >
           <Plus className="h-4 w-4" />
           افزودن وضعیت
@@ -302,6 +323,15 @@ export default function PropertyStatesPage() {
         />
       </Suspense>
 
+      <PropertyStateSide
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['property-states'] });
+        }}
+        editId={editId}
+      />
+
       <AlertDialog
         open={deleteConfirm.open}
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
@@ -332,3 +362,4 @@ export default function PropertyStatesPage() {
     </div>
   );
 }
+

@@ -1,6 +1,6 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense, useEffect } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
-import { useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { usePropertyTypeColumns } from "@/components/real-estate/types/TypeTableColumns";
 import { usePropertyTypeFilterOptions, getPropertyTypeFilterConfig } from "@/components/real-estate/types/TypeTableFilters";
@@ -27,14 +27,19 @@ import {
 } from "@/components/elements/AlertDialog";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { Edit, Trash2 } from "lucide-react";
+import { PropertyTypeSide } from "@/components/real-estate/types/PropertyTypeSide";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
 
 export default function PropertyTypesPage() {
-  const navigate = useNavigate();
+
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { booleanFilterOptions } = usePropertyTypeFilterOptions();
-  
+
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+
   const [pagination, setPagination] = useState<TablePaginationState>(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
@@ -81,6 +86,16 @@ export default function PropertyTypesPage() {
     open: false,
     isBulk: false,
   });
+
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      setEditId(null);
+      setIsDrawerOpen(true);
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("action");
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const { handleFilterChange } = useTableFilters(
     setClientFilters,
@@ -190,7 +205,10 @@ export default function PropertyTypesPage() {
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
-      onClick: (type) => navigate(`/real-estate/types/${type.id}/edit`),
+      onClick: (type) => {
+        setEditId(type.id);
+        setIsDrawerOpen(true);
+      },
       permission: "real_estate.type.update",
     },
     {
@@ -201,16 +219,16 @@ export default function PropertyTypesPage() {
       permission: "real_estate.type.delete",
     },
   ];
-  
+
   const columns = usePropertyTypeColumns(rowActions, handleToggleActive) as ColumnDef<PropertyType>[];
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
-    const newPagination = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(pagination) 
+    const newPagination = typeof updaterOrValue === 'function'
+      ? updaterOrValue(pagination)
       : updaterOrValue;
-    
+
     setPagination(newPagination);
-    
+
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
@@ -218,12 +236,12 @@ export default function PropertyTypesPage() {
   };
 
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(sorting) 
+    const newSorting = typeof updaterOrValue === 'function'
+      ? updaterOrValue(sorting)
       : updaterOrValue;
-    
+
     setSorting(newSorting);
-    
+
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -252,10 +270,13 @@ export default function PropertyTypesPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="مدیریت نوع‌های ملک">
-        <ProtectedButton 
+        <ProtectedButton
           permission="real_estate.type.create"
           size="sm"
-          onClick={() => navigate('/real-estate/types/create')}
+          onClick={() => {
+            setEditId(null);
+            setIsDrawerOpen(true);
+          }}
         >
           <Plus className="h-4 w-4" />
           افزودن نوع
@@ -289,8 +310,18 @@ export default function PropertyTypesPage() {
         />
       </Suspense>
 
-      <AlertDialog 
-        open={deleteConfirm.open} 
+      <PropertyTypeSide
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['property-types'] });
+          queryClient.invalidateQueries({ queryKey: ['property-types-tree'] });
+        }}
+        editId={editId}
+      />
+
+      <AlertDialog
+        open={deleteConfirm.open}
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
       >
         <AlertDialogContent>

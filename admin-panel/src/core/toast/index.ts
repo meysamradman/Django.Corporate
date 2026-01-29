@@ -80,13 +80,17 @@ export function extractFieldErrors(error: unknown): Record<string, string> {
       const data = error.response._data;
 
       if (data && typeof data === 'object') {
-        Object.entries(data).forEach(([field, messages]) => {
-          if (Array.isArray(messages) && messages.length > 0) {
-            fieldErrors[field] = messages[0];
-          } else if (typeof messages === 'string') {
-            fieldErrors[field] = messages;
-          }
-        });
+        const errors = (data as any).errors || data;
+
+        if (errors && typeof errors === 'object') {
+          Object.entries(errors).forEach(([field, messages]) => {
+            if (Array.isArray(messages) && messages.length > 0) {
+              fieldErrors[field] = messages[0];
+            } else if (typeof messages === 'string') {
+              fieldErrors[field] = messages;
+            }
+          });
+        }
       }
     }
   }

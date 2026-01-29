@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { DataTable } from "@/components/tables/DataTable";
 import { useCategoryColumns } from "@/components/portfolios/categories/list/CategoryTableColumns";
 import { useCategoryFilterOptions, getCategoryFilterConfig } from "@/components/portfolios/categories/list/CategoryTableFilters";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, FolderPlus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
 import { showError, showSuccess } from '@/core/toast';
@@ -29,12 +29,16 @@ import type { PortfolioCategory } from "@/types/portfolio/category/portfolioCate
 import type { ColumnDef } from "@tanstack/react-table";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import type { DataTableRowAction } from "@/types/shared/table";
+import { PortfolioCategorySide } from "@/components/portfolios/categories/PortfolioCategorySide";
 
 export default function CategoryPage() {
-  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { booleanFilterOptions } = useCategoryFilterOptions();
   const categoryFilterConfig = getCategoryFilterConfig(booleanFilterOptions);
+
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
 
   const [pagination, setPagination] = useState<TablePaginationState>({
     pageIndex: 0,
@@ -89,6 +93,17 @@ export default function CategoryPage() {
 
   const data: PortfolioCategory[] = Array.isArray(categories?.data) ? categories.data : [];
   const pageCount = categories?.pagination?.total_pages || 1;
+
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      setEditId(null);
+      setIsDrawerOpen(true);
+
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("action");
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const deleteCategoryMutation = useMutation({
     mutationFn: (categoryId: number) => {
@@ -145,11 +160,16 @@ export default function CategoryPage() {
     setDeleteConfirm({ open: false, isBulk: false });
   };
 
+  const handleEdit = (category: PortfolioCategory) => {
+    setEditId(category.id);
+    setIsDrawerOpen(true);
+  };
+
   const rowActions: DataTableRowAction<PortfolioCategory>[] = [
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
-      onClick: (category) => navigate(`/portfolios/categories/${category.id}/edit`),
+      onClick: (category) => handleEdit(category),
     },
     {
       label: "حذف",
@@ -158,12 +178,12 @@ export default function CategoryPage() {
       isDestructive: true,
     },
   ];
-  
+
   const columns = useCategoryColumns(rowActions) as ColumnDef<PortfolioCategory>[];
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    
+
     if (urlParams.get('page')) {
       const page = parseInt(urlParams.get('page')!, 10);
       if (!isNaN(page) && page > 0) {
@@ -176,17 +196,17 @@ export default function CategoryPage() {
         setPagination(prev => ({ ...prev, pageSize: size }));
       }
     }
-    
+
     if (urlParams.get('order_by') && urlParams.get('order_desc') !== null) {
       const orderBy = urlParams.get('order_by')!;
       const orderDesc = urlParams.get('order_desc') === 'true';
       setSorting([{ id: orderBy, desc: orderDesc }]);
     }
-    
+
     if (urlParams.get('search')) {
       setSearchValue(urlParams.get('search')!);
     }
-    
+
     const newClientFilters: Record<string, unknown> = {};
     if (urlParams.get('is_active') !== null) {
       newClientFilters.is_active = urlParams.get('is_active');
@@ -194,19 +214,19 @@ export default function CategoryPage() {
     if (urlParams.get('is_public') !== null) {
       newClientFilters.is_public = urlParams.get('is_public');
     }
-    
+
     if (Object.keys(newClientFilters).length > 0) {
       setClientFilters(newClientFilters);
     }
   }, []);
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
-    const newPagination = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(pagination) 
+    const newPagination = typeof updaterOrValue === 'function'
+      ? updaterOrValue(pagination)
       : updaterOrValue;
-    
+
     setPagination(newPagination);
-    
+
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
@@ -214,12 +234,12 @@ export default function CategoryPage() {
   };
 
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(sorting) 
+    const newSorting = typeof updaterOrValue === 'function'
+      ? updaterOrValue(sorting)
       : updaterOrValue;
-    
+
     setSorting(newSorting);
-    
+
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -237,8 +257,8 @@ export default function CategoryPage() {
         <PageHeader title="مدیریت دسته‌بندی‌ها" />
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             className="mt-4"
           >
             تلاش مجدد
@@ -249,72 +269,84 @@ export default function CategoryPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="مدیریت دسته‌بندی‌ها">
-        <ProtectedButton 
-          permission="portfolio.create"
-          size="sm" 
-          asChild
+    <>
+      <div className="space-y-6">
+        <PageHeader title="مدیریت دسته‌بندی‌ها">
+          <ProtectedButton
+            permission="portfolio.create"
+            size="sm"
+            asChild
+          >
+            <Link to="?action=create">
+              <FolderPlus className="h-4 w-4" />
+              افزودن دسته‌بندی
+            </Link>
+          </ProtectedButton>
+        </PageHeader>
+
+        <DataTable
+          columns={columns}
+          data={data}
+          pageCount={pageCount}
+          isLoading={isLoading}
+          onPaginationChange={handlePaginationChange}
+          onSortingChange={handleSortingChange}
+          onRowSelectionChange={setRowSelection}
+          clientFilters={clientFilters}
+          onFilterChange={handleFilterChange}
+          state={{
+            pagination,
+            sorting,
+            rowSelection,
+          }}
+          searchValue={searchValue}
+          pageSizeOptions={[10, 20, 50]}
+          deleteConfig={{
+            onDeleteSelected: handleDeleteSelected,
+            permission: "portfolio.delete",
+            denyMessage: "اجازه حذف دسته‌بندی ندارید",
+          }}
+          filterConfig={categoryFilterConfig}
+        />
+
+        <AlertDialog
+          open={deleteConfirm.open}
+          onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
         >
-          <Link to="/portfolios/categories/create">
-            <Edit className="h-4 w-4" />
-            افزودن دسته‌بندی
-          </Link>
-        </ProtectedButton>
-      </PageHeader>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>تایید حذف</AlertDialogTitle>
+              <AlertDialogDescription>
+                {deleteConfirm.isBulk
+                  ? `آیا از حذف ${deleteConfirm.categoryIds?.length || 0} دسته‌بندی انتخاب شده مطمئن هستید؟`
+                  : "آیا از حذف این دسته‌بندی مطمئن هستید؟"
+                }
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>
+                لغو
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConfirmDelete}
+                className="bg-destructive text-static-w hover:bg-destructive/90"
+              >
+                حذف
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
 
-      <DataTable
-        columns={columns}
-        data={data}
-        pageCount={pageCount}
-        isLoading={isLoading}
-        onPaginationChange={handlePaginationChange}
-        onSortingChange={handleSortingChange}
-        onRowSelectionChange={setRowSelection}
-        clientFilters={clientFilters}
-        onFilterChange={handleFilterChange}
-        state={{
-          pagination,
-          sorting,
-          rowSelection,
+      <PortfolioCategorySide
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['portfolio-categories'] });
+          queryClient.invalidateQueries({ queryKey: ['portfolio-categories-tree'] });
         }}
-        searchValue={searchValue}
-        pageSizeOptions={[10, 20, 50]}
-        deleteConfig={{
-          onDeleteSelected: handleDeleteSelected,
-          permission: "portfolio.delete",
-          denyMessage: "اجازه حذف دسته‌بندی ندارید",
-        }}
-        filterConfig={categoryFilterConfig}
+        editId={editId}
       />
-
-      <AlertDialog 
-        open={deleteConfirm.open} 
-        onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>تایید حذف</AlertDialogTitle>
-            <AlertDialogDescription>
-              {deleteConfirm.isBulk
-                ? `آیا از حذف ${deleteConfirm.categoryIds?.length || 0} دسته‌بندی انتخاب شده مطمئن هستید؟`
-                : "آیا از حذف این دسته‌بندی مطمئن هستید؟"
-              }
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>
-              لغو
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              className="bg-destructive text-static-w hover:bg-destructive/90"
-            >
-              حذف
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+    </>
   );
 }

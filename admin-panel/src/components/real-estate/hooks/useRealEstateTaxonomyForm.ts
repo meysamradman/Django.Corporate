@@ -20,6 +20,7 @@ interface UseTaxonomyFormProps<T extends FieldValues> {
     updateMutationFn: (id: number, data: any) => Promise<any>;
     invalidateQueryKeys: any[][];
     onSuccessRedirect: string;
+    onSuccess?: () => void;
     itemLabel: string;
     autoSlug?: boolean;
     titleFieldName?: string;
@@ -36,6 +37,7 @@ export function useRealEstateTaxonomyForm<T extends FieldValues>({
     updateMutationFn,
     invalidateQueryKeys,
     onSuccessRedirect,
+    onSuccess,
     itemLabel,
     autoSlug = true,
     titleFieldName = "title",
@@ -87,7 +89,18 @@ export function useRealEstateTaxonomyForm<T extends FieldValues>({
         onSuccess: () => {
             showSuccess(msg.crud(isEditMode ? "updated" : "created", { item: itemLabel }));
             invalidateQueryKeys.forEach(key => queryClient.invalidateQueries({ queryKey: key }));
-            navigate(onSuccessRedirect);
+
+            if (!isEditMode) {
+                reset(defaultValues);
+                setSelectedMedia(null);
+                setActiveTab('account');
+            }
+
+            if (onSuccess) {
+                onSuccess();
+            } else {
+                navigate(onSuccessRedirect);
+            }
         },
         onError: (error: any) => {
             if (hasFieldErrors(error)) {

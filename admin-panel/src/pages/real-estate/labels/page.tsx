@@ -1,6 +1,6 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense, useEffect } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
-import { useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { usePropertyLabelColumns } from "@/components/real-estate/labels/LabelTableColumns";
 import { usePropertyLabelFilterOptions, getPropertyLabelFilterConfig } from "@/components/real-estate/labels/LabelTableFilters";
@@ -27,14 +27,18 @@ import {
 } from "@/components/elements/AlertDialog";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { Edit, Trash2 } from "lucide-react";
+import { PropertyLabelSide } from "@/components/real-estate/labels/PropertyLabelSide";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
 
 export default function PropertyLabelsPage() {
-  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { booleanFilterOptions } = usePropertyLabelFilterOptions();
-  
+
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+
   const [pagination, setPagination] = useState<TablePaginationState>(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
@@ -80,6 +84,16 @@ export default function PropertyLabelsPage() {
     open: false,
     isBulk: false,
   });
+
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      setEditId(null);
+      setIsDrawerOpen(true);
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("action");
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const { handleFilterChange } = useTableFilters(
     setClientFilters,
@@ -188,7 +202,10 @@ export default function PropertyLabelsPage() {
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
-      onClick: (label) => navigate(`/real-estate/labels/${label.id}/edit`),
+      onClick: (label) => {
+        setEditId(label.id);
+        setIsDrawerOpen(true);
+      },
       permission: "real_estate.label.update",
     },
     {
@@ -199,16 +216,16 @@ export default function PropertyLabelsPage() {
       permission: "real_estate.label.delete",
     },
   ];
-  
+
   const columns = usePropertyLabelColumns(rowActions, handleToggleActive) as ColumnDef<PropertyLabel>[];
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
-    const newPagination = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(pagination) 
+    const newPagination = typeof updaterOrValue === 'function'
+      ? updaterOrValue(pagination)
       : updaterOrValue;
-    
+
     setPagination(newPagination);
-    
+
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
@@ -216,12 +233,12 @@ export default function PropertyLabelsPage() {
   };
 
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(sorting) 
+    const newSorting = typeof updaterOrValue === 'function'
+      ? updaterOrValue(sorting)
       : updaterOrValue;
-    
+
     setSorting(newSorting);
-    
+
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -250,10 +267,13 @@ export default function PropertyLabelsPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="مدیریت برچسب‌های ملک">
-        <ProtectedButton 
+        <ProtectedButton
           permission="real_estate.label.create"
           size="sm"
-          onClick={() => navigate('/real-estate/labels/create')}
+          onClick={() => {
+            setEditId(null);
+            setIsDrawerOpen(true);
+          }}
         >
           <Plus className="h-4 w-4" />
           افزودن برچسب
@@ -287,8 +307,17 @@ export default function PropertyLabelsPage() {
         />
       </Suspense>
 
-      <AlertDialog 
-        open={deleteConfirm.open} 
+      <PropertyLabelSide
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['property-labels'] });
+        }}
+        editId={editId}
+      />
+
+      <AlertDialog
+        open={deleteConfirm.open}
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
       >
         <AlertDialogContent>

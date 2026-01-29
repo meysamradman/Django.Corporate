@@ -1,6 +1,6 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense, useEffect } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
-import { useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { usePropertyFeatureColumns } from "@/components/real-estate/features/FeatureTableColumns";
 import { usePropertyFeatureFilterOptions, getPropertyFeatureFilterConfig } from "@/components/real-estate/features/FeatureTableFilters";
@@ -27,14 +27,18 @@ import {
 } from "@/components/elements/AlertDialog";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { Edit, Trash2 } from "lucide-react";
+import { PropertyFeatureSide } from "@/components/real-estate/features/PropertyFeatureSide";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
 
 export default function PropertyFeaturesPage() {
-  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { booleanFilterOptions } = usePropertyFeatureFilterOptions();
-  
+
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+
   const [pagination, setPagination] = useState<TablePaginationState>(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
@@ -80,6 +84,16 @@ export default function PropertyFeaturesPage() {
     open: false,
     isBulk: false,
   });
+
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      setEditId(null);
+      setIsDrawerOpen(true);
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("action");
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const { handleFilterChange } = useTableFilters(
     setClientFilters,
@@ -188,7 +202,10 @@ export default function PropertyFeaturesPage() {
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
-      onClick: (feature) => navigate(`/real-estate/features/${feature.id}/edit`),
+      onClick: (feature) => {
+        setEditId(feature.id);
+        setIsDrawerOpen(true);
+      },
       permission: "real_estate.feature.update",
     },
     {
@@ -199,16 +216,16 @@ export default function PropertyFeaturesPage() {
       permission: "real_estate.feature.delete",
     },
   ];
-  
+
   const columns = usePropertyFeatureColumns(rowActions, handleToggleActive) as ColumnDef<PropertyFeature>[];
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
-    const newPagination = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(pagination) 
+    const newPagination = typeof updaterOrValue === 'function'
+      ? updaterOrValue(pagination)
       : updaterOrValue;
-    
+
     setPagination(newPagination);
-    
+
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
@@ -216,12 +233,12 @@ export default function PropertyFeaturesPage() {
   };
 
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(sorting) 
+    const newSorting = typeof updaterOrValue === 'function'
+      ? updaterOrValue(sorting)
       : updaterOrValue;
-    
+
     setSorting(newSorting);
-    
+
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -250,10 +267,13 @@ export default function PropertyFeaturesPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="مدیریت ویژگی‌های ملک">
-        <ProtectedButton 
+        <ProtectedButton
           permission="real_estate.feature.create"
           size="sm"
-          onClick={() => navigate('/real-estate/features/create')}
+          onClick={() => {
+            setEditId(null);
+            setIsDrawerOpen(true);
+          }}
         >
           <Plus className="h-4 w-4" />
           افزودن ویژگی
@@ -287,8 +307,17 @@ export default function PropertyFeaturesPage() {
         />
       </Suspense>
 
-      <AlertDialog 
-        open={deleteConfirm.open} 
+      <PropertyFeatureSide
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['property-features'] });
+        }}
+        editId={editId}
+      />
+
+      <AlertDialog
+        open={deleteConfirm.open}
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
       >
         <AlertDialogContent>

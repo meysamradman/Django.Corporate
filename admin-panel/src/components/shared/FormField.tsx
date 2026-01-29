@@ -4,6 +4,8 @@ import { Input } from "@/components/elements/Input";
 import { Textarea } from "@/components/elements/Textarea";
 import { AlertCircle } from "lucide-react";
 import { cn } from "@/core/utils/cn";
+import { Switch } from "@/components/elements/Switch";
+import { Item, ItemContent, ItemTitle, ItemActions } from "@/components/elements/Item";
 
 interface FormFieldProps {
   label?: string;
@@ -27,7 +29,7 @@ export function FormField({
   return (
     <div className={cn("space-y-2.5", className)}>
       {label && (
-        <Label 
+        <Label
           htmlFor={htmlFor}
           className={cn(
             error && "text-red-1"
@@ -37,18 +39,18 @@ export function FormField({
           {required && <span className="text-red-1 mr-1">*</span>}
         </Label>
       )}
-      
+
       <div className={label ? "mt-1.5" : ""}>
         {children}
       </div>
-      
+
       {error && (
         <div className="flex items-start gap-2 text-sm text-red-1">
-          <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+          <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
           <span>{error}</span>
         </div>
       )}
-      
+
       {description && !error && (
         <p className="text-xs text-font-s">
           {description}
@@ -76,14 +78,14 @@ export function FormFieldInput({
   ...inputProps
 }: FormFieldInputProps) {
   return (
-    <FormField 
-      label={label} 
-      error={error} 
+    <FormField
+      label={label}
+      error={error}
       required={required}
       htmlFor={inputProps.id}
       description={description}
     >
-      <Input 
+      <Input
         {...inputProps}
         className={cn(
           error && "border-red-1 focus-visible:ring-red-1",
@@ -110,15 +112,15 @@ export function FormFieldTextarea({
   ...textareaProps
 }: FormFieldTextareaProps) {
   return (
-    <FormField 
-      label={label} 
-      error={error} 
+    <FormField
+      label={label}
+      error={error}
       required={required}
       htmlFor={textareaProps.id}
       description={description}
       className={className}
     >
-      <Textarea 
+      <Textarea
         {...textareaProps}
         className={cn(
           error && "border-red-1 focus-visible:ring-red-1",
@@ -129,3 +131,37 @@ export function FormFieldTextarea({
   );
 }
 
+export function FormFieldSwitch({
+  label,
+  checked,
+  onCheckedChange,
+  className,
+}: {
+  label: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  className?: string;
+}) {
+  return (
+    <Item
+      variant="outline"
+      className={cn(
+        "bg-card rounded-lg border-muted/15 shadow-sm hover:shadow-md hover:border-primary/20 transition-all group",
+        className
+      )}
+    >
+      <ItemContent>
+        <ItemTitle className="text-[11px] font-bold text-font-s opacity-70 group-hover:opacity-100 transition-opacity">
+          {label}
+        </ItemTitle>
+      </ItemContent>
+      <ItemActions>
+        <Switch
+          className="cursor-pointer"
+          checked={checked}
+          onCheckedChange={onCheckedChange}
+        />
+      </ItemActions>
+    </Item>
+  );
+}

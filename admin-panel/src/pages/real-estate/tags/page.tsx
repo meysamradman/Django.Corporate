@@ -1,6 +1,6 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense, useEffect } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
-import { useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { usePropertyTagColumns } from "@/components/real-estate/tags/TagTableColumns";
 import { usePropertyTagFilterOptions, getPropertyTagFilterConfig } from "@/components/real-estate/tags/TagTableFilters";
@@ -27,14 +27,18 @@ import {
 } from "@/components/elements/AlertDialog";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { Edit, Trash2 } from "lucide-react";
+import { PropertyTagSide } from "@/components/real-estate/tags/PropertyTagSide";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
 
 export default function PropertyTagsPage() {
-  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { booleanFilterOptions } = usePropertyTagFilterOptions();
-  
+
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+
   const [pagination, setPagination] = useState<TablePaginationState>(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
@@ -81,6 +85,16 @@ export default function PropertyTagsPage() {
     open: false,
     isBulk: false,
   });
+
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      setEditId(null);
+      setIsDrawerOpen(true);
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("action");
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const { handleFilterChange } = useTableFilters(
     setClientFilters,
@@ -190,7 +204,10 @@ export default function PropertyTagsPage() {
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
-      onClick: (tag) => navigate(`/real-estate/tags/${tag.id}/edit`),
+      onClick: (tag) => {
+        setEditId(tag.id);
+        setIsDrawerOpen(true);
+      },
       permission: "real_estate.tag.update",
     },
     {
@@ -201,16 +218,16 @@ export default function PropertyTagsPage() {
       permission: "real_estate.tag.delete",
     },
   ];
-  
+
   const columns = usePropertyTagColumns(rowActions, handleToggleActive) as ColumnDef<PropertyTag>[];
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
-    const newPagination = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(pagination) 
+    const newPagination = typeof updaterOrValue === 'function'
+      ? updaterOrValue(pagination)
       : updaterOrValue;
-    
+
     setPagination(newPagination);
-    
+
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
@@ -218,12 +235,12 @@ export default function PropertyTagsPage() {
   };
 
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(sorting) 
+    const newSorting = typeof updaterOrValue === 'function'
+      ? updaterOrValue(sorting)
       : updaterOrValue;
-    
+
     setSorting(newSorting);
-    
+
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -252,10 +269,13 @@ export default function PropertyTagsPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="مدیریت تگ‌های ملک">
-        <ProtectedButton 
+        <ProtectedButton
           permission="real_estate.tag.create"
           size="sm"
-          onClick={() => navigate('/real-estate/tags/create')}
+          onClick={() => {
+            setEditId(null);
+            setIsDrawerOpen(true);
+          }}
         >
           <Plus className="h-4 w-4" />
           افزودن تگ
@@ -289,8 +309,17 @@ export default function PropertyTagsPage() {
         />
       </Suspense>
 
-      <AlertDialog 
-        open={deleteConfirm.open} 
+      <PropertyTagSide
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['property-tags'] });
+        }}
+        editId={editId}
+      />
+
+      <AlertDialog
+        open={deleteConfirm.open}
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
       >
         <AlertDialogContent>

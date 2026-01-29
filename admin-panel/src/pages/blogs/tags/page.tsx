@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
-import { useNavigate, Link } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { DataTable } from "@/components/tables/DataTable";
 import { useTagColumns } from "@/components/blogs/tags/list/TagTableColumns";
@@ -26,15 +26,30 @@ import {
 } from "@/components/elements/AlertDialog";
 
 import type { BlogTag } from "@/types/blog/tags/blogTag";
+import { BlogTagSide } from "@/components/blogs/tags/BlogTagSide";
 import type { ColumnDef } from "@tanstack/react-table";
 import { blogApi } from "@/api/blogs/blogs";
 import type { DataTableRowAction } from "@/types/shared/table";
 
 export default function TagPage() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+
   const { booleanFilterOptions } = useTagFilterOptions();
   const tagFilterConfig = getTagFilterConfig(booleanFilterOptions);
+
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      setEditId(null);
+      setIsDrawerOpen(true);
+
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("action");
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const [pagination, setPagination] = useState<TablePaginationState>({
     pageIndex: 0,
@@ -124,6 +139,11 @@ export default function TagPage() {
     });
   };
 
+  const handleEditTag = (id: number) => {
+    setEditId(id);
+    setIsDrawerOpen(true);
+  };
+
   const handleDeleteSelected = (selectedIds: (string | number)[]) => {
     setDeleteConfirm({
       open: true,
@@ -148,7 +168,7 @@ export default function TagPage() {
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
-      onClick: (tag) => navigate(`/blogs/tags/${tag.id}/edit`),
+      onClick: (tag) => handleEditTag(Number(tag.id)),
     },
     {
       label: "حذف",
@@ -157,16 +177,16 @@ export default function TagPage() {
       isDestructive: true,
     },
   ];
-  
+
   const columns = useTagColumns(rowActions) as ColumnDef<BlogTag>[];
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
-    const newPagination = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(pagination) 
+    const newPagination = typeof updaterOrValue === 'function'
+      ? updaterOrValue(pagination)
       : updaterOrValue;
-    
+
     setPagination(newPagination);
-    
+
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
@@ -174,12 +194,12 @@ export default function TagPage() {
   };
 
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(sorting) 
+    const newSorting = typeof updaterOrValue === 'function'
+      ? updaterOrValue(sorting)
       : updaterOrValue;
-    
+
     setSorting(newSorting);
-    
+
     const url = new URL(window.location.href);
     if (newSorting.length > 0) {
       url.searchParams.set('order_by', newSorting[0].id);
@@ -197,8 +217,8 @@ export default function TagPage() {
         <PageHeader title="مدیریت تگ‌ها" />
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             className="mt-4"
           >
             تلاش مجدد
@@ -211,15 +231,16 @@ export default function TagPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="مدیریت تگ‌ها">
-        <ProtectedButton 
+        <ProtectedButton
           permission="blog.create"
-          size="sm" 
-          asChild
+          size="sm"
+          onClick={() => {
+            setEditId(null);
+            setIsDrawerOpen(true);
+          }}
         >
-          <Link to="/blogs/tags/create">
-            <Edit className="h-4 w-4" />
-            افزودن تگ
-          </Link>
+          <Edit className="h-4 w-4" />
+          افزودن تگ
         </ProtectedButton>
       </PageHeader>
 
@@ -248,8 +269,18 @@ export default function TagPage() {
         filterConfig={tagFilterConfig}
       />
 
-      <AlertDialog 
-        open={deleteConfirm.open} 
+      <BlogTagSide
+        isOpen={isDrawerOpen}
+        editId={editId}
+        onClose={() => {
+          setIsDrawerOpen(false);
+          setEditId(null);
+        }}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["blog-tags"] })}
+      />
+
+      <AlertDialog
+        open={deleteConfirm.open}
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
       >
         <AlertDialogContent>
