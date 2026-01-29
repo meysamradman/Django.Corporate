@@ -1,7 +1,15 @@
 export { GeneralSettingsForm } from "./GeneralSettingsForm";
-export { ContactPhones } from "./ContactPhones.tsx";
-export { ContactMobiles } from "./ContactMobiles.tsx";
-export { ContactEmails } from "./ContactEmails.tsx";
+export { ContactPhones } from "./ContactPhones";
+export { ContactMobiles } from "./ContactMobiles";
+export { ContactEmails } from "./ContactEmails";
 export { SocialMediaSection } from "./SocialMediaSection";
-export { SlidersSection } from "./Sliders";
+export { Sliders as SlidersSection } from "./Sliders";
 export { FeatureFlagsManagement } from "./FeatureFlagsManagement";
+
+// Sidebars
+export { ContactPhoneSide } from "./ContactPhoneSide";
+export { ContactMobileSide } from "./ContactMobileSide";
+export { ContactEmailSide } from "./ContactEmailSide";
+export { SocialMediaSide } from "./SocialMediaSide";
+export { SliderSide } from "./SliderSide";
+export { GeneralSettingsSide } from "./GeneralSettingsSide";

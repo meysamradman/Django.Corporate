@@ -372,6 +372,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
           { title: "تنظیمات عمومی", url: "/settings", icon: Settings, access: { module: "settings", actions: ["manage"], roles: ["super_admin", "agency_manager"] } },
           { title: "چت‌بات", url: "/chatbot", icon: Bot, access: { module: "chatbot", actions: ["manage"], roles: ["super_admin", "agency_manager"] } },
           { title: "فرم‌ها", url: "/form-builder", icon: FileCheck, access: { module: "forms", allowReadOnly: true, roles: ["super_admin", "agency_manager"] } },
+          { title: "ایجاد فیلد جدید", url: "/form-builder?action=create-field", icon: Plus, access: { module: "forms", actions: ["create"], roles: ["super_admin", "agency_manager"] } },
           { title: "درباره ما", url: "/page/about", icon: Info, access: { module: "pages", actions: ["manage"], roles: ["super_admin"] } },
           { title: "قوانین و مقررات", url: "/page/terms", icon: FileText, access: { module: "pages", actions: ["manage"], roles: ["super_admin"] } },
         ],

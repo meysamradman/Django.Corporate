@@ -1,8 +1,16 @@
-import { useState, useRef, lazy, Suspense } from "react";
+import { lazy, Suspense } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { ProtectedButton, useUIPermissions } from '@/core/permissions';
-import { Settings, Phone, Smartphone, Mail, Share2, Save, Loader2, GalleryHorizontal } from "lucide-react";
+import { Settings, Phone, Smartphone, Mail, Share2, GalleryHorizontal } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
+import {
+    ContactPhoneSide,
+    ContactMobileSide,
+    ContactEmailSide,
+    SocialMediaSide,
+    SliderSide,
+    GeneralSettingsSide
+} from "@/components/settings";
 
 const TabSkeleton = () => (
     <div className="space-y-6">
@@ -22,10 +30,21 @@ const SocialMediaSection = lazy(() => import("@/components/settings").then(mod =
 const SlidersSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.SlidersSection })));
 
 export default function SettingsPage() {
-    const [activeTab, setActiveTab] = useState("general");
-    const generalFormRef = useRef<{ handleSave: () => void; saving: boolean }>(null);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const activeTab = searchParams.get("tab") || "general";
+    const action = searchParams.get("action");
+    const editId = searchParams.get("id") ? parseInt(searchParams.get("id")!) : null;
 
-    const { canManageSettings } = useUIPermissions();
+    const setActiveTab = (tab: string) => {
+        setSearchParams({ tab });
+    };
+
+    const handleCloseSide = () => {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete("action");
+        newParams.delete("id");
+        setSearchParams(newParams);
+    };
 
     return (
         <div className="space-y-6 pb-28 relative">
@@ -61,7 +80,7 @@ export default function SettingsPage() {
                 <TabsContent value="general">
                     {activeTab === "general" && (
                         <Suspense fallback={<TabSkeleton />}>
-                            <GeneralSettingsForm ref={generalFormRef} />
+                            <GeneralSettingsForm />
                         </Suspense>
                     )}
                 </TabsContent>
@@ -107,28 +126,37 @@ export default function SettingsPage() {
                 </TabsContent>
             </Tabs>
 
-            {activeTab === "general" && canManageSettings && (
-                <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
-                    <ProtectedButton
-                        onClick={() => generalFormRef.current?.handleSave()}
-                        permission="settings.manage"
-                        size="lg"
-                        disabled={generalFormRef.current?.saving}
-                    >
-                        {generalFormRef.current?.saving ? (
-                            <>
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                                در حال ذخیره...
-                            </>
-                        ) : (
-                            <>
-                                <Save className="h-5 w-5" />
-                                ذخیره تنظیمات
-                            </>
-                        )}
-                    </ProtectedButton>
-                </div>
-            )}
+            {/* Sidebar Components Trigged by URL */}
+            <ContactPhoneSide
+                isOpen={action === "create-phone" || action === "edit-phone"}
+                onClose={handleCloseSide}
+                editId={action === "edit-phone" ? editId : null}
+            />
+            <ContactMobileSide
+                isOpen={action === "create-mobile" || action === "edit-mobile"}
+                onClose={handleCloseSide}
+                editId={action === "edit-mobile" ? editId : null}
+            />
+            <ContactEmailSide
+                isOpen={action === "create-email" || action === "edit-email"}
+                onClose={handleCloseSide}
+                editId={action === "edit-email" ? editId : null}
+            />
+            <SocialMediaSide
+                isOpen={action === "create-social" || action === "edit-social"}
+                onClose={handleCloseSide}
+                editId={action === "edit-social" ? editId : null}
+            />
+            <SliderSide
+                isOpen={action === "create-slider" || action === "edit-slider"}
+                onClose={handleCloseSide}
+                editId={action === "edit-slider" ? editId : null}
+            />
+            <GeneralSettingsSide
+                isOpen={action === "edit-general"}
+                onClose={handleCloseSide}
+            />
+
         </div>
     );
 }

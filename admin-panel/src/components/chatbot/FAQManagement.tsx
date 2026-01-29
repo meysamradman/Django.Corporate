@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useFAQList, useDeleteFAQ } from "@/components/ai/chatbot/hooks/useChatbot";
 import type { FAQ } from "@/types/chatbot/chatbot";
 import { DataTable } from "@/components/tables/DataTable";
@@ -7,7 +8,6 @@ import type { TablePaginationState } from "@/types/shared/pagination";
 import { Badge } from "@/components/elements/Badge";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import { Plus, MessageSquare, Edit, Trash2 } from "lucide-react";
-import { FAQDialog } from "./FAQDialog";
 import { ProtectedButton } from "@/core/permissions";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { TruncatedText } from "@/components/elements/TruncatedText";
@@ -23,8 +23,7 @@ import {
 } from "@/components/elements/AlertDialog";
 
 export function FAQManagement() {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingFAQ, setEditingFAQ] = useState<FAQ | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [deletingFAQ, setDeletingFAQ] = useState<FAQ | null>(null);
 
   const [pagination, setPagination] = useState<TablePaginationState>({
@@ -96,13 +95,16 @@ export function FAQManagement() {
   }, []);
 
   const handleCreate = () => {
-    setEditingFAQ(null);
-    setIsDialogOpen(true);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("action", "create-faq");
+    setSearchParams(newParams);
   };
 
   const handleEdit = (faq: FAQ) => {
-    setEditingFAQ(faq);
-    setIsDialogOpen(true);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("action", "edit-faq");
+    newParams.set("id", faq.id.toString());
+    setSearchParams(newParams);
   };
 
   const handleDelete = async () => {
@@ -264,7 +266,7 @@ export function FAQManagement() {
             </ProtectedButton>
           </div>
         ) : (
-          <div className="w-full overflow-hidden md:[&_[data-slot=table-container]]:overflow-visible [&_[data-slot=table-container]]:overflow-x-auto">
+          <div className="w-full overflow-hidden md:**:data-[slot=table-container]:overflow-visible **:data-[slot=table-container]:overflow-x-auto">
             <DataTable
               columns={columns}
               data={paginatedFAQs}
@@ -289,15 +291,6 @@ export function FAQManagement() {
           </div>
         )}
       </div>
-
-      <FAQDialog
-        isOpen={isDialogOpen}
-        onClose={() => {
-          setIsDialogOpen(false);
-          setEditingFAQ(null);
-        }}
-        faq={editingFAQ}
-      />
 
       <AlertDialog open={!!deletingFAQ} onOpenChange={() => setDeletingFAQ(null)}>
         <AlertDialogContent>

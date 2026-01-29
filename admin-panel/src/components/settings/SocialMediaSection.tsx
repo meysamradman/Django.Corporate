@@ -1,14 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/elements/Button";
-import { Input } from "@/components/elements/Input";
-import { Label } from "@/components/elements/Label";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/elements/Dialog";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -19,139 +12,69 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
-import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import { settingsApi } from "@/api/settings/settings";
-import type { SocialMedia } from "@/types/settings/generalSettings";
 import { showError, showSuccess } from "@/core/toast";
-import { Plus, Edit, Trash2, Share2, Loader2 } from "lucide-react";
-import { Skeleton } from "@/components/elements/Skeleton";
-import type { Media } from "@/types/shared/media";
+import { Plus, Edit, Trash2, Share2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
+import { Skeleton } from "@/components/elements/Skeleton";
+import { MediaImage } from "@/components/media/base/MediaImage";
+import { useSearchParams } from "react-router-dom";
 
 export function SocialMediaSection() {
-    const [socialMedias, setSocialMedias] = useState<SocialMedia[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [editingSocialMedia, setEditingSocialMedia] = useState<SocialMedia | null>(null);
+    const queryClient = useQueryClient();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [socialMediaToDelete, setSocialMediaToDelete] = useState<number | null>(null);
-    
-    const [name, setName] = useState("");
-    const [url, setUrl] = useState("");
-    const [order, setOrder] = useState(0);
-    const [icon, setIcon] = useState<Media | null>(null);
-    const [saving, setSaving] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<number | null>(null);
 
-    useEffect(() => {
-        fetchSocialMedias();
-    }, []);
+    const { data: items = [], isLoading } = useQuery({
+        queryKey: ["social-medias"],
+        queryFn: () => settingsApi.getSocialMedias(),
+    });
 
-    const fetchSocialMedias = async () => {
-        try {
-            setLoading(true);
-            const data = await settingsApi.getSocialMedias();
-            setSocialMedias(data);
-        } catch (error) {
-            showError("خطا در دریافت شبکه‌های اجتماعی");
-        } finally {
-            setLoading(false);
-        }
-    };
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => settingsApi.deleteSocialMedia(id),
+        onSuccess: () => {
+            showSuccess("شبکه اجتماعی با موفقیت حذف شد");
+            queryClient.invalidateQueries({ queryKey: ["social-medias"] });
+            setDeleteDialogOpen(false);
+            setItemToDelete(null);
+        },
+        onError: () => {
+            showError("خطا در حذف شبکه اجتماعی");
+        },
+    });
 
-    const handleOpenDialog = (socialMedia?: SocialMedia) => {
-        if (socialMedia) {
-            setEditingSocialMedia(socialMedia);
-            setName(socialMedia.name);
-            setUrl(socialMedia.url);
-            setOrder(socialMedia.order);
-            if (socialMedia.icon_data) {
-                setIcon(socialMedia.icon_data);
-            } else {
-                setIcon(null);
-            }
+    const handleOpenSide = (id?: number) => {
+        const newParams = new URLSearchParams(searchParams);
+        if (id) {
+            newParams.set("action", "edit-social");
+            newParams.set("id", id.toString());
         } else {
-            setEditingSocialMedia(null);
-            setName("");
-            setUrl("");
-            setOrder(0);
-            setIcon(null);
+            newParams.set("action", "create-social");
         }
-        setDialogOpen(true);
-    };
-
-    const handleCloseDialog = () => {
-        setDialogOpen(false);
-        setEditingSocialMedia(null);
-        setName("");
-        setUrl("");
-        setOrder(0);
-        setIcon(null);
-    };
-
-    const handleSave = async () => {
-        if (!name.trim() || !url.trim()) {
-            showError("نام و لینک الزامی هستند");
-            return;
-        }
-
-        try {
-            setSaving(true);
-            
-            if (editingSocialMedia) {
-                await settingsApi.updateSocialMedia(editingSocialMedia.id, {
-                    name: name,
-                    url: url,
-                    order,
-                    icon: icon?.id || null,
-                });
-                showSuccess("شبکه اجتماعی با موفقیت به‌روزرسانی شد");
-            } else {
-                await settingsApi.createSocialMedia({
-                    name: name,
-                    url: url,
-                    order,
-                    icon: icon?.id || null,
-                });
-                showSuccess("شبکه اجتماعی با موفقیت ایجاد شد");
-            }
-            
-            handleCloseDialog();
-            await fetchSocialMedias();
-        } catch (error) {
-            showError("خطا در ذخیره شبکه اجتماعی");
-        } finally {
-            setSaving(false);
-        }
+        setSearchParams(newParams);
     };
 
     const handleDeleteClick = (id: number) => {
-        setSocialMediaToDelete(id);
+        setItemToDelete(id);
         setDeleteDialogOpen(true);
     };
 
-    const handleDelete = async () => {
-        if (!socialMediaToDelete) return;
-
-        try {
-            await settingsApi.deleteSocialMedia(socialMediaToDelete);
-            showSuccess("شبکه اجتماعی با موفقیت حذف شد");
-            await fetchSocialMedias();
-            setDeleteDialogOpen(false);
-            setSocialMediaToDelete(null);
-        } catch (error) {
-            showError("خطا در حذف شبکه اجتماعی");
+    const handleDelete = () => {
+        if (itemToDelete) {
+            deleteMutation.mutate(itemToDelete);
         }
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
             <CardWithIcon
                 icon={Share2}
                 title="شبکه‌های اجتماعی"
-                iconBgColor="bg-orange"
-                iconColor="stroke-orange-2"
-                borderColor="border-b-orange-1"
+                iconBgColor="bg-blue"
+                iconColor="stroke-blue-2"
+                borderColor="border-b-blue-1"
             >
                 <div className="space-y-4">
                     <Skeleton className="h-10 w-full" />
@@ -170,163 +93,95 @@ export function SocialMediaSection() {
             <CardWithIcon
                 icon={Share2}
                 title="شبکه‌های اجتماعی"
-                iconBgColor="bg-orange"
-                iconColor="stroke-orange-2"
-                borderColor="border-b-orange-1"
+                iconBgColor="bg-sky"
+                iconColor="stroke-sky-2"
+                borderColor="border-b-sky-1"
                 className="hover:shadow-lg transition-all duration-300"
                 headerClassName="pb-3"
                 titleExtra={
-                        <Button onClick={() => handleOpenDialog()}>
-                            <Plus />
-                            افزودن شبکه اجتماعی
-                        </Button>
+                    <Button onClick={() => handleOpenSide()}>
+                        <Plus />
+                        افزودن شبکه اجتماعی
+                    </Button>
                 }
             >
-                    {socialMedias.length === 0 ? (
-                        <div className="text-center py-12 text-font-s">
-                            شبکه اجتماعی‌ای ثبت نشده است
-                        </div>
-                    ) : (
-                        <div className="rounded-lg border overflow-hidden">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow className="bg-bg/50 hover:bg-bg/50">
-                                        <TableHead className="text-right">نام</TableHead>
-                                        <TableHead className="text-right">لینک</TableHead>
-                                        <TableHead className="w-24 text-right">آیکون</TableHead>
-                                        <TableHead className="w-24 text-right">ترتیب</TableHead>
-                                        <TableHead className="w-[60px] text-center"></TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {socialMedias.map((socialMedia) => (
-                                        <TableRow key={socialMedia.id} className="hover:bg-bg/50 transition-colors">
-                                            <TableCell className="text-right">
-                                                <span className="font-medium">{socialMedia.name}</span>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <a
-                                                    href={socialMedia.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-primary hover:underline text-sm truncate block max-w-xs"
-                                                >
-                                                    {socialMedia.url}
-                                                </a>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <span className={`inline-flex items-center justify-center px-2 py-1 text-xs font-medium rounded-md ${
-                                                    socialMedia.icon_data 
-                                                        ? 'bg-green text-green-2' 
-                                                        : 'bg-bg text-font-s'
-                                                }`}>
-                                                    {socialMedia.icon_data ? 'دارد' : 'ندارد'}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-bg rounded-md">
-                                                    {socialMedia.order}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell className="w-[60px]">
-                                                <div className="flex items-center justify-center">
-                                                    <DataTableRowActions
-                                                        row={{ original: socialMedia } as any}
-                                                        actions={[
-                                                            {
-                                                                label: "ویرایش",
-                                                                icon: <Edit className="h-4 w-4" />,
-                                                                onClick: () => handleOpenDialog(socialMedia),
-                                                            },
-                                                            {
-                                                                label: "حذف",
-                                                                icon: <Trash2 className="h-4 w-4" />,
-                                                                onClick: () => handleDeleteClick(socialMedia.id),
-                                                                isDestructive: true,
-                                                            },
-                                                        ]}
+                {items.length === 0 ? (
+                    <div className="text-center py-12 text-font-s">
+                        شبکه اجتماعی ثبت نشده است
+                    </div>
+                ) : (
+                    <div className="rounded-lg border overflow-hidden">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-bg/50 hover:bg-bg/50">
+                                    <TableHead className="w-[80px] text-center">آیکون</TableHead>
+                                    <TableHead className="text-right">نام</TableHead>
+                                    <TableHead className="text-right">لینک</TableHead>
+                                    <TableHead className="w-24 text-right">ترتیب</TableHead>
+                                    <TableHead className="w-[60px] text-center"></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {items.map((item) => (
+                                    <TableRow key={item.id} className="hover:bg-bg/50 transition-colors">
+                                        <TableCell className="text-center">
+                                            {item.icon_data ? (
+                                                <div className="flex justify-center">
+                                                    <MediaImage
+                                                        media={item.icon_data}
+                                                        alt={item.name}
+                                                        className="h-8 w-8 object-contain"
                                                     />
                                                 </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    )}
-            </CardWithIcon>
-
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                        <DialogTitle>
-                            {editingSocialMedia ? "ویرایش شبکه اجتماعی" : "افزودن شبکه اجتماعی"}
-                        </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="name">نام شبکه اجتماعی *</Label>
-                            <Input
-                                id="name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="اینستاگرام، تلگرام، لینکدین"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="url">لینک *</Label>
-                            <Input
-                                id="url"
-                                type="url"
-                                value={url}
-                                onChange={(e) => setUrl(e.target.value)}
-                                placeholder="https://instagram.com/yourpage"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="order">ترتیب نمایش</Label>
-                            <Input
-                                id="order"
-                                type="number"
-                                value={order}
-                                onChange={(e) => setOrder(parseInt(e.target.value) || 0)}
-                                min="0"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label>آیکون</Label>
-                            <div className="flex justify-center">
-                                <ImageSelector
-                                    selectedMedia={icon}
-                                    onMediaSelect={setIcon}
-                                    size="sm"
-                                    context="media_library"
-                                    alt="آیکون شبکه اجتماعی"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end gap-2 pt-4">
-                            <Button variant="outline" onClick={handleCloseDialog}>
-                                انصراف
-                            </Button>
-                            <Button onClick={handleSave} disabled={saving}>
-                                {saving ? (
-                                    <>
-                                        <Loader2 className="animate-spin" />
-                                        در حال ذخیره...
-                                    </>
-                                ) : (
-                                    "ذخیره"
-                                )}
-                            </Button>
-                        </div>
+                                            ) : (
+                                                <div className="h-8 w-8 mx-auto bg-muted/20 rounded flex items-center justify-center">
+                                                    <Share2 className="h-4 w-4 text-font-s" />
+                                                </div>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-right font-medium">{item.name}</TableCell>
+                                        <TableCell className="text-right">
+                                            <a
+                                                href={item.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-primary hover:underline text-dir-ltr truncate max-w-[200px] inline-block"
+                                            >
+                                                {item.url}
+                                            </a>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-bg rounded-md">
+                                                {item.order}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell className="w-[60px]">
+                                            <div className="flex items-center justify-center">
+                                                <DataTableRowActions
+                                                    row={{ original: item } as any}
+                                                    actions={[
+                                                        {
+                                                            label: "ویرایش",
+                                                            icon: <Edit className="h-4 w-4" />,
+                                                            onClick: () => handleOpenSide(item.id),
+                                                        },
+                                                        {
+                                                            label: "حذف",
+                                                            icon: <Trash2 className="h-4 w-4" />,
+                                                            onClick: () => handleDeleteClick(item.id),
+                                                            isDestructive: true,
+                                                        },
+                                                    ]}
+                                                />
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
                     </div>
-                </DialogContent>
-            </Dialog>
+                )}
+            </CardWithIcon>
 
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent>
@@ -338,11 +193,16 @@ export function SocialMediaSection() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>انصراف</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete}>حذف</AlertDialogAction>
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            disabled={deleteMutation.isPending}
+                            className="bg-red-1 hover:bg-red-2 text-white"
+                        >
+                            حذف
+                        </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
         </>
     );
 }
-

@@ -1,14 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/elements/Button";
-import { Input } from "@/components/elements/Input";
-import { Label } from "@/components/elements/Label";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/elements/Dialog";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -20,97 +13,46 @@ import {
     AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
 import { settingsApi } from "@/api/settings/settings";
-import type { ContactEmail } from "@/types/settings/generalSettings";
 import { showError, showSuccess } from "@/core/toast";
-import { Plus, Edit, Trash2, Mail, Loader2 } from "lucide-react";
+import { Plus, Edit, Trash2, Mail } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import { Skeleton } from "@/components/elements/Skeleton";
+import { useSearchParams } from "react-router-dom";
 
 export function ContactEmails() {
-    const [emails, setEmails] = useState<ContactEmail[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [editingEmail, setEditingEmail] = useState<ContactEmail | null>(null);
+    const queryClient = useQueryClient();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [emailToDelete, setEmailToDelete] = useState<number | null>(null);
-    
-    const [email, setEmail] = useState("");
-    const [label, setLabel] = useState("");
-    const [order, setOrder] = useState(0);
-    const [saving, setSaving] = useState(false);
 
-    useEffect(() => {
-        fetchEmails();
-    }, []);
+    const { data: emails = [], isLoading } = useQuery({
+        queryKey: ["contact-emails"],
+        queryFn: () => settingsApi.getContactEmails(),
+    });
 
-    const fetchEmails = async () => {
-        try {
-            setLoading(true);
-            const data = await settingsApi.getContactEmails();
-            setEmails(data);
-        } catch (error) {
-            showError("خطا در دریافت ایمیل‌ها");
-        } finally {
-            setLoading(false);
-        }
-    };
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => settingsApi.deleteContactEmail(id),
+        onSuccess: () => {
+            showSuccess("ایمیل با موفقیت حذف شد");
+            queryClient.invalidateQueries({ queryKey: ["contact-emails"] });
+            setDeleteDialogOpen(false);
+            setEmailToDelete(null);
+        },
+        onError: () => {
+            showError("خطا در حذف ایمیل");
+        },
+    });
 
-    const handleOpenDialog = (contactEmail?: ContactEmail) => {
-        if (contactEmail) {
-            setEditingEmail(contactEmail);
-            setEmail(contactEmail.email);
-            setLabel(contactEmail.label);
-            setOrder(contactEmail.order);
+    const handleOpenSide = (id?: number) => {
+        const newParams = new URLSearchParams(searchParams);
+        if (id) {
+            newParams.set("action", "edit-email");
+            newParams.set("id", id.toString());
         } else {
-            setEditingEmail(null);
-            setEmail("");
-            setLabel("");
-            setOrder(0);
+            newParams.set("action", "create-email");
         }
-        setDialogOpen(true);
-    };
-
-    const handleCloseDialog = () => {
-        setDialogOpen(false);
-        setEditingEmail(null);
-        setEmail("");
-        setLabel("");
-        setOrder(0);
-    };
-
-    const handleSave = async () => {
-        if (!email.trim()) {
-            showError("ایمیل الزامی است");
-            return;
-        }
-
-        try {
-            setSaving(true);
-            
-            if (editingEmail) {
-                await settingsApi.updateContactEmail(editingEmail.id, {
-                    email: email,
-                    label: label || undefined,
-                    order,
-                });
-                showSuccess("ایمیل با موفقیت به‌روزرسانی شد");
-            } else {
-                await settingsApi.createContactEmail({
-                    email: email,
-                    label: label || undefined,
-                    order,
-                });
-                showSuccess("ایمیل با موفقیت ایجاد شد");
-            }
-            
-            handleCloseDialog();
-            await fetchEmails();
-        } catch (error) {
-            showError("خطا در ذخیره ایمیل");
-        } finally {
-            setSaving(false);
-        }
+        setSearchParams(newParams);
     };
 
     const handleDeleteClick = (id: number) => {
@@ -118,28 +60,20 @@ export function ContactEmails() {
         setDeleteDialogOpen(true);
     };
 
-    const handleDelete = async () => {
-        if (!emailToDelete) return;
-
-        try {
-            await settingsApi.deleteContactEmail(emailToDelete);
-            showSuccess("ایمیل با موفقیت حذف شد");
-            await fetchEmails();
-            setDeleteDialogOpen(false);
-            setEmailToDelete(null);
-        } catch (error) {
-            showError("خطا در حذف ایمیل");
+    const handleDelete = () => {
+        if (emailToDelete) {
+            deleteMutation.mutate(emailToDelete);
         }
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
             <CardWithIcon
                 icon={Mail}
-                title="ایمیل‌های تماس"
-                iconBgColor="bg-pink"
-                iconColor="stroke-pink-2"
-                borderColor="border-b-pink-1"
+                title="ایمیل‌ها"
+                iconBgColor="bg-blue"
+                iconColor="stroke-blue-2"
+                borderColor="border-b-blue-1"
             >
                 <div className="space-y-4">
                     <Skeleton className="h-10 w-full" />
@@ -157,134 +91,75 @@ export function ContactEmails() {
         <>
             <CardWithIcon
                 icon={Mail}
-                title="ایمیل‌های تماس"
-                iconBgColor="bg-pink"
-                iconColor="stroke-pink-2"
-                borderColor="border-b-pink-1"
+                title="ایمیل‌ها"
+                iconBgColor="bg-purple"
+                iconColor="stroke-purple-2"
+                borderColor="border-b-purple-1"
                 className="hover:shadow-lg transition-all duration-300"
                 headerClassName="pb-3"
                 titleExtra={
-                        <Button onClick={() => handleOpenDialog()}>
-                            <Plus />
-                            افزودن ایمیل
-                        </Button>
+                    <Button onClick={() => handleOpenSide()}>
+                        <Plus />
+                        افزودن ایمیل
+                    </Button>
                 }
             >
-                    {emails.length === 0 ? (
-                        <div className="text-center py-12 text-font-s">
-                            ایمیلی ثبت نشده است
-                        </div>
-                    ) : (
-                        <div className="rounded-lg border overflow-hidden">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow className="bg-bg/50 hover:bg-bg/50">
-                                        <TableHead className="text-right">ایمیل</TableHead>
-                                        <TableHead className="text-right">برچسب</TableHead>
-                                        <TableHead className="w-24 text-right">ترتیب</TableHead>
-                                        <TableHead className="w-[60px] text-center"></TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {emails.map((contactEmail) => (
-                                        <TableRow key={contactEmail.id} className="hover:bg-bg/50 transition-colors">
-                                            <TableCell className="text-right">
-                                                <span className="font-medium">{contactEmail.email}</span>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <span className="text-font-s">{contactEmail.label || "-"}</span>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-bg rounded-md">
-                                                    {contactEmail.order}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell className="w-[60px]">
-                                                <div className="flex items-center justify-center">
-                                                    <DataTableRowActions
-                                                        row={{ original: contactEmail } as any}
-                                                        actions={[
-                                                            {
-                                                                label: "ویرایش",
-                                                                icon: <Edit className="h-4 w-4" />,
-                                                                onClick: () => handleOpenDialog(contactEmail),
-                                                            },
-                                                            {
-                                                                label: "حذف",
-                                                                icon: <Trash2 className="h-4 w-4" />,
-                                                                onClick: () => handleDeleteClick(contactEmail.id),
-                                                                isDestructive: true,
-                                                            },
-                                                        ]}
-                                                    />
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    )}
-            </CardWithIcon>
-
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>
-                            {editingEmail ? "ویرایش ایمیل" : "افزودن ایمیل"}
-                        </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="email">ایمیل *</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="info@example.com"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="label">برچسب</Label>
-                            <Input
-                                id="label"
-                                value={label}
-                                onChange={(e) => setLabel(e.target.value)}
-                                placeholder="پشتیبانی، فروش، اطلاعات"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="order">ترتیب نمایش</Label>
-                            <Input
-                                id="order"
-                                type="number"
-                                value={order}
-                                onChange={(e) => setOrder(parseInt(e.target.value) || 0)}
-                                min="0"
-                            />
-                        </div>
-
-                        <div className="flex justify-end gap-2 pt-4">
-                            <Button variant="outline" onClick={handleCloseDialog}>
-                                انصراف
-                            </Button>
-                            <Button onClick={handleSave} disabled={saving}>
-                                {saving ? (
-                                    <>
-                                        <Loader2 className="animate-spin" />
-                                        در حال ذخیره...
-                                    </>
-                                ) : (
-                                    "ذخیره"
-                                )}
-                            </Button>
-                        </div>
+                {emails.length === 0 ? (
+                    <div className="text-center py-12 text-font-s">
+                        ایمیلی ثبت نشده است
                     </div>
-                </DialogContent>
-            </Dialog>
+                ) : (
+                    <div className="rounded-lg border overflow-hidden">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-bg/50 hover:bg-bg/50">
+                                    <TableHead className="text-right">ایمیل</TableHead>
+                                    <TableHead className="text-right">برچسب</TableHead>
+                                    <TableHead className="w-24 text-right">ترتیب</TableHead>
+                                    <TableHead className="w-[60px] text-center"></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {emails.map((email) => (
+                                    <TableRow key={email.id} className="hover:bg-bg/50 transition-colors">
+                                        <TableCell className="text-right">
+                                            <span className="font-medium">{email.email}</span>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <span className="text-font-s">{email.label || "-"}</span>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-bg rounded-md">
+                                                {email.order}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell className="w-[60px]">
+                                            <div className="flex items-center justify-center">
+                                                <DataTableRowActions
+                                                    row={{ original: email } as any}
+                                                    actions={[
+                                                        {
+                                                            label: "ویرایش",
+                                                            icon: <Edit className="h-4 w-4" />,
+                                                            onClick: () => handleOpenSide(email.id),
+                                                        },
+                                                        {
+                                                            label: "حذف",
+                                                            icon: <Trash2 className="h-4 w-4" />,
+                                                            onClick: () => handleDeleteClick(email.id),
+                                                            isDestructive: true,
+                                                        },
+                                                    ]}
+                                                />
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                )}
+            </CardWithIcon>
 
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent>
@@ -296,11 +171,16 @@ export function ContactEmails() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>انصراف</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete}>حذف</AlertDialogAction>
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            disabled={deleteMutation.isPending}
+                            className="bg-red-1 hover:bg-red-2 text-white"
+                        >
+                            حذف
+                        </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
         </>
     );
 }
-

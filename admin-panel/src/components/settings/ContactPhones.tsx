@@ -1,14 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/elements/Button";
-import { Input } from "@/components/elements/Input";
-import { Label } from "@/components/elements/Label";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/elements/Dialog";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -20,97 +13,46 @@ import {
     AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
 import { settingsApi } from "@/api/settings/settings";
-import type { ContactPhone } from "@/types/settings/generalSettings";
 import { showError, showSuccess } from "@/core/toast";
-import { Plus, Edit, Trash2, Phone, Loader2 } from "lucide-react";
+import { Plus, Edit, Trash2, Phone } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import { Skeleton } from "@/components/elements/Skeleton";
+import { useSearchParams } from "react-router-dom";
 
 export function ContactPhones() {
-    const [phones, setPhones] = useState<ContactPhone[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [editingPhone, setEditingPhone] = useState<ContactPhone | null>(null);
+    const queryClient = useQueryClient();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [phoneToDelete, setPhoneToDelete] = useState<number | null>(null);
-    
-    const [phoneNumber, setPhoneNumber] = useState("");
-    const [label, setLabel] = useState("");
-    const [order, setOrder] = useState(0);
-    const [saving, setSaving] = useState(false);
 
-    useEffect(() => {
-        fetchPhones();
-    }, []);
+    const { data: phones = [], isLoading } = useQuery({
+        queryKey: ["contact-phones"],
+        queryFn: () => settingsApi.getContactPhones(),
+    });
 
-    const fetchPhones = async () => {
-        try {
-            setLoading(true);
-            const data = await settingsApi.getContactPhones();
-            setPhones(data);
-        } catch (error) {
-            showError("خطا در دریافت شماره‌های تماس");
-        } finally {
-            setLoading(false);
-        }
-    };
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => settingsApi.deleteContactPhone(id),
+        onSuccess: () => {
+            showSuccess("شماره تماس با موفقیت حذف شد");
+            queryClient.invalidateQueries({ queryKey: ["contact-phones"] });
+            setDeleteDialogOpen(false);
+            setPhoneToDelete(null);
+        },
+        onError: () => {
+            showError("خطا در حذف شماره تماس");
+        },
+    });
 
-    const handleOpenDialog = (phone?: ContactPhone) => {
-        if (phone) {
-            setEditingPhone(phone);
-            setPhoneNumber(phone.phone_number);
-            setLabel(phone.label);
-            setOrder(phone.order);
+    const handleOpenSide = (id?: number) => {
+        const newParams = new URLSearchParams(searchParams);
+        if (id) {
+            newParams.set("action", "edit-phone");
+            newParams.set("id", id.toString());
         } else {
-            setEditingPhone(null);
-            setPhoneNumber("");
-            setLabel("");
-            setOrder(0);
+            newParams.set("action", "create-phone");
         }
-        setDialogOpen(true);
-    };
-
-    const handleCloseDialog = () => {
-        setDialogOpen(false);
-        setEditingPhone(null);
-        setPhoneNumber("");
-        setLabel("");
-        setOrder(0);
-    };
-
-    const handleSave = async () => {
-        if (!phoneNumber.trim()) {
-            showError("شماره تماس الزامی است");
-            return;
-        }
-
-        try {
-            setSaving(true);
-            
-            if (editingPhone) {
-                await settingsApi.updateContactPhone(editingPhone.id, {
-                    phone_number: phoneNumber,
-                    label: label || undefined,
-                    order,
-                });
-                showSuccess("شماره تماس با موفقیت به‌روزرسانی شد");
-            } else {
-                await settingsApi.createContactPhone({
-                    phone_number: phoneNumber,
-                    label: label || undefined,
-                    order,
-                });
-                showSuccess("شماره تماس با موفقیت ایجاد شد");
-            }
-            
-            handleCloseDialog();
-            await fetchPhones();
-        } catch (error) {
-            showError("خطا در ذخیره شماره تماس");
-        } finally {
-            setSaving(false);
-        }
+        setSearchParams(newParams);
     };
 
     const handleDeleteClick = (id: number) => {
@@ -118,21 +60,13 @@ export function ContactPhones() {
         setDeleteDialogOpen(true);
     };
 
-    const handleDelete = async () => {
-        if (!phoneToDelete) return;
-
-        try {
-            await settingsApi.deleteContactPhone(phoneToDelete);
-            showSuccess("شماره تماس با موفقیت حذف شد");
-            await fetchPhones();
-            setDeleteDialogOpen(false);
-            setPhoneToDelete(null);
-        } catch (error) {
-            showError("خطا در حذف شماره تماس");
+    const handleDelete = () => {
+        if (phoneToDelete) {
+            deleteMutation.mutate(phoneToDelete);
         }
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
             <CardWithIcon
                 icon={Phone}
@@ -164,126 +98,68 @@ export function ContactPhones() {
                 className="hover:shadow-lg transition-all duration-300"
                 headerClassName="pb-3"
                 titleExtra={
-                        <Button onClick={() => handleOpenDialog()}>
-                            <Plus />
-                            افزودن شماره تماس
-                        </Button>
+                    <Button onClick={() => handleOpenSide()}>
+                        <Plus />
+                        افزودن شماره تماس
+                    </Button>
                 }
             >
-                    {phones.length === 0 ? (
-                        <div className="text-center py-12 text-font-s">
-                            شماره تماسی ثبت نشده است
-                        </div>
-                    ) : (
-                        <div className="rounded-lg border overflow-hidden">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow className="bg-bg/50 hover:bg-bg/50">
-                                        <TableHead className="text-right">شماره تماس</TableHead>
-                                        <TableHead className="text-right">برچسب</TableHead>
-                                        <TableHead className="w-24 text-right">ترتیب</TableHead>
-                                        <TableHead className="w-[60px] text-center"></TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {phones.map((phone) => (
-                                        <TableRow key={phone.id} className="hover:bg-bg/50 transition-colors">
-                                            <TableCell className="text-right">
-                                                <span className="font-medium">{phone.phone_number}</span>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <span className="text-font-s">{phone.label || "-"}</span>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-bg rounded-md">
-                                                    {phone.order}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell className="w-[60px]">
-                                                <div className="flex items-center justify-center">
-                                                    <DataTableRowActions
-                                                        row={{ original: phone } as any}
-                                                        actions={[
-                                                            {
-                                                                label: "ویرایش",
-                                                                icon: <Edit className="h-4 w-4" />,
-                                                                onClick: () => handleOpenDialog(phone),
-                                                            },
-                                                            {
-                                                                label: "حذف",
-                                                                icon: <Trash2 className="h-4 w-4" />,
-                                                                onClick: () => handleDeleteClick(phone.id),
-                                                                isDestructive: true,
-                                                            },
-                                                        ]}
-                                                    />
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    )}
-            </CardWithIcon>
-
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>
-                            {editingPhone ? "ویرایش شماره تماس" : "افزودن شماره تماس"}
-                        </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="phone_number">شماره تماس *</Label>
-                            <Input
-                                id="phone_number"
-                                value={phoneNumber}
-                                onChange={(e) => setPhoneNumber(e.target.value)}
-                                placeholder="021-12345678"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="label">برچسب</Label>
-                            <Input
-                                id="label"
-                                value={label}
-                                onChange={(e) => setLabel(e.target.value)}
-                                placeholder="دفتر مرکزی، پشتیبانی"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="order">ترتیب نمایش</Label>
-                            <Input
-                                id="order"
-                                type="number"
-                                value={order}
-                                onChange={(e) => setOrder(parseInt(e.target.value) || 0)}
-                                min="0"
-                            />
-                        </div>
-
-                        <div className="flex justify-end gap-2 pt-4">
-                            <Button variant="outline" onClick={handleCloseDialog}>
-                                انصراف
-                            </Button>
-                            <Button onClick={handleSave} disabled={saving}>
-                                {saving ? (
-                                    <>
-                                        <Loader2 className="animate-spin" />
-                                        در حال ذخیره...
-                                    </>
-                                ) : (
-                                    "ذخیره"
-                                )}
-                            </Button>
-                        </div>
+                {phones.length === 0 ? (
+                    <div className="text-center py-12 text-font-s">
+                        شماره تماسی ثبت نشده است
                     </div>
-                </DialogContent>
-            </Dialog>
+                ) : (
+                    <div className="rounded-lg border overflow-hidden">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-bg/50 hover:bg-bg/50">
+                                    <TableHead className="text-right">شماره تماس</TableHead>
+                                    <TableHead className="text-right">برچسب</TableHead>
+                                    <TableHead className="w-24 text-right">ترتیب</TableHead>
+                                    <TableHead className="w-[60px] text-center"></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {phones.map((phone) => (
+                                    <TableRow key={phone.id} className="hover:bg-bg/50 transition-colors">
+                                        <TableCell className="text-right">
+                                            <span className="font-medium text-dir-ltr inline-block">{phone.phone_number}</span>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <span className="text-font-s">{phone.label || "-"}</span>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-bg rounded-md">
+                                                {phone.order}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell className="w-[60px]">
+                                            <div className="flex items-center justify-center">
+                                                <DataTableRowActions
+                                                    row={{ original: phone } as any}
+                                                    actions={[
+                                                        {
+                                                            label: "ویرایش",
+                                                            icon: <Edit className="h-4 w-4" />,
+                                                            onClick: () => handleOpenSide(phone.id),
+                                                        },
+                                                        {
+                                                            label: "حذف",
+                                                            icon: <Trash2 className="h-4 w-4" />,
+                                                            onClick: () => handleDeleteClick(phone.id),
+                                                            isDestructive: true,
+                                                        },
+                                                    ]}
+                                                />
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                )}
+            </CardWithIcon>
 
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent>
@@ -295,7 +171,13 @@ export function ContactPhones() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>انصراف</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete}>حذف</AlertDialogAction>
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            disabled={deleteMutation.isPending}
+                            className="bg-red-1 hover:bg-red-2 text-white"
+                        >
+                            حذف
+                        </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
