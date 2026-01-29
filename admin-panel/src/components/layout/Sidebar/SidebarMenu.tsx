@@ -376,6 +376,9 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
           { title: "شماره‌های موبایل", url: "/settings?tab=mobiles", icon: Smartphone },
           { title: "ایمیل‌های ارتباطی", url: "/settings?tab=emails", icon: Mail },
           { title: "شبکه‌های اجتماعی", url: "/settings?tab=social", icon: Share2 },
+          { title: "محتوای ثابت", isTitle: true },
+          { title: "درباره ما", url: "/page/about", icon: Info, access: { module: "pages", actions: ["manage"] } },
+          { title: "قوانین و مقررات", url: "/page/terms", icon: FileText, access: { module: "pages", actions: ["manage"] } },
         ]
       },
       {
@@ -398,14 +401,6 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
           { title: "تنظیمات Providerها", url: "/ai/settings", icon: Cpu },
         ]
       },
-      {
-        title: "محتوای ثابت",
-        icon: Info,
-        items: [
-          { title: "درباره ما", url: "/page/about", icon: Info, access: { module: "pages", actions: ["manage"] } },
-          { title: "قوانین و مقررات", url: "/page/terms", icon: FileText, access: { module: "pages", actions: ["manage"] } },
-        ]
-      }
     ]
   },
 ];
