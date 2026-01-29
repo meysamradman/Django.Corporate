@@ -8,17 +8,14 @@ export interface CardListLayoutProps {
     description?: string;
     headerActions?: ReactNode;
 
-    // Filters area
     filters?: ReactNode;
     stats?: string | ReactNode;
 
-    // Main content
     isLoading?: boolean;
     isEmpty?: boolean;
     emptyMessage?: string;
     children: ReactNode; // The grid or table
 
-    // Footer
     pagination?: ReactNode;
 
     className?: string;
@@ -50,7 +47,6 @@ export function CardListLayout({
                 {headerActions}
             </PageHeader>
 
-            {/* Filters & Stats Bar */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-2">
                 <div className="flex items-center gap-3 flex-wrap flex-1 justify-start">
                     {filters}
@@ -63,7 +59,6 @@ export function CardListLayout({
                 )}
             </div>
 
-            {/* Content Area */}
             <div className={cn("min-h-[400px] relative", contentClassName)}>
                 {isLoading ? (
                     <div className="flex items-center justify-center py-24">

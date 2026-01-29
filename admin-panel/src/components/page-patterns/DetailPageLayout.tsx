@@ -7,11 +7,9 @@ export interface DetailPageLayoutProps {
     description?: string;
     headerActions?: ReactNode;
 
-    // Layout Structure
     children: ReactNode; // Main Content
     sidebar?: ReactNode;
 
-    // Optional extras
     className?: string;
     contentClassName?: string;
     containerClassName?: string;
@@ -42,7 +40,6 @@ export function DetailPageLayout({
                 "flex flex-col lg:flex-row gap-6",
                 containerClassName
             )}>
-                {/* Main Content Area */}
                 <div className={cn(
                     "flex-1 min-w-0 space-y-6",
                     contentClassName
@@ -50,7 +47,6 @@ export function DetailPageLayout({
                     {children}
                 </div>
 
-                {/* Sidebar Area */}
                 {sidebar && (
                     <aside className="w-full lg:w-[320px] xl:w-[380px] space-y-6 shrink-0">
                         {sidebar}

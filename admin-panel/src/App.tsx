@@ -73,8 +73,6 @@ import PropertyFeaturesPage from './pages/real-estate/features/page';
 import PropertyTagsPage from './pages/real-estate/tags/page';
 import RealEstateStatisticsPage from './pages/real-estate/statistics/page';
 
-// Imports and routes for Staticstyle have been removed.
-
 function AgentRedirectView() {
   const { id } = useParams<{ id: string }>();
   return <Navigate to={`/agents/${id}/edit`} replace />;
