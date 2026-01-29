@@ -1,6 +1,6 @@
 import React from "react";
 import { blogApi } from "@/api/blogs/blogs";
-import { TaxonomyDrawer } from "@/components/page-patterns/TaxonomyDrawer";
+import { TaxonomyDrawer } from "@/components/templates/TaxonomyDrawer";
 import { useRealEstateTaxonomyForm } from "@/components/real-estate/hooks/useRealEstateTaxonomyForm";
 import { blogTagFormSchema, blogTagFormDefaults, type BlogTagFormValues } from "@/components/blogs/validations/tagSchema";
 import { FormFieldInput, FormFieldTextarea, FormFieldSwitch } from "@/components/shared/FormField";

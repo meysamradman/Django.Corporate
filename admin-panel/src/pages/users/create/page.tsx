@@ -10,7 +10,7 @@ import { msg } from '@/core/messages';
 import { userFormSchema, userFormDefaults, type UserFormValues } from "@/components/users/validations/userSchema";
 import { User, UserCircle } from "lucide-react";
 import type { Media } from "@/types/shared/media";
-import { TabbedPageLayout } from "@/components/page-patterns/TabbedPageLayout";
+import { TabbedPageLayout } from "@/components/templates/TabbedPageLayout";
 
 const BaseInfoTab = lazy(() => import("@/components/users/create/UserInfo"));
 const ProfileTab = lazy(() => import("@/components/users/create/UserProfile"));

@@ -1,6 +1,6 @@
 import React from "react";
 import { portfolioApi } from "@/api/portfolios/portfolios";
-import { TaxonomyDrawer } from "@/components/page-patterns/TaxonomyDrawer";
+import { TaxonomyDrawer } from "@/components/templates/TaxonomyDrawer";
 import { useRealEstateTaxonomyForm } from "@/components/real-estate/hooks/useRealEstateTaxonomyForm";
 import { portfolioTagFormSchema, portfolioTagFormDefaults, type PortfolioTagFormValues } from "@/components/portfolios/validations/tagSchema";
 import { FormFieldInput, FormFieldTextarea, FormFieldSwitch } from "@/components/shared/FormField";

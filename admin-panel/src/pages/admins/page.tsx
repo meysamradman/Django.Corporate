@@ -21,7 +21,7 @@ import { PaginationControls } from "@/components/shared/Pagination";
 import { DataTableFacetedFilterSimple } from "@/components/tables/DataTableFacetedFilterSimple";
 import { getConfirm } from '@/core/messages';
 import { Badge } from "@/components/elements/Badge";
-import { CardListLayout } from "@/components/page-patterns/CardListLayout";
+import { CardListLayout } from "@/components/templates/CardListLayout";
 import {
   AlertDialog,
   AlertDialogAction,

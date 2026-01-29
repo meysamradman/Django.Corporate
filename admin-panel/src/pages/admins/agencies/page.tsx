@@ -15,7 +15,7 @@ import { mediaService } from "@/components/media/services";
 import { formatDate } from "@/core/utils/format";
 import { PaginationControls } from "@/components/shared/Pagination";
 import { Badge } from "@/components/elements/Badge";
-import { CardListLayout } from "@/components/page-patterns/CardListLayout";
+import { CardListLayout } from "@/components/templates/CardListLayout";
 import {
   AlertDialog,
   AlertDialogAction,

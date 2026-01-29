@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { User, UserCircle, ShieldCheck, Building2 } from "lucide-react";
 import type { Media } from "@/types/shared/media";
-import { TabbedPageLayout, type TabbedPageTab } from "@/components/page-patterns/TabbedPageLayout";
+import { TabbedPageLayout, type TabbedPageTab } from "@/components/templates/TabbedPageLayout";
 
 const TabSkeleton = () => (
     <div className="mt-0 space-y-6">

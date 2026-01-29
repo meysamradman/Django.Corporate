@@ -1,6 +1,6 @@
 import React from "react";
 import { realEstateApi } from "@/api/real-estate/properties";
-import { TaxonomyDrawer } from "@/components/page-patterns/TaxonomyDrawer";
+import { TaxonomyDrawer } from "@/components/templates/TaxonomyDrawer";
 import { useRealEstateTaxonomyForm } from "@/components/real-estate/hooks/useRealEstateTaxonomyForm";
 import { propertyFeatureFormSchema, propertyFeatureFormDefaults, type PropertyFeatureFormValues } from "@/components/real-estate/validations/featureSchema";
 import { FormFieldInput, FormFieldSwitch } from "@/components/shared/FormField";

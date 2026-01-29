@@ -1,7 +1,7 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { blogApi } from "@/api/blogs/blogs";
-import { TaxonomyDrawer } from "@/components/page-patterns/TaxonomyDrawer";
+import { TaxonomyDrawer } from "@/components/templates/TaxonomyDrawer";
 import { useRealEstateTaxonomyForm } from "@/components/real-estate/hooks/useRealEstateTaxonomyForm";
 import { blogCategoryFormSchema, blogCategoryFormDefaults, type BlogCategoryFormValues } from "@/components/blogs/validations/categorySchema";
 import { FormField, FormFieldInput, FormFieldTextarea, FormFieldSwitch } from "@/components/shared/FormField";

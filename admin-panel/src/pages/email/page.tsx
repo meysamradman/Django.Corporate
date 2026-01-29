@@ -8,7 +8,7 @@ import type { EmailMessage } from "@/types/email/emailMessage";
 import type { MailboxType } from "@/components/email/types";
 import { showSuccess, showError } from "@/core/toast";
 import { useQueryClient } from '@tanstack/react-query';
-import { MessagingLayout } from "@/components/page-patterns/MessagingLayout";
+import { MessagingLayout } from "@/components/templates/MessagingLayout";
 
 const EmailDetailView = lazy(() => import("@/components/email").then(mod => ({ default: mod.EmailDetailView })));
 const ComposeEmailDialog = lazy(() => import("@/components/email/EmailComposeDialog.tsx").then(mod => ({ default: mod.EmailComposeDialog })));

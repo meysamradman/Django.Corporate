@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/elements/Checkbox";
 import { useTicketList, useTicket, useTicketMessages, useCreateTicketMessage, useUpdateTicketStatus, useDeleteTicket, useMarkTicketAsRead } from "@/components/ticket/hooks/useTicket";
 import type { Ticket, TicketStatusType } from "@/types/ticket/ticket";
 import { showSuccess } from "@/core/toast";
-import { MessagingLayout } from "@/components/page-patterns/MessagingLayout";
+import { MessagingLayout } from "@/components/templates/MessagingLayout";
 
 const TicketDetailView = lazy(() => import("@/components/ticket").then(mod => ({ default: mod.TicketDetail })));
 const ReplyTicketDialog = lazy(() => import("@/components/ticket/TicketReplyDialog.tsx").then(mod => ({ default: mod.TicketReplyDialog })));
