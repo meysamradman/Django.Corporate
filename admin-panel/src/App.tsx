@@ -73,16 +73,7 @@ import PropertyFeaturesPage from './pages/real-estate/features/page';
 import PropertyTagsPage from './pages/real-estate/tags/page';
 import RealEstateStatisticsPage from './pages/real-estate/statistics/page';
 
-import RealEstateStaticPage from './pages/Staticstyle/realstate/page';
-import RealEstateListPage from './pages/Staticstyle/realstate/list/page';
-import RealEstateViewPage from './pages/Staticstyle/realstate/[id]/view/page';
-import RealEstateEditPage from './pages/Staticstyle/realstate/[id]/edit/page';
-import AdvisorsListPageStatic from './pages/Staticstyle/realstate/advisors/list/page';
-import AdvisorViewPage from './pages/Staticstyle/realstate/advisors/[id]/view/page';
-import AdvisorEditPage from './pages/Staticstyle/realstate/advisors/[id]/edit/page';
-import AgenciesListPageStatic from './pages/Staticstyle/realstate/agencies/list/page';
-import AgencyViewPageStatic from './pages/Staticstyle/realstate/agencies/[id]/view/page';
-import AgencyEditPageStatic from './pages/Staticstyle/realstate/agencies/[id]/edit/page';
+// Imports and routes for Staticstyle have been removed.
 
 function AgentRedirectView() {
   const { id } = useParams<{ id: string }>();
@@ -217,22 +208,7 @@ function App() {
                       <Route path="features" element={<PropertyFeaturesPage />} />
                       <Route path="tags" element={<PropertyTagsPage />} />
                     </Route>
-                    <Route path="staticstyle">
-                      <Route path="realstate">
-                        <Route index element={<RealEstateStaticPage />} />
-                        <Route path="list" element={<RealEstateListPage />} />
-                        <Route path="advisors/list" element={<AdvisorsListPageStatic />} />
-                        <Route path="advisors/:id/view" element={<AdvisorViewPage />} />
-                        <Route path="advisors/:id/edit" element={<AdvisorEditPage />} />
-                        <Route path="agencies/list" element={<AgenciesListPageStatic />} />
-                        <Route path="agencies/:id/view" element={<AgencyViewPageStatic />} />
-                        <Route path="agencies/:id/edit" element={<AgencyEditPageStatic />} />
-                        <Route path=":id">
-                          <Route path="view" element={<RealEstateViewPage />} />
-                          <Route path="edit" element={<RealEstateEditPage />} />
-                        </Route>
-                      </Route>
-                    </Route>
+
                   </Route>
 
                   <Route path="/blogs/print" element={<ProtectedRoute><BlogPrintPage /></ProtectedRoute>} />
