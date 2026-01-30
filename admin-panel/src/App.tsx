@@ -181,7 +181,10 @@ function App() {
                       <Route path="ai-unified" element={<AIUnifiedPage />} />
                     </Route>
                     <Route path="analytics" element={<AnalyticsPage />} />
-                    <Route path="settings" element={<SettingsPage />} />
+                    <Route path="settings">
+                      <Route index element={<Navigate to="general" replace />} />
+                      <Route path=":tab" element={<SettingsPage />} />
+                    </Route>
                     <Route path="panel" element={<PanelPage />} />
                     <Route path="email" element={<EmailPage />} />
                     <Route path="ticket" element={<TicketPage />} />

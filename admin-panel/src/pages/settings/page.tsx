@@ -1,6 +1,5 @@
 import { lazy, Suspense } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
+import { useSearchParams, useParams } from "react-router-dom";
 import { Settings, Phone, Smartphone, Mail, Share2, GalleryHorizontal } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import {
@@ -30,14 +29,14 @@ const SocialMediaSection = lazy(() => import("@/components/settings").then(mod =
 const SlidersSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.SlidersSection })));
 
 export default function SettingsPage() {
+    const { tab } = useParams();
     const [searchParams, setSearchParams] = useSearchParams();
-    const activeTab = searchParams.get("tab") || "general";
+
+    // Default to 'general' if tab is not present (though app routing handles redirect)
+    const activeTab = tab || "general";
+
     const action = searchParams.get("action");
     const editId = searchParams.get("id") ? parseInt(searchParams.get("id")!) : null;
-
-    const setActiveTab = (tab: string) => {
-        setSearchParams({ tab });
-    };
 
     const handleCloseSide = () => {
         const newParams = new URLSearchParams(searchParams);
@@ -49,82 +48,77 @@ export default function SettingsPage() {
     return (
         <div className="space-y-6 pb-28 relative">
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList>
-                    <TabsTrigger value="general">
-                        <Settings className="h-4 w-4" />
-                        تنظیمات عمومی
-                    </TabsTrigger>
-                    <TabsTrigger value="phones">
-                        <Phone className="h-4 w-4" />
-                        شماره تماس
-                    </TabsTrigger>
-                    <TabsTrigger value="mobiles">
-                        <Smartphone className="h-4 w-4" />
-                        موبایل
-                    </TabsTrigger>
-                    <TabsTrigger value="emails">
-                        <Mail className="h-4 w-4" />
-                        ایمیل
-                    </TabsTrigger>
-                    <TabsTrigger value="social">
-                        <Share2 className="h-4 w-4" />
-                        شبکه‌های اجتماعی
-                    </TabsTrigger>
-                    <TabsTrigger value="sliders">
-                        <GalleryHorizontal className="h-4 w-4" />
-                        اسلایدرها
-                    </TabsTrigger>
-                </TabsList>
+            {activeTab === "general" && (
+                <div className="space-y-6">
+                    <div className="flex items-center gap-2 pb-4 border-b">
+                        <Settings className="w-6 h-6 text-primary" />
+                        <h1 className="text-xl font-bold">تنظیمات عمومی</h1>
+                    </div>
+                    <Suspense fallback={<TabSkeleton />}>
+                        <GeneralSettingsForm />
+                    </Suspense>
+                </div>
+            )}
 
-                <TabsContent value="general">
-                    {activeTab === "general" && (
-                        <Suspense fallback={<TabSkeleton />}>
-                            <GeneralSettingsForm />
-                        </Suspense>
-                    )}
-                </TabsContent>
+            {activeTab === "phones" && (
+                <div className="space-y-6">
+                    <div className="flex items-center gap-2 pb-4 border-b">
+                        <Phone className="w-6 h-6 text-primary" />
+                        <h1 className="text-xl font-bold">شماره‌های تماس</h1>
+                    </div>
+                    <Suspense fallback={<TabSkeleton />}>
+                        <ContactPhonesSection />
+                    </Suspense>
+                </div>
+            )}
 
-                <TabsContent value="phones">
-                    {activeTab === "phones" && (
-                        <Suspense fallback={<TabSkeleton />}>
-                            <ContactPhonesSection />
-                        </Suspense>
-                    )}
-                </TabsContent>
+            {activeTab === "mobiles" && (
+                <div className="space-y-6">
+                    <div className="flex items-center gap-2 pb-4 border-b">
+                        <Smartphone className="w-6 h-6 text-primary" />
+                        <h1 className="text-xl font-bold">شماره‌های موبایل</h1>
+                    </div>
+                    <Suspense fallback={<TabSkeleton />}>
+                        <ContactMobilesSection />
+                    </Suspense>
+                </div>
+            )}
 
-                <TabsContent value="mobiles">
-                    {activeTab === "mobiles" && (
-                        <Suspense fallback={<TabSkeleton />}>
-                            <ContactMobilesSection />
-                        </Suspense>
-                    )}
-                </TabsContent>
+            {activeTab === "emails" && (
+                <div className="space-y-6">
+                    <div className="flex items-center gap-2 pb-4 border-b">
+                        <Mail className="w-6 h-6 text-primary" />
+                        <h1 className="text-xl font-bold">ایمیل‌های ارتباطی</h1>
+                    </div>
+                    <Suspense fallback={<TabSkeleton />}>
+                        <ContactEmailsSection />
+                    </Suspense>
+                </div>
+            )}
 
-                <TabsContent value="emails">
-                    {activeTab === "emails" && (
-                        <Suspense fallback={<TabSkeleton />}>
-                            <ContactEmailsSection />
-                        </Suspense>
-                    )}
-                </TabsContent>
+            {activeTab === "social" && (
+                <div className="space-y-6">
+                    <div className="flex items-center gap-2 pb-4 border-b">
+                        <Share2 className="w-6 h-6 text-primary" />
+                        <h1 className="text-xl font-bold">شبکه‌های اجتماعی</h1>
+                    </div>
+                    <Suspense fallback={<TabSkeleton />}>
+                        <SocialMediaSection />
+                    </Suspense>
+                </div>
+            )}
 
-                <TabsContent value="social">
-                    {activeTab === "social" && (
-                        <Suspense fallback={<TabSkeleton />}>
-                            <SocialMediaSection />
-                        </Suspense>
-                    )}
-                </TabsContent>
-
-                <TabsContent value="sliders">
-                    {activeTab === "sliders" && (
-                        <Suspense fallback={<TabSkeleton />}>
-                            <SlidersSection />
-                        </Suspense>
-                    )}
-                </TabsContent>
-            </Tabs>
+            {activeTab === "sliders" && (
+                <div className="space-y-6">
+                    <div className="flex items-center gap-2 pb-4 border-b">
+                        <GalleryHorizontal className="w-6 h-6 text-primary" />
+                        <h1 className="text-xl font-bold">مدیریت اسلایدرها</h1>
+                    </div>
+                    <Suspense fallback={<TabSkeleton />}>
+                        <SlidersSection />
+                    </Suspense>
+                </div>
+            )}
 
             {/* Sidebar Components Trigged by URL */}
             <ContactPhoneSide
