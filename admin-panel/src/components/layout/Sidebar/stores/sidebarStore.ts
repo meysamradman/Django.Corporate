@@ -7,13 +7,16 @@ interface AdminStore {
   selectedItemHasSubMenu: boolean;
   isPageLoading: boolean;
   isApiLoading: boolean;
-  
+
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   toggleContent: () => void;
   setSelectedItemHasSubMenu: (hasSubMenu: boolean) => void;
   setPageLoading: (loading: boolean) => void;
   setApiLoading: (loading: boolean) => void;
+
+  closedGroups: string[];
+  toggleGroup: (groupTitle: string) => void;
 }
 
 const isMobileDevice = (): boolean => {
@@ -29,24 +32,34 @@ export const useAdminStore = create<AdminStore>()(
       selectedItemHasSubMenu: true,
       isPageLoading: false,
       isApiLoading: false,
-      
+
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
       toggleContent: () => set((state) => ({ contentCollapsed: !state.contentCollapsed })),
       setSelectedItemHasSubMenu: (hasSubMenu) => set({ selectedItemHasSubMenu: hasSubMenu }),
       setPageLoading: (loading) => set({ isPageLoading: loading }),
       setApiLoading: (loading) => set({ isApiLoading: loading }),
+
+      closedGroups: [],
+      toggleGroup: (groupTitle: string) => set((state) => {
+        const isClosed = state.closedGroups.includes(groupTitle);
+        return {
+          closedGroups: isClosed
+            ? state.closedGroups.filter(t => t !== groupTitle)
+            : [...state.closedGroups, groupTitle]
+        };
+      }),
     }),
     {
       name: 'admin-ui-storage',
-      version: 4,
+      version: 5,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => {
-        const shouldPersistSidebar = typeof window !== 'undefined' && !isMobileDevice();
         return {
-          ...(shouldPersistSidebar && { sidebarOpen: state.sidebarOpen }),
+          sidebarOpen: state.sidebarOpen,
           contentCollapsed: state.contentCollapsed,
           selectedItemHasSubMenu: state.selectedItemHasSubMenu,
+          closedGroups: state.closedGroups,
         };
       },
       migrate: (persistedState: any, version: number) => {
@@ -57,6 +70,12 @@ export const useAdminStore = create<AdminStore>()(
             sidebarOpen: typeof window !== 'undefined' && !isMobileDevice() ? (persistedState?.sidebarOpen ?? true) : false,
           };
         }
+        if (version < 5) {
+          return {
+            ...persistedState,
+            closedGroups: [],
+          }
+        }
         return persistedState;
       },
       onRehydrateStorage: () => (state, error) => {
@@ -65,4 +84,3 @@ export const useAdminStore = create<AdminStore>()(
     }
   )
 );
-

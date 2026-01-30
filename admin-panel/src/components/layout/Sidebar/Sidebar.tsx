@@ -4,7 +4,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/elements/DropdownMenu";
@@ -325,35 +324,15 @@ function MenuItemsList({ items }: MenuItemsListProps) {
     return groups;
   }, [items]);
 
-  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    const allKeys = new Set<string>();
-    groupedItems.forEach((group, idx) => {
-      const key = group.title || `group-${idx}`;
-      allKeys.add(key);
-    });
-    setOpenGroups(allKeys);
-  }, [groupedItems]);
-
-  const toggleGroup = useCallback((title: string) => {
-    setOpenGroups(prev => {
-      const next = new Set(prev);
-      if (next.has(title)) {
-        next.delete(title);
-      } else {
-        next.add(title);
-      }
-      return next;
-    });
-  }, []);
+  const closedGroups = useAdminStore((state) => state.closedGroups);
+  const toggleGroup = useAdminStore((state) => state.toggleGroup);
 
   return (
     <div className="space-y-1">
       {groupedItems.map((group, groupIndex) => {
         const hasTitle = !!group.title;
         const groupKey = group.title || `group-${groupIndex}`;
-        const isOpen = openGroups.has(groupKey);
+        const isOpen = !closedGroups.includes(groupKey);
 
         if (!hasTitle && group.items.length > 0) {
           const prevGroup = groupIndex > 0 ? groupedItems[groupIndex - 1] : null;
