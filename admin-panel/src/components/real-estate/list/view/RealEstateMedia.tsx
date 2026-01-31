@@ -1,4 +1,4 @@
-import { TabsContent } from "@/components/elements/Tabs";
+
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import type { Property } from "@/types/real_estate/realEstate";
 import { MediaImage } from "@/components/media/base/MediaImage";
@@ -24,7 +24,7 @@ export function RealEstateMedia({ property }: MediaInfoTabProps) {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {mediaArray.map((item: any) => {
           const media = item.media_detail || item.media || item;
-          
+
           const mediaUrl = media?.cover_image_url || media?.cover_image?.file_url || media?.file_url || media?.url || null;
           const fullUrl = mediaUrl ? mediaService.getMediaUrlFromObject({ file_url: mediaUrl } as any) : null;
 
@@ -59,19 +59,19 @@ export function RealEstateMedia({ property }: MediaInfoTabProps) {
   };
 
   const allMedia = property.media || property.property_media || [];
-  
+
   const audios = allMedia.filter((item: any) => {
     const media = item.media_detail || item.media || item;
     return media?.media_type === 'audio';
   });
-  
+
   const documents = allMedia.filter((item: any) => {
     const media = item.media_detail || item.media || item;
     return media?.media_type === 'document' || media?.media_type === 'pdf';
   });
 
   return (
-    <TabsContent value="media" className="mt-0 space-y-6">
+    <div className="mt-0 space-y-6">
       <div className="grid grid-cols-1 gap-6">
         <CardWithIcon
           icon={Music}
@@ -95,7 +95,7 @@ export function RealEstateMedia({ property }: MediaInfoTabProps) {
           {renderMediaGrid(documents, "document")}
         </CardWithIcon>
       </div>
-    </TabsContent>
+    </div>
   );
 }
 

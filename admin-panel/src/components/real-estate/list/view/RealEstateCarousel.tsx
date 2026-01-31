@@ -1,5 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
-import { Image as ImageIcon, X, ChevronLeft, ChevronRight, Play, Maximize2 } from "lucide-react";
+import {
+  Image as ImageIcon,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Play,
+  Maximize2
+} from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { mediaService } from "@/components/media/services";
 import type { Property } from "@/types/real_estate/realEstate";
@@ -17,19 +24,18 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
 
   const [mainRef, mainApi] = useEmblaCarousel({
     loop: true,
-    direction: 'rtl', // برای RTL
-    align: 'center',
+    direction: 'rtl',
   });
 
   const [thumbRef, thumbApi] = useEmblaCarousel({
     containScroll: 'keepSnaps',
     dragFree: true,
-    direction: 'rtl', // برای RTL
+    direction: 'rtl',
   });
 
   const [lightboxRef, lightboxApi] = useEmblaCarousel({
     loop: true,
-    direction: 'rtl', // برای RTL
+    direction: 'rtl',
   });
 
   const allMedia = property.media || property.property_media || [];
@@ -135,156 +141,150 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
 
   return (
     <>
-      <Card className={className}>
-        <CardContent className="space-y-4">
-          <div className="relative w-full h-[500px] rounded-xl overflow-hidden bg-bg-2 group">
-            <div ref={mainRef} className="overflow-hidden h-full">
-              <div className="flex h-full" dir="rtl">
-                {mediaItems.map((item, index) => (
-                  <div key={item.id} className="flex-[0_0_100%] min-w-0 h-full">
-                    <div
-                      className="relative w-full h-full bg-bg-2 cursor-pointer"
-                      onClick={() => {
-                        setIsLightboxOpen(true);
-                      }}
-                      title="کلیک برای نمایش تمام صفحه"
-                    >
-                      {item.type === 'video' ? (
-                        <>
-                          <video
-                            src={item.url}
-                            className="w-full h-full object-cover"
-                            controls
-                            poster={item.coverUrl}
-                            preload="metadata"
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div className="size-16 rounded-full bg-static-b/60 backdrop-blur-sm flex items-center justify-center">
-                              <Play className="w-8 h-8 text-static-w fill-static-w" />
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        <img
+      <div className={cn("overflow-hidden rounded-xl bg-card", className)}>
+        {/* Main Slider Area - Full Width/Immersive - Removed internal borders/padding */}
+        <div className="relative w-full h-[450px] md:h-[550px] group bg-bg-2">
+
+          <div ref={mainRef} className="overflow-hidden h-full">
+            <div className="flex h-full" dir="rtl">
+              {mediaItems.map((item, index) => (
+                <div key={item.id} className="flex-[0_0_100%] min-w-0 h-full">
+                  <div
+                    className="relative w-full h-full cursor-pointer"
+                    onClick={() => setIsLightboxOpen(true)}
+                  >
+                    {item.type === 'video' ? (
+                      <div className="relative w-full h-full bg-black">
+                        <video
                           src={item.url}
-                          alt={item.alt}
-                          className="w-full h-full object-cover"
-                          loading={index === 0 ? "eager" : "lazy"}
+                          className="w-full h-full object-contain"
+                          poster={item.coverUrl}
                         />
-                      )}
-                      {item.isMainImage && (
-                        <div className="absolute top-3 left-3 px-3 py-1.5 rounded-md bg-primary text-static-w text-xs font-bold shadow-lg z-10">
-                          عکس شاخص
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
+                          <div className="size-20 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
+                            <Play className="w-8 h-8 text-white fill-white ml-1" />
+                          </div>
                         </div>
-                      )}
+                      </div>
+                    ) : (
+                      <img
+                        src={item.url}
+                        alt={item.alt}
+                        className="w-full h-full object-cover"
+                        loading={index === 0 ? "eager" : "lazy"}
+                      />
+                    )}
 
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsLightboxOpen(true);
-                        }}
-                        className="absolute top-3 right-3 size-10 rounded-lg bg-static-b/60 backdrop-blur-sm text-static-w flex items-center justify-center hover:bg-static-b/80 transition-all z-20 cursor-pointer border-none"
-                        title="نمایش تمام صفحه"
-                      >
-                        <Maximize2 className="w-5 h-5" />
-                      </button>
-
-                    </div>
+                    <div className="absolute inset-0 bg-linear-to-b from-black/0 via-black/0 to-black/30 pointer-events-none" />
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
+          </div>
 
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-lg bg-static-b/60 backdrop-blur-sm text-static-w text-sm font-medium z-10">
-              {selectedIndex + 1} / {mediaItems.length}
-            </div>
-
-            {mediaItems.length > 1 && (
-              <>
-                <button
-                  onClick={scrollNext}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 size-10 rounded-full bg-static-b/80 backdrop-blur-sm text-static-w hover:bg-static-b border-none shadow-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 cursor-pointer z-20"
-                  aria-label="تصویر بعدی"
-                >
-                  <ChevronLeft className="w-6 h-6" />
-                </button>
-                <button
-                  onClick={scrollPrev}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 size-10 rounded-full bg-static-b/80 backdrop-blur-sm text-static-w hover:bg-static-b border-none shadow-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 cursor-pointer z-20"
-                  aria-label="تصویر قبلی"
-                >
-                  <ChevronRight className="w-6 h-6" />
-                </button>
-              </>
+          {/* Overlays */}
+          <div className="absolute top-4 right-4 flex gap-2 z-10">
+            {mediaItems[selectedIndex]?.isMainImage && (
+              <span className="px-3 py-1.5 rounded-lg bg-primary/90 text-white text-xs font-bold shadow-sm backdrop-blur-sm">
+                عکس شاخص
+              </span>
+            )}
+            {mediaItems[selectedIndex]?.type === 'video' && (
+              <span className="px-3 py-1.5 rounded-lg bg-red-500/90 text-white text-xs font-bold shadow-sm backdrop-blur-sm flex items-center gap-1">
+                <Play className="w-3 h-3 fill-current" />
+                ویدیو
+              </span>
             )}
           </div>
 
+          <div className="absolute top-4 left-4 z-10">
+            <button
+              onClick={() => setIsLightboxOpen(true)}
+              className="p-2.5 rounded-lg bg-black/40 text-white hover:bg-black/60 backdrop-blur-md transition-all cursor-pointer"
+              title="نمایش تمام صفحه"
+            >
+              <Maximize2 className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="absolute bottom-4 right-4 z-10 px-3 py-1.5 rounded-lg bg-black/50 backdrop-blur-md text-white text-sm font-medium border border-white/10">
+            {selectedIndex + 1} از {mediaItems.length}
+          </div>
+
+          {/* Navigation Arrows */}
           {mediaItems.length > 1 && (
-            <div className="relative pt-2">
-              <div ref={thumbRef} className="overflow-hidden">
-                <div className="flex gap-3" dir="rtl">
-                  {mediaItems.map((item, index) => (
-                    <button
-                      key={item.id}
-                      onClick={() => onThumbClick(index)}
-                      className={cn(
-                        "relative flex-[0_0_auto] w-28 h-20 md:w-36 md:h-24 rounded-lg overflow-hidden border-2 transition-all cursor-pointer",
-                        selectedIndex === index
-                          ? "border-primary shadow-lg scale-105 ring-2 ring-primary/30"
-                          : "border-br hover:border-primary/50 hover:shadow-md"
-                      )}
-                    >
-                      <img
-                        src={item.type === 'video' ? item.coverUrl : item.url}
-                        alt={item.alt}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                      {item.isMainImage && (
-                        <div className="absolute top-1 right-1 px-2 py-1 rounded bg-primary text-static-w text-[11px] font-bold shadow-md z-10">
-                          شاخص
-                        </div>
-                      )}
-                      {item.type === 'video' && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="size-6 rounded-full bg-static-b/80 flex items-center justify-center">
-                            <Play className="w-3 h-3 text-static-w fill-static-w" />
-                          </div>
-                        </div>
-                      )}
-                      {selectedIndex === index && (
-                        <div className="absolute inset-0 bg-primary/20" />
-                      )}
-                    </button>
-                  ))}
-                </div>
+            <>
+              <button
+                onClick={scrollNext}
+                className="absolute left-4 top-1/2 -translate-y-1/2 size-12 rounded-full bg-black/20 hover:bg-black/50 backdrop-blur-md text-white border border-white/10 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 cursor-pointer z-20"
+              >
+                <ChevronLeft className="w-7 h-7" />
+              </button>
+              <button
+                onClick={scrollPrev}
+                className="absolute right-4 top-1/2 -translate-y-1/2 size-12 rounded-full bg-black/20 hover:bg-black/50 backdrop-blur-md text-white border border-white/10 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 cursor-pointer z-20"
+              >
+                <ChevronRight className="w-7 h-7" />
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Thumbnails - Clean Strip - Removed top border */}
+        {mediaItems.length > 1 && (
+          <div className="py-3 px-3 bg-card custom-scrollbar overflow-x-auto">
+            <div ref={thumbRef} className="overflow-hidden">
+              <div className="flex gap-2.5" dir="rtl">
+                {mediaItems.map((item, index) => (
+                  <button
+                    key={item.id}
+                    onClick={() => onThumbClick(index)}
+                    className={cn(
+                      "relative flex-[0_0_auto] w-24 h-16 rounded-lg overflow-hidden transition-all cursor-pointer",
+                      selectedIndex === index
+                        ? "ring-2 ring-primary ring-offset-2 ring-offset-card"
+                        : "opacity-70 hover:opacity-100"
+                    )}
+                  >
+                    <img
+                      src={item.type === 'video' ? item.coverUrl : item.url}
+                      alt={item.alt}
+                      className="w-full h-full object-cover"
+                    />
+                    {item.type === 'video' && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                        <Play className="w-4 h-4 text-white fill-white" />
+                      </div>
+                    )}
+                  </button>
+                ))}
               </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+        )}
+      </div>
 
+      {/* Lightbox Modal */}
       {isLightboxOpen && (
-        <div className="fixed inset-0 z-50 bg-static-b/95 backdrop-blur-md flex items-center justify-center">
-          <button
-            onClick={() => setIsLightboxOpen(false)}
-            className="absolute top-4 left-4 z-50 p-2 rounded-lg bg-static-w/20 hover:bg-static-w/30 text-static-w transition-colors cursor-pointer"
-          >
-            <X className="w-6 h-6" />
-          </button>
-
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg bg-static-w/20 backdrop-blur-sm text-static-w font-medium z-50">
-            {selectedIndex + 1} / {mediaItems.length}
+        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center">
+          <div className="absolute top-0 w-full p-4 flex justify-between items-center z-50 bg-linear-to-b from-black/50 to-transparent">
+            <span className="text-white font-medium">{selectedIndex + 1} / {mediaItems.length}</span>
+            <button
+              onClick={() => setIsLightboxOpen(false)}
+              className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+            >
+              <X className="w-6 h-6" />
+            </button>
           </div>
 
           <div ref={lightboxRef} className="overflow-hidden w-full h-full">
             <div className="flex h-full" dir="rtl">
               {mediaItems.map((item, index) => (
-                <div key={item.id} className="flex-[0_0_100%] min-w-0 h-full flex items-center justify-center p-8">
+                <div key={item.id} className="flex-[0_0_100%] min-w-0 h-full flex items-center justify-center p-4">
                   {item.type === 'video' ? (
                     <video
                       src={item.url}
-                      className="max-w-full max-h-full"
+                      className="max-w-full max-h-[90vh] rounded-lg shadow-2xl"
                       controls
                       poster={item.coverUrl}
                       preload="metadata"
@@ -294,7 +294,7 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
                     <img
                       src={item.url}
                       alt={item.alt}
-                      className="max-w-full max-h-full object-contain"
+                      className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
                       loading={index === selectedIndex ? "eager" : "lazy"}
                     />
                   )}
@@ -307,13 +307,13 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
             <>
               <button
                 onClick={() => lightboxApi?.scrollPrev()}
-                className="absolute right-4 top-1/2 -translate-y-1/2 size-12 rounded-full bg-static-w/20 hover:bg-static-w/30 text-static-w flex items-center justify-center transition-colors cursor-pointer"
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer backdrop-blur-sm"
               >
                 <ChevronRight className="w-8 h-8" />
               </button>
               <button
                 onClick={() => lightboxApi?.scrollNext()}
-                className="absolute left-4 top-1/2 -translate-y-1/2 size-12 rounded-full bg-static-w/20 hover:bg-static-w/30 text-static-w flex items-center justify-center transition-colors cursor-pointer"
+                className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer backdrop-blur-sm"
               >
                 <ChevronLeft className="w-8 h-8" />
               </button>

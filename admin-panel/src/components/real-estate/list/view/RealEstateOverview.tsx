@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TabsContent } from "@/components/elements/Tabs";
+
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import type { Property } from "@/types/real_estate/realEstate";
 import { Badge } from "@/components/elements/Badge";
@@ -12,7 +12,6 @@ import {
   Music,
   FileText,
   Building2,
-  MapPin,
   Home,
   Info,
   Loader2,
@@ -20,8 +19,10 @@ import {
   Eye,
   Heart,
   MessageCircle,
+  Layers,
+  Calendar,
+  DollarSign
 } from "lucide-react";
-import { Button } from "@/components/elements/Button";
 import { realEstateApi } from "@/api/real-estate";
 import { mediaService } from "@/components/media/services";
 import { RealEstateFeatures } from "./RealEstateFeatures.tsx";
@@ -62,9 +63,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
     }
   ).length;
 
-  const labelsCount = property.labels?.length || 0;
-  const tagsCount = property.tags?.length || 0;
-
   const [floorPlanImages, setFloorPlanImages] = useState<Record<number, FloorPlanImage[]>>({});
   const [loadingImages, setLoadingImages] = useState<Record<number, boolean>>({});
 
@@ -92,72 +90,103 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
   };
 
   return (
-    <TabsContent value="overview" className="mt-0 space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <CardWithIcon
-          icon={Tag}
-          title="برچسب‌ها"
-          iconBgColor="bg-indigo"
-          iconColor="stroke-indigo-2"
-          borderColor="border-b-indigo-1"
-          headerClassName="pb-3"
-          titleExtra={<Badge variant="indigo">{labelsCount} مورد</Badge>}
-        >
-          <p className="text-font-s mb-4">
-            برچسب‌های مرتبط با این ملک
-          </p>
-          {property.labels && property.labels.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {property.labels.map((label) => (
-                <Badge
-                  key={label.id}
-                  variant="indigo"
-                  className="cursor-default"
-                >
-                  <Tag className="w-3 h-3 me-1" />
-                  {label.title}
-                </Badge>
-              ))}
-            </div>
-          ) : (
-            <p className="text-font-s">
-              برچسبی انتخاب نشده است
-            </p>
-          )}
-        </CardWithIcon>
+    <div className="mt-0 space-y-6">
 
-        <CardWithIcon
-          icon={Tag}
-          title="تگ‌ها"
-          iconBgColor="bg-purple"
-          iconColor="stroke-purple-2"
-          borderColor="border-b-purple-1"
-          headerClassName="pb-3"
-          titleExtra={<Badge variant="purple">{tagsCount} مورد</Badge>}
-        >
-          <p className="text-font-s mb-4">
-            تگ‌های مرتبط با این ملک
-          </p>
-          {property.tags && property.tags.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {property.tags.map((tag) => (
-                <Badge
-                  key={tag.id}
-                  variant="purple"
-                  className="cursor-default"
-                >
-                  <Tag className="w-3 h-3 me-1" />
-                  {tag.title}
-                </Badge>
-              ))}
-            </div>
-          ) : (
-            <p className="text-font-s">
-              تگی انتخاب نشده است
-            </p>
-          )}
-        </CardWithIcon>
+      {/* 1. KEY DETAILS (Moved to Top as requested) */}
+      <CardWithIcon
+        icon={Info}
+        title="جزئیات و مشخصات ملک"
+        iconBgColor="bg-blue"
+        iconColor="stroke-blue-2"
+        borderColor="border-b-blue-1"
+        contentClassName="space-y-0"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-4">
+            {property.property_type && (
+              <div className="flex justify-between items-center border-b border-br/50 pb-3">
+                <div className="flex items-center gap-2 text-font-s">
+                  <Home className="w-4 h-4 text-blue-1" />
+                  <span className="font-medium">نوع ملک:</span>
+                </div>
+                <span className="text-font-p font-semibold">{property.property_type.title || "-"}</span>
+              </div>
+            )}
+            {property.built_area && (
+              <div className="flex justify-between items-center border-b border-br/50 pb-3">
+                <div className="flex items-center gap-2 text-font-s">
+                  <Layers className="w-4 h-4 text-blue-1" />
+                  <span className="font-medium">متراژ بنا:</span>
+                </div>
+                <span className="text-font-p font-semibold" dir="ltr">{formatPrice(property.built_area)} متر مربع</span>
+              </div>
+            )}
+            {property.land_area && (
+              <div className="flex justify-between items-center border-b border-br/50 pb-3">
+                <div className="flex items-center gap-2 text-font-s">
+                  <Layers className="w-4 h-4 text-green-1" />
+                  <span className="font-medium">متراژ زمین:</span>
+                </div>
+                <span className="text-font-p font-semibold" dir="ltr">{formatPrice(property.land_area)} متر مربع</span>
+              </div>
+            )}
+          </div>
 
+          <div className="space-y-4">
+            {property.price && (
+              <div className="flex justify-between items-center border-b border-br/50 pb-3">
+                <div className="flex items-center gap-2 text-font-s">
+                  <DollarSign className="w-4 h-4 text-emerald-600" />
+                  <span className="font-medium">قیمت کل:</span>
+                </div>
+                <span className="text-emerald-600 font-bold">{formatPrice(property.price)} {property.currency || 'تومان'}</span>
+              </div>
+            )}
+            {property.bedrooms !== null && property.bedrooms !== undefined && (
+              <div className="flex justify-between items-center border-b border-br/50 pb-3">
+                <div className="flex items-center gap-2 text-font-s">
+                  <Building2 className="w-4 h-4 text-purple-1" />
+                  <span className="font-medium">تعداد اتاق خواب:</span>
+                </div>
+                <span className="text-font-p font-semibold">{property.bedrooms === 0 ? 'استودیو' : `${property.bedrooms} باب`}</span>
+              </div>
+            )}
+            {property.bathrooms !== null && property.bathrooms !== undefined && (
+              <div className="flex justify-between items-center border-b border-br/50 pb-3">
+                <div className="flex items-center gap-2 text-font-s">
+                  <Building2 className="w-4 h-4 text-cyan-1" />
+                  <span className="font-medium">سرویس بهداشتی:</span>
+                </div>
+                <span className="text-font-p font-semibold">{property.bathrooms === 0 ? 'ندارد' : `${property.bathrooms} باب`}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            {property.year_built && (
+              <div className="flex justify-between items-center border-b border-br/50 pb-3">
+                <div className="flex items-center gap-2 text-font-s">
+                  <Calendar className="w-4 h-4 text-orange-1" />
+                  <span className="font-medium">سال ساخت:</span>
+                </div>
+                <span className="text-font-p font-semibold">{property.year_built}</span>
+              </div>
+            )}
+            {property.parking_spaces !== null && property.parking_spaces !== undefined && (
+              <div className="flex justify-between items-center border-b border-br/50 pb-3">
+                <div className="flex items-center gap-2 text-font-s">
+                  <Home className="w-4 h-4 text-gray-500" />
+                  <span className="font-medium">پارکینگ:</span>
+                </div>
+                <span className="text-font-p font-semibold">{property.parking_spaces === 0 ? 'ندارد' : `${property.parking_spaces} جای پارک`}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </CardWithIcon>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* 2. STATS & STATUS (Kept but simplified) */}
         <CardWithIcon
           icon={Activity}
           title="آمار و وضعیت"
@@ -165,223 +194,91 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
           iconColor="stroke-teal-2"
           borderColor="border-b-teal-1"
           headerClassName="pb-3"
-          titleExtra={<Badge variant="teal">فعال</Badge>}
+          titleExtra={
+            (() => {
+              const statusMap: Record<string, { label: string; variant: any }> = {
+                active: { label: "فعال", variant: "green" },
+                pending: { label: "در حال معامله", variant: "yellow" },
+                sold: { label: "فروخته شده", variant: "red" },
+                rented: { label: "اجاره داده شده", variant: "blue" },
+                archived: { label: "بایگانی شده", variant: "gray" },
+              };
+              const config = statusMap[property.status] || { label: property.status, variant: "gray" };
+              return <Badge variant={config.variant}>{config.label}</Badge>;
+            })()
+          }
         >
-          <p className="text-font-s mb-4">
-            آمار بازدید و تعامل کاربران
-          </p>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-2 rounded-lg bg-bg-2/50 hover:bg-bg-2 transition-colors border border-br/50">
-              <div className="flex items-center gap-2 text-font-s">
-                <Activity className="w-4 h-4 text-teal-2" />
-                <span>وضعیت فرآیند</span>
-              </div>
-              {(() => {
-                const statusMap: Record<string, { label: string; variant: any }> = {
-                  active: { label: "فعال", variant: "green" },
-                  pending: { label: "در حال معامله", variant: "yellow" },
-                  sold: { label: "فروخته شده", variant: "red" },
-                  rented: { label: "اجاره داده شده", variant: "blue" },
-                  archived: { label: "بایگانی شده", variant: "gray" },
-                };
-                const config = statusMap[property.status] || { label: property.status, variant: "gray" };
-                return <Badge variant={config.variant}>{config.label}</Badge>;
-              })()}
-            </div>
-
-            <div className="flex items-center justify-between p-2 rounded-lg bg-bg-2/50 hover:bg-bg-2 transition-colors">
+            <div className="flex items-center justify-between p-2 rounded-lg bg-bg-2/50 hover:bg-bg-2 transition-colors border-b border-br/50 last:border-0">
               <div className="flex items-center gap-2 text-font-s">
                 <Eye className="w-4 h-4 text-gray-2" />
-                <span>بازدیدها</span>
+                <span>تعداد بازدیدها</span>
               </div>
-              <span className="font-medium text-font-p">{property.views_count || 0}</span>
+              <span className="font-bold text-font-p">{property.views_count || 0}</span>
             </div>
 
-            <div className="flex items-center justify-between p-2 rounded-lg bg-bg-2/50 hover:bg-bg-2 transition-colors">
+            <div className="flex items-center justify-between p-2 rounded-lg bg-bg-2/50 hover:bg-bg-2 transition-colors border-b border-br/50 last:border-0">
               <div className="flex items-center gap-2 text-font-s">
                 <Heart className="w-4 h-4 text-red-1" />
                 <span>علاقه‌مندی‌ها</span>
               </div>
-              <span className="font-medium text-font-p">{property.favorites_count || 0}</span>
+              <span className="font-bold text-font-p">{property.favorites_count || 0}</span>
             </div>
 
-            <div className="flex items-center justify-between p-2 rounded-lg bg-bg-2/50 hover:bg-bg-2 transition-colors">
+            <div className="flex items-center justify-between p-2 rounded-lg bg-bg-2/50 hover:bg-bg-2 transition-colors border-b border-br/50 last:border-0">
               <div className="flex items-center gap-2 text-font-s">
                 <MessageCircle className="w-4 h-4 text-blue-1" />
                 <span>درخواست‌ها</span>
               </div>
-              <span className="font-medium text-font-p">{property.inquiries_count || 0}</span>
+              <span className="font-bold text-font-p">{property.inquiries_count || 0}</span>
             </div>
           </div>
         </CardWithIcon>
 
+        {/* 3. MEDIA SUMMARY */}
         <CardWithIcon
           icon={ImageIcon}
-          title="مدیا"
+          title="خلاصه رسانه‌ها"
           iconBgColor="bg-blue"
           iconColor="stroke-blue-2"
           borderColor="border-b-blue-1"
           headerClassName="pb-3"
-          titleExtra={<Badge variant="blue">{property.media_count || 0} مورد</Badge>}
-          className="md:col-span-3"
+          titleExtra={<Badge variant="blue">{property.media_count || 0} فایل</Badge>}
         >
-          <p className="text-font-s mb-4">
-            تعداد کل رسانه‌های آپلود شده
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-2 p-2 bg-blue rounded">
-              <ImageIcon className="w-4 h-4 stroke-blue-2" />
-              <span>{imagesCount} تصویر</span>
+          <div className="grid grid-cols-2 gap-3 h-full content-start">
+            <div className="flex items-center justify-between p-2.5 bg-blue-0/10 rounded-lg border border-blue-1/10">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-blue-600" />
+                <span className="text-xs font-medium text-blue-700">تصویر</span>
+              </div>
+              <span className="font-bold text-blue-700">{imagesCount}</span>
             </div>
-            <div className="flex items-center gap-2 p-2 bg-purple rounded">
-              <Video className="w-4 h-4 stroke-purple-2" />
-              <span>{videosCount} ویدیو</span>
+            <div className="flex items-center justify-between p-2.5 bg-purple-0/10 rounded-lg border border-purple-1/10">
+              <div className="flex items-center gap-2">
+                <Video className="w-4 h-4 text-purple-600" />
+                <span className="text-xs font-medium text-purple-700">ویدیو</span>
+              </div>
+              <span className="font-bold text-purple-700">{videosCount}</span>
             </div>
-            <div className="flex items-center gap-2 p-2 bg-pink rounded">
-              <Music className="w-4 h-4 stroke-pink-2" />
-              <span>{audiosCount} صدا</span>
+            <div className="flex items-center justify-between p-2.5 bg-pink-0/10 rounded-lg border border-pink-1/10">
+              <div className="flex items-center gap-2">
+                <Music className="w-4 h-4 text-pink-600" />
+                <span className="text-xs font-medium text-pink-700">صدا</span>
+              </div>
+              <span className="font-bold text-pink-700">{audiosCount}</span>
             </div>
-            <div className="flex items-center gap-2 p-2 bg-gray rounded">
-              <FileText className="w-4 h-4 stroke-gray-2" />
-              <span>{documentsCount} سند</span>
+            <div className="flex items-center justify-between p-2.5 bg-gray-100 rounded-lg border border-gray-200">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-gray-600" />
+                <span className="text-xs font-medium text-gray-700">سند</span>
+              </div>
+              <span className="font-bold text-gray-700">{documentsCount}</span>
             </div>
           </div>
         </CardWithIcon>
       </div>
 
-      <CardWithIcon
-        icon={Info}
-        title="جزئیات"
-        iconBgColor="bg-blue"
-        iconColor="stroke-blue-2"
-        borderColor="border-b-blue-1"
-        contentClassName="space-y-0"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="space-y-4">
-            {property.property_type && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s font-medium">نوع ملک:</span>
-                <span className="text-font-p text-right">{property.property_type.title || "-"}</span>
-              </div>
-            )}
-            {property.built_area && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s font-medium">متراژ:</span>
-                <span className="text-font-p text-right">{formatPrice(property.built_area)} متر مربع</span>
-              </div>
-            )}
-            {property.bathrooms !== null && property.bathrooms !== undefined && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s font-medium">سرویس/حمام:</span>
-                <span className="text-font-p text-right">{property.bathrooms === 0 ? 'ندارد' : `${property.bathrooms} عدد`}</span>
-              </div>
-            )}
-            {property.parking_spaces !== null && property.parking_spaces !== undefined && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s font-medium">پارکینگ:</span>
-                <span className="text-font-p text-right">{property.parking_spaces === 0 ? 'ندارد' : `${property.parking_spaces} عدد`}</span>
-              </div>
-            )}
-            {property.year_built && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s font-medium">سال ساخت:</span>
-                <span className="text-font-p text-right">{property.year_built}</span>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-4">
-            {property.price && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s font-medium">قیمت:</span>
-                <span className="text-font-p text-right font-medium">{formatPrice(property.price)} {property.currency || 'تومان'}</span>
-              </div>
-            )}
-            {property.bedrooms !== null && property.bedrooms !== undefined && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s font-medium">خواب:</span>
-                <span className="text-font-p text-right">{property.bedrooms === 0 ? 'استودیو' : `${property.bedrooms} اتاق`}</span>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-4">
-            {property.land_area && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s font-medium">متراژ زمین:</span>
-                <span className="text-font-p text-right">{formatPrice(property.land_area)} متر مربع</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </CardWithIcon>
-
-      {(property.address || property.city_name || property.province_name || property.postal_code || property.neighborhood) && (
-        <CardWithIcon
-          icon={MapPin}
-          title="آدرس"
-          iconBgColor="bg-emerald"
-          iconColor="stroke-emerald-2"
-          borderColor="border-b-emerald-1"
-          contentClassName="space-y-3"
-          titleExtra={
-            (property.latitude && property.longitude) ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const url = `https://www.google.com/maps?q=${property.latitude},${property.longitude}`;
-                  window.open(url, '_blank');
-                }}
-                className="flex items-center gap-2"
-              >
-                <MapPin className="w-4 h-4" />
-                باز کردن در Google Maps
-              </Button>
-            ) : undefined
-          }
-        >
-          <div className="space-y-3">
-            {property.address && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s font-medium">آدرس:</span>
-                <span className="text-font-p text-right">{property.address}</span>
-              </div>
-            )}
-            {property.city_name && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s font-medium">شهر:</span>
-                <span className="text-font-p text-right">{property.city_name}</span>
-              </div>
-            )}
-            {property.province_name && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s font-medium">استان/شهرستان:</span>
-                <span className="text-font-p text-right">{property.province_name}</span>
-              </div>
-            )}
-            {property.postal_code && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s font-medium">کد پستی:</span>
-                <span className="text-font-p text-right">{property.postal_code}</span>
-              </div>
-            )}
-            {property.neighborhood && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s font-medium">محله:</span>
-                <span className="text-font-p text-right">{property.neighborhood}</span>
-              </div>
-            )}
-            {property.district_name && (
-              <div className="flex justify-between items-start border-b pb-3">
-                <span className="text-font-s font-medium">منطقه:</span>
-                <span className="text-font-p text-right">{property.district_name}</span>
-              </div>
-            )}
-          </div>
-        </CardWithIcon>
-      )}
+      {/* 4. FEATURES, FLOOR PLANS, DESCRIPTION (As before) */}
 
       <RealEstateFeatures property={property} />
 
@@ -564,7 +461,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
           </div>
         </div>
       </CardWithIcon>
-    </TabsContent>
+    </div>
   );
 }
-

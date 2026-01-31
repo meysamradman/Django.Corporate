@@ -126,6 +126,7 @@ interface PropertyLocationMapProps {
   viewLongitude?: number | null;
   disabled?: boolean;
   className?: string;
+  minimal?: boolean;   // New prop
 }
 
 export default function LocationMap({
@@ -141,6 +142,7 @@ export default function LocationMap({
   viewLongitude,
   disabled = false,
   className = "",
+  minimal = false, // Default false
 }: PropertyLocationMapProps) {
   const [mapCenter, setMapCenter] = useState<[number, number]>([35.6892, 51.3890]); // Tehran, Iran
   const [mapZoom, setMapZoom] = useState<number>(6);
@@ -419,23 +421,28 @@ export default function LocationMap({
 
   return (
     <div className={`space-y-2 ${className}`}>
-      <div className="flex items-center justify-between">
-        <Label className="flex items-center gap-2">
-          <MapPin className="w-4 h-4" />
-          موقعیت روی نقشه
-        </Label>
-        {latitude && longitude && !disabled && (
-          <button
-            type="button"
-            onClick={handleClearLocation}
-            className="text-xs text-red-2 hover:text-red-1 transition-colors"
-          >
-            پاک کردن موقعیت
-          </button>
-        )}
-      </div>
+      {!minimal && (
+        <div className="flex items-center justify-between">
+          <Label className="flex items-center gap-2">
+            <MapPin className="w-4 h-4" />
+            موقعیت روی نقشه
+          </Label>
+          {latitude && longitude && !disabled && (
+            <button
+              type="button"
+              onClick={handleClearLocation}
+              className="text-xs text-red-2 hover:text-red-1 transition-colors"
+            >
+              پاک کردن موقعیت
+            </button>
+          )}
+        </div>
+      )}
 
-      <div className="relative rounded-lg border border-br overflow-hidden" style={{ height: "400px" }}>
+      <div
+        className={`relative overflow-hidden ${minimal ? '' : 'rounded-lg border border-br'}`}
+        style={{ height: minimal ? "100%" : "400px" }}
+      >
         {!isMapReady && (
           <div className="absolute inset-0 flex items-center justify-center bg-bg/50 z-[1000]">
             <div className="text-center space-y-2">
@@ -479,7 +486,7 @@ export default function LocationMap({
         </div>
       )}
 
-      {latitude && longitude && (
+      {latitude && longitude && !minimal && (
         <div className="text-xs text-muted-foreground space-y-1">
           <p>
             <span className="font-medium">عرض جغرافیایی:</span> {latitude.toFixed(6)}
