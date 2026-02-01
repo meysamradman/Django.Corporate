@@ -1,15 +1,10 @@
-import { useState } from "react";
 
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { useState } from "react";
 import type { Property } from "@/types/real_estate/realEstate";
 import { Badge } from "@/components/elements/Badge";
 import { ReadMore } from "@/components/elements/ReadMore";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/elements/Accordion";
 import {
-  Tag,
-  Image as ImageIcon,
-  Video,
-  Music,
   FileText,
   Building2,
   Home,
@@ -21,11 +16,13 @@ import {
   MessageCircle,
   Layers,
   Calendar,
-  DollarSign
+  DollarSign,
+  ImageIcon,
+  Video,
+  Music
 } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
 import { mediaService } from "@/components/media/services";
-import { RealEstateFeatures } from "./RealEstateFeatures.tsx";
 
 interface OverviewTabProps {
   property: Property;
@@ -90,112 +87,112 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
   };
 
   return (
-    <div className="mt-0 space-y-6">
+    <div className="space-y-8">
 
-      {/* 1. KEY DETAILS (Moved to Top as requested) */}
-      <CardWithIcon
-        icon={Info}
-        title="جزئیات و مشخصات ملک"
-        iconBgColor="bg-blue"
-        iconColor="stroke-blue-2"
-        borderColor="border-b-blue-1"
-        contentClassName="space-y-0"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* 1. KEY DETAILS */}
+      <div className="bg-card rounded-2xl border border-br p-6 shadow-sm">
+        <div className="flex items-center gap-3 mb-6 border-b border-br pb-4">
+          <div className="p-2 rounded-lg bg-blue-0/50 text-blue-1">
+            <Info className="w-5 h-5" />
+          </div>
+          <h2 className="text-lg font-bold text-font-p">جزئیات و مشخصات ملک</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <div className="space-y-4">
             {property.property_type && (
-              <div className="flex justify-between items-center border-b border-br/50 pb-3">
+              <div className="flex justify-between items-center group">
                 <div className="flex items-center gap-2 text-font-s">
-                  <Home className="w-4 h-4 text-blue-1" />
-                  <span className="font-medium">نوع ملک:</span>
+                  <Home className="w-4 h-4 text-blue-1/70" />
+                  <span className="text-sm">نوع ملک:</span>
                 </div>
-                <span className="text-font-p font-semibold">{property.property_type.title || "-"}</span>
+                <span className="text-sm font-bold text-font-p">{property.property_type.title || "-"}</span>
               </div>
             )}
             {property.built_area && (
-              <div className="flex justify-between items-center border-b border-br/50 pb-3">
+              <div className="flex justify-between items-center group">
                 <div className="flex items-center gap-2 text-font-s">
-                  <Layers className="w-4 h-4 text-blue-1" />
-                  <span className="font-medium">متراژ بنا:</span>
+                  <Layers className="w-4 h-4 text-blue-1/70" />
+                  <span className="text-sm">متراژ بنا:</span>
                 </div>
-                <span className="text-font-p font-semibold" dir="ltr">{formatPrice(property.built_area)} متر مربع</span>
+                <span className="text-sm font-bold text-font-p font-mono" dir="ltr">{formatPrice(property.built_area)} m²</span>
               </div>
             )}
             {property.land_area && (
-              <div className="flex justify-between items-center border-b border-br/50 pb-3">
+              <div className="flex justify-between items-center group">
                 <div className="flex items-center gap-2 text-font-s">
-                  <Layers className="w-4 h-4 text-green-1" />
-                  <span className="font-medium">متراژ زمین:</span>
+                  <Layers className="w-4 h-4 text-emerald-1/70" />
+                  <span className="text-sm">متراژ زمین:</span>
                 </div>
-                <span className="text-font-p font-semibold" dir="ltr">{formatPrice(property.land_area)} متر مربع</span>
+                <span className="text-sm font-bold text-font-p font-mono" dir="ltr">{formatPrice(property.land_area)} m²</span>
               </div>
             )}
           </div>
 
           <div className="space-y-4">
-            {property.price && (
-              <div className="flex justify-between items-center border-b border-br/50 pb-3">
-                <div className="flex items-center gap-2 text-font-s">
-                  <DollarSign className="w-4 h-4 text-emerald-600" />
-                  <span className="font-medium">قیمت کل:</span>
-                </div>
-                <span className="text-emerald-600 font-bold">{formatPrice(property.price)} {property.currency || 'تومان'}</span>
+            <div className="flex justify-between items-center group">
+              <div className="flex items-center gap-2 text-font-s">
+                <DollarSign className="w-4 h-4 text-emerald-1/70" />
+                <span className="text-sm">قیمت کل:</span>
               </div>
-            )}
+              <span className="text-sm font-bold text-emerald-1">
+                {property.price ? `${formatPrice(property.price)} ${property.currency || 'تومان'}` : 'توافقی'}
+              </span>
+            </div>
             {property.bedrooms !== null && property.bedrooms !== undefined && (
-              <div className="flex justify-between items-center border-b border-br/50 pb-3">
+              <div className="flex justify-between items-center group">
                 <div className="flex items-center gap-2 text-font-s">
-                  <Building2 className="w-4 h-4 text-purple-1" />
-                  <span className="font-medium">تعداد اتاق خواب:</span>
+                  <Building2 className="w-4 h-4 text-purple-1/70" />
+                  <span className="text-sm">تعداد اتاق خواب:</span>
                 </div>
-                <span className="text-font-p font-semibold">{property.bedrooms === 0 ? 'استودیو' : `${property.bedrooms} باب`}</span>
+                <span className="text-sm font-bold text-font-p">{property.bedrooms === 0 ? 'استودیو' : `${property.bedrooms} باب`}</span>
               </div>
             )}
             {property.bathrooms !== null && property.bathrooms !== undefined && (
-              <div className="flex justify-between items-center border-b border-br/50 pb-3">
+              <div className="flex justify-between items-center group">
                 <div className="flex items-center gap-2 text-font-s">
-                  <Building2 className="w-4 h-4 text-cyan-1" />
-                  <span className="font-medium">سرویس بهداشتی:</span>
+                  <Building2 className="w-4 h-4 text-cyan-1/70" />
+                  <span className="text-sm">سرویس بهداشتی:</span>
                 </div>
-                <span className="text-font-p font-semibold">{property.bathrooms === 0 ? 'ندارد' : `${property.bathrooms} باب`}</span>
+                <span className="text-sm font-bold text-font-p">{property.bathrooms === 0 ? 'ندارد' : `${property.bathrooms} باب`}</span>
               </div>
             )}
           </div>
 
           <div className="space-y-4">
             {property.year_built && (
-              <div className="flex justify-between items-center border-b border-br/50 pb-3">
+              <div className="flex justify-between items-center group">
                 <div className="flex items-center gap-2 text-font-s">
-                  <Calendar className="w-4 h-4 text-orange-1" />
-                  <span className="font-medium">سال ساخت:</span>
+                  <Calendar className="w-4 h-4 text-orange-1/70" />
+                  <span className="text-sm">سال ساخت:</span>
                 </div>
-                <span className="text-font-p font-semibold">{property.year_built}</span>
+                <span className="text-sm font-bold text-font-p">{property.year_built}</span>
               </div>
             )}
             {property.parking_spaces !== null && property.parking_spaces !== undefined && (
-              <div className="flex justify-between items-center border-b border-br/50 pb-3">
+              <div className="flex justify-between items-center group">
                 <div className="flex items-center gap-2 text-font-s">
-                  <Home className="w-4 h-4 text-gray-500" />
-                  <span className="font-medium">پارکینگ:</span>
+                  <Home className="w-4 h-4 text-gray-1" />
+                  <span className="text-sm">پارکینگ:</span>
                 </div>
-                <span className="text-font-p font-semibold">{property.parking_spaces === 0 ? 'ندارد' : `${property.parking_spaces} جای پارک`}</span>
+                <span className="text-sm font-bold text-font-p">{property.parking_spaces === 0 ? 'ندارد' : `${property.parking_spaces} جای پارک`}</span>
               </div>
             )}
           </div>
         </div>
-      </CardWithIcon>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* 2. STATS & STATUS (Kept but simplified) */}
-        <CardWithIcon
-          icon={Activity}
-          title="آمار و وضعیت"
-          iconBgColor="bg-teal"
-          iconColor="stroke-teal-2"
-          borderColor="border-b-teal-1"
-          headerClassName="pb-3"
-          titleExtra={
-            (() => {
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* 2. STATS & STATUS */}
+        <div className="bg-card rounded-2xl border border-br p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-teal-0/50 text-teal-1">
+                <Activity className="w-5 h-5" />
+              </div>
+              <h2 className="text-lg font-bold text-font-p">آمار و وضعیت</h2>
+            </div>
+            {(() => {
               const statusMap: Record<string, { label: string; variant: any }> = {
                 active: { label: "فعال", variant: "green" },
                 pending: { label: "در حال معامله", variant: "yellow" },
@@ -205,96 +202,121 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               };
               const config = statusMap[property.status] || { label: property.status, variant: "gray" };
               return <Badge variant={config.variant}>{config.label}</Badge>;
-            })()
-          }
-        >
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-2 rounded-lg bg-bg-2/50 hover:bg-bg-2 transition-colors border-b border-br/50 last:border-0">
-              <div className="flex items-center gap-2 text-font-s">
-                <Eye className="w-4 h-4 text-gray-2" />
-                <span>تعداد بازدیدها</span>
-              </div>
-              <span className="font-bold text-font-p">{property.views_count || 0}</span>
-            </div>
+            })()}
+          </div>
 
-            <div className="flex items-center justify-between p-2 rounded-lg bg-bg-2/50 hover:bg-bg-2 transition-colors border-b border-br/50 last:border-0">
-              <div className="flex items-center gap-2 text-font-s">
-                <Heart className="w-4 h-4 text-red-1" />
-                <span>علاقه‌مندی‌ها</span>
-              </div>
-              <span className="font-bold text-font-p">{property.favorites_count || 0}</span>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="p-4 rounded-xl bg-bg border border-br/50 flex flex-col items-center gap-2">
+              <Eye className="w-5 h-5 text-font-s opacity-70" />
+              <span className="text-lg font-bold text-font-p">{property.views_count || 0}</span>
+              <span className="text-[10px] font-bold text-font-s uppercase tracking-wider">بازدید</span>
             </div>
-
-            <div className="flex items-center justify-between p-2 rounded-lg bg-bg-2/50 hover:bg-bg-2 transition-colors border-b border-br/50 last:border-0">
-              <div className="flex items-center gap-2 text-font-s">
-                <MessageCircle className="w-4 h-4 text-blue-1" />
-                <span>درخواست‌ها</span>
-              </div>
-              <span className="font-bold text-font-p">{property.inquiries_count || 0}</span>
+            <div className="p-4 rounded-xl bg-bg border border-br/50 flex flex-col items-center gap-2">
+              <Heart className="w-5 h-5 text-red-1 opacity-70" />
+              <span className="text-lg font-bold text-font-p">{property.favorites_count || 0}</span>
+              <span className="text-[10px] font-bold text-font-s uppercase tracking-wider">علاقه‌مندی</span>
+            </div>
+            <div className="p-4 rounded-xl bg-bg border border-br/50 flex flex-col items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-blue-1 opacity-70" />
+              <span className="text-lg font-bold text-font-p">{property.inquiries_count || 0}</span>
+              <span className="text-[10px] font-bold text-font-s uppercase tracking-wider">درخواست</span>
             </div>
           </div>
-        </CardWithIcon>
+        </div>
 
         {/* 3. MEDIA SUMMARY */}
-        <CardWithIcon
-          icon={ImageIcon}
-          title="خلاصه رسانه‌ها"
-          iconBgColor="bg-blue"
-          iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
-          headerClassName="pb-3"
-          titleExtra={<Badge variant="blue">{property.media_count || 0} فایل</Badge>}
-        >
+        <div className="bg-card rounded-2xl border border-br p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-0/50 text-blue-1">
+                <ImageIcon className="w-5 h-5" />
+              </div>
+              <h2 className="text-lg font-bold text-font-p">خلاصه رسانه‌ها</h2>
+            </div>
+            <Badge variant="blue">{property.media_count || 0} فایل</Badge>
+          </div>
+
           <div className="grid grid-cols-2 gap-3 h-full content-start">
-            <div className="flex items-center justify-between p-2.5 bg-blue-0/10 rounded-lg border border-blue-1/10">
+            <div className="flex items-center justify-between p-3 bg-bg rounded-xl border border-br/50 group">
               <div className="flex items-center gap-2">
-                <ImageIcon className="w-4 h-4 text-blue-600" />
-                <span className="text-xs font-medium text-blue-700">تصویر</span>
+                <ImageIcon className="w-4 h-4 text-blue-1 opacity-70" />
+                <span className="text-xs font-bold text-font-s">تصویر</span>
               </div>
-              <span className="font-bold text-blue-700">{imagesCount}</span>
+              <span className="font-bold text-font-p">{imagesCount}</span>
             </div>
-            <div className="flex items-center justify-between p-2.5 bg-purple-0/10 rounded-lg border border-purple-1/10">
+            <div className="flex items-center justify-between p-3 bg-bg rounded-xl border border-br/50 group">
               <div className="flex items-center gap-2">
-                <Video className="w-4 h-4 text-purple-600" />
-                <span className="text-xs font-medium text-purple-700">ویدیو</span>
+                <Video className="w-4 h-4 text-purple-1 opacity-70" />
+                <span className="text-xs font-bold text-font-s">ویدیو</span>
               </div>
-              <span className="font-bold text-purple-700">{videosCount}</span>
+              <span className="font-bold text-font-p">{videosCount}</span>
             </div>
-            <div className="flex items-center justify-between p-2.5 bg-pink-0/10 rounded-lg border border-pink-1/10">
+            <div className="flex items-center justify-between p-3 bg-bg rounded-xl border border-br/50 group">
               <div className="flex items-center gap-2">
-                <Music className="w-4 h-4 text-pink-600" />
-                <span className="text-xs font-medium text-pink-700">صدا</span>
+                <Music className="w-4 h-4 text-pink-1 opacity-70" />
+                <span className="text-xs font-bold text-font-s">صدا</span>
               </div>
-              <span className="font-bold text-pink-700">{audiosCount}</span>
+              <span className="font-bold text-font-p">{audiosCount}</span>
             </div>
-            <div className="flex items-center justify-between p-2.5 bg-gray-100 rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between p-3 bg-bg rounded-xl border border-br/50 group">
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-gray-600" />
-                <span className="text-xs font-medium text-gray-700">سند</span>
+                <FileText className="w-4 h-4 text-gray-1 opacity-70" />
+                <span className="text-xs font-bold text-font-s">سند</span>
               </div>
-              <span className="font-bold text-gray-700">{documentsCount}</span>
+              <span className="font-bold text-font-p">{documentsCount}</span>
             </div>
           </div>
-        </CardWithIcon>
+        </div>
       </div>
 
-      {/* 4. FEATURES, FLOOR PLANS, DESCRIPTION (As before) */}
+      {/* 4. DESCRIPTION */}
+      <div className="bg-card rounded-2xl border border-br p-6 shadow-sm">
+        <div className="flex items-center gap-3 mb-6 border-b border-br pb-4">
+          <div className="p-2 rounded-lg bg-orange-0/50 text-orange-1">
+            <FileText className="w-5 h-5" />
+          </div>
+          <h2 className="text-lg font-bold text-font-p">توضیحات و جزئیات تکمیلی</h2>
+        </div>
 
-      <RealEstateFeatures property={property} />
+        <div className="space-y-8">
+          <div>
+            <label className="text-[10px] font-bold text-font-s uppercase tracking-wider mb-2 block">
+              توضیحات کوتاه
+            </label>
+            <div className="text-sm text-font-p border-r-2 border-blue-1/30 pr-4 leading-relaxed">
+              {property.short_description || "توضیحی وارد نشده است"}
+            </div>
+          </div>
 
+          <div>
+            <label className="text-[10px] font-bold text-font-s uppercase tracking-wider mb-2 block">
+              توضیحات کامل
+            </label>
+            <div className="text-sm text-font-p bg-bg/50 rounded-xl p-5 leading-loose">
+              {property.description ? (
+                <ReadMore content={property.description} isHTML={true} maxHeight="200px" />
+              ) : (
+                "توضیحی وارد نشده است"
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 5. FLOOR PLANS */}
       {property.floor_plans && property.floor_plans.length > 0 && (
-        <CardWithIcon
-          icon={Home}
-          title="پلان طبقات"
-          iconBgColor="bg-orange"
-          iconColor="stroke-orange-2"
-          borderColor="border-b-orange-1"
-          contentClassName="space-y-0"
-        >
+        <div className="bg-card rounded-2xl border border-br p-6 shadow-sm">
+          <div className="flex items-center gap-3 mb-6 border-b border-br pb-4">
+            <div className="p-2 rounded-lg bg-indigo-0/50 text-indigo-1">
+              <Home className="w-5 h-5" />
+            </div>
+            <h2 className="text-lg font-bold text-font-p">پلان طبقات</h2>
+          </div>
+
           <Accordion
             type="single"
             collapsible
-            className="w-full"
+            className="w-full space-y-3"
             onValueChange={(value) => {
               if (value) {
                 const floorPlanId = parseInt(value.replace('floor-plan-', ''));
@@ -309,158 +331,57 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               const isLoading = loadingImages[floorPlan.id];
 
               return (
-                <AccordionItem key={floorPlan.id} value={`floor-plan-${floorPlan.id}`} className="border-b last:border-b-0">
-                  <AccordionTrigger className="py-4 hover:no-underline">
-                    <div className="flex items-center justify-between w-full pr-4">
-                      <div className="flex items-center gap-3 flex-1">
-                        <Home className="w-5 h-5 text-orange-2 shrink-0" />
-                        <div className="flex flex-col items-start gap-1">
-                          <h4 className="text-font-p font-semibold text-right">{floorPlan.title}</h4>
-                          <div className="flex flex-wrap items-center gap-4 text-font-s">
-                            <span>اندازه: {typeof floorPlan.floor_size === 'number' ? floorPlan.floor_size.toFixed(2) : floorPlan.floor_size} {floorPlan.size_unit === 'sqft' ? 'فوت مربع' : 'متر مربع'}</span>
-                            {floorPlan.bedrooms !== null && floorPlan.bedrooms !== undefined && (
-                              <span className="flex items-center gap-1">
-                                <Building2 className="w-4 h-4" />
-                                {floorPlan.bedrooms} خواب
-                              </span>
-                            )}
-                            {floorPlan.bathrooms !== null && floorPlan.bathrooms !== undefined && (
-                              <span className="flex items-center gap-1">
-                                <Building2 className="w-4 h-4" />
-                                {floorPlan.bathrooms} حمام
-                              </span>
-                            )}
-                            {floorPlan.price && (
-                              <span className="text-font-p font-medium">
-                                قیمت: {formatPrice(floorPlan.price)} {floorPlan.currency || 'IRR'}
-                              </span>
-                            )}
-                          </div>
+                <AccordionItem key={floorPlan.id} value={`floor-plan-${floorPlan.id}`} className="border border-br rounded-xl bg-bg px-4 overflow-hidden">
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex flex-col items-start gap-1">
+                        <span className="text-sm font-bold text-font-p">{floorPlan.title}</span>
+                        <div className="flex flex-wrap items-center gap-3 text-[10px] font-bold text-font-s uppercase">
+                          <span>{typeof floorPlan.floor_size === 'number' ? floorPlan.floor_size.toFixed(1) : floorPlan.floor_size} {floorPlan.size_unit === 'sqft' ? 'SQFT' : 'm²'}</span>
+                          {floorPlan.bedrooms !== null && <span>• {floorPlan.bedrooms} خواب</span>}
+                          {floorPlan.bathrooms !== null && <span>• {floorPlan.bathrooms} حمام</span>}
                         </div>
                       </div>
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="pt-0 pb-4 pr-4">
-                    <div className="space-y-4">
+                  <AccordionContent className="pb-4">
+                    <div className="space-y-4 pt-2 border-t border-br/50">
                       {floorPlan.description && (
-                        <div className="text-font-s bg-bg/50 rounded-lg p-4">
-                          <p className="text-justify leading-relaxed">{floorPlan.description}</p>
-                        </div>
+                        <p className="text-xs text-font-s leading-relaxed italic">{floorPlan.description}</p>
                       )}
 
                       {(images.length > 0 || isLoading || (floorPlan.main_image && (floorPlan.main_image.file_url || floorPlan.main_image.url))) && (
-                        <div className="space-y-3">
-                          <h5 className="text-font-s font-medium ">تصاویر پلان:</h5>
-
+                        <div className="rounded-xl overflow-hidden bg-card border border-br">
                           {isLoading ? (
-                            <div className="flex items-center justify-center py-8">
-                              <Loader2 className="text-font-s w-6 h-6 animate-spin" />
+                            <div className="flex items-center justify-center py-12">
+                              <Loader2 className="w-6 h-6 animate-spin text-blue-1" />
                             </div>
                           ) : images.length > 0 ? (
-                            <div className="space-y-4">
-                              {images.map((imageItem, index) => {
+                            <div className="divide-y divide-br">
+                              {images.map((imageItem) => {
                                 const imageUrl = imageItem.image?.file_url || imageItem.image?.url;
                                 const fullImageUrl = imageUrl ? mediaService.getMediaUrlFromObject({ file_url: imageUrl } as any) : null;
-
-                                return (
-                                  <div key={imageItem.id} className="space-y-2">
-                                    {fullImageUrl && (
-                                      <div className="rounded-lg overflow-hidden border bg-bg-2 relative w-full">
-                                        <img
-                                          src={fullImageUrl}
-                                          alt={imageItem.image?.alt_text || imageItem.title || floorPlan.title}
-                                          className="w-full h-auto object-contain"
-                                          loading={index === 0 ? "eager" : "lazy"}
-                                        />
-                                        {imageItem.is_main && (
-                                          <div className="absolute top-2 left-2">
-                                            <Badge variant="orange" className="text-xs">تصویر اصلی</Badge>
-                                          </div>
-                                        )}
-                                      </div>
-                                    )}
-                                    {imageItem.title && (
-                                      <p className="text-font-xs text-gray-2 text-center">{imageItem.title}</p>
-                                    )}
+                                return fullImageUrl && (
+                                  <div key={imageItem.id} className="p-4 bg-card">
+                                    <img src={fullImageUrl} alt={floorPlan.title} className="w-full h-auto rounded-lg" />
+                                    {imageItem.title && <p className="mt-2 text-center text-[10px] text-font-s">{imageItem.title}</p>}
                                   </div>
                                 );
                               })}
                             </div>
-                          ) : floorPlan.main_image && (floorPlan.main_image.file_url || floorPlan.main_image.url) ? (
-                            <div className="rounded-lg overflow-hidden border bg-bg-2 w-full">
-                              <img
-                                src={mediaService.getMediaUrlFromObject(floorPlan.main_image as any)}
-                                alt={floorPlan.main_image.alt_text || floorPlan.title}
-                                className="w-full h-auto object-contain"
-                                loading="lazy"
-                              />
-                            </div>
-                          ) : null}
+                          ) : floorPlan.main_image && (
+                            <img src={mediaService.getMediaUrlFromObject(floorPlan.main_image as any)} alt={floorPlan.title} className="w-full h-auto" />
+                          )}
                         </div>
                       )}
-
-                      {(floorPlan.floor_number !== null && floorPlan.floor_number !== undefined) || floorPlan.unit_type ? (
-                        <div className="flex flex-wrap gap-4 text-font-s pt-2 border-t">
-                          {floorPlan.floor_number !== null && floorPlan.floor_number !== undefined && (
-                            <span>طبقه: {floorPlan.floor_number}</span>
-                          )}
-                          {floorPlan.unit_type && (
-                            <span>نوع واحد: {floorPlan.unit_type}</span>
-                          )}
-                          {floorPlan.is_available === false && (
-                            <span className="text-red-1">در دسترس نیست</span>
-                          )}
-                        </div>
-                      ) : null}
                     </div>
                   </AccordionContent>
                 </AccordionItem>
               );
             })}
           </Accordion>
-        </CardWithIcon>
+        </div>
       )}
-
-      <CardWithIcon
-        icon={FileText}
-        title="توضیحات"
-        iconBgColor="bg-blue"
-        iconColor="stroke-blue-2"
-        borderColor="border-b-blue-1"
-        contentClassName="space-y-6"
-      >
-        <div>
-          <label className="text-font-s mb-3 block">
-            توضیحات کوتاه
-          </label>
-          <div className="text-font-p leading-relaxed p-4 bg-bg/50 rounded-lg" style={{ textAlign: 'justify' }}>
-            {property.short_description || (
-              <span className="text-font-s">
-                توضیحی وارد نشده است
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div>
-          <label className="text-font-s mb-3 block">
-            توضیحات کامل
-          </label>
-          <div className="p-4 bg-bg/50 rounded-lg" style={{ textAlign: 'justify' }}>
-            {property.description ? (
-              <ReadMore
-                content={property.description}
-                isHTML={true}
-                maxHeight="200px"
-              />
-            ) : (
-              <span className="text-font-s">
-                توضیحی وارد نشده است
-              </span>
-            )}
-          </div>
-        </div>
-      </CardWithIcon>
     </div>
   );
 }

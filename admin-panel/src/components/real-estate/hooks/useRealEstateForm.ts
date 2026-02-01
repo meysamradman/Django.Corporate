@@ -291,10 +291,16 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                     mortgage_amount: validatedData.mortgage_amount ?? undefined,
                     rent_amount: validatedData.rent_amount ?? undefined,
                     is_published: isPublished,
+                    labels: validatedData.labels_ids,
+                    tags: validatedData.tags_ids,
+                    features: validatedData.features_ids,
                 };
                 delete updateData.og_image_id;
                 delete updateData.province;
                 delete updateData.city;
+                delete updateData.labels_ids;
+                delete updateData.tags_ids;
+                delete updateData.features_ids;
 
                 if (allMediaFiles.length > 0) {
                     await realEstateApi.updateProperty(propertyId, updateData);
@@ -319,9 +325,32 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
 
                 if (allMediaFiles.length > 0) {
                     const createdProperty = await realEstateApi.createProperty(createData);
+
+                    if (tempFloorPlans.length > 0) {
+                        for (const plan of tempFloorPlans) {
+                            await realEstateApi.createFloorPlan({
+                                ...plan,
+                                property_obj: createdProperty.id,
+                                image_ids: plan.images?.map((img: any) => img.id) || []
+                            });
+                        }
+                    }
+
                     return await realEstateApi.addMediaToProperty(createdProperty.id, allMediaFiles, mediaIds);
                 } else {
-                    return await realEstateApi.createProperty(createData);
+                    const createdProperty = await realEstateApi.createProperty(createData);
+
+                    if (tempFloorPlans.length > 0) {
+                        for (const plan of tempFloorPlans) {
+                            await realEstateApi.createFloorPlan({
+                                ...plan,
+                                property_obj: createdProperty.id,
+                                image_ids: plan.images?.map((img: any) => img.id) || []
+                            });
+                        }
+                    }
+
+                    return createdProperty;
                 }
             }
         },

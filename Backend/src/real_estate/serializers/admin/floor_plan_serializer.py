@@ -14,6 +14,7 @@ class FloorPlanImageSerializer(serializers.ModelSerializer):
 class FloorPlanAdminListSerializer(serializers.ModelSerializer):
     
     property_title = serializers.CharField(source='property_obj.title', read_only=True)
+    images = FloorPlanImageSerializer(many=True, read_only=True)
     main_image = serializers.SerializerMethodField()
     image_count = serializers.SerializerMethodField()
     
@@ -24,7 +25,7 @@ class FloorPlanAdminListSerializer(serializers.ModelSerializer):
             'floor_size', 'size_unit', 'bedrooms', 'bathrooms',
             'price', 'currency', 'floor_number', 'unit_type',
             'is_available', 'display_order',
-            'main_image', 'image_count',
+            'images', 'main_image', 'image_count',
             'created_at', 'updated_at'
         ]
     

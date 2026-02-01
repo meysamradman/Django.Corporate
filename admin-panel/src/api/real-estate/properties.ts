@@ -91,8 +91,8 @@ export const realEstateApi = {
   },
 
   getPropertyById: async (id: number): Promise<Property> => {
-    const response = await api.get<Property>('/admin/property/' + id + '/');
-    return response.data;
+    const response = await api.get<any>('/admin/property/' + id + '/');
+    return response.data?.data || response.data;
   },
 
   getPropertiesByIds: async (ids: number[]): Promise<Property[]> => {
@@ -106,8 +106,8 @@ export const realEstateApi = {
 
   createProperty: async (data: Partial<PropertyUpdateData>): Promise<Property> => {
     console.log("🚀 [Frontend] Sending createProperty (JSON):", data);
-    const response = await api.post<Property>('/admin/property/', data);
-    return response.data;
+    const response = await api.post<any>('/admin/property/', data);
+    return response.data?.data || response.data;
   },
 
   createPropertyWithMedia: async (data: Partial<PropertyUpdateData> & { media_ids?: number[] }, mediaFiles: File[]): Promise<Property> => {
@@ -139,13 +139,13 @@ export const realEstateApi = {
       console.log(`  👉 ${key}:`, value);
     });
 
-    const response = await api.post<Property>('/admin/property/', formData);
-    return response.data;
+    const response = await api.post<any>('/admin/property/', formData);
+    return response.data?.data || response.data;
   },
 
   updateProperty: async (id: number, data: Partial<PropertyUpdateData>): Promise<Property> => {
-    const response = await api.patch<Property>('/admin/property/' + id + '/', data);
-    return response.data;
+    const response = await api.patch<any>('/admin/property/' + id + '/', data);
+    return response.data?.data || response.data;
   },
 
   updatePropertyWithMedia: async (id: number, data: Partial<PropertyUpdateData> & { media_ids?: number[] }, mediaFiles: File[]): Promise<Property> => {
@@ -177,13 +177,13 @@ export const realEstateApi = {
       console.log(`  👉 ${key}:`, value);
     });
 
-    const response = await api.put<Property>('/admin/property/' + id + '/', formData);
-    return response.data;
+    const response = await api.put<any>('/admin/property/' + id + '/', formData);
+    return response.data?.data || response.data;
   },
 
   partialUpdateProperty: async (id: number, data: Partial<PropertyUpdateData>): Promise<Property> => {
-    const response = await api.patch<Property>('/admin/property/' + id + '/', data);
-    return response.data;
+    const response = await api.patch<any>('/admin/property/' + id + '/', data);
+    return response.data?.data || response.data;
   },
 
   addMediaToProperty: async (propertyId: number, mediaFiles: File[], mediaIds?: number[]): Promise<Property> => {
@@ -196,8 +196,8 @@ export const realEstateApi = {
       formData.append('media_ids', mediaIds.join(','));
     }
 
-    const response = await api.post<Property>('/admin/property/' + propertyId + '/add_media/', formData);
-    return response.data;
+    const response = await api.post<any>('/admin/property/' + propertyId + '/add_media/', formData);
+    return response.data?.data || response.data;
   },
 
   deleteProperty: async (id: number): Promise<void> => {
@@ -205,28 +205,28 @@ export const realEstateApi = {
   },
 
   bulkDeleteProperties: async (ids: number[]): Promise<{ success: boolean }> => {
-    const response = await api.post<{ success: boolean }>('/admin/property/bulk-delete/', { ids });
-    return response.data;
+    const response = await api.post<any>('/admin/property/bulk-delete/', { ids });
+    return response.data?.data || response.data;
   },
 
   bulkUpdateStatus: async (ids: number[], status: { is_published?: boolean; is_featured?: boolean; is_public?: boolean; is_active?: boolean }): Promise<{ success: boolean }> => {
-    const response = await api.post<{ success: boolean }>('/admin/property/bulk-update-status/', { ids, ...status });
-    return response.data;
+    const response = await api.post<any>('/admin/property/bulk-update-status/', { ids, ...status });
+    return response.data?.data || response.data;
   },
 
   publishProperty: async (id: number): Promise<Property> => {
-    const response = await api.post<Property>('/admin/property/' + id + '/publish/');
-    return response.data;
+    const response = await api.post<any>('/admin/property/' + id + '/publish/');
+    return response.data?.data || response.data;
   },
 
   unpublishProperty: async (id: number): Promise<Property> => {
-    const response = await api.post<Property>('/admin/property/' + id + '/unpublish/');
-    return response.data;
+    const response = await api.post<any>('/admin/property/' + id + '/unpublish/');
+    return response.data?.data || response.data;
   },
 
   toggleFeatured: async (id: number): Promise<Property> => {
-    const response = await api.post<Property>('/admin/property/' + id + '/toggle-featured/');
-    return response.data;
+    const response = await api.post<any>('/admin/property/' + id + '/toggle-featured/');
+    return response.data?.data || response.data;
   },
 
   setMainImage: async (id: number, mediaId: number): Promise<void> => {
@@ -235,17 +235,17 @@ export const realEstateApi = {
 
   getStatistics: async (): Promise<any> => {
     const response = await api.get<any>('/admin/property/statistics/');
-    return response.data;
+    return response.data?.data || response.data;
   },
 
   getMonthlyStats: async (): Promise<{ monthly_stats: Array<{ month: string; published: number; draft: number; featured: number; verified: number }> }> => {
-    const response = await api.get<{ monthly_stats: Array<{ month: string; published: number; draft: number; featured: number; verified: number }> }>('/admin/property/monthly-stats/');
-    return response.data;
+    const response = await api.get<any>('/admin/property/monthly-stats/');
+    return response.data?.data || response.data;
   },
 
   getSeoReport: async (): Promise<any> => {
     const response = await api.get<any>('/admin/property/seo-report/');
-    return response.data;
+    return response.data?.data || response.data;
   },
 
   bulkGenerateSeo: async (ids: number[]): Promise<{ generated_count: number; total_count: number }> => {
@@ -254,13 +254,13 @@ export const realEstateApi = {
   },
 
   generateSeo: async (id: number): Promise<Property> => {
-    const response = await api.post<Property>('/admin/property/' + id + '/generate-seo/');
-    return response.data;
+    const response = await api.post<any>('/admin/property/' + id + '/generate-seo/');
+    return response.data?.data || response.data;
   },
 
   validateSeo: async (id: number): Promise<any> => {
-    const response = await api.get<any>('/admin/property/' + id + '/validate-seo/');
-    return response.data;
+    const response = await api.post<any>('/admin/property/' + id + '/validate-seo/');
+    return response.data?.data || response.data;
   },
 
   getFieldOptions: async (): Promise<{
@@ -588,13 +588,15 @@ export const realEstateApi = {
     if (propertyId) {
       url += '?property_id=' + propertyId;
     }
-    const response = await api.get<any[]>(url);
-    return Array.isArray(response.data) ? response.data : [];
+    const response = await api.get<any>(url);
+    // Unwrap the data field from ApiResponse
+    const data = response.data?.data || response.data;
+    return Array.isArray(data) ? data : [];
   },
 
   getFloorPlanById: async (id: number): Promise<any> => {
     const response = await api.get<any>('/admin/floor-plan/' + id + '/');
-    return response.data;
+    return response.data?.data || response.data;
   },
 
   createFloorPlan: async (data: any): Promise<any> => {
@@ -620,13 +622,36 @@ export const realEstateApi = {
       formData.append('image_ids', data.image_ids.join(','));
     }
 
+
     const response = await api.post<any>('/admin/floor-plan/', formData);
-    return response.data;
+    return response.data?.data || response.data;
   },
 
   updateFloorPlan: async (id: number, data: any): Promise<any> => {
-    const response = await api.patch<any>('/admin/floor-plan/' + id + '/', data);
-    return response.data;
+    // Use FormData for updates as well for consistency and potentially new image uploads
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && key !== 'image_files' && key !== 'image_ids') {
+        if (typeof value === 'object' && !(value instanceof File)) {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, String(value));
+        }
+      }
+    });
+
+    if (data.image_files && Array.isArray(data.image_files)) {
+      data.image_files.forEach((file: File) => {
+        formData.append('image_files', file);
+      });
+    }
+
+    if (data.image_ids && Array.isArray(data.image_ids)) {
+      formData.append('image_ids', data.image_ids.join(','));
+    }
+
+    const response = await api.patch<any>('/admin/floor-plan/' + id + '/', formData);
+    return response.data?.data || response.data;
   },
 
   deleteFloorPlan: async (id: number): Promise<void> => {
@@ -645,17 +670,17 @@ export const realEstateApi = {
     }
 
     const response = await api.post<any>('/admin/floor-plan/' + floorPlanId + '/add-images/', formData);
-    return response.data;
+    return response.data?.data || response.data;
   },
 
   removeFloorPlanImage: async (floorPlanId: number, imageId: number): Promise<any> => {
     const response = await api.post<any>('/admin/floor-plan/' + floorPlanId + '/remove-image/', { image_id: imageId });
-    return response.data;
+    return response.data?.data || response.data;
   },
 
   setFloorPlanMainImage: async (floorPlanId: number, imageId: number): Promise<any> => {
     const response = await api.post<any>('/admin/floor-plan/' + floorPlanId + '/set-main-image/', { image_id: imageId });
-    return response.data;
+    return response.data?.data || response.data;
   },
 
   syncFloorPlanImages: async (floorPlanId: number, imageIds: number[], mainImageId?: number): Promise<any> => {
@@ -663,7 +688,7 @@ export const realEstateApi = {
       image_ids: imageIds,
       main_image_id: mainImageId
     });
-    return response.data;
+    return response.data?.data || response.data;
   },
 
   updateFeature: async (id: number, data: Partial<PropertyFeature>): Promise<PropertyFeature> => {
@@ -735,13 +760,13 @@ export const realEstateApi = {
   },
 
   updateTag: async (id: number, data: Partial<PropertyTag>): Promise<PropertyTag> => {
-    const response = await api.put<PropertyTag>('/admin/property-tag/' + id + '/', data);
-    return response.data;
+    const response = await api.put<any>('/admin/property-tag/' + id + '/', data);
+    return response.data?.data || response.data;
   },
 
   partialUpdateTag: async (id: number, data: Partial<PropertyTag>): Promise<PropertyTag> => {
-    const response = await api.patch<PropertyTag>('/admin/property-tag/' + id + '/', data);
-    return response.data;
+    const response = await api.patch<any>('/admin/property-tag/' + id + '/', data);
+    return response.data?.data || response.data;
   },
 
   deleteTag: async (id: number): Promise<void> => {

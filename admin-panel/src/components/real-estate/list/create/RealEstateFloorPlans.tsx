@@ -47,6 +47,7 @@ export default function RealEstateFloorPlans({
   const [floorPlans, setFloorPlans] = useState<FloorPlan[]>(tempFloorPlans);
   const [isLoading, setIsLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [editingPlanId, setEditingPlanId] = useState<number | null>(null);
   const [newFloorPlan, setNewFloorPlan] = useState<FloorPlan>({
     title: "",
     slug: "",
@@ -98,7 +99,30 @@ export default function RealEstateFloorPlans({
     }
   };
 
+  const resetForm = () => {
+    setIsAdding(false);
+    setEditingPlanId(null);
+    setSelectedImages([]);
+    setNewFloorPlan({
+      title: "",
+      slug: "",
+      description: "",
+      floor_size: null,
+      size_unit: "sqm",
+      bedrooms: null,
+      bathrooms: null,
+      price: null,
+      currency: "IRR",
+      floor_number: null,
+      unit_type: "",
+      display_order: floorPlans.length,
+      is_available: true,
+      images: [],
+    });
+  };
+
   const handleAddFloorPlan = () => {
+    resetForm();
     setIsAdding(true);
   };
 
@@ -113,15 +137,26 @@ export default function RealEstateFloorPlans({
       return;
     }
 
+    const image_ids = selectedImages.map(img => img.id);
+    console.log("Saving Plan - Selected Images:", selectedImages);
+    console.log("Saving Plan - Image IDs mapped:", image_ids);
+
     if (!propertyId) {
-      const tempId = floorPlans.length + 1;
-      const planWithImages = {
-        ...newFloorPlan,
-        id: -tempId, // Temporary ID for local identification
-        images: selectedImages
-      };
-      setFloorPlans(prev => [...prev, planWithImages]);
-      showSuccess("پلان موقت اضافه شد");
+      if (editingPlanId && editingPlanId < 0) {
+        // Update existing temp plan
+        setFloorPlans(prev => prev.map(p => p.id === editingPlanId ? { ...newFloorPlan, id: editingPlanId, images: selectedImages } : p));
+        showSuccess("پلان موقت بروزرسانی شد");
+      } else {
+        // Add new temp plan
+        const tempId = floorPlans.length + 1;
+        const planWithImages = {
+          ...newFloorPlan,
+          id: -tempId,
+          images: selectedImages
+        };
+        setFloorPlans(prev => [...prev, planWithImages]);
+        showSuccess("پلان موقت اضافه شد");
+      }
       resetForm();
       return;
     }
@@ -144,39 +179,60 @@ export default function RealEstateFloorPlans({
         unit_type: newFloorPlan.unit_type,
         display_order: newFloorPlan.display_order,
         is_available: newFloorPlan.is_available,
-        image_ids: selectedImages.map(img => img.id)
+        is_active: true, // Force active status for persistence
+        image_ids: image_ids
       };
 
-      const savedPlan = await realEstateApi.createFloorPlan(floorPlanData);
-      setFloorPlans(prev => [...prev, savedPlan]);
-      showSuccess("پلان با موفقیت اضافه شد");
+
+      if (editingPlanId && editingPlanId > 0) {
+        const updatedPlan = await realEstateApi.updateFloorPlan(editingPlanId, floorPlanData);
+        setFloorPlans(prev => prev.map(p => p.id === editingPlanId ? updatedPlan : p));
+        showSuccess("پلان با موفقیت بروزرسانی شد");
+      } else {
+        const savedPlan = await realEstateApi.createFloorPlan(floorPlanData);
+        setFloorPlans(prev => [...prev, savedPlan]);
+        showSuccess("پلان با موفقیت اضافه شد");
+      }
       resetForm();
-    } catch (error) {
-      showError(error);
+    } catch (error: any) {
+      console.error("Floor Plan Save Error Details:", error.response?.data || error);
+      const errorData = error.response?.data;
+
+      // Look for errors in root or metaData
+      const errors = errorData?.errors || errorData?.metaData?.errors;
+
+      if (errors && typeof errors === 'object') {
+        Object.entries(errors).forEach(([field, messages]: [string, any]) => {
+          const msg = Array.isArray(messages) ? messages[0] : messages;
+          showError(`${field}: ${msg}`);
+        });
+      } else if (errorData?.metaData?.message) {
+        showError(errorData.metaData.message);
+      } else {
+        showError(error);
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const resetForm = () => {
-    setIsAdding(false);
-    setSelectedImages([]);
-    setNewFloorPlan({
-      title: "",
-      slug: "",
-      description: "",
-      floor_size: null,
-      size_unit: "sqm",
-      bedrooms: null,
-      bathrooms: null,
-      price: null,
-      currency: "IRR",
-      floor_number: null,
-      unit_type: "",
-      display_order: floorPlans.length,
-      is_available: true,
-      images: [],
+  const handleEditFloorPlan = (plan: FloorPlan) => {
+    setEditingPlanId(plan.id || null);
+
+    // CRITICAL: Extract the actual Media objects from FloorPlanImage records
+    const extractedImages = (plan.images || []).map(img => {
+      if (img.image && typeof img.image === 'object') {
+        return img.image; // It's a FloorPlanImage object containing the media in .image
+      }
+      return img; // It's already a Media object (e.g. from temp plans)
     });
+
+    setNewFloorPlan({
+      ...plan,
+      images: extractedImages
+    });
+    setSelectedImages(extractedImages);
+    setIsAdding(true);
   };
 
   const handleDeleteFloorPlan = async (id: number) => {
@@ -197,8 +253,17 @@ export default function RealEstateFloorPlans({
       }
       setFloorPlans(prev => prev.filter(plan => plan.id !== id));
       showSuccess("پلان با موفقیت حذف شد");
-    } catch (error) {
-      showError(error);
+    } catch (error: any) {
+      console.error("Floor Plan Delete Error Details:", error.response?.data || error);
+      const errorData = error.response?.data;
+
+      if (errorData?.metaData?.message) {
+        showError(errorData.metaData.message);
+      } else if (errorData?.detail) {
+        showError(errorData.detail);
+      } else {
+        showError(error);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -207,7 +272,10 @@ export default function RealEstateFloorPlans({
   const handleInputChange = (field: keyof FloorPlan) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const value = e.target.value;
     if (field === "floor_size" || field === "bedrooms" || field === "bathrooms" || field === "price" || field === "floor_number") {
-      setNewFloorPlan(prev => ({ ...prev, [field]: value ? Number(value) : null }));
+      const numValue = value ? Number(value) : null;
+      // Prevent negative values for area, bedrooms, bathrooms, and price
+      const finalizedValue = (numValue !== null && numValue < 0 && field !== "floor_number") ? 0 : numValue;
+      setNewFloorPlan(prev => ({ ...prev, [field]: finalizedValue }));
     } else if (field === "title") {
       const slug = generateSlug(value);
       setNewFloorPlan(prev => ({ ...prev, title: value, slug }));
@@ -254,7 +322,7 @@ export default function RealEstateFloorPlans({
         <div className="space-y-6">
           {!propertyId && floorPlans.length === 0 && !isAdding && (
             <div className="flex items-start gap-4 p-5 bg-indigo-0/30 border border-indigo-1/10 rounded-2xl">
-              <div className="flex-shrink-0 w-10 h-10 bg-indigo rounded-xl flex items-center justify-center shadow-lg shadow-indigo/20">
+              <div className="shrink-0 w-10 h-10 bg-indigo rounded-xl flex items-center justify-center shadow-lg shadow-indigo/20">
                 <Home className="h-5 w-5 text-static-w" />
               </div>
               <div className="flex-1 space-y-1">
@@ -273,16 +341,23 @@ export default function RealEstateFloorPlans({
               <div className="flex items-center justify-between gap-4 mb-2">
                 <h4 className="font-black text-font-p flex items-center gap-2">
                   <Plus className="w-5 h-5 text-indigo-1" />
-                  افزودن پلان جدید
+                  {editingPlanId ? "ویرایش و تغییر پلان" : "افزودن پلان جدید"}
                 </h4>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setIsAdding(false)}
+                  onClick={() => resetForm()}
                   className="h-8 text-[11px] font-bold text-font-s hover:text-red-1 border-none hover:bg-red-0"
                 >
                   انصراف
                 </Button>
+              </div>
+
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo shadow-glow" />
+                <span className="text-xs font-bold text-indigo tracking-tight">
+                  {editingPlanId ? "ویرایش اطلاعات پلان" : "ثبت اطلاعات جدید"}
+                </span>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -389,17 +464,17 @@ export default function RealEstateFloorPlans({
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-6 border-t border-br">
-                <Button variant="outline" onClick={() => setIsAdding(false)} disabled={isLoading} className="h-11 px-6 font-bold text-font-s">
+                <Button variant="outline" onClick={() => resetForm()} disabled={isLoading} className="h-11 px-6 font-bold text-font-s">
                   انصراف
                 </Button>
                 <Button onClick={handleSaveFloorPlan} disabled={isLoading} className="h-11 px-8 font-black">
-                  {isLoading ? <><Loader2 className="h-4 w-4 animate-spin ml-2" /> در حال ذخیره...</> : "ذخیره و ثبت پلان"}
+                  {isLoading ? <><Loader2 className="h-4 w-4 animate-spin ml-2" /> در حال ذخیره...</> : (editingPlanId ? "تایید و بروزرسانی" : "ذخیره و ثبت نهایی")}
                 </Button>
               </div>
             </div>
           ) : (
             <div onClick={handleAddFloorPlan} className="group cursor-pointer relative overflow-hidden h-24 border-2 border-dashed border-br rounded-2xl flex items-center justify-center bg-wt hover:bg-indigo-0/5 hover:border-indigo-1/30 transition-all duration-500">
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-0/0 via-indigo-0/5 to-indigo-0/0 opacity-0 group-hover:opacity-100 -translate-x-full group-hover:translate-x-full transition-all duration-1000" />
+              <div className="absolute inset-0 bg-linear-to-r from-indigo-0/0 via-indigo-0/5 to-indigo-0/0 opacity-0 group-hover:opacity-100 -translate-x-full group-hover:translate-x-full transition-all duration-1000" />
               <div className="flex flex-col items-center gap-1 relative z-10">
                 <div className="w-10 h-10 rounded-full bg-indigo-0 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                   <Plus className="w-6 h-6 text-indigo-1" />
@@ -419,8 +494,8 @@ export default function RealEstateFloorPlans({
                 <div key={plan.id || `temp-${index}`} className="relative border border-br rounded-2xl p-5 bg-wt hover:border-indigo-1/20 transition-all duration-300">
                   <div className="flex flex-col lg:flex-row items-start gap-6">
                     {plan.images && plan.images.length > 0 && (
-                      <div className="w-full lg:w-48 aspect-[4/3] rounded-xl overflow-hidden border border-br bg-muted/5 flex-shrink-0">
-                        <img src={mediaService.getMediaUrlFromObject(plan.images[0])} alt={plan.title} className="w-full h-full object-cover" />
+                      <div className="w-full lg:w-48 aspect-4/3 rounded-xl overflow-hidden border border-br bg-muted/5 shrink-0">
+                        <img src={mediaService.getMediaUrlFromObject(plan.images[0]?.image || plan.images[0])} alt={plan.title} className="w-full h-full object-cover" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0 space-y-4">
@@ -429,9 +504,14 @@ export default function RealEstateFloorPlans({
                           <h4 className="font-black text-font-p text-xl truncate">{plan.title}</h4>
                           <p className="text-[11px] text-font-s/60 line-clamp-1 mt-1 font-medium">{plan.description}</p>
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => handleDeleteFloorPlan(plan.id!)} className="h-9 w-9 p-0 text-red-1 border-none hover:bg-red-0 hover:text-red-1 rounded-xl shadow-sm transition-all duration-300" disabled={!editMode}>
-                          <Trash2 className="h-4.5 w-4.5" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm" onClick={() => handleEditFloorPlan(plan)} className="h-9 w-9 p-0 text-indigo-1 border-none hover:bg-indigo-0 rounded-xl shadow-sm transition-all duration-300" disabled={!editMode}>
+                            <Maximize2 className="h-4.5 w-4.5" />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleDeleteFloorPlan(plan.id!)} className="h-9 w-9 p-0 text-red-1 border-none hover:bg-red-0 hover:text-red-1 rounded-xl shadow-sm transition-all duration-300" disabled={!editMode}>
+                            <Trash2 className="h-4.5 w-4.5" />
+                          </Button>
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

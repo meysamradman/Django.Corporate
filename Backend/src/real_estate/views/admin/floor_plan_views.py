@@ -102,7 +102,6 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         )
     
     def create(self, request, *args, **kwargs):
-        
         image_ids = self._extract_image_ids(request)
         image_files = request.FILES.getlist('image_files')
         
@@ -141,26 +140,21 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         
-        image_ids = self._extract_image_ids(request)
-        main_image_id = request.data.get('main_image_id')
-        
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        
         floor_plan = serializer.save()
         
+        image_ids = self._extract_image_ids(request)
         if image_ids is not None:
             FloorPlanMediaService.sync_images(
                 floor_plan_id=floor_plan.id,
-                image_ids=image_ids,
-                main_image_id=main_image_id
+                image_ids=image_ids
             )
             floor_plan.refresh_from_db()
-        
+            
         floor_plan = RealEstateFloorPlan.objects.prefetch_related('images__image').get(pk=floor_plan.pk)
         detail_serializer = FloorPlanAdminDetailSerializer(floor_plan)
         
