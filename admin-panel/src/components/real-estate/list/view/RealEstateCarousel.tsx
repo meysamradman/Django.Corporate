@@ -142,7 +142,6 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
   return (
     <>
       <div className={cn("overflow-hidden rounded-xl bg-card", className)}>
-        {/* Main Slider Area - Full Width/Immersive - Removed internal borders/padding */}
         <div className="relative w-full h-[450px] md:h-[550px] group bg-bg-2">
 
           <div ref={mainRef} className="overflow-hidden h-full">
@@ -182,7 +181,6 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
             </div>
           </div>
 
-          {/* Overlays */}
           <div className="absolute top-4 right-4 flex gap-2 z-10">
             {mediaItems[selectedIndex]?.isMainImage && (
               <span className="px-3 py-1.5 rounded-lg bg-primary/90 text-white text-xs font-bold shadow-sm backdrop-blur-sm">
@@ -211,7 +209,6 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
             {selectedIndex + 1} از {mediaItems.length}
           </div>
 
-          {/* Navigation Arrows */}
           {mediaItems.length > 1 && (
             <>
               <button
@@ -230,7 +227,6 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
           )}
         </div>
 
-        {/* Thumbnails - Clean Strip - Removed top border */}
         {mediaItems.length > 1 && (
           <div className="py-3 px-3 bg-card custom-scrollbar overflow-x-auto">
             <div ref={thumbRef} className="overflow-hidden">
@@ -264,7 +260,6 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
         )}
       </div>
 
-      {/* Lightbox Modal */}
       {isLightboxOpen && (
         <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center">
           <div className="absolute top-0 w-full p-4 flex justify-between items-center z-50 bg-linear-to-b from-black/50 to-transparent">

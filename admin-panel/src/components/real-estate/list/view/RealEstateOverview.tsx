@@ -89,7 +89,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
   return (
     <div className="space-y-8">
 
-      {/* 1. KEY DETAILS */}
       <div className="bg-card rounded-2xl border border-br p-6 shadow-sm">
         <div className="flex items-center gap-3 mb-6 border-b border-br pb-4">
           <div className="p-2 rounded-lg bg-blue-0/50 text-blue-1">
@@ -183,7 +182,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* 2. STATS & STATUS */}
         <div className="bg-card rounded-2xl border border-br p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -224,7 +222,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
           </div>
         </div>
 
-        {/* 3. MEDIA SUMMARY */}
         <div className="bg-card rounded-2xl border border-br p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -269,7 +266,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
         </div>
       </div>
 
-      {/* 4. DESCRIPTION */}
       <div className="bg-card rounded-2xl border border-br p-6 shadow-sm">
         <div className="flex items-center gap-3 mb-6 border-b border-br pb-4">
           <div className="p-2 rounded-lg bg-orange-0/50 text-orange-1">
@@ -303,7 +299,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
         </div>
       </div>
 
-      {/* 5. FLOOR PLANS */}
       {property.floor_plans && property.floor_plans.length > 0 && (
         <div className="bg-card rounded-2xl border border-br p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-6 border-b border-br pb-4">

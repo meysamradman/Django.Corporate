@@ -32,7 +32,6 @@ export default function SettingsPage() {
     const { tab } = useParams();
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // Default to 'general' if tab is not present (though app routing handles redirect)
     const activeTab = tab || "general";
 
     const action = searchParams.get("action");
@@ -120,7 +119,6 @@ export default function SettingsPage() {
                 </div>
             )}
 
-            {/* Sidebar Components Trigged by URL */}
             <ContactPhoneSide
                 isOpen={action === "create-phone" || action === "edit-phone"}
                 onClose={handleCloseSide}

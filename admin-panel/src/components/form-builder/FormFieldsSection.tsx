@@ -31,7 +31,6 @@ export function FormFieldsSection() {
     const queryClient = useQueryClient();
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // State for delete dialog
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [fieldToDelete, setFieldToDelete] = useState<number | null>(null);
 

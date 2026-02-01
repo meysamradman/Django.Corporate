@@ -6,7 +6,6 @@ export { SocialMediaSection } from "./SocialMediaSection";
 export { Sliders as SlidersSection } from "./Sliders";
 export { FeatureFlagsManagement } from "./FeatureFlagsManagement";
 
-// Sidebars
 export { ContactPhoneSide } from "./ContactPhoneSide";
 export { ContactMobileSide } from "./ContactMobileSide";
 export { ContactEmailSide } from "./ContactEmailSide";

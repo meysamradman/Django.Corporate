@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-// Helper to handle empty strings as undefined for optional fields
-
 export const contactPhoneSchema = z.object({
     phone_number: z.string().min(1, "شماره تماس الزامی است"),
     label: z.string().optional().nullable().transform(v => v === null ? undefined : v),

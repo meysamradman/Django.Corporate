@@ -55,7 +55,6 @@ export default function PropertyViewPage() {
   const { openPrintWindow } = usePropertyPrintView();
   const { exportSinglePropertyPdf, isLoading: isExportingPdf } = usePropertyPdfExport();
 
-  // Scroll spy
   useEffect(() => {
     const handleScroll = () => {
       const sections = ["overview", "features", "amenities", "attributes", "media", "seo"];
@@ -113,7 +112,6 @@ export default function PropertyViewPage() {
         position="left"
       />
 
-      {/* Header */}
       <div className="bg-card rounded-2xl border border-br shadow-sm overflow-hidden p-6 relative">
         <div className="absolute top-0 right-0 w-full h-1 bg-linear-to-r from-blue-1 via-purple-1 to-pink-1" />
 
@@ -163,12 +161,10 @@ export default function PropertyViewPage() {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
         <div className="xl:col-span-9 space-y-12">
 
-          {/* Carousel */}
           <div className="rounded-2xl overflow-hidden border border-br shadow-md group relative">
             <RealEstateCarousel property={propertyData} className="w-full" />
           </div>
 
-          {/* Sticky Navigation */}
           <div className="sticky top-20 z-40 bg-card/80 backdrop-blur-xl border border-br rounded-2xl shadow-lg p-1.5">
             <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
               {navItems.map((item) => (
@@ -185,7 +181,6 @@ export default function PropertyViewPage() {
             </div>
           </div>
 
-          {/* Sections */}
           <div id="section-overview" className="scroll-mt-32">
             <RealEstateOverview property={propertyData} />
           </div>
@@ -242,7 +237,6 @@ export default function PropertyViewPage() {
 
         </div>
 
-        {/* Sidebar */}
         <div className="xl:col-span-3 space-y-8 sticky top-24">
           <PropertySidebar property={propertyData} />
           <RealEstateInfo property={propertyData} />

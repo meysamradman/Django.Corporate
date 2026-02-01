@@ -14,10 +14,6 @@ export function RealEstateFeatures({ property, mode }: PropertyFeaturesProps) {
         return null;
     }
 
-    // Heuristic for separating Features vs Amenities
-    // Features are usually "Structural/Visual" things, Amenities are "Facilities/Equipment"
-    // For now, we'll use the 'group' field if available, or just filter based on name/group hints
-    
     const amenityGroups = ['امکانات', 'امکانات رفاهی', 'Amenities', 'Facilities', 'Equipment', 'Interior', 'Exterior'];
     const securityGroups = ['امنیت', 'Security', 'حفاظت'];
     

@@ -589,7 +589,6 @@ export const realEstateApi = {
       url += '?property_id=' + propertyId;
     }
     const response = await api.get<any>(url);
-    // Unwrap the data field from ApiResponse
     const data = response.data?.data || response.data;
     return Array.isArray(data) ? data : [];
   },
@@ -622,13 +621,11 @@ export const realEstateApi = {
       formData.append('image_ids', data.image_ids.join(','));
     }
 
-
     const response = await api.post<any>('/admin/floor-plan/', formData);
     return response.data?.data || response.data;
   },
 
   updateFloorPlan: async (id: number, data: any): Promise<any> => {
-    // Use FormData for updates as well for consistency and potentially new image uploads
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null && key !== 'image_files' && key !== 'image_ids') {

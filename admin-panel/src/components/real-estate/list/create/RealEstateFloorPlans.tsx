@@ -143,11 +143,9 @@ export default function RealEstateFloorPlans({
 
     if (!propertyId) {
       if (editingPlanId && editingPlanId < 0) {
-        // Update existing temp plan
         setFloorPlans(prev => prev.map(p => p.id === editingPlanId ? { ...newFloorPlan, id: editingPlanId, images: selectedImages } : p));
         showSuccess("پلان موقت بروزرسانی شد");
       } else {
-        // Add new temp plan
         const tempId = floorPlans.length + 1;
         const planWithImages = {
           ...newFloorPlan,
@@ -183,7 +181,6 @@ export default function RealEstateFloorPlans({
         image_ids: image_ids
       };
 
-
       if (editingPlanId && editingPlanId > 0) {
         const updatedPlan = await realEstateApi.updateFloorPlan(editingPlanId, floorPlanData);
         setFloorPlans(prev => prev.map(p => p.id === editingPlanId ? updatedPlan : p));
@@ -198,7 +195,6 @@ export default function RealEstateFloorPlans({
       console.error("Floor Plan Save Error Details:", error.response?.data || error);
       const errorData = error.response?.data;
 
-      // Look for errors in root or metaData
       const errors = errorData?.errors || errorData?.metaData?.errors;
 
       if (errors && typeof errors === 'object') {
@@ -219,7 +215,6 @@ export default function RealEstateFloorPlans({
   const handleEditFloorPlan = (plan: FloorPlan) => {
     setEditingPlanId(plan.id || null);
 
-    // CRITICAL: Extract the actual Media objects from FloorPlanImage records
     const extractedImages = (plan.images || []).map(img => {
       if (img.image && typeof img.image === 'object') {
         return img.image; // It's a FloorPlanImage object containing the media in .image
@@ -273,7 +268,6 @@ export default function RealEstateFloorPlans({
     const value = e.target.value;
     if (field === "floor_size" || field === "bedrooms" || field === "bathrooms" || field === "price" || field === "floor_number") {
       const numValue = value ? Number(value) : null;
-      // Prevent negative values for area, bedrooms, bathrooms, and price
       const finalizedValue = (numValue !== null && numValue < 0 && field !== "floor_number") ? 0 : numValue;
       setNewFloorPlan(prev => ({ ...prev, [field]: finalizedValue }));
     } else if (field === "title") {

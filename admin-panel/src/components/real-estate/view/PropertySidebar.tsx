@@ -20,10 +20,8 @@ export function PropertySidebar({ property }: PropertySidebarProps) {
     return (
         <div className="w-full space-y-6 sticky top-24 self-start">
 
-            {/* 1. MAP & LOCATION - FLUSH DESIGN */}
             <Card className="overflow-hidden border-br shadow-sm bg-card p-0 relative group">
 
-                {/* Map - Takes full top width, no header above it */}
                 <div className="h-72 w-full relative bg-bg-2 border-b border-br z-0">
                     <LocationMap
                         latitude={property.latitude ? Number(property.latitude) : null}
@@ -34,10 +32,7 @@ export function PropertySidebar({ property }: PropertySidebarProps) {
                         minimal={true}
                     />
 
-                    {/* Dark gradient overlay at bottom of map for text readability if needed */}
                     <div className="absolute bottom-0 left-0 w-full h-24 bg-linear-to-t from-black/60 to-transparent pointer-events-none opacity-60" />
-
-                    {/* Quick Action Overlay Button removed as per user request */}
 
                     {!hasLocation && (
                         <div className="absolute inset-0 flex items-center justify-center bg-bg-2/80 z-10 backdrop-blur-xs">
@@ -49,7 +44,6 @@ export function PropertySidebar({ property }: PropertySidebarProps) {
                     )}
                 </div>
 
-                {/* Address & Routing Section */}
                 <div className="p-5 pt-4 relative z-10 bg-card -mt-2 rounded-t-2xl shadow-item-top">
                     <div className="flex justify-center -mt-8 mb-3">
                         <div className="bg-blue-600 text-white p-2.5 rounded-full shadow-lg ring-4 ring-card">

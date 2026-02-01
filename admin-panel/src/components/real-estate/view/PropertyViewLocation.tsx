@@ -14,7 +14,6 @@ export function PropertyViewLocation({ property }: PropertyViewLocationProps) {
     return (
         <div className="space-y-6">
             <div className="flex flex-col gap-6">
-                {/* Address Details Section */}
                 <div className="w-full">
                     <CardWithIcon
                         title="اطلاعات مکانی و آدرس"

@@ -44,7 +44,6 @@ export function GeneralSettingsForm() {
                 }
             >
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-4">
-                    {/* Media Previews */}
                     <div className="md:col-span-1 space-y-6">
                         <div className="flex flex-col items-center p-6 bg-bg/40 rounded-3xl border border-muted/5 space-y-4">
                             <span className="text-xs font-bold text-font-s bg-muted/10 px-3 py-1 rounded-full">لوگوی اصلی</span>
@@ -93,7 +92,6 @@ export function GeneralSettingsForm() {
                         </div>
                     </div>
 
-                    {/* Content Details */}
                     <div className="md:col-span-2 space-y-6">
                         <div className="grid gap-6">
                             <DetailItem
