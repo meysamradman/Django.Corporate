@@ -1,5 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
-import { realEstateApi } from '@/api/real-estate/properties';
+
 import {
   Activity,
   Building,
@@ -20,10 +19,10 @@ import { FinancialStatsCards } from './FinancialStatsCards';
 import { TrafficSourceChart } from './TrafficSourceChart';
 import { TopAgentsList } from './TopAgentsList';
 import type { PropertyStatistics } from '@/types/real_estate/statistics';
-import { showError } from '@/core/toast';
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { cn } from "@/core/utils/cn";
-import { formatNumber } from "@/core/utils/format";
+import { formatNumber } from "@/core/utils/commonFormat";
 import type { ReactNode } from "react";
 
 interface StatCardProps {

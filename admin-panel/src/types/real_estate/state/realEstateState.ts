@@ -5,5 +5,6 @@ export interface PropertyState extends Base {
   slug: string;
   usage_type: string;
   is_active: boolean;
+  property_count?: number;
 }
 

@@ -1,17 +1,14 @@
 
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import type { Property } from "@/types/real_estate/realEstate";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from "@/components/media/services";
 import { Badge } from "@/components/elements/Badge";
 import {
   ExternalLink,
-  Search,
   FileText,
   Image as ImageIcon,
   Globe,
   Bot,
-  Eye
 } from "lucide-react";
 
 interface SEOInfoTabProps {
@@ -28,171 +25,141 @@ export function RealEstateSEO({ property }: SEOInfoTabProps) {
   const ogTitle = property.og_title || metaTitle;
   const ogDescription = property.og_description || metaDescription;
 
+  const seoFields = [
+    {
+      icon: FileText,
+      label: "Meta Title",
+      value: metaTitle,
+      type: "text" as const,
+    },
+    {
+      icon: FileText,
+      label: "Meta Description",
+      value: metaDescription,
+      type: "text" as const,
+    },
+    {
+      icon: ExternalLink,
+      label: "Canonical URL",
+      value: property.canonical_url,
+      type: "url" as const,
+    },
+    {
+      icon: Bot,
+      label: "Robots",
+      value: property.robots_meta,
+      type: "badge" as const,
+    },
+  ];
+
   return (
-    <div className="mt-0">
-      <div className="space-y-6">
-        <CardWithIcon
-          icon={Search}
-          title="برچسب‌های Meta"
-          iconBgColor="bg-emerald"
-          iconColor="stroke-emerald-2"
-          borderColor="border-b-emerald-1"
-          contentClassName="space-y-6 pt-6"
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-font-s">
-                <FileText className="w-4 h-4" />
-                عنوان متا (Meta Title)
-              </label>
-              <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-15 flex items-start">
-                {metaTitle ? (
-                  <div className="font-medium text-font-p line-clamp-2">
-                    {metaTitle}
-                  </div>
-                ) : (
-                  <span className="text-font-s">
-                    وارد نشده است
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-font-s">
-                <FileText className="w-4 h-4" />
-                توضیحات متا (Meta Description)
-              </label>
-              <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-15 flex items-start">
-                {metaDescription ? (
-                  <div className="text-font-p line-clamp-3">
-                    {metaDescription}
-                  </div>
-                ) : (
-                  <span className="text-font-s">
-                    وارد نشده است
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-font-s">
-                <ExternalLink className="w-4 h-4" />
-                آدرس Canonical
-              </label>
-              <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-15 flex items-start">
-                {property.canonical_url ? (
-                  <div className="font-mono text-sm text-font-p break-all">
-                    {property.canonical_url}
-                  </div>
-                ) : (
-                  <span className="text-font-s">
-                    وارد نشده است
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-font-s">
-                <Bot className="w-4 h-4" />
-                Robots Meta
-              </label>
-              <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-15 flex items-center">
-                {property.robots_meta ? (
-                  <Badge variant="blue" className="font-mono">
-                    {property.robots_meta}
-                  </Badge>
-                ) : (
-                  <span className="text-font-s">
-                    وارد نشده است
-                  </span>
-                )}
-              </div>
-            </div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* SEO Meta Tags - Compact Table */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 pb-3 border-b border-br/50">
+          <div className="p-1.5 rounded-lg bg-emerald-1/10">
+            <FileText className="w-4 h-4 text-emerald-1" />
           </div>
-        </CardWithIcon>
-        <CardWithIcon
-          icon={Globe}
-          title="پیش‌نمایش Open Graph"
-          iconBgColor="bg-blue"
-          iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
-          contentClassName="pt-6"
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-            <div className="lg:col-span-2 space-y-6">
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-font-s">
-                  <FileText className="w-4 h-4" />
-                  عنوان Open Graph
-                </label>
-                <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-15 flex items-start">
-                  {ogTitle ? (
-                    <div className="font-medium text-font-p line-clamp-2">
-                      {ogTitle}
-                    </div>
+          <h3 className="text-sm font-bold text-font-p">Meta Tags</h3>
+        </div>
+
+        <div className="space-y-2">
+          {seoFields.map((field, idx) => (
+            <div
+              key={idx}
+              className="group flex items-start gap-3 p-3 rounded-lg bg-bg/30 border border-br/40 hover:bg-bg/50 hover:border-br transition-all"
+            >
+              <field.icon className="w-3.5 h-3.5 text-font-s mt-0.5 shrink-0" />
+              <div className="flex-1 min-w-0 space-y-1">
+                <div className="text-[10px] font-bold text-font-s uppercase tracking-wider">
+                  {field.label}
+                </div>
+                <div className="text-xs text-font-p">
+                  {field.value ? (
+                    field.type === "badge" ? (
+                      <Badge variant="blue" className="text-[10px] font-mono px-2 py-0.5">
+                        {field.value}
+                      </Badge>
+                    ) : field.type === "url" ? (
+                      <code className="font-mono text-[10px] break-all opacity-80">
+                        {field.value}
+                      </code>
+                    ) : (
+                      <span className="line-clamp-2">{field.value}</span>
+                    )
                   ) : (
-                    <span className="text-font-s">
-                      وارد نشده است
-                    </span>
+                    <span className="text-font-s opacity-50 text-[10px]">—</span>
                   )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Open Graph Preview - Compact Card */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 pb-3 border-b border-br/50">
+          <div className="p-1.5 rounded-lg bg-blue-1/10">
+            <Globe className="w-4 h-4 text-blue-1" />
+          </div>
+          <h3 className="text-sm font-bold text-font-p">Open Graph</h3>
+        </div>
+
+        <div className="p-4 rounded-lg bg-bg/30 border border-br/40 space-y-3">
+          {/* OG Content - Image + Text Side by Side */}
+          <div className="flex gap-3">
+            {/* Small OG Image Thumbnail */}
+            {ogImageUrl ? (
+              <div className="relative w-24 h-24 shrink-0 rounded-md overflow-hidden border border-br/60 shadow-sm group">
+                <MediaImage
+                  media={{ file_url: ogImageUrl } as any}
+                  alt="OG Preview"
+                  className="object-cover transition-transform duration-300 group-hover:scale-110"
+                  fill
+                />
+                <div className="absolute inset-0 bg-linear-to-t from-static-b/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute bottom-1 left-1 right-1">
+                    <Badge variant="blue" className="text-[8px] px-1.5 py-0.5 bg-static-b/80 text-static-w border-none w-full justify-center">
+                      OG
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="relative w-24 h-24 shrink-0 rounded-md border-2 border-dashed border-br/40 bg-bg/20 flex items-center justify-center">
+                <ImageIcon className="w-6 h-6 text-font-s opacity-30" />
+              </div>
+            )}
+
+            {/* OG Title & Description */}
+            <div className="flex-1 min-w-0 space-y-2">
+              <div className="flex items-start gap-2">
+                <FileText className="w-3 h-3 text-font-s mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[9px] font-bold text-font-s uppercase tracking-wider mb-0.5">
+                    Title
+                  </div>
+                  <div className="text-xs text-font-p line-clamp-2 font-medium">
+                    {ogTitle || <span className="text-font-s opacity-50 text-[10px]">—</span>}
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-font-s">
-                  <FileText className="w-4 h-4" />
-                  توضیحات Open Graph
-                </label>
-                <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-15 flex items-start">
-                  {ogDescription ? (
-                    <div className="text-font-p line-clamp-3">
-                      {ogDescription}
-                    </div>
-                  ) : (
-                    <span className="text-font-s">
-                      وارد نشده است
-                    </span>
-                  )}
+              <div className="flex items-start gap-2">
+                <FileText className="w-3 h-3 text-font-s mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[9px] font-bold text-font-s uppercase tracking-wider mb-0.5">
+                    Description
+                  </div>
+                  <div className="text-xs text-font-p line-clamp-2 opacity-80">
+                    {ogDescription || <span className="text-font-s opacity-50 text-[10px]">—</span>}
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="lg:col-span-1 space-y-3">
-              <label className="flex items-center gap-2 text-font-s">
-                <ImageIcon className="w-4 h-4" />
-                تصویر Open Graph (OG Image)
-              </label>
-              {ogImageUrl ? (
-                <div className="relative aspect-video rounded-lg overflow-hidden border shadow-md group hover:shadow-lg transition-all duration-300 bg-bg/20">
-                  <MediaImage
-                    media={{ file_url: ogImageUrl } as any}
-                    alt="OG Image Preview"
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    fill
-                  />
-                  <div className="absolute inset-0 bg-linear-to-t from-static-b/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="absolute bottom-2 left-2 right-2">
-                      <div className="flex items-center gap-1.5 text-static-w">
-                        <Eye className="w-3.5 h-3.5" />
-                        <span className="text-xs">پیش‌نمایش در شبکه‌های اجتماعی</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="relative aspect-video rounded-lg border-2 border-dashed bg-bg/30 flex items-center justify-center group hover:bg-bg/50 transition-colors">
-                  <div className="text-center space-y-2">
-                    <div className="inline-flex p-3 bg-bg rounded-full">
-                      <ImageIcon className="w-6 h-6 text-font-s" />
-                    </div>
-                    <div className="text-sm text-font-s">
-                      تصویری آپلود نشده است
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
-        </CardWithIcon>
+        </div>
       </div>
     </div>
   );

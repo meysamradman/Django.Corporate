@@ -112,9 +112,19 @@ class PropertyAgentSimpleAdminSerializer(serializers.ModelSerializer):
         fields = ['id', 'public_id', 'first_name', 'last_name', 'full_name', 'phone', 'email', 'license_number']
 
 class RealEstateAgencySimpleAdminSerializer(serializers.ModelSerializer):
+    logo_url = serializers.SerializerMethodField()
+    
     class Meta:
         model = RealEstateAgency
-        fields = ['id', 'public_id', 'name', 'slug', 'phone', 'email', 'license_number']
+        fields = ['id', 'public_id', 'name', 'slug', 'phone', 'email', 'license_number', 'logo_url']
+
+    def get_logo_url(self, obj):
+        if hasattr(obj, 'profile_picture') and obj.profile_picture and hasattr(obj.profile_picture, 'file') and obj.profile_picture.file:
+            try:
+                return obj.profile_picture.file.url
+            except Exception:
+                return None
+        return None
 
 class PropertyAdminListSerializer(serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
@@ -259,6 +269,7 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
     media = serializers.SerializerMethodField()
     property_media = serializers.SerializerMethodField()
     floor_plans = serializers.SerializerMethodField()
+    created_by_name = serializers.SerializerMethodField()
     
     seo_data = serializers.SerializerMethodField()
     seo_preview = serializers.SerializerMethodField()
@@ -289,7 +300,7 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
             'document_type', 'has_document',  # ✅ Document fields
             'extra_attributes',  # ✅ Extra attributes for advanced customization
             'views_count', 'favorites_count', 'inquiries_count',
-            'published_at', 'created_at', 'updated_at',
+            'published_at', 'created_at', 'updated_at', 'created_by_name',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
             'structured_data', 'hreflang_data',
@@ -398,6 +409,20 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
         
         cache.set(cache_key, seo_data, 1800)
         return seo_data
+
+    def get_created_by_name(self, obj):
+        if not obj.created_by:
+            return None
+            
+        # Try to get name from admin profile
+        profile = getattr(obj.created_by, 'admin_profile', None)
+        if profile:
+            full_name = f"{profile.first_name or ''} {profile.last_name or ''}".strip()
+            if full_name:
+                return full_name
+        
+        # Fallback to mobile or email or username
+        return obj.created_by.mobile or obj.created_by.email or str(obj.created_by)
     
     def get_seo_preview(self, obj):
         cache_key = PropertyCacheKeys.seo_preview(obj.pk)

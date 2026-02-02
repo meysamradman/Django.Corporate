@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import { Card, CardContent } from "@/components/elements/Card";
 import { mediaService } from "@/components/media/services";
-import { formatDate } from "@/core/utils/format";
+import { formatDate } from "@/core/utils/commonFormat";
 import type { AdminWithProfile } from "@/types/auth/admin";
 import { MoreVertical, Mail, Phone } from "lucide-react";
 import {
@@ -21,24 +21,24 @@ interface AdminCardProps {
 
 export function AdminCard({ admin, actions }: AdminCardProps) {
   const profile = admin.profile;
-  const fullName = admin.full_name || 
-                   `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() ||
-                   admin.email || 
-                   admin.mobile || 
-                   '';
-  const profilePictureUrl = profile?.profile_picture 
+  const fullName = admin.full_name ||
+    `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() ||
+    admin.email ||
+    admin.mobile ||
+    '';
+  const profilePictureUrl = profile?.profile_picture
     ? mediaService.getMediaUrlFromObject(profile.profile_picture)
     : null;
   const firstName = profile?.first_name || "";
   const lastName = profile?.last_name || "";
   const initial = (!firstName && !lastName) ? "؟" : `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-  
+
   const isActive = admin.is_active;
   const statusLabel = isActive ? "فعال" : "مرخصی";
-  const statusClasses = isActive 
-    ? "bg-green-0 text-green-1" 
+  const statusClasses = isActive
+    ? "bg-green-0 text-green-1"
     : "bg-red-0 text-red-1";
-  
+
   const createdDate = admin.created_at ? formatDate(admin.created_at) : "-";
 
   const getRoleDisplay = () => {
@@ -72,7 +72,7 @@ export function AdminCard({ admin, actions }: AdminCardProps) {
             <span className={cn("px-2.5 py-1 rounded-md text-xs font-medium", statusClasses)}>
               {statusLabel}
             </span>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center justify-center size-8 rounded-md bg-gray-0/30 hover:bg-gray-0/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
@@ -122,10 +122,10 @@ export function AdminCard({ admin, actions }: AdminCardProps) {
                 <p className="text-sm font-medium text-font-p">{createdDate}</p>
               </div>
             </div>
-            
+
             <div className="border-t border-br mb-3" />
           </div>
-          
+
           <div className="space-y-2">
             {admin.mobile ? (
               <div className="flex items-center gap-2 text-sm text-font-s">

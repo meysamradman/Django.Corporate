@@ -16,7 +16,7 @@ import {
 } from "@/components/elements/Chart";
 import type { ChartConfig } from "@/components/elements/Chart";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { formatNumber, getPersianYear } from "@/core/utils/format";
+import { formatNumber, getPersianYear } from "@/core/utils/commonFormat";
 import { Badge } from "@/components/elements/Badge";
 
 const chartConfig = {
@@ -142,8 +142,8 @@ export function VisitorChart({ monthlyStats, analytics, isLoading }: VisitorChar
                 <stop offset="95%" stopColor={chartConfig.mobile.color} stopOpacity={0.1} />
               </linearGradient>
             </defs>
-            <CartesianGrid 
-              vertical={false} 
+            <CartesianGrid
+              vertical={false}
               strokeDasharray="3 3"
               className="stroke-border/50"
             />
@@ -166,7 +166,7 @@ export function VisitorChart({ monthlyStats, analytics, isLoading }: VisitorChar
             />
             <ChartTooltip
               cursor={{ stroke: 'var(--color-br)', strokeWidth: 1 }}
-              content={<ChartTooltipContent 
+              content={<ChartTooltipContent
                 indicator="line"
                 labelFormatter={(value: string) => `ماه: ${value}`}
               />}
@@ -199,9 +199,9 @@ export function VisitorChart({ monthlyStats, analytics, isLoading }: VisitorChar
       <CardFooter>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full items-stretch">
           <DeviceDistribution analytics={analytics} />
-          
+
           <SourceDistribution analytics={analytics} />
-          
+
           <TrendSummary monthlyStats={monthlyStats} analytics={analytics} />
         </div>
       </CardFooter>
@@ -237,7 +237,7 @@ function DeviceDistribution({ analytics }: { analytics: any }) {
             </div>
           </div>
           <div className="h-2 bg-bg rounded-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-blue-1 rounded-full transition-all"
               style={{ width: `${desktopPercent}%` }}
             />
@@ -257,7 +257,7 @@ function DeviceDistribution({ analytics }: { analytics: any }) {
             </div>
           </div>
           <div className="h-2 bg-bg rounded-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-blue-1 rounded-full transition-all"
               style={{ width: `${mobilePercent}%` }}
             />
@@ -296,7 +296,7 @@ function SourceDistribution({ analytics }: { analytics: any }) {
             </div>
           </div>
           <div className="h-2 bg-bg rounded-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-blue-1 rounded-full transition-all"
               style={{ width: `${webPercent}%` }}
             />
@@ -316,7 +316,7 @@ function SourceDistribution({ analytics }: { analytics: any }) {
             </div>
           </div>
           <div className="h-2 bg-bg rounded-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-purple-1 rounded-full transition-all"
               style={{ width: `${appPercent}%` }}
             />
@@ -341,7 +341,7 @@ function TrendSummary({ monthlyStats, analytics }: { monthlyStats: Array<{ month
   const yesterdayTotal = Math.floor(todayTotal * 0.85);
   const todayTrend = calculateTrend(todayTotal, yesterdayTotal);
 
-  const thisMonthTotal = monthlyStats.length > 0 
+  const thisMonthTotal = monthlyStats.length > 0
     ? (monthlyStats[monthlyStats.length - 1]?.desktop || 0) + (monthlyStats[monthlyStats.length - 1]?.mobile || 0)
     : 0;
   const lastMonthTotal = monthlyStats.length > 1

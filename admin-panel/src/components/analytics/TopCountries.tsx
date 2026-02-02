@@ -1,6 +1,6 @@
 import { MapPin } from "lucide-react";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { formatNumber } from "@/core/utils/format";
+import { formatNumber } from "@/core/utils/commonFormat";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { getCountryFlag } from "@/core/utils/countryFlags";
 
@@ -66,10 +66,10 @@ export function TopCountries({ topCountries = [], isLoading }: TopCountriesProps
           const countryName = country.country || 'نامشخص';
           const flag = getCountryFlag(countryName);
           const percentage = total > 0 ? ((country.count / total) * 100).toFixed(1) : '0';
-          
+
           return (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className="flex items-center gap-3 p-3 rounded-lg border border-br bg-bg/30 transition-colors"
             >
               <div className="flex-shrink-0 text-2xl" title={countryName}>
@@ -88,7 +88,7 @@ export function TopCountries({ topCountries = [], isLoading }: TopCountriesProps
                   </div>
                 </div>
                 <div className="h-1.5 bg-bg rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-green-1 rounded-full transition-all"
                     style={{ width: `${percentage}%` }}
                   />

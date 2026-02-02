@@ -4,6 +4,7 @@ export interface RealEstateAgency {
   name: string;
   slug: string;
   license_number: string;
+  logo_url?: string | null;
   license_expire_date: string | null;
   phone: string;
   email: string;

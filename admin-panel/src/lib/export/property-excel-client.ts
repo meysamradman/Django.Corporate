@@ -6,7 +6,8 @@
 
 import * as XLSX from 'xlsx';
 import type { Property } from '@/types/real_estate/realEstate';
-import { formatDate } from '@/core/utils/format';
+import { formatDate } from '@/core/utils/commonFormat';
+import { formatPriceToPersian } from '@/core/utils/realEstateFormat';
 
 const MAX_CLIENT_SIDE_ROWS = 5000;
 
@@ -35,7 +36,7 @@ function transformPropertyData(properties: Property[]): ExcelExportData[] {
         'وضعیت ملک': property.state?.title || '-',
         'شهر': property.city_name || '-',
         'منطقه': property.region_name || '-',
-        'قیمت': property.price ? `${new Intl.NumberFormat('fa-IR').format(property.price)} تومان` : '-',
+        'قیمت': formatPriceToPersian(property.price),
         'تعداد خواب': property.bedrooms?.toString() || '0',
         'متراژ بنا': property.built_area ? `${property.built_area} متر` : '-',
         'تاریخ ایجاد': formatDate(property.created_at),

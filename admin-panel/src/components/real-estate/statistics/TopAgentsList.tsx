@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/elements/Card";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { formatNumber, formatPrice } from "@/core/utils/format";
+import { formatNumber, formatPrice } from "@/core/utils/commonFormat";
 import { Trophy, Star, TrendingUp } from "lucide-react";
 
 interface Agent {

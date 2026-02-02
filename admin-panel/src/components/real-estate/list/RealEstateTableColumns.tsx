@@ -2,7 +2,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 import type { Property } from "@/types/real_estate/realEstate";
 import { Badge } from "@/components/elements/Badge";
 import { Switch } from "@/components/elements/Switch";
-import { formatDate } from "@/core/utils/format";
+import { formatDate } from "@/core/utils/commonFormat";
+import { formatPriceToPersian } from "@/core/utils/realEstateFormat";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { ProtectedLink, usePermission } from "@/core/permissions";
@@ -143,10 +144,9 @@ export const usePropertyColumns = (
           return <div className="table-cell-secondary">-</div>;
         }
 
-        const formattedPrice = new Intl.NumberFormat('fa-IR').format(price);
         return (
           <div className="table-cell-primary">
-            {formattedPrice} {currency}
+            {formatPriceToPersian(price, currency)}
           </div>
         );
       },

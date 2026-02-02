@@ -71,7 +71,7 @@ class PropertyTagAdminService:
     @staticmethod
     def create_tag(validated_data, created_by=None):
         if not validated_data.get('slug') and validated_data.get('title'):
-            base_slug = slugify(validated_data['title'])
+            base_slug = slugify(validated_data['title'], allow_unicode=True)
             slug = base_slug
             counter = 1
             while PropertyTag.objects.filter(slug=slug).exists():
@@ -100,7 +100,7 @@ class PropertyTagAdminService:
             raise PropertyTag.DoesNotExist(TAG_ERRORS["tag_not_found"])
         
         if 'title' in validated_data and not validated_data.get('slug'):
-            base_slug = slugify(validated_data['title'])
+            base_slug = slugify(validated_data['title'], allow_unicode=True)
             slug = base_slug
             counter = 1
             while PropertyTag.objects.filter(slug=slug).exclude(pk=tag_id).exists():
@@ -130,9 +130,7 @@ class PropertyTagAdminService:
         except PropertyTag.DoesNotExist:
             raise PropertyTag.DoesNotExist(TAG_ERRORS["tag_not_found"])
         
-        property_count = tag.properties.count()
-        if property_count > 0:
-            raise ValidationError(TAG_ERRORS["tag_has_properties"].format(count=property_count))
+        # property_count check removed to allow deletion (will auto-remove relations)
         
         with transaction.atomic():
             tag.delete()
@@ -148,10 +146,7 @@ class PropertyTagAdminService:
         
         with transaction.atomic():
             tag_list = list(tags)
-            for tag in tag_list:
-                property_count = tag.properties.count()
-                if property_count > 0:
-                    raise ValidationError(TAG_ERRORS["tag_has_properties"].format(count=property_count))
+            # property_count check removed to allow deletion
             
             deleted_count = tags.count()
             tags.delete()

@@ -3,7 +3,7 @@ import { Pie, PieChart as RechartsPieChart, Cell, ResponsiveContainer, Tooltip }
 import { PieChart as PieChartIcon, Home, Building2 } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { formatNumber } from "@/core/utils/format";
+import { formatNumber } from "@/core/utils/commonFormat";
 import type { DashboardStats } from "@/types/analytics";
 
 interface PropertyDistributionChartProps {

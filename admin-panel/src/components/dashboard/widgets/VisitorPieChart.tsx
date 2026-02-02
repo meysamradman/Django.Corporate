@@ -3,7 +3,7 @@ import { Label, Pie, PieChart as RechartsPieChart } from "recharts";
 import { Monitor, Smartphone, Laptop, PieChart } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { useAnalytics } from "@/components/dashboard/hooks/useAnalytics";
-import { formatNumber } from "@/core/utils/format";
+import { formatNumber } from "@/core/utils/commonFormat";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import {
   ChartContainer,
@@ -213,54 +213,54 @@ export const VisitorPieChart: FC<{ isLoading?: boolean }> = ({
         </div>
 
         <div className="mt-auto space-y-0 border-t border-br pt-2">
-        {sources.map((source, index) => {
-          const Icon = source.icon;
-          const percentage = getPercentage(source.value);
+          {sources.map((source, index) => {
+            const Icon = source.icon;
+            const percentage = getPercentage(source.value);
 
-          return (
-            <div key={source.name}>
-              <div className="flex items-center justify-between py-2.5">
-                <div className="flex items-center gap-3 flex-1">
-                  <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: `${source.color}15` }}
-                  >
-                    <Icon
-                      className="w-[18px] h-[18px]"
-                      style={{ color: source.color } as CSSProperties}
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-font-p">
-                      {source.label}
-                    </span>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <div
-                        className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: source.color }}
+            return (
+              <div key={source.name}>
+                <div className="flex items-center justify-between py-2.5">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: `${source.color}15` }}
+                    >
+                      <Icon
+                        className="w-[18px] h-[18px]"
+                        style={{ color: source.color } as CSSProperties}
                       />
-                      <span className="text-xs text-font-s">
-                        {source.name.toUpperCase()}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-font-p">
+                        {source.label}
                       </span>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <div
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: source.color }}
+                        />
+                        <span className="text-xs text-font-s">
+                          {source.name.toUpperCase()}
+                        </span>
+                      </div>
                     </div>
                   </div>
+                  <div className="flex flex-col items-end">
+                    <span className="text-sm font-semibold text-font-p">
+                      {formatNumber(source.value)}
+                    </span>
+                    <span className="text-xs text-font-s mt-0.5">
+                      {percentage}%
+                    </span>
+                  </div>
                 </div>
-                <div className="flex flex-col items-end">
-                  <span className="text-sm font-semibold text-font-p">
-                    {formatNumber(source.value)}
-                  </span>
-                  <span className="text-xs text-font-s mt-0.5">
-                    {percentage}%
-                  </span>
-                </div>
+                {index < sources.length - 1 && (
+                  <div className="border-t border-br" />
+                )}
               </div>
-              {index < sources.length - 1 && (
-                <div className="border-t border-br" />
-              )}
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
       </div>
     </CardWithIcon>
   );

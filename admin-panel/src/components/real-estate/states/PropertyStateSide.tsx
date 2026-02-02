@@ -95,7 +95,7 @@ export const PropertyStateSide: React.FC<PropertyStateSideProps> = ({
                                 <SelectItem value="sale">فروش</SelectItem>
                                 <SelectItem value="rent">اجاره</SelectItem>
                                 <SelectItem value="mortgage">رهن</SelectItem>
-                                <SelectItem value="presell">پیش‌فروش</SelectItem>
+                                <SelectItem value="presale">پیش‌فروش</SelectItem>
                                 <SelectItem value="exchange">معاوضه</SelectItem>
                             </SelectContent>
                         </Select>

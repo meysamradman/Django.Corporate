@@ -1,8 +1,9 @@
 LISTING_TYPE_CHOICES = {
-    "sale": "فروشی",
-    "rent": "اجاره‌ای",
+    "sale": "فروش",
+    "rent": "اجاره",
     "presale": "پیش‌فروش",
-    "exchange": "تهاتر",
+    "exchange": "معاوضه",
+    "mortgage": "رهن",
     "other": "سایر",
 }
 

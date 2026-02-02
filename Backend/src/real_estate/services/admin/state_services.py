@@ -74,9 +74,7 @@ class PropertyStateAdminService:
         if not state_obj:
             raise PropertyState.DoesNotExist(STATE_ERRORS["state_not_found"])
         
-        property_count = state_obj.properties.count()
-        if property_count > 0:
-            raise ValidationError(STATE_ERRORS["state_has_properties"].format(count=property_count))
+        # property_count check removed to allow deletion (will set state to NULL)
         
         with transaction.atomic():
             state_obj.delete()

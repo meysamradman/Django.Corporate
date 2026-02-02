@@ -16,7 +16,7 @@ import {
     type ChartConfig,
 } from "@/components/elements/Chart";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { formatNumber } from "@/core/utils/format";
+import { formatNumber } from "@/core/utils/commonFormat";
 
 const chartConfig = {
     views: {

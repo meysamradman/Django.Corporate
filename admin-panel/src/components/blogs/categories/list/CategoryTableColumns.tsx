@@ -2,7 +2,7 @@ import React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { BlogCategory } from "@/types/blog/category/blogCategory";
 import { Badge } from "@/components/elements/Badge";
-import { formatDate } from "@/core/utils/format";
+import { formatDate } from "@/core/utils/commonFormat";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { ProtectedLink } from "@/core/permissions";

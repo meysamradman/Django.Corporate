@@ -7,6 +7,7 @@ export interface PropertyTag extends Base {
   description?: string;
   is_active?: boolean;
   is_public?: boolean;
+  property_count?: number;
   seo?: PropertySEOMeta | null;
 }
 

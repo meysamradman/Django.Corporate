@@ -1,6 +1,6 @@
 import { FileText } from "lucide-react";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { formatNumber } from "@/core/utils/format";
+import { formatNumber } from "@/core/utils/commonFormat";
 import { msg } from "@/core/messages";
 import { Skeleton } from "@/components/elements/Skeleton";
 
@@ -65,10 +65,10 @@ export function TopPages({ topPages = [], isLoading }: TopPagesProps) {
         {topPages.map((page, index) => {
           const pageName = msg.pagePath(page.path || '/');
           const percentage = total > 0 ? ((page.count / total) * 100).toFixed(1) : '0';
-          
+
           return (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className="flex items-center gap-3 p-3 rounded-lg border border-br bg-bg/30 transition-colors"
             >
               <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-0 flex items-center justify-center">
@@ -87,7 +87,7 @@ export function TopPages({ topPages = [], isLoading }: TopPagesProps) {
                   </div>
                 </div>
                 <div className="h-1.5 bg-bg rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-blue-1 rounded-full transition-all"
                     style={{ width: `${percentage}%` }}
                   />

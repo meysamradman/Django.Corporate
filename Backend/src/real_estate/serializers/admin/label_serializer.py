@@ -27,17 +27,24 @@ class PropertyLabelAdminDetailSerializer(serializers.ModelSerializer):
 class PropertyLabelAdminCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyLabel
-        fields = ['title', 'is_active']
+        fields = ['title', 'slug', 'is_active']
     
     def validate_title(self, value):
         if PropertyLabel.objects.filter(title=value).exists():
             raise serializers.ValidationError(LABEL_ERRORS.get("label_not_found", "This label already exists"))
         return value
 
+    
+    def validate(self, data):
+        if not data.get('slug') and data.get('title'):
+            from django.utils.text import slugify
+            data['slug'] = slugify(data['title'], allow_unicode=True)
+        return data
+
 class PropertyLabelAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyLabel
-        fields = ['title', 'is_active']
+        fields = ['title', 'slug', 'is_active']
     
     def validate_title(self, value):
         if self.instance and hasattr(self.instance, 'id'):
@@ -47,6 +54,12 @@ class PropertyLabelAdminUpdateSerializer(serializers.ModelSerializer):
             if PropertyLabel.objects.filter(title=value).exists():
                 raise serializers.ValidationError(LABEL_ERRORS.get("label_not_found", "This label already exists"))
         return value
+        
+    def validate(self, data):
+        if not data.get('slug') and data.get('title'):
+            from django.utils.text import slugify
+            data['slug'] = slugify(data.get('title'), allow_unicode=True)
+        return data
 
 class PropertyLabelAdminSerializer(PropertyLabelAdminDetailSerializer):
     pass

@@ -139,7 +139,7 @@ class PropertyStateAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=STATE_ERRORS["state_update_failed"],
+                message=f"{STATE_ERRORS['state_update_failed']}: {str(e)}",
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     

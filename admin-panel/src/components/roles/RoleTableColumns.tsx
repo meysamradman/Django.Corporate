@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/elements/Checkbox";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
 import type { Role } from "@/types/auth/permission";
-import { formatDate } from "@/core/utils/format";
+import { formatDate } from "@/core/utils/commonFormat";
 import { getPermissionTranslation } from "@/core/messages/permissions";
 
 export const useRoleColumns = (rowActions: DataTableRowAction<Role>[]): ColumnDef<Role>[] => {

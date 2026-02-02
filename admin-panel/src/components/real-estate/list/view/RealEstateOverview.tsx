@@ -23,6 +23,9 @@ import {
 } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
 import { mediaService } from "@/components/media/services";
+import { Card } from "@/components/elements/Card";
+import { formatNumber } from "@/core/utils/commonFormat";
+import { formatArea, formatPriceToPersian } from "@/core/utils/realEstateFormat";
 
 interface OverviewTabProps {
   property: Property;
@@ -63,10 +66,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
   const [floorPlanImages, setFloorPlanImages] = useState<Record<number, FloorPlanImage[]>>({});
   const [loadingImages, setLoadingImages] = useState<Record<number, boolean>>({});
 
-  const formatPrice = (price: number | null | undefined) => {
-    if (!price) return "-";
-    return new Intl.NumberFormat('fa-IR').format(price);
-  };
+
 
   const loadFloorPlanImages = async (floorPlanId: number) => {
     if (floorPlanImages[floorPlanId]) return;
@@ -89,7 +89,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
   return (
     <div className="space-y-8">
 
-      <div className="bg-card rounded-2xl border border-br p-6 shadow-sm">
+      <Card className="p-6 shadow-sm block">
         <div className="flex items-center gap-3 mb-6 border-b border-br pb-4">
           <div className="p-2 rounded-lg bg-blue-0/50 text-blue-1">
             <Info className="w-5 h-5" />
@@ -114,7 +114,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
                   <Layers className="w-4 h-4 text-blue-1/70" />
                   <span className="text-sm">متراژ بنا:</span>
                 </div>
-                <span className="text-sm font-bold text-font-p font-mono" dir="ltr">{formatPrice(property.built_area)} m²</span>
+                <span className="text-sm font-bold text-font-p">{formatArea(property.built_area)}</span>
               </div>
             )}
             {property.land_area && (
@@ -123,7 +123,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
                   <Layers className="w-4 h-4 text-emerald-1/70" />
                   <span className="text-sm">متراژ زمین:</span>
                 </div>
-                <span className="text-sm font-bold text-font-p font-mono" dir="ltr">{formatPrice(property.land_area)} m²</span>
+                <span className="text-sm font-bold text-font-p">{formatArea(property.land_area)}</span>
               </div>
             )}
           </div>
@@ -135,7 +135,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
                 <span className="text-sm">قیمت کل:</span>
               </div>
               <span className="text-sm font-bold text-emerald-1">
-                {property.price ? `${formatPrice(property.price)} ${property.currency || 'تومان'}` : 'توافقی'}
+                {formatPriceToPersian(property.price, property.currency || 'تومان')}
               </span>
             </div>
             {property.bedrooms !== null && property.bedrooms !== undefined && (
@@ -144,7 +144,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
                   <Building2 className="w-4 h-4 text-purple-1/70" />
                   <span className="text-sm">تعداد اتاق خواب:</span>
                 </div>
-                <span className="text-sm font-bold text-font-p">{property.bedrooms === 0 ? 'استودیو' : `${property.bedrooms} باب`}</span>
+                <span className="text-sm font-bold text-font-p">{property.bedrooms === 0 ? 'استودیو' : `${property.bedrooms?.toLocaleString('en-US')} باب`}</span>
               </div>
             )}
             {property.bathrooms !== null && property.bathrooms !== undefined && (
@@ -153,7 +153,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
                   <Building2 className="w-4 h-4 text-cyan-1/70" />
                   <span className="text-sm">سرویس بهداشتی:</span>
                 </div>
-                <span className="text-sm font-bold text-font-p">{property.bathrooms === 0 ? 'ندارد' : `${property.bathrooms} باب`}</span>
+                <span className="text-sm font-bold text-font-p">{property.bathrooms === 0 ? 'ندارد' : `${property.bathrooms?.toLocaleString('en-US')} باب`}</span>
               </div>
             )}
           </div>
@@ -165,7 +165,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
                   <Calendar className="w-4 h-4 text-orange-1/70" />
                   <span className="text-sm">سال ساخت:</span>
                 </div>
-                <span className="text-sm font-bold text-font-p">{property.year_built}</span>
+                <span className="text-sm font-bold text-font-p">{property.year_built?.toLocaleString('en-US').replace(/,/g, '')}</span>
               </div>
             )}
             {property.parking_spaces !== null && property.parking_spaces !== undefined && (
@@ -174,15 +174,15 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
                   <Home className="w-4 h-4 text-gray-1" />
                   <span className="text-sm">پارکینگ:</span>
                 </div>
-                <span className="text-sm font-bold text-font-p">{property.parking_spaces === 0 ? 'ندارد' : `${property.parking_spaces} جای پارک`}</span>
+                <span className="text-sm font-bold text-font-p">{property.parking_spaces === 0 ? 'ندارد' : `${property.parking_spaces?.toLocaleString('en-US')} جای پارک`}</span>
               </div>
             )}
           </div>
         </div>
-      </div>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-card rounded-2xl border border-br p-6 shadow-sm">
+        <Card className="p-6 shadow-sm block">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-teal-0/50 text-teal-1">
@@ -220,9 +220,9 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               <span className="text-[10px] font-bold text-font-s uppercase tracking-wider">درخواست</span>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-card rounded-2xl border border-br p-6 shadow-sm">
+        <Card className="p-6 shadow-sm block">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-blue-0/50 text-blue-1">
@@ -263,10 +263,10 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               <span className="font-bold text-font-p">{documentsCount}</span>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
-      <div className="bg-card rounded-2xl border border-br p-6 shadow-sm">
+      <Card className="p-6 shadow-sm block">
         <div className="flex items-center gap-3 mb-6 border-b border-br pb-4">
           <div className="p-2 rounded-lg bg-orange-0/50 text-orange-1">
             <FileText className="w-5 h-5" />
@@ -297,86 +297,88 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
-      {property.floor_plans && property.floor_plans.length > 0 && (
-        <div className="bg-card rounded-2xl border border-br p-6 shadow-sm">
-          <div className="flex items-center gap-3 mb-6 border-b border-br pb-4">
-            <div className="p-2 rounded-lg bg-indigo-0/50 text-indigo-1">
-              <Home className="w-5 h-5" />
+      {
+        property.floor_plans && property.floor_plans.length > 0 && (
+          <Card className="p-6 shadow-sm block">
+            <div className="flex items-center gap-3 mb-6 border-b border-br pb-4">
+              <div className="p-2 rounded-lg bg-indigo-0/50 text-indigo-1">
+                <Home className="w-5 h-5" />
+              </div>
+              <h2 className="text-lg font-bold text-font-p">پلان طبقات</h2>
             </div>
-            <h2 className="text-lg font-bold text-font-p">پلان طبقات</h2>
-          </div>
 
-          <Accordion
-            type="single"
-            collapsible
-            className="w-full space-y-3"
-            onValueChange={(value) => {
-              if (value) {
-                const floorPlanId = parseInt(value.replace('floor-plan-', ''));
-                if (floorPlanId && property.floor_plans?.some(fp => fp.id === floorPlanId)) {
-                  loadFloorPlanImages(floorPlanId);
+            <Accordion
+              type="single"
+              collapsible
+              className="w-full space-y-3"
+              onValueChange={(value) => {
+                if (value) {
+                  const floorPlanId = parseInt(value.replace('floor-plan-', ''));
+                  if (floorPlanId && property.floor_plans?.some(fp => fp.id === floorPlanId)) {
+                    loadFloorPlanImages(floorPlanId);
+                  }
                 }
-              }
-            }}
-          >
-            {property.floor_plans.map((floorPlan) => {
-              const images = floorPlanImages[floorPlan.id] || [];
-              const isLoading = loadingImages[floorPlan.id];
+              }}
+            >
+              {property.floor_plans.map((floorPlan) => {
+                const images = floorPlanImages[floorPlan.id] || [];
+                const isLoading = loadingImages[floorPlan.id];
 
-              return (
-                <AccordionItem key={floorPlan.id} value={`floor-plan-${floorPlan.id}`} className="border border-br rounded-xl bg-bg px-4 overflow-hidden">
-                  <AccordionTrigger className="hover:no-underline py-4">
-                    <div className="flex items-center justify-between w-full">
-                      <div className="flex flex-col items-start gap-1">
-                        <span className="text-sm font-bold text-font-p">{floorPlan.title}</span>
-                        <div className="flex flex-wrap items-center gap-3 text-[10px] font-bold text-font-s uppercase">
-                          <span>{typeof floorPlan.floor_size === 'number' ? floorPlan.floor_size.toFixed(1) : floorPlan.floor_size} {floorPlan.size_unit === 'sqft' ? 'SQFT' : 'm²'}</span>
-                          {floorPlan.bedrooms !== null && <span>• {floorPlan.bedrooms} خواب</span>}
-                          {floorPlan.bathrooms !== null && <span>• {floorPlan.bathrooms} حمام</span>}
+                return (
+                  <AccordionItem key={floorPlan.id} value={`floor-plan-${floorPlan.id}`} className="border border-br rounded-xl bg-bg px-4 overflow-hidden">
+                    <AccordionTrigger className="hover:no-underline py-4">
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex flex-col items-start gap-1">
+                          <span className="text-sm font-bold text-font-p">{floorPlan.title}</span>
+                          <div className="flex flex-wrap items-center gap-3 text-[10px] font-bold text-font-s uppercase">
+                            <span>{typeof floorPlan.floor_size === 'number' ? formatArea(floorPlan.floor_size) : floorPlan.floor_size}</span>
+                            {floorPlan.bedrooms !== null && <span>• {floorPlan.bedrooms} خواب</span>}
+                            {floorPlan.bathrooms !== null && <span>• {floorPlan.bathrooms} حمام</span>}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-4">
-                    <div className="space-y-4 pt-2 border-t border-br/50">
-                      {floorPlan.description && (
-                        <p className="text-xs text-font-s leading-relaxed italic">{floorPlan.description}</p>
-                      )}
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-4">
+                      <div className="space-y-4 pt-2 border-t border-br/50">
+                        {floorPlan.description && (
+                          <p className="text-xs text-font-s leading-relaxed italic">{floorPlan.description}</p>
+                        )}
 
-                      {(images.length > 0 || isLoading || (floorPlan.main_image && (floorPlan.main_image.file_url || floorPlan.main_image.url))) && (
-                        <div className="rounded-xl overflow-hidden bg-card border border-br">
-                          {isLoading ? (
-                            <div className="flex items-center justify-center py-12">
-                              <Loader2 className="w-6 h-6 animate-spin text-blue-1" />
-                            </div>
-                          ) : images.length > 0 ? (
-                            <div className="divide-y divide-br">
-                              {images.map((imageItem) => {
-                                const imageUrl = imageItem.image?.file_url || imageItem.image?.url;
-                                const fullImageUrl = imageUrl ? mediaService.getMediaUrlFromObject({ file_url: imageUrl } as any) : null;
-                                return fullImageUrl && (
-                                  <div key={imageItem.id} className="p-4 bg-card">
-                                    <img src={fullImageUrl} alt={floorPlan.title} className="w-full h-auto rounded-lg" />
-                                    {imageItem.title && <p className="mt-2 text-center text-[10px] text-font-s">{imageItem.title}</p>}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ) : floorPlan.main_image && (
-                            <img src={mediaService.getMediaUrlFromObject(floorPlan.main_image as any)} alt={floorPlan.title} className="w-full h-auto" />
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              );
-            })}
-          </Accordion>
-        </div>
-      )}
+                        {(images.length > 0 || isLoading || (floorPlan.main_image && (floorPlan.main_image.file_url || floorPlan.main_image.url))) && (
+                          <div className="rounded-xl overflow-hidden bg-card border border-br">
+                            {isLoading ? (
+                              <div className="flex items-center justify-center py-12">
+                                <Loader2 className="w-6 h-6 animate-spin text-blue-1" />
+                              </div>
+                            ) : images.length > 0 ? (
+                              <div className="divide-y divide-br">
+                                {images.map((imageItem) => {
+                                  const imageUrl = imageItem.image?.file_url || imageItem.image?.url;
+                                  const fullImageUrl = imageUrl ? mediaService.getMediaUrlFromObject({ file_url: imageUrl } as any) : null;
+                                  return fullImageUrl && (
+                                    <div key={imageItem.id} className="p-4 bg-card">
+                                      <img src={fullImageUrl} alt={floorPlan.title} className="w-full h-auto rounded-lg" />
+                                      {imageItem.title && <p className="mt-2 text-center text-[10px] text-font-s">{imageItem.title}</p>}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : floorPlan.main_image && (
+                              <img src={mediaService.getMediaUrlFromObject(floorPlan.main_image as any)} alt={floorPlan.title} className="w-full h-auto" />
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
+          </Card>
+        )
+      }
     </div>
   );
 }

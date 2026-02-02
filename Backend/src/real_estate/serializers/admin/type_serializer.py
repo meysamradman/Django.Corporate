@@ -170,6 +170,10 @@ class PropertyTypeAdminCreateSerializer(serializers.ModelSerializer):
                     'parent_id': TYPE_ERRORS["type_max_depth"]
                 })
         
+        if not data.get('slug') and data.get('title'):
+            from django.utils.text import slugify
+            data['slug'] = slugify(data['title'], allow_unicode=True)
+
         return data
 
 class PropertyTypeAdminUpdateSerializer(serializers.ModelSerializer):

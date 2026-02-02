@@ -11,26 +11,15 @@ import {
     Layers,
     Info
 } from "lucide-react";
+import { formatDate, formatNumber } from "@/core/utils/commonFormat";
+import { formatArea, formatPriceToPersian } from "@/core/utils/realEstateFormat";
 
 interface PropertyBasicInfoProps {
     property: Property;
 }
 
 export function RealEstateInfo({ property }: PropertyBasicInfoProps) {
-    const formatDate = (dateString: string) => {
-        if (!dateString) return "نامشخص";
-        const date = new Date(dateString);
-        return new Intl.DateTimeFormat("fa-IR", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-        }).format(date);
-    };
 
-    const formatPrice = (price: number | string) => {
-        if (!price) return "توافقی";
-        return new Intl.NumberFormat('fa-IR').format(Number(price));
-    };
 
     const InfoItem = ({ icon: Icon, label, value, dir = "rtl" }: any) => (
         <div className="flex items-center justify-between py-2 border-b border-br/40 last:border-0 hover:bg-bg-2/30 px-2 rounded-lg transition-colors">
@@ -55,7 +44,7 @@ export function RealEstateInfo({ property }: PropertyBasicInfoProps) {
                     <InfoItem
                         icon={Hash}
                         label="کد ملک"
-                        value={property.id}
+                        value={formatNumber(Number(property.id))}
                         dir="ltr"
                     />
                     <InfoItem
@@ -72,25 +61,25 @@ export function RealEstateInfo({ property }: PropertyBasicInfoProps) {
                     <InfoItem
                         icon={Maximize}
                         label="متراژ"
-                        value={`${property.built_area || property.land_area || 0} متر مربع`}
+                        value={formatArea(Number(property.built_area || property.land_area || 0))}
                         dir="ltr"
                     />
                     <InfoItem
                         icon={BedDouble}
                         label="تعداد خواب"
-                        value={`${property.bedrooms || 0} خواب`}
+                        value={`${formatNumber(property.bedrooms || 0)} خواب`}
                     />
                     <InfoItem
                         icon={Bath}
                         label="سرویس بهداشتی"
-                        value={`${property.bathrooms || 0} عدد`}
+                        value={`${formatNumber(property.bathrooms || 0)} عدد`}
                     />
                     <InfoItem
                         icon={DollarSign}
                         label="قیمت"
                         value={
-                            property.price ? `${formatPrice(property.price)} تومان` :
-                                property.monthly_rent ? `اجاره: ${formatPrice(property.monthly_rent)}` : 'توافقی'
+                            property.price ? formatPriceToPersian(property.price) :
+                                property.monthly_rent ? `اجاره: ${formatPriceToPersian(property.monthly_rent)}` : 'توافقی'
                         }
                     />
                     <InfoItem

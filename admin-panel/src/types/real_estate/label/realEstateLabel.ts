@@ -4,5 +4,6 @@ export interface PropertyLabel extends Base {
   title: string;
   slug: string;
   is_active: boolean;
+  property_count?: number;
 }
 

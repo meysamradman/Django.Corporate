@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { formatPrice, formatNumber } from "@/core/utils/format";
+import { formatPrice, formatNumber } from "@/core/utils/commonFormat";
 import { DollarSign, Wallet, ShoppingBag } from "lucide-react";
 
 interface FinancialStatsCardsProps {

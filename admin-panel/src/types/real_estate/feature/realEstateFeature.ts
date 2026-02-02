@@ -7,5 +7,6 @@ export interface PropertyFeature extends Base {
   image?: Media | null;
   image_url?: string | null;
   is_active: boolean;
+  property_count?: number;
 }
 

@@ -16,7 +16,7 @@ import {
 } from "@/components/elements/Chart";
 import type { ChartConfig } from "@/components/elements/Chart";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { formatNumber, getPersianYear } from "@/core/utils/format";
+import { formatNumber, getPersianYear } from "@/core/utils/commonFormat";
 import { Badge } from "@/components/elements/Badge";
 
 const chartConfig = {

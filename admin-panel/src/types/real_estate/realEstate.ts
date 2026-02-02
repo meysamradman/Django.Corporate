@@ -134,6 +134,7 @@ export interface Property extends Base {
     status: string;
     missing_fields: string[];
   };
+  created_by_name?: string | null;
 }
 
 export interface PropertyMediaItem {

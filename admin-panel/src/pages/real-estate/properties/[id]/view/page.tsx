@@ -16,11 +16,12 @@ import {
   Zap
 } from "lucide-react";
 
+import { Card } from "@/components/elements/Card";
+
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate";
 import { usePropertyPrintView } from "@/hooks/real-estate/usePropertyPrintView";
 import { RealEstateCarousel } from "@/components/real-estate/list/view/RealEstateCarousel.tsx";
-import { RealEstateInfo } from "@/components/real-estate/list/view/RealEstateInfo.tsx";
 import { RealEstateOverview } from "@/components/real-estate/list/view/RealEstateOverview.tsx";
 import { RealEstateMedia } from "@/components/real-estate/list/view/RealEstateMedia.tsx";
 import { RealEstateSEO } from "@/components/real-estate/list/view/RealEstateSEO.tsx";
@@ -29,7 +30,9 @@ import { RealEstateFeatures } from "@/components/real-estate/list/view/RealEstat
 import { PropertySidebar } from "@/components/real-estate/view/PropertySidebar.tsx";
 import { usePropertyPdfExport } from "@/hooks/real-estate/usePropertyPdfExport";
 import { Button } from "@/components/elements/Button";
-import { FloatingActions } from "@/components/elements/FloatingActions";
+import { Badge } from "@/components/elements/Badge";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/elements/Tooltip";
+import { formatDate } from "@/core/utils/commonFormat";
 
 export default function PropertyViewPage() {
   const params = useParams();
@@ -38,11 +41,11 @@ export default function PropertyViewPage() {
   const [activeSection, setActiveSection] = useState("overview");
 
   const statusConfig: Record<string, any> = {
-    active: { label: "فعال", bg: "bg-emerald-0/30 text-emerald-1", dot: "bg-emerald-1" },
-    pending: { label: "در حال معامله", bg: "bg-amber-0/30 text-amber-1", dot: "bg-amber-1" },
-    sold: { label: "فروخته شده", bg: "bg-red-0/30 text-red-1", dot: "bg-red-1" },
-    rented: { label: "اجاره داده شده", bg: "bg-blue-0/30 text-blue-1", dot: "bg-blue-1" },
-    archived: { label: "بایگانی شده", bg: "bg-gray-0/30 text-font-s", dot: "bg-font-s" },
+    active: { label: "فعال", variant: "emerald", dot: "bg-emerald-1" },
+    pending: { label: "در حال معامله", variant: "amber", dot: "bg-amber-1" },
+    sold: { label: "فروخته شده", variant: "red", dot: "bg-red-1" },
+    rented: { label: "اجاره داده شده", variant: "blue", dot: "bg-blue-1" },
+    archived: { label: "بایگانی شده", variant: "gray", dot: "bg-font-s" },
   };
 
   const { data: propertyData, isLoading, error } = useQuery({
@@ -62,7 +65,8 @@ export default function PropertyViewPage() {
         const element = document.getElementById(`section-${section}`);
         if (element) {
           const rect = element.getBoundingClientRect();
-          if (rect.top <= 150 && rect.bottom >= 150) {
+          // Adjust threshold since nav is no longer sticky
+          if (rect.top <= 100 && rect.bottom >= 100) {
             setActiveSection(section);
             break;
           }
@@ -77,9 +81,7 @@ export default function PropertyViewPage() {
     setActiveSection(sectionId);
     const element = document.getElementById(`section-${sectionId}`);
     if (element) {
-      const yOffset = -120;
-      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: y, behavior: 'smooth' });
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
@@ -102,147 +104,296 @@ export default function PropertyViewPage() {
   ];
 
   return (
-    <div className="space-y-8 pb-20 animate-in fade-in duration-500">
-      <FloatingActions
-        actions={[
-          { icon: Printer, label: "چاپ جزئیات", variant: "outline", onClick: () => openPrintWindow([Number(propertyId)], 'detail') },
-          { icon: FileText, label: `PDF ${isExportingPdf ? "..." : ""}`, variant: "outline", onClick: () => exportSinglePropertyPdf(Number(propertyId)) },
-          { icon: Edit2, label: "ویرایش", variant: "default", onClick: () => navigate(`/real-estate/properties/${propertyId}/edit`) },
-        ]}
-        position="left"
-      />
+    <div className="relative space-y-10 pb-20 animate-in fade-in duration-500">
 
-      <div className="bg-card rounded-2xl border border-br shadow-sm overflow-hidden p-6 relative">
-        <div className="absolute top-0 right-0 w-full h-1 bg-linear-to-r from-blue-1 via-purple-1 to-pink-1" />
+      {/* --- REFINED HEADER --- */}
+      {/* --- REFINED HEADER --- */}
+      <Card className="shadow-xs overflow-hidden p-6 relative block">
+        <div className="absolute top-0 right-0 w-full h-1 bg-linear-to-r from-blue-1 via-purple-1 to-pink-1 opacity-60" />
 
         <div className="flex flex-wrap items-center justify-between gap-6">
           <div className="flex items-center gap-5">
             <div className="w-16 h-16 rounded-2xl bg-bg border border-br flex items-center justify-center text-blue-1 shadow-xs">
-              <Building2 className="w-8 h-8 opacity-90" />
+              <Building2 className="w-8 h-8 opacity-80" />
             </div>
             <div className="space-y-2">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <h1 className="text-2xl font-black text-font-p tracking-tight">{propertyData.title}</h1>
-                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${statusConfig[propertyData.status]?.bg}`}>
-                  <div className={`w-1.5 h-1.5 rounded-full ${statusConfig[propertyData.status]?.dot} animate-pulse`} />
-                  {statusConfig[propertyData.status]?.label || propertyData.status}
+
+                <div className="flex items-center gap-2">
+                  {/* Portfolio-Style Badges */}
+                  {/* Use existing Badge component */}
+                  <div className="flex items-center gap-2">
+                    <Badge variant={statusConfig[propertyData.status]?.variant || "default"} className="rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest gap-2">
+                      <div className={`w-1.5 h-1.5 rounded-full ${statusConfig[propertyData.status]?.dot || 'bg-current'} animate-pulse`} />
+                      {statusConfig[propertyData.status]?.label || propertyData.status}
+                    </Badge>
+
+                    {propertyData.is_active && (
+                      <Badge variant="emerald" className="rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-1 animate-pulse" />
+                        فعال
+                      </Badge>
+                    )}
+
+                    {propertyData.is_featured && (
+                      <Badge variant="orange" className="rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+                        ویژه
+                      </Badge>
+                    )}
+
+                    {!propertyData.is_published && (
+                      <Badge variant="amber" className="rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+                        پیش‌نویس
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-4 text-xs font-bold text-font-s">
+
+              <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-font-s opacity-80">
                 <span className="bg-bg px-2 py-0.5 rounded border border-br font-mono">#{propertyData.id}</span>
                 <div className="w-1 h-1 rounded-full bg-br" />
+                <span className="uppercase tracking-widest">{propertyData.property_type?.title || 'نامشخص'}</span>
+                <div className="w-1 h-1 rounded-full bg-br" />
                 <div className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5" />
-                  <span>{new Date(propertyData.created_at).toLocaleDateString('fa-IR')}</span>
+                  <Calendar className="w-3.5 h-3.5 opacity-60" />
+                  <span>{formatDate(propertyData.created_at)}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {propertyData.agent && (
-            <div className="flex items-center gap-4 bg-bg/50 p-2 pr-6 rounded-2xl border border-br/50 shadow-xs">
-              <div className="text-left">
-                <p className="text-sm font-black text-font-p">{propertyData.agent.first_name} {propertyData.agent.last_name}</p>
-                <p className="text-[10px] font-bold text-blue-1 mt-0.5 dir-ltr">{propertyData.agent.phone || 'مشاور حرفه‌ای'}</p>
-              </div>
-              <div className="relative shrink-0">
-                {propertyData.agent.profile_picture_url ? (
-                  <img src={propertyData.agent.profile_picture_url} className="w-12 h-12 rounded-full border-2 border-wt shadow-md object-cover" />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-blue-0/50 flex items-center justify-center text-blue-1 border-2 border-wt"><User className="w-6 h-6" /></div>
-                )}
-                <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-1 border-2 border-wt rounded-full" />
-              </div>
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Standard Action Buttons */}
+            <div className="flex items-center gap-2 bg-bg/40 p-1.5 rounded-xl border border-br/40">
+              <Button
+                variant="default"
+                size="sm"
+                className="h-9 gap-2 text-xs font-black shadow-sm bg-blue-1 hover:bg-blue-2 text-wt border-none px-4"
+                onClick={() => navigate(`/real-estate/properties/${propertyId}/edit`)}
+              >
+                <Edit2 className="w-4 h-4" />
+                ویرایش ملک
+              </Button>
+              <div className="w-px h-6 bg-br/60 mx-1" />
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 gap-2 text-xs font-black border-br hover:bg-bg bg-wt/80 px-4"
+                onClick={() => openPrintWindow([Number(propertyId)], 'detail')}
+              >
+                <Printer className="w-4 h-4 opacity-70" />
+                چاپ
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 gap-2 text-xs font-black border-br hover:bg-bg bg-wt/80 px-4"
+                onClick={() => exportSinglePropertyPdf(Number(propertyId))}
+                isLoading={isExportingPdf}
+              >
+                <FileText className="w-4 h-4 opacity-70" />
+                PDF
+              </Button>
             </div>
-          )}
+
+            {/* Managed By Agency (Optional) */}
+            {propertyData.agency && (
+              <div className="flex items-center gap-3.5 bg-bg/40 p-2 pr-5 rounded-2xl border border-br/40 shadow-xs ring-1 ring-static-b/5">
+                <div className="text-right">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-black uppercase tracking-tighter bg-blue-1/10 text-blue-1 px-1.5 py-0.5 rounded-sm">
+                      آژانس
+                    </span>
+                    <p className="text-sm font-black text-font-p whitespace-nowrap">
+                      {propertyData.agency.name}
+                    </p>
+                  </div>
+                  <p className="text-[10px] font-bold text-font-s opacity-60 mt-0.5 dir-ltr">
+                    {propertyData.agency.phone}
+                  </p>
+                </div>
+                <div className="relative shrink-0">
+                  {propertyData.agency.logo_url || propertyData.agency.logo?.file_url ? (
+                    <img
+                      src={propertyData.agency.logo_url || propertyData.agency.logo?.file_url}
+                      className="w-11 h-11 rounded-full border-2 border-wt shadow-sm object-cover bg-wt"
+                    />
+                  ) : (
+                    <div className="w-11 h-11 rounded-full bg-blue-0/30 flex items-center justify-center text-blue-1 border-2 border-wt">
+                      <Building2 className="w-5 h-5" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Managed By Agent/Admin (Always show if available) */}
+            {(propertyData.agent || propertyData.created_by_name) && (
+              <div className="flex items-center gap-3.5 bg-bg/40 p-2 pr-5 rounded-2xl border border-br/40 shadow-xs ring-1 ring-static-b/5">
+                <div className="text-right">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-black uppercase tracking-tighter bg-blue-1/10 text-blue-1 px-1.5 py-0.5 rounded-sm">
+                      {propertyData.agent ? 'مشاور' : 'مدیر'}
+                    </span>
+                    <p className="text-sm font-black text-font-p whitespace-nowrap">
+                      {propertyData.agent
+                        ? `${propertyData.agent.first_name} ${propertyData.agent.last_name}`
+                        : propertyData.created_by_name}
+                    </p>
+                  </div>
+                  <p className="text-[10px] font-bold text-font-s opacity-60 mt-0.5 dir-ltr">
+                    {propertyData.agent?.phone || 'Central Management'}
+                  </p>
+                </div>
+                <div className="relative shrink-0">
+                  {propertyData.agent?.profile_picture_url ? (
+                    <img src={propertyData.agent.profile_picture_url} className="w-11 h-11 rounded-full border-2 border-wt shadow-sm object-cover" />
+                  ) : (
+                    <div className="w-11 h-11 rounded-full bg-blue-0/30 flex items-center justify-center text-blue-1 border-2 border-wt">
+                      <User className="w-5 h-5" />
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-1 border-2 border-wt rounded-full" />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </Card>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-        <div className="xl:col-span-9 space-y-12">
+      {/* --- VISUAL CONTENT GRID --- */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <div className="lg:col-span-8 xl:col-span-9">
+          <Card className="h-full min-h-[400px] lg:min-h-[500px] overflow-hidden shadow-xs group relative block p-0">
+            <RealEstateCarousel property={propertyData} className="w-full h-full object-cover" />
+          </Card>
+        </div>
 
-          <div className="rounded-2xl overflow-hidden border border-br shadow-md group relative">
-            <RealEstateCarousel property={propertyData} className="w-full" />
-          </div>
+        <div className="lg:col-span-4 xl:col-span-3">
+          <PropertySidebar property={propertyData} />
+        </div>
+      </div >
 
-          <div className="sticky top-20 z-40 bg-card/80 backdrop-blur-xl border border-br rounded-2xl shadow-lg p-1.5">
-            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => scrollToSection(item.id)}
-                  className={`flex items-center gap-2.5 px-5 py-3 rounded-xl text-xs font-black transition-all duration-300 ${activeSection === item.id ? "bg-blue-1 text-wt shadow-md shadow-blue-1/20 scale-105" : "text-font-s hover:bg-bg hover:text-font-p"
-                    }`}
-                >
-                  <item.icon className="w-4 h-4" />
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
+      {/* --- MAIN CONTENT & STICKY NAVIGATION --- */}
+      < div className="flex flex-col xl:flex-row gap-8 items-start relative mt-6 min-w-0" >
 
+        {/* DATA SECTIONS (Main Content) */}
+        < div className="flex-1 space-y-12 min-w-0 w-full" >
           <div id="section-overview" className="scroll-mt-32">
             <RealEstateOverview property={propertyData} />
           </div>
 
           <div id="section-features" className="scroll-mt-32">
-            <div className="bg-card rounded-2xl border border-br p-8 shadow-sm">
-              <div className="flex items-center gap-3 mb-8 pb-4 border-b border-br">
-                <LayoutGrid className="w-6 h-6 text-blue-1" />
-                <h2 className="text-xl font-black text-font-p">ویژگی‌های ملک</h2>
+            <Card className="p-8 shadow-xs relative overflow-hidden group/card block">
+
+              <div className="flex items-center gap-4 mb-10 pb-5 border-b border-br relative z-10">
+                <div className="p-3 rounded-2xl bg-blue-1/10 text-blue-1">
+                  <LayoutGrid className="w-7 h-7" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-font-p tracking-tight">ویژگی‌های ملک</h2>
+                  <p className="text-[10px] font-bold text-font-s opacity-60 mt-1 uppercase tracking-widest">Property Detailed Specifications</p>
+                </div>
               </div>
               <RealEstateFeatures property={propertyData} mode="features" />
-            </div>
-          </div>
+            </Card>
+          </div >
 
           <div id="section-amenities" className="scroll-mt-32">
-            <div className="bg-card rounded-2xl border border-br p-8 shadow-sm">
-              <div className="flex items-center gap-3 mb-8 pb-4 border-b border-br">
-                <Zap className="w-6 h-6 text-orange-1" />
-                <h2 className="text-xl font-black text-font-p">امکانات رفاهی</h2>
+            <Card className="p-8 shadow-xs relative overflow-hidden group/card block">
+
+              <div className="flex items-center gap-4 mb-10 pb-5 border-b border-br relative z-10">
+                <div className="p-3 rounded-2xl bg-orange-1/10 text-orange-1">
+                  <Zap className="w-7 h-7" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-font-p tracking-tight">امکانات رفاهی</h2>
+                  <p className="text-[10px] font-bold text-font-s opacity-60 mt-1 uppercase tracking-widest">Building Amenities & Facilities</p>
+                </div>
               </div>
               <RealEstateFeatures property={propertyData} mode="amenities" />
-            </div>
-          </div>
+            </Card>
+          </div >
 
           <div id="section-attributes" className="scroll-mt-32">
-            <div className="bg-card rounded-2xl border border-br p-8 shadow-sm">
-              <div className="flex items-center gap-3 mb-8 pb-4 border-b border-br">
-                <Layers className="w-6 h-6 text-purple-1" />
-                <h2 className="text-xl font-black text-font-p">مشخصات فنی و ثبتی</h2>
+            <Card className="p-8 shadow-xs relative overflow-hidden group/card block">
+
+              <div className="flex items-center gap-4 mb-10 pb-5 border-b border-br relative z-10">
+                <div className="p-3 rounded-2xl bg-purple-1/10 text-purple-1">
+                  <Layers className="w-7 h-7" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-font-p tracking-tight">مشخصات فنی و ثبتی</h2>
+                  <p className="text-[10px] font-bold text-font-s opacity-60 mt-1 uppercase tracking-widest">Technical Specifications</p>
+                </div>
               </div>
               <RealEstateAttributes property={propertyData} />
-            </div>
-          </div>
+            </Card>
+          </div >
 
           <div id="section-media" className="scroll-mt-32">
-            <div className="bg-card rounded-2xl border border-br p-8 shadow-sm">
-              <div className="flex items-center gap-3 mb-8 pb-4 border-b border-br">
-                <ImageIcon className="w-6 h-6 text-pink-1" />
-                <h2 className="text-xl font-black text-font-p">رسانه‌ها و گالری</h2>
+            <Card className="p-8 shadow-xs relative overflow-hidden group/card block">
+
+              <div className="flex items-center gap-4 mb-10 pb-5 border-b border-br relative z-10">
+                <div className="p-3 rounded-2xl bg-pink-1/10 text-pink-1">
+                  <ImageIcon className="w-7 h-7" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-font-p tracking-tight">رسانه‌ها و گالری</h2>
+                  <p className="text-[10px] font-bold text-font-s opacity-60 mt-1 uppercase tracking-widest">Media Gallery & Documents</p>
+                </div>
               </div>
               <RealEstateMedia property={propertyData} />
-            </div>
-          </div>
+            </Card>
+          </div >
 
           <div id="section-seo" className="scroll-mt-32">
-            <div className="bg-card rounded-2xl border border-br p-8 shadow-sm">
-              <div className="flex items-center gap-3 mb-8 pb-4 border-b border-br">
-                <Search className="w-6 h-6 text-teal-1" />
-                <h2 className="text-xl font-black text-font-p">تنظیمات سئو</h2>
+            <Card className="p-8 shadow-xs relative overflow-hidden group/card block">
+
+              <div className="flex items-center gap-4 mb-10 pb-5 border-b border-br relative z-10">
+                <div className="p-3 rounded-2xl bg-teal-1/10 text-teal-1">
+                  <Search className="w-7 h-7" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-font-p tracking-tight">تنظیمات سئو</h2>
+                  <p className="text-[10px] font-bold text-font-s opacity-60 mt-1 uppercase tracking-widest">Search Engine Optimization</p>
+                </div>
               </div>
               <RealEstateSEO property={propertyData} />
-            </div>
-          </div>
+            </Card>
+          </div >
+        </div >
 
-        </div>
-
-        <div className="xl:col-span-3 space-y-8 sticky top-24">
-          <PropertySidebar property={propertyData} />
-          <RealEstateInfo property={propertyData} />
-        </div>
-      </div>
-    </div>
+        {/* SIDE NAVIGATION (TOC) - Sticky and Minimal */}
+        {/* In RTL: JSX order Item 1 (Content) is Right, Item 2 (Aside) is Left */}
+        <aside className="hidden xl:block w-16 sticky top-24 self-start flex-none">
+          <TooltipProvider>
+            <nav className="flex flex-col gap-3 p-2 bg-card border border-br rounded-full shadow-lg ring-1 ring-static-b/5">
+              {navItems.map((item) => (
+                <Tooltip key={item.id} delayDuration={0}>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => scrollToSection(item.id)}
+                      className={`w-12 h-12 flex items-center justify-center rounded-full transition-all duration-300 cursor-pointer group relative ${activeSection === item.id
+                        ? "bg-blue-1 text-wt shadow-md shadow-blue-1/20 scale-110"
+                        : "text-font-s hover:bg-bg hover:text-blue-1"
+                        }`}
+                    >
+                      <item.icon className="w-5 h-5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" sideOffset={12}>
+                    <p className="text-[10px] font-black">{item.label}</p>
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </nav>
+          </TooltipProvider>
+        </aside>
+      </div >
+    </div >
   );
 }
 

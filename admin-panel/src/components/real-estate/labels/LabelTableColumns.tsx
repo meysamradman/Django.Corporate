@@ -2,7 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 import { Badge } from "@/components/elements/Badge";
 import { Switch } from "@/components/elements/Switch";
-import { formatDate } from "@/core/utils/format";
+import { formatDate } from "@/core/utils/commonFormat";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { ProtectedLink, usePermission } from "@/core/permissions";
@@ -73,6 +73,19 @@ export const usePropertyLabelColumns = (
       enableSorting: true,
       enableHiding: true,
       minSize: 200,
+    },
+    {
+      accessorKey: "property_count",
+      header: () => <div className="table-header-text">تعداد ملک</div>,
+      cell: ({ row }) => (
+        <div className="table-cell-secondary text-center">
+          <Badge variant="gray">{row.original.property_count || 0}</Badge>
+        </div>
+      ),
+      enableSorting: true,
+      enableHiding: true,
+      size: 100,
+      minSize: 100,
     },
     {
       accessorKey: "created_at",

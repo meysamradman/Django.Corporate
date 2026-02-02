@@ -16,7 +16,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 import { CardItem, type CardItemAction } from "@/components/elements/CardItem";
 import { mediaService } from "@/components/media/services";
-import { formatDate } from "@/core/utils/format";
+import { formatDate } from "@/core/utils/commonFormat";
 import { PaginationControls } from "@/components/shared/Pagination";
 import { DataTableFacetedFilterSimple } from "@/components/tables/DataTableFacetedFilterSimple";
 import { getConfirm } from '@/core/messages';

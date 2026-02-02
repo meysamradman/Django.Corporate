@@ -46,8 +46,8 @@ class Property(BaseModel, SEOMixin):
         null=True, 
         blank=True
     )
-    property_type = models.ForeignKey(PropertyType, on_delete=models.PROTECT, related_name='properties')
-    state = models.ForeignKey(PropertyState, on_delete=models.PROTECT, related_name='properties')
+    property_type = models.ForeignKey(PropertyType, on_delete=models.SET_NULL, related_name='properties', null=True, blank=True)
+    state = models.ForeignKey(PropertyState, on_delete=models.SET_NULL, related_name='properties', null=True, blank=True)
     
     province = models.ForeignKey(Province, on_delete=models.PROTECT, related_name='real_estate_properties')
     city = models.ForeignKey(City, on_delete=models.PROTECT, related_name='real_estate_properties')

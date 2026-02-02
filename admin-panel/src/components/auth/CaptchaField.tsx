@@ -3,7 +3,7 @@ import { Input } from '@/components/elements/Input';
 import { FormField } from '@/components/shared/FormField';
 import { Loader2, RotateCw } from 'lucide-react';
 import type { UseFormReturn } from 'react-hook-form';
-import { filterNumericOnly } from '@/core/filters/numeric';
+import { filterNumericOnly } from '@/core/utils/numeric';
 
 interface CaptchaFieldProps {
   captchaId: string;

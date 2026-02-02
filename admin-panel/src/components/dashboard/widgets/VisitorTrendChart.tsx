@@ -2,7 +2,7 @@ import { useState, useMemo, type FC } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { useContentTrend } from "@/hooks/dashboard/useAnalytics";
-import { formatNumber } from "@/core/utils/format";
+import { formatNumber } from "@/core/utils/commonFormat";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { LineChart } from "lucide-react";
 import {

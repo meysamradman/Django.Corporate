@@ -13,7 +13,7 @@ import type { ProvinceCompact, CityCompact } from "@/types/shared/location";
 import { locationApi } from "@/api/shared/location/location";
 import { useState, useEffect } from "react";
 import { PersianDatePicker } from "@/components/elements/PersianDatePicker";
-import { filterNumericOnly } from "@/core/filters/numeric";
+import { filterNumericOnly } from "@/core/utils/numeric";
 import { Switch } from "@/components/elements/Switch";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
 import { useMutation, useQueryClient } from '@tanstack/react-query';

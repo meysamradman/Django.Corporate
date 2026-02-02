@@ -7,7 +7,7 @@ import type { DataTableRowAction } from "@/types/shared/table";
 import { ProtectedLink } from "@/core/permissions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import { mediaService } from "@/components/media/services";
-import { formatDate } from "@/core/utils/format";
+import { formatDate } from "@/core/utils/commonFormat";
 
 export const useUserColumns = (
   rowActions: DataTableRowAction<UserWithProfile>[]
@@ -18,20 +18,20 @@ export const useUserColumns = (
       id: "select",
       header: ({ table }) => (
         <div className="flex items-center justify-center">
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="انتخاب همه"
-        />
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="انتخاب همه"
+          />
         </div>
       ),
       cell: ({ row }) => (
         <div className="flex items-center justify-center">
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="انتخاب ردیف"
-        />
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="انتخاب ردیف"
+          />
         </div>
       ),
       enableSorting: false,
@@ -47,13 +47,13 @@ export const useUserColumns = (
       cell: ({ row }) => {
         const user = row.original;
         const profile = user.profile;
-        const fullName = profile?.full_name || 
-                         `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() ||
-                         user.email || 
-                         user.mobile || 
-                         '';
-        
-        const profilePictureUrl = profile?.profile_picture 
+        const fullName = profile?.full_name ||
+          `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() ||
+          user.email ||
+          user.mobile ||
+          '';
+
+        const profilePictureUrl = profile?.profile_picture
           ? mediaService.getMediaUrlFromObject(profile.profile_picture)
           : "";
 
@@ -65,8 +65,8 @@ export const useUserColumns = (
         };
 
         return (
-          <ProtectedLink 
-            to={`/users/${user.id}/edit`} 
+          <ProtectedLink
+            to={`/users/${user.id}/edit`}
             permission="users.update"
             className="flex items-center gap-3"
           >
@@ -93,12 +93,12 @@ export const useUserColumns = (
       accessorKey: "mobile",
       header: () => <div className="table-header-text">موبایل</div>,
       cell: ({ row }) => {
-         const mobile = row.original.mobile;
-         return (
-           <div className="table-cell-muted table-cell-wide" dir="ltr">
-             {mobile || "-"}
-           </div>
-         );
+        const mobile = row.original.mobile;
+        return (
+          <div className="table-cell-muted table-cell-wide" dir="ltr">
+            {mobile || "-"}
+          </div>
+        );
       },
       enableSorting: false,
       enableHiding: true,

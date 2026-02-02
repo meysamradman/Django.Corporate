@@ -7,7 +7,7 @@
 
 import * as XLSX from 'xlsx';
 import type { Blog } from '@/types/blog/blog';
-import { formatDate } from '@/core/utils/format';
+import { formatDate } from '@/core/utils/commonFormat';
 
 const MAX_CLIENT_SIDE_ROWS = 5000;
 

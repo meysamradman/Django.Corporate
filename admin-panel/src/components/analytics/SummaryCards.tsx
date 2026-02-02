@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Users, 
-  Eye, 
-  Calendar, 
+import {
+  TrendingUp,
+  TrendingDown,
+  Users,
+  Eye,
+  Calendar,
   Activity
 } from "lucide-react";
 import {
@@ -13,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/elements/Card";
-import { formatNumber } from "@/core/utils/format";
+import { formatNumber } from "@/core/utils/commonFormat";
 import { cn } from "@/core/utils/cn";
 
 interface StatCardProps {
@@ -30,12 +30,12 @@ interface StatCardProps {
   iconBg?: string;
 }
 
-function StatCard({ 
-  title, 
-  value, 
-  subtitle, 
-  trend, 
-  icon, 
+function StatCard({
+  title,
+  value,
+  subtitle,
+  trend,
+  icon,
   iconColor = "text-blue-1",
   iconBg = "bg-blue/10",
   borderColor = "border-b-blue-1"
@@ -112,7 +112,7 @@ export function SummaryCards({ analytics, monthlyStats = [] }: SummaryCardsProps
   const todayTotal = analytics.today?.total || 0;
   const yesterdayTotal = Math.floor(todayTotal * 0.85);
   const todayTrend = calculateTrend(todayTotal, yesterdayTotal);
-  const thisMonthTotal = monthlyStats.length > 0 
+  const thisMonthTotal = monthlyStats.length > 0
     ? (monthlyStats[monthlyStats.length - 1]?.desktop || 0) + (monthlyStats[monthlyStats.length - 1]?.mobile || 0)
     : 0;
   const lastMonthTotal = monthlyStats.length > 1
