@@ -1,17 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  Image as ImageIcon,
+  ImageIcon,
   X,
   ChevronLeft,
   ChevronRight,
-  Play,
   Maximize2
 } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { mediaService } from "@/components/media/services";
 import type { Property } from "@/types/real_estate/realEstate";
 import { cn } from "@/core/utils/cn";
-import { Card, CardContent } from "@/components/elements/Card";
 
 interface PropertyImageGalleryProps {
   property: Property;
@@ -43,22 +41,21 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
   const galleryItems = allMedia
     .filter((item: any) => {
       const media = item.media_detail || item.media || item;
-      return media?.media_type === 'image' || media?.media_type === 'video';
+      return media?.media_type === 'image';
     })
     .map((item: any) => {
       const media = item.media_detail || item.media || item;
       const mediaUrl = media?.file_url || media?.url || null;
       const fullUrl = mediaUrl ? mediaService.getMediaUrlFromObject({ file_url: mediaUrl } as any) : null;
-      const coverUrl = media?.cover_image?.file_url ? mediaService.getMediaUrlFromObject({ file_url: media.cover_image.file_url } as any) : null;
 
       return {
         id: item.id,
         media,
-        type: media?.media_type || 'image',
+        type: 'image',
         url: fullUrl || '',
-        coverUrl: coverUrl || fullUrl || '',
-        title: media?.title || `${media?.media_type === 'video' ? 'ویدئو' : 'تصویر'} ${item.id}`,
-        alt: media?.title || property.title || 'رسانه ملک',
+        coverUrl: fullUrl || '',
+        title: media?.title || `تصویر ${item.id}`,
+        alt: media?.title || property.title || 'تصویر ملک',
         isMainImage: item.is_main_image || false,
       };
     })
@@ -152,28 +149,12 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
                     className="relative w-full h-full cursor-pointer"
                     onClick={() => setIsLightboxOpen(true)}
                   >
-                    {item.type === 'video' ? (
-                      <div className="relative w-full h-full bg-black">
-                        <video
-                          src={item.url}
-                          className="w-full h-full object-contain"
-                          poster={item.coverUrl}
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
-                          <div className="size-20 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
-                            <Play className="w-8 h-8 text-white fill-white ml-1" />
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <img
-                        src={item.url}
-                        alt={item.alt}
-                        className="w-full h-full object-cover"
-                        loading={index === 0 ? "eager" : "lazy"}
-                      />
-                    )}
-
+                    <img
+                      src={item.url}
+                      alt={item.alt}
+                      className="w-full h-full object-cover"
+                      loading={index === 0 ? "eager" : "lazy"}
+                    />
                     <div className="absolute inset-0 bg-linear-to-b from-black/0 via-black/0 to-black/30 pointer-events-none" />
                   </div>
                 </div>
@@ -185,12 +166,6 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
             {mediaItems[selectedIndex]?.isMainImage && (
               <span className="px-3 py-1.5 rounded-lg bg-primary/90 text-white text-xs font-bold shadow-sm backdrop-blur-sm">
                 عکس شاخص
-              </span>
-            )}
-            {mediaItems[selectedIndex]?.type === 'video' && (
-              <span className="px-3 py-1.5 rounded-lg bg-red-500/90 text-white text-xs font-bold shadow-sm backdrop-blur-sm flex items-center gap-1">
-                <Play className="w-3 h-3 fill-current" />
-                ویدیو
               </span>
             )}
           </div>
@@ -243,15 +218,10 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
                     )}
                   >
                     <img
-                      src={item.type === 'video' ? item.coverUrl : item.url}
+                      src={item.url}
                       alt={item.alt}
                       className="w-full h-full object-cover"
                     />
-                    {item.type === 'video' && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                        <Play className="w-4 h-4 text-white fill-white" />
-                      </div>
-                    )}
                   </button>
                 ))}
               </div>
@@ -276,23 +246,12 @@ export function RealEstateCarousel({ property, className }: PropertyImageGallery
             <div className="flex h-full" dir="rtl">
               {mediaItems.map((item, index) => (
                 <div key={item.id} className="flex-[0_0_100%] min-w-0 h-full flex items-center justify-center p-4">
-                  {item.type === 'video' ? (
-                    <video
-                      src={item.url}
-                      className="max-w-full max-h-[90vh] rounded-lg shadow-2xl"
-                      controls
-                      poster={item.coverUrl}
-                      preload="metadata"
-                      autoPlay={index === selectedIndex}
-                    />
-                  ) : (
-                    <img
-                      src={item.url}
-                      alt={item.alt}
-                      className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
-                      loading={index === selectedIndex ? "eager" : "lazy"}
-                    />
-                  )}
+                  <img
+                    src={item.url}
+                    alt={item.alt}
+                    className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                    loading={index === selectedIndex ? "eager" : "lazy"}
+                  />
                 </div>
               ))}
             </div>

@@ -26,8 +26,8 @@ export function parseModuleMedia(media: any[]): GenericModuleMedia {
     if (!Array.isArray(media)) return result;
 
     media.forEach((item: any) => {
-        const type = item.media_type || item.file_type || 'image';
         const mediaItem = item.media || item;
+        const type = item.media_type || item.file_type || mediaItem.media_type || mediaItem.file_type || 'image';
 
         if (item.is_featured || item.featured) {
             result.featuredImage = mediaItem;
@@ -48,6 +48,7 @@ export function parseModuleMedia(media: any[]): GenericModuleMedia {
                 result.pdfDocuments.push(mediaItem);
                 break;
             default:
+                // Only push to images if it's not explicitly another type
                 result.imageGallery.push(mediaItem);
         }
     });

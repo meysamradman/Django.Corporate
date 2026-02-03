@@ -73,7 +73,7 @@ export default function RealEstateMedia(props: MediaTabProps) {
                         borderColor="border-b-blue-1"
                     >
                         <MediaGallery
-                            mediaItems={propertyMedia?.imageGallery || []}
+                            mediaItems={(propertyMedia?.imageGallery || []).filter(m => m.media_type === 'image' || !m.media_type)}
                             onMediaSelect={(media) => onGalleryChange ? onGalleryChange(media) : setPropertyMedia?.({ ...propertyMedia, imageGallery: media })}
                             mediaType="image"
                             title=""
@@ -94,7 +94,7 @@ export default function RealEstateMedia(props: MediaTabProps) {
                             borderColor="border-b-purple-1"
                         >
                             <MediaGallery
-                                mediaItems={propertyMedia?.videoGallery || []}
+                                mediaItems={(propertyMedia?.videoGallery || []).filter(m => m.media_type === 'video')}
                                 onMediaSelect={(media) => onVideoGalleryChange ? onVideoGalleryChange(media) : setPropertyMedia?.({ ...propertyMedia, videoGallery: media })}
                                 mediaType="video"
                                 title=""
@@ -114,7 +114,7 @@ export default function RealEstateMedia(props: MediaTabProps) {
                             borderColor="border-b-pink-1"
                         >
                             <MediaGallery
-                                mediaItems={propertyMedia?.audioGallery || []}
+                                mediaItems={(propertyMedia?.audioGallery || []).filter(m => m.media_type === 'audio')}
                                 onMediaSelect={(media) => onAudioGalleryChange ? onAudioGalleryChange(media) : setPropertyMedia?.({ ...propertyMedia, audioGallery: media })}
                                 mediaType="audio"
                                 title=""
@@ -135,7 +135,7 @@ export default function RealEstateMedia(props: MediaTabProps) {
                         borderColor="border-b-orange-1"
                     >
                         <MediaGallery
-                            mediaItems={propertyMedia?.pdfDocuments || []}
+                            mediaItems={(propertyMedia?.pdfDocuments || []).filter(m => m.media_type === 'document' || m.media_type === 'pdf')}
                             onMediaSelect={(media) => onPdfDocumentsChange ? onPdfDocumentsChange(media) : setPropertyMedia?.({ ...propertyMedia, pdfDocuments: media })}
                             mediaType="pdf"
                             title=""
@@ -148,7 +148,7 @@ export default function RealEstateMedia(props: MediaTabProps) {
                     </CardWithIcon>
                 </div>
 
-                <div className="w-full lg:w-[380px] lg:flex-shrink-0">
+                <div className="w-full lg:w-[380px] lg:shrink-0">
                     <CardWithIcon
                         icon={ImageIcon}
                         title="تصویر اصلی ملک"
@@ -159,7 +159,7 @@ export default function RealEstateMedia(props: MediaTabProps) {
                     >
                         <div className="space-y-4">
                             {currentFeaturedImage ? (
-                                <div className="relative group aspect-[4/3] rounded-2xl overflow-hidden border border-br shadow-sm bg-muted/5">
+                                <div className="relative group aspect-4/3 rounded-2xl overflow-hidden border border-br shadow-sm bg-muted/5">
                                     <img
                                         src={mediaService.getMediaUrlFromObject(currentFeaturedImage)}
                                         alt={currentFeaturedImage.alt_text || "تصویر شاخص"}
@@ -204,14 +204,14 @@ export default function RealEstateMedia(props: MediaTabProps) {
                                         </Button>
                                     </div>
 
-                                    <div className="absolute top-3 right-3 px-3 py-1.5 bg-indigo shadow-xl ring-4 ring-indigo/20 text-static-w text-[9px] font-black rounded-full uppercase tracking-[0.1em]">
+                                    <div className="absolute top-3 right-3 px-3 py-1.5 bg-indigo shadow-xl ring-4 ring-indigo/20 text-static-w text-[9px] font-black rounded-full uppercase tracking-widest">
                                         شاخص
                                     </div>
                                 </div>
                             ) : (
                                 <div
                                     onClick={() => editMode && setIsMediaModalOpen(true)}
-                                    className={`relative flex flex-col items-center justify-center w-full aspect-[4/3] border-2 border-dashed border-br rounded-2xl cursor-pointer hover:border-indigo-1/40 hover:bg-indigo-0/5 transition-all duration-300 group ${!editMode ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    className={`relative flex flex-col items-center justify-center w-full aspect-4/3 border-2 border-dashed border-br rounded-2xl cursor-pointer hover:border-indigo-1/40 hover:bg-indigo-0/5 transition-all duration-300 group ${!editMode ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     <div className="w-16 h-16 rounded-full bg-indigo-0 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                                         <ImageIcon className="w-8 h-8 text-indigo-1" />

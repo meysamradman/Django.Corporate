@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { Property } from "@/types/real_estate/realEstate";
 import { Badge } from "@/components/elements/Badge";
 import { ReadMore } from "@/components/elements/ReadMore";
@@ -13,19 +14,27 @@ import {
   Activity,
   Eye,
   Heart,
-  MessageCircle,
   Layers,
   Calendar,
+  Hash,
+  Maximize2,
   DollarSign,
   ImageIcon,
   Video,
-  Music
+  Music,
+  Users,
+  Briefcase,
+  Package,
+  Soup,
+  Globe,
+  Smartphone,
+  PhoneCall
 } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
 import { mediaService } from "@/components/media/services";
 import { Card } from "@/components/elements/Card";
-import { formatNumber } from "@/core/utils/commonFormat";
 import { formatArea, formatPriceToPersian } from "@/core/utils/realEstateFormat";
+import { msg } from "@/core/messages";
 
 interface OverviewTabProps {
   property: Property;
@@ -63,6 +72,20 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
     }
   ).length;
 
+  const { data: fieldOptions } = useQuery({
+    queryKey: ["property-field-options"],
+    queryFn: () => realEstateApi.getFieldOptions(),
+    staleTime: 1000 * 60 * 30, // 30 minutes
+  });
+
+  const getLocalizedValue = (field: string, value: any) => {
+    if (!fieldOptions || value === null || value === undefined) return value;
+    const options = (fieldOptions as any)[field] as [any, string][];
+    if (!options) return value;
+    const option = options.find(opt => opt[0] === value);
+    return option ? option[1] : value;
+  };
+
   const [floorPlanImages, setFloorPlanImages] = useState<Record<number, FloorPlanImage[]>>({});
   const [loadingImages, setLoadingImages] = useState<Record<number, boolean>>({});
 
@@ -95,84 +118,198 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
           <h2 className="text-lg font-bold text-font-p">جزئیات و مشخصات ملک</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div className="space-y-4">
-            {property.property_type && (
-              <div className="flex justify-between items-center group">
-                <div className="flex items-center gap-2 text-font-s">
-                  <Home className="w-4 h-4 text-blue-1/70" />
-                  <span className="text-sm">نوع ملک:</span>
-                </div>
-                <span className="text-sm font-bold text-font-p">{property.property_type.title || "-"}</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-0 text-font-p">
+          {/* Column 1: Core Identity & Structure */}
+          <div className="flex flex-col">
+            <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+              <Hash className="w-4 h-4 text-blue-1/60 group-hover:text-blue-1 transition-colors shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-font-s">شناسه ملک:</span>
+                <span className="text-sm font-black font-mono">HZ-{property.id}</span>
               </div>
-            )}
-            {property.built_area && (
-              <div className="flex justify-between items-center group">
-                <div className="flex items-center gap-2 text-font-s">
-                  <Layers className="w-4 h-4 text-blue-1/70" />
-                  <span className="text-sm">متراژ بنا:</span>
-                </div>
-                <span className="text-sm font-bold text-font-p">{formatArea(property.built_area)}</span>
-              </div>
-            )}
-            {property.land_area && (
-              <div className="flex justify-between items-center group">
-                <div className="flex items-center gap-2 text-font-s">
-                  <Layers className="w-4 h-4 text-emerald-1/70" />
-                  <span className="text-sm">متراژ زمین:</span>
-                </div>
-                <span className="text-sm font-bold text-font-p">{formatArea(property.land_area)}</span>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex justify-between items-center group">
-              <div className="flex items-center gap-2 text-font-s">
-                <DollarSign className="w-4 h-4 text-emerald-1/70" />
-                <span className="text-sm">قیمت کل:</span>
-              </div>
-              <span className="text-sm font-bold text-emerald-1">
-                {formatPriceToPersian(property.price, property.currency || 'تومان')}
-              </span>
             </div>
-            {property.bedrooms !== null && property.bedrooms !== undefined && (
-              <div className="flex justify-between items-center group">
-                <div className="flex items-center gap-2 text-font-s">
-                  <Building2 className="w-4 h-4 text-purple-1/70" />
-                  <span className="text-sm">تعداد اتاق خواب:</span>
+
+            {property.property_type && (
+              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+                <Home className="w-4 h-4 text-blue-1/60 group-hover:text-blue-1 transition-colors shrink-0" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-bold text-font-s">نوع ملک:</span>
+                  <span className="text-sm font-black">{property.property_type.title || "-"}</span>
                 </div>
-                <span className="text-sm font-bold text-font-p">{property.bedrooms === 0 ? 'استودیو' : `${property.bedrooms?.toLocaleString('en-US')} باب`}</span>
               </div>
             )}
-            {property.bathrooms !== null && property.bathrooms !== undefined && (
-              <div className="flex justify-between items-center group">
-                <div className="flex items-center gap-2 text-font-s">
-                  <Building2 className="w-4 h-4 text-cyan-1/70" />
-                  <span className="text-sm">سرویس بهداشتی:</span>
+
+            <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+              <Activity className="w-4 h-4 text-orange-1/60 group-hover:text-orange-1 transition-colors shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-font-s">وضعیت:</span>
+                <span className="text-sm font-black">
+                  {getLocalizedValue('status', property.status) || (property.status === 'for_rent' ? 'اجاره' : property.status === 'for_sale' ? 'فروش' : property.status || '-')}
+                </span>
+              </div>
+            </div>
+
+            {property.built_area && (
+              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+                <Maximize2 className="w-4 h-4 text-blue-1/60 group-hover:text-blue-1 transition-colors shrink-0" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-bold text-font-s">زیربنا:</span>
+                  <span className="text-sm font-black font-mono" dir="ltr">{formatArea(property.built_area)}</span>
                 </div>
-                <span className="text-sm font-bold text-font-p">{property.bathrooms === 0 ? 'ندارد' : `${property.bathrooms?.toLocaleString('en-US')} باب`}</span>
+              </div>
+            )}
+
+            {property.land_area && (
+              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+                <Layers className="w-4 h-4 text-emerald-1/60 group-hover:text-emerald-1 transition-colors shrink-0" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-bold text-font-s">مساحت زمین:</span>
+                  <span className="text-sm font-black font-mono" dir="ltr">{formatArea(property.land_area)}</span>
+                </div>
+              </div>
+            )}
+
+            {property.document_type && (
+              <div className="flex items-center gap-3 py-3 border-b border-br/50 last:border-0 md:last:border-b lg:last:border-b group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+                <Briefcase className="w-4 h-4 text-amber-1/60 group-hover:text-amber-1 transition-colors shrink-0" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-bold text-font-s">نوع سند:</span>
+                  <span className="text-sm font-black">{getLocalizedValue('document_type', property.document_type) || property.document_type}</span>
+                </div>
               </div>
             )}
           </div>
 
-          <div className="space-y-4">
-            {property.year_built && (
-              <div className="flex justify-between items-center group">
-                <div className="flex items-center gap-2 text-font-s">
-                  <Calendar className="w-4 h-4 text-orange-1/70" />
-                  <span className="text-sm">سال ساخت:</span>
+          {/* Column 2: Financials & Rooms */}
+          <div className="flex flex-col">
+            {property.price && (
+              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+                <DollarSign className="w-4 h-4 text-emerald-1/60 group-hover:text-emerald-1 transition-colors shrink-0" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-bold text-font-s">قیمت کل:</span>
+                  <span className="text-sm font-black text-emerald-1">
+                    {formatPriceToPersian(property.price, property.currency || 'تومان')}
+                  </span>
                 </div>
-                <span className="text-sm font-bold text-font-p">{property.year_built?.toLocaleString('en-US').replace(/,/g, '')}</span>
               </div>
             )}
-            {property.parking_spaces !== null && property.parking_spaces !== undefined && (
-              <div className="flex justify-between items-center group">
-                <div className="flex items-center gap-2 text-font-s">
-                  <Home className="w-4 h-4 text-gray-1" />
-                  <span className="text-sm">پارکینگ:</span>
+
+            {property.monthly_rent && (
+              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+                <DollarSign className="w-4 h-4 text-blue-1/60 group-hover:text-blue-1 transition-colors shrink-0" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-bold text-font-s">اجاره ماهیانه:</span>
+                  <span className="text-sm font-black text-blue-1">
+                    {formatPriceToPersian(property.monthly_rent, property.currency || 'تومان')}
+                  </span>
                 </div>
-                <span className="text-sm font-bold text-font-p">{property.parking_spaces === 0 ? 'ندارد' : `${property.parking_spaces?.toLocaleString('en-US')} جای پارک`}</span>
+              </div>
+            )}
+
+            {property.bedrooms !== null && property.bedrooms !== undefined && (
+              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+                <Building2 className="w-4 h-4 text-purple-1/60 group-hover:text-purple-1 transition-colors shrink-0" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-bold text-font-s">تعداد اتاق خواب:</span>
+                  <span className="text-sm font-black">
+                    {(msg.realEstate().facilities.bedrooms as any)[property.bedrooms] || property.bedrooms.toLocaleString('fa-IR')}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {property.bathrooms !== null && property.bathrooms !== undefined && (
+              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+                <Building2 className="w-4 h-4 text-cyan-1/60 group-hover:text-cyan-1 transition-colors shrink-0" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-bold text-font-s">سرویس بهداشتی:</span>
+                  <span className="text-sm font-black">
+                    {(msg.realEstate().facilities.bathrooms as any)[property.bathrooms] || (property.bathrooms === 0 ? 'ندارد' : property.bathrooms.toLocaleString('fa-IR'))}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {property.kitchens !== null && property.kitchens !== undefined && (
+              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+                <Soup className="w-4 h-4 text-orange-1/60 group-hover:text-orange-1 transition-colors shrink-0" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-bold text-font-s">آشپزخانه:</span>
+                  <span className="text-sm font-black">
+                    {(msg.realEstate().facilities.kitchens as any)[property.kitchens] || property.kitchens.toLocaleString('fa-IR')}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {property.living_rooms !== null && property.living_rooms !== undefined && (
+              <div className="flex items-center gap-3 py-3 border-b border-br/50 last:border-0 md:last:border-0 lg:last:border-b group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+                <Users className="w-4 h-4 text-indigo-1/60 group-hover:text-indigo-1 transition-colors shrink-0" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-bold text-font-s">پذیرایی:</span>
+                  <span className="text-sm font-black">
+                    {(msg.realEstate().facilities.living_rooms as any)[property.living_rooms] || property.living_rooms.toLocaleString('fa-IR')}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Column 3: Logistics & Year */}
+          <div className="flex flex-col">
+            {property.year_built && (
+              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+                <Calendar className="w-4 h-4 text-orange-1/60 group-hover:text-orange-1 transition-colors shrink-0" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-bold text-font-s">سال ساخت:</span>
+                  <span className="text-sm font-black">{property.year_built.toLocaleString('fa-IR', { useGrouping: false })}</span>
+                </div>
+              </div>
+            )}
+
+            {property.parking_spaces !== null && property.parking_spaces !== undefined && (
+              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+                <Home className="w-4 h-4 text-gray-1/60 group-hover:text-gray-1 transition-colors shrink-0" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-bold text-font-s">پارکینگ:</span>
+                  <span className="text-sm font-black">
+                    {(msg.realEstate().facilities.parking_spaces as any)[property.parking_spaces] || (property.parking_spaces === 0 ? 'ندارد' : property.parking_spaces.toLocaleString('fa-IR'))}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {property.storage_rooms !== null && property.storage_rooms !== undefined && (
+              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+                <Package className="w-4 h-4 text-blue-1/60 group-hover:text-blue-1 transition-colors shrink-0" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-bold text-font-s">انباری:</span>
+                  <span className="text-sm font-black">
+                    {(msg.realEstate().facilities.storage_rooms as any)[property.storage_rooms] || property.storage_rooms.toLocaleString('fa-IR')}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {property.floors_in_building !== null && property.floors_in_building !== undefined && (
+              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+                <Layers className="w-4 h-4 text-indigo-1/60 group-hover:text-indigo-1 transition-colors shrink-0" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-bold text-font-s">تعداد کل طبقات:</span>
+                  <span className="text-sm font-black font-mono">{property.floors_in_building.toLocaleString('fa-IR')}</span>
+                </div>
+              </div>
+            )}
+
+            {property.floor_number !== null && property.floor_number !== undefined && (
+              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+                <Layers className="w-4 h-4 text-indigo-1/60 group-hover:text-indigo-1 transition-colors shrink-0" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-bold text-font-s">طبقه ملک:</span>
+                  <span className="text-sm font-black font-mono">
+                    {(msg.realEstate().facilities.floor_number as any)[property.floor_number] || property.floor_number.toLocaleString('fa-IR')}
+                  </span>
+                </div>
               </div>
             )}
           </div>
@@ -201,21 +338,35 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
             })()}
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="p-4 rounded-xl bg-bg border border-br/50 flex flex-col items-center gap-2">
-              <Eye className="w-5 h-5 text-font-s opacity-70" />
-              <span className="text-lg font-bold text-font-p">{property.views_count || 0}</span>
-              <span className="text-[10px] font-bold text-font-s uppercase tracking-wider">بازدید</span>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="p-4 rounded-xl bg-bg border border-br/50 flex flex-col items-center gap-2 group hover:border-blue-1/30 transition-all">
+              <Eye className="w-5 h-5 text-blue-1 opacity-70 group-hover:opacity-100 transition-opacity" />
+              <span className="text-lg font-black text-font-p">{property.views_count?.toLocaleString('fa-IR') || "۰"}</span>
+              <span className="text-[10px] font-bold text-font-s uppercase tracking-wider text-center">بازدید کل</span>
             </div>
-            <div className="p-4 rounded-xl bg-bg border border-br/50 flex flex-col items-center gap-2">
-              <Heart className="w-5 h-5 text-red-1 opacity-70" />
-              <span className="text-lg font-bold text-font-p">{property.favorites_count || 0}</span>
-              <span className="text-[10px] font-bold text-font-s uppercase tracking-wider">علاقه‌مندی</span>
+
+            <div className="p-4 rounded-xl bg-bg border border-br/50 flex flex-col items-center gap-2 group hover:border-blue-1/30 transition-all">
+              <Globe className="w-5 h-5 text-emerald-1 opacity-70 group-hover:opacity-100 transition-opacity" />
+              <span className="text-lg font-black text-font-p">{property.web_views_count?.toLocaleString('fa-IR') || "۰"}</span>
+              <span className="text-[10px] font-bold text-font-s uppercase tracking-wider text-center">بازدید وب</span>
             </div>
-            <div className="p-4 rounded-xl bg-bg border border-br/50 flex flex-col items-center gap-2">
-              <MessageCircle className="w-5 h-5 text-blue-1 opacity-70" />
-              <span className="text-lg font-bold text-font-p">{property.inquiries_count || 0}</span>
-              <span className="text-[10px] font-bold text-font-s uppercase tracking-wider">درخواست</span>
+
+            <div className="p-4 rounded-xl bg-bg border border-br/50 flex flex-col items-center gap-2 group hover:border-blue-1/30 transition-all">
+              <Smartphone className="w-5 h-5 text-purple-1 opacity-70 group-hover:opacity-100 transition-opacity" />
+              <span className="text-lg font-black text-font-p">{property.app_views_count?.toLocaleString('fa-IR') || "۰"}</span>
+              <span className="text-[10px] font-bold text-font-s uppercase tracking-wider text-center">بازدید اپ</span>
+            </div>
+
+            <div className="p-4 rounded-xl bg-bg border border-br/50 flex flex-col items-center gap-2 group hover:border-red-1/30 transition-all">
+              <Heart className="w-5 h-5 text-red-1 opacity-70 group-hover:opacity-100 transition-opacity" />
+              <span className="text-lg font-black text-font-p">{property.favorites_count?.toLocaleString('fa-IR') || "۰"}</span>
+              <span className="text-[10px] font-bold text-font-s uppercase tracking-wider text-center">علاقه‌مندی</span>
+            </div>
+
+            <div className="p-4 rounded-xl bg-bg border border-br/50 flex flex-col items-center gap-2 group hover:border-orange-1/30 transition-all">
+              <PhoneCall className="w-5 h-5 text-orange-1 opacity-70 group-hover:opacity-100 transition-opacity" />
+              <span className="text-lg font-black text-font-p">{property.inquiries_count?.toLocaleString('fa-IR') || "۰"}</span>
+              <span className="text-[10px] font-bold text-font-s uppercase tracking-wider text-center">درخواست/تماس</span>
             </div>
           </div>
         </Card>
@@ -297,86 +448,206 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
         </div>
       </Card>
 
-      {
-        property.floor_plans && property.floor_plans.length > 0 && (
-          <Card className="p-6 shadow-sm block">
-            <div className="flex items-center gap-3 mb-6 border-b border-br pb-4">
-              <div className="p-2 rounded-lg bg-indigo-0/50 text-indigo-1">
-                <Home className="w-5 h-5" />
-              </div>
-              <h2 className="text-lg font-bold text-font-p">پلان طبقات</h2>
+      {property.floor_plans && property.floor_plans.length > 0 && (
+        <Card className="p-6 shadow-sm block">
+          <div className="flex items-center gap-3 mb-6 border-b border-br pb-4">
+            <div className="p-2 rounded-lg bg-indigo-0/50 text-indigo-1">
+              <Home className="w-5 h-5" />
             </div>
+            <h2 className="text-lg font-bold text-font-p">پلان طبقات</h2>
+          </div>
 
-            <Accordion
-              type="single"
-              collapsible
-              className="w-full space-y-3"
-              onValueChange={(value) => {
-                if (value) {
-                  const floorPlanId = parseInt(value.replace('floor-plan-', ''));
-                  if (floorPlanId && property.floor_plans?.some(fp => fp.id === floorPlanId)) {
-                    loadFloorPlanImages(floorPlanId);
-                  }
+          <Accordion
+            type="single"
+            collapsible
+            defaultValue={`floor-plan-${property.floor_plans[0].id}`}
+            className="w-full space-y-4"
+            onValueChange={(value) => {
+              if (value) {
+                const floorPlanId = parseInt(value.replace("floor-plan-", ""));
+                if (floorPlanId && property.floor_plans?.some((fp) => fp.id === floorPlanId)) {
+                  loadFloorPlanImages(floorPlanId);
                 }
-              }}
-            >
-              {property.floor_plans.map((floorPlan) => {
-                const images = floorPlanImages[floorPlan.id] || [];
-                const isLoading = loadingImages[floorPlan.id];
+              }
+            }}
+          >
+            {property.floor_plans.map((floorPlan) => {
+              const images = floorPlanImages[floorPlan.id] || [];
+              const isLoading = loadingImages[floorPlan.id];
 
-                return (
-                  <AccordionItem key={floorPlan.id} value={`floor-plan-${floorPlan.id}`} className="border border-br rounded-xl bg-bg px-4 overflow-hidden">
-                    <AccordionTrigger className="hover:no-underline py-4">
-                      <div className="flex items-center justify-between w-full">
-                        <div className="flex flex-col items-start gap-1">
-                          <span className="text-sm font-bold text-font-p">{floorPlan.title}</span>
-                          <div className="flex flex-wrap items-center gap-3 text-[10px] font-bold text-font-s uppercase">
-                            <span>{typeof floorPlan.floor_size === 'number' ? formatArea(floorPlan.floor_size) : floorPlan.floor_size}</span>
-                            {floorPlan.bedrooms !== null && <span>• {floorPlan.bedrooms} خواب</span>}
-                            {floorPlan.bathrooms !== null && <span>• {floorPlan.bathrooms} حمام</span>}
-                          </div>
+              return (
+                <AccordionItem
+                  key={floorPlan.id}
+                  value={`floor-plan-${floorPlan.id}`}
+                  className="border border-br rounded-xl bg-bg/30 px-5 overflow-hidden transition-all hover:bg-bg/50"
+                >
+                  <AccordionTrigger className="hover:no-underline py-5">
+                    <div className="flex flex-row items-center justify-between w-full ml-4">
+                      <span className="text-base font-black text-font-p tracking-tight">
+                        {floorPlan.title}
+                      </span>
+                      <div className="hidden sm:flex items-center gap-6 text-[11px] font-bold text-font-s uppercase tracking-wider">
+                        <div className="flex items-center gap-1.5 bg-bg px-2.5 py-1 rounded-md border border-br/40">
+                          <Maximize2 className="w-3 h-3 text-indigo-1 opacity-70" />
+                          <span>
+                            {typeof floorPlan.floor_size === "number"
+                              ? formatArea(floorPlan.floor_size)
+                              : floorPlan.floor_size}
+                          </span>
                         </div>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pb-4">
-                      <div className="space-y-4 pt-2 border-t border-br/50">
-                        {floorPlan.description && (
-                          <p className="text-xs text-font-s leading-relaxed italic">{floorPlan.description}</p>
+                        {floorPlan.bedrooms !== null && (
+                          <div className="flex items-center gap-1.5 bg-bg px-2.5 py-1 rounded-md border border-br/40">
+                            <Building2 className="w-3 h-3 text-indigo-1 opacity-70" />
+                            <span>{floorPlan.bedrooms} خواب</span>
+                          </div>
                         )}
-
-                        {(images.length > 0 || isLoading || (floorPlan.main_image && (floorPlan.main_image.file_url || floorPlan.main_image.url))) && (
-                          <div className="rounded-xl overflow-hidden bg-card border border-br">
-                            {isLoading ? (
-                              <div className="flex items-center justify-center py-12">
-                                <Loader2 className="w-6 h-6 animate-spin text-blue-1" />
-                              </div>
-                            ) : images.length > 0 ? (
-                              <div className="divide-y divide-br">
-                                {images.map((imageItem) => {
-                                  const imageUrl = imageItem.image?.file_url || imageItem.image?.url;
-                                  const fullImageUrl = imageUrl ? mediaService.getMediaUrlFromObject({ file_url: imageUrl } as any) : null;
-                                  return fullImageUrl && (
-                                    <div key={imageItem.id} className="p-4 bg-card">
-                                      <img src={fullImageUrl} alt={floorPlan.title} className="w-full h-auto rounded-lg" />
-                                      {imageItem.title && <p className="mt-2 text-center text-[10px] text-font-s">{imageItem.title}</p>}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            ) : floorPlan.main_image && (
-                              <img src={mediaService.getMediaUrlFromObject(floorPlan.main_image as any)} alt={floorPlan.title} className="w-full h-auto" />
-                            )}
+                        {floorPlan.bathrooms !== null && (
+                          <div className="flex items-center gap-1.5 bg-bg px-2.5 py-1 rounded-md border border-br/40">
+                            <span>{floorPlan.bathrooms} سرویس</span>
                           </div>
                         )}
                       </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                );
-              })}
-            </Accordion>
-          </Card>
-        )
-      }
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 pt-6 border-t border-br/40">
+                      {/* Right (In RTL, this is the Start/Right side): Stats Grid */}
+                      <div className="space-y-6 order-2 lg:order-1">
+                        <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                          <div className="p-4 rounded-2xl bg-white/50 border border-br/40 flex flex-col items-center justify-center gap-1.5 text-center group hover:border-indigo-1/30 transition-all shadow-xs hover:shadow-md">
+                            <span className="text-[10px] font-bold text-font-s uppercase tracking-widest opacity-60">مساحت</span>
+                            <div className="flex items-center gap-2">
+                              <Maximize2 className="w-4 h-4 text-indigo-1" />
+                              <span className="text-base font-black text-font-p">
+                                {typeof floorPlan.floor_size === "number"
+                                  ? formatArea(floorPlan.floor_size)
+                                  : floorPlan.floor_size}
+                              </span>
+                            </div>
+                          </div>
+
+                          {floorPlan.bedrooms !== null && (
+                            <div className="p-4 rounded-2xl bg-white/50 border border-br/40 flex flex-col items-center justify-center gap-1.5 text-center group hover:border-indigo-1/30 transition-all shadow-xs hover:shadow-md">
+                              <span className="text-[10px] font-bold text-font-s uppercase tracking-widest opacity-60">تعداد خواب</span>
+                              <div className="flex items-center gap-2">
+                                <Building2 className="w-4 h-4 text-indigo-1" />
+                                <span className="text-base font-black text-font-p">{floorPlan.bedrooms} اتاق</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {floorPlan.bathrooms !== null && (
+                            <div className="p-4 rounded-2xl bg-white/50 border border-br/40 flex flex-col items-center justify-center gap-1.5 text-center group hover:border-indigo-1/30 transition-all shadow-xs hover:shadow-md">
+                              <span className="text-[10px] font-bold text-font-s uppercase tracking-widest opacity-60">سرویس بهداشتی</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-base font-black text-font-p">{floorPlan.bathrooms} مورد</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {floorPlan.floor_number !== null && (
+                            <div className="p-4 rounded-2xl bg-white/50 border border-br/40 flex flex-col items-center justify-center gap-1.5 text-center group hover:border-indigo-1/30 transition-all shadow-xs hover:shadow-md">
+                              <span className="text-[10px] font-bold text-font-s uppercase tracking-widest opacity-60">طبقه</span>
+                              <span className="text-base font-black text-font-p">{floorPlan.floor_number}</span>
+                            </div>
+                          )}
+
+                          {floorPlan.unit_type && (
+                            <div className="p-4 rounded-2xl bg-white/50 border border-br/40 flex flex-col items-center justify-center gap-1.5 text-center group hover:border-indigo-1/30 transition-all shadow-xs hover:shadow-md">
+                              <span className="text-[10px] font-bold text-font-s uppercase tracking-widest opacity-60">نوع واحد</span>
+                              <span className="text-base font-black text-font-p">{floorPlan.unit_type}</span>
+                            </div>
+                          )}
+
+                          {floorPlan.price && (
+                            <div className="p-4 rounded-2xl bg-indigo-0/40 border border-indigo-1/20 flex flex-col items-center justify-center gap-1.5 text-center group transition-all col-span-2 sm:col-span-1 xl:col-span-1 shadow-xs hover:shadow-md">
+                              <span className="text-[10px] font-bold text-indigo-1 uppercase tracking-widest">قیمت</span>
+                              <div className="flex items-center gap-1">
+                                <DollarSign className="w-4 h-4 text-indigo-1" />
+                                <span className="text-base font-black text-font-p">
+                                  {formatPriceToPersian(floorPlan.price, floorPlan.currency || 'تومان')}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {floorPlan.description && (
+                          <div className="space-y-3 bg-bg/40 p-5 rounded-2xl border border-br/30">
+                            <div className="flex items-center gap-2 text-[11px] font-bold text-font-s uppercase tracking-widest opacity-70">
+                              <FileText className="w-3.5 h-3.5" />
+                              <span>توضیحات تکمیلی پلان</span>
+                            </div>
+                            <p className="text-sm text-font-p leading-relaxed italic opacity-90 pr-2 border-r-2 border-indigo-1/20">
+                              {floorPlan.description}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Left (In RTL, this is the End/Left side): Image */}
+                      <div className="order-1 lg:order-2">
+                        {(images.length > 0 ||
+                          isLoading ||
+                          (floorPlan.main_image &&
+                            (floorPlan.main_image.file_url || floorPlan.main_image.url))) && (
+                            <div className="rounded-2xl overflow-hidden bg-white/50 border border-br/60 shadow-md lg:sticky lg:top-4">
+                              {isLoading ? (
+                                <div className="flex items-center justify-center py-20">
+                                  <Loader2 className="w-10 h-10 animate-spin text-indigo-1 opacity-30" />
+                                </div>
+                              ) : images.length > 0 ? (
+                                <div className="grid grid-cols-1 gap-4 p-4">
+                                  {images.map((imageItem) => {
+                                    const imageUrl = imageItem.image?.file_url || imageItem.image?.url;
+                                    const fullImageUrl = imageUrl
+                                      ? mediaService.getMediaUrlFromObject({
+                                        file_url: imageUrl,
+                                      } as any)
+                                      : null;
+                                    return (
+                                      fullImageUrl && (
+                                        <div
+                                          key={imageItem.id}
+                                          className="group relative rounded-xl overflow-hidden bg-bg border border-br/40 shadow-sm"
+                                        >
+                                          <img
+                                            src={fullImageUrl}
+                                            alt={floorPlan.title}
+                                            className="w-full h-auto object-cover aspect-4/3 transition-transform duration-700 group-hover:scale-110"
+                                          />
+                                          {imageItem.title && (
+                                            <div className="absolute bottom-0 inset-x-0 p-3 bg-linear-to-t from-black/80 via-black/10 to-transparent text-white text-center">
+                                              <p className="text-[10px] font-bold uppercase tracking-widest">{imageItem.title}</p>
+                                            </div>
+                                          )}
+                                        </div>
+                                      )
+                                    );
+                                  })}
+                                </div>
+                              ) : (
+                                floorPlan.main_image && (
+                                  <img
+                                    src={mediaService.getMediaUrlFromObject(
+                                      floorPlan.main_image as any
+                                    )}
+                                    alt={floorPlan.title}
+                                    className="w-full h-auto aspect-4/3 object-cover shadow-sm"
+                                  />
+                                )
+                              )}
+                            </div>
+                          )}
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
+        </Card>
+      )}
     </div>
   );
 }

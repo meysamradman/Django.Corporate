@@ -12,8 +12,7 @@ import {
   Layers,
   Calendar,
   User,
-  LayoutGrid,
-  Zap
+  LayoutGrid
 } from "lucide-react";
 
 import { Card } from "@/components/elements/Card";
@@ -60,7 +59,7 @@ export default function PropertyViewPage() {
 
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ["overview", "features", "amenities", "attributes", "media", "seo"];
+      const sections = ["overview", "features", "attributes", "media", "seo"];
       for (const section of sections) {
         const element = document.getElementById(`section-${section}`);
         if (element) {
@@ -95,8 +94,7 @@ export default function PropertyViewPage() {
 
   const navItems = [
     { id: "overview", label: "مرور کلی", icon: FileText },
-    { id: "features", label: "ویژگی‌ها", icon: LayoutGrid },
-    { id: "amenities", label: "امکانات", icon: Zap },
+    { id: "features", label: "ویژگی‌ها و امکانات", icon: LayoutGrid },
     { id: "attributes", label: "مشخصات فنی", icon: Layers },
     { id: "media", label: "رسانه‌ها", icon: ImageIcon },
     { id: "seo", label: "سئو", icon: Search },
@@ -282,29 +280,14 @@ export default function PropertyViewPage() {
                   <LayoutGrid className="w-7 h-7" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-font-p tracking-tight">ویژگی‌های ملک</h2>
-                  <p className="text-[10px] font-bold text-font-s opacity-60 mt-1 uppercase tracking-widest">Property Detailed Specifications</p>
+                  <h2 className="text-xl font-black text-font-p tracking-tight">ویژگی‌ها و امکانات</h2>
+                  <p className="text-[10px] font-bold text-font-s opacity-60 mt-1 uppercase tracking-widest">Property Features & Amenities</p>
                 </div>
               </div>
-              <RealEstateFeatures property={propertyData} mode="features" />
+              <RealEstateFeatures property={propertyData} />
             </Card>
           </div >
 
-          <div id="section-amenities" className="scroll-mt-32">
-            <Card className="p-8 shadow-xs relative overflow-hidden group/card block">
-
-              <div className="flex items-center gap-4 mb-10 pb-5 border-b border-br relative z-10">
-                <div className="p-3 rounded-2xl bg-orange-1/10 text-orange-1">
-                  <Zap className="w-7 h-7" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-black text-font-p tracking-tight">امکانات رفاهی</h2>
-                  <p className="text-[10px] font-bold text-font-s opacity-60 mt-1 uppercase tracking-widest">Building Amenities & Facilities</p>
-                </div>
-              </div>
-              <RealEstateFeatures property={propertyData} mode="amenities" />
-            </Card>
-          </div >
 
           <div id="section-attributes" className="scroll-mt-32">
             <Card className="p-8 shadow-xs relative overflow-hidden group/card block">
