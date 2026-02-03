@@ -7,6 +7,7 @@ import { useAdminStore } from '@/components/layout/Sidebar/stores/sidebarStore';
 import { RoutePermissionGuard } from '@/core/permissions';
 import { FloatingAIChat } from '@/components/ai/chat/FloatingAIChat';
 import { FaviconManager } from '@/components/panel/FaviconManager';
+import { GlobalDrawer } from "@/components/shared/drawer/GlobalDrawer";
 
 export function AdminLayout() {
   const location = useLocation();
@@ -73,6 +74,7 @@ export function AdminLayout() {
           <FloatingAIChat />
         </div>
       </div>
+      <GlobalDrawer />
     </>
   );
 }

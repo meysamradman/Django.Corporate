@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -8,20 +8,14 @@ import { FormFieldInput } from "@/components/shared/FormField";
 import { contactMobileSchema, type ContactMobileFormValues } from "./validations/settingsSchemas";
 import { showSuccess, showError } from "@/core/toast";
 import { msg } from "@/core/messages";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
-interface ContactMobileSideProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSuccess?: () => void;
-    editId?: number | null;
-}
-
-export const ContactMobileSide: React.FC<ContactMobileSideProps> = ({
-    isOpen,
-    onClose,
-    onSuccess,
-    editId,
-}) => {
+export const ContactMobileSide = () => {
+    const isOpen = useGlobalDrawerStore(state => state.activeDrawer === DRAWER_IDS.SETTINGS_MOBILE_FORM);
+    const close = useGlobalDrawerStore(state => state.close);
+    const props = useGlobalDrawerStore(state => state.drawerProps as { editId?: number | null; onSuccess?: () => void });
+    const { editId, onSuccess } = props || {};
     const queryClient = useQueryClient();
     const isEditMode = !!editId;
 
@@ -31,7 +25,7 @@ export const ContactMobileSide: React.FC<ContactMobileSideProps> = ({
         reset,
         formState: { errors, isSubmitting },
     } = useForm<ContactMobileFormValues>({
-        resolver: zodResolver(contactMobileSchema),
+        resolver: zodResolver(contactMobileSchema) as any,
         defaultValues: {
             mobile_number: "",
             label: "",
@@ -73,7 +67,7 @@ export const ContactMobileSide: React.FC<ContactMobileSideProps> = ({
             showSuccess(msg.crud(isEditMode ? "updated" : "created", { item: "شماره موبایل" }));
             queryClient.invalidateQueries({ queryKey: ["contact-mobiles"] });
             if (onSuccess) onSuccess();
-            onClose();
+            close();
         },
         onError: (error) => {
             showError(error);
@@ -87,7 +81,7 @@ export const ContactMobileSide: React.FC<ContactMobileSideProps> = ({
     return (
         <TaxonomyDrawer
             isOpen={isOpen}
-            onClose={onClose}
+            onClose={close}
             title={isEditMode ? "ویرایش شماره موبایل" : "افزودن شماره موبایل"}
             onSubmit={handleSubmit(onSubmit) as any}
             isPending={isFetching}

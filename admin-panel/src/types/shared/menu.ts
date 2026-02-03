@@ -29,6 +29,7 @@ export interface MenuItem {
   badge?: MenuBadge;
   state?: "full" | "readOnly" | "limited" | "locked";
   tooltip?: string;
+  onClick?: () => void;
 }
 
 export type MenuGroup = {

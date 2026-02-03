@@ -1,15 +1,9 @@
-import { lazy, Suspense } from "react";
-import { useSearchParams, useParams } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import { Settings, Phone, Smartphone, Mail, Share2, GalleryHorizontal } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
-import {
-    ContactPhoneSide,
-    ContactMobileSide,
-    ContactEmailSide,
-    SocialMediaSide,
-    SliderSide,
-    GeneralSettingsSide
-} from "@/components/settings";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
 const TabSkeleton = () => (
     <div className="space-y-6">
@@ -29,20 +23,38 @@ const SocialMediaSection = lazy(() => import("@/components/settings").then(mod =
 const SlidersSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.SlidersSection })));
 
 export default function SettingsPage() {
+    const openDrawer = useGlobalDrawerStore(state => state.open);
     const { tab } = useParams();
-    const [searchParams, setSearchParams] = useSearchParams();
-
+    const [searchParams] = useSearchParams();
     const activeTab = tab || "general";
-
     const action = searchParams.get("action");
-    const editId = searchParams.get("id") ? parseInt(searchParams.get("id")!) : null;
+    const id = searchParams.get("id");
 
-    const handleCloseSide = () => {
-        const newParams = new URLSearchParams(searchParams);
-        newParams.delete("action");
-        newParams.delete("id");
-        setSearchParams(newParams);
-    };
+    useEffect(() => {
+        if (action === "edit-general") {
+            openDrawer(DRAWER_IDS.SETTINGS_GENERAL_FORM);
+        } else if (action === "create-phone") {
+            openDrawer(DRAWER_IDS.SETTINGS_PHONE_FORM);
+        } else if (action === "edit-phone" && id) {
+            openDrawer(DRAWER_IDS.SETTINGS_PHONE_FORM, { editId: Number(id) });
+        } else if (action === "create-mobile") {
+            openDrawer(DRAWER_IDS.SETTINGS_MOBILE_FORM);
+        } else if (action === "edit-mobile" && id) {
+            openDrawer(DRAWER_IDS.SETTINGS_MOBILE_FORM, { editId: Number(id) });
+        } else if (action === "create-email") {
+            openDrawer(DRAWER_IDS.SETTINGS_EMAIL_FORM);
+        } else if (action === "edit-email" && id) {
+            openDrawer(DRAWER_IDS.SETTINGS_EMAIL_FORM, { editId: Number(id) });
+        } else if (action === "create-social") {
+            openDrawer(DRAWER_IDS.SETTINGS_SOCIAL_FORM);
+        } else if (action === "edit-social" && id) {
+            openDrawer(DRAWER_IDS.SETTINGS_SOCIAL_FORM, { editId: Number(id) });
+        } else if (action === "create-slider") {
+            openDrawer(DRAWER_IDS.SETTINGS_SLIDER_FORM);
+        } else if (action === "edit-slider" && id) {
+            openDrawer(DRAWER_IDS.SETTINGS_SLIDER_FORM, { editId: Number(id) });
+        }
+    }, [action, id, openDrawer]);
 
     return (
         <div className="space-y-6 pb-28 relative">
@@ -118,38 +130,6 @@ export default function SettingsPage() {
                     </Suspense>
                 </div>
             )}
-
-            <ContactPhoneSide
-                isOpen={action === "create-phone" || action === "edit-phone"}
-                onClose={handleCloseSide}
-                editId={action === "edit-phone" ? editId : null}
-            />
-            <ContactMobileSide
-                isOpen={action === "create-mobile" || action === "edit-mobile"}
-                onClose={handleCloseSide}
-                editId={action === "edit-mobile" ? editId : null}
-            />
-            <ContactEmailSide
-                isOpen={action === "create-email" || action === "edit-email"}
-                onClose={handleCloseSide}
-                editId={action === "edit-email" ? editId : null}
-            />
-            <SocialMediaSide
-                isOpen={action === "create-social" || action === "edit-social"}
-                onClose={handleCloseSide}
-                editId={action === "edit-social" ? editId : null}
-            />
-            <SliderSide
-                isOpen={action === "create-slider" || action === "edit-slider"}
-                onClose={handleCloseSide}
-                editId={action === "edit-slider" ? editId : null}
-            />
-            <GeneralSettingsSide
-                isOpen={action === "edit-general"}
-                onClose={handleCloseSide}
-            />
-
         </div>
     );
 }
-

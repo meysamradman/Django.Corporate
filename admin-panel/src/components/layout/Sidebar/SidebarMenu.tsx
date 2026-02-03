@@ -29,32 +29,36 @@ import {
   MessageSquare,
   Cpu,
   Image as ImageIcon,
-  Music,
-  LayoutDashboard,
-  ListTodo,
-  BookPlus,
   FolderPlus,
-  Inbox,
-  Send,
-  FileEdit,
-  Star,
-  FilePlus,
+  LayoutDashboard,
+  Globe,
   Building2,
+  Phone,
+  Share2,
+  Star,
+  Sliders,
+  FileEdit,
+  FilePlus,
   Building,
   GalleryHorizontal,
   Smartphone,
-  Phone,
-  Share2,
-  Globe,
   Settings2,
-} from "lucide-react"
+  ListTodo,
+  BookPlus,
+  Music,
+  Inbox,
+  Send
+} from "lucide-react";
+
 import { useMemo, useCallback } from "react"
 import { useUserPermissions } from "@/core/permissions/hooks/useUserPermissions"
 import { usePermissions } from "@/core/permissions"
 import type { ModuleAction } from "@/types/auth/permission"
-import { useFeatureFlags } from "@/core/feature-flags/useFeatureFlags"
-import { MODULE_TO_FEATURE_FLAG as CONFIG_MODULE_TO_FEATURE_FLAG } from "@/core/feature-flags/featureFlags"
+import { useFeatureFlags } from "@/core/feature-flags/useFeatureFlags";
+import { MODULE_TO_FEATURE_FLAG as CONFIG_MODULE_TO_FEATURE_FLAG } from "@/core/feature-flags/featureFlags";
 import type { MenuItem, MenuAccessConfig } from '@/types/shared/menu';
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
 const MODULE_TO_FEATURE_FLAG = CONFIG_MODULE_TO_FEATURE_FLAG;
 
@@ -109,10 +113,10 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
           { title: "ایجاد بلاگ", url: "/blogs/create", icon: BookPlus, access: { module: "blog", actions: ["create"] } },
           { title: "دسته‌بندی‌های بلاگ", isTitle: true },
           { title: "لیست دسته‌بندی‌ها", url: "/blogs/categories", icon: Folder, access: { module: "blog.category", allowReadOnly: true } },
-          { title: "ایجاد دسته‌بندی", url: "/blogs/categories?action=create", icon: FolderPlus, access: { module: "blog.category", actions: ["create"] } },
+          { title: "ایجاد دسته‌بندی", onClick: () => useGlobalDrawerStore.getState().open(DRAWER_IDS.BLOG_CATEGORY_FORM), icon: FolderPlus, access: { module: "blog.category", actions: ["create"] } },
           { title: "تگ‌های بلاگ", isTitle: true },
           { title: "لیست تگ‌ها", url: "/blogs/tags", icon: Tag, access: { module: "blog.tag", allowReadOnly: true } },
-          { title: "ایجاد تگ", url: "/blogs/tags?action=create", icon: Plus, access: { module: "blog.tag", actions: ["create"] } },
+          { title: "ایجاد تگ", onClick: () => useGlobalDrawerStore.getState().open(DRAWER_IDS.BLOG_TAG_FORM), icon: Plus, access: { module: "blog.tag", actions: ["create"] } },
         ],
       },
       {
@@ -129,10 +133,13 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
           { title: "ایجاد نمونه کار", url: "/portfolios/create", icon: FilePlus, access: { module: "portfolio", actions: ["create"] } },
           { title: "دسته‌بندی‌های نمونه کار", isTitle: true },
           { title: "لیست دسته‌بندی‌ها", url: "/portfolios/categories", icon: Folder, access: { module: "portfolio.category", allowReadOnly: true } },
-          { title: "ایجاد دسته‌بندی", url: "/portfolios/categories?action=create", icon: FolderPlus, access: { module: "portfolio.category", actions: ["create"] } },
+          { title: "ایجاد دسته‌بندی", onClick: () => useGlobalDrawerStore.getState().open(DRAWER_IDS.PORTFOLIO_CATEGORY_FORM), icon: FolderPlus, access: { module: "portfolio.category", actions: ["create"] } },
           { title: "تگ‌های نمونه کار", isTitle: true },
           { title: "لیست تگ‌ها", url: "/portfolios/tags", icon: Tag, access: { module: "portfolio.tag", allowReadOnly: true } },
-          { title: "ایجاد تگ", url: "/portfolios/tags?action=create", icon: Plus, access: { module: "portfolio.tag", actions: ["create"] } },
+          { title: "ایجاد تگ", onClick: () => useGlobalDrawerStore.getState().open(DRAWER_IDS.PORTFOLIO_TAG_FORM), icon: Plus, access: { module: "portfolio.tag", actions: ["create"] } },
+          { title: "گزینه‌های نمونه کار", isTitle: true },
+          { title: "لیست گزینه‌ها", url: "/portfolios/options", icon: Sliders, access: { module: "portfolio.option", allowReadOnly: true } },
+          { title: "ایجاد گزینه", onClick: () => useGlobalDrawerStore.getState().open(DRAWER_IDS.PORTFOLIO_OPTION_FORM), icon: Plus, access: { module: "portfolio.option", actions: ["create"] } },
         ],
       },
       {
@@ -149,19 +156,19 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
           { title: "ایجاد ملک", url: "/real-estate/properties/create", icon: FilePlus, access: { module: "real_estate.property", actions: ["create"] } },
           { title: "نوع‌های ملک", isTitle: true },
           { title: "لیست نوع‌ها", url: "/real-estate/types", icon: Building, access: { module: "real_estate.type", allowReadOnly: true } },
-          { title: "ایجاد نوع", url: "/real-estate/types?action=create", icon: Plus, access: { module: "real_estate.type", actions: ["create"] } },
+          { title: "ایجاد نوع", onClick: () => useGlobalDrawerStore.getState().open(DRAWER_IDS.REAL_ESTATE_TYPE_FORM), icon: Plus, access: { module: "real_estate.type", actions: ["create"] } },
           { title: "وضعیت‌های ملک", isTitle: true },
           { title: "لیست وضعیت‌ها", url: "/real-estate/states", icon: Circle, access: { module: "real_estate.state", allowReadOnly: true } },
-          { title: "ایجاد وضعیت", url: "/real-estate/states?action=create", icon: Plus, access: { module: "real_estate.state", actions: ["create"] } },
+          { title: "ایجاد وضعیت", onClick: () => useGlobalDrawerStore.getState().open(DRAWER_IDS.REAL_ESTATE_STATE_FORM), icon: Plus, access: { module: "real_estate.state", actions: ["create"] } },
           { title: "برچسب‌های ملک", isTitle: true },
           { title: "لیست برچسب‌ها", url: "/real-estate/labels", icon: Tag, access: { module: "real_estate.label", allowReadOnly: true } },
-          { title: "ایجاد برچسب", url: "/real-estate/labels?action=create", icon: Plus, access: { module: "real_estate.label", actions: ["create"] } },
+          { title: "ایجاد برچسب", onClick: () => useGlobalDrawerStore.getState().open(DRAWER_IDS.REAL_ESTATE_LABEL_FORM), icon: Plus, access: { module: "real_estate.label", actions: ["create"] } },
           { title: "ویژگی‌های ملک", isTitle: true },
           { title: "لیست ویژگی‌ها", url: "/real-estate/features", icon: Star, access: { module: "real_estate.feature", allowReadOnly: true } },
-          { title: "ایجاد ویژگی", url: "/real-estate/features?action=create", icon: Plus, access: { module: "real_estate.feature", actions: ["create"] } },
+          { title: "ایجاد ویژگی", onClick: () => useGlobalDrawerStore.getState().open(DRAWER_IDS.REAL_ESTATE_FEATURE_FORM), icon: Plus, access: { module: "real_estate.feature", actions: ["create"] } },
           { title: "تگ‌های ملک", isTitle: true },
           { title: "لیست تگ‌ها", url: "/real-estate/tags", icon: Tag, access: { module: "real_estate.tag", allowReadOnly: true } },
-          { title: "ایجاد تگ", url: "/real-estate/tags?action=create", icon: Plus, access: { module: "real_estate.tag", actions: ["create"] } },
+          { title: "ایجاد تگ", onClick: () => useGlobalDrawerStore.getState().open(DRAWER_IDS.REAL_ESTATE_TAG_FORM), icon: Plus, access: { module: "real_estate.tag", actions: ["create"] } },
         ],
       },
       {
@@ -386,7 +393,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         items: [
           { title: "چت‌بات (AI)", url: "/chatbot", icon: Bot, access: { module: "chatbot", actions: ["manage"] } },
           { title: "فرم‌ساز هوشمند", url: "/form-builder", icon: FileCheck, access: { module: "forms", allowReadOnly: true } },
-          { title: "ایجاد فیلد جدید", url: "/form-builder?action=create-field", icon: Plus, access: { module: "forms", actions: ["create"] } },
+          { title: "ایجاد فیلد جدید", onClick: () => useGlobalDrawerStore.getState().open(DRAWER_IDS.FORM_BUILDER_FIELD_FORM), icon: Plus, access: { module: "forms", actions: ["create"] } },
         ]
       },
       {
@@ -441,7 +448,7 @@ export const useMenuData = () => {
       const nestedResources: string[] = [];
 
       group.permissions?.forEach((perm: any) => {
-        const originalKey = perm.original_key || `${perm.resource}.${perm.action}`;
+        const originalKey = perm.original_key || `${perm.resource}.${perm.action} `;
         const parts = originalKey.split('.');
 
         if (parts.length > 2) {
@@ -658,16 +665,16 @@ export const useMenuData = () => {
         const itemsInSection = nextTitleIndex === -1
           ? itemsAfter
           : itemsAfter.slice(0, nextTitleIndex);
-        return itemsInSection.some(item => !item.isTitle && (item.url || (item.items && item.items.length > 0)));
+        return itemsInSection.some(item => !item.isTitle && (item.url || item.onClick || (item.items && item.items.length > 0)));
       }) as MenuItem[] | undefined;
 
       const hasActionableChild = filteredChildItems?.some(child =>
-        !child.isTitle && (child.url || (child.items && child.items.length > 0))
+        !child.isTitle && (child.url || child.onClick || (child.items && child.items.length > 0))
       );
 
       let state = result.state;
 
-      if (!item.url) {
+      if (!item.url && !item.onClick) {
         if (!filteredChildItems || filteredChildItems.length === 0) {
           return {
             ...item,

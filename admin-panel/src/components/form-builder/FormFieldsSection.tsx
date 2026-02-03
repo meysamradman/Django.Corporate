@@ -25,11 +25,12 @@ import { Plus, Edit, Trash2, FileText, Globe, Smartphone, MoreVertical, Loader2 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { Badge } from "@/components/elements/Badge";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { useSearchParams } from "react-router-dom";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
 export function FormFieldsSection() {
     const queryClient = useQueryClient();
-    const [searchParams, setSearchParams] = useSearchParams();
+    const openDrawer = useGlobalDrawerStore(state => state.open);
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [fieldToDelete, setFieldToDelete] = useState<number | null>(null);
@@ -55,14 +56,10 @@ export function FormFieldsSection() {
     });
 
     const handleOpenSide = (id?: number) => {
-        const newParams = new URLSearchParams(searchParams);
-        if (id) {
-            newParams.set("action", "edit-field");
-            newParams.set("id", id.toString());
-        } else {
-            newParams.set("action", "create-field");
-        }
-        setSearchParams(newParams);
+        openDrawer(DRAWER_IDS.FORM_BUILDER_FIELD_FORM, {
+            editId: id,
+            onSuccess: () => queryClient.invalidateQueries({ queryKey: ["form-fields"] })
+        });
     };
 
     const handleDeleteClick = (id: number) => {

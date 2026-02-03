@@ -6,10 +6,11 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Badge } from "@/components/elements/Badge";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
-import { Plus, MessageSquare, Edit, Trash2 } from "lucide-react";
-import { FAQDialog } from "./FAQDialog";
 import { ProtectedButton } from "@/core/permissions";
 import { Skeleton } from "@/components/elements/Skeleton";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
+import { Plus, MessageSquare, Edit, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,21 +23,18 @@ import {
 } from "@/components/elements/AlertDialog";
 
 export function FAQManagement() {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingFAQ, setEditingFAQ] = useState<FAQ | null>(null);
+  const openDrawer = useGlobalDrawerStore(state => state.open);
   const [deletingFAQ, setDeletingFAQ] = useState<FAQ | null>(null);
 
   const { data: faqs = [], isLoading } = useFAQList();
   const deleteFAQ = useDeleteFAQ();
 
   const handleCreate = () => {
-    setEditingFAQ(null);
-    setIsDialogOpen(true);
+    openDrawer(DRAWER_IDS.CHATBOT_FAQ_FORM);
   };
 
   const handleEdit = (faq: FAQ) => {
-    setEditingFAQ(faq);
-    setIsDialogOpen(true);
+    openDrawer(DRAWER_IDS.CHATBOT_FAQ_FORM, { editId: faq.id });
   };
 
   const handleDelete = async () => {
@@ -187,7 +185,7 @@ export function FAQManagement() {
               pageCount={1}
               isLoading={isLoading}
               clientFilters={{}}
-              onFilterChange={() => {}}
+              onFilterChange={() => { }}
               state={{
                 pagination: { pageIndex: 0, pageSize: faqs.length },
                 sorting: [{ id: "order", desc: false }],
@@ -197,14 +195,6 @@ export function FAQManagement() {
         </CardContent>
       </Card>
 
-      <FAQDialog
-        isOpen={isDialogOpen}
-        onClose={() => {
-          setIsDialogOpen(false);
-          setEditingFAQ(null);
-        }}
-        faq={editingFAQ}
-      />
 
       <AlertDialog open={!!deletingFAQ} onOpenChange={() => setDeletingFAQ(null)}>
         <AlertDialogContent>

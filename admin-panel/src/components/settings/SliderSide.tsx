@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -12,20 +12,14 @@ import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import type { Media } from "@/types/shared/media";
 import { Label } from "@/components/elements/Label";
 import { MediaSelector } from "@/components/media/selectors/MediaSelector";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
-interface SliderSideProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSuccess?: () => void;
-    editId?: number | null;
-}
-
-export const SliderSide: React.FC<SliderSideProps> = ({
-    isOpen,
-    onClose,
-    onSuccess,
-    editId,
-}) => {
+export const SliderSide = () => {
+    const isOpen = useGlobalDrawerStore(state => state.activeDrawer === DRAWER_IDS.SETTINGS_SLIDER_FORM);
+    const close = useGlobalDrawerStore(state => state.close);
+    const props = useGlobalDrawerStore(state => state.drawerProps as { editId?: number | null; onSuccess?: () => void });
+    const { editId, onSuccess } = props || {};
     const queryClient = useQueryClient();
     const isEditMode = !!editId;
     const [selectedImage, setSelectedImage] = useState<Media | null>(null);
@@ -104,7 +98,7 @@ export const SliderSide: React.FC<SliderSideProps> = ({
             showSuccess(msg.crud(isEditMode ? "updated" : "created", { item: "اسلایدر" }));
             queryClient.invalidateQueries({ queryKey: ["sliders"] });
             if (onSuccess) onSuccess();
-            onClose();
+            close();
         },
         onError: (error) => {
             showError(error);
@@ -134,7 +128,7 @@ export const SliderSide: React.FC<SliderSideProps> = ({
     return (
         <TaxonomyDrawer
             isOpen={isOpen}
-            onClose={onClose}
+            onClose={close}
             title={isEditMode ? "ویرایش اسلایدر" : "افزودن اسلایدر"}
             onSubmit={handleSubmit(onSubmit) as any}
             isPending={isFetching}

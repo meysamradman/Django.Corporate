@@ -27,7 +27,8 @@ import {
 } from "@/components/elements/AlertDialog";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { Edit, Trash2 } from "lucide-react";
-import { PropertyTagSide } from "@/components/real-estate/tags/PropertyTagSide";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
 
@@ -36,8 +37,7 @@ export default function PropertyTagsPage() {
   const queryClient = useQueryClient();
   const { booleanFilterOptions } = usePropertyTagFilterOptions();
 
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
+  const open = useGlobalDrawerStore((state) => state.open);
 
   const [pagination, setPagination] = useState<TablePaginationState>(() => {
     if (typeof window !== 'undefined') {
@@ -88,13 +88,14 @@ export default function PropertyTagsPage() {
 
   useEffect(() => {
     if (searchParams.get("action") === "create") {
-      setEditId(null);
-      setIsDrawerOpen(true);
+      open(DRAWER_IDS.REAL_ESTATE_TAG_FORM, {
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['property-tags'] })
+      });
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("action");
       setSearchParams(newParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, open, queryClient]);
 
   const { handleFilterChange } = useTableFilters(
     setClientFilters,
@@ -205,8 +206,10 @@ export default function PropertyTagsPage() {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (tag) => {
-        setEditId(tag.id);
-        setIsDrawerOpen(true);
+        open(DRAWER_IDS.REAL_ESTATE_TAG_FORM, {
+          editId: tag.id,
+          onSuccess: () => queryClient.invalidateQueries({ queryKey: ['property-tags'] })
+        });
       },
       permission: "real_estate.tag.update",
     },
@@ -273,11 +276,12 @@ export default function PropertyTagsPage() {
           permission="real_estate.tag.create"
           size="sm"
           onClick={() => {
-            setEditId(null);
-            setIsDrawerOpen(true);
+            open(DRAWER_IDS.REAL_ESTATE_TAG_FORM, {
+              onSuccess: () => queryClient.invalidateQueries({ queryKey: ['property-tags'] })
+            });
           }}
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4 ml-2" />
           افزودن تگ
         </ProtectedButton>
       </PageHeader>
@@ -309,14 +313,7 @@ export default function PropertyTagsPage() {
         />
       </Suspense>
 
-      <PropertyTagSide
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['property-tags'] });
-        }}
-        editId={editId}
-      />
+
 
       <AlertDialog
         open={deleteConfirm.open}

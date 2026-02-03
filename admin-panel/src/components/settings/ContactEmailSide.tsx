@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -8,20 +8,14 @@ import { FormFieldInput } from "@/components/shared/FormField";
 import { contactEmailSchema, type ContactEmailFormValues } from "./validations/settingsSchemas";
 import { showSuccess, showError } from "@/core/toast";
 import { msg } from "@/core/messages";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
-interface ContactEmailSideProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSuccess?: () => void;
-    editId?: number | null;
-}
-
-export const ContactEmailSide: React.FC<ContactEmailSideProps> = ({
-    isOpen,
-    onClose,
-    onSuccess,
-    editId,
-}) => {
+export const ContactEmailSide = () => {
+    const isOpen = useGlobalDrawerStore(state => state.activeDrawer === DRAWER_IDS.SETTINGS_EMAIL_FORM);
+    const close = useGlobalDrawerStore(state => state.close);
+    const props = useGlobalDrawerStore(state => state.drawerProps as { editId?: number | null; onSuccess?: () => void });
+    const { editId, onSuccess } = props || {};
     const queryClient = useQueryClient();
     const isEditMode = !!editId;
 
@@ -31,7 +25,7 @@ export const ContactEmailSide: React.FC<ContactEmailSideProps> = ({
         reset,
         formState: { errors, isSubmitting },
     } = useForm<ContactEmailFormValues>({
-        resolver: zodResolver(contactEmailSchema),
+        resolver: zodResolver(contactEmailSchema) as any,
         defaultValues: {
             email: "",
             label: "",
@@ -73,7 +67,7 @@ export const ContactEmailSide: React.FC<ContactEmailSideProps> = ({
             showSuccess(msg.crud(isEditMode ? "updated" : "created", { item: "ایمیل" }));
             queryClient.invalidateQueries({ queryKey: ["contact-emails"] });
             if (onSuccess) onSuccess();
-            onClose();
+            close();
         },
         onError: (error) => {
             showError(error);
@@ -87,7 +81,7 @@ export const ContactEmailSide: React.FC<ContactEmailSideProps> = ({
     return (
         <TaxonomyDrawer
             isOpen={isOpen}
-            onClose={onClose}
+            onClose={close}
             title={isEditMode ? "ویرایش ایمیل" : "افزودن ایمیل"}
             onSubmit={handleSubmit(onSubmit) as any}
             isPending={isFetching}

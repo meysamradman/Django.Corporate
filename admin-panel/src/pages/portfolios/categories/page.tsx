@@ -29,7 +29,8 @@ import type { PortfolioCategory } from "@/types/portfolio/category/portfolioCate
 import type { ColumnDef } from "@tanstack/react-table";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { PortfolioCategorySide } from "@/components/portfolios/categories/PortfolioCategorySide";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
 export default function CategoryPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -37,8 +38,7 @@ export default function CategoryPage() {
   const { booleanFilterOptions } = useCategoryFilterOptions();
   const categoryFilterConfig = getCategoryFilterConfig(booleanFilterOptions);
 
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
+  const open = useGlobalDrawerStore((state) => state.open);
 
   const [pagination, setPagination] = useState<TablePaginationState>({
     pageIndex: 0,
@@ -96,14 +96,18 @@ export default function CategoryPage() {
 
   useEffect(() => {
     if (searchParams.get("action") === "create") {
-      setEditId(null);
-      setIsDrawerOpen(true);
+      open(DRAWER_IDS.PORTFOLIO_CATEGORY_FORM, {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['portfolio-categories'] });
+          queryClient.invalidateQueries({ queryKey: ['portfolio-categories-tree'] });
+        }
+      });
 
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("action");
       setSearchParams(newParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, open]);
 
   const deleteCategoryMutation = useMutation({
     mutationFn: (categoryId: number) => {
@@ -161,8 +165,13 @@ export default function CategoryPage() {
   };
 
   const handleEdit = (category: PortfolioCategory) => {
-    setEditId(category.id);
-    setIsDrawerOpen(true);
+    open(DRAWER_IDS.PORTFOLIO_CATEGORY_FORM, {
+      editId: category.id,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['portfolio-categories'] });
+        queryClient.invalidateQueries({ queryKey: ['portfolio-categories-tree'] });
+      }
+    });
   };
 
   const rowActions: DataTableRowAction<PortfolioCategory>[] = [
@@ -277,10 +286,18 @@ export default function CategoryPage() {
             size="sm"
             asChild
           >
-            <Link to="?action=create">
-              <FolderPlus className="h-4 w-4" />
+            <Button
+              onClick={() => open(DRAWER_IDS.PORTFOLIO_CATEGORY_FORM, {
+                onSuccess: () => {
+                  queryClient.invalidateQueries({ queryKey: ['portfolio-categories'] });
+                  queryClient.invalidateQueries({ queryKey: ['portfolio-categories-tree'] });
+                }
+              })}
+              size="sm"
+            >
+              <FolderPlus className="h-4 w-4 ml-2" />
               افزودن دسته‌بندی
-            </Link>
+            </Button>
           </ProtectedButton>
         </PageHeader>
 
@@ -338,15 +355,7 @@ export default function CategoryPage() {
         </AlertDialog>
       </div>
 
-      <PortfolioCategorySide
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['portfolio-categories'] });
-          queryClient.invalidateQueries({ queryKey: ['portfolio-categories-tree'] });
-        }}
-        editId={editId}
-      />
+
     </>
   );
 }

@@ -27,7 +27,8 @@ import {
 } from "@/components/elements/AlertDialog";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { Edit, Trash2 } from "lucide-react";
-import { PropertyFeatureSide } from "@/components/real-estate/features/PropertyFeatureSide";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
 
@@ -36,8 +37,7 @@ export default function PropertyFeaturesPage() {
   const queryClient = useQueryClient();
   const { booleanFilterOptions } = usePropertyFeatureFilterOptions();
 
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
+  const open = useGlobalDrawerStore((state) => state.open);
 
   const [pagination, setPagination] = useState<TablePaginationState>(() => {
     if (typeof window !== 'undefined') {
@@ -87,13 +87,14 @@ export default function PropertyFeaturesPage() {
 
   useEffect(() => {
     if (searchParams.get("action") === "create") {
-      setEditId(null);
-      setIsDrawerOpen(true);
+      open(DRAWER_IDS.REAL_ESTATE_FEATURE_FORM, {
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['property-features'] })
+      });
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("action");
       setSearchParams(newParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, open, queryClient]);
 
   const { handleFilterChange } = useTableFilters(
     setClientFilters,
@@ -203,8 +204,10 @@ export default function PropertyFeaturesPage() {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (feature) => {
-        setEditId(feature.id);
-        setIsDrawerOpen(true);
+        open(DRAWER_IDS.REAL_ESTATE_FEATURE_FORM, {
+          editId: feature.id,
+          onSuccess: () => queryClient.invalidateQueries({ queryKey: ['property-features'] })
+        });
       },
       permission: "real_estate.feature.update",
     },
@@ -271,11 +274,12 @@ export default function PropertyFeaturesPage() {
           permission="real_estate.feature.create"
           size="sm"
           onClick={() => {
-            setEditId(null);
-            setIsDrawerOpen(true);
+            open(DRAWER_IDS.REAL_ESTATE_FEATURE_FORM, {
+              onSuccess: () => queryClient.invalidateQueries({ queryKey: ['property-features'] })
+            });
           }}
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4 ml-2" />
           افزودن ویژگی
         </ProtectedButton>
       </PageHeader>
@@ -307,14 +311,7 @@ export default function PropertyFeaturesPage() {
         />
       </Suspense>
 
-      <PropertyFeatureSide
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['property-features'] });
-        }}
-        editId={editId}
-      />
+
 
       <AlertDialog
         open={deleteConfirm.open}

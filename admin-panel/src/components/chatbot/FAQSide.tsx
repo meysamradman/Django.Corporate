@@ -1,26 +1,32 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateFAQ, useUpdateFAQ } from "@/components/ai/chatbot/hooks/useChatbot";
 import { TaxonomyDrawer } from "@/components/templates/TaxonomyDrawer";
 import { FormFieldInput, FormFieldSwitch, FormFieldTextarea } from "@/components/shared/FormField";
 import { faqSchema, type FAQFormValues } from "@/components/settings/validations/settingsSchemas";
-import type { FAQ } from "@/types/chatbot/chatbot";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
+import { useQuery } from "@tanstack/react-query";
+import { chatbotApi } from "@/api/chatbot/chatbot";
 
-interface FAQSideProps {
-    isOpen: boolean;
-    onClose: () => void;
-    faq?: FAQ | null;
-}
-
-export const FAQSide: React.FC<FAQSideProps> = ({
-    isOpen,
-    onClose,
-    faq,
-}) => {
+export const FAQSide = () => {
+    const isOpen = useGlobalDrawerStore(state => state.activeDrawer === DRAWER_IDS.CHATBOT_FAQ_FORM);
+    const close = useGlobalDrawerStore(state => state.close);
+    const props = useGlobalDrawerStore(state => state.drawerProps as { editId?: number | null; onSuccess?: () => void });
+    const { editId, onSuccess } = props || {};
     const createFAQ = useCreateFAQ();
     const updateFAQ = useUpdateFAQ();
-    const isEditMode = !!faq;
+    const isEditMode = !!editId;
+
+    const { data: faqData, isLoading: isFetching } = useQuery({
+        queryKey: ["faq", editId],
+        queryFn: () => chatbotApi.getFAQ(editId!).then(res => res.data),
+        enabled: isOpen && isEditMode,
+    });
+
+    const faq = faqData;
+    const isPending = createFAQ.isPending || updateFAQ.isPending;
 
     const {
         register,
@@ -71,19 +77,21 @@ export const FAQSide: React.FC<FAQSideProps> = ({
         } else {
             await createFAQ.mutateAsync(data as any);
         }
-        onClose();
+        if (onSuccess) onSuccess();
+        close();
     };
 
-    const isPending = createFAQ.isPending || updateFAQ.isPending;
+
+    const isPendingValue = isPending || isFetching;
 
     return (
         <TaxonomyDrawer
             isOpen={isOpen}
-            onClose={onClose}
+            onClose={close}
             title={isEditMode ? "ویرایش سوال متداول" : "افزودن سوال متداول"}
             onSubmit={handleSubmit(onSubmit) as any}
-            isPending={false}
-            isSubmitting={isPending || isSubmitting}
+            isPending={isFetching}
+            isSubmitting={isPendingValue || isSubmitting}
             formId="faq-drawer-form"
             submitButtonText={isEditMode ? "بروزرسانی" : "ایجاد"}
         >

@@ -52,7 +52,7 @@ export function SubMenuItem({
     );
   }
 
-  if (item.disabled || !item.url) {
+  if (item.disabled || (!item.url && !item.onClick)) {
     return (
       <div
         key={item.title}
@@ -77,6 +77,44 @@ export function SubMenuItem({
         )}
       </div>
     );
+  }
+
+  // If onClick is provided, render as button
+  if (item.onClick) {
+    return (
+      <button
+        key={item.title}
+        type="button"
+        className={cn(baseClasses, interactiveClasses, "w-full cursor-pointer")}
+        onClick={(e) => {
+          e.preventDefault();
+          item.onClick?.();
+          onItemClick?.(item.title);
+        }}
+      >
+        {item.icon && (
+          <item.icon className="h-4 w-4 shrink-0" />
+        )}
+        <span className="flex-1">{item.title}</span>
+        {item.badge && (
+          <span
+            className={cn(
+              "px-2 py-0.5 text-xs font-medium rounded border",
+              item.badge.tone === "info" && "bg-blue-0 text-blue-1 border-blue-1/30",
+              item.badge.tone === "warning" && "bg-amber-0 text-amber-1 border-amber-1/30",
+              item.badge.tone === "muted" && "bg-gray-0 text-gray-1 border-gray-1/30"
+            )}
+          >
+            {item.badge.label}
+          </span>
+        )}
+      </button>
+    );
+  }
+
+  // At this point, url must be defined
+  if (!item.url) {
+    return null;
   }
 
   return (

@@ -26,7 +26,8 @@ import {
 } from "@/components/elements/AlertDialog";
 
 import type { BlogCategory } from "@/types/blog/category/blogCategory";
-import { BlogCategorySide } from "@/components/blogs/categories/BlogCategorySide";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 import type { ColumnDef } from "@tanstack/react-table";
 import { blogApi } from "@/api/blogs/blogs";
 import type { DataTableRowAction } from "@/types/shared/table";
@@ -35,19 +36,17 @@ import type { CategoryListParams } from "@/types/blog/blogListParams";
 export default function CategoryPage() {
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
+  const open = useGlobalDrawerStore((state) => state.open);
 
   useEffect(() => {
     if (searchParams.get("action") === "create") {
-      setEditId(null);
-      setIsDrawerOpen(true);
+      open(DRAWER_IDS.BLOG_CATEGORY_FORM);
 
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("action");
       setSearchParams(newParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, open]);
   const { booleanFilterOptions } = useCategoryFilterOptions();
   const categoryFilterConfig = getCategoryFilterConfig(booleanFilterOptions);
 
@@ -160,8 +159,7 @@ export default function CategoryPage() {
   };
 
   const handleEditCategory = (id: number) => {
-    setEditId(id);
-    setIsDrawerOpen(true);
+    open(DRAWER_IDS.BLOG_CATEGORY_FORM, { editId: id });
   };
 
   const rowActions: DataTableRowAction<BlogCategory>[] = [
@@ -273,10 +271,7 @@ export default function CategoryPage() {
         <ProtectedButton
           permission="blog.create"
           size="sm"
-          onClick={() => {
-            setEditId(null);
-            setIsDrawerOpen(true);
-          }}
+          onClick={() => open(DRAWER_IDS.BLOG_CATEGORY_FORM)}
         >
           <Edit className="h-4 w-4" />
           افزودن دسته‌بندی بلاگ
@@ -308,15 +303,7 @@ export default function CategoryPage() {
         filterConfig={categoryFilterConfig}
       />
 
-      <BlogCategorySide
-        isOpen={isDrawerOpen}
-        editId={editId}
-        onClose={() => {
-          setIsDrawerOpen(false);
-          setEditId(null);
-        }}
-        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['blog-categories'] })}
-      />
+
 
       <AlertDialog
         open={deleteConfirm.open}

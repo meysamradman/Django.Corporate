@@ -5,10 +5,11 @@ import { Button } from "@/components/elements/Button";
 import { Settings, Edit, Globe, Copyright, Link as LinkIcon } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { MediaImage } from "@/components/media/base/MediaImage";
-import { useSearchParams } from "react-router-dom";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
 export function GeneralSettingsForm() {
-    const [searchParams, setSearchParams] = useSearchParams();
+    const openDrawer = useGlobalDrawerStore(state => state.open);
 
     const { data: settings, isLoading } = useQuery({
         queryKey: ["general-settings"],
@@ -33,11 +34,7 @@ export function GeneralSettingsForm() {
                 borderColor="border-b-primary/20"
                 headerClassName="pb-4"
                 titleExtra={
-                    <Button onClick={() => {
-                        const newParams = new URLSearchParams(searchParams);
-                        newParams.set("action", "edit-general");
-                        setSearchParams(newParams);
-                    }} className="h-9 px-4 rounded-xl shadow-sm">
+                    <Button onClick={() => openDrawer(DRAWER_IDS.SETTINGS_GENERAL_FORM)} className="h-9 px-4 rounded-xl shadow-sm">
                         <Edit className="h-4 w-4" />
                         ویرایش تنظیمات
                     </Button>

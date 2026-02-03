@@ -29,7 +29,8 @@ import type { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
 import type { ColumnDef } from "@tanstack/react-table";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { PortfolioTagSide } from "@/components/portfolios/tags/PortfolioTagSide";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
 export default function TagPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -37,8 +38,7 @@ export default function TagPage() {
   const { booleanFilterOptions } = useTagFilterOptions();
   const tagFilterConfig = getTagFilterConfig(booleanFilterOptions);
 
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
+  const open = useGlobalDrawerStore((state) => state.open);
 
   const [pagination, setPagination] = useState<TablePaginationState>({
     pageIndex: 0,
@@ -89,14 +89,15 @@ export default function TagPage() {
 
   useEffect(() => {
     if (searchParams.get("action") === "create") {
-      setEditId(null);
-      setIsDrawerOpen(true);
+      open(DRAWER_IDS.PORTFOLIO_TAG_FORM, {
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['portfolio-tags'] })
+      });
 
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("action");
       setSearchParams(newParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, open, queryClient]);
 
   const deleteTagMutation = useMutation({
     mutationFn: (tagId: number) => {
@@ -160,8 +161,10 @@ export default function TagPage() {
   };
 
   const handleEdit = (tag: PortfolioTag) => {
-    setEditId(tag.id);
-    setIsDrawerOpen(true);
+    open(DRAWER_IDS.PORTFOLIO_TAG_FORM, {
+      editId: tag.id,
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ['portfolio-tags'] })
+    });
   };
 
   const rowActions: DataTableRowAction<PortfolioTag>[] = [
@@ -237,10 +240,15 @@ export default function TagPage() {
             size="sm"
             asChild
           >
-            <Link to="?action=create">
-              <FolderPlus className="h-4 w-4" />
+            <Button
+              onClick={() => open(DRAWER_IDS.PORTFOLIO_TAG_FORM, {
+                onSuccess: () => queryClient.invalidateQueries({ queryKey: ['portfolio-tags'] })
+              })}
+              size="sm"
+            >
+              <FolderPlus className="h-4 w-4 ml-2" />
               افزودن تگ
-            </Link>
+            </Button>
           </ProtectedButton>
         </PageHeader>
 
@@ -298,14 +306,7 @@ export default function TagPage() {
         </AlertDialog>
       </div>
 
-      <PortfolioTagSide
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['portfolio-tags'] });
-        }}
-        editId={editId}
-      />
+
     </>
   );
 }

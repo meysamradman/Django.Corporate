@@ -27,7 +27,8 @@ import {
 } from "@/components/elements/AlertDialog";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { Edit, Trash2 } from "lucide-react";
-import { PropertyLabelSide } from "@/components/real-estate/labels/PropertyLabelSide";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
 
@@ -36,8 +37,7 @@ export default function PropertyLabelsPage() {
   const queryClient = useQueryClient();
   const { booleanFilterOptions } = usePropertyLabelFilterOptions();
 
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
+  const open = useGlobalDrawerStore((state) => state.open);
 
   const [pagination, setPagination] = useState<TablePaginationState>(() => {
     if (typeof window !== 'undefined') {
@@ -87,13 +87,14 @@ export default function PropertyLabelsPage() {
 
   useEffect(() => {
     if (searchParams.get("action") === "create") {
-      setEditId(null);
-      setIsDrawerOpen(true);
+      open(DRAWER_IDS.REAL_ESTATE_LABEL_FORM, {
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['property-labels'] })
+      });
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("action");
       setSearchParams(newParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, open, queryClient]);
 
   const { handleFilterChange } = useTableFilters(
     setClientFilters,
@@ -203,8 +204,10 @@ export default function PropertyLabelsPage() {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (label) => {
-        setEditId(label.id);
-        setIsDrawerOpen(true);
+        open(DRAWER_IDS.REAL_ESTATE_LABEL_FORM, {
+          editId: label.id,
+          onSuccess: () => queryClient.invalidateQueries({ queryKey: ['property-labels'] })
+        });
       },
       permission: "real_estate.label.update",
     },
@@ -271,11 +274,12 @@ export default function PropertyLabelsPage() {
           permission="real_estate.label.create"
           size="sm"
           onClick={() => {
-            setEditId(null);
-            setIsDrawerOpen(true);
+            open(DRAWER_IDS.REAL_ESTATE_LABEL_FORM, {
+              onSuccess: () => queryClient.invalidateQueries({ queryKey: ['property-labels'] })
+            });
           }}
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4 ml-2" />
           افزودن برچسب
         </ProtectedButton>
       </PageHeader>
@@ -307,14 +311,7 @@ export default function PropertyLabelsPage() {
         />
       </Suspense>
 
-      <PropertyLabelSide
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['property-labels'] });
-        }}
-        editId={editId}
-      />
+
 
       <AlertDialog
         open={deleteConfirm.open}

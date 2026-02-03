@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -11,18 +11,14 @@ import { msg } from "@/core/messages";
 import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import type { Media } from "@/types/shared/media";
 import { Label } from "@/components/elements/Label";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
-interface GeneralSettingsSideProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSuccess?: () => void;
-}
-
-export const GeneralSettingsSide: React.FC<GeneralSettingsSideProps> = ({
-    isOpen,
-    onClose,
-    onSuccess,
-}) => {
+export const GeneralSettingsSide = () => {
+    const isOpen = useGlobalDrawerStore(state => state.activeDrawer === DRAWER_IDS.SETTINGS_GENERAL_FORM);
+    const close = useGlobalDrawerStore(state => state.close);
+    const props = useGlobalDrawerStore(state => state.drawerProps as { onSuccess?: () => void });
+    const { onSuccess } = props || {};
     const queryClient = useQueryClient();
     const [logoMedia, setLogoMedia] = useState<Media | null>(null);
     const [faviconMedia, setFaviconMedia] = useState<Media | null>(null);
@@ -74,7 +70,7 @@ export const GeneralSettingsSide: React.FC<GeneralSettingsSideProps> = ({
             showSuccess(msg.crud("updated", { item: "تنظیمات عمومی" }));
             queryClient.invalidateQueries({ queryKey: ["general-settings"] });
             if (onSuccess) onSuccess();
-            onClose();
+            close();
         },
         onError: (error) => {
             showError(error);
@@ -102,7 +98,7 @@ export const GeneralSettingsSide: React.FC<GeneralSettingsSideProps> = ({
     return (
         <TaxonomyDrawer
             isOpen={isOpen}
-            onClose={onClose}
+            onClose={close}
             title="ویرایش تنظیمات عمومی"
             onSubmit={handleSubmit(onSubmit) as any}
             isPending={isFetching}

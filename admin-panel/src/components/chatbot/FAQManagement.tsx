@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 import { useFAQList, useDeleteFAQ } from "@/components/ai/chatbot/hooks/useChatbot";
 import type { FAQ } from "@/types/chatbot/chatbot";
 import { DataTable } from "@/components/tables/DataTable";
@@ -23,7 +24,7 @@ import {
 } from "@/components/elements/AlertDialog";
 
 export function FAQManagement() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const openDrawer = useGlobalDrawerStore(state => state.open);
   const [deletingFAQ, setDeletingFAQ] = useState<FAQ | null>(null);
 
   const [pagination, setPagination] = useState<TablePaginationState>({
@@ -95,16 +96,11 @@ export function FAQManagement() {
   }, []);
 
   const handleCreate = () => {
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set("action", "create-faq");
-    setSearchParams(newParams);
+    openDrawer(DRAWER_IDS.CHATBOT_FAQ_FORM);
   };
 
   const handleEdit = (faq: FAQ) => {
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set("action", "edit-faq");
-    newParams.set("id", faq.id.toString());
-    setSearchParams(newParams);
+    openDrawer(DRAWER_IDS.CHATBOT_FAQ_FORM, { editId: faq.id });
   };
 
   const handleDelete = async () => {

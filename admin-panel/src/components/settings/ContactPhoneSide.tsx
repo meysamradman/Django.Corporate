@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -9,19 +9,14 @@ import { contactPhoneSchema, type ContactPhoneFormValues } from "./validations/s
 import { showSuccess, showError } from "@/core/toast";
 import { msg } from "@/core/messages";
 
-interface ContactPhoneSideProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSuccess?: () => void;
-    editId?: number | null;
-}
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
-export const ContactPhoneSide: React.FC<ContactPhoneSideProps> = ({
-    isOpen,
-    onClose,
-    onSuccess,
-    editId,
-}) => {
+export const ContactPhoneSide = () => {
+    const isOpen = useGlobalDrawerStore(state => state.activeDrawer === DRAWER_IDS.SETTINGS_PHONE_FORM);
+    const close = useGlobalDrawerStore(state => state.close);
+    const props = useGlobalDrawerStore(state => state.drawerProps as { editId?: number | null; onSuccess?: () => void });
+    const { editId, onSuccess } = props || {};
     const queryClient = useQueryClient();
     const isEditMode = !!editId;
 
@@ -31,7 +26,7 @@ export const ContactPhoneSide: React.FC<ContactPhoneSideProps> = ({
         reset,
         formState: { errors, isSubmitting },
     } = useForm<ContactPhoneFormValues>({
-        resolver: zodResolver(contactPhoneSchema),
+        resolver: zodResolver(contactPhoneSchema) as any,
         defaultValues: {
             phone_number: "",
             label: "",
@@ -73,7 +68,7 @@ export const ContactPhoneSide: React.FC<ContactPhoneSideProps> = ({
             showSuccess(msg.crud(isEditMode ? "updated" : "created", { item: "شماره تماس" }));
             queryClient.invalidateQueries({ queryKey: ["contact-phones"] });
             if (onSuccess) onSuccess();
-            onClose();
+            close();
         },
         onError: (error) => {
             showError(error);
@@ -87,7 +82,7 @@ export const ContactPhoneSide: React.FC<ContactPhoneSideProps> = ({
     return (
         <TaxonomyDrawer
             isOpen={isOpen}
-            onClose={onClose}
+            onClose={close}
             title={isEditMode ? "ویرایش شماره تماس" : "افزودن شماره تماس"}
             onSubmit={handleSubmit(onSubmit) as any}
             isPending={isFetching}

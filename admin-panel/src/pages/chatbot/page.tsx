@@ -1,12 +1,10 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { MessageSquare, Settings as SettingsIcon } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { FAQSide } from "@/components/chatbot/FAQSide";
-import { useQuery } from "@tanstack/react-query";
-import { chatbotApi } from "@/api/chatbot/chatbot";
-import type { FAQ } from "@/types/chatbot/chatbot";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
 const TabSkeleton = () => (
   <div className="space-y-6">
@@ -22,30 +20,23 @@ const FAQManagement = lazy(() => import("@/components/chatbot/FAQManagement").th
 const ChatbotSettingsForm = lazy(() => import("@/components/chatbot/ChatbotSettingsForm").then(mod => ({ default: mod.ChatbotSettingsForm })));
 
 export default function ChatbotSettingsPage() {
+  const openDrawer = useGlobalDrawerStore(state => state.open);
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "faq";
   const action = searchParams.get("action");
-  const editId = searchParams.get("id") ? parseInt(searchParams.get("id")!) : null;
+  const id = searchParams.get("id");
+
+  useEffect(() => {
+    if (action === "create-faq") {
+      openDrawer(DRAWER_IDS.CHATBOT_FAQ_FORM);
+    } else if (action === "edit-faq" && id) {
+      openDrawer(DRAWER_IDS.CHATBOT_FAQ_FORM, { editId: Number(id) });
+    }
+  }, [action, id, openDrawer]);
 
   const setActiveTab = (tab: string) => {
     setSearchParams({ tab });
   };
-
-  const handleCloseSide = () => {
-    const newParams = new URLSearchParams(searchParams);
-    newParams.delete("action");
-    newParams.delete("id");
-    setSearchParams(newParams);
-  };
-
-  const { data: faqResponse } = useQuery({
-    queryKey: ["faqs"],
-    queryFn: () => chatbotApi.getFAQList(),
-    enabled: action === "edit-faq",
-  });
-
-  const faqs = faqResponse?.data || [];
-  const editingFAQ = editId ? faqs.find((f: FAQ) => f.id === editId) : null;
 
   return (
     <div className="space-y-6">
@@ -73,12 +64,6 @@ export default function ChatbotSettingsPage() {
           </Suspense>
         </TabsContent>
       </Tabs>
-
-      <FAQSide
-        isOpen={action === "create-faq" || action === "edit-faq"}
-        onClose={handleCloseSide}
-        faq={editingFAQ}
-      />
     </div>
   );
 }

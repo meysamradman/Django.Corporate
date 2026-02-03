@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -11,20 +11,14 @@ import { msg } from "@/core/messages";
 import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import type { Media } from "@/types/shared/media";
 import { Label } from "@/components/elements/Label";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
-interface SocialMediaSideProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSuccess?: () => void;
-    editId?: number | null;
-}
-
-export const SocialMediaSide: React.FC<SocialMediaSideProps> = ({
-    isOpen,
-    onClose,
-    onSuccess,
-    editId,
-}) => {
+export const SocialMediaSide = () => {
+    const isOpen = useGlobalDrawerStore(state => state.activeDrawer === DRAWER_IDS.SETTINGS_SOCIAL_FORM);
+    const close = useGlobalDrawerStore(state => state.close);
+    const props = useGlobalDrawerStore(state => state.drawerProps as { editId?: number | null; onSuccess?: () => void });
+    const { editId, onSuccess } = props || {};
     const queryClient = useQueryClient();
     const isEditMode = !!editId;
     const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
@@ -87,7 +81,7 @@ export const SocialMediaSide: React.FC<SocialMediaSideProps> = ({
             showSuccess(msg.crud(isEditMode ? "updated" : "created", { item: "شبکه اجتماعی" }));
             queryClient.invalidateQueries({ queryKey: ["social-medias"] });
             if (onSuccess) onSuccess();
-            onClose();
+            close();
         },
         onError: (error) => {
             showError(error);
@@ -107,7 +101,7 @@ export const SocialMediaSide: React.FC<SocialMediaSideProps> = ({
     return (
         <TaxonomyDrawer
             isOpen={isOpen}
-            onClose={onClose}
+            onClose={close}
             title={isEditMode ? "ویرایش شبکه اجتماعی" : "افزودن شبکه اجتماعی"}
             onSubmit={handleSubmit(onSubmit) as any}
             isPending={isFetching}

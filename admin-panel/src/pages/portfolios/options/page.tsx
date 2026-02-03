@@ -29,7 +29,8 @@ import type { PortfolioOption } from "@/types/portfolio/options/portfolioOption"
 import type { ColumnDef } from "@tanstack/react-table";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { PortfolioOptionSide } from "@/components/portfolios/options/PortfolioOptionSide";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
 export default function OptionPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -37,8 +38,7 @@ export default function OptionPage() {
   const { booleanFilterOptions } = useOptionFilterOptions();
   const optionFilterConfig = getOptionFilterConfig(booleanFilterOptions);
 
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
+  const open = useGlobalDrawerStore((state) => state.open);
 
   const [pagination, setPagination] = useState<TablePaginationState>({
     pageIndex: 0,
@@ -89,14 +89,15 @@ export default function OptionPage() {
 
   useEffect(() => {
     if (searchParams.get("action") === "create") {
-      setEditId(null);
-      setIsDrawerOpen(true);
+      open(DRAWER_IDS.PORTFOLIO_OPTION_FORM, {
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['portfolio-options'] })
+      });
 
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("action");
       setSearchParams(newParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, open, queryClient]);
 
   const deleteOptionMutation = useMutation({
     mutationFn: (optionId: number) => {
@@ -160,8 +161,10 @@ export default function OptionPage() {
   };
 
   const handleEdit = (option: PortfolioOption) => {
-    setEditId(option.id);
-    setIsDrawerOpen(true);
+    open(DRAWER_IDS.PORTFOLIO_OPTION_FORM, {
+      editId: option.id,
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ['portfolio-options'] })
+    });
   };
 
   const rowActions: DataTableRowAction<PortfolioOption>[] = [
@@ -276,10 +279,15 @@ export default function OptionPage() {
             size="sm"
             asChild
           >
-            <Link to="?action=create">
-              <FolderPlus className="h-4 w-4" />
+            <Button
+              onClick={() => open(DRAWER_IDS.PORTFOLIO_OPTION_FORM, {
+                onSuccess: () => queryClient.invalidateQueries({ queryKey: ['portfolio-options'] })
+              })}
+              size="sm"
+            >
+              <FolderPlus className="h-4 w-4 ml-2" />
               افزودن گزینه
-            </Link>
+            </Button>
           </ProtectedButton>
         </PageHeader>
 
@@ -337,14 +345,7 @@ export default function OptionPage() {
         </AlertDialog>
       </div>
 
-      <PortfolioOptionSide
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['portfolio-options'] });
-        }}
-        editId={editId}
-      />
+
     </>
   );
 }

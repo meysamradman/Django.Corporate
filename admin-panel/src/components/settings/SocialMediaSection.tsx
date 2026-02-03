@@ -19,11 +19,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { MediaImage } from "@/components/media/base/MediaImage";
-import { useSearchParams } from "react-router-dom";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
 export function SocialMediaSection() {
     const queryClient = useQueryClient();
-    const [searchParams, setSearchParams] = useSearchParams();
+    const openDrawer = useGlobalDrawerStore(state => state.open);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<number | null>(null);
 
@@ -46,14 +47,7 @@ export function SocialMediaSection() {
     });
 
     const handleOpenSide = (id?: number) => {
-        const newParams = new URLSearchParams(searchParams);
-        if (id) {
-            newParams.set("action", "edit-social");
-            newParams.set("id", id.toString());
-        } else {
-            newParams.set("action", "create-social");
-        }
-        setSearchParams(newParams);
+        openDrawer(DRAWER_IDS.SETTINGS_SOCIAL_FORM, { editId: id });
     };
 
     const handleDeleteClick = (id: number) => {

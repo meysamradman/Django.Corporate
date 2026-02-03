@@ -27,9 +27,8 @@ import {
 } from "@/components/elements/AlertDialog";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { Edit, Trash2 } from "lucide-react";
-import { PropertyTypeSide } from "@/components/real-estate/types/PropertyTypeSide";
-
-const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
 export default function PropertyTypesPage() {
 
@@ -37,8 +36,7 @@ export default function PropertyTypesPage() {
   const queryClient = useQueryClient();
   const { booleanFilterOptions } = usePropertyTypeFilterOptions();
 
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
+  const open = useGlobalDrawerStore((state) => state.open);
 
   const [pagination, setPagination] = useState<TablePaginationState>(() => {
     if (typeof window !== 'undefined') {
@@ -89,13 +87,17 @@ export default function PropertyTypesPage() {
 
   useEffect(() => {
     if (searchParams.get("action") === "create") {
-      setEditId(null);
-      setIsDrawerOpen(true);
+      open(DRAWER_IDS.REAL_ESTATE_TYPE_FORM, {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['property-types'] });
+          queryClient.invalidateQueries({ queryKey: ['property-types-tree'] });
+        }
+      });
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("action");
       setSearchParams(newParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, open, queryClient]);
 
   const { handleFilterChange } = useTableFilters(
     setClientFilters,
@@ -206,8 +208,13 @@ export default function PropertyTypesPage() {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (type) => {
-        setEditId(type.id);
-        setIsDrawerOpen(true);
+        open(DRAWER_IDS.REAL_ESTATE_TYPE_FORM, {
+          editId: type.id,
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['property-types'] });
+            queryClient.invalidateQueries({ queryKey: ['property-types-tree'] });
+          }
+        });
       },
       permission: "real_estate.type.update",
     },
@@ -274,11 +281,15 @@ export default function PropertyTypesPage() {
           permission="real_estate.type.create"
           size="sm"
           onClick={() => {
-            setEditId(null);
-            setIsDrawerOpen(true);
+            open(DRAWER_IDS.REAL_ESTATE_TYPE_FORM, {
+              onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: ['property-types'] });
+                queryClient.invalidateQueries({ queryKey: ['property-types-tree'] });
+              }
+            });
           }}
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4 ml-2" />
           افزودن نوع
         </ProtectedButton>
       </PageHeader>
@@ -310,15 +321,7 @@ export default function PropertyTypesPage() {
         />
       </Suspense>
 
-      <PropertyTypeSide
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['property-types'] });
-          queryClient.invalidateQueries({ queryKey: ['property-types-tree'] });
-        }}
-        editId={editId}
-      />
+
 
       <AlertDialog
         open={deleteConfirm.open}
