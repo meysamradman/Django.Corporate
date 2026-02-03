@@ -20,7 +20,6 @@ interface PropertyBasicInfoProps {
 
 export function RealEstateInfo({ property }: PropertyBasicInfoProps) {
 
-
     const InfoItem = ({ icon: Icon, label, value, dir = "rtl" }: any) => (
         <div className="flex items-center justify-between py-2 border-b border-br/40 last:border-0 hover:bg-bg-2/30 px-2 rounded-lg transition-colors">
             <div className="flex items-center gap-2.5 text-font-s">

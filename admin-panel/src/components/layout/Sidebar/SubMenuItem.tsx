@@ -79,7 +79,6 @@ export function SubMenuItem({
     );
   }
 
-  // If onClick is provided, render as button
   if (item.onClick) {
     return (
       <button
@@ -112,7 +111,6 @@ export function SubMenuItem({
     );
   }
 
-  // At this point, url must be defined
   if (!item.url) {
     return null;
   }

@@ -303,8 +303,6 @@ export default function CategoryPage() {
         filterConfig={categoryFilterConfig}
       />
 
-
-
       <AlertDialog
         open={deleteConfirm.open}
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}

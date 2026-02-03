@@ -355,7 +355,6 @@ export default function CategoryPage() {
         </AlertDialog>
       </div>
 
-
     </>
   );
 }

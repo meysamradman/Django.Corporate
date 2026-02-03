@@ -17,7 +17,6 @@ export const DRAWER_IDS = {
     SETTINGS_SLIDER_FORM: 'SETTINGS_SLIDER_FORM',
     CHATBOT_FAQ_FORM: 'CHATBOT_FAQ_FORM',
     FORM_BUILDER_FIELD_FORM: 'FORM_BUILDER_FIELD_FORM',
-    // Future drawers can be added here
 } as const;
 
 export type DrawerId = keyof typeof DRAWER_IDS;
@@ -94,5 +93,4 @@ export interface DrawerProps {
         editId?: number | null;
         onSuccess?: () => void;
     };
-    // Future drawer props
 }

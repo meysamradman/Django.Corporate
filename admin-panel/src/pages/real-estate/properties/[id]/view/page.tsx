@@ -65,7 +65,6 @@ export default function PropertyViewPage() {
         const element = document.getElementById(`section-${section}`);
         if (element) {
           const rect = element.getBoundingClientRect();
-          // Adjust threshold since nav is no longer sticky
           if (rect.top <= 100 && rect.bottom >= 100) {
             setActiveSection(section);
             break;
@@ -106,8 +105,6 @@ export default function PropertyViewPage() {
   return (
     <div className="relative space-y-10 pb-20 animate-in fade-in duration-500">
 
-      {/* --- REFINED HEADER --- */}
-      {/* --- REFINED HEADER --- */}
       <Card className="shadow-xs overflow-hidden p-6 relative block">
         <div className="absolute top-0 right-0 w-full h-1 bg-linear-to-r from-blue-1 via-purple-1 to-pink-1 opacity-60" />
 
@@ -121,8 +118,6 @@ export default function PropertyViewPage() {
                 <h1 className="text-2xl font-black text-font-p tracking-tight">{propertyData.title}</h1>
 
                 <div className="flex items-center gap-2">
-                  {/* Portfolio-Style Badges */}
-                  {/* Use existing Badge component */}
                   <div className="flex items-center gap-2">
                     <Badge variant={statusConfig[propertyData.status]?.variant || "default"} className="rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest gap-2">
                       <div className={`w-1.5 h-1.5 rounded-full ${statusConfig[propertyData.status]?.dot || 'bg-current'} animate-pulse`} />
@@ -165,7 +160,6 @@ export default function PropertyViewPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {/* Standard Action Buttons */}
             <div className="flex items-center gap-2 bg-bg/40 p-1.5 rounded-xl border border-br/40">
               <Button
                 variant="default"
@@ -198,7 +192,6 @@ export default function PropertyViewPage() {
               </Button>
             </div>
 
-            {/* Managed By Agency (Optional) */}
             {propertyData.agency && (
               <div className="flex items-center gap-3.5 bg-bg/40 p-2 pr-5 rounded-2xl border border-br/40 shadow-xs ring-1 ring-static-b/5">
                 <div className="text-right">
@@ -229,7 +222,6 @@ export default function PropertyViewPage() {
               </div>
             )}
 
-            {/* Managed By Agent/Admin (Always show if available) */}
             {(propertyData.agent || propertyData.created_by_name) && (
               <div className="flex items-center gap-3.5 bg-bg/40 p-2 pr-5 rounded-2xl border border-br/40 shadow-xs ring-1 ring-static-b/5">
                 <div className="text-right">
@@ -263,7 +255,6 @@ export default function PropertyViewPage() {
         </div>
       </Card>
 
-      {/* --- VISUAL CONTENT GRID --- */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         <div className="lg:col-span-8 xl:col-span-9">
           <Card className="h-full min-h-[400px] lg:min-h-[500px] overflow-hidden shadow-xs group relative block p-0">
@@ -276,10 +267,8 @@ export default function PropertyViewPage() {
         </div>
       </div >
 
-      {/* --- MAIN CONTENT & STICKY NAVIGATION --- */}
       < div className="flex flex-col xl:flex-row gap-8 items-start relative mt-6 min-w-0" >
 
-        {/* DATA SECTIONS (Main Content) */}
         < div className="flex-1 space-y-12 min-w-0 w-full" >
           <div id="section-overview" className="scroll-mt-32">
             <RealEstateOverview property={propertyData} />
@@ -366,8 +355,6 @@ export default function PropertyViewPage() {
           </div >
         </div >
 
-        {/* SIDE NAVIGATION (TOC) - Sticky and Minimal */}
-        {/* In RTL: JSX order Item 1 (Content) is Right, Item 2 (Aside) is Left */}
         <aside className="hidden xl:block w-16 sticky top-24 self-start flex-none">
           <TooltipProvider>
             <nav className="flex flex-col gap-3 p-2 bg-card border border-br rounded-full shadow-lg ring-1 ring-static-b/5">

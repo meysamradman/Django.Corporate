@@ -195,7 +195,6 @@ export function FAQManagement() {
         </CardContent>
       </Card>
 
-
       <AlertDialog open={!!deletingFAQ} onOpenChange={() => setDeletingFAQ(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

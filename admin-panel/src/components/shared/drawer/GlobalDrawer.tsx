@@ -2,7 +2,6 @@ import { Suspense, lazy } from 'react';
 import { useGlobalDrawerStore } from './store';
 import { DRAWER_IDS } from './types';
 
-// Lazy load drawer components
 const BlogTagSide = lazy(() => import('@/components/blogs/tags/BlogTagSide').then(module => ({ default: module.BlogTagSide })));
 const BlogCategorySide = lazy(() => import('@/components/blogs/categories/BlogCategorySide').then(module => ({ default: module.BlogCategorySide })));
 const PortfolioTagSide = lazy(() => import('@/components/portfolios/tags/PortfolioTagSide').then(module => ({ default: module.PortfolioTagSide })));
@@ -24,7 +23,6 @@ const SliderSide = lazy(() => import('@/components/settings/SliderSide').then(mo
 const FAQSide = lazy(() => import('@/components/chatbot/FAQSide').then(module => ({ default: module.FAQSide })));
 const FormFieldSide = lazy(() => import('@/components/form-builder/FormFieldSide').then(module => ({ default: module.FormFieldSide })));
 
-// Map drawer IDs to components
 const DRAWERS = {
     [DRAWER_IDS.BLOG_TAG_FORM]: BlogTagSide,
     [DRAWER_IDS.BLOG_CATEGORY_FORM]: BlogCategorySide,

@@ -42,7 +42,6 @@ export default function TagPage() {
   const { booleanFilterOptions } = useTagFilterOptions();
   const tagFilterConfig = getTagFilterConfig(booleanFilterOptions);
 
-  // Handle URL parameter for opening sidebar (backward compatibility)
   useEffect(() => {
     if (searchParams.get("action") === "create") {
       open(DRAWER_IDS.BLOG_TAG_FORM);

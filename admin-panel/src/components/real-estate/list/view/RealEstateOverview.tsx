@@ -66,8 +66,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
   const [floorPlanImages, setFloorPlanImages] = useState<Record<number, FloorPlanImage[]>>({});
   const [loadingImages, setLoadingImages] = useState<Record<number, boolean>>({});
 
-
-
   const loadFloorPlanImages = async (floorPlanId: number) => {
     if (floorPlanImages[floorPlanId]) return;
 

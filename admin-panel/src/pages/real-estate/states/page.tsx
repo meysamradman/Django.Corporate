@@ -327,8 +327,6 @@ export default function PropertyStatesPage() {
         />
       </Suspense>
 
-
-
       <AlertDialog
         open={deleteConfirm.open}
         onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}

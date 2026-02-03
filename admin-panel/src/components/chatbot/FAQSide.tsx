@@ -81,7 +81,6 @@ export const FAQSide = () => {
         close();
     };
 
-
     const isPendingValue = isPending || isFetching;
 
     return (

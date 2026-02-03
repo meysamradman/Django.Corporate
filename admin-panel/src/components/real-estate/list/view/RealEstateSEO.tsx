@@ -54,7 +54,6 @@ export function RealEstateSEO({ property }: SEOInfoTabProps) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* SEO Meta Tags - Compact Table */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 pb-3 border-b border-br/50">
           <div className="p-1.5 rounded-lg bg-emerald-1/10">
@@ -97,7 +96,6 @@ export function RealEstateSEO({ property }: SEOInfoTabProps) {
         </div>
       </div>
 
-      {/* Open Graph Preview - Compact Card */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 pb-3 border-b border-br/50">
           <div className="p-1.5 rounded-lg bg-blue-1/10">
@@ -107,9 +105,7 @@ export function RealEstateSEO({ property }: SEOInfoTabProps) {
         </div>
 
         <div className="p-4 rounded-lg bg-bg/30 border border-br/40 space-y-3">
-          {/* OG Content - Image + Text Side by Side */}
           <div className="flex gap-3">
-            {/* Small OG Image Thumbnail */}
             {ogImageUrl ? (
               <div className="relative w-24 h-24 shrink-0 rounded-md overflow-hidden border border-br/60 shadow-sm group">
                 <MediaImage
@@ -132,7 +128,6 @@ export function RealEstateSEO({ property }: SEOInfoTabProps) {
               </div>
             )}
 
-            {/* OG Title & Description */}
             <div className="flex-1 min-w-0 space-y-2">
               <div className="flex items-start gap-2">
                 <FileText className="w-3 h-3 text-font-s mt-0.5 shrink-0" />

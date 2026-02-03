@@ -345,7 +345,6 @@ export default function OptionPage() {
         </AlertDialog>
       </div>
 
-
     </>
   );
 }
