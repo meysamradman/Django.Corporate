@@ -144,7 +144,7 @@ export const realEstateApi = {
   },
 
   updateProperty: async (id: number, data: Partial<PropertyUpdateData>): Promise<Property> => {
-    const response = await api.patch<any>('/admin/property/' + id + '/', data);
+    const response = await api.put<any>('/admin/property/' + id + '/', data);
     return response.data?.data || response.data;
   },
 

@@ -28,7 +28,7 @@ export function MediaPlayer({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
-  
+
   const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -36,7 +36,7 @@ export function MediaPlayer({
 
   const togglePlayPause = () => {
     if (!mediaRef.current) return;
-    
+
     if (isPlaying) {
       mediaRef.current.pause();
     } else {
@@ -47,7 +47,7 @@ export function MediaPlayer({
 
   const toggleMute = () => {
     if (!mediaRef.current) return;
-    
+
     if (isMuted) {
       mediaRef.current.volume = volume;
       setIsMuted(false);
@@ -59,7 +59,7 @@ export function MediaPlayer({
 
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
-    
+
     if (!isFullscreen) {
       if (containerRef.current.requestFullscreen) {
         containerRef.current.requestFullscreen();
@@ -74,7 +74,7 @@ export function MediaPlayer({
 
   const handleSeek = (time: number) => {
     if (!mediaRef.current) return;
-    
+
     mediaRef.current.currentTime = time;
     setCurrentTime(time);
   };
@@ -169,13 +169,14 @@ export function MediaPlayer({
         <audio
           ref={mediaRef as RefObject<HTMLAudioElement>}
           src={mediaUrl}
+          className="w-full"
           controls={controls}
           autoPlay={autoPlay}
           muted={isMuted}
         />
       );
     }
-    
+
     return null;
   };
 
@@ -183,7 +184,7 @@ export function MediaPlayer({
     if (!showControls || controls) return null;
 
     return (
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+      <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/80 to-transparent p-4">
         <div className="mb-3">
           <input
             type="range"
@@ -208,7 +209,7 @@ export function MediaPlayer({
             >
               {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
             </Button>
-            
+
             <span className="text-static-w text-sm">
               {formatTime(currentTime)} / {formatTime(duration)}
             </span>
@@ -268,14 +269,14 @@ export function MediaPlayer({
   return (
     <div
       ref={containerRef}
-      className={cn("relative bg-static-b rounded-lg overflow-hidden", className)}
+      className={cn("relative bg-static-b rounded-lg overflow-hidden", media.media_type === 'audio' && "bg-transparent", className)}
     >
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-static-b/50">
           <div className="text-static-w">در حال بارگذاری...</div>
         </div>
       )}
-      
+
       {renderMedia()}
       {renderCustomControls()}
     </div>
