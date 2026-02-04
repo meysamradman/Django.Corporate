@@ -9,6 +9,7 @@ from django.db.models import Q, Count
 from django.core.cache import cache
 from django.utils import timezone
 from django.conf import settings
+from src.core.utils.request_helpers import MultipartDataParser
 
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.models.category import PortfolioCategory
@@ -144,40 +145,7 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         return data
 
     def _extract_list(self, data, field_name, convert_to_int=False):
-        
-        import json
-        value = data.get(field_name)
-        if not value:
-            return []
-        
-        result = []
-        if isinstance(value, list):
-            result = [v for v in value if v]
-        elif isinstance(value, str):
-            value = value.strip()
-            if value.startswith('['):
-                try:
-                    parsed = json.loads(value)
-                    if isinstance(parsed, list):
-                        result = parsed
-                except (json.JSONDecodeError, ValueError):
-                    pass
-            
-            if not result:
-                result = [v.strip() for v in value.split(',') if v.strip()]
-        else:
-            result = [value]
-        
-        if convert_to_int:
-            converted = []
-            for v in result:
-                try:
-                    converted.append(int(v))
-                except (ValueError, TypeError):
-                    pass
-            return converted
-        
-        return result
+        return MultipartDataParser.extract_list(data, field_name, convert_to_int)
 
     def _extract_media_ids(self, request):
         return self._extract_list(request.data, 'media_ids')

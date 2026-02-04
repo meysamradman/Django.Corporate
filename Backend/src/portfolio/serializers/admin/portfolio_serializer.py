@@ -12,6 +12,7 @@ from src.portfolio.serializers.admin.option_serializer import PortfolioOptionSim
 from src.portfolio.services.admin.media_services import PortfolioAdminMediaService
 from src.portfolio.utils.cache import PortfolioCacheKeys
 from src.media.serializers.media_serializer import MediaAdminSerializer, MediaCoverSerializer
+from src.media.serializers.mixins import MediaAggregationMixin
 
 _MEDIA_LIST_LIMIT = settings.PORTFOLIO_MEDIA_LIST_LIMIT
 _MEDIA_DETAIL_LIMIT = settings.PORTFOLIO_MEDIA_DETAIL_LIMIT
@@ -144,7 +145,7 @@ class PortfolioAdminListSerializer(serializers.ModelSerializer):
             'status': 'complete' if score == 3 else 'incomplete' if score > 0 else 'missing'
         }
 
-class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
+class PortfolioAdminDetailSerializer(MediaAggregationMixin, serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
     categories = PortfolioCategorySimpleAdminSerializer(many=True, read_only=True)
     tags = PortfolioTagAdminSerializer(many=True, read_only=True)
@@ -179,53 +180,11 @@ class PortfolioAdminDetailSerializer(serializers.ModelSerializer):
         return obj.get_main_image_details()
     
     def get_media(self, obj):
-        media_limit = _MEDIA_DETAIL_LIMIT
-        
-        # Django handles cache internally if prefetched, .all() will use it.
-        # However, for_detail in managers.py uses to_attr='all_images' for images.
-        all_images = getattr(obj, 'all_images', [])
-        if not all_images and not hasattr(obj, 'all_images'):
-            all_images = obj.images.select_related('image').all()
-        
-        if media_limit > 0:
-            all_images = all_images[:media_limit]
-            
-        videos = obj.videos.all()
-        audios = obj.audios.all()
-        documents = obj.documents.all()
-        
-        if media_limit > 0:
-            videos = videos[:media_limit]
-            audios = audios[:media_limit]
-            documents = documents[:media_limit]
-        
-        # These methods are safe because we prefetched video__cover_image etc.
-        self._prefetch_cover_image_urls(videos, 'video')
-        self._prefetch_cover_image_urls(audios, 'audio')
-        self._prefetch_cover_image_urls(documents, 'document')
-        
-        all_media = list(all_images) + list(videos) + list(audios) + list(documents)
-        all_media.sort(key=lambda x: (x.order, x.created_at))
-        
-        serializer = PortfolioMediaAdminSerializer(context=self.context)
-        return [serializer.to_representation(media) for media in all_media]
-    
-    def _prefetch_cover_image_urls(self, items, media_type):
-        for item in items:
-            media_obj = getattr(item, media_type, None)
-            if media_obj and hasattr(media_obj, 'cover_image') and media_obj.cover_image:
-                if hasattr(media_obj.cover_image, 'file') and media_obj.cover_image.file:
-                    try:
-                        _ = media_obj.cover_image.file.url
-                    except Exception:
-                        pass
-            
-            if media_type == 'document' and hasattr(item, 'document') and item.document:
-                if hasattr(item.document, 'file') and item.document.file:
-                    try:
-                        _ = item.document.file.url
-                    except Exception:
-                        pass
+        return self.aggregate_media(
+            obj=obj,
+            media_limit=_MEDIA_DETAIL_LIMIT,
+            media_serializer_class=PortfolioMediaAdminSerializer
+        )
     
     def get_portfolio_media(self, obj):
         return self.get_media(obj)

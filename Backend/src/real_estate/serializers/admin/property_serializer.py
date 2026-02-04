@@ -257,7 +257,9 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
     def get_region_name(self, obj):
         return obj.region.name if obj.region_id and hasattr(obj, 'region') else None
 
-class PropertyAdminDetailSerializer(serializers.ModelSerializer):
+from src.media.serializers.mixins import MediaAggregationMixin
+from src.real_estate.services.admin.property_media_services import PropertyAdminMediaService
+class PropertyAdminDetailSerializer(MediaAggregationMixin, serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
     property_type = PropertyTypeSimpleAdminSerializer(read_only=True)
     state = PropertyStateSimpleAdminSerializer(read_only=True)
@@ -284,27 +286,27 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Property
         fields = [
-            'id', 'public_id', 'title', 'slug', 'short_description', 'description',
-            'is_published', 'is_featured', 'is_public', 'is_active', 'status', # ✅ Status Added
+            'id', 'public_id', 'status', 'title', 'slug',
+            'short_description', 'description',
+            'is_published', 'is_featured', 'is_public', 'is_active',
             'main_image', 'property_type', 'state', 'agent', 'agency',
-            'labels', 'tags', 'features', 'media', 'property_media', 'floor_plans',
-            'region', 'city', 'city_name', 'province', 'province_name',
-            'country_name', 'district_name', 'region_name', 'neighborhood',
-            'address', 'postal_code', 'latitude', 'longitude',
+            'labels', 'tags', 'features', 'media', 'property_media',
+            'meta_title', 'meta_description', 'og_title', 'og_description',
+            'og_image', 'canonical_url', 'robots_meta',
+            'structured_data', 'hreflang_data',
+            'seo_data', 'seo_preview', 'seo_completeness',
+            'created_by_name', 'city_name', 'province_name', 'country_name',
+            'district_name', 'region_name',
             'price', 'sale_price', 'pre_sale_price', 'price_per_sqm',
             'monthly_rent', 'rent_amount', 'mortgage_amount', 'security_deposit',
             'land_area', 'built_area',
             'bedrooms', 'bathrooms', 'kitchens', 'living_rooms',
             'year_built', 'build_years', 'floors_in_building', 'floor_number',
-            'parking_spaces', 'storage_rooms',
-            'document_type', 'has_document',  # ✅ Document fields
-            'extra_attributes',  # ✅ Extra attributes for advanced customization
+            'parking_spaces', 'storage_rooms', 'document_type', 'has_document',
             'views_count', 'favorites_count', 'inquiries_count',
-            'published_at', 'created_at', 'updated_at', 'created_by_name',
-            'meta_title', 'meta_description', 'og_title', 'og_description',
-            'og_image', 'canonical_url', 'robots_meta',
-            'structured_data', 'hreflang_data',
-            'seo_data', 'seo_preview', 'seo_completeness',
+            'published_at', 'created_at', 'updated_at',
+            'region', 'city', 'neighborhood', 'address', 'postal_code', 
+            'latitude', 'longitude', 'extra_attributes', 'floor_plans',
         ]
     
     def get_main_image(self, obj):
@@ -328,53 +330,11 @@ class PropertyAdminDetailSerializer(serializers.ModelSerializer):
         return data
     
     def get_media(self, obj):
-        media_limit = _MEDIA_DETAIL_LIMIT
-        
-        # Django handles cache internally if prefetched, .all() will use it.
-        # However, forDetail in managers.py uses to_attr='all_images' for images.
-        all_images = getattr(obj, 'all_images', [])
-        if not all_images and not hasattr(obj, 'all_images'):
-            all_images = obj.images.select_related('image').all()
-        
-        if media_limit > 0:
-            all_images = all_images[:media_limit]
-            
-        videos = obj.videos.all()
-        audios = obj.audios.all()
-        documents = obj.documents.all()
-        
-        if media_limit > 0:
-            videos = videos[:media_limit]
-            audios = audios[:media_limit]
-            documents = documents[:media_limit]
-        
-        # These methods are safe because we prefetched video__cover_image etc.
-        self._prefetch_cover_image_urls(videos, 'video')
-        self._prefetch_cover_image_urls(audios, 'audio')
-        self._prefetch_cover_image_urls(documents, 'document')
-        
-        all_media = list(all_images) + list(videos) + list(audios) + list(documents)
-        all_media.sort(key=lambda x: (x.order, x.created_at))
-        
-        serializer = PropertyMediaAdminSerializer(context=self.context)
-        return [serializer.to_representation(media) for media in all_media]
-    
-    def _prefetch_cover_image_urls(self, items, media_type):
-        for item in items:
-            media_obj = getattr(item, media_type, None)
-            if media_obj and hasattr(media_obj, 'cover_image') and media_obj.cover_image:
-                if hasattr(media_obj.cover_image, 'file') and media_obj.cover_image.file:
-                    try:
-                        _ = media_obj.cover_image.file.url
-                    except Exception:
-                        pass
-            
-            if media_type == 'document' and hasattr(item, 'document') and item.document:
-                if hasattr(item.document, 'file') and item.document.file:
-                    try:
-                        _ = item.document.file.url
-                    except Exception:
-                        pass
+        return self.aggregate_media(
+            obj=obj,
+            media_limit=_MEDIA_DETAIL_LIMIT,
+            media_serializer_class=PropertyMediaAdminSerializer
+        )
     
     def get_property_media(self, obj):
         return self.get_media(obj)

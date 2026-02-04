@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
 from django.conf import settings
+from src.core.utils.request_helpers import MultipartDataParser
 
 from src.core.responses.response import APIResponse
 from src.core.pagination import StandardLimitPagination
@@ -161,40 +162,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         return data
 
     def _extract_list(self, data, field_name, convert_to_int=False):
-        
-        import json
-        value = data.get(field_name)
-        if not value:
-            return []
-        
-        result = []
-        if isinstance(value, list):
-            result = [v for v in value if v]
-        elif isinstance(value, str):
-            value = value.strip()
-            if value.startswith('['):
-                try:
-                    parsed = json.loads(value)
-                    if isinstance(parsed, list):
-                        result = parsed
-                except (json.JSONDecodeError, ValueError):
-                    pass
-            
-            if not result:
-                result = [v.strip() for v in value.split(',') if v.strip()]
-        else:
-            result = [value]
-        
-        if convert_to_int:
-            converted = []
-            for v in result:
-                try:
-                    converted.append(int(v))
-                except (ValueError, TypeError):
-                    pass
-            return converted
-        
-        return result
+        return MultipartDataParser.extract_list(data, field_name, convert_to_int)
 
     def _extract_media_ids(self, request):
         return self._extract_list(request.data, 'media_ids')

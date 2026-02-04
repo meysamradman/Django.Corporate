@@ -52,23 +52,12 @@ class PropertyAdminMediaService:
 
     @staticmethod
     def get_next_media_order(property_id):
-        max_order_result = Property.objects.filter(
-            id=property_id
-        ).aggregate(
-            max_image_order=Max('images__order'),
-            max_video_order=Max('videos__order'),
-            max_audio_order=Max('audios__order'),
-            max_document_order=Max('documents__order')
-        )
-        
-        max_order = max(
-            max_order_result.get('max_image_order') or 0,
-            max_order_result.get('max_video_order') or 0,
-            max_order_result.get('max_audio_order') or 0,
-            max_order_result.get('max_document_order') or 0
-        )
-        
-        return max_order + 1 if max_order > 0 else 0
+        from src.media.utils.media_helpers import get_combined_max_order
+        try:
+            property_obj = Property.objects.get(id=property_id)
+            return get_combined_max_order(property_obj, 'images', 'videos', 'audios', 'documents')
+        except Property.DoesNotExist:
+            return 1
 
     @staticmethod
     def get_media_by_ids(media_ids):

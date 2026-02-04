@@ -51,23 +51,12 @@ class PortfolioAdminMediaService:
 
     @staticmethod
     def get_next_media_order(portfolio_id):
-        max_order_result = Portfolio.objects.filter(
-            id=portfolio_id
-        ).aggregate(
-            max_image_order=Max('images__order'),
-            max_video_order=Max('videos__order'),
-            max_audio_order=Max('audios__order'),
-            max_document_order=Max('documents__order')
-        )
-        
-        max_order = max(
-            max_order_result.get('max_image_order') or 0,
-            max_order_result.get('max_video_order') or 0,
-            max_order_result.get('max_audio_order') or 0,
-            max_order_result.get('max_document_order') or 0
-        )
-        
-        return max_order + 1 if max_order > 0 else 0
+        from src.media.utils.media_helpers import get_combined_max_order
+        try:
+            portfolio = Portfolio.objects.get(id=portfolio_id)
+            return get_combined_max_order(portfolio, 'images', 'videos', 'audios', 'documents')
+        except Portfolio.DoesNotExist:
+            return 1
 
     @staticmethod
     def get_media_by_ids(media_ids):
