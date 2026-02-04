@@ -1,6 +1,9 @@
+import logging
 from django.core.exceptions import ValidationError
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.media.messages.messages import MEDIA_ERRORS
+
+logger = logging.getLogger(__name__)
 
 class MediaAdminService:
 
@@ -27,6 +30,11 @@ class MediaAdminService:
 
     @staticmethod
     def update_media_by_id_and_type(media_id, media_type, data):
+        print(f"\n{'='*80}")
+        print(f"📁 [MediaUpdate] Starting update - ID: {media_id}, Type: {media_type}")
+        print(f"📁 [MediaUpdate] Data received: {data}")
+        print(f"{'='*80}\n")
+        
         model_map = {
             'image': ImageMedia,
             'video': VideoMedia,
@@ -36,37 +44,63 @@ class MediaAdminService:
         
         model = model_map.get(media_type)
         if not model:
+            print(f"❌ [MediaUpdate] ERROR: Unsupported media type: {media_type}")
             raise ValidationError(MEDIA_ERRORS["media_type_unsupported"])
             
         try:
             if model in [VideoMedia, AudioMedia, DocumentMedia]:
                 media = model.objects.select_related('cover_image').get(id=media_id)
+                print(f"✅ [MediaUpdate] Found {media_type} media with ID {media_id}, has cover: {bool(media.cover_image)}")
             else:
                 media = model.objects.get(id=media_id)
+                print(f"✅ [MediaUpdate] Found {media_type} media with ID {media_id}")
             
+            # Handle cover image updates
             if (media_type == 'video' or media_type == 'audio' or media_type == 'pdf') and 'cover_image' in data:
                 cover_image_value = data['cover_image']
+                print(f"🖼️  [MediaUpdate] Processing cover_image update: {cover_image_value} (type: {type(cover_image_value).__name__})")
+                
                 if isinstance(cover_image_value, int):
                     try:
                         cover_media = ImageMedia.objects.get(id=cover_image_value)
                         media.cover_image = cover_media
+                        print(f"✅ [MediaUpdate] Set cover_image to ImageMedia ID {cover_image_value}")
                     except ImageMedia.DoesNotExist:
                         media.cover_image = None
+                        print(f"⚠️  [MediaUpdate] Cover image ID {cover_image_value} not found, set to None")
                 elif isinstance(cover_image_value, ImageMedia):
                     media.cover_image = cover_image_value
+                    print(f"✅ [MediaUpdate] Set cover_image to ImageMedia object")
                 elif cover_image_value is None or cover_image_value == '':
                     media.cover_image = None
+                    print(f"🗑️  [MediaUpdate] Removed cover_image")
                 
                 data.pop('cover_image', None)
             
+            # Update other fields
+            updated_fields = []
+            print(f"\n📝 [MediaUpdate] Updating fields:")
             for key, value in data.items():
                 if hasattr(media, key):
+                    old_value = getattr(media, key)
                     setattr(media, key, value)
-                    
+                    updated_fields.append(f"{key}: '{old_value}' -> '{value}'")
+                    print(f"   ✏️  {key}: '{old_value}' -> '{value}'")
+                else:
+                    print(f"   ⚠️  Field '{key}' does not exist on {media_type} model, skipping")
+            
+            print(f"\n💾 [MediaUpdate] Saving media ID {media_id} with {len(updated_fields)} field(s) updated")
             media.save()
+            print(f"✅ [MediaUpdate] Successfully saved media ID {media_id}\n")
             return media
         except model.DoesNotExist:
+            print(f"❌ [MediaUpdate] ERROR: Media not found - ID: {media_id}, Type: {media_type}")
             raise model.DoesNotExist(MEDIA_ERRORS["media_not_found"])
+        except Exception as e:
+            print(f"❌ [MediaUpdate] ERROR: Unexpected error updating media ID {media_id}: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            raise
 
     @staticmethod
     def delete_media_by_id_and_type(media_id, media_type):

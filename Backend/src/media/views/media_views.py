@@ -1,7 +1,10 @@
+import logging
 from datetime import datetime
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models.deletion import ProtectedError
+
+logger = logging.getLogger(__name__)
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -180,6 +183,11 @@ class MediaAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         media_id = kwargs.get("pk")
+        print(f"\n{'='*80}")
+        print(f"🌐 [MediaView][Update] Received update request for media ID: {media_id}")
+        print(f"🌐 [MediaView][Update] Request data: {request.data}")
+        print(f"{'='*80}\n")
+        
         media = None
         media_type = None
         
@@ -194,34 +202,46 @@ class MediaAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             try:
                 media = model.objects.get(id=media_id)
                 media_type = mtype
+                print(f"✅ [MediaView][Update] Found media type: {media_type} for ID: {media_id}")
                 break
             except model.DoesNotExist:
                 continue
         
         if not media:
+            print(f"❌ [MediaView][Update] ERROR: Media not found with ID: {media_id}\n")
             return APIResponse.error(
                 message=MEDIA_ERRORS["media_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
         
         try:
+            print(f"🔄 [MediaView][Update] Calling service to update media ID {media_id} (type: {media_type})")
             updated_media = MediaAdminService.update_media_by_id_and_type(media_id, media_type, request.data)
+            print(f"✅ [MediaView][Update] Service call successful for media ID {media_id}")
+            
             serializer = self.get_serializer(updated_media)
+            print(f"✅ [MediaView][Update] Serialization successful, returning success response\n")
             return APIResponse.success(
                 message=MEDIA_SUCCESS["media_updated"],
                 data=serializer.data
             )
-        except (ImageMedia.DoesNotExist, VideoMedia.DoesNotExist, AudioMedia.DoesNotExist, DocumentMedia.DoesNotExist):
+        except (ImageMedia.DoesNotExist, VideoMedia.DoesNotExist, AudioMedia.DoesNotExist, DocumentMedia.DoesNotExist) as e:
+            print(f"❌ [MediaView][Update] ERROR: Media not found during update: {str(e)}\n")
             return APIResponse.error(
                 message=MEDIA_ERRORS["media_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except ValidationError:
+        except ValidationError as e:
+            print(f"❌ [MediaView][Update] ERROR: Validation error: {str(e)}\n")
             return APIResponse.error(
                 message=MEDIA_ERRORS["media_data_invalid"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
+            print(f"❌ [MediaView][Update] ERROR: Unexpected error updating media ID {media_id}: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            print()
             return APIResponse.error(
                 message=MEDIA_ERRORS["media_update_failed"],
                 status_code=status.HTTP_400_BAD_REQUEST

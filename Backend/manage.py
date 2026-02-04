@@ -14,4 +14,9 @@ def main():
 
 
 if __name__ == '__main__':
+    print("\n" + "="*80)
+    print("🚀 DJANGO SERVER STARTING...")
+    print("🔍 Print statements are ENABLED")
+    print("📝 You should see logs with emojis: 🏠 for Real Estate, 📁 for Media")
+    print("="*80 + "\n")
     main()

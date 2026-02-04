@@ -371,10 +371,10 @@ MELIPAYAMAK_BODY_ID = int(os.getenv('MELIPAYAMAK_BODY_ID'))
 MELIPAYAMAK_API_KEY = os.getenv('MELIPAYAMAK_API_KEY')
 
 MEDIA_FILE_SIZE_LIMITS = {
-    'image': int(os.getenv('MEDIA_IMAGE_SIZE_LIMIT', 500 * 1024)),
-    'video': int(os.getenv('MEDIA_VIDEO_SIZE_LIMIT', 500 * 1024)),
-    'audio': int(os.getenv('MEDIA_AUDIO_SIZE_LIMIT', 500 * 1024)),
-    'pdf': int(os.getenv('MEDIA_PDF_SIZE_LIMIT', 500 * 1024)),
+    'image': int(os.getenv('MEDIA_IMAGE_SIZE_LIMIT', 10 * 1024 * 1024)),
+    'video': int(os.getenv('MEDIA_VIDEO_SIZE_LIMIT', 150 * 1024 * 1024)),
+    'audio': int(os.getenv('MEDIA_AUDIO_SIZE_LIMIT', 20 * 1024 * 1024)),
+    'pdf': int(os.getenv('MEDIA_PDF_SIZE_LIMIT', 10 * 1024 * 1024)),
 }
 
 PORTFOLIO_EXPORT_MAX_ITEMS = env.int('PORTFOLIO_EXPORT_MAX_ITEMS', default=500)
@@ -448,6 +448,10 @@ LOGGING = {
             'format': '{levelname} {asctime} {module} {message}',
             'style': '{',
         },
+        'media': {
+            'format': '📁 {levelname} {asctime} | {message}',
+            'style': '{',
+        },
     },
     'handlers': {
         'console': {
@@ -455,12 +459,27 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
+        'media_console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'media',
+        },
     },
     'loggers': {
         'django': {
             'handlers': ['console'],
             'level': 'INFO',
             'propagate': True,
+        },
+        'src.media.services.media_services': {
+            'handlers': ['media_console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'src.media.views.media_views': {
+            'handlers': ['media_console'],
+            'level': 'DEBUG',
+            'propagate': False,
         },
         'src.user.common.services': {
             'handlers': ['console'],

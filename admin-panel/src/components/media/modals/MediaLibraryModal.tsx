@@ -356,9 +356,9 @@ export function MediaLibraryModal({
       )}
 
       {currentActiveTab === "upload" ? (
-        <div className="flex-grow flex flex-col min-h-0 overflow-hidden">
-          <div className="flex-1 overflow-y-auto space-y-6 py-4">
-            <div className="px-6 space-y-3">
+        <div className="grow flex flex-col min-h-0 overflow-hidden">
+          <div className="grow overflow-y-auto px-6 py-4 custom-scrollbar bg-bg/30">
+            <div className="space-y-3">
               {isLoadingSettings ? (
                 <div className="border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center">
                   <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
@@ -386,7 +386,7 @@ export function MediaLibraryModal({
                     <div className="bg-red-0 border border-red-1/30 p-4 space-y-2">
                       <div className="flex items-start gap-2">
                         <AlertCircle className="w-5 h-5 text-red-1 shrink-0 mt-0.5" />
-                        <div className="flex-1 space-y-1">
+                        <div className="grow space-y-4">
                           <p className="text-sm font-medium text-red-1">خطا در آپلود فایل:</p>
                           <ul className="list-disc list-inside space-y-1 text-sm text-red-1/80">
                             {validationErrors.map((error: string, index: number) => (
@@ -402,7 +402,7 @@ export function MediaLibraryModal({
             </div>
 
             {isUploading && (
-              <div className="px-6 space-y-2">
+              <div className="space-y-2">
                 <div className="flex justify-between text-sm text-font-s">
                   <span>در حال آپلود...</span>
                   <span>{Math.round(uploadProgress)}%</span>
@@ -412,7 +412,7 @@ export function MediaLibraryModal({
             )}
 
             {files.length > 0 && (
-              <div className="px-6">
+              <div>
                 <FileList
                   files={files}
                   activeTab="upload"
@@ -468,13 +468,13 @@ export function MediaLibraryModal({
                   <SelectItem value="image">تصویر</SelectItem>
                   <SelectItem value="video">ویدئو</SelectItem>
                   <SelectItem value="audio">صوتی</SelectItem>
-                  <SelectItem value="pdf">سند</SelectItem>
+                  <SelectItem value="document">سند</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          <div className="flex-grow p-4 overflow-auto">
+          <div className="grow p-4 overflow-auto">
             {error && (
               <div className="text-center text-red-1 p-4">{error}</div>
             )}
@@ -531,11 +531,12 @@ export function MediaLibraryModal({
                       </div>
                       <div
                         className={cn(
-                          "absolute bottom-0 left-0 right-0 p-1 text-[10px] z-0 transition-opacity duration-300 bg-gradient-to-t from-black/70 to-transparent pointer-events-none",
+                          "absolute bottom-0 left-0 right-0 p-1 text-[10px] z-0 transition-opacity duration-300",
                           isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                         )}
                       >
-                        <div className="flex items-center gap-1">
+                        <div className="absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-black/60 to-transparent pointer-events-none" />
+                        <div className="relative flex items-center gap-1">
                           {getMediaTypeIcon(item.media_type || "")}
                           <p className="font-medium truncate text-static-w" title={displayName}>{displayName}</p>
                         </div>

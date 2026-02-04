@@ -155,38 +155,25 @@ class BlogAdminDetailSerializer(serializers.ModelSerializer):
     def get_media(self, obj):
         media_limit = _MEDIA_DETAIL_LIMIT
         
-        if hasattr(obj, 'all_images'):
-            all_images = getattr(obj, 'all_images', [])
-            if media_limit > 0:
-                all_images = all_images[:media_limit]
-        else:
-            images_qs = obj.images.select_related('image').all()
-            all_images = list(images_qs[:media_limit]) if media_limit > 0 else list(images_qs)
+        # Django handles cache internally if prefetched, .all() will use it.
+        # However, for_detail in managers.py uses to_attr='all_images' for images.
+        all_images = getattr(obj, 'all_images', [])
+        if not all_images and not hasattr(obj, 'all_images'):
+            all_images = obj.images.select_related('image').all()
+            
+        if media_limit > 0:
+            all_images = all_images[:media_limit]
+            
+        videos = obj.videos.all()
+        audios = obj.audios.all()
+        documents = obj.documents.all()
         
-        if hasattr(obj, '_prefetched_objects_cache') and 'videos' in obj._prefetched_objects_cache:
-            videos = obj._prefetched_objects_cache['videos']
-            if media_limit > 0:
-                videos = videos[:media_limit]
-        else:
-            videos_qs = obj.videos.select_related('video', 'video__cover_image', 'cover_image').all()
-            videos = list(videos_qs[:media_limit]) if media_limit > 0 else list(videos_qs)
+        if media_limit > 0:
+            videos = videos[:media_limit]
+            audios = audios[:media_limit]
+            documents = documents[:media_limit]
         
-        if hasattr(obj, '_prefetched_objects_cache') and 'audios' in obj._prefetched_objects_cache:
-            audios = obj._prefetched_objects_cache['audios']
-            if media_limit > 0:
-                audios = audios[:media_limit]
-        else:
-            audios_qs = obj.audios.select_related('audio', 'audio__cover_image', 'cover_image').all()
-            audios = list(audios_qs[:media_limit]) if media_limit > 0 else list(audios_qs)
-        
-        if hasattr(obj, '_prefetched_objects_cache') and 'documents' in obj._prefetched_objects_cache:
-            documents = obj._prefetched_objects_cache['documents']
-            if media_limit > 0:
-                documents = documents[:media_limit]
-        else:
-            documents_qs = obj.documents.select_related('document', 'document__cover_image', 'cover_image').all()
-            documents = list(documents_qs[:media_limit]) if media_limit > 0 else list(documents_qs)
-        
+        # These methods are safe because we prefetched video__cover_image etc.
         self._prefetch_cover_image_urls(videos, 'video')
         self._prefetch_cover_image_urls(audios, 'audio')
         self._prefetch_cover_image_urls(documents, 'document')

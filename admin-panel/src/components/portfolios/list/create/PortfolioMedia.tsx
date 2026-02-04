@@ -17,14 +17,14 @@ const MediaLibraryModal = lazy(() => import("@/components/media/modals/MediaLibr
 interface MediaTabFormProps {
     form: UseFormReturn<PortfolioFormValues>;
     portfolioMedia: PortfolioMedia;
-    setPortfolioMedia: (media: PortfolioMedia) => void;
+    setPortfolioMedia: (media: PortfolioMedia | ((prev: PortfolioMedia) => PortfolioMedia)) => void;
     editMode: boolean;
     portfolioId?: number | string;
 }
 
 interface MediaTabManualProps {
     portfolioMedia: PortfolioMedia;
-    setPortfolioMedia: (media: PortfolioMedia) => void;
+    setPortfolioMedia: (media: PortfolioMedia | ((prev: PortfolioMedia) => PortfolioMedia)) => void;
     editMode: boolean;
     featuredImage?: Media | null;
     onFeaturedImageChange?: (media: Media | null) => void;
@@ -72,10 +72,10 @@ export default function PortfolioMedia(props: MediaTabProps) {
             onFeaturedImageChange?.(selected);
         }
 
-        setPortfolioMedia?.({
-            ...portfolioMedia,
+        setPortfolioMedia?.(prev => ({
+            ...prev,
             featuredImage: selected
-        });
+        }));
 
         setIsMediaModalOpen(false);
     };
@@ -109,7 +109,7 @@ export default function PortfolioMedia(props: MediaTabProps) {
                     >
                         <MediaGallery
                             mediaItems={portfolioMedia?.imageGallery || []}
-                            onMediaSelect={(media) => setPortfolioMedia?.({ ...portfolioMedia, imageGallery: media })}
+                            onMediaSelect={(media) => setPortfolioMedia?.(prev => ({ ...prev, imageGallery: media }))}
                             mediaType="image"
                             title=""
                             isGallery={true}
@@ -129,11 +129,12 @@ export default function PortfolioMedia(props: MediaTabProps) {
                     >
                         <MediaGallery
                             mediaItems={portfolioMedia?.videoGallery || []}
-                            onMediaSelect={(media) => setPortfolioMedia?.({ ...portfolioMedia, videoGallery: media })}
+                            onMediaSelect={(media) => {
+                                setPortfolioMedia?.(prev => ({ ...prev, videoGallery: media }));
+                            }}
                             mediaType="video"
-                            title=""
+                            title="ویدیوها"
                             isGallery={false}
-                            maxSelection={1}
                             disabled={!editMode}
                             context={MEDIA_MODULES.PORTFOLIO}
                             contextId={portfolioId}
@@ -150,11 +151,12 @@ export default function PortfolioMedia(props: MediaTabProps) {
                     >
                         <MediaGallery
                             mediaItems={portfolioMedia?.audioGallery || []}
-                            onMediaSelect={(media) => setPortfolioMedia?.({ ...portfolioMedia, audioGallery: media })}
+                            onMediaSelect={(media) => {
+                                setPortfolioMedia?.(prev => ({ ...prev, audioGallery: media }));
+                            }}
                             mediaType="audio"
-                            title=""
+                            title="فایل‌های صوتی"
                             isGallery={false}
-                            maxSelection={1}
                             disabled={!editMode}
                             context={MEDIA_MODULES.PORTFOLIO}
                             contextId={portfolioId}
@@ -171,11 +173,12 @@ export default function PortfolioMedia(props: MediaTabProps) {
                     >
                         <MediaGallery
                             mediaItems={portfolioMedia?.pdfDocuments || []}
-                            onMediaSelect={(media) => setPortfolioMedia?.({ ...portfolioMedia, pdfDocuments: media })}
-                            mediaType="pdf"
-                            title=""
+                            onMediaSelect={(media) => {
+                                setPortfolioMedia?.(prev => ({ ...prev, pdfDocuments: media }));
+                            }}
+                            mediaType="document"
+                            title="اسناد"
                             isGallery={false}
-                            maxSelection={1}
                             disabled={!editMode}
                             context={MEDIA_MODULES.PORTFOLIO}
                             contextId={portfolioId}
@@ -184,7 +187,7 @@ export default function PortfolioMedia(props: MediaTabProps) {
                     </CardWithIcon>
                 </div>
 
-                <div className="w-full lg:w-[420px] lg:flex-shrink-0">
+                <div className="w-full lg:w-[420px] lg:shrink-0">
                     <CardWithIcon
                         icon={ImageIcon}
                         title={
@@ -243,7 +246,7 @@ export default function PortfolioMedia(props: MediaTabProps) {
 
                         {(formState.errors as any)?.featuredImage?.message && (
                             <div className="flex items-start gap-2 text-red-2">
-                                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                <AlertCircle className="w-4 h-4 shrink-0" />
                                 <span>{String((formState.errors as any).featuredImage.message)}</span>
                             </div>
                         )}

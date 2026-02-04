@@ -14,7 +14,7 @@ import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
 import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
 import type { PropertyMedia } from "@/types/real_estate/realEstateMedia";
-import { collectModuleMediaIds as collectMediaIds, collectModuleMediaCovers as collectMediaCovers, parseModuleMedia as parseBlogMedia } from "@/components/media/utils/genericMediaUtils";
+import { collectModuleMediaIds as collectMediaIds, collectModuleMediaCovers as collectMediaCovers, parseModuleMedia } from "@/components/media/utils/genericMediaUtils";
 import type { Media } from "@/types/shared/media";
 
 interface UsePropertyFormProps {
@@ -56,7 +56,7 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
     useEffect(() => {
         if (property && isEditMode) {
             const parsedMedia = (property.property_media || property.media)
-                ? parseBlogMedia(property.property_media || property.media || [])
+                ? parseModuleMedia(property.property_media || property.media || [])
                 : {
                     featuredImage: null,
                     imageGallery: [],
@@ -204,6 +204,12 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
         }
         const mediaCovers = collectMediaCovers(newMedia);
 
+        console.group("🖼️ [RealEstate][Form] Updating Media State");
+        console.log("Current Media State:", newMedia);
+        console.log("Collected IDs:", allMediaIds);
+        console.log("Collected Covers:", mediaCovers);
+        console.groupEnd();
+
         form.setValue("media_ids", allMediaIds, { shouldValidate: false, shouldDirty: true });
         form.setValue("media_covers", mediaCovers, { shouldValidate: false, shouldDirty: true });
     }, [form]);
@@ -247,8 +253,18 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
     }, [updateMediaFormState]);
 
     const handlePdfDocumentsChange = useCallback((media: Media[]) => {
+        console.log('📄 [handlePdfDocumentsChange] New PDF documents:', media.map(m => ({ id: m.id, title: m.title })));
         setPropertyMedia(prev => {
             const newState = { ...prev, pdfDocuments: media };
+            console.log('📄 [handlePdfDocumentsChange] Updated propertyMedia:', {
+                pdfDocuments: newState.pdfDocuments.map(m => m.id),
+                allMedia: {
+                    images: newState.imageGallery.map(m => m.id),
+                    videos: newState.videoGallery.map(m => m.id),
+                    audios: newState.audioGallery.map(m => m.id),
+                    pdfs: newState.pdfDocuments.map(m => m.id)
+                }
+            });
             updateMediaFormState(newState);
             return newState;
         });
@@ -257,7 +273,15 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
     const mutation = useMutation({
         mutationFn: async (args: { data: PropertyFormValues; status: "draft" | "published" }) => {
             const { data, status } = args;
+
+            console.group("🚀 [RealEstate][Submit] Starting Submission");
+            console.log("Raw Form Data:", data);
+            console.log("Status:", status);
+            console.log("Is Edit Mode:", isEditMode);
+            console.log("Property ID:", id);
+
             const validatedData = propertyFormSchema.parse(data);
+            console.log("Validated Data:", validatedData);
 
             const allMediaIds = collectMediaIds(propertyMedia);
             if (validatedData.og_image_id && !allMediaIds.includes(validatedData.og_image_id)) {
@@ -267,7 +291,17 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
 
             const uploadMax = mediaConfig?.REAL_ESTATE_MEDIA_UPLOAD_MAX ?? MEDIA_CONFIG.REAL_ESTATE_UPLOAD_MAX;
             const totalMedia = allMediaFiles.length + allMediaIds.length;
+
+            console.log("Media Breakdown:", {
+                images: propertyMedia.imageGallery.length,
+                videos: propertyMedia.videoGallery.length,
+                audios: propertyMedia.audioGallery.length,
+                docs: propertyMedia.pdfDocuments.length,
+                total_ids: allMediaIds.length
+            });
+
             if (totalMedia > uploadMax) {
+                console.error(`Media limit exceeded: ${totalMedia} > ${uploadMax}`);
                 throw new Error(`حداکثر ${uploadMax} فایل مدیا در هر بار آپلود مجاز است. شما ${totalMedia} فایل انتخاب کرده‌اید.`);
             }
 
@@ -279,10 +313,13 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                 const mediaCovers = collectMediaCovers(propertyMedia);
                 const mediaIds = collectMediaIds(propertyMedia);
 
+                const finalMediaIds = allMediaIds.length > 0 ? allMediaIds : mediaIds;
+
                 const updateData: any = {
                     ...validatedData,
                     slug: formatSlug(validatedData.slug),
-                    media_ids: allMediaIds.length > 0 ? allMediaIds : mediaIds,
+
+                    media_ids: finalMediaIds,
                     main_image_id: mainImageId,
                     media_covers: Object.keys(mediaCovers).length > 0 ? mediaCovers : undefined,
                     og_image: validatedData.og_image_id || undefined,
@@ -295,12 +332,16 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                     tags: validatedData.tags_ids,
                     features: validatedData.features_ids,
                 };
+
                 delete updateData.og_image_id;
                 delete updateData.province;
                 delete updateData.city;
                 delete updateData.labels_ids;
                 delete updateData.tags_ids;
                 delete updateData.features_ids;
+
+                console.log("📦 Sending Update Payload:", updateData);
+                console.groupEnd();
 
                 if (allMediaFiles.length > 0) {
                     await realEstateApi.updateProperty(propertyId, updateData);
@@ -322,6 +363,9 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
 
                 const mediaIds = collectMediaIds(propertyMedia);
                 if (mediaIds.length > 0) createData.media_ids = mediaIds;
+
+                console.log("📦 Sending Create Payload:", createData);
+                console.groupEnd();
 
                 if (allMediaFiles.length > 0) {
                     const createdProperty = await realEstateApi.createProperty(createData);
@@ -355,6 +399,7 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
             }
         },
         onSuccess: (property, variables) => {
+            console.log("✅ [RealEstate][Submit] Success:", property);
             queryClient.invalidateQueries({ queryKey: ["properties"] });
             if (isEditMode) queryClient.invalidateQueries({ queryKey: ["property", id] });
 
@@ -372,6 +417,7 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
             }
         },
         onError: (error: any) => {
+            console.error("❌ [RealEstate][Submit] Error:", error);
             if (hasFieldErrors(error)) {
                 const fieldErrors = extractFieldErrors(error);
                 Object.entries(fieldErrors).forEach(([field, message]) => {

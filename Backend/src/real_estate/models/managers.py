@@ -83,22 +83,22 @@ class PropertyQuerySet(models.QuerySet):
             ),
             Prefetch(
                 'videos',
-                queryset=PropertyVideo.objects.select_related('video', 'cover_image')
-                    .only('id', 'video_id', 'cover_image_id', 'property_id')
+                queryset=PropertyVideo.objects.select_related('video', 'cover_image', 'video__cover_image')
+                    .only('id', 'video_id', 'cover_image_id', 'video__cover_image_id', 'property_id')
                     .order_by('order', 'created_at'),
                 to_attr='primary_video_prefetch'
             ),
             Prefetch(
                 'audios',
-                queryset=PropertyAudio.objects.select_related('audio', 'cover_image')
-                    .only('id', 'audio_id', 'cover_image_id', 'property_id')
+                queryset=PropertyAudio.objects.select_related('audio', 'cover_image', 'audio__cover_image')
+                    .only('id', 'audio_id', 'cover_image_id', 'audio__cover_image_id', 'property_id')
                     .order_by('order', 'created_at'),
                 to_attr='primary_audio_prefetch'
             ),
             Prefetch(
                 'documents',
-                queryset=PropertyDocument.objects.select_related('document', 'cover_image')
-                    .only('id', 'document_id', 'cover_image_id', 'title', 'property_id')
+                queryset=PropertyDocument.objects.select_related('document', 'cover_image', 'document__cover_image')
+                    .only('id', 'document_id', 'cover_image_id', 'document__cover_image_id', 'title', 'property_id')
                     .order_by('order', 'created_at'),
                 to_attr='primary_document_prefetch'
             ),

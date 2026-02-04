@@ -1,3 +1,4 @@
+import logging
 from django.db.models import Prefetch, Count, Q
 from django.core.paginator import Paginator
 from django.core.cache import cache
@@ -5,6 +6,8 @@ from django.db import transaction
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 from src.blog.models.blog import Blog
 from src.blog.utils.cache import BlogCacheManager, BlogCacheKeys
@@ -149,6 +152,7 @@ class BlogAdminService:
 
     @staticmethod
     def create_blog(validated_data, created_by=None):
+        logger.info(f"Creating blog. Title: {validated_data.get('title')}, Created By: {created_by}")
         categories_ids = validated_data.pop('categories', validated_data.pop('categories_ids', []))
         tags_ids = validated_data.pop('tags', validated_data.pop('tags_ids', []))
         media_files = validated_data.pop('media_files', [])
@@ -193,6 +197,7 @@ class BlogAdminService:
 
     @staticmethod
     def update_blog(blog_id, validated_data, media_ids=None, media_files=None, main_image_id=None, media_covers=None, updated_by=None):
+        logger.info(f"Updating blog {blog_id}. Updated By: {updated_by}")
         try:
             blog = Blog.objects.get(id=blog_id)
         except Blog.DoesNotExist:

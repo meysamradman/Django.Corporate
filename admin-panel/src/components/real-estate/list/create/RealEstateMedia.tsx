@@ -137,7 +137,7 @@ export default function RealEstateMedia(props: MediaTabProps) {
                         <MediaGallery
                             mediaItems={(propertyMedia?.pdfDocuments || []).filter(m => m.media_type === 'document' || m.media_type === 'pdf')}
                             onMediaSelect={(media) => onPdfDocumentsChange ? onPdfDocumentsChange(media) : setPropertyMedia?.({ ...propertyMedia, pdfDocuments: media })}
-                            mediaType="pdf"
+                            mediaType="document"
                             title=""
                             isGallery={false}
                             disabled={!editMode}
@@ -238,7 +238,7 @@ export default function RealEstateMedia(props: MediaTabProps) {
                     contextId={propertyId}
                 />
             </Suspense>
-        </div>
+        </div >
     );
 }
 

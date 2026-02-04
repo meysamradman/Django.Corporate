@@ -18,7 +18,7 @@ class PortfolioQuerySet(models.QuerySet):
     
     def for_admin_listing(self):
         
-        from src.portfolio.models.media import PortfolioImage
+        from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
         from django.db.models.functions import Coalesce
         
         return self.select_related('og_image').prefetch_related(
@@ -30,6 +30,27 @@ class PortfolioQuerySet(models.QuerySet):
                     .filter(is_main=True)
                     .only('id', 'image_id', 'is_main', 'order', 'portfolio_id'),
                 to_attr='main_image_prefetch'
+            ),
+            Prefetch(
+                'videos',
+                queryset=PortfolioVideo.objects.select_related('video', 'cover_image', 'video__cover_image')
+                    .only('id', 'video_id', 'cover_image_id', 'video__cover_image_id', 'portfolio_id')
+                    .order_by('order', 'created_at'),
+                to_attr='primary_video_prefetch'
+            ),
+            Prefetch(
+                'audios',
+                queryset=PortfolioAudio.objects.select_related('audio', 'cover_image', 'audio__cover_image')
+                    .only('id', 'audio_id', 'cover_image_id', 'audio__cover_image_id', 'portfolio_id')
+                    .order_by('order', 'created_at'),
+                to_attr='primary_audio_prefetch'
+            ),
+            Prefetch(
+                'documents',
+                queryset=PortfolioDocument.objects.select_related('document', 'cover_image', 'document__cover_image')
+                    .only('id', 'document_id', 'cover_image_id', 'document__cover_image_id', 'portfolio_id')
+                    .order_by('order', 'created_at'),
+                to_attr='primary_document_prefetch'
             ),
         ).annotate(
             total_images_count=Count('images', distinct=True),

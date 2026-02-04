@@ -37,7 +37,7 @@ export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
         mode: "onSubmit",
     });
 
-    const { watch, setValue, reset, setError } = form;
+    const { reset, setError } = form;
 
     const { data: blog, isLoading } = useQuery({
         queryKey: ['blog', Number(id)],
@@ -68,7 +68,8 @@ export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
             });
 
             if (blog.blog_media) {
-                const parsedMedia = parseBlogMedia(blog.blog_media);
+                const parsedMedia = parseBlogMedia(blog.blog_media as any[]);
+                console.log("📦 [Blog][Load] Parsed Media:", parsedMedia);
                 setBlogMedia(parsedMedia);
             }
         }
@@ -77,6 +78,10 @@ export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
     const mutation = useMutation({
         mutationFn: async (args: { data: BlogFormValues; status: "draft" | "published" }) => {
             const { data, status } = args;
+            console.group("🚀 [Blog][Submit] Starting Submission");
+            console.log("Raw Form Data:", data);
+            console.log("Status:", status);
+
             const allMediaIds = collectMediaIds(blogMedia);
             if (data.featuredImage?.id && !allMediaIds.includes(data.featuredImage.id)) {
                 allMediaIds.push(data.featuredImage.id);
@@ -160,6 +165,8 @@ export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
             }
         },
         onSuccess: (_data, variables) => {
+            console.log("✅ [Blog][Submit] Success:", _data);
+            console.groupEnd();
             queryClient.invalidateQueries({ queryKey: ['blogs'] });
             if (isEditMode) {
                 queryClient.invalidateQueries({ queryKey: ['blog', Number(id)] });
@@ -192,6 +199,7 @@ export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
             } else {
                 showError(error);
             }
+            console.groupEnd();
         },
     });
 

@@ -134,7 +134,6 @@ export default function BlogMedia(props: MediaTabProps) {
                             mediaType="video"
                             title=""
                             isGallery={false}
-                            maxSelection={1}
                             disabled={!editMode}
                             context={MEDIA_MODULES.BLOG}
                             contextId={blogId}
@@ -155,7 +154,6 @@ export default function BlogMedia(props: MediaTabProps) {
                             mediaType="audio"
                             title=""
                             isGallery={false}
-                            maxSelection={1}
                             disabled={!editMode}
                             context={MEDIA_MODULES.BLOG}
                             contextId={blogId}
@@ -173,10 +171,9 @@ export default function BlogMedia(props: MediaTabProps) {
                         <MediaGallery
                             mediaItems={blogMedia?.pdfDocuments || []}
                             onMediaSelect={(media) => setBlogMedia?.({ ...blogMedia, pdfDocuments: media })}
-                            mediaType="pdf"
+                            mediaType="document"
                             title=""
                             isGallery={false}
-                            maxSelection={1}
                             disabled={!editMode}
                             context={MEDIA_MODULES.BLOG}
                             contextId={blogId}

@@ -1,6 +1,10 @@
+import logging
 from django.db import transaction
 from django.db.models import Max, Q
 from django.core.cache import cache
+
+logger = logging.getLogger(__name__)
+
 from src.blog.models.blog import Blog
 from src.blog.models.media import BlogImage, BlogVideo, BlogAudio, BlogDocument
 from src.blog.utils.cache import BlogCacheManager
@@ -118,6 +122,7 @@ class BlogAdminMediaService:
 
     @staticmethod
     def add_media_bulk(blog_id, media_files=None, media_ids=None, created_by=None):
+        logger.info(f"Adding media bulk to blog {blog_id}. Files: {len(media_files) if media_files else 0}, IDs: {media_ids}")
         try:
             blog = Blog.objects.get(id=blog_id)
         except Blog.DoesNotExist:
@@ -344,6 +349,7 @@ class BlogAdminMediaService:
     
     @staticmethod
     def sync_media(blog_id, media_ids, main_image_id=None, media_covers=None):
+        logger.info(f"Syncing media for blog {blog_id}. Media IDs: {media_ids}, Main Image: {main_image_id}, Covers: {media_covers}")
         try:
             blog = Blog.objects.get(id=blog_id)
         except Blog.DoesNotExist:

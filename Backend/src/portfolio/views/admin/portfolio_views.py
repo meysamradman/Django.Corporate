@@ -182,22 +182,34 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     def _extract_media_ids(self, request):
         return self._extract_list(request.data, 'media_ids')
     
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return PortfolioAdminListSerializer
-        elif self.action == 'create':
-            return PortfolioAdminCreateSerializer
-        elif self.action in ['update', 'partial_update']:
-            return PortfolioAdminUpdateSerializer
-        else:
-            return PortfolioAdminDetailSerializer
+    def _extract_segmented_ids(self, request):
+        def _get_dict(key):
+            val = request.data.get(key)
+            if not val: return {}
+            if isinstance(val, dict): return val
+            if isinstance(val, str):
+                try:
+                    import json
+                    return json.loads(val)
+                except: return {}
+            return {}
 
-    def create(self, request, *args, **kwargs):
-        media_ids = self._extract_media_ids(request)
-        media_files = request.FILES.getlist('media_files')
-        
+        return {
+            'image_ids': self._extract_list(request.data, 'image_ids', convert_to_int=True),
+            'video_ids': self._extract_list(request.data, 'video_ids', convert_to_int=True),
+            'audio_ids': self._extract_list(request.data, 'audio_ids', convert_to_int=True),
+            'document_ids': self._extract_list(request.data, 'document_ids', convert_to_int=True),
+            'image_covers': _get_dict('image_covers'),
+            'video_covers': _get_dict('video_covers'),
+            'audio_covers': _get_dict('audio_covers'),
+            'document_covers': _get_dict('document_covers'),
+        }
+
+    def _prepare_request_data(self, request):
+        """Prepare and clean request data for create/update, handling multipart list/json issues."""
         data = request.data.copy()
         
+        # 1. Clean standard list fields and JSON fields
         for field in ['categories', 'tags', 'options', 'extra_attributes']:
             if field in data:
                 extracted = self._extract_list(data, field, convert_to_int=True) if field != 'extra_attributes' else data.get(field)
@@ -212,7 +224,37 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 else:
                     data[field] = extracted
         
+        # 2. Extract media IDs and files
+        media_ids = self._extract_media_ids(request)
+        segmented_ids = self._extract_segmented_ids(request)
+        media_files = request.FILES.getlist('media_files')
+        
+        # 3. Merge media into data
         data = self._merge_media_data(data, media_ids, media_files)
+        data.update(segmented_ids)
+        
+        # 4. Handle covers if present
+        media_covers_raw = data.get('media_covers')
+        if media_covers_raw and isinstance(media_covers_raw, str):
+            try:
+                import json
+                data['media_covers'] = json.loads(media_covers_raw)
+            except: pass
+            
+        return data
+    
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return PortfolioAdminListSerializer
+        elif self.action == 'create':
+            return PortfolioAdminCreateSerializer
+        elif self.action in ['update', 'partial_update']:
+            return PortfolioAdminUpdateSerializer
+        else:
+            return PortfolioAdminDetailSerializer
+
+    def create(self, request, *args, **kwargs):
+        data = self._prepare_request_data(request)
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         
@@ -239,41 +281,9 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
+        data = self._prepare_request_data(request)
         
-        media_ids = self._extract_media_ids(request)
-        media_files = request.FILES.getlist('media_files')
         main_image_id = request.data.get('main_image_id')
-        media_covers_raw = request.data.get('media_covers')
-        
-        data = request.data.copy()
-        
-        for field in ['categories', 'tags', 'options', 'extra_attributes']:
-            if field in data:
-                extracted = self._extract_list(data, field, convert_to_int=True) if field != 'extra_attributes' else data.get(field)
-                if field == 'extra_attributes' and isinstance(extracted, str):
-                    try:
-                        import json
-                        extracted = json.loads(extracted)
-                    except: pass
-                
-                if hasattr(data, 'setlist') and isinstance(extracted, list):
-                    data.setlist(field, extracted)
-                else:
-                    data[field] = extracted
-        
-        media_covers = None
-        if media_covers_raw:
-            if isinstance(media_covers_raw, dict):
-                media_covers = media_covers_raw
-            elif isinstance(media_covers_raw, str):
-                try:
-                    import json
-                    media_covers = json.loads(media_covers_raw)
-                except Exception:
-                    media_covers = None
-        
-        data = self._merge_media_data(data, media_ids, media_files)
-        if media_covers: data['media_covers'] = media_covers
         if main_image_id: data['main_image_id'] = main_image_id
             
         serializer = self.get_serializer(instance, data=data, partial=partial)
@@ -283,10 +293,6 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             updated_instance = PortfolioAdminService.update_portfolio(
                 portfolio_id=instance.id,
                 validated_data=serializer.validated_data,
-                media_ids=serializer.validated_data.get('media_ids'),
-                media_files=serializer.validated_data.get('media_files'),
-                main_image_id=serializer.validated_data.get('main_image_id'),
-                media_covers=serializer.validated_data.get('media_covers'),
                 updated_by=request.user
             )
             

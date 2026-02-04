@@ -25,11 +25,19 @@ export function parseModuleMedia(media: any[]): GenericModuleMedia {
 
     if (!Array.isArray(media)) return result;
 
-    media.forEach((item: any) => {
-        const mediaItem = item.media || item;
-        const type = item.media_type || item.file_type || mediaItem.media_type || mediaItem.file_type || 'image';
+    media.forEach((item: any, index: number) => {
+        const mediaItem = item.media || item.media_detail || item;
+        const type = item.media_type || (item as any).file_type || mediaItem.media_type || (mediaItem as any).file_type || (mediaItem as any).type || (mediaItem as any).kind || 'image';
 
-        if (item.is_featured || item.featured) {
+        console.log(`🔍 [parseModuleMedia][Item ${index}]`, {
+            id: item.id,
+            mediaItemId: mediaItem.id,
+            detectedType: type,
+            item,
+            mediaItem
+        });
+
+        if (item.is_featured || item.featured || item.is_main_image || item.is_main) {
             result.featuredImage = mediaItem;
         }
 
@@ -48,11 +56,12 @@ export function parseModuleMedia(media: any[]): GenericModuleMedia {
                 result.pdfDocuments.push(mediaItem);
                 break;
             default:
-                // Only push to images if it's not explicitly another type
+                console.warn(`⚠️ [parseModuleMedia] Unknown type "${type}" for item ${item.id}, defaulting to imageGallery`);
                 result.imageGallery.push(mediaItem);
         }
     });
 
+    console.log("📦 [parseModuleMedia] Final Result:", result);
     return result;
 }
 
@@ -62,6 +71,14 @@ export function parseModuleMedia(media: any[]): GenericModuleMedia {
 export function collectModuleMediaIds(moduleMedia: GenericModuleMedia): number[] {
     const ids = new Set<number>();
 
+    console.log('📊 [collectModuleMediaIds] Input:', {
+        featuredImage: moduleMedia.featuredImage?.id,
+        imageGallery: moduleMedia.imageGallery?.map(m => m.id),
+        videoGallery: moduleMedia.videoGallery?.map(m => m.id),
+        audioGallery: moduleMedia.audioGallery?.map(m => m.id),
+        pdfDocuments: moduleMedia.pdfDocuments?.map(m => m.id)
+    });
+
     if (moduleMedia.featuredImage?.id) ids.add(moduleMedia.featuredImage.id);
 
     moduleMedia.imageGallery?.forEach(m => m.id && ids.add(m.id));
@@ -69,11 +86,58 @@ export function collectModuleMediaIds(moduleMedia: GenericModuleMedia): number[]
     moduleMedia.audioGallery?.forEach(m => m.id && ids.add(m.id));
     moduleMedia.pdfDocuments?.forEach(m => m.id && ids.add(m.id));
 
-    return Array.from(ids);
+    const result = Array.from(ids);
+    console.log('✅ [collectModuleMediaIds] Output:', result);
+    return result;
 }
 
 /**
- * Collects cover images for media items.
+ * Collects media IDs segmented by type to avoid ID collisions between different media tables on the backend.
+ */
+export function collectSegmentedMediaIds(moduleMedia: GenericModuleMedia) {
+    const imageIds = new Set<number>();
+    if (moduleMedia.featuredImage?.id) imageIds.add(moduleMedia.featuredImage.id);
+    moduleMedia.imageGallery?.forEach(m => m.id && imageIds.add(m.id));
+
+    return {
+        image_ids: Array.from(imageIds),
+        video_ids: (moduleMedia.videoGallery || []).map(m => m.id).filter(Boolean) as number[],
+        audio_ids: (moduleMedia.audioGallery || []).map(m => m.id).filter(Boolean) as number[],
+        document_ids: (moduleMedia.pdfDocuments || []).map(m => m.id).filter(Boolean) as number[],
+    };
+}
+
+
+
+/**
+ * Collects media covers segmented by type to avoid ID collisions.
+ */
+export function collectSegmentedMediaCovers(moduleMedia: GenericModuleMedia) {
+    const segmentedCovers = {
+        image_covers: {} as Record<number, number | null>,
+        video_covers: {} as Record<number, number | null>,
+        audio_covers: {} as Record<number, number | null>,
+        document_covers: {} as Record<number, number | null>,
+    };
+
+    const process = (items: Media[] | undefined, target: Record<number, number | null>) => {
+        items?.forEach(item => {
+            if (item.id && item.cover_image) {
+                target[item.id] = typeof item.cover_image === 'object' ? item.cover_image.id : item.cover_image;
+            }
+        });
+    };
+
+    process(moduleMedia.imageGallery, segmentedCovers.image_covers);
+    process(moduleMedia.videoGallery, segmentedCovers.video_covers);
+    process(moduleMedia.audioGallery, segmentedCovers.audio_covers);
+    process(moduleMedia.pdfDocuments, segmentedCovers.document_covers);
+
+    return segmentedCovers;
+}
+
+/**
+ * Collects cover images for media items (Flat version - legacy).
  */
 export function collectModuleMediaCovers(moduleMedia: GenericModuleMedia): Record<number, number | null> {
     const covers: Record<number, number | null> = {};

@@ -43,7 +43,7 @@ export function MediaDetailsModal({
   const [isSaving, setIsSaving] = useState(false);
   const [newCoverImage, setNewCoverImage] = useState<Media | number | null>(null);
   const { hasPermission } = usePermission();
-  
+
   const getUpdatePermission = useCallback(() => {
     if (!media) return 'media.update';
     if (media.media_type === 'image') return 'media.image.update';
@@ -52,7 +52,7 @@ export function MediaDetailsModal({
     if (media.media_type === 'pdf' || media.media_type === 'document') return 'media.document.update';
     return 'media.update';
   }, [media]);
-  
+
   const canUpdateMedia = useMemo(() => {
     if (!media) return false;
     return hasPermission(getUpdatePermission());
@@ -94,55 +94,107 @@ export function MediaDetailsModal({
   const handleSaveEdit = async () => {
     if (!editedMedia) return;
 
+    console.log('[MediaDetailsModal][Save] Starting save operation', {
+      mediaId: media.id,
+      mediaType: media.media_type,
+      editedMedia,
+      timestamp: new Date().toISOString()
+    });
+
     setIsSaving(true);
-    
+
     try {
       const updateData: any = {
         title: editedMedia.title || '',
         alt_text: editedMedia.alt_text || '',
       };
 
+      console.log('[MediaDetailsModal][Save] Prepared update data', {
+        updateData,
+        mediaId: media.id,
+        mediaType: media.media_type
+      });
+
       let updatedMediaData = { ...editedMedia };
 
+      // Handle cover image updates
       if (newCoverImage !== media.cover_image) {
+        console.log('[MediaDetailsModal][Save] Cover image changed', {
+          oldCover: media.cover_image,
+          newCover: newCoverImage,
+          newCoverType: typeof newCoverImage
+        });
+
         if (newCoverImage === null) {
+          console.log('[MediaDetailsModal][Save] Removing cover image');
           const response = await mediaApi.updateCoverImage(media.id, null);
+          console.log('[MediaDetailsModal][Save] Cover removal response', response);
           if (response.metaData.status === 'success' && response.data) {
             updatedMediaData = { ...updatedMediaData, ...response.data };
           }
         } else if (typeof newCoverImage === 'object' && 'id' in newCoverImage) {
+          console.log('[MediaDetailsModal][Save] Setting cover image from object', newCoverImage.id);
           const response = await mediaApi.updateCoverImage(media.id, newCoverImage.id);
+          console.log('[MediaDetailsModal][Save] Cover update response', response);
           if (response.metaData.status === 'success' && response.data) {
             updatedMediaData = { ...updatedMediaData, ...response.data };
           }
         } else if (typeof newCoverImage === 'number') {
+          console.log('[MediaDetailsModal][Save] Setting cover image from ID', newCoverImage);
           const response = await mediaApi.updateCoverImage(media.id, newCoverImage);
+          console.log('[MediaDetailsModal][Save] Cover update response', response);
           if (response.metaData.status === 'success' && response.data) {
             updatedMediaData = { ...updatedMediaData, ...response.data };
           }
         }
       }
 
+      console.log('[MediaDetailsModal][Save] Calling updateMedia API', {
+        mediaId: media.id,
+        updateData
+      });
+
       const response = await mediaApi.updateMedia(media.id, updateData);
-      
+
+      console.log('[MediaDetailsModal][Save] Update response received', {
+        status: response.metaData.status,
+        message: response.metaData.message,
+        hasData: !!response.data,
+        data: response.data
+      });
+
       if (response.metaData.status === 'success' && response.data) {
+        console.log('[MediaDetailsModal][Save] Update successful, finalizing');
         showSuccess('تغییرات با موفقیت ذخیره شد');
         setIsEditing(false);
         setNewCoverImage(null);
-        
+
         const finalUpdatedMedia = { ...updatedMediaData, ...response.data };
+        console.log('[MediaDetailsModal][Save] Final updated media', finalUpdatedMedia);
         setEditedMedia(finalUpdatedMedia);
-        
+
         if (onMediaUpdated) {
+          console.log('[MediaDetailsModal][Save] Calling onMediaUpdated callback');
           onMediaUpdated(finalUpdatedMedia);
         }
       } else {
+        console.error('[MediaDetailsModal][Save] Update failed', {
+          status: response.metaData.status,
+          message: response.metaData.message
+        });
         showError(response.metaData.message || 'خطا در ذخیره تغییرات');
       }
     } catch (error) {
+      console.error('[MediaDetailsModal][Save] Exception occurred', {
+        error,
+        errorType: error?.constructor?.name,
+        mediaId: media.id,
+        timestamp: new Date().toISOString()
+      });
       showError('خطا در ذخیره تغییرات');
     } finally {
       setIsSaving(false);
+      console.log('[MediaDetailsModal][Save] Save operation completed');
     }
   };
 
@@ -161,7 +213,7 @@ export function MediaDetailsModal({
         />
       );
     }
-    
+
     return (
       <MediaThumbnail
         media={media}
@@ -178,24 +230,24 @@ export function MediaDetailsModal({
     const getCoverImageUrl = (): string | null => {
       if (isEditing) {
         if (!newCoverImage) return null;
-        
+
         if (typeof newCoverImage === 'object' && newCoverImage !== null && 'id' in newCoverImage) {
           return mediaService.getMediaUrlFromObject(newCoverImage);
         }
-        
+
         return null;
       }
-      
+
       return mediaService.getMediaCoverUrl(media);
     };
 
     const coverImageUrl = getCoverImageUrl();
     const hasCoverImage = !!coverImageUrl && coverImageUrl.length > 0;
-    
+
     return (
       <div>
         <h3 className="font-semibold text-lg mb-2">کاور رسانه</h3>
-        
+
         {isEditing ? (
           <CoverImageManager
             currentCoverImage={newCoverImage}
@@ -215,8 +267,8 @@ export function MediaDetailsModal({
           <div className="flex flex-col items-center justify-center w-full h-32 rounded-lg bg-bg">
             <ImageOff className="h-8 w-8 text-font-s mb-2" />
             <span className="text-font-s">
-              {media.media_type === 'video' ? 'بدون کاور ویدیو' : 
-               media.media_type === 'audio' ? 'بدون کاور صوتی' : 'بدون کاور'}
+              {media.media_type === 'video' ? 'بدون کاور ویدیو' :
+                media.media_type === 'audio' ? 'بدون کاور صوتی' : 'بدون کاور'}
             </span>
           </div>
         )}
@@ -245,7 +297,7 @@ export function MediaDetailsModal({
         <DialogDescription id="media-details-description" className="sr-only">
           جزئیات رسانه شامل اطلاعات فایل، نوع رسانه، اندازه و کاور رسانه می‌باشد.
         </DialogDescription>
-        
+
         <div className="bg-bg/50 border-b px-6 py-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -270,7 +322,7 @@ export function MediaDetailsModal({
               <div className="relative w-full aspect-square lg:aspect-video min-h-[400px] lg:min-h-[500px] bg-bg rounded-lg overflow-hidden border">
                 {renderMediaContent()}
               </div>
-              
+
               <div className="flex gap-2 justify-center">
                 <Button
                   variant="outline"
@@ -300,7 +352,7 @@ export function MediaDetailsModal({
                       className="mt-1"
                     />
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="media-alt-text" className="text-sm font-medium">متن جایگزین</Label>
                     <Input
@@ -314,7 +366,7 @@ export function MediaDetailsModal({
                       این متن در صورت عدم نمایش تصویر نمایش داده می‌شود.
                     </p>
                   </div>
-                  
+
                   {media.media_type !== 'image' && renderCoverImageSection()}
                 </div>
               </>
@@ -324,8 +376,8 @@ export function MediaDetailsModal({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div className="sm:col-span-2 flex gap-2">
                       <span className="font-medium text-font-s shrink-0">نام فایل:</span>
-                      <TruncatedText 
-                        text={media.title || media.original_file_name || media.file_name || ''} 
+                      <TruncatedText
+                        text={media.title || media.original_file_name || media.file_name || ''}
                         maxLength={80}
                         className="flex-1"
                         showTooltip={true}
@@ -362,7 +414,7 @@ export function MediaDetailsModal({
                     <p className="mt-1 text-sm">{media.alt_text}</p>
                   </div>
                 )}
-                
+
                 {media.media_type !== 'image' && renderCoverImageSection()}
               </>
             )}
@@ -373,8 +425,8 @@ export function MediaDetailsModal({
           <div className="flex gap-3 justify-between">
             {isEditing ? (
               <>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={handleCancelEdit}
                   disabled={isSaving}
                 >

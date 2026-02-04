@@ -1,3 +1,4 @@
+import logging
 from django.db.models import Prefetch, Count, Q
 from django.core.paginator import Paginator
 from django.core.cache import cache
@@ -5,6 +6,8 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.services.admin.media_services import PortfolioAdminMediaService
@@ -150,11 +153,16 @@ class PortfolioAdminService:
 
     @staticmethod
     def create_portfolio(validated_data, created_by=None):
+        logger.info(f"Creating portfolio. Title: {validated_data.get('title')}, Created By: {created_by}")
         categories_ids = validated_data.pop('categories', validated_data.pop('categories_ids', []))
         tags_ids = validated_data.pop('tags', validated_data.pop('tags_ids', []))
         options_ids = validated_data.pop('options', validated_data.pop('options_ids', []))
         media_files = validated_data.pop('media_files', [])
         media_ids = validated_data.pop('media_ids', [])
+        image_ids = validated_data.pop('image_ids', None)
+        video_ids = validated_data.pop('video_ids', None)
+        audio_ids = validated_data.pop('audio_ids', None)
+        document_ids = validated_data.pop('document_ids', None)
         
         if not validated_data.get('slug') and validated_data.get('title'):
             from django.utils.text import slugify
@@ -190,13 +198,18 @@ class PortfolioAdminService:
                     portfolio_id=portfolio.id,
                     media_files=media_files,
                     media_ids=media_ids,
+                    image_ids=image_ids,
+                    video_ids=video_ids,
+                    audio_ids=audio_ids,
+                    document_ids=document_ids,
                     created_by=created_by
                 )
         
         return portfolio
 
     @staticmethod
-    def update_portfolio(portfolio_id, validated_data, media_ids=None, media_files=None, main_image_id=None, media_covers=None, updated_by=None):
+    def update_portfolio(portfolio_id, validated_data, updated_by=None):
+        logger.info(f"Updating portfolio {portfolio_id}. Updated By: {updated_by}")
         try:
             portfolio = Portfolio.objects.get(id=portfolio_id)
         except Portfolio.DoesNotExist:
@@ -206,10 +219,19 @@ class PortfolioAdminService:
         tags_val = validated_data.pop('tags', validated_data.pop('tags_ids', None))
         options_val = validated_data.pop('options', validated_data.pop('options_ids', None))
         
-        media_ids = media_ids if media_ids is not None else validated_data.pop('media_ids', None)
-        media_files = media_files if media_files is not None else validated_data.pop('media_files', None)
-        main_image_id = main_image_id if main_image_id is not None else validated_data.pop('main_image_id', None)
-        media_covers = media_covers if media_covers is not None else validated_data.pop('media_covers', None)
+        media_ids = validated_data.pop('media_ids', None)
+        image_ids = validated_data.pop('image_ids', None)
+        video_ids = validated_data.pop('video_ids', None)
+        audio_ids = validated_data.pop('audio_ids', None)
+        document_ids = validated_data.pop('document_ids', None)
+        
+        media_files = validated_data.pop('media_files', None)
+        main_image_id = validated_data.pop('main_image_id', None)
+        media_covers = validated_data.pop('media_covers', None)
+        image_covers = validated_data.pop('image_covers', None)
+        video_covers = validated_data.pop('video_covers', None)
+        audio_covers = validated_data.pop('audio_covers', None)
+        document_covers = validated_data.pop('document_covers', None)
         
         if 'title' in validated_data and not validated_data.get('slug'):
             from django.utils.text import slugify
@@ -258,12 +280,20 @@ class PortfolioAdminService:
                     if media_ids is None: media_ids = uploaded_ids
                     else: media_ids = list(set(media_ids) | set(uploaded_ids))
                 
-            if media_ids is not None or main_image_id is not None or media_covers is not None:
+            if any([media_ids, main_image_id, media_covers, image_covers, video_covers, audio_covers, document_covers]):
                 PortfolioAdminMediaService.sync_media(
                     portfolio_id=portfolio.id,
                     media_ids=media_ids,
+                    image_ids=image_ids,
+                    video_ids=video_ids,
+                    audio_ids=audio_ids,
+                    document_ids=document_ids,
                     main_image_id=main_image_id,
-                    media_covers=media_covers
+                    media_covers=media_covers,
+                    image_covers=image_covers,
+                    video_covers=video_covers,
+                    audio_covers=audio_covers,
+                    document_covers=document_covers
                 )
                 
         PortfolioCacheManager.invalidate_portfolio(portfolio.id)

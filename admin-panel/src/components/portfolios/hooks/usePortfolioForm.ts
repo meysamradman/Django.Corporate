@@ -5,7 +5,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import { portfolioFormSchema, portfolioFormDefaults, type PortfolioFormValues } from "@/components/portfolios/validations/portfolioSchema";
-import { collectModuleMediaIds as collectMediaIds, collectModuleMediaCovers as collectMediaCovers, parseModuleMedia as parsePortfolioMedia } from "@/components/media/utils/genericMediaUtils";
+import {
+    collectModuleMediaIds as collectMediaIds,
+    parseModuleMedia as parsePortfolioMedia,
+    collectSegmentedMediaIds,
+    collectSegmentedMediaCovers
+} from "@/components/media/utils/genericMediaUtils";
 import { showError, showSuccess, hasFieldErrors, extractFieldErrors } from "@/core/toast";
 import { msg } from "@/core/messages";
 import { MEDIA_CONFIG } from "@/core/config/environment";
@@ -71,6 +76,7 @@ export function usePortfolioForm({ id, isEditMode }: UsePortfolioFormProps) {
 
             if (portfolio.portfolio_media) {
                 const parsedMedia = parsePortfolioMedia(portfolio.portfolio_media as any[]);
+                console.log("📦 [Portfolio][Load] Parsed Media:", parsedMedia);
                 setPortfolioMedia(parsedMedia);
             }
         }
@@ -79,6 +85,10 @@ export function usePortfolioForm({ id, isEditMode }: UsePortfolioFormProps) {
     const mutation = useMutation({
         mutationFn: async (args: { data: PortfolioFormValues; status: "draft" | "published" }) => {
             const { data, status } = args;
+            console.group("🚀 [Portfolio][Submit] Starting Submission");
+            console.log("Raw Form Data:", data);
+            console.log("Status:", status);
+
             const allMediaIds = collectMediaIds(portfolioMedia);
             if (data.featuredImage?.id && !allMediaIds.includes(data.featuredImage.id)) {
                 allMediaIds.push(data.featuredImage.id);
@@ -97,9 +107,16 @@ export function usePortfolioForm({ id, isEditMode }: UsePortfolioFormProps) {
 
             if (isEditMode && id) {
                 const portfolioId = Number(id);
-                const existingMediaIds = collectMediaIds(portfolioMedia);
                 const mainImageId = data.featuredImage?.id || portfolioMedia.featuredImage?.id || null;
-                const mediaCovers = collectMediaCovers(portfolioMedia);
+                const segmentedCovers = collectSegmentedMediaCovers(portfolioMedia);
+                const segmentedMediaIds = collectSegmentedMediaIds(portfolioMedia);
+
+                console.log("📝 [Portfolio][Update] Sync Analysis:", {
+                    portfolioId,
+                    segmentedMediaIds,
+                    segmentedCovers,
+                    mainImageId
+                });
 
                 const updateData: any = {
                     title: data.name,
@@ -117,13 +134,10 @@ export function usePortfolioForm({ id, isEditMode }: UsePortfolioFormProps) {
                     og_image_id: data.og_image?.id || undefined,
                     canonical_url: data.canonical_url || undefined,
                     robots_meta: data.robots_meta || undefined,
-                    categories_ids: categoryIds,
-                    tags_ids: tagIds,
-                    options_ids: optionIds,
                     extra_attributes: data.extra_attributes || {},
-                    media_ids: allMediaIds.length > 0 ? allMediaIds : existingMediaIds,
+                    ...segmentedMediaIds,
+                    ...segmentedCovers,
                     main_image_id: mainImageId,
-                    media_covers: Object.keys(mediaCovers).length > 0 ? mediaCovers : undefined,
                 };
 
                 if (allMediaFiles.length > 0) {
@@ -155,9 +169,13 @@ export function usePortfolioForm({ id, isEditMode }: UsePortfolioFormProps) {
                     extra_attributes: data.extra_attributes || {},
                 };
 
-                if (allMediaIds.length > 0) {
-                    portfolioData.media_ids = allMediaIds;
-                }
+                const segmentedMediaIds = collectSegmentedMediaIds(portfolioMedia);
+                Object.assign(portfolioData, segmentedMediaIds);
+
+                console.log("📝 [Portfolio][Create] Final Payload Media:", {
+                    segmentedMediaIds,
+                    featuredImageId: data.featuredImage?.id
+                });
 
                 if (allMediaFiles.length > 0) {
                     return await portfolioApi.createPortfolioWithMedia(portfolioData, allMediaFiles);
@@ -167,6 +185,7 @@ export function usePortfolioForm({ id, isEditMode }: UsePortfolioFormProps) {
             }
         },
         onSuccess: (_data, variables) => {
+            console.log("✅ [Portfolio][Submit] Success:", _data);
             queryClient.invalidateQueries({ queryKey: ['portfolios'] });
             if (isEditMode) {
                 queryClient.invalidateQueries({ queryKey: ['portfolio', Number(id)] });
