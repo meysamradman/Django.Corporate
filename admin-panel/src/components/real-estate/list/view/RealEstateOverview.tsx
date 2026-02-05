@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
 import { mediaService } from "@/components/media/services";
-import { Card } from "@/components/elements/Card";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { formatArea, formatPriceToPersian } from "@/core/utils/realEstateFormat";
 import { msg } from "@/core/messages";
 
@@ -110,14 +110,14 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
   return (
     <div className="space-y-8">
 
-      <Card className="p-6 shadow-sm block">
-        <div className="flex items-center gap-3 mb-6 border-b border-br pb-4">
-          <div className="p-2 rounded-lg bg-blue-0/50 text-blue-1">
-            <Info className="w-5 h-5" />
-          </div>
-          <h2 className="text-lg font-bold text-font-p">جزئیات و مشخصات ملک</h2>
-        </div>
-
+      <CardWithIcon
+        icon={Info}
+        title="جزئیات و مشخصات ملک"
+        iconBgColor="bg-blue-0/50"
+        iconColor="text-blue-1"
+        className="shadow-sm"
+        contentClassName=""
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-0 text-font-p">
           {/* Column 1: Core Identity & Structure */}
           <div className="flex flex-col">
@@ -314,73 +314,73 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
             )}
           </div>
         </div>
-      </Card>
+      </CardWithIcon>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="p-6 shadow-sm block">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-teal-0/50 text-teal-1">
-                <Activity className="w-5 h-5" />
-              </div>
-              <h2 className="text-lg font-bold text-font-p">آمار و وضعیت</h2>
-            </div>
-            {(() => {
-              const statusMap: Record<string, { label: string; variant: any }> = {
-                active: { label: "فعال", variant: "green" },
-                pending: { label: "در حال معامله", variant: "yellow" },
-                sold: { label: "فروخته شده", variant: "red" },
-                rented: { label: "اجاره داده شده", variant: "blue" },
-                archived: { label: "بایگانی شده", variant: "gray" },
-              };
-              const config = statusMap[property.status] || { label: property.status, variant: "gray" };
-              return <Badge variant={config.variant}>{config.label}</Badge>;
-            })()}
-          </div>
+        <CardWithIcon
+          icon={Activity}
+          title="آمار و وضعیت"
+          iconBgColor="bg-teal-0/50"
+          iconColor="text-teal-1"
+          className="shadow-sm"
+          contentClassName=""
+          showHeaderBorder={false}
+          titleExtra={(() => {
+            const statusMap: Record<string, { label: string; variant: any }> = {
+              active: { label: "فعال", variant: "green" },
+              pending: { label: "در حال معامله", variant: "yellow" },
+              sold: { label: "فروخته شده", variant: "red" },
+              rented: { label: "اجاره داده شده", variant: "blue" },
+              archived: { label: "بایگانی شده", variant: "gray" },
+            };
+            const config = statusMap[property.status] || { label: property.status, variant: "gray" };
+            return <Badge variant={config.variant}>{config.label}</Badge>;
+          })()}
+        >
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             <div className="p-4 rounded-xl bg-bg border border-br/50 flex flex-col items-center gap-2 group hover:border-blue-1/30 transition-all">
-              <Eye className="w-5 h-5 text-blue-1 opacity-70 group-hover:opacity-100 transition-opacity" />
+              <Eye className="w-4 h-4 text-blue-1 opacity-70 group-hover:opacity-100 transition-opacity" />
               <span className="text-lg font-black text-font-p">{property.views_count?.toLocaleString('fa-IR') || "۰"}</span>
-              <span className="text-[10px] font-bold text-font-s uppercase tracking-wider text-center">بازدید کل</span>
+              <span className="text-[10px] font-bold text-font-s tracking-wider text-center">بازدید کل</span>
             </div>
 
             <div className="p-4 rounded-xl bg-bg border border-br/50 flex flex-col items-center gap-2 group hover:border-blue-1/30 transition-all">
-              <Globe className="w-5 h-5 text-emerald-1 opacity-70 group-hover:opacity-100 transition-opacity" />
+              <Globe className="w-4 h-4 text-emerald-1 opacity-70 group-hover:opacity-100 transition-opacity" />
               <span className="text-lg font-black text-font-p">{property.web_views_count?.toLocaleString('fa-IR') || "۰"}</span>
-              <span className="text-[10px] font-bold text-font-s uppercase tracking-wider text-center">بازدید وب</span>
+              <span className="text-[10px] font-bold text-font-s tracking-wider text-center">بازدید وب</span>
             </div>
 
             <div className="p-4 rounded-xl bg-bg border border-br/50 flex flex-col items-center gap-2 group hover:border-blue-1/30 transition-all">
-              <Smartphone className="w-5 h-5 text-purple-1 opacity-70 group-hover:opacity-100 transition-opacity" />
+              <Smartphone className="w-4 h-4 text-purple-1 opacity-70 group-hover:opacity-100 transition-opacity" />
               <span className="text-lg font-black text-font-p">{property.app_views_count?.toLocaleString('fa-IR') || "۰"}</span>
-              <span className="text-[10px] font-bold text-font-s uppercase tracking-wider text-center">بازدید اپ</span>
+              <span className="text-[10px] font-bold text-font-s tracking-wider text-center">بازدید اپ</span>
             </div>
 
             <div className="p-4 rounded-xl bg-bg border border-br/50 flex flex-col items-center gap-2 group hover:border-red-1/30 transition-all">
-              <Heart className="w-5 h-5 text-red-1 opacity-70 group-hover:opacity-100 transition-opacity" />
+              <Heart className="w-4 h-4 text-red-1 opacity-70 group-hover:opacity-100 transition-opacity" />
               <span className="text-lg font-black text-font-p">{property.favorites_count?.toLocaleString('fa-IR') || "۰"}</span>
-              <span className="text-[10px] font-bold text-font-s uppercase tracking-wider text-center">علاقه‌مندی</span>
+              <span className="text-[10px] font-bold text-font-s tracking-wider text-center">علاقه‌مندی</span>
             </div>
 
             <div className="p-4 rounded-xl bg-bg border border-br/50 flex flex-col items-center gap-2 group hover:border-orange-1/30 transition-all">
-              <PhoneCall className="w-5 h-5 text-orange-1 opacity-70 group-hover:opacity-100 transition-opacity" />
+              <PhoneCall className="w-4 h-4 text-orange-1 opacity-70 group-hover:opacity-100 transition-opacity" />
               <span className="text-lg font-black text-font-p">{property.inquiries_count?.toLocaleString('fa-IR') || "۰"}</span>
-              <span className="text-[10px] font-bold text-font-s uppercase tracking-wider text-center">درخواست/تماس</span>
+              <span className="text-[10px] font-bold text-font-s tracking-wider text-center">درخواست/تماس</span>
             </div>
           </div>
-        </Card>
+        </CardWithIcon>
 
-        <Card className="p-6 shadow-sm block">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-0/50 text-blue-1">
-                <ImageIcon className="w-5 h-5" />
-              </div>
-              <h2 className="text-lg font-bold text-font-p">خلاصه رسانه‌ها</h2>
-            </div>
-            <Badge variant="blue">{property.media_count || 0} فایل</Badge>
-          </div>
+        <CardWithIcon
+          icon={ImageIcon}
+          title="خلاصه رسانه‌ها"
+          iconBgColor="bg-blue-0/50"
+          iconColor="text-blue-1"
+          className="shadow-sm"
+          contentClassName=""
+          showHeaderBorder={false}
+          titleExtra={<Badge variant="blue">{property.media_count || 0} فایل</Badge>}
+        >
 
           <div className="grid grid-cols-2 gap-3 h-full content-start">
             <div className="flex items-center justify-between p-3 bg-bg rounded-xl border border-br/50 group">
@@ -412,20 +412,20 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               <span className="font-bold text-font-p">{documentsCount}</span>
             </div>
           </div>
-        </Card>
+        </CardWithIcon>
       </div>
 
-      <Card className="p-6 shadow-sm block">
-        <div className="flex items-center gap-3 mb-6 border-b border-br pb-4">
-          <div className="p-2 rounded-lg bg-orange-0/50 text-orange-1">
-            <FileText className="w-5 h-5" />
-          </div>
-          <h2 className="text-lg font-bold text-font-p">توضیحات و جزئیات تکمیلی</h2>
-        </div>
-
+      <CardWithIcon
+        icon={FileText}
+        title="توضیحات و جزئیات تکمیلی"
+        iconBgColor="bg-orange-0/50"
+        iconColor="text-orange-1"
+        className="shadow-sm"
+        contentClassName=""
+      >
         <div className="space-y-8">
           <div>
-            <label className="text-[10px] font-bold text-font-s uppercase tracking-wider mb-2 block">
+            <label className="text-[10px] font-bold text-font-s tracking-wider mb-2 block">
               توضیحات کوتاه
             </label>
             <div className="text-sm text-font-p border-r-2 border-blue-1/30 pr-4 leading-relaxed">
@@ -434,7 +434,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
           </div>
 
           <div>
-            <label className="text-[10px] font-bold text-font-s uppercase tracking-wider mb-2 block">
+            <label className="text-[10px] font-bold text-font-s tracking-wider mb-2 block">
               توضیحات کامل
             </label>
             <div className="text-sm text-font-p bg-bg/50 rounded-xl p-5 leading-loose">
@@ -446,17 +446,17 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
             </div>
           </div>
         </div>
-      </Card>
+      </CardWithIcon>
 
       {property.floor_plans && property.floor_plans.length > 0 && (
-        <Card className="p-6 shadow-sm block">
-          <div className="flex items-center gap-3 mb-6 border-b border-br pb-4">
-            <div className="p-2 rounded-lg bg-indigo-0/50 text-indigo-1">
-              <Home className="w-5 h-5" />
-            </div>
-            <h2 className="text-lg font-bold text-font-p">پلان طبقات</h2>
-          </div>
-
+        <CardWithIcon
+          icon={Home}
+          title="پلان طبقات"
+          iconBgColor="bg-indigo-0/50"
+          iconColor="text-indigo-1"
+          className="shadow-sm"
+          contentClassName=""
+        >
           <Accordion
             type="single"
             collapsible
@@ -486,9 +486,9 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
                       <span className="text-base font-black text-font-p tracking-tight">
                         {floorPlan.title}
                       </span>
-                      <div className="hidden sm:flex items-center gap-6 text-[11px] font-bold text-font-s uppercase tracking-wider">
+                      <div className="hidden sm:flex items-center gap-6 text-[11px] font-bold text-font-s tracking-wider">
                         <div className="flex items-center gap-1.5 bg-bg px-2.5 py-1 rounded-md border border-br/40">
-                          <Maximize2 className="w-3 h-3 text-indigo-1 opacity-70" />
+                          <Maximize2 className="w-4 h-4 text-indigo-1 opacity-70" />
                           <span>
                             {typeof floorPlan.floor_size === "number"
                               ? formatArea(floorPlan.floor_size)
@@ -497,7 +497,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
                         </div>
                         {floorPlan.bedrooms !== null && (
                           <div className="flex items-center gap-1.5 bg-bg px-2.5 py-1 rounded-md border border-br/40">
-                            <Building2 className="w-3 h-3 text-indigo-1 opacity-70" />
+                            <Building2 className="w-4 h-4 text-indigo-1 opacity-70" />
                             <span>{floorPlan.bedrooms} خواب</span>
                           </div>
                         )}
@@ -515,7 +515,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
                       <div className="space-y-6 order-2 lg:order-1">
                         <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                           <div className="p-4 rounded-2xl bg-white/50 border border-br/40 flex flex-col items-center justify-center gap-1.5 text-center group hover:border-indigo-1/30 transition-all shadow-xs hover:shadow-md">
-                            <span className="text-[10px] font-bold text-font-s uppercase tracking-widest opacity-60">مساحت</span>
+                            <span className="text-[10px] font-bold text-font-s tracking-widest opacity-60">مساحت</span>
                             <div className="flex items-center gap-2">
                               <Maximize2 className="w-4 h-4 text-indigo-1" />
                               <span className="text-base font-black text-font-p">
@@ -528,7 +528,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
 
                           {floorPlan.bedrooms !== null && (
                             <div className="p-4 rounded-2xl bg-white/50 border border-br/40 flex flex-col items-center justify-center gap-1.5 text-center group hover:border-indigo-1/30 transition-all shadow-xs hover:shadow-md">
-                              <span className="text-[10px] font-bold text-font-s uppercase tracking-widest opacity-60">تعداد خواب</span>
+                              <span className="text-[10px] font-bold text-font-s tracking-widest opacity-60">تعداد خواب</span>
                               <div className="flex items-center gap-2">
                                 <Building2 className="w-4 h-4 text-indigo-1" />
                                 <span className="text-base font-black text-font-p">{floorPlan.bedrooms} اتاق</span>
@@ -538,7 +538,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
 
                           {floorPlan.bathrooms !== null && (
                             <div className="p-4 rounded-2xl bg-white/50 border border-br/40 flex flex-col items-center justify-center gap-1.5 text-center group hover:border-indigo-1/30 transition-all shadow-xs hover:shadow-md">
-                              <span className="text-[10px] font-bold text-font-s uppercase tracking-widest opacity-60">سرویس بهداشتی</span>
+                              <span className="text-[10px] font-bold text-font-s tracking-widest opacity-60">سرویس بهداشتی</span>
                               <div className="flex items-center gap-2">
                                 <span className="text-base font-black text-font-p">{floorPlan.bathrooms} مورد</span>
                               </div>
@@ -547,21 +547,21 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
 
                           {floorPlan.floor_number !== null && (
                             <div className="p-4 rounded-2xl bg-white/50 border border-br/40 flex flex-col items-center justify-center gap-1.5 text-center group hover:border-indigo-1/30 transition-all shadow-xs hover:shadow-md">
-                              <span className="text-[10px] font-bold text-font-s uppercase tracking-widest opacity-60">طبقه</span>
+                              <span className="text-[10px] font-bold text-font-s tracking-widest opacity-60">طبقه</span>
                               <span className="text-base font-black text-font-p">{floorPlan.floor_number}</span>
                             </div>
                           )}
 
                           {floorPlan.unit_type && (
                             <div className="p-4 rounded-2xl bg-white/50 border border-br/40 flex flex-col items-center justify-center gap-1.5 text-center group hover:border-indigo-1/30 transition-all shadow-xs hover:shadow-md">
-                              <span className="text-[10px] font-bold text-font-s uppercase tracking-widest opacity-60">نوع واحد</span>
+                              <span className="text-[10px] font-bold text-font-s tracking-widest opacity-60">نوع واحد</span>
                               <span className="text-base font-black text-font-p">{floorPlan.unit_type}</span>
                             </div>
                           )}
 
                           {floorPlan.price && (
                             <div className="p-4 rounded-2xl bg-indigo-0/40 border border-indigo-1/20 flex flex-col items-center justify-center gap-1.5 text-center group transition-all col-span-2 sm:col-span-1 xl:col-span-1 shadow-xs hover:shadow-md">
-                              <span className="text-[10px] font-bold text-indigo-1 uppercase tracking-widest">قیمت</span>
+                              <span className="text-[10px] font-bold text-indigo-1 tracking-widest">قیمت</span>
                               <div className="flex items-center gap-1">
                                 <DollarSign className="w-4 h-4 text-indigo-1" />
                                 <span className="text-base font-black text-font-p">
@@ -574,8 +574,8 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
 
                         {floorPlan.description && (
                           <div className="space-y-3 bg-bg/40 p-5 rounded-2xl border border-br/30">
-                            <div className="flex items-center gap-2 text-[11px] font-bold text-font-s uppercase tracking-widest opacity-70">
-                              <FileText className="w-3.5 h-3.5" />
+                            <div className="flex items-center gap-2 text-[11px] font-bold text-font-s tracking-widest opacity-70">
+                              <FileText className="w-4 h-4" />
                               <span>توضیحات تکمیلی پلان</span>
                             </div>
                             <p className="text-sm text-font-p leading-relaxed italic opacity-90 pr-2 border-r-2 border-indigo-1/20">
@@ -618,7 +618,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
                                           />
                                           {imageItem.title && (
                                             <div className="absolute bottom-0 inset-x-0 p-3 bg-linear-to-t from-black/80 via-black/10 to-transparent text-white text-center">
-                                              <p className="text-[10px] font-bold uppercase tracking-widest">{imageItem.title}</p>
+                                              <p className="text-[10px] font-bold tracking-widest">{imageItem.title}</p>
                                             </div>
                                           )}
                                         </div>
@@ -646,7 +646,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               );
             })}
           </Accordion>
-        </Card>
+        </CardWithIcon>
       )}
     </div>
   );

@@ -10,10 +10,13 @@ interface CardWithIconProps {
   iconBgColor?: string
   iconColor?: string
   borderColor?: string
+  cardBorderColor?: string
   className?: string
   headerClassName?: string
   contentClassName?: string
   titleExtra?: ReactNode
+  showHeaderBorder?: boolean
+  showCardBorder?: boolean
 }
 
 const CardWithIcon = memo(function CardWithIcon({
@@ -22,21 +25,30 @@ const CardWithIcon = memo(function CardWithIcon({
   children,
   iconBgColor = "bg-gray",
   iconColor = "stroke-gray-2",
-  borderColor = "border-b-gray-1",
+  borderColor = "border-br",
+  cardBorderColor = "border-br",
   className,
   headerClassName,
   contentClassName,
   titleExtra,
+  showHeaderBorder = true,
+  showCardBorder = true,
 }: CardWithIconProps) {
   return (
-    <Card className={cn("border-b-2", borderColor, className)}>
-      <CardHeader className={cn("!pb-3", headerClassName)}>
-        <CardTitle className="flex items-center justify-between">
+    <Card className={cn(
+      showCardBorder && cn("border-b-2", cardBorderColor),
+      className
+    )}>
+      <CardHeader className={cn(
+        showHeaderBorder && cn("border-b pb-6", borderColor),
+        headerClassName
+      )}>
+        <CardTitle className="flex items-center justify-between text-base leading-normal">
           <div className="flex items-center gap-3">
-            <div className={cn("p-2.5 rounded-lg shadow-sm", iconBgColor)}>
+            <div className={cn("p-2 rounded-lg", iconBgColor)}>
               <Icon className={cn("w-5 h-5", iconColor)} />
             </div>
-            <span>{title}</span>
+            <span className="font-bold">{title}</span>
           </div>
           {titleExtra}
         </CardTitle>
@@ -44,7 +56,7 @@ const CardWithIcon = memo(function CardWithIcon({
       <CardContent className={contentClassName}>
         {children}
       </CardContent>
-    </Card >
+    </Card>
   )
 })
 

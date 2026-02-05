@@ -5,7 +5,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { FileText, Image, Search, Edit2, Settings, Printer } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { portfolioApi } from "@/api/portfolios/portfolios";
-import { PortfolioCarousel } from "@/components/portfolios/list/view/PortfolioCarousel.tsx";
+import { PortfolioGridGallery } from "@/components/portfolios/list/view/PortfolioGridGallery.tsx";
 import { PortfolioInfo } from "@/components/portfolios/list/view/PortfolioInfo.tsx";
 import { PortfolioOverview } from "@/components/portfolios/list/view/PortfolioOverview.tsx";
 import { PortfolioMedia } from "@/components/portfolios/list/view/PortfolioMedia.tsx";
@@ -122,7 +122,7 @@ export default function PortfolioViewPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">
         <div className="lg:col-span-7 xl:col-span-8 h-full">
-          <PortfolioCarousel portfolio={portfolioData} className="h-full" />
+          <PortfolioGridGallery portfolio={portfolioData} className="h-full" />
         </div>
 
         <div className="lg:col-span-5 xl:col-span-4 h-full">
@@ -162,3 +162,4 @@ export default function PortfolioViewPage() {
     </div>
   );
 }
+

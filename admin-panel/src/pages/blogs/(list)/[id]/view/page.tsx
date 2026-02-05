@@ -5,7 +5,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { FileText, Image, Search, Edit2, Printer } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { blogApi } from "@/api/blogs/blogs";
-import { BlogCarousel } from "@/components/blogs/list/view/BlogCarousel.tsx";
+import { BlogGridGallery } from "@/components/blogs/list/view/BlogGridGallery.tsx";
 import { BlogInfo } from "@/components/blogs/list/view/BlogInfo.tsx";
 import { BlogOverview } from "@/components/blogs/list/view/BlogOverview.tsx";
 import { BlogMedia } from "@/components/blogs/list/view/BlogMedia.tsx";
@@ -109,7 +109,7 @@ export default function BlogViewPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">
         <div className="lg:col-span-7 xl:col-span-8 h-full">
-          <BlogCarousel blog={blogData} className="h-full" />
+          <BlogGridGallery blog={blogData} className="h-full" />
         </div>
 
         <div className="lg:col-span-5 xl:col-span-4 h-full">
@@ -144,3 +144,4 @@ export default function BlogViewPage() {
     </div>
   );
 }
+

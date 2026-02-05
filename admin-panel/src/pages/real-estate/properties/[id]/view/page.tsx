@@ -20,8 +20,8 @@ import { Card } from "@/components/elements/Card";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate";
 import { usePropertyPrintView } from "@/hooks/real-estate/usePropertyPrintView";
-import { RealEstateCarousel } from "@/components/real-estate/list/view/RealEstateCarousel.tsx";
 import { RealEstateOverview } from "@/components/real-estate/list/view/RealEstateOverview.tsx";
+import { RealEstateGridGallery } from "@/components/real-estate/view/RealEstateGridGallery.tsx";
 import { RealEstateMedia } from "@/components/real-estate/list/view/RealEstateMedia.tsx";
 import { RealEstateSEO } from "@/components/real-estate/list/view/RealEstateSEO.tsx";
 import { RealEstateAttributes } from "@/components/real-estate/list/view/RealEstateAttributes.tsx";
@@ -255,15 +255,13 @@ export default function PropertyViewPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         <div className="lg:col-span-8 xl:col-span-9">
-          <Card className="h-full min-h-[400px] lg:min-h-[500px] overflow-hidden shadow-xs group relative block p-0">
-            <RealEstateCarousel property={propertyData} className="w-full h-full object-cover" />
-          </Card>
+          <RealEstateGridGallery property={propertyData} />
         </div>
 
         <div className="lg:col-span-4 xl:col-span-3">
           <PropertySidebar property={propertyData} />
         </div>
-      </div >
+      </div>
 
       < div className="flex flex-col xl:flex-row gap-8 items-start relative mt-6 min-w-0" >
 
@@ -273,68 +271,20 @@ export default function PropertyViewPage() {
           </div>
 
           <div id="section-features" className="scroll-mt-32">
-            <Card className="p-8 shadow-xs relative overflow-hidden group/card block">
-
-              <div className="flex items-center gap-4 mb-10 pb-5 border-b border-br relative z-10">
-                <div className="p-3 rounded-2xl bg-blue-1/10 text-blue-1">
-                  <LayoutGrid className="w-7 h-7" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-black text-font-p tracking-tight">ویژگی‌ها و امکانات</h2>
-                  <p className="text-[10px] font-bold text-font-s opacity-60 mt-1 uppercase tracking-widest">Property Features & Amenities</p>
-                </div>
-              </div>
-              <RealEstateFeatures property={propertyData} />
-            </Card>
+            <RealEstateFeatures property={propertyData} />
           </div >
 
 
           <div id="section-attributes" className="scroll-mt-32">
-            <Card className="p-8 shadow-xs relative overflow-hidden group/card block">
-
-              <div className="flex items-center gap-4 mb-10 pb-5 border-b border-br relative z-10">
-                <div className="p-3 rounded-2xl bg-purple-1/10 text-purple-1">
-                  <Layers className="w-7 h-7" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-black text-font-p tracking-tight">مشخصات فنی و ثبتی</h2>
-                  <p className="text-[10px] font-bold text-font-s opacity-60 mt-1 uppercase tracking-widest">Technical Specifications</p>
-                </div>
-              </div>
-              <RealEstateAttributes property={propertyData} />
-            </Card>
+            <RealEstateAttributes property={propertyData} />
           </div >
 
           <div id="section-media" className="scroll-mt-32">
-            <Card className="p-8 shadow-xs relative overflow-hidden group/card block">
-
-              <div className="flex items-center gap-4 mb-10 pb-5 border-b border-br relative z-10">
-                <div className="p-3 rounded-2xl bg-pink-1/10 text-pink-1">
-                  <ImageIcon className="w-7 h-7" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-black text-font-p tracking-tight">رسانه‌ها و گالری</h2>
-                  <p className="text-[10px] font-bold text-font-s opacity-60 mt-1 uppercase tracking-widest">Media Gallery & Documents</p>
-                </div>
-              </div>
-              <RealEstateMedia property={propertyData} />
-            </Card>
+            <RealEstateMedia property={propertyData} />
           </div >
 
           <div id="section-seo" className="scroll-mt-32">
-            <Card className="p-8 shadow-xs relative overflow-hidden group/card block">
-
-              <div className="flex items-center gap-4 mb-10 pb-5 border-b border-br relative z-10">
-                <div className="p-3 rounded-2xl bg-teal-1/10 text-teal-1">
-                  <Search className="w-7 h-7" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-black text-font-p tracking-tight">تنظیمات سئو</h2>
-                  <p className="text-[10px] font-bold text-font-s opacity-60 mt-1 uppercase tracking-widest">Search Engine Optimization</p>
-                </div>
-              </div>
-              <RealEstateSEO property={propertyData} />
-            </Card>
+            <RealEstateSEO property={propertyData} />
           </div >
         </div >
 
