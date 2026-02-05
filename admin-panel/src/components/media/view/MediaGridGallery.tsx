@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
     ImageIcon,
     X,
@@ -73,14 +73,23 @@ export function MediaGridGallery({ items, title, className }: MediaGridGalleryPr
 
     // Define grid items (up to 5)
     const gridItems = items.slice(0, 5);
+    const itemCount = gridItems.length;
     const remainingCount = items.length - 5;
+
+    // Adaptive Grid Class Logic
+    const mainItemClass = itemCount === 1 ? "col-span-4" : "col-span-4 lg:col-span-2";
+
+    let rightSideClass = "hidden lg:grid col-span-2 gap-3 h-full";
+    if (itemCount === 2) rightSideClass += " grid-cols-1 grid-rows-1";
+    else if (itemCount === 3) rightSideClass += " grid-cols-1 grid-rows-2";
+    else rightSideClass += " grid-cols-2 grid-rows-2";
 
     return (
         <>
             <div className={cn("relative w-full h-[400px] md:h-[500px] lg:h-[600px] grid grid-cols-4 gap-3 overflow-hidden rounded-2xl group/gallery", className)}>
 
                 {/* Main large item (left side) */}
-                <div className="col-span-4 lg:col-span-2 relative overflow-hidden bg-bg cursor-pointer h-full border border-br/50" onClick={() => openLightbox(0)}>
+                <div className={cn("relative overflow-hidden bg-bg cursor-pointer h-full border border-br/50", mainItemClass)} onClick={() => openLightbox(0)}>
                     {gridItems[0].type === 'video' ? (
                         <div className="w-full h-full relative">
                             <img
@@ -124,49 +133,61 @@ export function MediaGridGallery({ items, title, className }: MediaGridGalleryPr
                 </div>
 
                 {/* Right side grid (visible only on lg and up) */}
-                <div className="hidden lg:grid col-span-2 grid-cols-2 grid-rows-2 gap-3 h-full">
-                    {gridItems.slice(1, 5).map((item, index) => {
-                        const actualIndex = index + 1;
-                        const isLastVisible = actualIndex === 4 && remainingCount > 0;
+                {itemCount > 1 && (
+                    <div className={rightSideClass}>
+                        {gridItems.slice(1, 5).map((item, index) => {
+                            const actualIndex = index + 1;
+                            const isLastVisible = actualIndex === 4 && remainingCount > 0;
 
-                        return (
-                            <div
-                                key={item.id}
-                                className="relative overflow-hidden bg-bg cursor-pointer group/item h-full border border-br/50"
-                                onClick={() => openLightbox(actualIndex)}
-                            >
-                                {item.type === 'video' ? (
-                                    <div className="w-full h-full relative">
+                            // For 4 total items (3 on side), make first one (top-left) span 2 cols to fill top row
+                            // Wait, if grid-cols-2, and 3 items:
+                            // We want Item 1 to span 2 cols? Or Item 3 to span 2 cols?
+                            // Standard: Top Left, Top Right, Bottom Left, Bottom Right.
+                            // 3 items: Item 1, Item 2, Item 3.
+                            // If Item 1 spans 2: Top row full. Item 2, 3 on bottom row.
+                            // This works well.
+                            const isFour = itemCount === 4;
+                            const spanClass = (isFour && index === 0) ? "col-span-2" : "";
+
+                            return (
+                                <div
+                                    key={item.id}
+                                    className={cn("relative overflow-hidden bg-bg cursor-pointer group/item h-full border border-br/50", spanClass)}
+                                    onClick={() => openLightbox(actualIndex)}
+                                >
+                                    {item.type === 'video' ? (
+                                        <div className="w-full h-full relative">
+                                            <img
+                                                src={item.coverUrl || item.url}
+                                                alt={item.alt}
+                                                className="w-full h-full object-cover transition-transform duration-700 group-hover/item:scale-110"
+                                            />
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <div className="size-10 rounded-full bg-static-b/60 backdrop-blur-sm flex items-center justify-center">
+                                                    <Play className="w-5 h-5 text-wt fill-wt" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
                                         <img
-                                            src={item.coverUrl || item.url}
+                                            src={item.url}
                                             alt={item.alt}
                                             className="w-full h-full object-cover transition-transform duration-700 group-hover/item:scale-110"
                                         />
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <div className="size-10 rounded-full bg-static-b/60 backdrop-blur-sm flex items-center justify-center">
-                                                <Play className="w-5 h-5 text-wt fill-wt" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <img
-                                        src={item.url}
-                                        alt={item.alt}
-                                        className="w-full h-full object-cover transition-transform duration-700 group-hover/item:scale-110"
-                                    />
-                                )}
-                                <div className="absolute inset-0 bg-static-b/5 group-hover/item:bg-static-b/20 transition-colors duration-300" />
+                                    )}
+                                    <div className="absolute inset-0 bg-static-b/5 group-hover/item:bg-static-b/20 transition-colors duration-300" />
 
-                                {isLastVisible && (
-                                    <div className="absolute inset-0 bg-static-b/40 backdrop-blur-[2px] flex flex-col items-center justify-center text-wt">
-                                        <p className="text-xl font-black">+{remainingCount}</p>
-                                        <p className="text-[10px] font-bold uppercase tracking-widest mt-1">مشاهده همه</p>
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
+                                    {isLastVisible && (
+                                        <div className="absolute inset-0 bg-static-b/40 backdrop-blur-[2px] flex flex-col items-center justify-center text-wt">
+                                            <p className="text-xl font-black">+{remainingCount}</p>
+                                            <p className="text-[10px] font-bold uppercase tracking-widest mt-1">مشاهده همه</p>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
 
                 {/* Show All Photos button */}
                 <button
