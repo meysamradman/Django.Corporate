@@ -19,7 +19,7 @@ export function RealEstateFeatures({ property }: PropertyFeaturesProps) {
             iconColor="text-blue-1"
             cardBorderColor="border-b-blue-1"
         >
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-5 py-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-x-12 gap-y-4 py-2">
                 {property.features.map((feature) => (
                     <div
                         key={feature.id}

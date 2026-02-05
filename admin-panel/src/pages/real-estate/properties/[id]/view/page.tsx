@@ -160,36 +160,36 @@ export default function PropertyViewPage() {
               <Button
                 variant="default"
                 size="sm"
-                className="h-9 gap-2 text-xs font-black shadow-sm bg-blue-1 hover:bg-blue-2 text-wt border-none px-4"
+                className="h-8 gap-1.5 text-[11px] font-black shadow-sm bg-blue-1 hover:bg-blue-2 text-wt border-none px-3"
                 onClick={() => navigate(`/real-estate/properties/${propertyId}/edit`)}
               >
-                <Edit2 className="w-4 h-4" />
+                <Edit2 className="w-3.5 h-3.5" />
                 ویرایش ملک
               </Button>
               <div className="w-px h-6 bg-br/60 mx-1" />
               <Button
                 variant="outline"
                 size="sm"
-                className="h-9 gap-2 text-xs font-black border-br hover:bg-bg bg-wt/80 px-4"
+                className="h-8 gap-1.5 text-[11px] font-black border-br hover:bg-bg bg-wt/80 px-3"
                 onClick={() => openPrintWindow([Number(propertyId)], 'detail')}
               >
-                <Printer className="w-4 h-4 opacity-70" />
+                <Printer className="w-3.5 h-3.5 opacity-70" />
                 چاپ
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-9 gap-2 text-xs font-black border-br hover:bg-bg bg-wt/80 px-4"
+                className="h-8 gap-1.5 text-[11px] font-black border-br hover:bg-bg bg-wt/80 px-3"
                 onClick={() => exportSinglePropertyPdf(Number(propertyId))}
                 isLoading={isExportingPdf}
               >
-                <FileText className="w-4 h-4 opacity-70" />
+                <FileText className="w-3.5 h-3.5 opacity-70" />
                 PDF
               </Button>
             </div>
 
             {propertyData.agency && (
-              <div className="flex items-center gap-3.5 bg-bg/40 p-2 pr-5 rounded-2xl border border-br/40 shadow-xs ring-1 ring-static-b/5">
+              <div className="flex items-center gap-2.5 bg-bg/40 p-1.5 pr-4 rounded-xl border border-br/40 shadow-xs ring-1 ring-static-b/5">
                 <div className="text-right">
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] font-black uppercase tracking-tighter bg-blue-1/10 text-blue-1 px-1.5 py-0.5 rounded-sm">
@@ -207,11 +207,11 @@ export default function PropertyViewPage() {
                   {propertyData.agency.logo_url || propertyData.agency.logo?.file_url ? (
                     <img
                       src={propertyData.agency.logo_url || propertyData.agency.logo?.file_url}
-                      className="w-11 h-11 rounded-full border-2 border-wt shadow-sm object-cover bg-wt"
+                      className="w-9 h-9 rounded-full border border-wt shadow-xs object-cover bg-wt"
                     />
                   ) : (
-                    <div className="w-11 h-11 rounded-full bg-blue-0/30 flex items-center justify-center text-blue-1 border-2 border-wt">
-                      <Building2 className="w-5 h-5" />
+                    <div className="w-9 h-9 rounded-full bg-blue-0/30 flex items-center justify-center text-blue-1 border border-wt">
+                      <Building2 className="w-4 h-4" />
                     </div>
                   )}
                 </div>
@@ -219,7 +219,7 @@ export default function PropertyViewPage() {
             )}
 
             {(propertyData.agent || propertyData.created_by_name) && (
-              <div className="flex items-center gap-3.5 bg-bg/40 p-2 pr-5 rounded-2xl border border-br/40 shadow-xs ring-1 ring-static-b/5">
+              <div className="flex items-center gap-2.5 bg-bg/40 p-1.5 pr-4 rounded-xl border border-br/40 shadow-xs ring-1 ring-static-b/5">
                 <div className="text-right">
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] font-black uppercase tracking-tighter bg-blue-1/10 text-blue-1 px-1.5 py-0.5 rounded-sm">
@@ -237,13 +237,13 @@ export default function PropertyViewPage() {
                 </div>
                 <div className="relative shrink-0">
                   {propertyData.agent?.profile_picture_url ? (
-                    <img src={propertyData.agent.profile_picture_url} className="w-11 h-11 rounded-full border-2 border-wt shadow-sm object-cover" />
+                    <img src={propertyData.agent.profile_picture_url} className="w-9 h-9 rounded-full border border-wt shadow-xs object-cover" />
                   ) : (
-                    <div className="w-11 h-11 rounded-full bg-blue-0/30 flex items-center justify-center text-blue-1 border-2 border-wt">
-                      <User className="w-5 h-5" />
+                    <div className="w-9 h-9 rounded-full bg-blue-0/30 flex items-center justify-center text-blue-1 border border-wt">
+                      <User className="w-4 h-4" />
                     </div>
                   )}
-                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-1 border-2 border-wt rounded-full" />
+                  <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-1 border-2 border-wt rounded-full" />
                 </div>
               </div>
             )}
