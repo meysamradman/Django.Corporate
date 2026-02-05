@@ -20,47 +20,47 @@ export function PropertyViewLocation({ property }: PropertyViewLocationProps) {
                         icon={MapPin}
                         iconBgColor="bg-emerald"
                         iconColor="stroke-emerald-2"
-                        borderColor="border-b-emerald-1"
+                        cardBorderColor="border-b-emerald-1"
                     >
                         <div className="space-y-4">
                             {property.province_name && (
                                 <div className="flex justify-between items-start border-b pb-3 border-dashed">
-                                    <span className="text-font-s font-medium text-gray-2">استان</span>
+                                    <span className="text-font-s font-medium">استان</span>
                                     <span className="text-font-p font-medium">{property.province_name}</span>
                                 </div>
                             )}
 
                             {property.city_name && (
                                 <div className="flex justify-between items-start border-b pb-3 border-dashed">
-                                    <span className="text-font-s font-medium text-gray-2">شهر</span>
+                                    <span className="text-font-s font-medium">شهر</span>
                                     <span className="text-font-p font-medium">{property.city_name}</span>
                                 </div>
                             )}
 
                             {property.district_name && (
                                 <div className="flex justify-between items-start border-b pb-3 border-dashed">
-                                    <span className="text-font-s font-medium text-gray-2">منطقه</span>
+                                    <span className="text-font-s font-medium">منطقه</span>
                                     <span className="text-font-p font-medium">{property.district_name}</span>
                                 </div>
                             )}
 
                             {property.neighborhood && (
                                 <div className="flex justify-between items-start border-b pb-3 border-dashed">
-                                    <span className="text-font-s font-medium text-gray-2">محله</span>
+                                    <span className="text-font-s font-medium">محله</span>
                                     <span className="text-font-p font-medium">{property.neighborhood}</span>
                                 </div>
                             )}
 
                             {property.postal_code && (
                                 <div className="flex justify-between items-start border-b pb-3 border-dashed">
-                                    <span className="text-font-s font-medium text-gray-2">کد پستی</span>
+                                    <span className="text-font-s font-medium">کد پستی</span>
                                     <span className="text-font-p font-medium tracking-wider">{property.postal_code}</span>
                                 </div>
                             )}
 
                             {property.address && (
                                 <div className="pt-2">
-                                    <span className="text-font-s font-medium text-gray-2 block mb-2">آدرس دقیق</span>
+                                    <span className="text-font-s font-medium block mb-2">آدرس دقیق</span>
                                     <p className="text-font-p leading-relaxed bg-bg-2/50 p-3 rounded-lg border border-br/50">
                                         {property.address}
                                     </p>

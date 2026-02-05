@@ -348,6 +348,18 @@ export const propertyFormSchema = z.object({
     media_covers: z
         .record(z.string(), z.number().nullable())
         .optional(),
+
+    // 🎯 Segmented Media IDs
+    image_ids: z.array(z.number()).default([]),
+    video_ids: z.array(z.number()).default([]),
+    audio_ids: z.array(z.number()).default([]),
+    document_ids: z.array(z.number()).default([]),
+
+    // 🎨 Segmented Media Covers
+    image_covers: z.record(z.string(), z.number().nullable()).optional(),
+    video_covers: z.record(z.string(), z.number().nullable()).optional(),
+    audio_covers: z.record(z.string(), z.number().nullable()).optional(),
+    document_covers: z.record(z.string(), z.number().nullable()).optional(),
 });
 
 export type PropertyFormValues = z.input<typeof propertyFormSchema>;
@@ -409,4 +421,12 @@ export const propertyFormDefaults: PropertyFormValues = {
     main_image_id: null,
     og_image_id: null,
     media_covers: {},
+    image_ids: [],
+    video_ids: [],
+    audio_ids: [],
+    document_ids: [],
+    image_covers: {},
+    video_covers: {},
+    audio_covers: {},
+    document_covers: {},
 } as PropertyFormValues;

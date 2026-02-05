@@ -115,6 +115,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
         title="جزئیات و مشخصات ملک"
         iconBgColor="bg-blue-0/50"
         iconColor="text-blue-1"
+        cardBorderColor="border-b-blue-1"
         className="shadow-sm"
         contentClassName=""
       >
@@ -322,6 +323,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
           title="آمار و وضعیت"
           iconBgColor="bg-teal-0/50"
           iconColor="text-teal-1"
+          cardBorderColor="border-b-teal-1"
           className="shadow-sm"
           contentClassName=""
           showHeaderBorder={false}
@@ -376,6 +378,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
           title="خلاصه رسانه‌ها"
           iconBgColor="bg-blue-0/50"
           iconColor="text-blue-1"
+          cardBorderColor="border-b-blue-1"
           className="shadow-sm"
           contentClassName=""
           showHeaderBorder={false}
@@ -420,6 +423,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
         title="توضیحات و جزئیات تکمیلی"
         iconBgColor="bg-orange-0/50"
         iconColor="text-orange-1"
+        cardBorderColor="border-b-orange-1"
         className="shadow-sm"
         contentClassName=""
       >
@@ -454,6 +458,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
           title="پلان طبقات"
           iconBgColor="bg-indigo-0/50"
           iconColor="text-indigo-1"
+          cardBorderColor="border-b-indigo-1"
           className="shadow-sm"
           contentClassName=""
         >

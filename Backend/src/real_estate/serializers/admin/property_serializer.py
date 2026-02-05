@@ -465,6 +465,15 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False
     )
+    media_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True,
+        required=False
+    )
+    image_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
+    video_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
+    audio_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
+    document_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
     
     land_area = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
     built_area = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
@@ -543,7 +552,8 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
             'labels_ids', 'tags_ids', 'features_ids',
-            'media_files',
+            'media_files', 'media_ids', 
+            'image_ids', 'video_ids', 'audio_ids', 'document_ids',
         ]
         extra_kwargs = {
             'slug': {'validators': []},
@@ -714,6 +724,18 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         required=False,
         help_text="New media files to upload"
     )
+
+    # 🎯 Segmented Media IDs (Portfolio Pattern)
+    image_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
+    video_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
+    audio_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
+    document_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
+    
+    # 🎨 Segmented Media Covers
+    image_covers = serializers.DictField(child=serializers.IntegerField(allow_null=True), write_only=True, required=False)
+    video_covers = serializers.DictField(child=serializers.IntegerField(allow_null=True), write_only=True, required=False)
+    audio_covers = serializers.DictField(child=serializers.IntegerField(allow_null=True), write_only=True, required=False)
+    document_covers = serializers.DictField(child=serializers.IntegerField(allow_null=True), write_only=True, required=False)
     
     parking_spaces = serializers.IntegerField(
         required=False,
@@ -800,7 +822,10 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
             'is_published', 'is_featured', 'is_public', 'is_active',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta',
-            'labels', 'tags', 'features', 'media_ids', 'media_files', 'main_image_id', 'media_covers',
+            'labels', 'tags', 'features', 
+            'media_ids', 'media_files', 'main_image_id', 'media_covers',
+            'image_ids', 'video_ids', 'audio_ids', 'document_ids',
+            'image_covers', 'video_covers', 'audio_covers', 'document_covers',
         ]
 
     def to_internal_value(self, data):

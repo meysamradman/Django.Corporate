@@ -167,9 +167,34 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     def _extract_media_ids(self, request):
         return self._extract_list(request.data, 'media_ids')
 
+    def _extract_segmented_ids(self, request):
+        """Extracts segmented media IDs and covers from request data."""
+        def _get_dict(key):
+            val = request.data.get(key)
+            if not val: return {}
+            if isinstance(val, dict): return val
+            if isinstance(val, str):
+                try:
+                    import json
+                    return json.loads(val)
+                except: return {}
+            return {}
+
+        return {
+            'image_ids': self._extract_list(request.data, 'image_ids', convert_to_int=True),
+            'video_ids': self._extract_list(request.data, 'video_ids', convert_to_int=True),
+            'audio_ids': self._extract_list(request.data, 'audio_ids', convert_to_int=True),
+            'document_ids': self._extract_list(request.data, 'document_ids', convert_to_int=True),
+            'image_covers': _get_dict('image_covers'),
+            'video_covers': _get_dict('video_covers'),
+            'audio_covers': _get_dict('audio_covers'),
+            'document_covers': _get_dict('document_covers'),
+        }
+
     def create(self, request, *args, **kwargs):
         media_ids = self._extract_media_ids(request)
         media_files = request.FILES.getlist('media_files')
+        segmented_media = self._extract_segmented_ids(request)
         
         data = request.data.copy()
         
@@ -191,6 +216,9 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                     data[field] = extracted
         
         data = self._merge_media_data(data, media_ids, media_files)
+        # Add segmented fields to data for serializer validation
+        for m_key, m_val in segmented_media.items():
+            if m_val: data[m_key] = m_val
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         
@@ -220,6 +248,8 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         
         media_ids = self._extract_media_ids(request)
         media_files = request.FILES.getlist('media_files')
+        segmented_media = self._extract_segmented_ids(request)
+        
         main_image_id = request.data.get('main_image_id')
         media_covers_raw = request.data.get('media_covers')
         
@@ -254,6 +284,10 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                     media_covers = None
         
         data = self._merge_media_data(data, media_ids, media_files)
+        # Add segmented fields to data for serializer validation
+        for m_key, m_val in segmented_media.items():
+            if m_val: data[m_key] = m_val
+            
         if media_covers: data['media_covers'] = media_covers
         if main_image_id: data['main_image_id'] = main_image_id
             
@@ -266,8 +300,16 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 validated_data=serializer.validated_data,
                 media_ids=serializer.validated_data.get('media_ids'),
                 media_files=serializer.validated_data.get('media_files'),
+                image_ids=serializer.validated_data.get('image_ids'),
+                video_ids=serializer.validated_data.get('video_ids'),
+                audio_ids=serializer.validated_data.get('audio_ids'),
+                document_ids=serializer.validated_data.get('document_ids'),
                 main_image_id=serializer.validated_data.get('main_image_id'),
                 media_covers=serializer.validated_data.get('media_covers'),
+                image_covers=serializer.validated_data.get('image_covers'),
+                video_covers=serializer.validated_data.get('video_covers'),
+                audio_covers=serializer.validated_data.get('audio_covers'),
+                document_covers=serializer.validated_data.get('document_covers'),
                 updated_by=request.user
             )
             

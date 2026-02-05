@@ -111,7 +111,9 @@ class PropertyAdminMediaService:
         return existing_image_ids, existing_video_ids, existing_audio_ids, existing_document_ids
 
     @staticmethod
-    def add_media_bulk(property_id, media_files=None, media_ids=None, created_by=None, media_type_map=None):
+    def add_media_bulk(property_id, media_files=None, media_ids=None, 
+                       image_ids=None, video_ids=None, audio_ids=None, document_ids=None,
+                       created_by=None):
         logger.info(f"🏠 [PropertyMedia][AddBulk] Starting - Property ID: {property_id}")
         logger.debug(f"🏠 [PropertyMedia][AddBulk] media_files count: {len(media_files) if media_files else 0}, media_ids: {media_ids}")
         
@@ -124,13 +126,15 @@ class PropertyAdminMediaService:
             
         media_files = media_files or []
         media_ids = media_ids or []
+        image_ids = image_ids or []
+        video_ids = video_ids or []
+        audio_ids = audio_ids or []
+        document_ids = document_ids or []
         
         created_count = 0
         failed_ids = []
         
         failed_files = []
-        uploaded_medias = []
-        # ... (media_files handling logic remains same)
         if media_files:
             logger.info(f"📤 [PropertyMedia][AddBulk] Processing {len(media_files)} uploaded files...")
             for i, media_file in enumerate(media_files):
@@ -232,79 +236,57 @@ class PropertyAdminMediaService:
                     
                     created_count += len(property_media_objects)
         
-        if media_ids:
-            logger.info(f"🔗 [PropertyMedia][AddBulk] Processing {len(media_ids)} media IDs...")
-            media_ids_list = list(set(media_ids)) if isinstance(media_ids, (list, tuple)) else [media_ids]
+        if any([media_ids, image_ids, video_ids, audio_ids, document_ids]):
+            # 📋 Standardize ID lists
+            media_ids_list = list(set(media_ids)) if media_ids else []
+            image_ids_list = list(set(image_ids)) if image_ids else []
+            video_ids_list = list(set(video_ids)) if video_ids else []
+            audio_ids_list = list(set(audio_ids)) if audio_ids else []
+            document_ids_list = list(set(document_ids)) if document_ids else []
             
-            image_medias, video_medias, audio_medias, document_medias = \
-                PropertyAdminMediaService.get_media_by_ids(media_ids_list)
+            all_target_ids = list(set(media_ids_list + image_ids_list + video_ids_list + audio_ids_list + document_ids_list))
             
-            logger.debug(f"   Found: {len(image_medias)} images, {len(video_medias)} videos, {len(audio_medias)} audios, {len(document_medias)} documents")
+            # Fetch all media objects
+            im_objs, vi_objs, au_objs, do_objs = PropertyAdminMediaService.get_media_by_ids(all_target_ids)
             
-            image_dict = {media.id: media for media in image_medias}
-            video_dict = {media.id: media for media in video_medias}
-            audio_dict = {media.id: media for media in audio_medias}
-            document_dict = {media.id: media for media in document_medias}
+            # Create lookup dictionaries
+            image_dict = {m.id: m for m in im_objs}
+            video_dict = {m.id: m for m in vi_objs}
+            audio_dict = {m.id: m for m in au_objs}
+            document_dict = {m.id: m for m in do_objs}
             
-            existing_image_ids, existing_video_ids, existing_audio_ids, existing_document_ids = \
-                PropertyAdminMediaService.get_existing_property_media(property_id, media_ids_list)
+            # Get existing property media to avoid duplicates
+            ex_im, ex_vi, ex_au, ex_do = PropertyAdminMediaService.get_existing_property_media(property_id, all_target_ids)
             
-            all_existing_ids = existing_image_ids | existing_video_ids | existing_audio_ids | existing_document_ids
-            logger.debug(f"   Already attached: {len(all_existing_ids)} media items")
+            media_to_create = [] # List of (type, media_obj)
             
-            media_to_create = []
-            
-            for media_id in media_ids_list:
-                if media_id in all_existing_ids:
-                    logger.debug(f"   ⏭️  Skipping media ID {media_id} (already attached)")
-                    continue
+            # 1️⃣ Process Typed IDs (High Priority - guaranteed type safety)
+            TYPED_ID_MAP = [
+                ('image', image_ids_list, image_dict, ex_im),
+                ('video', video_ids_list, video_dict, ex_vi),
+                ('audio', audio_ids_list, audio_dict, ex_au),
+                ('document', document_ids_list, document_dict, ex_do),
+            ]
+
+            for label, id_list, lookup_dict, existing_set in TYPED_ID_MAP:
+                for mid in id_list:
+                    if mid in lookup_dict and mid not in existing_set:
+                        media_to_create.append((label, lookup_dict[mid]))
+                        existing_set.add(mid) # Prevent double add if also in media_ids
+
+            # 2️⃣ Process Generic media_ids (Fallback - auto-detect type)
+            all_ex = ex_im | ex_vi | ex_au | ex_do
+            for mid in media_ids_list:
+                if mid in all_ex: continue
                 
-                # Determine type using map if provided, or default priority order
-                # Default order: image -> video -> audio -> document
-                media_type = None
-                media_obj = None
-                
-                preferred_type = media_type_map.get(media_id) if media_type_map else None
-                
-                if preferred_type:
-                    if preferred_type == 'image' and media_id in image_dict:
-                        media_type = 'image'
-                        media_obj = image_dict[media_id]
-                    elif preferred_type == 'video' and media_id in video_dict:
-                        media_type = 'video'
-                        media_obj = video_dict[media_id]
-                    elif preferred_type == 'audio' and media_id in audio_dict:
-                        media_type = 'audio'
-                        media_obj = audio_dict[media_id]
-                    elif preferred_type in ['document', 'pdf'] and media_id in document_dict:
-                        media_type = 'document'
-                        media_obj = document_dict[media_id]
-                
-                # Fallback to default priority if no preferred type or preferred type not found
-                if not media_type:
-                    if media_id in image_dict:
-                        media_type = 'image'
-                        media_obj = image_dict[media_id]
-                    elif media_id in video_dict:
-                        media_type = 'video'
-                        media_obj = video_dict[media_id]
-                    elif media_id in audio_dict:
-                        media_type = 'audio'
-                        media_obj = audio_dict[media_id]
-                    elif media_id in document_dict:
-                        media_type = 'document'
-                        media_obj = document_dict[media_id]
-                
-                if media_type and media_obj:
-                    media_to_create.append((media_type, media_obj))
-                    logger.debug(f"   ➕ Will attach {media_type} ID {media_id}")
-                else:
-                    logger.warning(f"   ❌ Media ID {media_id} not found in any media type (or preferred type mismatch)")
-                    failed_ids.append(media_id)
+                if mid in image_dict: media_to_create.append(('image', image_dict[mid]))
+                elif mid in video_dict: media_to_create.append(('video', video_dict[mid]))
+                elif mid in audio_dict: media_to_create.append(('audio', audio_dict[mid]))
+                elif mid in document_dict: media_to_create.append(('document', document_dict[mid]))
+                else: failed_ids.append(mid)
 
             if media_to_create:
                 next_order = PropertyAdminMediaService.get_next_media_order(property_id)
-                logger.debug(f"📊 [PropertyMedia][AddBulk] Next order for existing media: {next_order}")
                 
                 has_main_image = PropertyImage.objects.filter(
                     property=property_obj,
@@ -358,9 +340,6 @@ class PropertyAdminMediaService:
                     audios = [obj for obj in property_media_objects if isinstance(obj, PropertyAudio)]
                     documents = [obj for obj in property_media_objects if isinstance(obj, PropertyDocument)]
                     
-                    logger.info(f"💾 [PropertyMedia][AddBulk] Bulk creating from existing media:")
-                    logger.info(f"   Images: {len(images)}, Videos: {len(videos)}, Audios: {len(audios)}, Documents: {len(documents)}")
-                    
                     if images:
                         PropertyImage.objects.bulk_create(images)
                     if videos:
@@ -406,213 +385,163 @@ class PropertyAdminMediaService:
         }
     
     @staticmethod
-    def sync_media(property_id, media_ids, main_image_id=None, media_covers=None):
-        logger.info(f"🔄 [PropertyMedia][SyncMedia] Starting - Property ID: {property_id}")
-        logger.debug(f"🔄 [PropertyMedia][SyncMedia] media_ids: {media_ids}, main_image_id: {main_image_id}, covers: {media_covers}")
-        
-        try:
-            property_obj = Property.objects.get(id=property_id)
-            logger.info(f"✅ [PropertyMedia][SyncMedia] Found property: {property_obj.title}")
-        except Property.DoesNotExist:
-            logger.error(f"❌ [PropertyMedia][SyncMedia] ERROR: Property not found")
-            raise Property.DoesNotExist("Property not found")
-        
-        media_to_remove = set()
-        media_to_add = set()
-        media_ids_count = 0
-        
-        if media_ids is not None:
-            media_ids = media_ids if isinstance(media_ids, (list, tuple)) else []
-            media_ids_set = set(media_ids)
-            media_ids_count = len(media_ids_set)
-            logger.info(f"📊 [PropertyMedia][SyncMedia] Requested media_ids count: {media_ids_count}")
-            
-            image_ids, video_ids, audio_ids, document_ids = PropertyAdminMediaService.get_existing_property_media(property_id, [])
-            
-            # Re-fetch all current IDs to be sure we have everything attached
-            current_image_ids = set(PropertyImage.objects.filter(property_id=property_id).values_list('image_id', flat=True))
-            current_video_ids = set(PropertyVideo.objects.filter(property_id=property_id).values_list('video_id', flat=True))
-            current_audio_ids = set(PropertyAudio.objects.filter(property_id=property_id).values_list('audio_id', flat=True))
-            current_document_ids = set(PropertyDocument.objects.filter(property_id=property_id).values_list('document_id', flat=True))
-            
-            logger.debug(f"📊 [PropertyMedia][SyncMedia] Current attached media:")
-            logger.debug(f"   Images: {current_image_ids}")
-            logger.debug(f"   Videos: {current_video_ids}")
-            logger.debug(f"   Audios: {current_audio_ids}")
-            logger.debug(f"   Documents: {current_document_ids}")
-            
-            all_current_ids = current_image_ids | current_video_ids | current_audio_ids | current_document_ids
-            
-            media_to_remove = all_current_ids - media_ids_set
-            media_to_add = media_ids_set - all_current_ids
-            
-            logger.info(f"🔍 [PropertyMedia][SyncMedia] Sync analysis:")
-            logger.info(f"   To remove: {media_to_remove}")
-            logger.info(f"   To add: {media_to_add}")
-            
-            if not media_ids_set:
-                media_to_remove = all_current_ids
-                media_to_add = set()
-                logger.warning(f"   ⚠️  Empty media_ids - will remove all media")
+    def sync_media(property_id, media_ids=None,
+                   image_ids=None, video_ids=None, audio_ids=None, document_ids=None,
+                   main_image_id=None, media_covers=None,
+                   image_covers=None, video_covers=None, audio_covers=None, document_covers=None):
+        """
+        Synchronizes property media using segmented IDs if provided, 
+        or falls back to traditional media_ids with type detection.
+        """
+        logger.info(f"🔄 [PropertyMedia][Sync] Starting - Property: {property_id}")
         
         with transaction.atomic():
-            if media_ids is not None:
-                current_main_image_id = None
-                if current_image_ids:
-                    main_image_obj = PropertyImage.objects.filter(
-                        property_id=property_id,
-                        is_main=True
-                    ).first()
-                    if main_image_obj:
-                        current_main_image_id = main_image_obj.image_id
-                        logger.debug(f"🖼️  [PropertyMedia][SyncMedia] Current main image: {current_main_image_id}")
+            try:
+                property_obj = Property.objects.get(id=property_id)
+            except Property.DoesNotExist:
+                logger.error(f"❌ [PropertyMedia][Sync] Error: Property {property_id} not found")
+                raise Property.DoesNotExist("Property not found")
+            
+            # Use segmented IDs if provided, otherwise legacy media_ids
+            has_segmented = any(x is not None for x in [image_ids, video_ids, audio_ids, document_ids])
+            
+            if not has_segmented:
+                # 📜 Legacy Mode: Use media_ids with auto-detection
+                media_ids_list = list(set(media_ids)) if media_ids else []
+                logger.info(f"🔄 [PropertyMedia][Sync] Legacy Mode - IDs: {media_ids_list}")
+                
+                current_image_ids = set(PropertyImage.objects.filter(property_id=property_id).values_list('image_id', flat=True))
+                current_video_ids = set(PropertyVideo.objects.filter(property_id=property_id).values_list('video_id', flat=True))
+                current_audio_ids = set(PropertyAudio.objects.filter(property_id=property_id).values_list('audio_id', flat=True))
+                current_document_ids = set(PropertyDocument.objects.filter(property_id=property_id).values_list('document_id', flat=True))
+                
+                all_current_ids = current_image_ids | current_video_ids | current_audio_ids | current_document_ids
+                media_ids_set = set(media_ids_list)
+                
+                media_to_remove = all_current_ids - media_ids_set
+                media_to_add_ids = list(media_ids_set - all_current_ids)
                 
                 if media_to_remove:
-                    logger.info(f"🗑️  [PropertyMedia][SyncMedia] Removing {len(media_to_remove)} media items...")
-                    image_ids_to_remove = media_to_remove & current_image_ids
-                    if image_ids_to_remove:
-                        print(f"   Removing images: {image_ids_to_remove}")
-                        if current_main_image_id and current_main_image_id in image_ids_to_remove:
-                            PropertyImage.objects.filter(
-                                property_id=property_id,
-                                is_main=True
-                            ).update(is_main=False)
-                            current_main_image_id = None
-                            logger.info(f"   ⚠️  Removed main image")
-                        
-                        PropertyImage.objects.filter(
-                            property_id=property_id,
-                            image_id__in=image_ids_to_remove
-                        ).delete()
-                        logger.info(f"   ✅ Deleted {len(image_ids_to_remove)} PropertyImage records")
-                    
-                    video_ids_to_remove = media_to_remove & current_video_ids
-                    if video_ids_to_remove:
-                        print(f"   Removing videos: {video_ids_to_remove}")
-                        PropertyVideo.objects.filter(
-                            property_id=property_id,
-                            video_id__in=video_ids_to_remove
-                        ).delete()
-                        logger.info(f"   ✅ Deleted {len(video_ids_to_remove)} PropertyVideo records")
-                    
-                    audio_ids_to_remove = media_to_remove & current_audio_ids
-                    if audio_ids_to_remove:
-                        print(f"   Removing audios: {audio_ids_to_remove}")
-                        PropertyAudio.objects.filter(
-                            property_id=property_id,
-                            audio_id__in=audio_ids_to_remove
-                        ).delete()
-                        logger.info(f"   ✅ Deleted {len(audio_ids_to_remove)} PropertyAudio records")
-                    
-                    document_ids_to_remove = media_to_remove & current_document_ids
-                    if document_ids_to_remove:
-                        print(f"   Removing documents: {document_ids_to_remove}")
-                        PropertyDocument.objects.filter(
-                            property_id=property_id,
-                            document_id__in=document_ids_to_remove
-                        ).delete()
-                        logger.info(f"   ✅ Deleted {len(document_ids_to_remove)} PropertyDocument records")
+                    logger.info(f"🗑️ [PropertyMedia][Sync] Removing {len(media_to_remove)} media items")
+                    PropertyImage.objects.filter(property_id=property_id, image_id__in=media_to_remove).delete()
+                    PropertyVideo.objects.filter(property_id=property_id, video_id__in=media_to_remove).delete()
+                    PropertyAudio.objects.filter(property_id=property_id, audio_id__in=media_to_remove).delete()
+                    PropertyDocument.objects.filter(property_id=property_id, document_id__in=media_to_remove).delete()
 
-            if main_image_id is not None:
-                logger.debug(f"🖼️  [PropertyMedia][SyncMedia] Setting main image to: {main_image_id}")
-                PropertyImage.objects.filter(
-                    property_id=property_id,
-                    is_main=True
-                ).update(is_main=False)
-                
-                property_image = PropertyImage.objects.filter(
-                    property_id=property_id,
-                    image_id=main_image_id
-                ).first()
-                
-                if property_image:
-                    property_image.is_main = True
-                    property_image.save(update_fields=['is_main'])
-                    logger.info(f"   ✅ Set main image successfully")
-                    
-                    property_obj.refresh_from_db()
-                    if not property_obj.og_image:
-                        property_obj.og_image = property_image.image
-                        property_obj.save(update_fields=['og_image'])
-                        logger.info(f"   ✅ Set OG image")
-                else:
-                    logger.warning(f"   ⚠️  Main image ID {main_image_id} not found in property images")
+                if media_to_add_ids:
+                    logger.info(f"➕ [PropertyMedia][Sync] Adding {len(media_to_add_ids)} media items")
+                    PropertyAdminMediaService.add_media_bulk(property_id, media_ids=media_to_add_ids)
             
-            if media_to_add:
-                logger.info(f"➕ [PropertyMedia][SyncMedia] Adding {len(media_to_add)} new media items...")
-                PropertyAdminMediaService.add_media_bulk(
-                    property_id=property_id,
-                    media_ids=list(media_to_add)
-                )
+            else:
+                # 🎯 Segmented Mode: Guaranteed type safety, no collisions
+                logger.info("🔄 [PropertyMedia][Sync] Segmented Mode Active")
                 
-                if main_image_id is not None and main_image_id in media_to_add:
-                    logger.info(f"   🖼️  Setting newly added image {main_image_id} as main...")
-                    property_image = PropertyImage.objects.filter(
-                        property_id=property_id,
-                        image_id=main_image_id
-                    ).first()
-                    
-                    if property_image:
-                        PropertyImage.objects.filter(
-                            property_id=property_id,
-                            is_main=True
-                        ).exclude(image_id=main_image_id).update(is_main=False)
-                        
-                        property_image.is_main = True
-                        property_image.save(update_fields=['is_main'])
-                        
-                        property_obj.refresh_from_db()
-                        if not property_obj.og_image:
-                            property_obj.og_image = property_image.image
-                            property_obj.save(update_fields=['og_image'])
-                        logger.info(f"   ✅ Set newly added image as main")
-            
-            if media_covers:
-                logger.info(f"🎨 [PropertyMedia][SyncMedia] Updating media covers...")
-                
-                # REFRESH IDs because they might have changed (rectified/added)
-                # We need FRESH current_*_ids for the update_media_covers check
-                
-                fresh_video_ids = set(
-                    PropertyVideo.objects.filter(property_id=property_id).values_list('video_id', flat=True)
-                )
-                fresh_audio_ids = set(
-                    PropertyAudio.objects.filter(property_id=property_id).values_list('audio_id', flat=True)
-                )
-                fresh_document_ids = set(
-                    PropertyDocument.objects.filter(property_id=property_id).values_list('document_id', flat=True)
-                )
-                
-                # Image IDs usually don't need refreshing for covers as images don't have covers, 
-                # but let's be consistent if needed. Actually images use 'is_main'.
-                # The update_property_media_covers logic uses these sets to know WHERE to look.
-                
-                # Re-calculate all_current_ids might not be strictly necessary if update_property_media_covers 
-                # iterates media_covers keys, but let's pass fresh sets for the 'in' checks.
-                
-                fresh_all_current_ids = fresh_video_ids | fresh_audio_ids | fresh_document_ids | set(
-                    PropertyImage.objects.filter(property_id=property_id).values_list('image_id', flat=True)
-                )
+                # Model mapping for elegant looping
+                TYPE_CONFIG = [
+                    ('image', PropertyImage, image_ids, 'image_id'),
+                    ('video', PropertyVideo, video_ids, 'video_id'),
+                    ('audio', PropertyAudio, audio_ids, 'audio_id'),
+                    ('document', PropertyDocument, document_ids, 'document_id'),
+                ]
 
+                for label, model, target_ids, id_field in TYPE_CONFIG:
+                    if target_ids is not None:
+                        logger.debug(f"🔍 [PropertyMedia][Sync] Processing {label}s: {target_ids}")
+                        current = set(model.objects.filter(property_id=property_id).values_list(id_field, flat=True))
+                        to_add = set(target_ids) - current
+                        to_remove = current - set(target_ids)
+                        
+                        if to_remove: 
+                            model.objects.filter(property_id=property_id, **{f"{id_field}__in": to_remove}).delete()
+                        
+                        if to_add:
+                            logger.info(f"➕ [PropertyMedia][Sync] Adding {len(to_add)} {label}s: {to_add}")
+                            PropertyAdminMediaService.add_media_bulk(property_id, **{f"{label}_ids": list(to_add)})
+
+            # 🖼️ Handle Main Image
+            if main_image_id:
+                logger.info(f"🖼️ [PropertyMedia][Sync] Setting main image: {main_image_id}")
+                PropertyAdminMediaService.set_main_image(property_id, main_image_id)
+
+            # 🎨 Handle Media Covers
+            if any([media_covers, image_covers, video_covers, audio_covers, document_covers]):
                 PropertyAdminMediaService._update_property_media_covers(
-                    property_id=property_id,
+                    property_id, 
                     media_covers=media_covers,
-                    all_current_ids=fresh_all_current_ids,
-                    current_video_ids=fresh_video_ids,
-                    current_audio_ids=fresh_audio_ids,
-                    current_document_ids=fresh_document_ids
+                    image_covers=image_covers,
+                    video_covers=video_covers,
+                    audio_covers=audio_covers,
+                    document_covers=document_covers
                 )
-                logger.info(f"   ✅ Updated {len(media_covers)} media covers")
+
+            PropertyCacheManager.invalidate_property(property_id)
+            
+        logger.info(f"✅ [PropertyMedia][Sync] Completed successfully for Property: {property_id}")
+        return True
+
+    @staticmethod
+    def _update_property_media_covers(property_id, media_covers=None,
+                                       image_covers=None, video_covers=None, audio_covers=None, document_covers=None):
+        """
+        Optimized cover image updates using segmented dictionaries to avoid ID collisions.
+        """
+        # 1️⃣ Process Segmented Covers (High Precision)
+        CONFIG = [
+            (PropertyImage, 'image_id', image_covers),
+            (PropertyVideo, 'video_id', video_covers),
+            (PropertyAudio, 'audio_id', audio_covers),
+            (PropertyDocument, 'document_id', document_covers),
+        ]
+
+        for model, id_field, covers in CONFIG:
+            if covers:
+                logger.info(f"🎨 [PropertyMedia][Sync] Updating {len(covers)} {model.__name__} covers")
+                media_ids = [int(mid) for mid in covers.keys()]
+                PropertyAdminMediaService._bulk_update_covers(
+                    model, property_id, media_ids, covers, id_field
+                )
+
+        # 2️⃣ Process Legacy media_covers (Fallback - prone to collisions if IDs clash across types)
+        if media_covers:
+            logger.info(f"🎨 [PropertyMedia][Sync] Processing legacy media covers (potential collisions)")
+            LEGACY_MAP = [
+                (PropertyVideo, 'video_id'),
+                (PropertyAudio, 'audio_id'),
+                (PropertyDocument, 'document_id'),
+            ]
+
+            for model, id_field in LEGACY_MAP:
+                # Find which IDs in media_covers actually belong to this model in this property
+                current_ids = set(model.objects.filter(property_id=property_id).values_list(id_field, flat=True))
+                valid_ids = [int(mid) for mid in media_covers.keys() if int(mid) in current_ids]
+                
+                if valid_ids:
+                    PropertyAdminMediaService._bulk_update_covers(
+                        model, property_id, valid_ids, media_covers, id_field
+                    )
+
+    @staticmethod
+    def _bulk_update_covers(model_class, property_id, media_ids, media_covers, id_field):
+        """Helper for optimized cover updates."""
+        items = list(model_class.objects.filter(property_id=property_id, **{f"{id_field}__in": media_ids}))
+        
+        to_update = []
+        for item in items:
+            mid = getattr(item, id_field)
+            cover_id = media_covers.get(str(mid)) or media_covers.get(mid)
+            
+            # Use filter instead of get to keep it efficient if needed, 
+            # but since we already have the items, let's just update and bulk_update
+            item.cover_image_id = cover_id
+            to_update.append(item)
+            
+        if to_update:
+            model_class.objects.bulk_update(to_update, ['cover_image'])
+            logger.info(f"   ✅ Optimized update for {len(to_update)} {model_class.__name__} covers")
             
             PropertyCacheManager.invalidate_property(property_id)
         
-        logger.info(f"✅ [PropertyMedia][SyncMedia] Complete - Removed: {len(media_to_remove)}, Added: {len(media_to_add)}")
-        
-        return {
-            'removed_count': len(media_to_remove),
-            'added_count': len(media_to_add),
-            'total_count': media_ids_count
-        }
+        return True
 
     @staticmethod
     def set_main_image(property_id, media_id):
@@ -653,30 +582,6 @@ class PropertyAdminMediaService:
             PropertyCacheManager.invalidate_property(property_id)
             return True
     
-    @staticmethod
-    def _update_property_media_covers(property_id, media_covers, all_current_ids, 
-                                       current_video_ids, current_audio_ids, current_document_ids):
-        for media_id_str, cover_image_id in media_covers.items():
-            try:
-                media_id = int(media_id_str) if isinstance(media_id_str, str) else media_id_str
-            except (ValueError, TypeError):
-                continue
-            
-            if media_id not in all_current_ids:
-                continue
-            
-            if media_id in current_video_ids:
-                PropertyAdminMediaService._update_media_cover(
-                    PropertyVideo, 'video', property_id, media_id, cover_image_id, video_id=media_id
-                )
-            elif media_id in current_audio_ids:
-                PropertyAdminMediaService._update_media_cover(
-                    PropertyAudio, 'audio', property_id, media_id, cover_image_id, audio_id=media_id
-                )
-            elif media_id in current_document_ids:
-                PropertyAdminMediaService._update_media_cover(
-                    PropertyDocument, 'document', property_id, media_id, cover_image_id, document_id=media_id
-                )
     
     @staticmethod
     def _update_media_cover(model_class, media_type, property_id, media_id, cover_image_id, **filter_kwargs):

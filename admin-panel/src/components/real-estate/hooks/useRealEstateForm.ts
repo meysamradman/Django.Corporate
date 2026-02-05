@@ -14,7 +14,12 @@ import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
 import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
 import type { PropertyMedia } from "@/types/real_estate/realEstateMedia";
-import { collectModuleMediaIds as collectMediaIds, collectModuleMediaCovers as collectMediaCovers, parseModuleMedia } from "@/components/media/utils/genericMediaUtils";
+import {
+    collectModuleMediaIds as collectMediaIds,
+    collectModuleMediaCovers as collectMediaCovers,
+    collectSegmentedMediaIds,
+    parseModuleMedia
+} from "@/components/media/utils/genericMediaUtils";
 import type { Media } from "@/types/shared/media";
 
 interface UsePropertyFormProps {
@@ -203,15 +208,22 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
             allMediaIds.push(form.getValues("og_image").id);
         }
         const mediaCovers = collectMediaCovers(newMedia);
+        const segmented = collectSegmentedMediaIds(newMedia);
 
         console.group("🖼️ [RealEstate][Form] Updating Media State");
         console.log("Current Media State:", newMedia);
         console.log("Collected IDs:", allMediaIds);
-        console.log("Collected Covers:", mediaCovers);
+        console.log("Segmented IDs:", segmented);
         console.groupEnd();
 
         form.setValue("media_ids", allMediaIds, { shouldValidate: false, shouldDirty: true });
         form.setValue("media_covers", mediaCovers, { shouldValidate: false, shouldDirty: true });
+
+        // Set segmented fields
+        form.setValue("image_ids", segmented.image_ids, { shouldValidate: false, shouldDirty: true });
+        form.setValue("video_ids", segmented.video_ids, { shouldValidate: false, shouldDirty: true });
+        form.setValue("audio_ids", segmented.audio_ids, { shouldValidate: false, shouldDirty: true });
+        form.setValue("document_ids", segmented.document_ids, { shouldValidate: false, shouldDirty: true });
     }, [form]);
 
     const handleFeaturedImageChange = useCallback((media: Media | null) => {
@@ -312,6 +324,7 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                 const mainImageId = propertyMedia.featuredImage?.id || data.main_image_id || null;
                 const mediaCovers = collectMediaCovers(propertyMedia);
                 const mediaIds = collectMediaIds(propertyMedia);
+                const segmented = collectSegmentedMediaIds(propertyMedia);
 
                 const finalMediaIds = allMediaIds.length > 0 ? allMediaIds : mediaIds;
 
@@ -320,6 +333,11 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                     slug: formatSlug(validatedData.slug),
 
                     media_ids: finalMediaIds,
+                    image_ids: segmented.image_ids,
+                    video_ids: segmented.video_ids,
+                    audio_ids: segmented.audio_ids,
+                    document_ids: segmented.document_ids,
+
                     main_image_id: mainImageId,
                     media_covers: Object.keys(mediaCovers).length > 0 ? mediaCovers : undefined,
                     og_image: validatedData.og_image_id || undefined,
@@ -362,7 +380,15 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                 if (validatedData.og_image_id) createData.og_image = validatedData.og_image_id;
 
                 const mediaIds = collectMediaIds(propertyMedia);
+                const segmented = collectSegmentedMediaIds(propertyMedia);
+
                 if (mediaIds.length > 0) createData.media_ids = mediaIds;
+
+                // Add segmented IDs to create payload
+                if (segmented.image_ids.length > 0) createData.image_ids = segmented.image_ids;
+                if (segmented.video_ids.length > 0) createData.video_ids = segmented.video_ids;
+                if (segmented.audio_ids.length > 0) createData.audio_ids = segmented.audio_ids;
+                if (segmented.document_ids.length > 0) createData.document_ids = segmented.document_ids;
 
                 console.log("📦 Sending Create Payload:", createData);
                 console.groupEnd();

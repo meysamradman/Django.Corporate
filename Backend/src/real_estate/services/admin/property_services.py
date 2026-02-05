@@ -175,6 +175,10 @@ class PropertyAdminService:
         
         media_files = validated_data.pop('media_files', [])
         media_ids = validated_data.pop('media_ids', [])
+        image_ids = validated_data.pop('image_ids', [])
+        video_ids = validated_data.pop('video_ids', [])
+        audio_ids = validated_data.pop('audio_ids', [])
+        document_ids = validated_data.pop('document_ids', [])
         
         logger.debug(f"📊 [PropertyService][Create] Data extracted: labels={len(labels_ids)}, tags={len(tags_ids)}, features={len(features_ids)}, files={len(media_files)}, ids={len(media_ids)}")
 
@@ -215,12 +219,16 @@ class PropertyAdminService:
             if features_ids:
                 property_obj.features.set(features_ids)
             
-            if media_files or media_ids:
+            if any([media_files, media_ids, image_ids, video_ids, audio_ids, document_ids]):
                 logger.info(f"🖼️ [PropertyService][Create] Processing initial media...")
                 PropertyAdminMediaService.add_media_bulk(
                     property_id=property_obj.id,
                     media_files=media_files,
                     media_ids=media_ids,
+                    image_ids=image_ids,
+                    video_ids=video_ids,
+                    audio_ids=audio_ids,
+                    document_ids=document_ids,
                     created_by=created_by
                 )
         
@@ -228,7 +236,11 @@ class PropertyAdminService:
         return property_obj
     
     @staticmethod
-    def update_property(property_id, validated_data, media_ids=None, media_files=None, main_image_id=None, media_covers=None, updated_by=None):
+    def update_property(property_id, validated_data, media_ids=None, media_files=None, 
+                        image_ids=None, video_ids=None, audio_ids=None, document_ids=None,
+                        main_image_id=None, media_covers=None,
+                        image_covers=None, video_covers=None, audio_covers=None, document_covers=None,
+                        updated_by=None):
         logger.info(f"🏠 [PropertyService][Update] Starting - Property ID: {property_id}")
         logger.debug(f"🏠 [PropertyService][Update] Initial Data: media_ids={media_ids}, files_count={len(media_files) if media_files else 0}, main_image={main_image_id}, covers={media_covers}")
         
@@ -245,8 +257,19 @@ class PropertyAdminService:
         
         media_ids = media_ids if media_ids is not None else validated_data.pop('media_ids', None)
         media_files = media_files if media_files is not None else validated_data.pop('media_files', None)
+        
+        image_ids = image_ids if image_ids is not None else validated_data.pop('image_ids', None)
+        video_ids = video_ids if video_ids is not None else validated_data.pop('video_ids', None)
+        audio_ids = audio_ids if audio_ids is not None else validated_data.pop('audio_ids', None)
+        document_ids = document_ids if document_ids is not None else validated_data.pop('document_ids', None)
+        
         main_image_id = main_image_id if main_image_id is not None else validated_data.pop('main_image_id', None)
         media_covers = media_covers if media_covers is not None else validated_data.pop('media_covers', None)
+        
+        image_covers = image_covers if image_covers is not None else validated_data.pop('image_covers', None)
+        video_covers = video_covers if video_covers is not None else validated_data.pop('video_covers', None)
+        audio_covers = audio_covers if audio_covers is not None else validated_data.pop('audio_covers', None)
+        document_covers = document_covers if document_covers is not None else validated_data.pop('document_covers', None)
         
         logger.debug(f"📊 [PropertyService][Update] Extracted media: ids={media_ids}, main_img={main_image_id}, covers={media_covers}")
         
@@ -318,14 +341,24 @@ class PropertyAdminService:
                     else: media_ids = list(set(media_ids) | set(uploaded_ids))
                     logger.info(f"✅ [PropertyService][Update] Uploaded {len(uploaded_ids)} files, merged into media_ids")
             
-            if media_ids is not None or main_image_id is not None or media_covers is not None:
+            if any([media_ids, main_image_id, media_covers, 
+                    image_ids, video_ids, audio_ids, document_ids,
+                    image_covers, video_covers, audio_covers, document_covers]):
                 logger.info(f"🔄 [PropertyService][Update] Calling sync_media...")
                 from src.real_estate.services.admin.property_media_services import PropertyAdminMediaService
                 PropertyAdminMediaService.sync_media(
                     property_id=property_obj.id,
                     media_ids=media_ids,
+                    image_ids=image_ids,
+                    video_ids=video_ids,
+                    audio_ids=audio_ids,
+                    document_ids=document_ids,
                     main_image_id=main_image_id,
-                    media_covers=media_covers
+                    media_covers=media_covers,
+                    image_covers=image_covers,
+                    video_covers=video_covers,
+                    audio_covers=audio_covers,
+                    document_covers=document_covers
                 )
             else:
                 logger.debug(f"⏭️  [PropertyService][Update] Skipping media sync")

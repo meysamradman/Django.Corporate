@@ -38,6 +38,7 @@ export function RealEstateInfo({ property }: PropertyBasicInfoProps) {
             title="اطلاعات اصلی ملک"
             iconBgColor="bg-blue-0/50"
             iconColor="text-blue-1"
+            cardBorderColor="border-b-blue-1"
             className="shadow-sm"
             contentClassName=""
         >

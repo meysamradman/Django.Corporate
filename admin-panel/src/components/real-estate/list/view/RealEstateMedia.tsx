@@ -19,6 +19,8 @@ import { mediaService } from "@/components/media/services";
 import { Button } from "@/components/elements/Button";
 import { MediaPlayer } from "@/components/media/base/MediaPlayer";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Item, ItemMedia, ItemContent, ItemTitle, ItemActions } from "@/components/elements/Item";
+import { Badge } from "@/components/elements/Badge";
 
 interface MediaInfoTabProps {
   property: Property;
@@ -72,126 +74,97 @@ export function RealEstateMedia({ property }: MediaInfoTabProps) {
       iconBgColor="bg-pink-1/10"
       iconColor="text-pink-1"
       cardBorderColor="border-b-pink-1"
-      className=""
-      contentClassName=""
     >
-      <div className="flex flex-col gap-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-
-          {/* VIDEO ASSETS SECTION */}
+      <div className="flex flex-col gap-8">
+        {/* Videos & Audio Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* VIDEO ASSETS section */}
           {videos.length > 0 && (
-            <div className="flex flex-col gap-6">
-              <div className="flex items-center justify-start gap-4">
-                <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm border border-primary/20">
-                  <VideoIcon className="size-6" />
-                </div>
-                <div className="text-right">
-                  <h3 className="text-xl font-black text-font-p">ویدیو و تیزر</h3>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 {videos.map((item: any) => {
                   const media = item.media_detail || item.media || item;
                   const coverUrl = mediaService.getMediaCoverUrl(media);
                   const extension = (media.file_url || '').split('.').pop()?.toUpperCase() || 'MP4';
 
                   return (
-                    <div key={item.id} className="group relative bg-wt border border-br rounded-[2.5rem] overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] transition-all duration-500">
-                      <div className="flex flex-col sm:flex-row items-stretch">
-                        {/* Video Preview Side */}
-                        <div className="relative w-full sm:w-56 h-48 sm:h-auto overflow-hidden bg-bg">
+                    <Item key={item.id} className="p-0 border-br/40 overflow-hidden bg-wt hover:border-primary/30 transition-smooth group/v-item">
+                      <div className="flex w-full items-stretch min-h-[110px]">
+                        <div className="relative w-32 border-l border-br/40 bg-bg shrink-0">
                           {coverUrl ? (
-                            <img src={coverUrl} alt={media.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                            <img src={coverUrl} alt={media.title} className="w-full h-full object-cover opacity-90 group-hover/v-item:opacity-100 transition-opacity" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-primary/5">
-                              <VideoIcon className="size-12 text-primary opacity-20" />
+                            <div className="w-full h-full flex items-center justify-center opacity-20">
+                              <VideoIcon className="size-8" />
                             </div>
                           )}
-                          <div className="absolute inset-0 bg-static-b/20 group-hover:bg-static-b/10 transition-colors" />
                           <button
                             onClick={() => setActiveVideo(media)}
-                            className="absolute inset-0 flex items-center justify-center group/btn"
+                            className="absolute inset-0 flex items-center justify-center bg-static-b/20 group-hover/v-item:bg-static-b/10 transition-colors"
                           >
-                            <div className="size-14 rounded-full bg-wt/20 backdrop-blur-md flex items-center justify-center text-wt border border-wt/30 group-hover/btn:scale-110 group-hover/btn:bg-primary group-hover/btn:border-primary transition-all duration-300">
-                              <Play className="size-6 fill-current ml-1" />
+                            <div className="size-10 rounded-full bg-wt/20 backdrop-blur-md flex items-center justify-center text-wt border border-wt/30 scale-90 group-hover/v-item:scale-100 transition-all">
+                              <Play className="size-4 fill-current ml-0.5" />
                             </div>
                           </button>
                         </div>
-
-                        {/* Content Side */}
-                        <div className="flex-1 p-8 flex flex-col justify-center items-start text-right gap-4">
-                          <div className="flex flex-col gap-1 w-full">
-                            <h4 className="text-base font-black text-font-p line-clamp-1">{media.title || 'ویدئو ملک'}</h4>
+                        <ItemContent className="p-4 justify-between">
+                          <div className="space-y-1">
+                            <ItemTitle className="text-[13px] font-bold truncate max-w-[220px]">{media.title || 'ویدئو ملک'}</ItemTitle>
+                            <div className="flex items-center gap-3">
+                              <Badge variant="blue" className="text-[9px] px-1.5 py-0 min-h-0 bg-primary/5 text-primary border-primary/10">{extension}</Badge>
+                              <span className="text-[10px] font-bold text-font-s/40">{formatSize(media.file_size)}</span>
+                            </div>
                           </div>
-
-                          <div className="flex items-center gap-4 text-[11px] font-bold text-font-s/60 bg-bg p-2 px-4 rounded-full">
-                            <span className="text-primary">{extension}</span>
-                            <span className="size-1 rounded-full bg-br" />
-                            <span>{formatSize(media.file_size)}</span>
-                          </div>
-
                           <Button
                             variant="outline"
                             size="sm"
-                            className="mt-2 rounded-2xl border-br hover:bg-primary hover:text-wt hover:border-primary px-8 font-black text-xs h-11 transition-all"
+                            className="h-8 rounded-lg border-br hover:bg-primary hover:text-wt hover:border-primary transition-all text-[10px] px-4 font-bold"
                             onClick={() => setActiveVideo(media)}
                           >
-                            مشاهده و پخش فایل
+                            مشاهده و پخش
                           </Button>
-                        </div>
+                        </ItemContent>
                       </div>
-                    </div>
+                    </Item>
                   );
                 })}
               </div>
             </div>
           )}
 
-          {/* AUDIO ASSETS SECTION */}
+          {/* AUDIO ASSETS section */}
           {audios.length > 0 && (
-            <div className="flex flex-col gap-6">
-              <div className="flex items-center justify-start gap-4">
-                <div className="size-12 rounded-2xl bg-pink-1/10 flex items-center justify-center text-pink-1 shadow-sm border border-pink-1/20">
-                  <Music className="size-6" />
-                </div>
-                <div className="text-right">
-                  <h3 className="text-xl font-black text-font-p">توضیحات صوتی</h3>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 {audios.map((item: any) => {
                   const media = item.media_detail || item.media || item;
                   const extension = (media.file_url || '').split('.').pop()?.toUpperCase() || 'MPEG';
 
                   return (
-                    <div key={item.id} className="bg-wt border border-br rounded-[2.5rem] overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] transition-all duration-500">
-                      <div className="p-8">
-                        <div className="flex items-center justify-between mb-8">
-                          <div className="text-right">
-                            <h4 className="text-base font-black text-font-p">{media.title || 'صوت توضیحات'}</h4>
-                            <p className="text-[11px] font-bold text-font-s/40 mt-0.5">{formatSize(media.file_size)}</p>
+                    <Item key={item.id} className="p-4 border-br/40 bg-wt hover:border-pink-1/30 transition-smooth group flex-col items-stretch gap-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="size-10 rounded-xl bg-pink-1/5 text-pink-1 flex items-center justify-center border border-pink-1/10">
+                            <Music className="size-5" />
                           </div>
-                          <div className="flex items-center gap-3 bg-bg p-2 pr-4 rounded-2xl border border-br/50">
-                            <span className="text-[10px] font-black text-font-s/40 uppercase tracking-tight">{extension}</span>
-                            <div className="size-8 rounded-xl bg-pink-1 text-wt flex items-center justify-center shadow-lg shadow-pink-1/20">
-                              <Music className="size-4" />
+                          <ItemContent className="gap-1">
+                            <ItemTitle className="text-[13px] font-bold">{media.title || 'صوت توضیحات'}</ItemTitle>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="pink" className="text-[9px] px-1.5 py-0 min-h-0 bg-pink-1/5 text-pink-1 border-pink-1/10 uppercase tracking-tighter">{extension}</Badge>
+                              <span className="text-[10px] font-bold text-font-s/40">{formatSize(media.file_size)}</span>
                             </div>
-                          </div>
-                        </div>
-
-                        <div className="relative group/audio">
-                          <div className="absolute inset-x-0 -top-4 bottom-0 bg-linear-to-b from-pink-1/5 to-transparent rounded-4xl opacity-0 group-hover/audio:opacity-100 transition-opacity" />
-                          <MediaPlayer
-                            media={media}
-                            className="bg-transparent h-14 relative z-10"
-                            showControls={true}
-                            controls={true}
-                          />
+                          </ItemContent>
                         </div>
                       </div>
-                    </div>
+                      <div className="relative pt-1">
+                        <MediaPlayer
+                          media={media}
+                          className="h-9 relative z-10"
+                          showControls={true}
+                          controls={true}
+                        />
+                      </div>
+                    </Item>
                   );
                 })}
               </div>
@@ -199,19 +172,10 @@ export function RealEstateMedia({ property }: MediaInfoTabProps) {
           )}
         </div>
 
-        {/* DOCUMENTS SECTION */}
+        {/* DOCUMENTS section */}
         {documents.length > 0 && (
-          <div className="flex flex-col gap-6 pt-6">
-            <div className="flex items-center justify-start gap-4 border-t border-br pt-12">
-              <div className="size-12 rounded-2xl bg-amber-1/10 flex items-center justify-center text-amber-1 shadow-sm border border-amber-1/20">
-                <FileText className="size-6" />
-              </div>
-              <div className="text-right">
-                <h3 className="text-xl font-black text-font-p">اسناد و مدارک فنی</h3>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+          <div className="flex flex-col gap-4 border-t border-br/30 pt-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {documents.map((item: any) => {
                 const media = item.media_detail || item.media || item;
                 const fileUrl = media.file_url || media.url || '';
@@ -219,29 +183,28 @@ export function RealEstateMedia({ property }: MediaInfoTabProps) {
                 const ext = fileUrl.split('.').pop()?.toUpperCase() || 'FILE';
 
                 return (
-                  <div key={item.id} className="group bg-wt border border-br rounded-[2.5rem] p-6 hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] hover:border-amber-1/30 transition-all duration-500">
-                    <div className="flex items-center gap-6">
-                      <div className="size-20 rounded-3xl bg-bg border border-br flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-amber-1/5 group-hover:border-amber-1/20 transition-all duration-500">
+                  <Item key={item.id} className="p-4 border-br/40 bg-wt hover:border-amber-1/30 transition-smooth gap-4 flex-col items-stretch">
+                    <div className="flex items-center gap-4">
+                      <ItemMedia className="size-12 rounded-xl bg-bg border border-br/40 group-hover:bg-amber-1/5 group-hover:border-amber-1/20 transition-all shrink-0">
                         {getFileIcon(fileUrl)}
-                      </div>
-                      <div className="flex-1 min-w-0 text-right">
-                        <div className="flex items-center justify-end gap-2 mb-1">
-                          <span className="text-[9px] font-black text-amber-1 bg-amber-1/10 px-2 py-0.5 rounded-md uppercase tracking-tighter">{ext}</span>
-                          <span className="text-[9px] font-black text-font-s/40 uppercase">{formatSize(media.file_size)}</span>
+                      </ItemMedia>
+                      <ItemContent>
+                        <ItemTitle className="text-[13px] font-bold truncate max-w-[160px] leading-tight mb-1">{media.title || 'سند ضمیمه'}</ItemTitle>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="yellow" className="text-[9px] px-1.5 py-0 min-h-0 bg-amber-1/5 text-amber-1 border-amber-1/10">{ext}</Badge>
+                          <span className="text-[10px] font-bold text-font-s/40 uppercase">{formatSize(media.file_size)}</span>
                         </div>
-                        <p className="text-[14px] font-black text-font-p truncate leading-tight">{media.title || 'سند ضمیمه'}</p>
-                      </div>
+                      </ItemContent>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-3 mt-6">
-                      <Button variant="outline" className="w-full rounded-2xl border-br hover:bg-amber-1 hover:text-wt hover:border-amber-1 font-black text-[11px] h-11" asChild>
-                        <a href={fullUrl} target="_blank" rel="noopener noreferrer"><Download className="size-4 ml-2" /> دریافت فایل</a>
+                    <ItemActions className="grid grid-cols-2 gap-2 mt-1">
+                      <Button variant="outline" className="h-8 rounded-lg border-br hover:bg-amber-1 hover:text-wt hover:border-amber-1 font-bold text-[10px] px-0" asChild>
+                        <a href={fullUrl} target="_blank" rel="noopener noreferrer"><Download className="size-3.5 ml-2" /> دریافت</a>
                       </Button>
-                      <Button variant="outline" className="w-full rounded-2xl border-br hover:bg-font-p hover:text-wt hover:border-font-p font-black text-[11px] h-11" asChild>
-                        <a href={fullUrl} target="_blank" rel="noopener noreferrer"><Eye className="size-4 ml-2" /> مشاهده</a>
+                      <Button variant="outline" className="h-8 rounded-lg border-br hover:bg-font-p hover:text-wt hover:border-font-p font-bold text-[10px] px-0" asChild>
+                        <a href={fullUrl} target="_blank" rel="noopener noreferrer"><Eye className="size-3.5 ml-2" /> مشاهده</a>
                       </Button>
-                    </div>
-                  </div>
+                    </ItemActions>
+                  </Item>
                 );
               })}
             </div>
@@ -253,7 +216,7 @@ export function RealEstateMedia({ property }: MediaInfoTabProps) {
           <div className="fixed inset-0 z-100 bg-static-b/95 flex items-center justify-center animate-in fade-in duration-500">
             <div className="absolute top-0 inset-x-0 p-8 flex justify-between items-center z-50">
               <div className="flex flex-col items-start gap-1">
-                <h2 className="text-lg font-black text-wt leading-none">{activeVideo?.title || 'پخش ویدیو'}</h2>
+                <h3 className="text-lg font-black text-wt leading-none">{activeVideo?.title || 'پخش ویدیو'}</h3>
               </div>
               <button
                 onClick={() => setActiveVideo(null)}

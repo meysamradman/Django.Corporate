@@ -2,13 +2,11 @@
 import type { Property } from "@/types/real_estate/realEstate";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from "@/components/media/services";
-import { Badge } from "@/components/elements/Badge";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent } from "@/components/elements/Card";
+import { Item, ItemContent, ItemTitle, ItemMedia } from "@/components/elements/Item";
 import {
-  ExternalLink,
-  FileText,
   Image as ImageIcon,
-  Bot,
   Search
 } from "lucide-react";
 
@@ -21,136 +19,87 @@ export function RealEstateSEO({ property }: SEOInfoTabProps) {
     ? mediaService.getMediaUrlFromObject({ file_url: property.og_image.file_url } as any)
     : "";
 
-  const metaTitle = property.meta_title || property.title || "";
-  const metaDescription = property.meta_description || property.short_description || "";
+  const metaTitle = property.meta_title || property.title || "بدون عنوان سئو";
+  const metaDescription = property.meta_description || property.short_description || "بدون توضیحات سئو";
   const ogTitle = property.og_title || metaTitle;
   const ogDescription = property.og_description || metaDescription;
-
-  const seoFields = [
-    {
-      icon: FileText,
-      label: "Meta Title",
-      value: metaTitle,
-      type: "text" as const,
-    },
-    {
-      icon: FileText,
-      label: "Meta Description",
-      value: metaDescription,
-      type: "text" as const,
-    },
-    {
-      icon: ExternalLink,
-      label: "Canonical URL",
-      value: property.canonical_url,
-      type: "url" as const,
-    },
-    {
-      icon: Bot,
-      label: "Robots",
-      value: property.robots_meta,
-      type: "badge" as const,
-    },
-  ];
+  const canonicalUrl = property.canonical_url || "";
 
   return (
     <CardWithIcon
       icon={Search}
-      title="تنظیمات سئو"
-      iconBgColor="bg-teal-1/10"
+      title="تنظیمات سئو و رسانه‌های اجتماعی"
+      iconBgColor="bg-teal-0"
       iconColor="text-teal-1"
       cardBorderColor="border-b-teal-1"
-      className=""
-      contentClassName=""
+      className="overflow-hidden"
     >
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="flex flex-col gap-2">
-          <h4 className="text-sm font-bold text-font-s mb-4 border-b border-br/50 pb-2 inline-block">Meta Tags</h4>
-          {seoFields.map((field, idx) => (
-            <div
-              key={idx}
-              className="group flex items-start gap-3 p-3 rounded-lg bg-bg/30 border border-br/40 hover:bg-bg/50 hover:border-br transition-all"
-            >
-              <field.icon className="w-4 h-4 text-font-s mt-0.5 shrink-0" />
-              <div className="flex-1 min-w-0 flex flex-col gap-1">
-                <div className="text-[10px] font-bold text-font-s tracking-wider">
-                  {field.label}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-stretch">
+        {/* Google Preview Section */}
+        <div className="flex flex-col h-full gap-5">
+          <Item size="sm" className="px-1 py-0 pointer-events-none border-0 bg-transparent">
+            <ItemMedia className="size-2 rounded-full bg-teal-1 shadow-[0_0_8px_var(--teal-1)]" />
+            <ItemContent>
+              <ItemTitle className="text-xs font-black text-font-p tracking-wide">پیش‌نمایش گوگل</ItemTitle>
+            </ItemContent>
+          </Item>
+
+          <Card className="flex-1 bg-bg border-br/40 shadow-xs group transition-smooth hover:border-teal-1/30 overflow-hidden">
+            <CardContent className="p-6 space-y-3">
+              <div className="flex items-center gap-3 text-sm text-font-s opacity-80 truncate">
+                <div className="size-7 bg-wt rounded-full shadow-xs border border-br/30 flex items-center justify-center shrink-0">
+                  <Search className="size-4 text-teal-1" />
                 </div>
-                <div className="text-xs text-font-p">
-                  {field.value ? (
-                    field.type === "badge" ? (
-                      <Badge variant="blue" className="text-[10px] font-mono px-2 py-0.5">
-                        {field.value}
-                      </Badge>
-                    ) : field.type === "url" ? (
-                      <code className="font-mono text-[10px] break-all opacity-80">
-                        {field.value}
-                      </code>
-                    ) : (
-                      <span className="line-clamp-2">{field.value}</span>
-                    )
-                  ) : (
-                    <span className="text-font-s opacity-50 text-[10px]">—</span>
-                  )}
-                </div>
+                <span className="dir-ltr text-left flex-1 truncate font-medium">{canonicalUrl}</span>
               </div>
-            </div>
-          ))}
+              <h3 className="text-xl font-medium text-[#1a0dab] group-hover:underline cursor-pointer decoration-2 underline-offset-4 line-clamp-1 leading-normal">
+                {metaTitle}
+              </h3>
+              <p className="text-base text-[#4d5156] line-clamp-2 leading-relaxed">
+                <span className="font-bold text-font-s opacity-60 ml-2">{new Date().toLocaleDateString('fa-IR')} — </span>
+                {metaDescription}
+              </p>
+            </CardContent>
+          </Card>
+
         </div>
 
-        <div className="flex flex-col gap-2">
-          <h4 className="text-sm font-bold text-font-s mb-4 border-b border-br/50 pb-2 inline-block">Open Graph</h4>
-          <div className="p-4 rounded-lg bg-bg/30 border border-br/40 flex flex-col gap-3">
-            <div className="flex gap-3">
+        {/* Social Preview Section */}
+        <div className="flex flex-col h-full gap-5">
+          <Item size="sm" className="px-1 py-0 pointer-events-none border-0 bg-transparent">
+            <ItemMedia className="size-2 rounded-full bg-blue-1 shadow-[0_0_8px_var(--blue-1)]" />
+            <ItemContent>
+              <ItemTitle className="text-xs font-black text-font-p tracking-wide">پیش‌نمایش شبکه‌های اجتماعی</ItemTitle>
+            </ItemContent>
+          </Item>
+
+          <Card className="flex-1 bg-wt border-br/60 shadow-xs group transition-smooth hover:border-blue-1/20 overflow-hidden min-h-[140px]">
+            <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] lg:grid-cols-[220px_1fr] h-full items-stretch">
               {ogImageUrl ? (
-                <div className="relative w-24 h-24 shrink-0 rounded-md overflow-hidden border border-br/60 shadow-sm group">
+                <div className="relative aspect-video sm:aspect-auto overflow-hidden border-b sm:border-b-0 sm:border-l border-br/40 h-full">
                   <MediaImage
                     media={{ file_url: ogImageUrl } as any}
-                    alt="OG Preview"
-                    className="object-cover transition-transform duration-300 group-hover:scale-110"
+                    alt="Social Preview"
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
                     fill
                   />
-                  <div className="absolute inset-0 bg-linear-to-t from-static-b/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="absolute bottom-1 left-1 right-1">
-                      <Badge variant="blue" className="text-[8px] px-1.5 py-0.5 bg-static-b/80 text-static-w border-none w-full justify-center">
-                        OG
-                      </Badge>
-                    </div>
-                  </div>
                 </div>
               ) : (
-                <div className="relative w-24 h-24 shrink-0 rounded-md border-2 border-dashed border-br/40 bg-bg/20 flex items-center justify-center">
-                  <ImageIcon className="w-6 h-6 text-font-s opacity-30" />
+                <div className="aspect-video sm:aspect-auto bg-bg/40 flex items-center justify-center border-b sm:border-b-0 sm:border-l border-br/40 h-full">
+                  <ImageIcon className="size-9 text-font-s opacity-20" />
                 </div>
               )}
 
-              <div className="flex-1 min-w-0 flex flex-col gap-2">
-                <div className="flex items-start gap-2">
-                  <FileText className="w-4 h-4 text-font-s mt-0.5 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[9px] font-bold text-font-s tracking-wider mb-0.5">
-                      Title
-                    </div>
-                    <div className="text-xs text-font-p line-clamp-2 font-medium">
-                      {ogTitle || <span className="text-font-s opacity-50 text-[10px]">—</span>}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2">
-                  <FileText className="w-4 h-4 text-font-s mt-0.5 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[9px] font-bold text-font-s tracking-wider mb-0.5">
-                      Description
-                    </div>
-                    <div className="text-xs text-font-p line-clamp-2 opacity-80">
-                      {ogDescription || <span className="text-font-s opacity-50 text-[10px]">—</span>}
-                    </div>
-                  </div>
-                </div>
+              <div className="p-6 flex flex-col justify-center min-w-0 bg-linear-to-bl from-wt to-bg/5">
+                <h3 className="text-lg font-black text-font-p line-clamp-1 mb-2 leading-snug">
+                  {ogTitle}
+                </h3>
+                <p className="text-sm text-font-s line-clamp-2 leading-relaxed opacity-90">
+                  {ogDescription}
+                </p>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     </CardWithIcon>
