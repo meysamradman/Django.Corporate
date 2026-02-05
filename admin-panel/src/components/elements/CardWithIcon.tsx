@@ -36,19 +36,20 @@ const CardWithIcon = memo(function CardWithIcon({
 }: CardWithIconProps) {
   return (
     <Card className={cn(
+      "gap-0",
       showCardBorder && cn("border-b-2", cardBorderColor),
       className
     )}>
       <CardHeader className={cn(
-        showHeaderBorder && cn("border-b pb-6", borderColor),
+        showHeaderBorder && cn("border-b", borderColor),
         headerClassName
       )}>
-        <CardTitle className="flex items-center justify-between text-base leading-normal">
+        <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={cn("p-2 rounded-lg", iconBgColor)}>
               <Icon className={cn("w-5 h-5", iconColor)} />
             </div>
-            <span className="font-bold">{title}</span>
+            <span>{title}</span>
           </div>
           {titleExtra}
         </CardTitle>

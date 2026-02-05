@@ -31,7 +31,6 @@ export function RealEstateRealtorCard({ property }: RealtorCardProps) {
     const phone = isAgent ? agent.phone : property.created_by || "-"; // Fallback to created_by if available
     const mobile = isAgent ? null : "-";
     const email = isAgent ? agent.email : "-";
-    const website = isAgent ? (agent.canonical_url || "") : "";
     const agencyName = isAgent && agent.agency ? agent.agency.name : "دپارتمان مرکزی";
     const license = isAgent ? agent.license_number : null;
     const isVerified = isAgent ? agent.is_verified : true; // Admins are verified
@@ -81,7 +80,7 @@ export function RealEstateRealtorCard({ property }: RealtorCardProps) {
                         <div className="flex justify-center gap-4 border-b border-br pb-6">
                             {[Facebook, Twitter, Linkedin, Instagram].map((Icon, i) => (
                                 <a key={i} href="#" className="p-2.5 rounded-xl bg-bg-2 text-gray-2 hover:bg-primary hover:text-white transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-lg hover:shadow-primary/30">
-                                    <Icon className="w-5 h-5" />
+                                    <Icon className="w-4 h-4" />
                                 </a>
                             ))}
                         </div>
@@ -126,7 +125,7 @@ export function RealEstateRealtorCard({ property }: RealtorCardProps) {
                             {license && (
                                 <div className="flex items-center justify-between pt-2 px-2">
                                     <span className="text-xs text-font-s flex items-center gap-1">
-                                        <Award className="w-3 h-3" />
+                                        <Award className="w-4 h-4" />
                                         کد/پروانه:
                                     </span>
                                     <span className="text-xs font-mono text-font-p bg-bg-2 px-2 py-0.5 rounded border border-br">{license}</span>

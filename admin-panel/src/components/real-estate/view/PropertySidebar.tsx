@@ -20,13 +20,13 @@ export function PropertySidebar({ property }: PropertySidebarProps) {
     return (
         <div className="w-full h-full">
             <Card className="h-full overflow-hidden border-br shadow-lg bg-card p-0 relative group rounded-3xl flex flex-col">
-                <div className="h-72 w-full relative bg-bg/50 border-b border-br z-0 overflow-hidden shrink-0">
+                <div className="h-80 w-full relative bg-bg/50 border-b border-br z-0 overflow-hidden shrink-0">
                     <LocationMap
                         latitude={property.latitude ? Number(property.latitude) : null}
                         longitude={property.longitude ? Number(property.longitude) : null}
                         onLocationChange={() => { }}
                         disabled={true}
-                        className="h-full w-full grayscale-20 group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-100"
+                        className="h-full w-full grayscale-0"
                         minimal={true}
                     />
 
@@ -44,33 +44,23 @@ export function PropertySidebar({ property }: PropertySidebarProps) {
                     <div className="absolute inset-0 bg-linear-to-t from-static-b/30 to-transparent pointer-events-none" />
                 </div>
 
-                <div className="p-8 relative z-10 bg-card flex flex-col items-center flex-1">
-                    <div className="flex justify-center -mt-14 mb-5">
-                        <div className="bg-blue-1 text-wt p-4 rounded-2xl shadow-xl shadow-blue-1/30 ring-8 ring-card transition-transform duration-300 group-hover:scale-110">
-                            <MapPin className="w-7 h-7 fill-current" />
+                <div className="p-6 relative z-10 bg-card flex flex-col items-center flex-1 -mt-10 mx-4 mb-4 rounded-3xl shadow-xl ring-1 ring-br/20">
+                    <div className="mb-4 -mt-14">
+                        <div className="bg-blue-1 text-wt p-4 rounded-2xl shadow-xl shadow-blue-1/30 ring-8 ring-card transition-transform duration-300 group-hover:scale-110 flex items-center justify-center">
+                            <MapPin className="w-8 h-8 fill-current" />
                         </div>
                     </div>
 
-                    <div className="text-center space-y-4 mb-8 flex-1">
+                    <div className="text-center space-y-4 mb-6 flex-1 w-full">
                         <h3 className="font-black text-font-p text-xl tracking-tight">موقعیت مکانی ملک</h3>
-                        <p className="text-sm font-bold text-font-s leading-relaxed px-4 opacity-70">
+                        <p className="text-sm font-bold text-font-s leading-relaxed px-2 opacity-70">
                             {property.address || "آدرس دقیق در سیستم ثبت نشده است"}
                         </p>
-
-                        {(property.province_name || property.city_name) && (
-                            <div className="flex flex-wrap items-center justify-center gap-2 pt-4">
-                                <span className="px-3 py-1 rounded-xl bg-bg border border-br text-[10px] font-black text-font-s truncate max-w-[120px]">{property.province_name}</span>
-                                <span className="px-3 py-1 rounded-xl bg-bg border border-br text-[10px] font-black text-font-s truncate max-w-[120px]">{property.city_name}</span>
-                                {property.neighborhood && (
-                                    <span className="px-3 py-1 rounded-xl bg-bg border border-br text-[10px] font-black text-font-s truncate max-w-[120px]">{property.neighborhood}</span>
-                                )}
-                            </div>
-                        )}
                     </div>
 
                     {hasLocation && (
                         <Button
-                            className="w-full h-14 text-xs font-black bg-blue-1 hover:bg-blue-1/90 text-wt shadow-xl shadow-blue-1/20 transition-all rounded-2xl gap-3"
+                            className="w-full h-12 text-xs font-black bg-blue-1 hover:bg-blue-1/90 text-wt shadow-xl shadow-blue-1/20 transition-all rounded-xl gap-2"
                             onClick={() => window.open(googleMapsUrl, '_blank')}
                         >
                             <Navigation className="w-4 h-4 fill-current" />

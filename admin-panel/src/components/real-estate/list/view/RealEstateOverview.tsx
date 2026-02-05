@@ -108,7 +108,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-6">
 
       <CardWithIcon
         icon={Info}
@@ -423,7 +423,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
         className="shadow-sm"
         contentClassName=""
       >
-        <div className="space-y-8">
+        <div className="flex flex-col gap-6">
           <div>
             <label className="text-[10px] font-bold text-font-s tracking-wider mb-2 block">
               توضیحات کوتاه
@@ -461,7 +461,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
             type="single"
             collapsible
             defaultValue={`floor-plan-${property.floor_plans[0].id}`}
-            className="w-full space-y-4"
+            className="w-full flex flex-col gap-4"
             onValueChange={(value) => {
               if (value) {
                 const floorPlanId = parseInt(value.replace("floor-plan-", ""));
@@ -512,7 +512,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
                   <AccordionContent className="pb-8">
                     <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 pt-6 border-t border-br/40">
                       {/* Right (In RTL, this is the Start/Right side): Stats Grid */}
-                      <div className="space-y-6 order-2 lg:order-1">
+                      <div className="flex flex-col gap-6 order-2 lg:order-1">
                         <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                           <div className="p-4 rounded-2xl bg-white/50 border border-br/40 flex flex-col items-center justify-center gap-1.5 text-center group hover:border-indigo-1/30 transition-all shadow-xs hover:shadow-md">
                             <span className="text-[10px] font-bold text-font-s tracking-widest opacity-60">مساحت</span>
@@ -573,7 +573,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
                         </div>
 
                         {floorPlan.description && (
-                          <div className="space-y-3 bg-bg/40 p-5 rounded-2xl border border-br/30">
+                          <div className="flex flex-col gap-3 bg-bg/40 p-5 rounded-2xl border border-br/30">
                             <div className="flex items-center gap-2 text-[11px] font-bold text-font-s tracking-widest opacity-70">
                               <FileText className="w-4 h-4" />
                               <span>توضیحات تکمیلی پلان</span>

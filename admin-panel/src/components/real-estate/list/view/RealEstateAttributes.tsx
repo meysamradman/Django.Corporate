@@ -3,6 +3,7 @@ import { Building2, Compass, MapPin, Key, Info, Layers, Home } from "lucide-reac
 import type { Property } from "@/types/real_estate/realEstate";
 import { useState, useEffect } from "react";
 import { realEstateApi } from "@/api/real-estate/properties";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
 
 interface ExtraAttributesInfoTabProps {
   property: Property;
@@ -70,10 +71,18 @@ export function RealEstateAttributes({ property }: ExtraAttributesInfoTabProps) 
   }
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-6">
+    <CardWithIcon
+      icon={Layers}
+      title="مشخصات فنی و ثبتی"
+      iconBgColor="bg-purple-1/10"
+      iconColor="text-purple-1"
+      cardBorderColor="border-b-purple-1"
+      className=""
+      contentClassName="flex flex-col gap-6"
+    >
+      <div className="flex flex-col gap-6">
         {predefinedAttributes.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {predefinedAttributes.map(key => {
               const config = attributeConfigs[key];
               const Icon = config.icon;
@@ -84,7 +93,7 @@ export function RealEstateAttributes({ property }: ExtraAttributesInfoTabProps) 
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <div className={`p-2 rounded-lg bg-bg ${config.color} group-hover:scale-110 transition-transform`}>
-                      <Icon className="w-5 h-5" />
+                      <Icon className="w-4 h-4" />
                     </div>
                     <span className="text-xs font-medium text-font-s">{config.label}</span>
                   </div>
@@ -99,15 +108,7 @@ export function RealEstateAttributes({ property }: ExtraAttributesInfoTabProps) 
 
         {customAttributes.length > 0 && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="p-2 rounded-lg bg-purple-0/50 text-purple-1">
-                <Layers className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-font-p">سایر خصوصیات</h3>
-              <div className="flex-1 h-px bg-linear-to-r from-br via-br/30 to-transparent" />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {customAttributes.map(key => (
                 <div key={key} className="flex items-center justify-between p-4 border border-br rounded-xl bg-card hover:border-purple-1/30 transition-all">
                   <div className="flex items-center gap-3">
@@ -125,6 +126,6 @@ export function RealEstateAttributes({ property }: ExtraAttributesInfoTabProps) 
           </div>
         )}
       </div>
-    </div>
+    </CardWithIcon>
   );
 }

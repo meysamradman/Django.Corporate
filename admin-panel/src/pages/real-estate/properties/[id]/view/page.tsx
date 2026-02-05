@@ -101,16 +101,14 @@ export default function PropertyViewPage() {
   ];
 
   return (
-    <div className="relative space-y-10 pb-20 animate-in fade-in duration-500">
+    <div className="relative flex flex-col gap-8 pb-20 animate-in fade-in duration-500">
 
       <Card className="shadow-xs overflow-hidden p-6 relative block">
         <div className="absolute top-0 right-0 w-full h-1 bg-linear-to-r from-blue-1 via-purple-1 to-pink-1 opacity-60" />
 
         <div className="flex flex-wrap items-center justify-between gap-6">
           <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-2xl bg-bg border border-br flex items-center justify-center text-blue-1 shadow-xs">
-              <Building2 className="w-8 h-8 opacity-80" />
-            </div>
+
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-3">
                 <h1 className="text-2xl font-black text-font-p tracking-tight">{propertyData.title}</h1>
@@ -265,7 +263,7 @@ export default function PropertyViewPage() {
 
       < div className="flex flex-col xl:flex-row gap-8 items-start relative mt-6 min-w-0" >
 
-        < div className="flex-1 space-y-12 min-w-0 w-full" >
+        < div className="flex-1 grid grid-cols-1 gap-6 min-w-0 w-full" >
           <div id="section-overview" className="scroll-mt-32">
             <RealEstateOverview property={propertyData} />
           </div>
