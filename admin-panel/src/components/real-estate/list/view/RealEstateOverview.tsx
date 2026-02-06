@@ -27,6 +27,8 @@ import {
   Package,
   Soup,
   Globe,
+  CreditCard,
+  ShieldCheck,
   Smartphone,
   PhoneCall
 } from "lucide-react";
@@ -35,6 +37,7 @@ import { mediaService } from "@/components/media/services";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { formatArea, formatPriceToPersian } from "@/core/utils/realEstateFormat";
 import { msg } from "@/core/messages";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 interface OverviewTabProps {
   property: Property;
@@ -120,199 +123,197 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
         contentClassName=""
       >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-0 text-font-p">
-          {/* Column 1: Core Identity & Structure */}
+          {/* Column 1: Core Identity & Status */}
           <div className="flex flex-col">
-            <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
-              <Hash className="w-4 h-4 text-blue-1/60 group-hover:text-blue-1 transition-colors shrink-0" />
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-xs font-bold text-font-s">شناسه ملک:</span>
-                <span className="text-sm font-black font-mono">HZ-{property.id}</span>
-              </div>
-            </div>
-
-            {property.property_type && (
-              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
-                <Home className="w-4 h-4 text-blue-1/60 group-hover:text-blue-1 transition-colors shrink-0" />
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-bold text-font-s">نوع ملک:</span>
-                  <span className="text-sm font-black">{property.property_type.title || "-"}</span>
-                </div>
-              </div>
-            )}
-
             <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
               <Activity className="w-4 h-4 text-orange-1/60 group-hover:text-orange-1 transition-colors shrink-0" />
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-xs font-bold text-font-s">وضعیت:</span>
                 <span className="text-sm font-black">
-                  {getLocalizedValue('status', property.status) || (property.status === 'for_rent' ? 'اجاره' : property.status === 'for_sale' ? 'فروش' : property.status || '-')}
+                  {getLocalizedValue('status', property.status) || (property.status === 'for_rent' ? 'اجاره' : property.status === 'for_sale' ? 'فروش' : property.status || 'وارد نشده')}
                 </span>
               </div>
             </div>
 
-            {property.built_area && (
-              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
-                <Maximize2 className="w-4 h-4 text-blue-1/60 group-hover:text-blue-1 transition-colors shrink-0" />
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-bold text-font-s">زیربنا:</span>
-                  <span className="text-sm font-black font-mono" dir="ltr">{formatArea(property.built_area)}</span>
-                </div>
+            <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+              <Hash className="w-4 h-4 text-blue-1/60 group-hover:text-blue-1 transition-colors shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-font-s">شناسه ملک:</span>
+                <span className="text-sm font-black font-mono">HZ-{property.id || 'وارد نشده'}</span>
               </div>
-            )}
+            </div>
 
-            {property.land_area && (
-              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
-                <Layers className="w-4 h-4 text-emerald-1/60 group-hover:text-emerald-1 transition-colors shrink-0" />
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-bold text-font-s">مساحت زمین:</span>
-                  <span className="text-sm font-black font-mono" dir="ltr">{formatArea(property.land_area)}</span>
-                </div>
+            <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+              <Home className="w-4 h-4 text-blue-1/60 group-hover:text-blue-1 transition-colors shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-font-s">نوع ملک:</span>
+                <span className="text-sm font-black">{property.property_type?.title || "وارد نشده"}</span>
               </div>
-            )}
+            </div>
 
-            {property.document_type && (
-              <div className="flex items-center gap-3 py-3 border-b border-br/50 last:border-0 md:last:border-b lg:last:border-b group transition-colors hover:bg-bg/40 px-1 rounded-sm">
-                <Briefcase className="w-4 h-4 text-amber-1/60 group-hover:text-amber-1 transition-colors shrink-0" />
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-bold text-font-s">نوع سند:</span>
-                  <span className="text-sm font-black">{getLocalizedValue('document_type', property.document_type) || property.document_type}</span>
-                </div>
+            <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+              <Maximize2 className="w-4 h-4 text-blue-1/60 group-hover:text-blue-1 transition-colors shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-font-s">زیربنا:</span>
+                <span className="text-sm font-black font-mono" dir="ltr">{property.built_area ? formatArea(property.built_area) : "وارد نشده"}</span>
               </div>
-            )}
+            </div>
+
+            <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+              <Layers className="w-4 h-4 text-emerald-1/60 group-hover:text-emerald-1 transition-colors shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-font-s">مساحت زمین:</span>
+                <span className="text-sm font-black font-mono" dir="ltr">{property.land_area ? formatArea(property.land_area) : "وارد نشده"}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 py-3 border-b border-br/50 last:border-0 md:last:border-b lg:last:border-0 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+              <Calendar className="w-4 h-4 text-orange-1/60 group-hover:text-orange-1 transition-colors shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-font-s">سال ساخت:</span>
+                <span className="text-sm font-black">{property.year_built ? property.year_built.toLocaleString('fa-IR', { useGrouping: false }) : "وارد نشده"}</span>
+              </div>
+            </div>
           </div>
 
           {/* Column 2: Financials & Rooms */}
           <div className="flex flex-col">
-            {property.price && (
-              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
-                <DollarSign className="w-4 h-4 text-emerald-1/60 group-hover:text-emerald-1 transition-colors shrink-0" />
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-bold text-font-s">قیمت کل:</span>
-                  <span className="text-sm font-black text-emerald-1">
-                    {formatPriceToPersian(property.price, property.currency || 'تومان')}
-                  </span>
-                </div>
+            <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+              <DollarSign className="w-4 h-4 text-emerald-1/60 group-hover:text-emerald-1 transition-colors shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-font-s">قیمت کل / اجاره:</span>
+                <span className="text-sm font-black text-emerald-1">
+                  {property.price || property.monthly_rent
+                    ? formatPriceToPersian(property.price || property.monthly_rent, property.currency || 'تومان')
+                    : "وارد نشده"}
+                </span>
               </div>
-            )}
+            </div>
 
-            {property.monthly_rent && (
-              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
-                <DollarSign className="w-4 h-4 text-blue-1/60 group-hover:text-blue-1 transition-colors shrink-0" />
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-bold text-font-s">اجاره ماهیانه:</span>
-                  <span className="text-sm font-black text-blue-1">
-                    {formatPriceToPersian(property.monthly_rent, property.currency || 'تومان')}
-                  </span>
-                </div>
+            <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+              <CreditCard className="w-4 h-4 text-blue-1/60 group-hover:text-blue-1 transition-colors shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-font-s">رهن / ودیعه:</span>
+                <span className="text-sm font-black text-blue-1">
+                  {property.mortgage_amount || property.security_deposit
+                    ? formatPriceToPersian(property.mortgage_amount || property.security_deposit, property.currency || 'تومان')
+                    : "وارد نشده"}
+                </span>
               </div>
-            )}
+            </div>
 
-            {property.bedrooms !== null && property.bedrooms !== undefined && (
-              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
-                <Building2 className="w-4 h-4 text-purple-1/60 group-hover:text-purple-1 transition-colors shrink-0" />
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-bold text-font-s">تعداد اتاق خواب:</span>
-                  <span className="text-sm font-black">
-                    {(msg.realEstate().facilities.bedrooms as any)[property.bedrooms] || property.bedrooms.toLocaleString('fa-IR')}
-                  </span>
-                </div>
+            <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+              <Building2 className="w-4 h-4 text-purple-1/60 group-hover:text-purple-1 transition-colors shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-font-s">تعداد اتاق خواب:</span>
+                <span className="text-sm font-black">
+                  {property.bedrooms !== null && property.bedrooms !== undefined
+                    ? ((msg.realEstate().facilities.bedrooms as any)[property.bedrooms] || property.bedrooms.toLocaleString('fa-IR'))
+                    : "وارد نشده"}
+                </span>
               </div>
-            )}
+            </div>
 
-            {property.bathrooms !== null && property.bathrooms !== undefined && (
-              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
-                <Building2 className="w-4 h-4 text-cyan-1/60 group-hover:text-cyan-1 transition-colors shrink-0" />
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-bold text-font-s">سرویس بهداشتی:</span>
-                  <span className="text-sm font-black">
-                    {(msg.realEstate().facilities.bathrooms as any)[property.bathrooms] || (property.bathrooms === 0 ? 'ندارد' : property.bathrooms.toLocaleString('fa-IR'))}
-                  </span>
-                </div>
+            <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+              <Building2 className="w-4 h-4 text-cyan-1/60 group-hover:text-cyan-1 transition-colors shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-font-s">سرویس بهداشتی:</span>
+                <span className="text-sm font-black">
+                  {property.bathrooms !== null && property.bathrooms !== undefined
+                    ? ((msg.realEstate().facilities.bathrooms as any)[property.bathrooms] || (property.bathrooms === 0 ? 'ندارد' : property.bathrooms.toLocaleString('fa-IR')))
+                    : "وارد نشده"}
+                </span>
               </div>
-            )}
+            </div>
 
-            {property.kitchens !== null && property.kitchens !== undefined && (
-              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
-                <Soup className="w-4 h-4 text-orange-1/60 group-hover:text-orange-1 transition-colors shrink-0" />
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-bold text-font-s">آشپزخانه:</span>
-                  <span className="text-sm font-black">
-                    {(msg.realEstate().facilities.kitchens as any)[property.kitchens] || property.kitchens.toLocaleString('fa-IR')}
-                  </span>
-                </div>
+            <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+              <Soup className="w-4 h-4 text-orange-1/60 group-hover:text-orange-1 transition-colors shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-font-s">آشپزخانه:</span>
+                <span className="text-sm font-black">
+                  {property.kitchens !== null && property.kitchens !== undefined
+                    ? ((msg.realEstate().facilities.kitchens as any)[property.kitchens] || property.kitchens.toLocaleString('fa-IR'))
+                    : "وارد نشده"}
+                </span>
               </div>
-            )}
+            </div>
 
-            {property.living_rooms !== null && property.living_rooms !== undefined && (
-              <div className="flex items-center gap-3 py-3 border-b border-br/50 last:border-0 md:last:border-0 lg:last:border-b group transition-colors hover:bg-bg/40 px-1 rounded-sm">
-                <Users className="w-4 h-4 text-indigo-1/60 group-hover:text-indigo-1 transition-colors shrink-0" />
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-bold text-font-s">پذیرایی:</span>
-                  <span className="text-sm font-black">
-                    {(msg.realEstate().facilities.living_rooms as any)[property.living_rooms] || property.living_rooms.toLocaleString('fa-IR')}
-                  </span>
-                </div>
+            <div className="flex items-center gap-3 py-3 border-b border-br/50 last:border-0 md:last:border-0 lg:last:border-b group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+              <Users className="w-4 h-4 text-indigo-1/60 group-hover:text-indigo-1 transition-colors shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-font-s">پذیرایی:</span>
+                <span className="text-sm font-black">
+                  {property.living_rooms !== null && property.living_rooms !== undefined
+                    ? ((msg.realEstate().facilities.living_rooms as any)[property.living_rooms] || property.living_rooms.toLocaleString('fa-IR'))
+                    : "وارد نشده"}
+                </span>
               </div>
-            )}
+            </div>
           </div>
 
-          {/* Column 3: Logistics & Year */}
+          {/* Column 3: Logistics & Statistics */}
           <div className="flex flex-col">
-            {property.year_built && (
-              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
-                <Calendar className="w-4 h-4 text-orange-1/60 group-hover:text-orange-1 transition-colors shrink-0" />
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-bold text-font-s">سال ساخت:</span>
-                  <span className="text-sm font-black">{property.year_built.toLocaleString('fa-IR', { useGrouping: false })}</span>
-                </div>
+            <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+              <Home className="w-4 h-4 text-gray-1/60 group-hover:text-gray-1 transition-colors shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-font-s">پارکینگ:</span>
+                <span className="text-sm font-black">
+                  {property.parking_spaces !== null && property.parking_spaces !== undefined
+                    ? ((msg.realEstate().facilities.parking_spaces as any)[property.parking_spaces] || (property.parking_spaces === 0 ? 'ندارد' : property.parking_spaces.toLocaleString('fa-IR')))
+                    : "وارد نشده"}
+                </span>
               </div>
-            )}
+            </div>
 
-            {property.parking_spaces !== null && property.parking_spaces !== undefined && (
-              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
-                <Home className="w-4 h-4 text-gray-1/60 group-hover:text-gray-1 transition-colors shrink-0" />
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-bold text-font-s">پارکینگ:</span>
-                  <span className="text-sm font-black">
-                    {(msg.realEstate().facilities.parking_spaces as any)[property.parking_spaces] || (property.parking_spaces === 0 ? 'ندارد' : property.parking_spaces.toLocaleString('fa-IR'))}
-                  </span>
-                </div>
+            <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+              <Package className="w-4 h-4 text-blue-1/60 group-hover:text-blue-1 transition-colors shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-font-s">انباری:</span>
+                <span className="text-sm font-black">
+                  {property.storage_rooms !== null && property.storage_rooms !== undefined
+                    ? ((msg.realEstate().facilities.storage_rooms as any)[property.storage_rooms] || property.storage_rooms.toLocaleString('fa-IR'))
+                    : "وارد نشده"}
+                </span>
               </div>
-            )}
+            </div>
 
-            {property.storage_rooms !== null && property.storage_rooms !== undefined && (
-              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
-                <Package className="w-4 h-4 text-blue-1/60 group-hover:text-blue-1 transition-colors shrink-0" />
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-bold text-font-s">انباری:</span>
-                  <span className="text-sm font-black">
-                    {(msg.realEstate().facilities.storage_rooms as any)[property.storage_rooms] || property.storage_rooms.toLocaleString('fa-IR')}
-                  </span>
-                </div>
+            <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+              <Layers className="w-4 h-4 text-indigo-1/60 group-hover:text-indigo-1 transition-colors shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-font-s">تعداد کل طبقات:</span>
+                <span className="text-sm font-black font-mono">{property.floors_in_building ? property.floors_in_building.toLocaleString('fa-IR') : "وارد نشده"}</span>
               </div>
-            )}
+            </div>
 
-            {property.floors_in_building !== null && property.floors_in_building !== undefined && (
-              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
-                <Layers className="w-4 h-4 text-indigo-1/60 group-hover:text-indigo-1 transition-colors shrink-0" />
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-bold text-font-s">تعداد کل طبقات:</span>
-                  <span className="text-sm font-black font-mono">{property.floors_in_building.toLocaleString('fa-IR')}</span>
-                </div>
+            <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+              <Layers className="w-4 h-4 text-indigo-1/60 group-hover:text-indigo-1 transition-colors shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-font-s">طبقه ملک:</span>
+                <span className="text-sm font-black font-mono">
+                  {property.floor_number !== null && property.floor_number !== undefined
+                    ? ((msg.realEstate().facilities.floor_number as any)[property.floor_number] || property.floor_number.toLocaleString('fa-IR'))
+                    : "وارد نشده"}
+                </span>
               </div>
-            )}
+            </div>
 
-            {property.floor_number !== null && property.floor_number !== undefined && (
-              <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
-                <Layers className="w-4 h-4 text-indigo-1/60 group-hover:text-indigo-1 transition-colors shrink-0" />
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-bold text-font-s">طبقه ملک:</span>
-                  <span className="text-sm font-black font-mono">
-                    {(msg.realEstate().facilities.floor_number as any)[property.floor_number] || property.floor_number.toLocaleString('fa-IR')}
-                  </span>
-                </div>
+            <div className="flex items-center gap-3 py-3 border-b border-br/50 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+              <Briefcase className="w-4 h-4 text-amber-1/60 group-hover:text-amber-1 transition-colors shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-font-s">نوع سند:</span>
+                <span className="text-sm font-black">{property.document_type ? (getLocalizedValue('document_type', property.document_type) || property.document_type) : "وارد نشده"}</span>
               </div>
-            )}
+            </div>
+
+            <div className="flex items-center gap-3 py-3 border-b border-br/50 last:border-0 group transition-colors hover:bg-bg/40 px-1 rounded-sm">
+              <ShieldCheck className="w-4 h-4 text-emerald-1/60 group-hover:text-emerald-1 transition-colors shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-font-s">وضعیت سند:</span>
+                <span className="text-sm font-black">
+                  {property.has_document === true ? 'دارد' : property.has_document === false ? 'ندارد' : 'وارد نشده'}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </CardWithIcon>
@@ -441,11 +442,19 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
             <label className="text-[10px] font-bold text-font-s tracking-wider mb-2 block">
               توضیحات کامل
             </label>
-            <div className="text-sm text-font-p bg-bg/50 rounded-xl p-5 leading-loose">
+            <div className="text-sm text-font-p bg-bg/50 rounded-xl overflow-hidden leading-loose">
               {property.description ? (
-                <ReadMore content={property.description} isHTML={true} maxHeight="200px" />
+                <div className="p-5">
+                  <ReadMore content={property.description} isHTML={true} maxHeight="200px" />
+                </div>
               ) : (
-                "توضیحی وارد نشده است"
+                <EmptyState
+                  title="توضیحاتی ثبت نشده است"
+                  description="هیچ توضیحات تکمیلی برای این ملک در سیستم موجود نیست"
+                  icon={FileText}
+                  size="sm"
+                  fullBleed={true}
+                />
               )}
             </div>
           </div>
