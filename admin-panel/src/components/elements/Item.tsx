@@ -1,11 +1,10 @@
-import type { ComponentProps } from "react"
-import { Slot } from "@radix-ui/react-slot"
+import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-
+import { Slot } from "@radix-ui/react-slot"
 import { cn } from "@/core/utils/cn"
 import { Separator } from "@/components/elements/Separator"
 
-function ItemGroup({ className, ...props }: ComponentProps<"div">) {
+function ItemGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       role="list"
@@ -19,7 +18,7 @@ function ItemGroup({ className, ...props }: ComponentProps<"div">) {
 function ItemSeparator({
   className,
   ...props
-}: ComponentProps<typeof Separator>) {
+}: React.ComponentProps<typeof Separator>) {
   return (
     <Separator
       data-slot="item-separator"
@@ -31,7 +30,7 @@ function ItemSeparator({
 }
 
 const itemVariants = cva(
-  "group/item flex items-center border border-transparent text-sm rounded-md transition-colors [a]:hover:bg-bg/50 [a]:transition-colors duration-100 flex-wrap outline-none focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:ring-[3px] text-right",
+  "group/item flex items-center border border-transparent text-sm rounded-md transition-colors [a]:hover:bg-bg/50 [a]:transition-colors duration-100 flex-wrap outline-none focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:ring-[3px]",
   {
     variants: {
       variant: {
@@ -57,7 +56,7 @@ function Item({
   size = "default",
   asChild = false,
   ...props
-}: ComponentProps<"div"> &
+}: React.ComponentProps<"div"> &
   VariantProps<typeof itemVariants> & { asChild?: boolean }) {
   const Comp = asChild ? Slot : "div"
   return (
@@ -92,7 +91,7 @@ function ItemMedia({
   className,
   variant = "default",
   ...props
-}: ComponentProps<"div"> & VariantProps<typeof itemMediaVariants>) {
+}: React.ComponentProps<"div"> & VariantProps<typeof itemMediaVariants>) {
   return (
     <div
       data-slot="item-media"
@@ -103,12 +102,12 @@ function ItemMedia({
   )
 }
 
-function ItemContent({ className, ...props }: ComponentProps<"div">) {
+function ItemContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="item-content"
       className={cn(
-        "flex flex-1 flex-col gap-1 [&+[data-slot=item-content]]:flex-none text-right",
+        "flex flex-1 flex-col gap-1 [&+[data-slot=item-content]]:flex-none",
         className
       )}
       {...props}
@@ -116,12 +115,12 @@ function ItemContent({ className, ...props }: ComponentProps<"div">) {
   )
 }
 
-function ItemTitle({ className, ...props }: ComponentProps<"div">) {
+function ItemTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="item-title"
       className={cn(
-        "flex w-fit items-center gap-2 text-sm leading-snug font-medium text-right",
+        "flex w-fit items-center gap-2 text-sm leading-snug font-medium",
         className
       )}
       {...props}
@@ -129,12 +128,12 @@ function ItemTitle({ className, ...props }: ComponentProps<"div">) {
   )
 }
 
-function ItemDescription({ className, ...props }: ComponentProps<"p">) {
+function ItemDescription({ className, ...props }: React.ComponentProps<"p">) {
   return (
     <p
       data-slot="item-description"
       className={cn(
-        "text-font-s line-clamp-2 text-sm leading-normal font-normal text-balance text-right",
+        "text-font-s line-clamp-2 text-sm leading-normal font-normal text-balance",
         "[&>a:hover]:text-primary [&>a]:underline [&>a]:underline-offset-4",
         className
       )}
@@ -143,7 +142,7 @@ function ItemDescription({ className, ...props }: ComponentProps<"p">) {
   )
 }
 
-function ItemActions({ className, ...props }: ComponentProps<"div">) {
+function ItemActions({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="item-actions"
@@ -153,7 +152,7 @@ function ItemActions({ className, ...props }: ComponentProps<"div">) {
   )
 }
 
-function ItemHeader({ className, ...props }: ComponentProps<"div">) {
+function ItemHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="item-header"
@@ -166,7 +165,7 @@ function ItemHeader({ className, ...props }: ComponentProps<"div">) {
   )
 }
 
-function ItemFooter({ className, ...props }: ComponentProps<"div">) {
+function ItemFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="item-footer"
@@ -191,4 +190,3 @@ export {
   ItemHeader,
   ItemFooter,
 }
-

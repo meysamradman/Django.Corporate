@@ -11,12 +11,12 @@ interface ReadMoreProps {
   defaultOpen?: boolean;
 }
 
-export function ReadMore({ 
-  content, 
-  maxHeight = "200px", 
+export function ReadMore({
+  content,
+  maxHeight = "200px",
   className,
   isHTML = false,
-  defaultOpen = false 
+  defaultOpen = false
 }: ReadMoreProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [needsReadMore, setNeedsReadMore] = useState(false);
@@ -94,7 +94,7 @@ export function ReadMore({
         >
           <div ref={innerRef}>{renderContent()}</div>
         </div>
-        
+
         {!isOpen && (
           <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-bg via-bg/95 via-bg/85 via-bg/50 via-bg/20 to-transparent pointer-events-none transition-opacity duration-500" />
         )}
