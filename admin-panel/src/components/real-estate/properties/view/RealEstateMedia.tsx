@@ -1,33 +1,29 @@
-import { useState } from "react";
+
 import {
   FileText,
-  Music,
-  Play,
   Video as VideoIcon,
   Download,
   FileCode,
   FileArchive,
   File as FileIcon,
-  X,
   FileDigit,
   Image as ImageIcon
 } from "lucide-react";
 import type { Property } from "@/types/real_estate/realEstate";
 import { mediaService } from "@/components/media/services";
 import { Button } from "@/components/elements/Button";
-import { MediaPlayer } from "@/components/media/base/MediaPlayer";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Item, ItemContent, ItemTitle } from "@/components/elements/Item";
 import { Badge } from "@/components/elements/Badge";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { AudioPlayer } from "@/components/media/base/AudioPlayer";
+import { VideoPlayer } from "@/components/media/base/VideoPlayer";
 
 interface MediaInfoTabProps {
   property: Property;
 }
 
 export function RealEstateMedia({ property }: MediaInfoTabProps) {
-  const [activeVideo, setActiveVideo] = useState<any>(null);
-
   const allMedia = property.media || property.property_media || [];
 
   const videos = allMedia.filter((item: any) => (item.media_detail || item.media || item)?.media_type === 'video');
@@ -87,59 +83,28 @@ export function RealEstateMedia({ property }: MediaInfoTabProps) {
                 className="w-full shadow-sm"
                 contentClassName="p-5"
               >
-                <div className="flex flex-col gap-5">
+                <div className="flex flex-col gap-6">
                   {/* VIDEO ASSETS */}
                   {videos.length > 0 && (
-                    <div className="grid grid-cols-1 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {videos.map((item: any) => {
                         const media = item.media_detail || item.media || item;
                         const coverUrl = mediaService.getMediaCoverUrl(media);
-                        const extension = (media.file_url || '').split('.').pop()?.toUpperCase() || 'MP4';
 
                         return (
-                          <Item key={item.id} className="p-0 border-br/40 overflow-hidden bg-wt/50 hover:bg-wt hover:border-blue-1/30 transition-smooth group/v-item">
-                            <div className="flex w-full items-stretch min-h-[100px]">
-                              <div className="relative w-28 border-l border-br/30 bg-bg shrink-0">
-                                {coverUrl ? (
-                                  <img src={coverUrl} alt={media.title} className="w-full h-full object-cover opacity-90 group-hover/v-item:opacity-100 transition-opacity" />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center opacity-20">
-                                    <VideoIcon className="size-6" />
-                                  </div>
-                                )}
-                                <button
-                                  onClick={() => setActiveVideo(media)}
-                                  className="absolute inset-0 flex items-center justify-center bg-static-b/20 group-hover/v-item:bg-static-b/10 transition-colors"
-                                >
-                                  <div className="size-9 rounded-full bg-wt/20 backdrop-blur-md flex items-center justify-center text-wt border border-wt/30 scale-90 group-hover/v-item:scale-100 transition-all">
-                                    <Play className="size-3.5 fill-current ml-0.5" />
-                                  </div>
-                                </button>
-                              </div>
-                              <ItemContent className="p-4 justify-between">
-                                <div className="space-y-0.5">
-                                  <ItemTitle className="text-sm font-black truncate text-font-p">
-                                    {media.title || 'ویدئو ملک'}
-                                  </ItemTitle>
-                                  <div className="flex items-center gap-1.5 opacity-60">
-                                    <Badge variant="outline" className="h-4 text-[9px] font-black border-blue-1/20 text-blue-1 px-1.5">{extension}</Badge>
-                                    <span className="text-[10px] font-bold text-font-s">{formatSize(media.file_size)}</span>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Button variant="outline" size="sm" className="h-7 px-3 text-blue-1 bg-blue-1/5 border-blue-1/10 hover:bg-blue-1/10 rounded-lg text-[10px] font-black" onClick={() => setActiveVideo(media)}>
-                                    <Play className="size-3 ml-1.5 fill-current" />
-                                    پخش آنلاین
-                                  </Button>
-                                  <Button variant="outline" size="icon" className="size-7 text-font-s hover:bg-bg rounded-lg" asChild>
-                                    <a href={media.file_url} target="_blank" rel="noreferrer">
-                                      <Download className="size-3.5" />
-                                    </a>
-                                  </Button>
-                                </div>
-                              </ItemContent>
+                          <div key={item.id} className="flex flex-col gap-2">
+                            <VideoPlayer
+                              key={item.id}
+                              src={mediaService.getMediaUrlFromObject(media)}
+                              poster={coverUrl}
+                              title={media.title || 'ویدئو ملک'}
+                              size={formatSize(media.file_size)}
+                            />
+                            <div className="flex justify-between items-start px-1">
+                              <span className="text-xs font-bold text-font-p line-clamp-1">{media.title || 'ویدئو ملک'}</span>
+                              <span className="text-[10px] text-font-s font-mono">{formatSize(media.file_size)}</span>
                             </div>
-                          </Item>
+                          </div>
                         );
                       })}
                     </div>
@@ -147,31 +112,15 @@ export function RealEstateMedia({ property }: MediaInfoTabProps) {
 
                   {/* AUDIO ASSETS */}
                   {audios.length > 0 && (
-                    <div className="grid grid-cols-1 gap-3">
+                    <div className="flex flex-col gap-3">
                       {audios.map((item: any) => {
                         const media = item.media_detail || item.media || item;
                         return (
-                          <Item key={item.id} className="p-3 border-br/40 bg-wt/50 hover:bg-wt hover:border-pink-1/30 transition-smooth group/a-item">
-                            <div className="flex items-center gap-4 w-full">
-                              <div className="size-11 rounded-xl bg-pink-0/30 flex items-center justify-center text-pink-1 group-hover/a-item:bg-pink-0/50 transition-colors">
-                                <Music className="size-5" />
-                              </div>
-                              <ItemContent className="p-0 flex-1">
-                                <ItemTitle className="text-[13px] font-bold text-font-p">
-                                  {media.title || 'پادکست ملک'}
-                                </ItemTitle>
-                                <div className="flex items-center gap-2 mt-0.5">
-                                  <span className="text-[10px] font-bold text-font-s/60">{formatSize(media.file_size)}</span>
-                                  <Badge variant="outline" className="h-4 text-[9px] font-black border-pink-1/20 text-pink-1 px-1.5">AUDIO</Badge>
-                                </div>
-                              </ItemContent>
-                              <Button variant="outline" size="sm" className="h-8 w-8 p-0 rounded-xl border-br hover:border-pink-1 hover:text-pink-1 transition-all" asChild>
-                                <a href={media.file_url} target="_blank" rel="noreferrer">
-                                  <Play className="size-3.5 fill-current" />
-                                </a>
-                              </Button>
-                            </div>
-                          </Item>
+                          <AudioPlayer
+                            key={item.id}
+                            src={mediaService.getMediaUrlFromObject(media)}
+                            title={media.title || 'پادکست ملک'}
+                          />
                         );
                       })}
                     </div>
@@ -213,7 +162,7 @@ export function RealEstateMedia({ property }: MediaInfoTabProps) {
                           </div>
                         </ItemContent>
                         <Button variant="outline" size="icon" className="size-9 text-font-s hover:bg-purple-0/40 hover:text-purple-1 rounded-xl shrink-0 transition-colors" asChild>
-                          <a href={media.file_url} target="_blank" rel="noreferrer">
+                          <a href={mediaService.getMediaUrlFromObject(media)} target="_blank" rel="noreferrer">
                             <Download className="size-4.5" />
                           </a>
                         </Button>
@@ -230,26 +179,6 @@ export function RealEstateMedia({ property }: MediaInfoTabProps) {
               </CardWithIcon>
             </div>
           )}
-        </div>
-      )}
-
-      {/* Video Player Modal */}
-      {activeVideo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-static-b/80 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="absolute top-6 right-6">
-            <button
-              onClick={() => setActiveVideo(null)}
-              className="size-14 rounded-full bg-wt/10 backdrop-blur-xl flex items-center justify-center text-wt hover:bg-red-1 transition-all cursor-pointer border border-wt/20"
-            >
-              <X className="size-6" />
-            </button>
-          </div>
-
-          <div className="w-full max-w-6xl px-4 animate-in zoom-in-95 duration-500">
-            <div className="relative aspect-video bg-static-b rounded-xl overflow-hidden shadow-lg">
-              <MediaPlayer media={activeVideo} className="w-full h-full" autoPlay={true} />
-            </div>
-          </div>
         </div>
       )}
     </div>

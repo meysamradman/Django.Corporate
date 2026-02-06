@@ -2,7 +2,11 @@ import sys
 import os
 from pathlib import Path
 from datetime import timedelta
+import mimetypes
 from corsheaders.defaults import default_headers
+
+mimetypes.add_type("image/webp", ".webp")
+
 from config.env import env, BASE_DIR
 from django.utils.translation import gettext_lazy as _
 env.read_env(os.path.join(BASE_DIR, ".env"))

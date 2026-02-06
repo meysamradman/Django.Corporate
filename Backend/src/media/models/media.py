@@ -111,7 +111,8 @@ class AbstractMedia(BaseModel):
     def save(self, *args, **kwargs):
         if self.file and (not self.file_size or not self.etag):
             self.file_size = self.file.size
-            self.mime_type, _ = mimetypes.guess_type(self.file.name)
+            mime_type, _ = mimetypes.guess_type(self.file.name)
+            self.mime_type = mime_type or 'application/octet-stream'
             unique_str = f"{self.file.name}_{self.file_size}_{time.time()}"
             self.etag = hashlib.md5(unique_str.encode()).hexdigest()
 

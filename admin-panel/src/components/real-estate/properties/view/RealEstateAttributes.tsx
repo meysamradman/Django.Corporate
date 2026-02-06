@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { realEstateApi } from "@/api/real-estate/properties";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { Item, ItemContent, ItemMedia } from "@/components/elements/Item";
 
 interface ExtraAttributesInfoTabProps {
   property: Property;
@@ -96,20 +97,23 @@ export function RealEstateAttributes({ property }: ExtraAttributesInfoTabProps) 
                 const config = attributeConfigs[key];
                 const Icon = config.icon;
                 return (
-                  <div
+                  <Item
                     key={key}
-                    className="group relative overflow-hidden flex flex-col p-4 border border-br rounded-xl bg-card hover:border-blue-1/30 transition-all duration-300"
+                    variant="outline"
+                    className="flex-col items-start p-4 bg-card hover:border-blue-1/30 transition-all duration-300 gap-3"
                   >
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className={`p-2 rounded-lg bg-bg ${config.color} group-hover:scale-110 transition-transform`}>
-                        <Icon className="w-4 h-4" />
-                      </div>
+                    <div className="flex items-center gap-3 w-full">
+                      <ItemMedia className={`bg-bg p-2 h-auto w-auto rounded-lg ${config.color} group-hover:scale-110 transition-transform`}>
+                        <Icon className="size-4" />
+                      </ItemMedia>
                       <span className="text-xs font-medium text-font-s">{config.label}</span>
                     </div>
-                    <div className="text-base font-bold text-font-p mr-10 z-10">
-                      {getDisplayValue(key, extraAttributes[key])}
-                    </div>
-                  </div>
+                    <ItemContent className="w-full">
+                      <div className="text-base font-bold text-font-p z-10 w-full text-left rtl:text-right">
+                        {getDisplayValue(key, extraAttributes[key])}
+                      </div>
+                    </ItemContent>
+                  </Item>
                 );
               })}
             </div>
@@ -119,17 +123,23 @@ export function RealEstateAttributes({ property }: ExtraAttributesInfoTabProps) 
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {customAttributes.map(key => (
-                  <div key={key} className="flex items-center justify-between p-4 border border-br rounded-xl bg-card hover:border-purple-1/30 transition-all">
+                  <Item
+                    key={key}
+                    variant="outline"
+                    className="justify-between p-4 bg-card hover:border-purple-1/30 transition-all"
+                  >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-purple-0 flex items-center justify-center">
-                        <Key className="w-4 h-4 text-purple-1" />
-                      </div>
+                      <ItemMedia className="size-8 rounded-full bg-purple-0 text-purple-1">
+                        <Key className="size-4" />
+                      </ItemMedia>
                       <span className="text-sm font-semibold text-font-p">{key}</span>
                     </div>
-                    <div className="bg-bg px-3 py-1 rounded-lg text-xs font-bold text-font-s">
-                      {String(extraAttributes[key])}
-                    </div>
-                  </div>
+                    <ItemContent className="flex-none">
+                      <div className="bg-bg px-3 py-1 rounded-lg text-xs font-bold text-font-s">
+                        {String(extraAttributes[key])}
+                      </div>
+                    </ItemContent>
+                  </Item>
                 ))}
               </div>
             </div>
