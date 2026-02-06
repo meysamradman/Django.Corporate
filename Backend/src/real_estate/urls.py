@@ -2,7 +2,6 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from src.real_estate import views
 from src.real_estate.views.admin import location_views, property_geo_views
-from src.real_estate.views.public import property_view
 
 router = DefaultRouter()
 router.register(r'admin/property', views.PropertyAdminViewSet, basename='admin-property')
@@ -20,7 +19,7 @@ router.register(r'admin/real-estate-cities', location_views.RealEstateCityViewSe
 router.register(r'admin/real-estate-city-regions', location_views.RealEstateCityRegionViewSet, basename='admin-real-estate-city-regions')
 
 # Public URLs
-router.register(r'public/properties', property_view.PublicPropertyViewSet, basename='public-property')
+
 
 urlpatterns = [
     path('', include(router.urls)),

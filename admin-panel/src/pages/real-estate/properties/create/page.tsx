@@ -68,13 +68,13 @@ const TabSkeleton = () => (
   </div>
 );
 
-const BaseInfoTab = lazy(() => import("@/components/real-estate/list/create/RealEstateInfo"));
-const DetailsTab = lazy(() => import("@/components/real-estate/list/create/RealEstateDetails"));
-const MediaTab = lazy(() => import("@/components/real-estate/list/create/RealEstateMedia"));
-const SEOTab = lazy(() => import("@/components/real-estate/list/create/RealEstateSEO"));
-const LocationTab = lazy(() => import("@/components/real-estate/list/create/RealEstateLocation"));
-const FloorPlansTab = lazy(() => import("@/components/real-estate/list/create/RealEstateFloorPlans"));
-const ExtraAttributesTab = lazy(() => import("@/components/real-estate/list/create/RealEstateAttributes"));
+const BaseInfoTab = lazy(() => import("@/components/real-estate/properties/create/RealEstateInfo"));
+const DetailsTab = lazy(() => import("@/components/real-estate/properties/create/RealEstateDetails"));
+const MediaTab = lazy(() => import("@/components/real-estate/properties/create/RealEstateMedia"));
+const SEOTab = lazy(() => import("@/components/real-estate/properties/create/RealEstateSEO"));
+const LocationTab = lazy(() => import("@/components/real-estate/properties/create/RealEstateLocation"));
+const FloorPlansTab = lazy(() => import("@/components/real-estate/properties/create/RealEstateFloorPlans"));
+const ExtraAttributesTab = lazy(() => import("@/components/real-estate/properties/create/RealEstateAttributes"));
 
 export default function PropertyCreatePage() {
   const {

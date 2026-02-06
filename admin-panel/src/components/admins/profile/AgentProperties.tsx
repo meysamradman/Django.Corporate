@@ -1,8 +1,8 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { useNavigate } from "react-router-dom";
-import { usePropertyColumns } from "@/components/real-estate/list/PropertyTableColumns";
-import { usePropertyFilterOptions, getPropertyFilterConfig } from "@/components/real-estate/list/PropertyTableFilters";
+import { usePropertyColumns } from "@/components/real-estate/properties/list/RealEstateTableColumns";
+import { usePropertyFilterOptions, getPropertyFilterConfig } from "@/components/real-estate/properties/list/RealEstateTableFilters";
 import type { PropertyFilters } from "@/types/real_estate/realEstateListParams";
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
@@ -62,7 +62,7 @@ export function AgentProperties({ admin }: AgentPropertiesTabProps) {
   const { booleanFilterOptions } = usePropertyFilterOptions();
 
   const agentId = admin.agent_profile?.id;
-  
+
   if (!agentId) {
     return (
       <div className="text-center py-8">
