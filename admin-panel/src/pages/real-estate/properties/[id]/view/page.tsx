@@ -16,8 +16,8 @@ import {
   ArrowUpRight
 } from "lucide-react";
 
-import { Card } from "@/components/elements/Card";
 
+import { Card, CardContent } from "@/components/elements/Card";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate";
 import { usePropertyPrintView } from "@/hooks/real-estate/usePropertyPrintView";
@@ -117,13 +117,13 @@ export default function PropertyViewPage() {
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-black text-font-p tracking-tighter shrink-0 leading-none">{propertyData.title}</h1>
             <div className="flex items-center gap-1.5">
-              <Badge variant={statusConfig[propertyData.status]?.variant || "default"} className="rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-widest gap-1.5 h-5">
+              <Badge variant={statusConfig[propertyData.status]?.variant || "default"} className="rounded-full px-2 py-0.5 text-[9px] font-bold tracking-widest gap-1.5 h-5">
                 <div className={`w-1.5 h-1.5 rounded-full ${statusConfig[propertyData.status]?.dot || 'bg-current'} animate-pulse`} />
                 {statusConfig[propertyData.status]?.label || propertyData.status}
               </Badge>
 
               {propertyData.is_active && (
-                <Badge variant="emerald" className="rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-widest gap-1.5 h-5">
+                <Badge variant="emerald" className="rounded-full px-2 py-0.5 text-[9px] font-bold tracking-widest gap-1.5 h-5">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-1 animate-pulse" />
                   فعال
                 </Badge>
@@ -134,7 +134,7 @@ export default function PropertyViewPage() {
           <div className="flex items-center gap-3 text-[10.5px] font-bold text-font-s opacity-50">
             <span className="font-mono text-font-p bg-bg/60 px-1.5 py-0.5 rounded border border-br">#{propertyData.id}</span>
             <div className="w-1 h-1 rounded-full bg-br" />
-            <span className="uppercase tracking-widest">{propertyData.property_type?.title || 'Residential'}</span>
+            <span className="tracking-widest">{propertyData.property_type?.title || 'Residential'}</span>
             <div className="w-1 h-1 rounded-full bg-br" />
             <div className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
@@ -179,145 +179,101 @@ export default function PropertyViewPage() {
         <div className="lg:col-span-8 xl:col-span-9 space-y-5">
           <RealEstateGridGallery property={propertyData} />
 
-          {/* Verified Management Strip: Refined for premium feel and robust photo display */}
-          <Card className="flex-row items-center justify-between gap-0 p-6 lg:px-10 overflow-hidden border-br shadow-md bg-card/60 backdrop-blur-md min-h-32 ring-1 ring-br/30">
-            <div className="absolute inset-y-0 right-0 w-2.5 bg-blue-1 opacity-50" />
-
-            <div className="flex items-center gap-16 divide-x divide-x-reverse divide-br relative z-10 flex-1">
-              {propertyData.agency && (
-                <div className="flex items-center gap-6 shrink-0 group">
-                  <div
-                    onClick={() => navigate(`/admins/agencies/${propertyData.agency?.id}/view`)}
-                    className="size-16 rounded-2xl bg-wt border border-br p-3 flex items-center justify-center shadow-sm shrink-0 group-hover:border-blue-1/50 group-hover:shadow-md transition-all duration-300 cursor-pointer overflow-hidden"
-                  >
-                    <Avatar className="size-full rounded-none">
-                      <AvatarImage
-                        src={
-                          (propertyData.agency.logo && mediaService.getMediaUrlFromObject(propertyData.agency.logo as any)) ||
-                          (propertyData.agency.logo_url ? mediaService.getMediaUrlFromObject({ file_url: propertyData.agency.logo_url } as any) : undefined)
-                        }
-                        className="object-contain"
-                      />
-                      <AvatarFallback className="bg-blue-1/10 text-blue-1 font-black text-lg">
-                        {propertyData.agency.name?.[0] || 'A'}
-                      </AvatarFallback>
-                    </Avatar>
-                  </div>
-                  <div className="flex flex-col gap-2.5">
-                    <div className="flex items-center gap-3">
-                      <Badge variant="blue" className="text-[10px] font-black tracking-wider px-3 py-1 bg-blue-1/10 text-blue-1 border-none h-5">آژانس املاک</Badge>
-                      <h4
-                        onClick={() => navigate(`/admins/agencies/${propertyData.agency?.id}/view`)}
-                        className="text-lg font-black text-font-p leading-none cursor-pointer hover:text-blue-1 transition-colors"
-                      >
-                        {propertyData.agency.name}
-                      </h4>
-                    </div>
-                    <div className="flex items-center gap-6">
-                      <div className="flex items-center gap-2.5 text-font-p hover:text-blue-1 transition-colors cursor-pointer bg-blue-1/5 px-4 py-1.5 rounded-xl border border-blue-1/10 shadow-xs group/phone">
-                        <Phone className="w-4 h-4 text-blue-1 group-hover:rotate-12 transition-transform" />
-                        <span className="text-[15px] font-black dir-ltr tracking-tight">{propertyData.agency.phone}</span>
-                      </div>
-                      <button
-                        onClick={() => navigate(`/admins/agencies/${propertyData.agency?.id}/view`)}
-                        className="flex items-center gap-1 text-[13px] font-bold text-blue-1/60 hover:text-blue-1 transition-colors group/link underline underline-offset-4 decoration-blue-1/20 hover:decoration-blue-1 cursor-pointer"
-                      >
-                        <span>مشاهده پروفایل</span>
-                        <ArrowUpRight className="w-4 h-4 transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {(propertyData.agent || propertyData.created_by_name) && (
-                <div className="flex items-center gap-6 pr-16 shrink-0 group">
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (propertyData.agent?.user) {
-                        navigate(`/agents/${propertyData.agent.user}/edit`);
-                      } else if (propertyData.created_by) {
-                        navigate(`/admins/${propertyData.created_by}/edit`);
-                      }
-                    }}
-                    className="relative shrink-0 cursor-pointer"
-                  >
-                    <Avatar className="size-16 rounded-full border-2 border-wt ring-2 ring-br/20 shadow-md group-hover:ring-indigo-1/40 transition-all duration-300">
-                      <AvatarImage
-                        src={
-                          (propertyData.agent?.profile_image && mediaService.getMediaUrlFromObject(propertyData.agent.profile_image as any)) ||
-                          (propertyData.agent?.profile_picture_url ? mediaService.getMediaUrlFromObject({ file_url: propertyData.agent.profile_picture_url } as any) : undefined)
-                        }
-                        className="object-cover"
-                      />
-                      <AvatarFallback className="bg-indigo-1/10 text-indigo-1 font-black text-lg">
-                        {propertyData.agent ? (propertyData.agent.first_name?.[0] || propertyData.agent.full_name?.[0] || 'م') : (propertyData.created_by_name?.[0] || 'م')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className={`absolute bottom-0 right-0 w-4.5 h-4.5 border-2 border-wt rounded-full shadow-md z-10 ${propertyData.agent ? 'bg-emerald-1' : 'bg-blue-1'}`} />
-                  </div>
-                  <div className="flex flex-col gap-2.5">
-                    <div className="flex items-center gap-3">
-                      <Badge variant="purple" className={`text-[10px] font-black tracking-wider px-3 py-1 border-none h-5 ${propertyData.agent ? 'bg-indigo-1/10 text-indigo-1' : 'bg-blue-1/10 text-blue-1'}`}>
-                        {propertyData.agent ? 'مشاور ملک' : 'مدیر سیستم'}
-                      </Badge>
-                      <h4
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (propertyData.agent?.user) {
-                            navigate(`/agents/${propertyData.agent.user}/edit`);
-                          } else if (propertyData.created_by) {
-                            navigate(`/admins/${propertyData.created_by}/edit`);
+          {/* Verified Management Strip: Iteration 3 - Minimalist & Compact */}
+          <Card className="overflow-hidden border-br shadow-3xs bg-card ring-1 ring-br/20">
+            <CardContent className="p-0">
+              <div className={`flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x lg:divide-x-reverse divide-br/20 ${(!propertyData.agency || (!propertyData.agent && !propertyData.created_by_name)) ? 'justify-center' : ''}`}>
+                {propertyData.agency && (
+                  <div className={`flex-1 flex items-center gap-6 p-4 transition-colors group ${(!propertyData.agent && !propertyData.created_by_name) ? 'lg:px-16 lg:justify-center' : 'lg:px-8 hover:bg-bg/5'}`}>
+                    <div className="size-14 rounded-xl bg-wt border border-br p-2.5 flex items-center justify-center shadow-3xs shrink-0 group-hover:border-blue-1/40 transition-all">
+                      <Avatar className="size-full rounded-none">
+                        <AvatarImage
+                          src={
+                            (propertyData.agency.logo && mediaService.getMediaUrlFromObject(propertyData.agency.logo as any)) ||
+                            (propertyData.agency.logo_url ? mediaService.getMediaUrlFromObject({ file_url: propertyData.agency.logo_url } as any) : undefined)
                           }
-                        }}
-                        className={`text-lg font-black text-font-p leading-none cursor-pointer transition-colors ${propertyData.agent ? 'hover:text-indigo-1' : 'hover:text-blue-1'}`}
-                      >
-                        {propertyData.agent ? `${propertyData.agent.first_name} ${propertyData.agent.last_name}` : propertyData.created_by_name}
-                      </h4>
+                          className="object-contain"
+                        />
+                        <AvatarFallback className="bg-blue-1/10 text-blue-1 font-bold text-base">
+                          {propertyData.agency.name?.[0] || 'A'}
+                        </AvatarFallback>
+                      </Avatar>
                     </div>
-                    <div className="flex items-center gap-6">
-                      {propertyData.agent?.phone ? (
-                        <div className="flex items-center gap-2.5 text-font-p hover:text-indigo-1 transition-colors cursor-pointer bg-indigo-1/5 px-4 py-1.5 rounded-xl border border-indigo-1/10 shadow-xs group/phone">
-                          <Phone className="w-4 h-4 text-indigo-1 group-hover:rotate-12 transition-transform" />
-                          <span className="text-[15px] font-black dir-ltr tracking-tight">{propertyData.agent.phone}</span>
+                    <div className="flex flex-col min-w-0">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="blue" className="text-[10px] font-bold px-1.5 h-5 bg-blue-1/10 text-blue-1 border-none">آژانس</Badge>
+                        <span className="text-base font-bold text-font-p truncate">{propertyData.agency.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Phone className="size-3.5 text-blue-1/60" />
+                        <span className="text-sm font-bold text-font-s dir-ltr tracking-tight">{propertyData.agency.phone}</span>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => navigate(`/admins/agencies/${propertyData.agency?.id}/view`)}
+                      className={`size-9 rounded-xl text-blue-1/40 hover:text-blue-1 hover:bg-blue-1/10 border-none bg-transparent transition-colors shadow-none ${(!propertyData.agent && !propertyData.created_by_name) ? 'mr-4' : 'mr-auto'}`}
+                    >
+                      <ArrowUpRight className="size-5" />
+                    </Button>
+                  </div>
+                )}
+
+                {(propertyData.agent || propertyData.created_by_name) && (
+                  <div className={`flex-1 flex items-center gap-6 p-4 transition-colors group ${!propertyData.agency ? 'lg:px-16 lg:justify-center' : 'lg:px-8 hover:bg-bg/5'}`}>
+                    <div className="relative shrink-0">
+                      <Avatar className="size-14 border border-br/30 shadow-3xs">
+                        <AvatarImage
+                          src={
+                            (propertyData.agent?.profile_image && mediaService.getMediaUrlFromObject(propertyData.agent.profile_image as any)) ||
+                            (propertyData.agent?.profile_picture_url ? mediaService.getMediaUrlFromObject({ file_url: propertyData.agent.profile_picture_url } as any) : undefined)
+                          }
+                          className="object-cover"
+                        />
+                        <AvatarFallback className="bg-indigo-1/10 text-indigo-1 font-bold text-base">
+                          {propertyData.agent?.user ? (propertyData.agent.first_name?.[0] || propertyData.agent.full_name?.[0] || 'م') : (propertyData.created_by_name?.[0] || 'م')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className={`absolute -bottom-0.5 -right-0.5 size-4 border-2 border-wt rounded-full ${propertyData.agent?.user ? 'bg-emerald-1' : 'bg-blue-1'}`} />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <div className="flex items-center gap-2">
+                        <Badge variant={propertyData.agent?.user ? "indigo" : "blue"} className="text-[10px] font-bold px-1.5 h-5 border-none">
+                          {propertyData.agent?.user ? 'مشاور' : 'مدیر'}
+                        </Badge>
+                        <span className="text-base font-bold text-font-p truncate">
+                          {propertyData.agent?.user ? (propertyData.agent.full_name || `${propertyData.agent.first_name} ${propertyData.agent.last_name}`) : propertyData.created_by_name}
+                        </span>
+                      </div>
+                      {(propertyData.agent?.phone || (propertyData as any).created_by_phone) ? (
+                        <div className="flex items-center gap-2 mt-1">
+                          <Phone className="size-3.5 text-indigo-1/60" />
+                          <span className="text-sm font-bold text-font-s dir-ltr tracking-tight">{propertyData.agent?.phone || (propertyData as any).created_by_phone}</span>
                         </div>
                       ) : (
-                        <span className="text-xs text-muted-foreground font-medium">اطلاعات تماس در دسترس نیست</span>
+                        <span className="text-[10px] text-font-s/40 font-bold tracking-tight mt-1">بدون تماس</span>
                       )}
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (propertyData.agent?.user) {
-                            navigate(`/agents/${propertyData.agent.user}/edit`);
-                          } else if (propertyData.created_by) {
-                            navigate(`/admins/${propertyData.created_by}/edit`);
-                          }
-                        }}
-                        className={`flex items-center gap-1 text-[13px] font-bold transition-colors group/link underline underline-offset-4 cursor-pointer ${propertyData.agent ? 'text-indigo-1/60 hover:text-indigo-1 decoration-indigo-1/20 hover:decoration-indigo-1' : 'text-blue-1/60 hover:text-blue-1 decoration-blue-1/20 hover:decoration-blue-1'}`}
-                      >
-                        <span>مشاهده پروفایل</span>
-                        <ArrowUpRight className="w-4 h-4 transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" />
-                      </button>
                     </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (propertyData.agent?.user) {
+                          navigate(`/agents/${propertyData.agent.user}/view`);
+                        } else if (propertyData.created_by) {
+                          navigate(`/admins/${propertyData.created_by}/view`);
+                        }
+                      }}
+                      className={`size-9 rounded-xl text-indigo-1/40 hover:text-indigo-1 hover:bg-indigo-1/10 border-none bg-transparent transition-colors shadow-none ${!propertyData.agency ? 'mr-4' : 'mr-auto'}`}
+                    >
+                      <ArrowUpRight className="size-5" />
+                    </Button>
                   </div>
-                </div>
-              )}
-
-
-            </div>
-
-            <div className="hidden xl:flex flex-col items-end gap-2.5 relative z-10 pl-2">
-              <div className="flex items-center gap-3.5 px-6 py-2.5 bg-emerald-1/5 rounded-2xl border border-emerald-1/20 shadow-sm ring-1 ring-emerald-1/10 group/status cursor-default">
-                <div className="w-3 h-3 rounded-full bg-emerald-1 animate-pulse shadow-[0_0_12px_rgba(16,185,129,0.4)]" />
-                <span className="text-[13px] font-black text-emerald-1 tracking-tight">درگاه تایید شده</span>
+                )}
               </div>
-              <div className="flex flex-col items-end gap-0.5 pr-2">
-                <span className="text-[11px] font-black text-font-s opacity-60 uppercase tracking-[0.4em]">مدیر فعال</span>
-                <div className="w-12 h-0.5 bg-emerald-1/30 rounded-full" />
-              </div>
-            </div>
+            </CardContent>
           </Card>
         </div>
 
