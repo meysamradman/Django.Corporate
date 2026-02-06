@@ -19,8 +19,8 @@ export function PropertySidebar({ property }: PropertySidebarProps) {
 
     return (
         <div className="w-full h-full">
-            <Card className="h-full overflow-hidden border-br shadow-lg bg-card p-0 relative group rounded-3xl flex flex-col">
-                <div className="h-80 w-full relative bg-bg/50 border-b border-br z-0 overflow-hidden shrink-0">
+            <Card className="h-full overflow-hidden border-br shadow-lg bg-card p-0 relative group flex flex-col">
+                <div className="h-64 w-full relative bg-bg/50 border-b border-br z-0 overflow-hidden shrink-0">
                     <LocationMap
                         latitude={property.latitude ? Number(property.latitude) : null}
                         longitude={property.longitude ? Number(property.longitude) : null}
@@ -44,7 +44,7 @@ export function PropertySidebar({ property }: PropertySidebarProps) {
                     <div className="absolute inset-0 bg-linear-to-t from-static-b/30 to-transparent pointer-events-none" />
                 </div>
 
-                <div className="p-6 relative z-10 bg-card flex flex-col items-center flex-1 -mt-10 mx-4 mb-4 rounded-3xl shadow-xl ring-1 ring-br/20">
+                <div className="p-6 relative z-10 bg-card flex flex-col items-center flex-1 -mt-10 mx-4 mb-4 rounded-2xl shadow-xl ring-1 ring-br/20">
                     <div className="mb-4 -mt-14">
                         <div className="bg-blue-1 text-wt p-4 rounded-2xl shadow-xl shadow-blue-1/30 ring-8 ring-card transition-transform duration-300 group-hover:scale-110 flex items-center justify-center">
                             <MapPin className="w-8 h-8 fill-current" />

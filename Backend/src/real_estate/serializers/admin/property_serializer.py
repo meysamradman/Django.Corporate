@@ -106,10 +106,23 @@ class PropertyTagSimpleAdminSerializer(serializers.ModelSerializer):
 
 class PropertyAgentSimpleAdminSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(read_only=True)
+    profile_picture_url = serializers.SerializerMethodField()
     
     class Meta:
         model = PropertyAgent
-        fields = ['id', 'public_id', 'first_name', 'last_name', 'full_name', 'phone', 'email', 'license_number']
+        fields = ['id', 'user', 'public_id', 'first_name', 'last_name', 'full_name', 'phone', 'email', 'license_number', 'profile_picture_url']
+
+    def get_profile_picture_url(self, obj):
+        if obj.profile_picture and obj.profile_picture.file:
+            return obj.profile_picture.file.url
+        try:
+            if obj.user and hasattr(obj.user, 'admin_profile'):
+                profile = obj.user.admin_profile
+                if profile.profile_picture and profile.profile_picture.file:
+                    return profile.profile_picture.file.url
+        except Exception:
+            pass
+        return None
 
 class RealEstateAgencySimpleAdminSerializer(serializers.ModelSerializer):
     logo_url = serializers.SerializerMethodField()
@@ -119,11 +132,24 @@ class RealEstateAgencySimpleAdminSerializer(serializers.ModelSerializer):
         fields = ['id', 'public_id', 'name', 'slug', 'phone', 'email', 'license_number', 'logo_url']
 
     def get_logo_url(self, obj):
+        # Primary: Agency Profile Picture
         if hasattr(obj, 'profile_picture') and obj.profile_picture and hasattr(obj.profile_picture, 'file') and obj.profile_picture.file:
             try:
                 return obj.profile_picture.file.url
             except Exception:
-                return None
+                pass
+        
+        # Fallback: Created By (Admin) Profile Picture
+        try:
+            if hasattr(obj, 'created_by') and obj.created_by:
+                # Check if created_by is a User instance and has admin_profile
+                if hasattr(obj.created_by, 'admin_profile'):
+                    profile = obj.created_by.admin_profile
+                    if profile.profile_picture and profile.profile_picture.file:
+                        return profile.profile_picture.file.url
+        except Exception:
+            pass
+            
         return None
 
 class PropertyAdminListSerializer(serializers.ModelSerializer):
@@ -295,7 +321,7 @@ class PropertyAdminDetailSerializer(MediaAggregationMixin, serializers.ModelSeri
             'og_image', 'canonical_url', 'robots_meta',
             'structured_data', 'hreflang_data',
             'seo_data', 'seo_preview', 'seo_completeness',
-            'created_by_name', 'city_name', 'province_name', 'country_name',
+            'created_by', 'created_by_name', 'city_name', 'province_name', 'country_name', # ✅ created_by added
             'district_name', 'region_name',
             'price', 'sale_price', 'pre_sale_price', 'price_per_sqm',
             'monthly_rent', 'rent_amount', 'mortgage_amount', 'security_deposit',

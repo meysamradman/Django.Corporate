@@ -9,6 +9,8 @@ export default function ViewAgentPage() {
     return <Navigate to="/agents" replace />;
   }
 
+  // Redirect to edit page (view and edit are the same page)
   return <Navigate to={`/agents/${agentId}/edit`} replace />;
 }
+
 

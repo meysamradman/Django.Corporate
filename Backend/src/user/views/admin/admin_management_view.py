@@ -65,7 +65,15 @@ class AdminManagementView(AdminAuthMixin, APIView):
                         message=AUTH_SUCCESS["user_retrieved_successfully"],
                         data=serializer.data
                     )
+                except NotFound as exc:
+                    return APIResponse.error(
+                        message=exc.detail if hasattr(exc, 'detail') else AUTH_ERRORS["not_found"],
+                        status_code=status.HTTP_404_NOT_FOUND
+                    )
                 except Exception as exc:
+                    import traceback
+                    print(f"❌ [AdminManagementView] Error getting admin detail: {exc}")
+                    traceback.print_exc()
                     return APIResponse.error(
                         message=AUTH_ERRORS["error_occurred"],
                         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR

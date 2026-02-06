@@ -9,9 +9,10 @@ import type { PropertyAgent } from "./agent/realEstateAgent";
 import type { RealEstateAgency } from "./agency/realEstateAgency";
 import type { PropertySEOMeta } from "./realEstateSeoMeta";
 
-export interface Property extends Base {
+export interface Property extends Omit<Base, "created_by"> {
   title: string;
   slug: string;
+  created_by?: number; // ✅ User ID
   short_description: string;
   description: string;
   is_published: boolean;

@@ -182,26 +182,29 @@ class PropertyAdminService:
         
         logger.debug(f"📊 [PropertyService][Create] Data extracted: labels={len(labels_ids)}, tags={len(tags_ids)}, features={len(features_ids)}, files={len(media_files)}, ids={len(media_ids)}")
 
+        # Auto-assign agent ONLY if user ALREADY has an agent profile
+        # We do NOT want to force every admin to become an agent.
+        # If admin has no agent profile -> agent remains None -> Frontend shows "Admin"
         if not validated_data.get('agent') and created_by and created_by.is_authenticated:
             from src.real_estate.models.agent import PropertyAgent
-            import uuid
             
+            # Try to find existing agent for this user
             agent = PropertyAgent.objects.filter(user=created_by).first()
             
-            if not agent:
-                license_num = f'AUTO-{uuid.uuid4().hex[:8].upper()}'
-                agent_slug = f'agent-{created_by.id}-{uuid.uuid4().hex[:6]}'
-                
-                agent = PropertyAgent.objects.create(
-                    user=created_by,
-                    license_number=license_num,
-                    slug=agent_slug,
-                    specialization='General',
-                    is_active=True
-                )
-                logger.info(f"👨‍💼 [PropertyService][Create] Auto-created agent for user {created_by.id}")
-            
-            validated_data['agent'] = agent
+            if agent:
+                validated_data['agent'] = agent
+                logger.info(f"✅ [PropertyService][Create] Auto-assigned existing agent {agent.id} for user {created_by.id}")
+            else:
+                logger.info(f"ℹ️ [PropertyService][Create] User {created_by.id} is an Admin without Agent profile. Leaving agent as None.")
+
+        elif validated_data.get('agent'):
+            logger.info(f"✅ [PropertyService][Create] Agent explicitly provided: {validated_data.get('agent').id if hasattr(validated_data.get('agent'), 'id') else validated_data.get('agent')}")
+        else:
+            logger.debug(f"⏭️  [PropertyService][Create] No agent assignment (no authenticated user)")
+        
+        # Agency is handled separately and never auto-assigned
+        if validated_data.get('agency'):
+            logger.info(f"🏢 [PropertyService][Create] Agency explicitly provided: {validated_data.get('agency').id if hasattr(validated_data.get('agency'), 'id') else validated_data.get('agency')}")
 
         # Slug logic (unchanged but logged)
         if not validated_data.get('slug') and validated_data.get('title'):
