@@ -5,12 +5,12 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { FileText, Image, Search, Edit2, Settings, Printer } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { portfolioApi } from "@/api/portfolios/portfolios";
-import { PortfolioGridGallery } from "@/components/portfolios/list/view/PortfolioGridGallery.tsx";
-import { PortfolioInfo } from "@/components/portfolios/list/view/PortfolioInfo.tsx";
-import { PortfolioOverview } from "@/components/portfolios/list/view/PortfolioOverview.tsx";
-import { PortfolioMedia } from "@/components/portfolios/list/view/PortfolioMedia.tsx";
-import { PortfolioSEO } from "@/components/portfolios/list/view/PortfolioSEO.tsx";
-import { PortfolioAttributes } from "@/components/portfolios/list/view/PortfolioAttributes.tsx";
+import { PortfolioGridGallery } from "@/components/portfolios/projects/view/PortfolioGridGallery.tsx";
+import { PortfolioInfo } from "@/components/portfolios/projects/view/PortfolioInfo.tsx";
+import { PortfolioOverview } from "@/components/portfolios/projects/view/PortfolioOverview.tsx";
+import { PortfolioMedia } from "@/components/portfolios/projects/view/PortfolioMedia.tsx";
+import { PortfolioSEO } from "@/components/portfolios/projects/view/PortfolioSEO.tsx";
+import { PortfolioAttributes } from "@/components/portfolios/projects/view/PortfolioAttributes.tsx";
 import { usePortfolioPdfExport } from "@/hooks/portfolios/usePortfolioPdfExport";
 import { FloatingActions } from "@/components/elements/FloatingActions";
 

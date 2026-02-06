@@ -5,11 +5,11 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { FileText, Image, Search, Edit2, Printer } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { blogApi } from "@/api/blogs/blogs";
-import { BlogGridGallery } from "@/components/blogs/list/view/BlogGridGallery.tsx";
-import { BlogInfo } from "@/components/blogs/list/view/BlogInfo.tsx";
-import { BlogOverview } from "@/components/blogs/list/view/BlogOverview.tsx";
-import { BlogMedia } from "@/components/blogs/list/view/BlogMedia.tsx";
-import { BlogSEO } from "@/components/blogs/list/view/BlogSEO.tsx";
+import { BlogGridGallery } from "@/components/blogs/posts/view/BlogGridGallery.tsx";
+import { BlogInfo } from "@/components/blogs/posts/view/BlogInfo.tsx";
+import { BlogOverview } from "@/components/blogs/posts/view/BlogOverview.tsx";
+import { BlogMedia } from "@/components/blogs/posts/view/BlogMedia.tsx";
+import { BlogSEO } from "@/components/blogs/posts/view/BlogSEO.tsx";
 import { FloatingActions } from "@/components/elements/FloatingActions";
 
 export default function BlogViewPage() {

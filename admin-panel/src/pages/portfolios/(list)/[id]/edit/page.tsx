@@ -64,10 +64,10 @@ const TabSkeleton = () => (
   </div>
 );
 
-const BaseInfoTab = lazy(() => import("@/components/portfolios/list/create/PortfolioInfo"));
-const MediaTab = lazy(() => import("@/components/portfolios/list/create/PortfolioMedia"));
-const SEOTab = lazy(() => import("@/components/portfolios/list/create/PortfolioSEO"));
-const ExtraAttributesTab = lazy(() => import("@/components/portfolios/list/create/PortfolioAttributes"));
+const BaseInfoTab = lazy(() => import("@/components/portfolios/projects/create/PortfolioInfo"));
+const MediaTab = lazy(() => import("@/components/portfolios/projects/create/PortfolioMedia"));
+const SEOTab = lazy(() => import("@/components/portfolios/projects/create/PortfolioSEO"));
+const ExtraAttributesTab = lazy(() => import("@/components/portfolios/projects/create/PortfolioAttributes"));
 
 export default function EditPortfolioPage() {
   const { id } = useParams<{ id: string }>();

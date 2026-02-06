@@ -73,9 +73,9 @@ const TabSkeleton = () => (
   </div>
 );
 
-const BaseInfoTab = lazy(() => import("@/components/blogs/list/create/BlogInfo"));
-const MediaTab = lazy(() => import("@/components/blogs/list/create/BlogMedia"));
-const SEOTab = lazy(() => import("@/components/blogs/list/create/BlogSEO"));
+const BaseInfoTab = lazy(() => import("@/components/blogs/posts/create/BlogInfo"));
+const MediaTab = lazy(() => import("@/components/blogs/posts/create/BlogMedia"));
+const SEOTab = lazy(() => import("@/components/blogs/posts/create/BlogSEO"));
 
 export default function EditBlogPage() {
   const { id } = useParams<{ id: string }>();
