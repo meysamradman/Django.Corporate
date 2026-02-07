@@ -53,7 +53,7 @@ export function PortfolioOverview({ portfolio }: OverviewTabProps) {
               <ItemContent className="flex-row items-center gap-2">
                 <span className="text-[10px] font-bold text-font-s">وضعیت:</span>
                 <span className="text-xs font-black">
-                  <Badge variant={portfolio.status === "published" ? "green" : "yellow"} className="h-5 px-2 text-[9px] font-black">
+                  <Badge variant={portfolio.status === "published" ? "green" : "yellow"} className="h-5 px-2 text-[10px] font-black">
                     {portfolio.status === "published" ? "منتشر شده" : "پیش‌نویس"}
                   </Badge>
                 </span>
@@ -133,6 +133,11 @@ export function PortfolioOverview({ portfolio }: OverviewTabProps) {
           cardBorderColor="border-b-teal-1"
           className="shadow-sm"
           showHeaderBorder={false}
+          titleExtra={
+            <Badge variant={portfolio.status === "published" ? "green" : "yellow"} className="h-5 px-2 text-[10px] font-black">
+              {portfolio.status === "published" ? "فعال/منتشر شده" : "پیش‌نویس"}
+            </Badge>
+          }
         >
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="p-4 rounded-xl bg-bg border border-br/50 flex flex-col items-center gap-2 group hover:border-blue-1/30 transition-all">
@@ -214,9 +219,9 @@ export function PortfolioOverview({ portfolio }: OverviewTabProps) {
         cardBorderColor="border-b-orange-1"
         className="shadow-sm"
       >
-        <div className="flex flex-col gap-6 p-5">
+        <div className="flex flex-col gap-6">
           <div>
-            <label className="text-[10px] font-bold text-font-s tracking-wider mb-2 block opacity-50 uppercase">
+            <label className="text-[10px] font-bold text-font-s tracking-wider mb-2 block opacity-50">
               شرح پروژه
             </label>
             <div className="text-sm text-font-p border-r-2 border-orange-1/30 pr-4 leading-relaxed whitespace-pre-wrap">
@@ -225,7 +230,7 @@ export function PortfolioOverview({ portfolio }: OverviewTabProps) {
           </div>
 
           <div>
-            <label className="text-[10px] font-bold text-font-s tracking-wider mb-2 block opacity-50 uppercase">
+            <label className="text-[10px] font-bold text-font-s tracking-wider mb-2 block opacity-50">
               توضیحات تکمیلی
             </label>
             <div className="text-sm text-font-p bg-bg/50 rounded-xl overflow-hidden leading-loose">

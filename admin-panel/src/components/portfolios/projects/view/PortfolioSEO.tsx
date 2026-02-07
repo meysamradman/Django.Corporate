@@ -47,7 +47,7 @@ export function PortfolioSEO({ portfolio }: SEOInfoTabProps) {
           fullBleed={true}
         />
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-stretch px-5 py-5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-stretch">
           {/* Google Preview Section */}
           <div className="flex flex-col h-full gap-5">
             <Card className="flex-1 bg-bg border-br/40 shadow-xs group transition-smooth hover:border-teal-1/30 overflow-hidden relative">

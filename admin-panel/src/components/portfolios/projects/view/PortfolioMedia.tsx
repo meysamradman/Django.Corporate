@@ -127,7 +127,7 @@ export function PortfolioMedia({ portfolio }: PortfolioMediaProps) {
                 {/* AUDIO Section */}
                 {audios.length > 0 && (
                   <div className="flex flex-col gap-4">
-                    <label className="text-[10px] font-black text-font-s tracking-widest uppercase opacity-40 mb-1">فایل‌های صوتی</label>
+                    <label className="text-[10px] font-black text-font-s tracking-widest mb-1">فایل‌های صوتی</label>
                     <div className="flex flex-col gap-3">
                       {audios.map((item: any) => {
                         const media = item.media_detail || item.media;
@@ -146,7 +146,7 @@ export function PortfolioMedia({ portfolio }: PortfolioMediaProps) {
                 {/* DOCUMENTS Section */}
                 {documents.length > 0 && (
                   <div className="flex flex-col gap-3 flex-1">
-                    <label className="text-[10px] font-bold text-font-s tracking-widest uppercase opacity-70 mb-1">ضمائم و اسناد فنی</label>
+                    <label className="text-[10px] font-bold text-font-s tracking-widest mb-1">ضمائم و اسناد فنی</label>
                     <div className="flex flex-col gap-2.5">
                       {documents.map((item: any) => {
                         const media = item.media_detail || item.media;
