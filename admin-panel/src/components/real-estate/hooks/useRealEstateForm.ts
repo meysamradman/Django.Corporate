@@ -10,17 +10,16 @@ import { msg } from '@/core/messages';
 import { MEDIA_CONFIG } from '@/core/config/environment';
 import { useMediaConfig } from "@/components/media/hooks/useMediaConfig";
 import { propertyFormSchema, propertyFormDefaults, type PropertyFormValues } from '@/components/real-estate/validations/propertySchema';
-import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
-import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
-import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
-import type { PropertyMedia } from "@/types/real_estate/realEstateMedia";
 import {
     collectModuleMediaIds as collectMediaIds,
     collectModuleMediaCovers as collectMediaCovers,
     collectSegmentedMediaIds,
     parseModuleMedia
 } from "@/components/media/utils/genericMediaUtils";
-import type { Media } from "@/types/shared/media";
+
+// Import sub-hooks
+import { useRealEstateMedia } from "./useRealEstateMedia";
+import { useRealEstateTaxonomy } from "./useRealEstateTaxonomy";
 
 interface UsePropertyFormProps {
     id?: string;
@@ -34,23 +33,15 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
     const [activeTab, setActiveTab] = useState<string>("account");
     const [tempFloorPlans, setTempFloorPlans] = useState<any[]>([]);
 
-    const [selectedLabels, setSelectedLabels] = useState<PropertyLabel[]>([]);
-    const [selectedTags, setSelectedTags] = useState<PropertyTag[]>([]);
-    const [selectedFeatures, setSelectedFeatures] = useState<PropertyFeature[]>([]);
-
-    const [propertyMedia, setPropertyMedia] = useState<PropertyMedia>({
-        featuredImage: null,
-        imageGallery: [],
-        videoGallery: [],
-        audioGallery: [],
-        pdfDocuments: []
-    });
-
     const form = useForm<PropertyFormValues>({
         resolver: zodResolver(propertyFormSchema),
         defaultValues: propertyFormDefaults,
         mode: "onSubmit",
     });
+
+    // Initialize sub-hooks
+    const mediaManager = useRealEstateMedia({ form });
+    const taxonomyManager = useRealEstateTaxonomy({ form });
 
     const { data: property, isLoading } = useQuery({
         queryKey: ['property', id],
@@ -70,12 +61,13 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                     pdfDocuments: []
                 };
 
-            setPropertyMedia(parsedMedia);
-            if (property.labels) setSelectedLabels(property.labels);
-            if (property.tags) setSelectedTags(property.tags);
-            if (property.features) setSelectedFeatures(property.features);
+            mediaManager.setPropertyMedia(parsedMedia);
+            if (property.labels) taxonomyManager.setSelectedLabels(property.labels);
+            if (property.tags) taxonomyManager.setSelectedTags(property.tags);
+            if (property.features) taxonomyManager.setSelectedFeatures(property.features);
 
             form.reset({
+                ...propertyFormDefaults,
                 title: property.title || "",
                 slug: property.slug || "",
                 short_description: property.short_description || "",
@@ -130,8 +122,6 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                 tags_ids: property.tags?.map((t: any) => t.id) || [],
                 features_ids: property.features?.map((f: any) => f.id) || [],
                 main_image_id: property.main_image?.id || null,
-            }, {
-                keepErrors: false
             });
         }
     }, [property, isEditMode, form]);
@@ -139,302 +129,89 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
     const titleValue = form.watch("title");
     useEffect(() => {
         if (titleValue && !isEditMode) {
-            const generatedSlug = generateSlug(titleValue);
-            form.setValue("slug", generatedSlug, { shouldValidate: false });
+            form.setValue("slug", generateSlug(titleValue), { shouldValidate: false });
         }
     }, [titleValue, form, isEditMode]);
-
-    const handleLabelToggle = useCallback((label: PropertyLabel) => {
-        setSelectedLabels(prev => {
-            const newLabels = prev.find(l => l.id === label.id)
-                ? prev.filter(l => l.id !== label.id)
-                : [...prev, label];
-            form.setValue("labels_ids", newLabels.map(l => l.id), { shouldValidate: false });
-            return newLabels;
-        });
-    }, [form]);
-
-    const handleLabelRemove = useCallback((labelId: number) => {
-        setSelectedLabels(prev => {
-            const newLabels = prev.filter(l => l.id !== labelId);
-            form.setValue("labels_ids", newLabels.map(l => l.id), { shouldValidate: false });
-            return newLabels;
-        });
-    }, [form]);
-
-    const handleTagToggle = useCallback((tag: PropertyTag) => {
-        setSelectedTags(prev => {
-            const newTags = prev.find(t => t.id === tag.id)
-                ? prev.filter(t => t.id !== tag.id)
-                : [...prev, tag];
-            form.setValue("tags_ids", newTags.map(t => t.id), { shouldValidate: false });
-            return newTags;
-        });
-    }, [form]);
-
-    const handleTagRemove = useCallback((tagId: number) => {
-        setSelectedTags(prev => {
-            const newTags = prev.filter(t => t.id !== tagId);
-            form.setValue("tags_ids", newTags.map(t => t.id), { shouldValidate: false });
-            return newTags;
-        });
-    }, [form]);
-
-    const handleFeatureToggle = useCallback((feature: PropertyFeature) => {
-        setSelectedFeatures(prev => {
-            const newFeatures = prev.find(f => f.id === feature.id)
-                ? prev.filter(f => f.id !== feature.id)
-                : [...prev, feature];
-            form.setValue("features_ids", newFeatures.map(f => f.id), { shouldValidate: false });
-            return newFeatures;
-        });
-    }, [form]);
-
-    const handleFeatureRemove = useCallback((featureId: number) => {
-        setSelectedFeatures(prev => {
-            const newFeatures = prev.filter(f => f.id !== featureId);
-            form.setValue("features_ids", newFeatures.map(f => f.id), { shouldValidate: false });
-            return newFeatures;
-        });
-    }, [form]);
 
     const handleInputChange = useCallback((field: string, value: any) => {
         form.setValue(field as keyof PropertyFormValues, value, { shouldValidate: false, shouldDirty: true });
     }, [form]);
-
-    const updateMediaFormState = useCallback((newMedia: PropertyMedia) => {
-        const allMediaIds = collectMediaIds(newMedia);
-        if (form.getValues("og_image")?.id && !allMediaIds.includes(form.getValues("og_image").id)) {
-            allMediaIds.push(form.getValues("og_image").id);
-        }
-        const mediaCovers = collectMediaCovers(newMedia);
-        const segmented = collectSegmentedMediaIds(newMedia);
-
-        console.group("🖼️ [RealEstate][Form] Updating Media State");
-        console.log("Current Media State:", newMedia);
-        console.log("Collected IDs:", allMediaIds);
-        console.log("Segmented IDs:", segmented);
-        console.groupEnd();
-
-        form.setValue("media_ids", allMediaIds, { shouldValidate: false, shouldDirty: true });
-        form.setValue("media_covers", mediaCovers, { shouldValidate: false, shouldDirty: true });
-
-        // Set segmented fields
-        form.setValue("image_ids", segmented.image_ids, { shouldValidate: false, shouldDirty: true });
-        form.setValue("video_ids", segmented.video_ids, { shouldValidate: false, shouldDirty: true });
-        form.setValue("audio_ids", segmented.audio_ids, { shouldValidate: false, shouldDirty: true });
-        form.setValue("document_ids", segmented.document_ids, { shouldValidate: false, shouldDirty: true });
-    }, [form]);
-
-    const handleFeaturedImageChange = useCallback((media: Media | null) => {
-        setPropertyMedia(prev => {
-            const newState = { ...prev, featuredImage: media };
-            updateMediaFormState(newState);
-            return newState;
-        });
-        form.setValue("main_image_id", media?.id || null, { shouldValidate: false, shouldDirty: true });
-    }, [form, updateMediaFormState]);
 
     const handleLocationChange = useCallback((latitude: number | null, longitude: number | null) => {
         form.setValue("latitude", latitude, { shouldValidate: false, shouldDirty: true });
         form.setValue("longitude", longitude, { shouldValidate: false, shouldDirty: true });
     }, [form]);
 
-    const handleGalleryChange = useCallback((media: Media[]) => {
-        setPropertyMedia(prev => {
-            const newState = { ...prev, imageGallery: media };
-            updateMediaFormState(newState);
-            return newState;
-        });
-    }, [updateMediaFormState]);
-
-    const handleVideoGalleryChange = useCallback((media: Media[]) => {
-        setPropertyMedia(prev => {
-            const newState = { ...prev, videoGallery: media };
-            updateMediaFormState(newState);
-            return newState;
-        });
-    }, [updateMediaFormState]);
-
-    const handleAudioGalleryChange = useCallback((media: Media[]) => {
-        setPropertyMedia(prev => {
-            const newState = { ...prev, audioGallery: media };
-            updateMediaFormState(newState);
-            return newState;
-        });
-    }, [updateMediaFormState]);
-
-    const handlePdfDocumentsChange = useCallback((media: Media[]) => {
-        console.log('📄 [handlePdfDocumentsChange] New PDF documents:', media.map(m => ({ id: m.id, title: m.title })));
-        setPropertyMedia(prev => {
-            const newState = { ...prev, pdfDocuments: media };
-            console.log('📄 [handlePdfDocumentsChange] Updated propertyMedia:', {
-                pdfDocuments: newState.pdfDocuments.map(m => m.id),
-                allMedia: {
-                    images: newState.imageGallery.map(m => m.id),
-                    videos: newState.videoGallery.map(m => m.id),
-                    audios: newState.audioGallery.map(m => m.id),
-                    pdfs: newState.pdfDocuments.map(m => m.id)
-                }
-            });
-            updateMediaFormState(newState);
-            return newState;
-        });
-    }, [updateMediaFormState]);
-
     const mutation = useMutation({
         mutationFn: async (args: { data: PropertyFormValues; status: "draft" | "published" }) => {
             const { data, status } = args;
-
-            console.group("🚀 [RealEstate][Submit] Starting Submission");
-            console.log("Raw Form Data:", data);
-            console.log("Status:", status);
-            console.log("Is Edit Mode:", isEditMode);
-            console.log("Property ID:", id);
-
             const validatedData = propertyFormSchema.parse(data);
-            console.log("Validated Data:", validatedData);
 
-            const allMediaIds = collectMediaIds(propertyMedia);
+            const allMediaIds = collectMediaIds(mediaManager.propertyMedia);
             if (validatedData.og_image_id && !allMediaIds.includes(validatedData.og_image_id)) {
                 allMediaIds.push(validatedData.og_image_id);
             }
-            const allMediaFiles: File[] = [];
 
             const uploadMax = mediaConfig?.REAL_ESTATE_MEDIA_UPLOAD_MAX ?? MEDIA_CONFIG.REAL_ESTATE_UPLOAD_MAX;
-            const totalMedia = allMediaFiles.length + allMediaIds.length;
-
-            console.log("Media Breakdown:", {
-                images: propertyMedia.imageGallery.length,
-                videos: propertyMedia.videoGallery.length,
-                audios: propertyMedia.audioGallery.length,
-                docs: propertyMedia.pdfDocuments.length,
-                total_ids: allMediaIds.length
-            });
-
-            if (totalMedia > uploadMax) {
-                console.error(`Media limit exceeded: ${totalMedia} > ${uploadMax}`);
-                throw new Error(`حداکثر ${uploadMax} فایل مدیا در هر بار آپلود مجاز است. شما ${totalMedia} فایل انتخاب کرده‌اید.`);
+            if (allMediaIds.length > uploadMax) {
+                throw new Error(msg.realEstate().validation.mediaLimitExceeded.replace("{max}", uploadMax.toString()));
             }
 
+
             const isPublished = status === "published";
+            const segmented = collectSegmentedMediaIds(mediaManager.propertyMedia);
+            const mediaCovers = collectMediaCovers(mediaManager.propertyMedia);
+
+            const payload: any = {
+                ...validatedData,
+                slug: formatSlug(validatedData.slug),
+                media_ids: allMediaIds,
+                image_ids: segmented.image_ids,
+                video_ids: segmented.video_ids,
+                audio_ids: segmented.audio_ids,
+                document_ids: segmented.document_ids,
+                main_image_id: mediaManager.propertyMedia.featuredImage?.id || data.main_image_id || null,
+                media_covers: Object.keys(mediaCovers).length > 0 ? mediaCovers : undefined,
+                og_image: validatedData.og_image_id || undefined,
+                is_published: isPublished,
+                labels: validatedData.labels_ids,
+                tags: validatedData.tags_ids,
+                features: validatedData.features_ids,
+            };
+
+            // Cleanup payload
+            delete payload.og_image_id;
+            delete payload.province;
+            delete payload.city;
+            delete payload.labels_ids;
+            delete payload.tags_ids;
+            delete payload.features_ids;
 
             if (isEditMode && id) {
-                const propertyId = Number(id);
-                const mainImageId = propertyMedia.featuredImage?.id || data.main_image_id || null;
-                const mediaCovers = collectMediaCovers(propertyMedia);
-                const mediaIds = collectMediaIds(propertyMedia);
-                const segmented = collectSegmentedMediaIds(propertyMedia);
-
-                const finalMediaIds = allMediaIds.length > 0 ? allMediaIds : mediaIds;
-
-                const updateData: any = {
-                    ...validatedData,
-                    slug: formatSlug(validatedData.slug),
-
-                    media_ids: finalMediaIds,
-                    image_ids: segmented.image_ids,
-                    video_ids: segmented.video_ids,
-                    audio_ids: segmented.audio_ids,
-                    document_ids: segmented.document_ids,
-
-                    main_image_id: mainImageId,
-                    media_covers: Object.keys(mediaCovers).length > 0 ? mediaCovers : undefined,
-                    og_image: validatedData.og_image_id || undefined,
-                    region: validatedData.region || undefined,
-                    price: validatedData.price ?? undefined,
-                    mortgage_amount: validatedData.mortgage_amount ?? undefined,
-                    rent_amount: validatedData.rent_amount ?? undefined,
-                    is_published: isPublished,
-                    labels: validatedData.labels_ids,
-                    tags: validatedData.tags_ids,
-                    features: validatedData.features_ids,
-                };
-
-                delete updateData.og_image_id;
-                delete updateData.province;
-                delete updateData.city;
-                delete updateData.labels_ids;
-                delete updateData.tags_ids;
-                delete updateData.features_ids;
-
-                console.log("📦 Sending Update Payload:", updateData);
-                console.groupEnd();
-
-                if (allMediaFiles.length > 0) {
-                    await realEstateApi.updateProperty(propertyId, updateData);
-                    return await realEstateApi.addMediaToProperty(propertyId, allMediaFiles, allMediaIds);
-                } else {
-                    return await realEstateApi.updateProperty(propertyId, updateData);
-                }
+                return await realEstateApi.updateProperty(Number(id), payload);
             } else {
-                const createData: any = {
-                    ...validatedData,
-                    slug: formatSlug(validatedData.slug),
-                    region: validatedData.region || undefined,
-                    price: validatedData.price ?? 0,
-                    mortgage_amount: validatedData.mortgage_amount ?? 0,
-                    rent_amount: validatedData.rent_amount ?? 0,
-                    is_published: isPublished,
-                };
-                if (validatedData.og_image_id) createData.og_image = validatedData.og_image_id;
-
-                const mediaIds = collectMediaIds(propertyMedia);
-                const segmented = collectSegmentedMediaIds(propertyMedia);
-
-                if (mediaIds.length > 0) createData.media_ids = mediaIds;
-
-                // Add segmented IDs to create payload
-                if (segmented.image_ids.length > 0) createData.image_ids = segmented.image_ids;
-                if (segmented.video_ids.length > 0) createData.video_ids = segmented.video_ids;
-                if (segmented.audio_ids.length > 0) createData.audio_ids = segmented.audio_ids;
-                if (segmented.document_ids.length > 0) createData.document_ids = segmented.document_ids;
-
-                console.log("📦 Sending Create Payload:", createData);
-                console.groupEnd();
-
-                if (allMediaFiles.length > 0) {
-                    const createdProperty = await realEstateApi.createProperty(createData);
-
-                    if (tempFloorPlans.length > 0) {
-                        for (const plan of tempFloorPlans) {
-                            await realEstateApi.createFloorPlan({
-                                ...plan,
-                                property_obj: createdProperty.id,
-                                image_ids: plan.images?.map((img: any) => img.id) || []
-                            });
-                        }
+                const createdProperty = await realEstateApi.createProperty(payload);
+                if (tempFloorPlans.length > 0) {
+                    for (const plan of tempFloorPlans) {
+                        await realEstateApi.createFloorPlan({
+                            ...plan,
+                            property_obj: createdProperty.id,
+                            image_ids: plan.images?.map((img: any) => img.id) || []
+                        });
                     }
-
-                    return await realEstateApi.addMediaToProperty(createdProperty.id, allMediaFiles, mediaIds);
-                } else {
-                    const createdProperty = await realEstateApi.createProperty(createData);
-
-                    if (tempFloorPlans.length > 0) {
-                        for (const plan of tempFloorPlans) {
-                            await realEstateApi.createFloorPlan({
-                                ...plan,
-                                property_obj: createdProperty.id,
-                                image_ids: plan.images?.map((img: any) => img.id) || []
-                            });
-                        }
-                    }
-
-                    return createdProperty;
                 }
+                return createdProperty;
             }
         },
         onSuccess: (property, variables) => {
-            console.log("✅ [RealEstate][Submit] Success:", property);
             queryClient.invalidateQueries({ queryKey: ["properties"] });
             if (isEditMode) queryClient.invalidateQueries({ queryKey: ["property", id] });
 
             const isDraft = variables.status === "draft";
-            const successMessage = isDraft
-                ? msg.crud(isEditMode ? "updated" : "saved", { item: "پیش‌نویس ملک" })
-                : msg.crud(isEditMode ? "updated" : "created", { item: "ملک" });
+            const itemType = isDraft ? "پیش‌نویس ملک" : "ملک";
+            const action = isEditMode ? "updated" : (isDraft ? "saved" : "created");
 
-            showSuccess(successMessage);
+            showSuccess(msg.crud(action, { item: itemType }));
 
             if (isDraft) {
                 navigate("/real-estate/properties");
@@ -443,16 +220,26 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
             }
         },
         onError: (error: any) => {
-            console.error("❌ [RealEstate][Submit] Error:", error);
             if (hasFieldErrors(error)) {
                 const fieldErrors = extractFieldErrors(error);
                 Object.entries(fieldErrors).forEach(([field, message]) => {
                     form.setError(field as keyof PropertyFormValues, { type: "server", message: message as string });
-                    if (["title", "slug", "property_type", "state", "status"].includes(field)) setActiveTab("account");
-                    else if (["province", "city", "address", "latitude", "longitude", "postal_code", "neighborhood"].includes(field)) setActiveTab("location");
-                    else if (["land_area", "built_area", "bedrooms", "bathrooms", "price"].includes(field)) setActiveTab("details");
+
+                    // Switch to relevant tab on error - Comprehensive mapping
+                    if (["title", "slug", "property_type", "state", "status", "agent", "agency", "short_description", "description"].includes(field))
+                        setActiveTab("account");
+                    else if (["province", "city", "region", "address", "postal_code", "neighborhood", "latitude", "longitude"].includes(field))
+                        setActiveTab("location");
+                    else if (["land_area", "built_area", "bedrooms", "bathrooms", "kitchens", "living_rooms", "year_built", "build_years", "floors_in_building", "floor_number", "parking_spaces", "storage_rooms", "document_type", "price", "sale_price", "pre_sale_price", "mortgage_amount", "rent_amount", "monthly_rent", "security_deposit"].includes(field))
+                        setActiveTab("details");
+                    else if (["extra_attributes", "labels_ids", "tags_ids", "features_ids"].includes(field))
+                        setActiveTab("extra");
+                    else if (["media_ids", "image_ids", "video_ids", "audio_ids", "document_ids", "main_image_id"].includes(field))
+                        setActiveTab("media");
+                    else if (["meta_title", "meta_description", "og_title", "og_description", "og_image_id", "canonical_url", "robots_meta", "is_public", "is_active", "is_published", "is_featured"].includes(field))
+                        setActiveTab("seo");
                 });
-                showError(error, { customMessage: msg.error("checkForm") });
+                showError(null, { customMessage: msg.error("checkForm") });
             } else {
                 showError(error);
             }
@@ -463,19 +250,26 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
         form.handleSubmit(
             (data) => mutation.mutate({ data, status }),
             (errors) => {
-                console.error('❌ [useRealEstateForm] HandleSubmit Validation Errors:', errors);
-                const firstErrorField = Object.keys(errors)[0];
-                if (firstErrorField) {
-                    if (["title", "slug", "property_type", "state", "status"].includes(firstErrorField)) setActiveTab("account");
-                    else if (["province", "city", "address", "latitude", "longitude", "neighborhood"].includes(firstErrorField)) setActiveTab("location");
-                    else if (["land_area", "built_area", "bedrooms", "bathrooms", "price"].includes(firstErrorField)) setActiveTab("details");
+                const firstField = Object.keys(errors)[0];
+                if (firstField) {
+                    if (["title", "slug", "property_type", "state", "status", "agent", "agency", "short_description", "description"].includes(firstField))
+                        setActiveTab("account");
+                    else if (["province", "city", "region", "address", "postal_code", "neighborhood", "latitude", "longitude"].includes(firstField))
+                        setActiveTab("location");
+                    else if (["land_area", "built_area", "bedrooms", "bathrooms", "kitchens", "living_rooms", "year_built", "build_years", "floors_in_building", "floor_number", "parking_spaces", "storage_rooms", "document_type", "price", "sale_price", "pre_sale_price", "mortgage_amount", "rent_amount", "monthly_rent", "security_deposit"].includes(firstField))
+                        setActiveTab("details");
+                    else if (["extra_attributes", "labels_ids", "tags_ids", "features_ids"].includes(firstField))
+                        setActiveTab("extra");
+                    else if (["media_ids", "image_ids", "video_ids", "audio_ids", "document_ids", "main_image_id"].includes(firstField))
+                        setActiveTab("media");
+                    else if (["meta_title", "meta_description", "og_title", "og_description", "og_image_id", "canonical_url", "robots_meta", "is_public", "is_active", "is_published", "is_featured"].includes(firstField))
+                        setActiveTab("seo");
+
                     showError(null, { customMessage: msg.error("checkForm") });
                 }
             }
         );
 
-    const handleSaveDraft = handleSubmit("draft");
-    const handleFinalSubmit = handleSubmit("published");
 
     return {
         form,
@@ -483,28 +277,15 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
         setActiveTab,
         tempFloorPlans,
         setTempFloorPlans,
-        selectedLabels,
-        selectedTags,
-        selectedFeatures,
-        propertyMedia,
-        setPropertyMedia,
+        ...taxonomyManager,
+        ...mediaManager,
         isLoading,
-        handleSubmit: handleFinalSubmit,
-        handleSaveDraft,
-        handleFeaturedImageChange,
-        handleGalleryChange,
-        handleVideoGalleryChange,
-        handleAudioGalleryChange,
-        handlePdfDocumentsChange,
-        handleLabelToggle,
-        handleLabelRemove,
-        handleTagToggle,
-        handleTagRemove,
-        handleFeatureToggle,
-        handleFeatureRemove,
+        handleSubmit: handleSubmit("published"),
+        handleSaveDraft: handleSubmit("draft"),
         handleLocationChange,
         handleInputChange,
         isPending: mutation.isPending,
         property,
     };
 }
+

@@ -6,6 +6,7 @@ import { AIChatProvider } from './components/ai/chat/AIChatContext';
 import { RouteProgress } from './lib/loaders';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { TooltipProvider } from './components/elements/Tooltip';
+import { Toaster } from './components/elements/Sonner';
 import { AdminLayout } from './layouts/AdminLayout';
 import { AuthLayout } from './layouts/AuthLayout';
 import Dashboard from './pages/Dashboard';
@@ -93,6 +94,7 @@ function App() {
     <QueryProvider>
       <BrowserRouter>
         <RouteProgress />
+        <Toaster />
         <TooltipProvider>
           <AuthProvider>
             <PermissionProvider>

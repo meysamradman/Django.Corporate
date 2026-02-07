@@ -3,65 +3,8 @@ html body[data-scroll-locked] {
   margin-left: 0 !important;
 }
 
-.toast {
-  color: var(--static-w) !important;
-  font-family: var(--font-persian), Tahoma, Arial, sans-serif !important;
-}
-
-.toast * {
-  color: var(--static-w) !important;
-}
-
-.toast [data-title] {
-  color: var(--static-w) !important;
-}
-
-.toast.toast-success {
-  background-color: var(--green-100) !important;
-  border-color: var(--green-100) !important;
-}
-
-.toast.toast-success * {
-  color: var(--static-w) !important;
-}
-
-.toast.toast-error {
-  background-color: var(--red-100) !important;
-  border-color: var(--red-100) !important;
-}
-
-.toast.toast-error * {
-  color: var(--static-w) !important;
-}
-
-.toast.toast-warning {
-  background-color: var(--amber-100) !important;
-  border-color: var(--amber-100) !important;
-}
-
-.toast.toast-warning * {
-  color: var(--static-w) !important;
-}
-
-.toast.toast-info {
-  background-color: var(--primary) !important;
-  border-color: var(--primary) !important;
-}
-
-.toast.toast-info * {
-  color: var(--static-w) !important;
-}
-
-.toast.toast-loading {
-  background-color: var(--font-s) !important;
-  border-color: var(--font-s) !important;
-}
-
-.toast.toast-loading * {
-  color: var(--static-w) !important;
-}
-
 @layer base {
+
   * {
     border-color: var(--br);
   }

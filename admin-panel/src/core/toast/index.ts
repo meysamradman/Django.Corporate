@@ -20,14 +20,13 @@ export function showError(
     customMessage?: string;
     showToast?: boolean;
     silent?: boolean;
-    description?: string;
   } & ExternalToast
 ): string {
-  const { customMessage, showToast = true, silent = false, description, ...toastOptions } = options || {};
+  const { customMessage, showToast = true, silent = false, ...toastOptions } = options || {};
 
   if (typeof error === 'string') {
     if (showToast && typeof window !== 'undefined') {
-      toast.error(error, { ...ERROR_OPTIONS, description, ...toastOptions });
+      toast.error(error, { ...ERROR_OPTIONS, ...toastOptions });
     }
     return error;
   }
@@ -54,24 +53,25 @@ export function showError(
   }
 
   if (showToast && typeof window !== 'undefined') {
-    toast.error(errorMessage, { ...ERROR_OPTIONS, description, ...toastOptions });
+    toast.error(errorMessage, { ...ERROR_OPTIONS, ...toastOptions });
   }
 
   return errorMessage;
 }
 
 
-export const showSuccess = (message: string, options?: ExternalToast & { description?: string }) => {
+export const showSuccess = (message: string, options?: ExternalToast) => {
   toast.success(message, { ...DEFAULT_OPTIONS, ...options });
 };
 
-export const showInfo = (message: string, options?: ExternalToast & { description?: string }) => {
+export const showInfo = (message: string, options?: ExternalToast) => {
   toast.info(message, { ...DEFAULT_OPTIONS, ...options });
 };
 
-export const showWarning = (message: string, options?: ExternalToast & { description?: string }) => {
+export const showWarning = (message: string, options?: ExternalToast) => {
   toast.warning(message, { ...DEFAULT_OPTIONS, ...options });
 };
+
 
 
 export function extractFieldErrors(error: unknown): Record<string, string> {

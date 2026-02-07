@@ -245,7 +245,9 @@ export const REAL_ESTATE_MESSAGES = {
         agencyRatingMin: 'امتیاز نمی‌تواند کمتر از ۰ باشد',
         agencyRatingMax: 'امتیاز نمی‌تواند بیشتر از ۵ باشد',
         agencyTotalReviewsMin: 'تعداد نظرات نمی‌تواند منفی باشد',
+        mediaLimitExceeded: 'حداکثر {max} فایل مدیا مجاز است.',
     }
+
 };
 
 export const getRealEstate = () => REAL_ESTATE_MESSAGES;

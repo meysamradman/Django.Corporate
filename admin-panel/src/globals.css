@@ -198,7 +198,9 @@
 
 @theme inline {
   /* --- Base Primitives --- */
+  --font-persian: var(--font-persian);
   --color-primary: var(--primary);
+
   /* --- Borders --- */
   --color-br: var(--br);
   --color-divi: var(--divi);
