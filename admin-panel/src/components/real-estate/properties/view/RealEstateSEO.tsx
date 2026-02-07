@@ -4,7 +4,6 @@ import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from "@/components/media/services";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Card, CardContent } from "@/components/elements/Card";
-import { Item, ItemContent, ItemTitle, ItemMedia } from "@/components/elements/Item";
 import {
   Image as ImageIcon,
   Search,
@@ -51,18 +50,18 @@ export function RealEstateSEO({ property }: SEOInfoTabProps) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-stretch px-5 py-5">
           {/* Google Preview Section */}
           <div className="flex flex-col h-full gap-5">
-            <Item size="sm" className="px-1 py-0 pointer-events-none border-0 bg-transparent">
-              <ItemMedia className="size-2 rounded-full bg-teal-1 shadow-[0_0_8px_var(--teal-1)]" />
-              <ItemContent>
-                <ItemTitle className="text-xs font-black text-font-p tracking-wide">پیش‌نمایش گوگل</ItemTitle>
-              </ItemContent>
-            </Item>
-
-            <Card className="flex-1 bg-bg border-br/40 shadow-xs group transition-smooth hover:border-teal-1/30 overflow-hidden">
-              <CardContent className="p-6 space-y-3">
+            <Card className="flex-1 bg-bg border-br/40 shadow-xs group transition-smooth hover:border-teal-1/30 overflow-hidden relative">
+              <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-teal-1/10 text-teal-1 text-[10px] font-black">
+                  <Search className="size-3" />
+                  گوگل
+                </div>
+              </div>
+              <CardContent className="p-6 space-y-3 pt-8">
                 <div className="flex items-center gap-3 text-sm text-font-s opacity-80 truncate">
                   <div className="size-7 bg-wt rounded-full shadow-xs border border-br/30 flex items-center justify-center shrink-0">
-                    <Search className="size-4 text-teal-1" />
+                    <img src="/assets/icons/google.svg" alt="G" className="size-4 opacity-70" onError={(e) => e.currentTarget.style.display = 'none'} />
+                    <Search className="size-4 text-teal-1 absolute" style={{ opacity: 0.1 }} />
                   </div>
                   <span className="dir-ltr text-left flex-1 truncate font-medium">{canonicalUrl}</span>
                 </div>
@@ -80,14 +79,13 @@ export function RealEstateSEO({ property }: SEOInfoTabProps) {
 
           {/* Social Preview Section */}
           <div className="flex flex-col h-full gap-5">
-            <Item size="sm" className="px-1 py-0 pointer-events-none border-0 bg-transparent">
-              <ItemMedia className="size-2 rounded-full bg-blue-1 shadow-[0_0_8px_var(--blue-1)]" />
-              <ItemContent>
-                <ItemTitle className="text-xs font-black text-font-p tracking-wide">پیش‌نمایش شبکه‌های اجتماعی</ItemTitle>
-              </ItemContent>
-            </Item>
-
-            <Card className="flex-1 bg-wt border-br/60 shadow-xs group transition-smooth hover:border-blue-1/20 overflow-hidden min-h-[140px]">
+            <Card className="flex-1 bg-wt border-br/60 shadow-xs group transition-smooth hover:border-blue-1/20 overflow-hidden min-h-[140px] relative">
+              <div className="absolute top-0 right-0 p-3 z-10 opacity-10 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-blue-1/10 text-blue-1 text-[10px] font-black backdrop-blur-sm">
+                  <Globe className="size-3" />
+                  سوشال
+                </div>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] lg:grid-cols-[220px_1fr] h-full items-stretch">
                 {ogImageUrl ? (
                   <div className="relative aspect-video sm:aspect-auto overflow-hidden border-b sm:border-b-0 sm:border-l border-br/40 h-full">
