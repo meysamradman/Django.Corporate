@@ -10,7 +10,7 @@ import { Input } from "@/components/elements/Input";
 import { Label } from "@/components/elements/Label";
 import { X, Download, Edit3, FileText, Play, FileAudio, Save, ImageOff } from 'lucide-react';
 import type { Media } from '@/types/shared/media';
-import { MediaPlayer } from '@/components/media/base/MediaPlayer';
+import { MediaPlayer } from '@/components/media/videos/MediaPlayer';
 import { MediaThumbnail } from '@/components/media/base/MediaThumbnail';
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from '@/components/media/services';

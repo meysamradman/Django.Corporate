@@ -32,69 +32,74 @@ export function RealEstateViewHeader({
     };
 
     return (
-        <Card className="flex-row items-center justify-between gap-0 p-4 lg:px-10 py-5 relative overflow-hidden border-br/60 ring-1 ring-static-b/5 shadow-xs shrink-0">
-            <div className="absolute top-0 right-0 w-full h-[2.5px] bg-linear-to-r from-blue-1/40 via-purple-1/40 to-pink-1/40" />
+        <Card className="flex-row items-center justify-between gap-4 p-4 lg:px-6 py-4.5 relative overflow-hidden border-br shadow-xs shrink-0 bg-card">
+            <div className="absolute top-0 right-0 w-full h-[3px] bg-linear-to-r from-blue-1/40 via-purple-1/40 to-pink-1/40" />
 
-            <div className="flex flex-col gap-1.5">
-                <div className="flex items-center gap-5">
-                    <h1 className="text-2xl font-black text-font-p tracking-tighter shrink-0 leading-none">{property.title}</h1>
+            <div className="flex flex-col gap-1.5 min-w-0">
+                <div className="flex items-center gap-4 flex-wrap">
+                    <h1 className="text-xl font-black text-font-p tracking-tight shrink-0 leading-tight">
+                        {property.title}
+                    </h1>
                     <div className="flex items-center gap-2">
-                        <Badge variant={statusConfig[property.status]?.variant || "default"} className="rounded-full px-2.5 py-0.5 text-[9px] font-black tracking-widest gap-1.5 h-5.5">
+                        <Badge variant={statusConfig[property.status]?.variant || "default"} className="rounded-full px-3 py-1 text-[10px] font-black h-6.5 gap-2 border-0">
                             <div className={`w-1.5 h-1.5 rounded-full ${statusConfig[property.status]?.dot || 'bg-current'} animate-pulse`} />
                             {statusConfig[property.status]?.label || property.status}
                         </Badge>
 
                         {property.is_active && (
-                            <Badge variant="emerald" className="rounded-full px-2.5 py-0.5 text-[9px] font-black tracking-widest gap-1.5 h-5.5">
+                            <Badge variant="emerald" className="rounded-full px-3 py-1 text-[10px] font-black h-6.5 gap-2 border-0">
                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-1 animate-pulse" />
-                                فعال
+                                تایید شده
                             </Badge>
                         )}
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3.5 text-[10.5px] font-bold text-font-s opacity-60">
-                    <span className="font-mono text-font-p bg-bg/80 px-2 py-0.5 rounded-md border border-br/60">#{property.id}</span>
+                <div className="flex items-center gap-4 text-[11px] font-bold text-font-s opacity-70">
+                    <span className="font-mono text-font-p bg-bg px-2 py-0.5 rounded-md border border-br/60 shadow-xs">#{property.id}</span>
                     <div className="w-1 h-1 rounded-full bg-br" />
-                    <span className="tracking-widest uppercase">{property.property_type?.title || 'Residential'}</span>
-                    <div className="w-1 h-1 rounded-full bg-br" />
+                    <span className="tracking-wide">{property.property_type?.title || 'Residential'}</span>
+                    <div className="w-1.5 h-1.5 rounded-full bg-br/50" />
                     <div className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 opacity-70" />
+                        <Calendar className="w-3.5 h-3.5 opacity-60" />
                         <span>{formatDate(property.created_at)}</span>
                     </div>
                 </div>
             </div>
 
-            <div className="flex items-center gap-2 bg-bg/50 p-1.5 rounded-2xl border border-br/50 h-12 shadow-inner">
+            <div className="flex items-center gap-2">
                 <Button
                     variant="default"
                     size="sm"
-                    className="h-8 gap-1.5 text-[10px] font-black bg-blue-1 hover:bg-blue-2 text-wt shadow-sm px-4 rounded-lg"
+                    className="gap-2 text-[11px] font-black bg-blue-1 hover:bg-blue-2 text-wt shadow-md shadow-blue-1/10 transition-all active:scale-95"
                     onClick={() => navigate(`/real-estate/properties/${propertyId}/edit`)}
                 >
-                    <Edit2 className="w-3 h-3" />
+                    <Edit2 className="w-3.5 h-3.5" />
                     ویرایش
                 </Button>
-                <div className="w-px h-4 bg-br/60 mx-1" />
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 gap-1.5 text-[10px] font-black border-br hover:bg-bg bg-wt/80 px-3 rounded-lg"
-                    onClick={onPrint}
-                >
-                    <Printer className="w-3 h-3 opacity-60" />
-                    چاپ
-                </Button>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 gap-1.5 text-[10px] font-black border-br hover:bg-bg bg-wt/80 px-3 rounded-lg"
-                    onClick={onPdf}
-                    isLoading={isExportingPdf}
-                >
-                    <FileText className="w-3 h-3 opacity-60" />
-                    PDF
-                </Button>
+
+                <div className="flex items-center gap-1.5 bg-bg/40 p-1 rounded-xl border border-br/40">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5 text-[10.5px] font-bold border-0 hover:bg-card bg-transparent rounded-lg text-font-s transition-all active:scale-95"
+                        onClick={onPrint}
+                    >
+                        <Printer className="w-3.5 h-3.5 opacity-70" />
+                        چاپ
+                    </Button>
+                    <div className="w-px h-3.5 bg-br/60" />
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5 text-[10.5px] font-bold border-0 hover:bg-card bg-transparent rounded-lg text-font-s transition-all active:scale-95"
+                        onClick={onPdf}
+                        isLoading={isExportingPdf}
+                    >
+                        <FileText className="w-3.5 h-3.5 opacity-70" />
+                        PDF
+                    </Button>
+                </div>
             </div>
         </Card>
     );

@@ -1,29 +1,29 @@
 /**
- * Formats a number for area display (e.g. 150 مترمربع)
- * Always uses English digits for font compatibility.
+ * Formats a number for area display (e.g. ۱۵۰ مترمربع)
+ * Uses Persian digits for local consistency.
  */
 export const formatArea = (area: number | undefined | null): string => {
-    if (area === undefined || area === null) return '0 مترمربع';
-    return `${area.toLocaleString('en-US')} مترمربع`;
+    if (area === undefined || area === null) return '۰ مترمربع';
+    return `${area.toLocaleString('fa-IR')} مترمربع`;
 };
 
 /**
- * Formats a price into a readable Persian format (e.g. 2.5 میلیارد تومان)
+ * Formats a price into a readable Persian format (e.g. ۲.۵ میلیارد تومان)
  * Converts large numbers to millions/billions for cleaner UI.
- * Always uses English digits for font compatibility.
+ * Uses Persian digits for local consistency.
  */
 export const formatPriceToPersian = (price: number | undefined | null, currency: string = 'تومان'): string => {
     if (price === undefined || price === null || price === 0) return 'توافقی';
 
     if (price >= 1_000_000_000) {
         const billions = price / 1_000_000_000;
-        return `${billions.toLocaleString('en-US', { maximumFractionDigits: 2 })} میلیارد ${currency}`;
+        return `${billions.toLocaleString('fa-IR', { maximumFractionDigits: 2 })} میلیارد ${currency}`;
     }
 
     if (price >= 1_000_000) {
         const millions = price / 1_000_000;
-        return `${millions.toLocaleString('en-US', { maximumFractionDigits: 2 })} میلیون ${currency}`;
+        return `${millions.toLocaleString('fa-IR', { maximumFractionDigits: 2 })} میلیون ${currency}`;
     }
 
-    return `${price.toLocaleString('en-US')} ${currency}`;
+    return `${price.toLocaleString('fa-IR')} ${currency}`;
 };
