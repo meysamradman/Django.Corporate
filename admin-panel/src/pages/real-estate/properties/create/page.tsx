@@ -122,8 +122,7 @@ export default function PropertyCreatePage() {
       <TabsContent value="account">
         <Suspense fallback={<TabSkeleton />}>
           <BaseInfoTab
-            formData={formData}
-            handleInputChange={handleInputChange}
+            form={form}
             selectedLabels={selectedLabels}
             onLabelToggle={handleLabelToggle}
             onLabelRemove={handleLabelRemove}
@@ -141,8 +140,7 @@ export default function PropertyCreatePage() {
       <TabsContent value="location">
         <Suspense fallback={<TabSkeleton />}>
           <LocationTab
-            formData={formData}
-            handleInputChange={handleInputChange}
+            form={form}
             latitude={formData.latitude}
             longitude={formData.longitude}
             onLocationChange={handleLocationChange}

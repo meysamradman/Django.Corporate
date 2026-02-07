@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FormField, FormFieldTextarea, FormFieldInput } from "@/components/shared/FormField";
 import { Input } from "@/components/elements/Input";
 import { MapPin, Loader2 } from "lucide-react";
+import { cn } from "@/core/utils/cn";
 import LocationMap from "@/components/real-estate/layouts/LocationMap.tsx";
 import { realEstateApi } from "@/api/real-estate";
 import type { RealEstateCity, RealEstateCityRegion } from "@/types/real_estate/location";
@@ -241,7 +242,7 @@ export default function RealEstateLocation(props: LocationTabProps) {
                                             onValueChange={handleProvinceChange}
                                             disabled={!editMode || loading}
                                         >
-                                            <SelectTrigger>
+                                            <SelectTrigger className={cn((isFormApproach ? errorsObj.province?.message : errorsObj?.province) && "border-red-1")}>
                                                 <SelectValue placeholder="استان را انتخاب کنید" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -260,7 +261,7 @@ export default function RealEstateLocation(props: LocationTabProps) {
                                             onValueChange={handleCityChange}
                                             disabled={!editMode || !selectedProvinceId || loading}
                                         >
-                                            <SelectTrigger>
+                                            <SelectTrigger className={cn((isFormApproach ? errorsObj.city?.message : errorsObj?.city) && "border-red-1")}>
                                                 <SelectValue placeholder="شهر را انتخاب کنید" />
                                             </SelectTrigger>
                                             <SelectContent>

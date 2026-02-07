@@ -1,5 +1,5 @@
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Play, Pause, Download, Music } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { Item, ItemContent, ItemTitle } from "@/components/elements/Item";
@@ -8,14 +8,12 @@ import { cn } from "@/core/utils/cn";
 interface AudioPlayerProps {
     src: string;
     title?: string;
-    artist?: string;
     className?: string;
 }
 
 export function AudioPlayer({
     src,
     title = "پادکست",
-    artist,
     className,
 }: AudioPlayerProps) {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -152,10 +150,10 @@ export function AudioPlayer({
                     {/* Actions */}
                     <div className="flex items-center gap-1.5 shrink-0 pl-1">
                         <Button
-                            variant="ghost"
+                            variant="outline"
                             size="icon"
                             className={cn(
-                                "size-10 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95",
+                                "size-10 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 border-none shadow-none",
                                 isPlaying
                                     ? "bg-pink-0 text-pink-1 hover:bg-pink-1 hover:text-wt hover:shadow-md hover:shadow-pink-1/25"
                                     : "bg-gray-50 text-font-s hover:bg-pink-0/50 hover:text-pink-1"
@@ -168,11 +166,11 @@ export function AudioPlayer({
                                 <Play className="size-5 fill-current ml-0.5" />
                             )}
                         </Button>
-
+                        -
                         <Button
-                            variant="ghost"
+                            variant="outline"
                             size="icon"
-                            className="size-8 rounded-lg text-font-s/60 hover:text-font-p hover:bg-gray-100 transition-colors"
+                            className="size-8 rounded-lg text-font-s/60 hover:text-font-p hover:bg-gray-100 transition-colors border-none shadow-none"
                             asChild
                         >
                             <a href={src} target="_blank" rel="noreferrer">

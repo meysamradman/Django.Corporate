@@ -17,6 +17,7 @@ interface EmptyStateProps {
     className?: string;
     action?: React.ReactNode;
     fullBleed?: boolean;
+    fullHeight?: boolean;
 }
 
 export function EmptyState({
@@ -27,6 +28,7 @@ export function EmptyState({
     className,
     action,
     fullBleed = false,
+    fullHeight = false,
 }: EmptyStateProps) {
     const sizeClasses = {
         sm: "py-8 md:py-10",
@@ -38,7 +40,8 @@ export function EmptyState({
         <Empty
             className={cn(
                 "relative overflow-hidden transition-all duration-700",
-                sizeClasses[size],
+                !fullHeight && sizeClasses[size],
+                fullHeight && "h-full flex items-center justify-center",
                 fullBleed ? "rounded-none border-none p-0 w-full" : "bg-bg/10 rounded-2xl",
                 className
             )}

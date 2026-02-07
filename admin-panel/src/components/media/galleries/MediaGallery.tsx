@@ -6,16 +6,17 @@ import { MediaDetailsModal } from "@/components/media/modals/MediaDetailsModal";
 import { MediaThumbnail } from "@/components/media/base/MediaThumbnail";
 import { mediaService } from "@/components/media/services";
 import {
+  FileText as PDFIcon,
   Plus,
   X,
   Play,
   Music,
   Image as ImageIcon,
-  Video as VideoIcon,
-  FileText as PDFIcon
+  Video as VideoIcon
 } from "lucide-react";
+import { type MediaContextType, MODULE_MEDIA_CONFIGS } from "../constants";
 import { showError } from "@/core/toast";
-import { type MediaContextType, MODULE_MEDIA_CONFIGS, MEDIA_MODULES } from "../constants";
+import { cn } from "@/core/utils/cn";
 
 interface MediaGalleryProps {
   mediaItems: Media[];
@@ -329,116 +330,93 @@ export function MediaGallery({
           <div className={
             mediaType === "image"
               ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"
-              : mediaType === "video"
-                ? "grid grid-cols-1 sm:grid-cols-2 gap-4"
-                : "space-y-2"
+              : "flex flex-col gap-3"
           }>
-            {mediaItems.map((media, index) => (
-              mediaType === "audio" ? (
-                <div key={`audio-item-${index}-${media.id}`} className="group flex items-center gap-3 p-2.5 border border-br rounded-xl bg-wt hover:border-indigo-1/30 transition-all duration-200">
-                  <div className="shrink-0 w-9 h-9 bg-indigo-0 rounded-lg flex items-center justify-center">
-                    <Music className="w-4 h-4 text-indigo-1" />
-                  </div>
-                  <div className="grow min-w-0">
-                    <p className="text-font-p font-semibold truncate">{media.title || media.original_file_name}</p>
-                    <p className="text-[10px] text-font-s/60 font-medium">
-                      {media.file_size ? `${(media.file_size / 1024 / 1024).toFixed(2)} MB` : 'Size Unknown'}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedMediaForDetails(media)}
-                      className="h-8 w-8 p-0 text-font-s hover:text-font-p border-none shadow-none bg-transparent"
-                      title="ویرایش جزئیات"
-                    >
-                      <Plus className="w-4 h-4 rotate-45" />
-                    </Button>
-                    {!disabled && (
+            {mediaItems.map((media, index) => {
+              if (mediaType === "image") {
+                return (
+                  <div key={`media-item-${index}-${media.id}`} className="relative group aspect-square rounded-xl overflow-hidden border border-br bg-muted/5">
+                    <MediaThumbnail
+                      media={media}
+                      alt={`${title} ${index + 1}`}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center flex-col gap-2">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-8 w-8 p-0 text-red-1 border-none hover:bg-red-0 hover:text-red-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => handleRemoveMedia(index)}
+                        className="h-8 px-2 text-[10px] bg-wt/10 border-wt/20 text-static-w backdrop-blur-md hover:bg-wt/20"
+                        onClick={() => setSelectedMediaForDetails(media)}
                       >
-                        <X className="w-4 h-4" />
+                        ویرایش جزئیات
                       </Button>
-                    )}
-                  </div>
-                </div>
-              ) : mediaType === "document" ? (
-                <div key={`pdf-item-${index}-${media.id}`} className="group flex items-center gap-3 p-2.5 border border-br rounded-xl bg-wt hover:border-orange-1/30 transition-all duration-200">
-                  <div className="shrink-0 w-9 h-9 bg-orange-0 rounded-lg flex items-center justify-center">
-                    <PDFIcon className="w-4 h-4 text-orange-2" />
-                  </div>
-                  <div className="grow min-w-0">
-                    <p className="text-font-p font-semibold truncate">{media.title || media.original_file_name}</p>
-                    <p className="text-[10px] text-font-s/60 font-medium">
-                      {media.file_size ? `${(media.file_size / 1024 / 1024).toFixed(2)} MB` : 'Size Unknown'}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedMediaForDetails(media)}
-                      className="h-8 w-8 p-0 text-font-s hover:text-font-p border-none shadow-none bg-transparent"
-                      title="ویرایش جزئیات"
-                    >
-                      <Plus className="w-4 h-4 rotate-45" />
-                    </Button>
-                    {!disabled && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 w-8 p-0 text-red-1 border-none hover:bg-red-0 hover:text-red-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => handleRemoveMedia(index)}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div key={`media-item-${index}-${media.id}`} className="relative group aspect-square rounded-xl overflow-hidden border border-br bg-muted/5">
-                  <MediaThumbnail
-                    media={media}
-                    alt={`${title} ${index + 1}`}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-
-                  {mediaType === "video" && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
-                      <div className="w-10 h-10 rounded-full bg-wt/20 backdrop-blur-md flex items-center justify-center border border-wt/30">
-                        <Play className="w-5 h-5 text-static-w fill-static-w ml-0.5" />
-                      </div>
+                      {!disabled && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="h-8 w-8 p-0 rounded-full shadow-lg"
+                          onClick={() => handleRemoveMedia(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
-                  )}
+                  </div>
+                );
+              }
 
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center flex-col gap-2">
+
+              const assetUI = (
+                <div key={`${mediaType}-item-${index}-${media.id}`} className="group relative flex items-center gap-3 p-3 border border-br rounded-xl bg-wt hover:border-primary/30 transition-all duration-200">
+                  <div className={cn(
+                    "shrink-0 size-11 rounded-xl flex items-center justify-center transition-colors",
+                    mediaType === "audio" ? "bg-pink-0 text-pink-1" :
+                      mediaType === "video" ? "bg-purple-0 text-purple-1" :
+                        "bg-orange-0 text-orange-2"
+                  )}>
+                    {mediaType === "audio" && <Music className="size-5" />}
+                    {mediaType === "video" && <VideoIcon className="size-5" />}
+                    {mediaType === "document" && <PDFIcon className="size-5" />}
+                  </div>
+
+                  <div className="grow min-w-0">
+                    <p className="text-[13px] font-bold text-font-p truncate">{media.title || media.original_file_name}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[10px] text-font-s/60 font-mono uppercase">{(media.mime_type || '').split('/')[1] || 'FILE'}</span>
+                      <span className="text-[10px] text-font-s/40">•</span>
+                      <span className="text-[10px] text-font-s/60 font-mono">
+                        {media.file_size ? `${(media.file_size / 1024 / 1024).toFixed(2)} MB` : 'Size Unknown'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       variant="outline"
-                      size="sm"
-                      className="h-8 px-2 text-[10px] bg-wt/10 border-wt/20 text-static-w backdrop-blur-md hover:bg-wt/20"
+                      size="icon"
                       onClick={() => setSelectedMediaForDetails(media)}
+                      className="size-8 rounded-lg text-font-s/60 hover:text-font-p hover:bg-gray-100 transition-colors border-none shadow-none"
+                      title="ویرایش جزئیات"
                     >
-                      ویرایش جزئیات
+                      <Plus className="size-4 rotate-45" />
                     </Button>
                     {!disabled && (
                       <Button
-                        variant="destructive"
-                        size="sm"
-                        className="h-8 w-8 p-0 rounded-full shadow-lg"
+                        variant="outline"
+                        size="icon"
+                        className="size-8 rounded-lg text-red-1/60 hover:text-red-1 hover:bg-red-0 transition-colors border-none shadow-none"
                         onClick={() => handleRemoveMedia(index)}
+                        title="حذف فایل"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="size-4" />
                       </Button>
                     )}
                   </div>
                 </div>
-              )
-            ))}
+              );
+
+              return assetUI;
+            })}
           </div>
         ) : (
           <div className="border-2 border-dashed border-br rounded-2xl p-10 flex flex-col items-center justify-center bg-muted/5 group hover:bg-muted/10 transition-colors duration-300">

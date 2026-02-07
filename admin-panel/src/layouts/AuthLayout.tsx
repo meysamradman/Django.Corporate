@@ -5,9 +5,9 @@ export function AuthLayout() {
   return (
     <div className="min-h-screen flex items-center justify-center grow p-4 bg-bg">
       <div className="authentication-inner w-full max-w-md">
-        <Card className="relative z-[2]">
+        <Card className="relative z-2">
           <CardHeader className="text-center space-y-3">
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+            <CardTitle className="text-3xl font-bold bg-linear-to-r from-primary to-primary/80 bg-clip-text text-transparent">
               ورود به پنل مدیریت
             </CardTitle>
             <CardDescription className="text-base">

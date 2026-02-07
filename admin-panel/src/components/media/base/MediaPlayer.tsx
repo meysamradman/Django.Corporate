@@ -4,6 +4,7 @@ import { mediaService } from "@/components/media/services";
 import { cn } from '@/core/utils/cn';
 import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/elements/Button';
+import { Spinner } from '@/components/elements/Spinner';
 
 interface MediaPlayerProps {
   media: Media;
@@ -11,23 +12,28 @@ interface MediaPlayerProps {
   autoPlay?: boolean;
   controls?: boolean;
   showControls?: boolean;
+  hideControlsOnIdle?: boolean;
+  renderHeader?: (isVisible: boolean) => React.ReactNode;
 }
 
 export function MediaPlayer({
   media,
   className,
   autoPlay = false,
-  controls = true,
   showControls = true,
+  hideControlsOnIdle = true,
+  renderHeader,
 }: MediaPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [volume, _setVolume] = useState(1);
+  const [volume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [isControlsVisible, setIsControlsVisible] = useState(true);
+  const hideTimeoutRef = useRef<any>(null);
 
   const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -36,18 +42,15 @@ export function MediaPlayer({
 
   const togglePlayPause = () => {
     if (!mediaRef.current) return;
-
     if (isPlaying) {
       mediaRef.current.pause();
     } else {
       mediaRef.current.play();
     }
-    setIsPlaying(!isPlaying);
   };
 
   const toggleMute = () => {
     if (!mediaRef.current) return;
-
     if (isMuted) {
       mediaRef.current.volume = volume;
       setIsMuted(false);
@@ -59,7 +62,6 @@ export function MediaPlayer({
 
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
-
     if (!isFullscreen) {
       if (containerRef.current.requestFullscreen) {
         containerRef.current.requestFullscreen();
@@ -74,7 +76,6 @@ export function MediaPlayer({
 
   const handleSeek = (time: number) => {
     if (!mediaRef.current) return;
-
     mediaRef.current.currentTime = time;
     setCurrentTime(time);
   };
@@ -98,14 +99,8 @@ export function MediaPlayer({
       setCurrentTime(mediaElement.currentTime);
     };
 
-    const handlePlay = () => {
-      setIsPlaying(true);
-    };
-
-    const handlePause = () => {
-      setIsPlaying(false);
-    };
-
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
     const handleEnded = () => {
       setIsPlaying(false);
       setCurrentTime(0);
@@ -141,15 +136,17 @@ export function MediaPlayer({
   }, [mediaUrl]);
 
   useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
+    const handleFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-    };
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
+
+  const showControlsTemporarily = () => {
+    if (!hideControlsOnIdle) return;
+    setIsControlsVisible(true);
+    if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+    hideTimeoutRef.current = setTimeout(() => setIsControlsVisible(false), 3000);
+  };
 
   const renderMedia = () => {
     if (media.media_type === 'video') {
@@ -158,10 +155,12 @@ export function MediaPlayer({
           ref={mediaRef as RefObject<HTMLVideoElement>}
           src={mediaUrl}
           className="w-full h-full object-contain"
-          controls={controls}
+          controls={false}
           autoPlay={autoPlay}
           muted={isMuted}
           poster={media.cover_image ? mediaService.getMediaCoverUrl(media) : undefined}
+          onMouseMove={showControlsTemporarily}
+          onClick={togglePlayPause}
         />
       );
     } else if (media.media_type === 'audio') {
@@ -170,71 +169,92 @@ export function MediaPlayer({
           ref={mediaRef as RefObject<HTMLAudioElement>}
           src={mediaUrl}
           className="w-full"
-          controls={controls}
+          controls={true}
           autoPlay={autoPlay}
           muted={isMuted}
         />
       );
     }
-
     return null;
   };
 
   const renderCustomControls = () => {
-    if (!showControls || controls) return null;
+    if (!showControls || media.media_type === 'audio') return null;
 
     return (
-      <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/80 to-transparent p-4">
-        <div className="mb-3">
-          <input
-            type="range"
-            min="0"
-            max={duration || 0}
-            value={currentTime}
-            onChange={(e) => handleSeek(parseFloat(e.target.value))}
-            className="w-full h-1 bg-static-w/30 rounded-lg appearance-none cursor-pointer slider"
-            style={{
-              background: `linear-gradient(to right, #fff 0%, #fff ${(currentTime / duration) * 100}%, rgba(255,255,255,0.3) ${(currentTime / duration) * 100}%, rgba(255,255,255,0.3) 100%)`
-            }}
-          />
-        </div>
+      <div className={cn(
+        "absolute inset-0 z-30 transition-all duration-700 pointer-events-none",
+        isControlsVisible ? "opacity-100" : "opacity-0"
+      )}>
+        {/* Top Gradient */}
+        <div className="absolute top-0 left-0 right-0 h-40 bg-linear-to-b from-black/80 via-black/20 to-transparent pointer-events-none" />
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={togglePlayPause}
-              className="text-static-w hover:bg-static-w/20"
-            >
-              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            </Button>
+        {/* Bottom Gradient */}
+        <div className="absolute bottom-0 left-0 right-0 h-48 bg-linear-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />
 
-            <span className="text-static-w text-sm">
-              {formatTime(currentTime)} / {formatTime(duration)}
-            </span>
+        {/* Center Play Icon Toggle Overlay */}
+        {!isPlaying && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="size-24 rounded-full bg-wt/10 backdrop-blur-xl border border-wt/10 flex items-center justify-center text-wt scale-110 animate-in zoom-in-50 duration-500 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+              <Play className="size-10 fill-current ml-2" />
+            </div>
+          </div>
+        )}
+
+        {/* Professional Bottom Control Bar */}
+        <div className="absolute bottom-0 left-0 right-0 p-8 pt-0 space-y-5 pointer-events-auto">
+          {/* Pro Progress Bar */}
+          <div className="group/progress relative h-1.5 w-full bg-wt/20 rounded-full cursor-pointer transition-all hover:h-2.5">
+            <div
+              className="absolute left-0 top-0 bottom-0 bg-wt transition-all duration-100 ease-out z-10"
+              style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
+            />
+            {/* Knob */}
+            <div
+              className="absolute top-1/2 -translate-y-1/2 size-4 bg-wt border-4 border-black/20 rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity z-20 shadow-xl"
+              style={{ left: `calc(${(currentTime / (duration || 1)) * 100}% - 8px)` }}
+            />
+            <input
+              type="range"
+              min="0"
+              max={duration || 0}
+              value={currentTime}
+              onChange={(e) => handleSeek(parseFloat(e.target.value))}
+              className="absolute inset-0 w-full opacity-0 cursor-pointer z-30"
+            />
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleMute}
-              className="text-static-w hover:bg-static-w/20"
-            >
-              {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-            </Button>
-
-            {media.media_type === 'video' && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleFullscreen}
-                className="text-static-w hover:bg-static-w/20"
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-8">
+              <button
+                onClick={togglePlayPause}
+                className="text-wt hover:scale-125 transition-all active:scale-90 cursor-pointer"
               >
-                <Maximize className="h-4 w-4" />
-              </Button>
-            )}
+                {isPlaying ? <Pause className="size-8 fill-current" /> : <Play className="size-8 fill-current" />}
+              </button>
+
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={toggleMute}
+                  className="text-wt hover:scale-110 transition-transform cursor-pointer"
+                >
+                  {isMuted ? <VolumeX className="size-6" /> : <Volume2 className="size-6" />}
+                </button>
+                <span className="text-wt text-[13px] font-mono tracking-widest tabular-nums opacity-90 drop-shadow-md">
+                  {formatTime(currentTime)} <span className="opacity-40 font-thin mx-1">/</span> {formatTime(duration)}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-5">
+              <button
+                onClick={toggleFullscreen}
+                className="text-wt hover:scale-110 transition-transform cursor-pointer"
+                title="Fullscreen"
+              >
+                <Maximize className="size-6" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -243,7 +263,7 @@ export function MediaPlayer({
 
   if (hasError) {
     return (
-      <div className={cn("flex items-center justify-center bg-bg rounded-lg", className)}>
+      <div className={cn("flex items-center justify-center bg-bg rounded-lg p-8", className)}>
         <div className="text-center text-font-s">
           <p>خطا در بارگذاری رسانه</p>
           <Button
@@ -252,13 +272,11 @@ export function MediaPlayer({
             onClick={() => {
               setHasError(false);
               setIsLoading(true);
-              if (mediaRef.current) {
-                mediaRef.current.load();
-              }
+              if (mediaRef.current) mediaRef.current.load();
             }}
-            className="mt-2"
+            className="mt-4"
           >
-            <RotateCcw className="h-4 w-4 mr-2" />
+            <RotateCcw className="h-4 w-4 ml-2" />
             تلاش مجدد
           </Button>
         </div>
@@ -269,16 +287,21 @@ export function MediaPlayer({
   return (
     <div
       ref={containerRef}
-      className={cn("relative bg-static-b rounded-lg overflow-hidden", media.media_type === 'audio' && "bg-transparent", className)}
+      className={cn("relative overflow-hidden group/player bg-black flex items-center justify-center", className)}
+      onMouseMove={showControlsTemporarily}
     >
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-static-b/50">
-          <div className="text-static-w">در حال بارگذاری...</div>
+        <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-40">
+          <div className="flex flex-col items-center gap-4">
+            <Spinner className="size-16 text-wt stroke-[1.5]" />
+            <span className="text-sm text-wt font-bold tracking-tight opacity-90 drop-shadow-md">لطفاً کمی صبر کنید...</span>
+          </div>
         </div>
       )}
 
       {renderMedia()}
       {renderCustomControls()}
+      {renderHeader && renderHeader(isControlsVisible)}
     </div>
   );
 }

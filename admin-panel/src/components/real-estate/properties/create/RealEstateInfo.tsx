@@ -456,21 +456,21 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
                                 error={errors?.agent}
                                 className="lg:col-span-3"
                             >
-                                    <Select
-                                        disabled={!editMode || loadingAgents}
-                                        value={isFormApproach ? (watch?.("agent") ? String(watch("agent")) : "none") : (formData?.agent ? String(formData.agent) : "none")}
-                                        onValueChange={handleAgentChange}
-                                    >
-                                        <SelectTrigger className={cn((isFormApproach ? errors.agent?.message : errors?.agent) && "border-red-1")}>
-                                            <SelectValue placeholder={loadingAgents ? "در حال بارگذاری..." : "مشاور را انتخاب کنید"} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="none">هیچکدام</SelectItem>
-                                            {(agents || []).map((agent) => (
-                                                <SelectItem key={agent.id} value={String(agent.id)}>
-                                                    {agent.first_name} {agent.last_name}
-                                                </SelectItem>
-                                            ))}
+                                <Select
+                                    disabled={!editMode || loadingAgents}
+                                    value={isFormApproach ? (watch?.("agent") ? String(watch("agent")) : "none") : (formData?.agent ? String(formData.agent) : "none")}
+                                    onValueChange={handleAgentChange}
+                                >
+                                    <SelectTrigger className={cn((isFormApproach ? errors.agent?.message : errors?.agent) && "border-red-1")}>
+                                        <SelectValue placeholder={loadingAgents ? "در حال بارگذاری..." : "مشاور را انتخاب کنید"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">هیچکدام</SelectItem>
+                                        {(agents || []).map((agent) => (
+                                            <SelectItem key={agent.id} value={String(agent.id)}>
+                                                {agent.first_name} {agent.last_name}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </FormField>

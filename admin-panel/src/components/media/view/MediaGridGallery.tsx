@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-    ImageIcon,
     X,
     ChevronLeft,
     ChevronRight,
@@ -10,6 +9,8 @@ import {
 } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { cn } from "@/core/utils/cn";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { Images } from "lucide-react";
 
 export interface MediaItem {
     id: string | number;
@@ -62,11 +63,19 @@ export function MediaGridGallery({ items, title, className }: MediaGridGalleryPr
 
     if (!items || items.length === 0) {
         return (
-            <div className={cn("relative w-full h-[500px] rounded-2xl border border-br bg-bg flex items-center justify-center", className)}>
-                <div className="text-center space-y-4">
-                    <ImageIcon className="w-16 h-16 mx-auto text-font-s opacity-20" />
-                    <p className="text-font-s font-bold opacity-60">رسانه‌ای یافت نشد</p>
-                </div>
+            <div className={cn("relative w-full h-[400px] md:h-[500px] lg:h-[600px] rounded-2xl overflow-hidden border border-br/60 bg-linear-to-b from-bg/20 via-bg/40 to-bg/5 flex items-center justify-center", className)}>
+                {/* Decorative Elements */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-1/5 blur-[100px] rounded-full pointer-events-none" />
+
+                <EmptyState
+                    title="تصاویر و رسانه‌ای یافت نشد"
+                    description="هنوز هیچ رسانه‌ای برای این ملک ثبت نشده است"
+                    icon={Images}
+                    size="lg"
+                    fullHeight={true}
+                    className="bg-transparent border-none shadow-none"
+                />
             </div>
         );
     }

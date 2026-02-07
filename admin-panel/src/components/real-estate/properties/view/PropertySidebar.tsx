@@ -6,6 +6,7 @@ import {
     Navigation
 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
+import { ValueFallback } from "@/components/shared/ValueFallback";
 
 interface PropertySidebarProps {
     property: Property;
@@ -65,7 +66,11 @@ export function PropertySidebar({ property }: PropertySidebarProps) {
                         <div className="space-y-4 mb-8 w-full max-w-[240px]">
                             <h3 className="font-black text-font-p text-lg tracking-tight">موقعیت مکانی ملک</h3>
                             <p className="text-[11px] font-bold text-font-s leading-relaxed opacity-70">
-                                {property.address || "آدرس دقیق در سیستم ثبت نشده است"}
+                                <ValueFallback
+                                    value={property.address}
+                                    fallback="آدرس دقیق ثبت نشده است"
+                                    className="bg-transparent border-none p-0 text-font-s opacity-70"
+                                />
                             </p>
                         </div>
 

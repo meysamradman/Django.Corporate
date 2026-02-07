@@ -39,6 +39,7 @@ import { formatArea, formatPriceToPersian } from "@/core/utils/realEstateFormat"
 import { msg } from "@/core/messages";
 import { Item, ItemContent, ItemMedia } from "@/components/elements/Item";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ValueFallback } from "@/components/shared/ValueFallback";
 
 interface OverviewTabProps {
   property: Property;
@@ -133,7 +134,11 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               <ItemContent className="flex-row items-center justify-start gap-2">
                 <span className="text-xs font-bold text-font-s">وضعیت:</span>
                 <span className="text-sm font-black">
-                  {getLocalizedValue('status', property.status) || (property.status === 'for_rent' ? 'اجاره' : property.status === 'for_sale' ? 'فروش' : property.status || 'وارد نشده')}
+                  {getLocalizedValue('status', property.status) ? (
+                    getLocalizedValue('status', property.status)
+                  ) : (
+                    <ValueFallback value={property.status === 'for_rent' ? 'اجاره' : property.status === 'for_sale' ? 'فروش' : property.status} />
+                  )}
                 </span>
               </ItemContent>
             </Item>
@@ -144,7 +149,9 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               </ItemMedia>
               <ItemContent className="flex-row items-center justify-start gap-2">
                 <span className="text-xs font-bold text-font-s">شناسه ملک:</span>
-                <span className="text-sm font-black font-mono">HZ-{property.id || 'وارد نشده'}</span>
+                <span className="text-sm font-black font-mono">
+                  {property.id ? `HZ-${property.id}` : <ValueFallback value={null} />}
+                </span>
               </ItemContent>
             </Item>
 
@@ -154,7 +161,9 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               </ItemMedia>
               <ItemContent className="flex-row items-center justify-start gap-2">
                 <span className="text-xs font-bold text-font-s">نوع ملک:</span>
-                <span className="text-sm font-black">{property.property_type?.title || "وارد نشده"}</span>
+                <span className="text-sm font-black">
+                  <ValueFallback value={property.property_type?.title} />
+                </span>
               </ItemContent>
             </Item>
 
@@ -164,7 +173,9 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               </ItemMedia>
               <ItemContent className="flex-row items-center justify-start gap-2">
                 <span className="text-xs font-bold text-font-s">زیربنا:</span>
-                <span className="text-sm font-black font-mono" dir="ltr">{property.built_area ? formatArea(property.built_area) : "وارد نشده"}</span>
+                <span className="text-sm font-black font-mono" dir="ltr">
+                  {property.built_area ? formatArea(property.built_area) : <ValueFallback value={null} />}
+                </span>
               </ItemContent>
             </Item>
 
@@ -174,7 +185,9 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               </ItemMedia>
               <ItemContent className="flex-row items-center justify-start gap-2">
                 <span className="text-xs font-bold text-font-s">مساحت زمین:</span>
-                <span className="text-sm font-black font-mono" dir="ltr">{property.land_area ? formatArea(property.land_area) : "وارد نشده"}</span>
+                <span className="text-sm font-black font-mono" dir="ltr">
+                  {property.land_area ? formatArea(property.land_area) : <ValueFallback value={null} />}
+                </span>
               </ItemContent>
             </Item>
 
@@ -184,7 +197,9 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               </ItemMedia>
               <ItemContent className="flex-row items-center justify-start gap-2">
                 <span className="text-xs font-bold text-font-s">سال ساخت:</span>
-                <span className="text-sm font-black">{property.year_built ? property.year_built.toLocaleString('fa-IR', { useGrouping: false }) : "وارد نشده"}</span>
+                <span className="text-sm font-black">
+                  {property.year_built ? property.year_built.toLocaleString('fa-IR', { useGrouping: false }) : <ValueFallback value={null} />}
+                </span>
               </ItemContent>
             </Item>
           </div>
@@ -200,7 +215,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
                 <span className="text-sm font-black text-emerald-1">
                   {property.price || property.monthly_rent
                     ? formatPriceToPersian(property.price || property.monthly_rent, property.currency || 'تومان')
-                    : "وارد نشده"}
+                    : <ValueFallback value={null} />}
                 </span>
               </ItemContent>
             </Item>
@@ -214,7 +229,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
                 <span className="text-sm font-black text-blue-1">
                   {property.mortgage_amount || property.security_deposit
                     ? formatPriceToPersian(property.mortgage_amount || property.security_deposit, property.currency || 'تومان')
-                    : "وارد نشده"}
+                    : <ValueFallback value={null} />}
                 </span>
               </ItemContent>
             </Item>
@@ -226,9 +241,9 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               <ItemContent className="flex-row items-center justify-start gap-2">
                 <span className="text-xs font-bold text-font-s">تعداد اتاق خواب:</span>
                 <span className="text-sm font-black">
-                  {property.bedrooms !== null && property.bedrooms !== undefined
-                    ? ((msg.realEstate().facilities.bedrooms as any)[property.bedrooms] || property.bedrooms.toLocaleString('fa-IR'))
-                    : "وارد نشده"}
+                  {property.bedrooms !== null && property.bedrooms !== undefined ? (
+                    (msg.realEstate().facilities.bedrooms as any)[property.bedrooms] || property.bedrooms.toLocaleString('fa-IR')
+                  ) : <ValueFallback value={null} />}
                 </span>
               </ItemContent>
             </Item>
@@ -240,9 +255,9 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               <ItemContent className="flex-row items-center justify-start gap-2">
                 <span className="text-xs font-bold text-font-s">سرویس بهداشتی:</span>
                 <span className="text-sm font-black">
-                  {property.bathrooms !== null && property.bathrooms !== undefined
-                    ? ((msg.realEstate().facilities.bathrooms as any)[property.bathrooms] || (property.bathrooms === 0 ? 'ندارد' : property.bathrooms.toLocaleString('fa-IR')))
-                    : "وارد نشده"}
+                  {property.bathrooms !== null && property.bathrooms !== undefined ? (
+                    (msg.realEstate().facilities.bathrooms as any)[property.bathrooms] || (property.bathrooms === 0 ? 'ندارد' : property.bathrooms.toLocaleString('fa-IR'))
+                  ) : <ValueFallback value={null} />}
                 </span>
               </ItemContent>
             </Item>
@@ -254,9 +269,9 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               <ItemContent className="flex-row items-center justify-start gap-2">
                 <span className="text-xs font-bold text-font-s">آشپزخانه:</span>
                 <span className="text-sm font-black">
-                  {property.kitchens !== null && property.kitchens !== undefined
-                    ? ((msg.realEstate().facilities.kitchens as any)[property.kitchens] || property.kitchens.toLocaleString('fa-IR'))
-                    : "وارد نشده"}
+                  {property.kitchens !== null && property.kitchens !== undefined ? (
+                    (msg.realEstate().facilities.kitchens as any)[property.kitchens] || property.kitchens.toLocaleString('fa-IR')
+                  ) : <ValueFallback value={null} />}
                 </span>
               </ItemContent>
             </Item>
@@ -268,9 +283,9 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               <ItemContent className="flex-row items-center justify-start gap-2">
                 <span className="text-xs font-bold text-font-s">پذیرایی:</span>
                 <span className="text-sm font-black">
-                  {property.living_rooms !== null && property.living_rooms !== undefined
-                    ? ((msg.realEstate().facilities.living_rooms as any)[property.living_rooms] || property.living_rooms.toLocaleString('fa-IR'))
-                    : "وارد نشده"}
+                  {property.living_rooms !== null && property.living_rooms !== undefined ? (
+                    (msg.realEstate().facilities.living_rooms as any)[property.living_rooms] || property.living_rooms.toLocaleString('fa-IR')
+                  ) : <ValueFallback value={null} />}
                 </span>
               </ItemContent>
             </Item>
@@ -285,9 +300,9 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               <ItemContent className="flex-row items-center justify-start gap-2">
                 <span className="text-xs font-bold text-font-s">پارکینگ:</span>
                 <span className="text-sm font-black">
-                  {property.parking_spaces !== null && property.parking_spaces !== undefined
-                    ? ((msg.realEstate().facilities.parking_spaces as any)[property.parking_spaces] || (property.parking_spaces === 0 ? 'ندارد' : property.parking_spaces.toLocaleString('fa-IR')))
-                    : "وارد نشده"}
+                  {property.parking_spaces !== null && property.parking_spaces !== undefined ? (
+                    (msg.realEstate().facilities.parking_spaces as any)[property.parking_spaces] || (property.parking_spaces === 0 ? 'ندارد' : property.parking_spaces.toLocaleString('fa-IR'))
+                  ) : <ValueFallback value={null} />}
                 </span>
               </ItemContent>
             </Item>
@@ -299,9 +314,9 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               <ItemContent className="flex-row items-center justify-start gap-2">
                 <span className="text-xs font-bold text-font-s">انباری:</span>
                 <span className="text-sm font-black">
-                  {property.storage_rooms !== null && property.storage_rooms !== undefined
-                    ? ((msg.realEstate().facilities.storage_rooms as any)[property.storage_rooms] || property.storage_rooms.toLocaleString('fa-IR'))
-                    : "وارد نشده"}
+                  {property.storage_rooms !== null && property.storage_rooms !== undefined ? (
+                    (msg.realEstate().facilities.storage_rooms as any)[property.storage_rooms] || property.storage_rooms.toLocaleString('fa-IR')
+                  ) : <ValueFallback value={null} />}
                 </span>
               </ItemContent>
             </Item>
@@ -312,7 +327,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               </ItemMedia>
               <ItemContent className="flex-row items-center justify-start gap-2">
                 <span className="text-xs font-bold text-font-s">تعداد کل طبقات:</span>
-                <span className="text-sm font-black font-mono">{property.floors_in_building ? property.floors_in_building.toLocaleString('fa-IR') : "وارد نشده"}</span>
+                <span className="text-sm font-black font-mono">{property.floors_in_building ? property.floors_in_building.toLocaleString('fa-IR') : <ValueFallback value={null} />}</span>
               </ItemContent>
             </Item>
 
@@ -323,9 +338,9 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               <ItemContent className="flex-row items-center justify-start gap-2">
                 <span className="text-xs font-bold text-font-s">طبقه ملک:</span>
                 <span className="text-sm font-black font-mono">
-                  {property.floor_number !== null && property.floor_number !== undefined
-                    ? ((msg.realEstate().facilities.floor_number as any)[property.floor_number] || property.floor_number.toLocaleString('fa-IR'))
-                    : "وارد نشده"}
+                  {property.floor_number !== null && property.floor_number !== undefined ? (
+                    (msg.realEstate().facilities.floor_number as any)[property.floor_number] || property.floor_number.toLocaleString('fa-IR')
+                  ) : <ValueFallback value={null} />}
                 </span>
               </ItemContent>
             </Item>
@@ -336,7 +351,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               </ItemMedia>
               <ItemContent className="flex-row items-center justify-start gap-2">
                 <span className="text-xs font-bold text-font-s">نوع سند:</span>
-                <span className="text-sm font-black">{property.document_type ? (getLocalizedValue('document_type', property.document_type) || property.document_type) : "وارد نشده"}</span>
+                <span className="text-sm font-black">{property.document_type ? (getLocalizedValue('document_type', property.document_type) || property.document_type) : <ValueFallback value={null} />}</span>
               </ItemContent>
             </Item>
 
@@ -347,7 +362,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               <ItemContent className="flex-row items-center justify-start gap-2">
                 <span className="text-xs font-bold text-font-s">وضعیت سند:</span>
                 <span className="text-sm font-black">
-                  {property.has_document === true ? 'دارد' : property.has_document === false ? 'ندارد' : 'وارد نشده'}
+                  {property.has_document === true ? 'دارد' : property.has_document === false ? 'ندارد' : <ValueFallback value={null} />}
                 </span>
               </ItemContent>
             </Item>
@@ -471,7 +486,7 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
               توضیحات کوتاه
             </label>
             <div className="text-sm text-font-p border-r-2 border-blue-1/30 pr-4 leading-relaxed">
-              {property.short_description || "توضیحی وارد نشده است"}
+              {property.short_description || <ValueFallback value={null} fallback="توضیح کوتاهی برای این ملک ثبت نشده است" />}
             </div>
           </div>
 

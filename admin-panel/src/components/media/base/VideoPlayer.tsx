@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Play, Video as VideoIcon, Download } from "lucide-react";
+import { Play, Video as VideoIcon, Download, X } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { Item, ItemContent, ItemTitle } from "@/components/elements/Item";
 import { Badge } from "@/components/elements/Badge";
@@ -71,6 +71,7 @@ export function VideoPlayer({
                                 <Play className="size-3 ml-1.5 fill-current" />
                                 پخش آنلاین
                             </Button>
+
                             <Button variant="outline" size="icon" className="size-7 text-font-s hover:bg-bg rounded-lg" asChild>
                                 <a href={src} target="_blank" rel="noreferrer">
                                     <Download className="size-3.5" />
@@ -81,27 +82,52 @@ export function VideoPlayer({
                 </div>
             </Item>
 
-            {/* Modal Player */}
+            {/* Modal Player - Professional Cinema Experience */}
             {isPlaying && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-static-b/80 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsPlaying(false)}>
-                    <div className="w-full max-w-5xl px-4 animate-in zoom-in-95 duration-300" onClick={(e) => e.stopPropagation()}>
-                        <div className="relative aspect-video bg-static-b rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10">
-                            {/* We use the base MediaPlayer here for the actual player inside the modal */}
-                            <MediaPlayer
-                                media={{
-                                    file_url: src,
-                                    media_type: 'video',
-                                    title: title,
-                                    cover_image: poster
-                                } as any}
-                                className="w-full h-full"
-                                autoPlay={true}
-                                controls={true}
-                            />
-                        </div>
-                        <div className="mt-4 flex justify-center">
-                            <button className="text-white/70 hover:text-white text-sm" onClick={() => setIsPlaying(false)}>بستن</button>
-                        </div>
+                <div
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black animate-in fade-in duration-700"
+                    onClick={() => setIsPlaying(false)}
+                >
+                    <div
+                        className="w-full h-full flex flex-col items-center justify-center relative animate-in zoom-in-95 duration-700 p-4 md:p-8"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <MediaPlayer
+                            media={{
+                                file_url: src,
+                                media_type: 'video',
+                                title: title,
+                                cover_image: poster
+                            } as any}
+                            className="w-full h-full"
+                            autoPlay={true}
+                            showControls={true}
+                            renderHeader={(isVisible) => (
+                                <div className={cn(
+                                    "absolute top-0 left-0 right-0 p-8 md:p-12 flex items-start justify-between z-50 transition-all duration-700 transform",
+                                    isVisible ? "translate-y-0 opacity-100" : "-translate-y-10 opacity-0 pointer-events-none"
+                                )}>
+                                    {/* Name Section - Pushed to the Left */}
+                                    <div className="space-y-1.5 max-w-[60%]">
+                                        <h2 className="text-wt text-2xl md:text-3xl font-black tracking-tight drop-shadow-[0_2px_15px_rgba(0,0,0,1)]">{title}</h2>
+                                        <div className="flex items-center gap-3 opacity-40 font-mono text-[10px] tracking-[0.2em] text-wt uppercase">
+                                            <span>{extension}</span>
+                                            <span className="size-1 rounded-full bg-wt" />
+                                            <span>{size || 'HIGH DEFINITION'}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Close Section - Pushed to the Right */}
+                                    <button
+                                        className="size-12 md:size-14 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 text-white flex items-center justify-center hover:bg-white hover:text-black transition-all duration-500 cursor-pointer shadow-2xl active:scale-90 group"
+                                        onClick={() => setIsPlaying(false)}
+                                        title="Close Player"
+                                    >
+                                        <X className="size-6 md:size-7 group-hover:rotate-90 transition-transform duration-500" />
+                                    </button>
+                                </div>
+                            )}
+                        />
                     </div>
                 </div>
             )}

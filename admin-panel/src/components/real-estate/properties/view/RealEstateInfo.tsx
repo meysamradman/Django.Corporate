@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { formatDate, formatNumber } from "@/core/utils/commonFormat";
 import { formatArea, formatPriceToPersian } from "@/core/utils/realEstateFormat";
+import { ValueFallback } from "@/components/shared/ValueFallback";
 
 interface PropertyBasicInfoProps {
     property: Property;
@@ -58,7 +59,7 @@ export function RealEstateInfo({ property }: PropertyBasicInfoProps) {
                 <InfoItem
                     icon={Home}
                     label="نوع ملک"
-                    value={property.property_type?.title || "-"}
+                    value={<ValueFallback value={property.property_type?.title} />}
                 />
                 <InfoItem
                     icon={Maximize}
@@ -81,7 +82,7 @@ export function RealEstateInfo({ property }: PropertyBasicInfoProps) {
                     label="قیمت"
                     value={
                         property.price ? formatPriceToPersian(property.price) :
-                            property.monthly_rent ? `اجاره: ${formatPriceToPersian(property.monthly_rent)}` : 'توافقی'
+                            property.monthly_rent ? `اجاره: ${formatPriceToPersian(property.monthly_rent)}` : <ValueFallback value={null} fallback="توافقی" />
                     }
                 />
                 <InfoItem

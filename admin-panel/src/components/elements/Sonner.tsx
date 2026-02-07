@@ -26,15 +26,15 @@ const Toaster = ({ ...props }: ToasterProps) => {
 
 const toast = {
   ...originalToast,
-  success: (message: string, options?: any) => 
+  success: (message: string, options?: any) =>
     originalToast.success(message, { ...options, className: `toast toast-success ${options?.className || ''}` }),
-  error: (message: string, options?: any) => 
+  error: (message: string, options?: any) =>
     originalToast.error(message, { ...options, className: `toast toast-error ${options?.className || ''}` }),
-  warning: (message: string, options?: any) => 
+  warning: (message: string, options?: any) =>
     originalToast.warning(message, { ...options, className: `toast toast-warning ${options?.className || ''}` }),
-  info: (message: string, options?: any) => 
+  info: (message: string, options?: any) =>
     originalToast.info(message, { ...options, className: `toast toast-info ${options?.className || ''}` }),
-  loading: (message: string, options?: any) => 
+  loading: (message: string, options?: any) =>
     originalToast.loading(message, { ...options, className: `toast toast-loading ${options?.className || ''}` }),
   promise: <T,>(promise: Promise<T>, messages: any) =>
     originalToast.promise(promise, messages),
