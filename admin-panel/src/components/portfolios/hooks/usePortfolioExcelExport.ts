@@ -3,7 +3,7 @@ import type { Portfolio } from '@/types/portfolio/portfolio';
 import type { PortfolioExportParams } from '@/types/portfolio/portfolioListParams';
 import { exportPortfoliosToExcel } from '@/lib/export/portfolio-excel-client';
 import { exportPortfolios } from '@/api/portfolios/export';
-import { useHybridExport } from '../shared/useHybridExport';
+import { useHybridExport } from '@/components/shared/useHybridExport';
 
 interface UsePortfolioExcelExportOptions {
     onSuccess?: () => void;

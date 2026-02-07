@@ -1,7 +1,7 @@
 import { Calendar, Clock, LayoutDashboard } from "lucide-react";
 import { useMemo, lazy, Suspense } from "react";
 import { useAuth } from "@/core/auth/AuthContext";
-import { useStatistics, useSystemStats } from "@/hooks/dashboard/useStatistics";
+import { useStatistics, useSystemStats } from "@/components/dashboard/hooks/useStatistics";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { SummaryCards, SupportStats, QuickActionsWidget } from "@/components/dashboard/widgets";
 import { Skeleton } from "@/components/elements/Skeleton";

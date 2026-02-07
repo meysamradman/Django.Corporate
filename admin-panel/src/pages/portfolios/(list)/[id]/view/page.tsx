@@ -11,7 +11,7 @@ import { PortfolioOverview } from "@/components/portfolios/projects/view/Portfol
 import { PortfolioMedia } from "@/components/portfolios/projects/view/PortfolioMedia.tsx";
 import { PortfolioSEO } from "@/components/portfolios/projects/view/PortfolioSEO.tsx";
 import { PortfolioAttributes } from "@/components/portfolios/projects/view/PortfolioAttributes.tsx";
-import { usePortfolioPdfExport } from "@/hooks/portfolios/usePortfolioPdfExport";
+import { usePortfolioPdfExport } from "@/components/portfolios/hooks/usePortfolioPdfExport";
 import { FloatingActions } from "@/components/elements/FloatingActions";
 
 export default function PortfolioViewPage() {

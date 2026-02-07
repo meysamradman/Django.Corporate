@@ -30,13 +30,13 @@ import {
 import type { Property } from "@/types/real_estate/realEstate";
 import type { ColumnDef } from "@tanstack/react-table";
 import { realEstateApi } from "@/api/real-estate";
-import { usePropertyPrintView } from "@/hooks/real-estate/usePropertyPrintView";
+import { usePropertyPrintView } from "@/components/real-estate/hooks/usePropertyPrintView";
 import type { DataTableRowAction } from "@/types/shared/table";
 import type { PropertyType } from "@/types/real_estate/type/propertyType";
 import type { PropertyState } from "@/types/real_estate/state/realEstateState";
 import type { CategoryItem } from "@/types/shared/table";
-import { usePropertyExcelExport } from "@/hooks/real-estate/usePropertyExcelExport";
-import { usePropertyPdfExport } from "@/hooks/real-estate/usePropertyPdfExport";
+import { usePropertyExcelExport } from "@/components/real-estate/hooks/usePropertyExcelExport";
+import { usePropertyPdfExport } from "@/components/real-estate/hooks/usePropertyPdfExport";
 
 const convertPropertyTypesToHierarchical = (types: PropertyType[]): CategoryItem[] => {
   const rootTypes = types.filter(type => !type.parent_id);

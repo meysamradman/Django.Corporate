@@ -3,7 +3,7 @@ import type { Blog } from '@/types/blog/blog';
 import type { BlogExportParams } from '@/types/blog/blogListParams';
 import { exportBlogsToExcel } from '@/lib/export/excel-client';
 import { exportBlogs } from '@/api/blogs/export';
-import { useHybridExport } from '../shared/useHybridExport';
+import { useHybridExport } from '@/components/shared/useHybridExport';
 
 interface UseExcelExportOptions {
     onSuccess?: () => void;

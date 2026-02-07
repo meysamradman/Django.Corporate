@@ -32,9 +32,9 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import type { DataTableRowAction } from "@/types/shared/table";
 import type { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
-import { usePortfolioExcelExport } from "@/hooks/portfolios/usePortfolioExcelExport";
-import { usePortfolioPdfExport } from "@/hooks/portfolios/usePortfolioPdfExport";
-import { usePortfolioPrintView } from "@/hooks/portfolios/usePortfolioPrintView";
+import { usePortfolioExcelExport } from "@/components/portfolios/hooks/usePortfolioExcelExport";
+import { usePortfolioPdfExport } from "@/components/portfolios/hooks/usePortfolioPdfExport";
+import { usePortfolioPrintView } from "@/components/portfolios/hooks/usePortfolioPrintView";
 
 const convertCategoriesToHierarchical = (categories: PortfolioCategory[]): any[] => {
   const rootCategories = categories.filter(cat => !cat.parent_id);

@@ -13,9 +13,9 @@ import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
-import { useExcelExport } from "@/hooks/blogs/useExcelExport";
-import { usePdfExport } from "@/hooks/blogs/usePdfExport";
-import { usePrintView } from "@/hooks/blogs/usePrintView";
+import { useExcelExport } from "@/components/blogs/hooks/useExcelExport";
+import { usePdfExport } from "@/components/blogs/hooks/usePdfExport";
+import { usePrintView } from "@/components/blogs/hooks/usePrintView";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
 import { msg, getConfirm } from '@/core/messages';

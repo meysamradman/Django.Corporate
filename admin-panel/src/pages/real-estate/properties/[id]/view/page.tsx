@@ -12,13 +12,13 @@ import {
 } from "lucide-react";
 
 
-import { Card, CardContent } from "@/components/elements/Card";
+
 import { Skeleton } from "@/components/elements/Skeleton";
 import { Button } from "@/components/elements/Button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/elements/Tooltip";
 import { realEstateApi } from "@/api/real-estate";
-import { usePropertyPrintView } from "@/hooks/real-estate/usePropertyPrintView";
-import { usePropertyPdfExport } from "@/hooks/real-estate/usePropertyPdfExport";
+import { usePropertyPrintView } from "@/components/real-estate/hooks/usePropertyPrintView";
+import { usePropertyPdfExport } from "@/components/real-estate/hooks/usePropertyPdfExport";
 import { RealEstateViewHeader } from "@/components/real-estate/properties/view/RealEstateViewHeader";
 import { RealEstateManagement } from "@/components/real-estate/properties/view/RealEstateManagement";
 import { RealEstateGridGallery } from "@/components/real-estate/properties/view/RealEstateGridGallery";

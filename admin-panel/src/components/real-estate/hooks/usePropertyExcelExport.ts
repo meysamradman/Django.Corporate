@@ -3,7 +3,7 @@ import type { Property } from '@/types/real_estate/realEstate';
 import type { PropertyExportParams } from '@/types/real_estate/realEstateListParams';
 import { exportPropertiesToExcel } from '@/lib/export/property-excel-client';
 import { exportProperties } from '@/api/real-estate/export';
-import { useHybridExport } from '../shared/useHybridExport';
+import { useHybridExport } from '@/components/shared/useHybridExport';
 
 interface UsePropertyExcelExportOptions {
     onSuccess?: () => void;
