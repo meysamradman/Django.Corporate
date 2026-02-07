@@ -4,6 +4,7 @@ import { cn } from "@/core/utils/cn"
 import { Card, CardHeader, CardTitle, CardContent } from "./Card"
 
 interface CardWithIconProps {
+  id?: string
   icon: LucideIcon
   title: ReactNode
   children: ReactNode
@@ -20,6 +21,7 @@ interface CardWithIconProps {
 }
 
 const CardWithIcon = memo(function CardWithIcon({
+  id,
   icon: Icon,
   title,
   children,
@@ -35,7 +37,7 @@ const CardWithIcon = memo(function CardWithIcon({
   showCardBorder = true,
 }: CardWithIconProps) {
   return (
-    <Card className={cn(
+    <Card id={id} className={cn(
       "gap-0",
       showCardBorder && cn("border-b-2", cardBorderColor),
       className

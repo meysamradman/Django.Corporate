@@ -76,7 +76,7 @@ export function VideoPlayerFeatured({
         <>
             <div className={cn("flex flex-col sm:flex-row h-full bg-wt/50 hover:bg-wt transition-smooth group/v-item w-full", className)}>
                 {/* Featured Thumbnail - Full Height Landscape Side */}
-                <div className="relative w-full sm:w-1/2 h-full min-h-[200px] bg-bg overflow-hidden grayscale-[0.2] hover:grayscale-0 transition-all duration-700 order-2 sm:order-1 rounded-b-2xl sm:rounded-b-none sm:rounded-r-2xl sm:rounded-l-none">
+                <div className="relative w-full sm:w-1/2 h-full min-h-[200px] bg-bg overflow-hidden grayscale-[0.2] hover:grayscale-0 transition-all duration-700 order-2 sm:order-1 rounded-none">
                     {poster ? (
                         <img src={poster} alt={title} className="w-full h-full object-cover opacity-90 group-hover/v-item:opacity-100 transition-all duration-700 group-hover/v-item:scale-105" />
                     ) : (

@@ -1,8 +1,7 @@
-import { TabsContent } from "@/components/elements/Tabs";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Settings } from "lucide-react";
-import { Badge } from "@/components/elements/Badge";
 import type { Portfolio } from "@/types/portfolio/portfolio";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 interface ExtraAttributesInfoTabProps {
   portfolio: Portfolio;
@@ -12,81 +11,48 @@ export function PortfolioAttributes({ portfolio }: ExtraAttributesInfoTabProps) 
   const extraAttributes = portfolio?.extra_attributes || {};
   const attributeKeys = Object.keys(extraAttributes);
 
-  if (attributeKeys.length === 0) {
-    return (
-      <TabsContent value="extra">
-        <CardWithIcon
-          icon={Settings}
-          title="فیلدهای اضافی"
-          iconBgColor="bg-purple"
-          iconColor="stroke-purple-2"
-          borderColor="border-b-purple-1"
-        >
-          <div className="text-center py-8 text-font-m text-font-s">
-            هیچ ویژگی اضافی برای این نمونه‌کار ثبت نشده است
-          </div>
-        </CardWithIcon>
-      </TabsContent>
-    );
-  }
-
   return (
-    <TabsContent value="extra" className="space-y-4">
-      <CardWithIcon
-        icon={Settings}
-        title="ویژگی‌های اضافی"
-        iconBgColor="bg-purple"
-        iconColor="stroke-purple-2"
-        borderColor="border-b-purple-1"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {Object.entries(extraAttributes).map(([key, value]) => (
+    <CardWithIcon
+      icon={Settings}
+      title="ویژگی‌های اختصاصی پروژه"
+      id="section-attributes"
+      iconBgColor="bg-purple-0/50"
+      iconColor="text-purple-1"
+      cardBorderColor="border-b-purple-1"
+      className="shadow-sm"
+    >
+      {attributeKeys.length > 0 ? (
+        <div className="flex flex-col">
+          {Object.entries(extraAttributes).map(([key, value], index) => (
             <div
               key={key}
-              className="flex items-start gap-3 p-4 border border-br bg-bg"
+              className={`flex items-center justify-between p-5 ${index !== attributeKeys.length - 1 ? "border-b border-br/30" : ""
+                } hover:bg-bg/40 transition-colors`}
             >
-              <div className="flex-1 min-w-0">
-                <div className="text-font-s text-font-s mb-1">
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] font-black text-font-s opacity-40 tracking-wider uppercase">
                   {key}
-                </div>
-                <div className="text-font-m font-medium text-font-p">
+                </span>
+                <span className="text-font-p text-xs font-black">
                   {value ? String(value) : "-"}
-                </div>
+                </span>
+              </div>
+              <div className="w-8 h-8 rounded-lg bg-bg flex items-center justify-center border border-br/50 shadow-sm">
+                <div className="w-1.5 h-1.5 rounded-full bg-purple-1" />
               </div>
             </div>
           ))}
         </div>
-      </CardWithIcon>
-
-      <CardWithIcon
-        icon={Settings}
-        title="خلاصه تمام ویژگی‌ها"
-        iconBgColor="bg-gray"
-        iconColor="stroke-gray-2"
-        borderColor="border-b-gray-1"
-      >
-        <div className="flex flex-wrap gap-2">
-          {attributeKeys.map(key => {
-            const value = extraAttributes[key];
-            
-            return (
-              <Badge
-                key={key}
-                variant="outline"
-                className="px-3 py-1.5 text-font-s"
-              >
-                <span className="font-medium">
-                  {key}:
-                </span>
-                <span className="mr-1">
-                  {value ? String(value) : "-"}
-                </span>
-              </Badge>
-            );
-          })}
-        </div>
-      </CardWithIcon>
-    </TabsContent>
+      ) : (
+        <EmptyState
+          title="ویژگی اختصاصی یافت نشد"
+          description="ویژگی اختصاصی برای این پروژه ثبت نشده است"
+          icon={Settings}
+          size="sm"
+          fullBleed={true}
+        />
+      )}
+    </CardWithIcon>
   );
 }
 

@@ -8,10 +8,6 @@ import {
     Globe,
     Link as LinkIcon,
     Clock,
-    FileText,
-    Image as ImageIcon,
-    Video,
-    Music
 } from "lucide-react";
 import { TruncatedText } from "@/components/elements/TruncatedText";
 
@@ -30,188 +26,89 @@ export function PortfolioInfo({ portfolio }: PortfolioBasicInfoProps) {
         }).format(date);
     };
 
-    const allMedia = portfolio.portfolio_media || [];
-    const imagesCount = allMedia.filter(
-        (item: any) => (item.media_detail || item.media)?.media_type === "image"
-    ).length;
-    const videosCount = allMedia.filter(
-        (item: any) => (item.media_detail || item.media)?.media_type === "video"
-    ).length;
-    const audiosCount = allMedia.filter(
-        (item: any) => (item.media_detail || item.media)?.media_type === "audio"
-    ).length;
-    const documentsCount = allMedia.filter(
-        (item: any) => (item.media_detail || item.media)?.media_type === "document" || (item.media_detail || item.media)?.media_type === "pdf"
-    ).length;
-    const totalMediaCount = imagesCount + videosCount + audiosCount + documentsCount;
-
     return (
-        <Card className="overflow-hidden">
-            <CardContent className="pt-0 pb-0">
-                <div className="pb-6 border-b -mx-6 px-6">
-                    <div className="grid grid-cols-4 gap-3">
-                    <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
-                        portfolio.is_public ? "bg-blue" : "bg-gray"
-                    }`}>
-                        <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
-                            portfolio.is_public ? "bg-blue-0" : "bg-gray-0"
-                        }`}>
-                            <Globe className={`w-4 h-4 ${
-                                portfolio.is_public ? "stroke-blue-2" : "stroke-gray-1"
-                            }`} />
+        <Card className="overflow-hidden gap-0 ring-1 ring-static-b/5 border-br/50 shadow-lg">
+            {/* Status Section */}
+            <CardContent className="p-6 border-b bg-linear-to-b from-wt to-bg/10">
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-wt border border-br/40 shadow-xs hover:border-blue-1/30 transition-all group">
+                        <div className={`flex items-center justify-center w-10 h-10 rounded-full mb-2 transition-colors ${portfolio.is_public ? "bg-blue-1/10" : "bg-bg"}`}>
+                            <Globe className={`w-4 h-4 ${portfolio.is_public ? "text-blue-1" : "text-font-s opacity-40"}`} />
                         </div>
-                        <span className={`text-sm font-medium ${
-                            portfolio.is_public ? "text-blue-2" : "text-gray-1"
-                        }`}>
+                        <span className={`text-[10px] font-black transition-colors ${portfolio.is_public ? "text-blue-1" : "text-font-s opacity-40"}`}>
                             {portfolio.is_public ? "عمومی" : "غیرعمومی"}
                         </span>
                     </div>
 
-                    <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
-                        portfolio.is_active ? "bg-blue" : "bg-red"
-                    }`}>
-                        <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
-                            portfolio.is_active ? "bg-blue-0" : "bg-red-0"
-                        }`}>
-                            <Zap className={`w-4 h-4 ${
-                                portfolio.is_active ? "stroke-blue-2" : "stroke-red-2"
-                            }`} />
+                    <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-wt border border-br/40 shadow-xs hover:border-blue-1/30 transition-all group">
+                        <div className={`flex items-center justify-center w-10 h-10 rounded-full mb-2 transition-colors ${portfolio.is_active ? "bg-blue-1/10" : "bg-red-1/10"}`}>
+                            <Zap className={`w-4 h-4 ${portfolio.is_active ? "text-blue-1" : "text-red-1"}`} />
                         </div>
-                        <span className={`text-sm font-medium ${
-                            portfolio.is_active ? "text-blue-2" : "text-red-2"
-                        }`}>
+                        <span className={`text-[10px] font-black transition-colors ${portfolio.is_active ? "text-blue-2" : "text-red-2"}`}>
                             {portfolio.is_active ? "فعال" : "غیرفعال"}
                         </span>
                     </div>
 
-                    <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
-                        portfolio.is_featured ? "bg-orange" : "bg-gray"
-                    }`}>
-                        <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
-                            portfolio.is_featured ? "bg-orange-0" : "bg-gray-0"
-                        }`}>
-                            <Star className={`w-4 h-4 ${
-                                portfolio.is_featured ? "stroke-orange-2 fill-orange-2" : "stroke-gray-1"
-                            }`} />
+                    <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-wt border border-br/40 shadow-xs hover:border-orange-1/30 transition-all group">
+                        <div className={`flex items-center justify-center w-10 h-10 rounded-full mb-2 transition-colors ${portfolio.is_featured ? "bg-orange-1/10" : "bg-bg"}`}>
+                            <Star className={`w-4 h-4 ${portfolio.is_featured ? "text-orange-1 fill-orange-1" : "text-font-s opacity-40"}`} />
                         </div>
-                        <span className={`text-sm font-medium ${
-                            portfolio.is_featured ? "text-orange-2" : "text-gray-1"
-                        }`}>
+                        <span className={`text-[10px] font-black transition-colors ${portfolio.is_featured ? "text-orange-1" : "text-font-s opacity-40"}`}>
                             {portfolio.is_featured ? "ویژه" : "عادی"}
                         </span>
                     </div>
 
-                    <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${
-                        portfolio.status === "published" ? "bg-green" : "bg-yellow"
-                    }`}>
-                        <div className={`flex items-center justify-center w-9 h-9 rounded-full mb-2 ${
-                            portfolio.status === "published" ? "bg-green-0" : "bg-yellow-0"
-                        }`}>
+                    <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-wt border border-br/40 shadow-xs hover:border-green-1/30 transition-all group">
+                        <div className={`flex items-center justify-center w-10 h-10 rounded-full mb-2 transition-colors ${portfolio.status === "published" ? "bg-green-1/10" : "bg-yellow-1/10"}`}>
                             {portfolio.status === "published" ? (
-                                <CheckCircle2 className="w-4 h-4 stroke-green-2" />
+                                <CheckCircle2 className="w-4 h-4 text-green-1" />
                             ) : (
-                                <XCircle className="w-4 h-4 stroke-yellow-2" />
+                                <XCircle className="w-4 h-4 text-yellow-1" />
                             )}
                         </div>
-                        <span className={`text-sm font-medium ${
-                            portfolio.status === "published" ? "text-green-2" : "text-yellow-2"
-                        }`}>
+                        <span className={`text-[10px] font-black transition-colors ${portfolio.status === "published" ? "text-green-1" : "text-yellow-1"}`}>
                             {portfolio.status === "published" ? "منتشر شده" : "پیش‌نویس"}
                         </span>
                     </div>
+                </div>
+            </CardContent>
+
+            {/* Content Section */}
+            <CardContent className="p-0">
+                <div className="p-6 bg-linear-to-bl from-bg/20 to-wt flex flex-col items-center text-center gap-2 border-b border-br/30">
+                    <h3 className="text-font-p font-black text-lg leading-tight">
+                        <TruncatedText text={portfolio.title} maxLength={50} />
+                    </h3>
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-bg border border-br/50 text-font-s text-[9px] font-black tracking-widest uppercase">
+                        <span>شناسه:</span>
+                        <span className="text-font-p">{portfolio.id}</span>
                     </div>
                 </div>
 
-                <div className="pt-4">
-                    <div className="space-y-4">
-                        <div className="bg-bg">
-                            <div className="p-5">
-                                <h3 className="text-font-p font-bold text-lg leading-tight mb-2">
-                                    <TruncatedText
-                                        text={portfolio.title}
-                                        maxLength={50}
-                                    />
-                                </h3>
-                                <span className="text-font-s text-xs text-font-s/70">#{portfolio.id}</span>
-                            </div>
+                <div className="p-6 space-y-4">
+                    <div className="flex items-center justify-between gap-3 group">
+                        <div className="flex items-center gap-2 text-font-s">
+                            <LinkIcon className="w-3.5 h-3.5 opacity-40 group-hover:text-blue-1 group-hover:opacity-100 transition-all" />
+                            <span className="text-[10px] font-black tracking-widest uppercase opacity-60">نامک (Slug)</span>
                         </div>
-
-                        <div className="space-y-0 [&>div:not(:last-child)]:border-b [&>div:not(:last-child)]:border-br">
-                            <div className="flex items-center justify-between gap-3 py-3">
-                                <div className="flex items-center gap-2">
-                                    <LinkIcon className="w-4 h-4 text-font-s flex-shrink-0" />
-                                    <label className="text-font-s text-sm">نامک:</label>
-                                </div>
-                                <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
-                                    <TruncatedText
-                                        text={portfolio.slug || "-"}
-                                        maxLength={35}
-                                        className="font-mono text-font-p text-sm"
-                                    />
-                                </div>
-                            </div>
-
-                            {portfolio.created_at && (
-                                <div className="flex items-center justify-between gap-3 pt-3">
-                                    <div className="flex items-center gap-2">
-                                        <Clock className="w-4 h-4 text-font-s flex-shrink-0" />
-                                        <label className="text-font-s text-sm">تاریخ ایجاد:</label>
-                                    </div>
-                                    <p className="text-font-p text-sm font-medium text-left">
-                                        {formatDate(portfolio.created_at)}
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="pt-4 border-t border-br">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-2">
-                                    <ImageIcon className="w-4 h-4 text-font-s" />
-                                    <h4 className="text-font-p text-sm font-semibold">مدیا</h4>
-                                </div>
-                                <span className="text-font-s text-xs bg-bg px-2.5 py-1 rounded-full">{totalMediaCount} مورد</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2.5">
-                                <div className="flex items-center gap-2 px-3 py-2.5 bg-blue/10 rounded-lg border border-blue/20 hover:bg-blue/15 transition-colors">
-                                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue">
-                                        <ImageIcon className="w-4 h-4 stroke-blue-2" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-font-p text-sm font-semibold leading-none">{imagesCount}</p>
-                                        <p className="text-font-s text-xs mt-0.5">تصویر</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2 px-3 py-2.5 bg-purple/10 rounded-lg border border-purple/20 hover:bg-purple/15 transition-colors">
-                                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-purple">
-                                        <Video className="w-4 h-4 stroke-purple-2" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-font-p text-sm font-semibold leading-none">{videosCount}</p>
-                                        <p className="text-font-s text-xs mt-0.5">ویدیو</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2 px-3 py-2.5 bg-pink/10 rounded-lg border border-pink/20 hover:bg-pink/15 transition-colors">
-                                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-pink">
-                                        <Music className="w-4 h-4 stroke-pink-2" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-font-p text-sm font-semibold leading-none">{audiosCount}</p>
-                                        <p className="text-font-s text-xs mt-0.5">صدا</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2 px-3 py-2.5 bg-gray/10 rounded-lg border border-gray/20 hover:bg-gray/15 transition-colors">
-                                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray">
-                                        <FileText className="w-4 h-4 stroke-gray-2" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-font-p text-sm font-semibold leading-none">{documentsCount}</p>
-                                        <p className="text-font-s text-xs mt-0.5">سند</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <TruncatedText
+                            text={portfolio.slug || "-"}
+                            maxLength={25}
+                            className="font-mono text-font-p text-[10px] font-black text-left direction-ltr bg-bg px-2 py-0.5 rounded-md border border-br/40"
+                        />
                     </div>
+
+                    {portfolio.created_at && (
+                        <div className="flex items-center justify-between gap-3 pt-4 border-t border-br/40 group">
+                            <div className="flex items-center gap-2 text-font-s">
+                                <Clock className="w-3.5 h-3.5 opacity-40 group-hover:text-orange-1 group-hover:opacity-100 transition-all" />
+                                <span className="text-[10px] font-black tracking-widest uppercase opacity-60">تاریخ ثبت</span>
+                            </div>
+                            <span className="text-font-p text-[10px] font-black">
+                                {formatDate(portfolio.created_at)}
+                            </span>
+                        </div>
+                    )}
                 </div>
             </CardContent>
         </Card>

@@ -1,18 +1,14 @@
-import { TabsContent } from "@/components/elements/Tabs";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import type { Portfolio } from "@/types/portfolio/portfolio";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from "@/components/media/services";
-import { Badge } from "@/components/elements/Badge";
-import { 
-  ExternalLink, 
-  Search, 
-  FileText, 
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent } from "@/components/elements/Card";
+import {
   Image as ImageIcon,
-  Globe,
-  Bot,
-  Eye
+  Search,
+  Globe
 } from "lucide-react";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 interface SEOInfoTabProps {
   portfolio: Portfolio;
@@ -23,178 +19,102 @@ export function PortfolioSEO({ portfolio }: SEOInfoTabProps) {
     ? mediaService.getMediaUrlFromObject({ file_url: portfolio.og_image.file_url } as any)
     : "";
 
-  const metaTitle = portfolio.meta_title || portfolio.title || "";
-  const metaDescription = portfolio.meta_description || portfolio.short_description || "";
+  const hasSEO = portfolio.meta_title || portfolio.meta_description || portfolio.og_title || portfolio.og_description || portfolio.og_image;
+
+  const metaTitle = portfolio.meta_title || portfolio.title || "بدون عنوان سئو";
+  const metaDescription = portfolio.meta_description || portfolio.short_description || "بدون توضیحات سئو";
   const ogTitle = portfolio.og_title || metaTitle;
   const ogDescription = portfolio.og_description || metaDescription;
+  const canonicalUrl = portfolio.canonical_url || "";
 
   return (
-    <TabsContent value="seo" className="mt-0">
-      <div className="space-y-6">
-        <CardWithIcon
-          icon={Search}
-          title="برچسب‌های Meta"
-          iconBgColor="bg-emerald"
-          iconColor="stroke-emerald-2"
-          borderColor="border-b-emerald-1"
-          contentClassName="space-y-6 pt-6"
-        >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-font-s">
-                  <FileText className="w-4 h-4" />
-                  عنوان متا (Meta Title)
-                </label>
-                <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
-                  {metaTitle ? (
-                    <div className="font-medium text-font-p line-clamp-2">
-                      {metaTitle}
-                    </div>
-                  ) : (
-                    <span className="text-font-s">
-                      وارد نشده است
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-font-s">
-                  <FileText className="w-4 h-4" />
-                  توضیحات متا (Meta Description)
-                </label>
-                <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
-                  {metaDescription ? (
-                    <div className="text-font-p line-clamp-3">
-                      {metaDescription}
-                    </div>
-                  ) : (
-                    <span className="text-font-s">
-                      وارد نشده است
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-font-s">
-                  <ExternalLink className="w-4 h-4" />
-                  آدرس Canonical
-                </label>
-                <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
-                  {portfolio.canonical_url ? (
-                    <div className="font-mono text-sm text-font-p break-all">
-                      {portfolio.canonical_url}
-                    </div>
-                  ) : (
-                    <span className="text-font-s">
-                      وارد نشده است
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-font-s">
-                  <Bot className="w-4 h-4" />
-                  Robots Meta
-                </label>
-                <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-[60px] flex items-center">
-                  {portfolio.robots_meta ? (
-                    <Badge variant="blue" className="font-mono">
-                      {portfolio.robots_meta}
-                    </Badge>
-                  ) : (
-                    <span className="text-font-s">
-                      وارد نشده است
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-        </CardWithIcon>
-        <CardWithIcon
+    <CardWithIcon
+      icon={Search}
+      title="تنظیمات سئو و رسانه‌های اجتماعی"
+      iconBgColor="bg-teal-0"
+      iconColor="text-teal-1"
+      cardBorderColor="border-b-teal-1"
+      className="overflow-hidden shadow-sm"
+      contentClassName={!hasSEO ? "p-0" : ""}
+      id="section-seo"
+    >
+      {!hasSEO ? (
+        <EmptyState
+          title="تنظیمات سئو یافت نشد"
+          description="توضیحات متا و پیش‌نمایش شبکه‌های اجتماعی برای این نمونه‌کار ثبت نشده است"
           icon={Globe}
-          title="پیش‌نمایش Open Graph"
-          iconBgColor="bg-blue"
-          iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
-          contentClassName="pt-6"
-        >
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-              <div className="lg:col-span-2 space-y-6">
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-font-s">
-                    <FileText className="w-4 h-4" />
-                    عنوان Open Graph
-                  </label>
-                  <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
-                    {ogTitle ? (
-                      <div className="font-medium text-font-p line-clamp-2">
-                        {ogTitle}
-                      </div>
-                    ) : (
-                      <span className="text-font-s">
-                        وارد نشده است
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-font-s">
-                    <FileText className="w-4 h-4" />
-                    توضیحات Open Graph
-                  </label>
-                  <div className="p-4 bg-bg/50 rounded-lg border hover:bg-bg/70 transition-colors min-h-[60px] flex items-start">
-                    {ogDescription ? (
-                      <div className="text-font-p line-clamp-3">
-                        {ogDescription}
-                      </div>
-                    ) : (
-                      <span className="text-font-s">
-                        وارد نشده است
-                      </span>
-                    )}
-                  </div>
+          size="sm"
+          fullBleed={true}
+        />
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-stretch px-5 py-5">
+          {/* Google Preview Section */}
+          <div className="flex flex-col h-full gap-5">
+            <Card className="flex-1 bg-bg border-br/40 shadow-xs group transition-smooth hover:border-teal-1/30 overflow-hidden relative">
+              <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-teal-1/10 text-teal-1 text-[10px] font-black">
+                  <Search className="size-3" />
+                  گوگل
                 </div>
               </div>
-              <div className="lg:col-span-1 space-y-3">
-                <label className="flex items-center gap-2 text-font-s">
-                  <ImageIcon className="w-4 h-4" />
-                  تصویر Open Graph (OG Image)
-                </label>
+              <CardContent className="p-6 space-y-3 pt-8 text-right" dir="rtl">
+                <div className="flex items-center gap-3 text-sm text-font-s opacity-80 truncate">
+                  <div className="size-7 bg-wt rounded-full shadow-xs border border-br/30 flex items-center justify-center shrink-0">
+                    <img src="/assets/icons/google.svg" alt="G" className="size-4 opacity-70" onError={(e) => e.currentTarget.style.display = 'none'} />
+                    <Search className="size-4 text-teal-1 absolute" style={{ opacity: 0.1 }} />
+                  </div>
+                  <span className="dir-ltr text-left flex-1 truncate font-medium">{canonicalUrl}</span>
+                </div>
+                <h3 className="text-xl font-medium text-[#1a0dab] group-hover:underline cursor-pointer decoration-2 underline-offset-4 line-clamp-1 leading-normal">
+                  {metaTitle}
+                </h3>
+                <p className="text-base text-[#4d5156] line-clamp-2 leading-relaxed">
+                  <span className="font-bold text-font-s opacity-60 ml-2">{new Date().toLocaleDateString('fa-IR')} — </span>
+                  {metaDescription}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Social Preview Section */}
+          <div className="flex flex-col h-full gap-5">
+            <Card className="flex-1 bg-wt border-br/60 shadow-xs group transition-smooth hover:border-blue-1/20 overflow-hidden min-h-[140px] relative">
+              <div className="absolute top-0 right-0 p-3 z-10 opacity-10 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-blue-1/10 text-blue-1 text-[10px] font-black backdrop-blur-sm">
+                  <Globe className="size-3" />
+                  سوشال
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] lg:grid-cols-[220px_1fr] h-full items-stretch">
                 {ogImageUrl ? (
-                  <div className="relative aspect-video rounded-lg overflow-hidden border shadow-md group hover:shadow-lg transition-all duration-300 bg-bg/20">
+                  <div className="relative aspect-video sm:aspect-auto overflow-hidden border-b sm:border-b-0 sm:border-l border-br/40 h-full">
                     <MediaImage
                       media={{ file_url: ogImageUrl } as any}
-                      alt="OG Image Preview"
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      alt="Social Preview"
+                      className="object-cover group-hover:scale-105 transition-transform duration-700"
                       fill
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-static-b/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute bottom-2 left-2 right-2">
-                        <div className="flex items-center gap-1.5 text-static-w">
-                          <Eye className="w-3.5 h-3.5" />
-                          <span className="text-xs">پیش‌نمایش در شبکه‌های اجتماعی</span>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 ) : (
-                  <div className="relative aspect-video rounded-lg border-2 border-dashed bg-bg/30 flex items-center justify-center group hover:bg-bg/50 transition-colors">
-                    <div className="text-center space-y-2">
-                      <div className="inline-flex p-3 bg-bg rounded-full">
-                        <ImageIcon className="w-6 h-6 text-font-s" />
-                      </div>
-                      <div className="text-sm text-font-s">
-                        تصویری آپلود نشده است
-                      </div>
-                    </div>
+                  <div className="aspect-video sm:aspect-auto bg-bg/40 flex items-center justify-center border-b sm:border-b-0 sm:border-l border-br/40 h-full">
+                    <ImageIcon className="size-9 text-font-s opacity-20" />
                   </div>
                 )}
+
+                <div className="p-6 flex flex-col justify-center min-w-0 bg-linear-to-bl from-wt to-bg/5 text-right" dir="rtl">
+                  <h3 className="text-lg font-black text-font-p line-clamp-1 mb-2 leading-snug">
+                    {ogTitle}
+                  </h3>
+                  <p className="text-sm text-font-s line-clamp-2 leading-relaxed opacity-90">
+                    {ogDescription}
+                  </p>
+                </div>
               </div>
-            </div>
-        </CardWithIcon>
-      </div>
-    </TabsContent>
+            </Card>
+          </div>
+        </div>
+      )}
+    </CardWithIcon>
   );
 }
 

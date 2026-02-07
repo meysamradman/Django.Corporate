@@ -1,101 +1,179 @@
-import { TabsContent } from "@/components/elements/Tabs";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import {
+  FileText,
+  Video as VideoIcon,
+  Image as ImageIcon
+} from "lucide-react";
 import type { Portfolio } from "@/types/portfolio/portfolio";
-import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from "@/components/media/services";
-import { Music, FileText } from "lucide-react";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Badge } from "@/components/elements/Badge";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { AudioPlayer } from "@/components/media/audios/AudioPlayer";
+import { VideoPlayer } from "@/components/media/videos/VideoPlayer";
+import { DocumentItem } from "@/components/media/documents/DocumentItem";
+import { cn } from "@/core/utils/cn";
 
-interface MediaInfoTabProps {
+interface PortfolioMediaProps {
   portfolio: Portfolio;
 }
 
-export function PortfolioMedia({ portfolio }: MediaInfoTabProps) {
-  const renderMediaGrid = (mediaArray: any[], type: string) => {
-    if (!mediaArray || mediaArray.length === 0) {
-      return (
-        <div className="text-center py-8 text-font-s">
-          {type === "audio" && "فایل صوتی آپلود نشده است"}
-          {type === "document" && "سندی آپلود نشده است"}
-        </div>
-      );
-    }
-
-    return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {mediaArray.map((item: any) => {
-          const media = item.media_detail || item.media;
-          
-          const mediaUrl = media?.cover_image_url || media?.file_url || null;
-          
-          const fullUrl = mediaUrl ? mediaService.getMediaUrlFromObject({ file_url: mediaUrl } as any) : null;
-
-          return (
-            <div
-              key={item.id}
-              className="relative aspect-square border rounded-lg overflow-hidden group cursor-pointer hover:border-primary transition-all shadow-sm hover:shadow-md"
-            >
-              {fullUrl ? (
-                <MediaImage
-                  media={{ file_url: fullUrl } as any}
-                  alt={media?.title || `${type} ${item.id}`}
-                  className="object-cover transition-transform group-hover:scale-110"
-                  fill
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-bg">
-                  {type === "audio" && <Music className="w-8 h-8 text-font-s" />}
-                  {type === "document" && <FileText className="w-8 h-8 text-font-s" />}
-                </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-static-b/80 via-static-b/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center p-3">
-                <p className="text-static-w text-center line-clamp-2">
-                  {media?.title || `رسانه ${item.id}`}
-                </p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
+export function PortfolioMedia({ portfolio }: PortfolioMediaProps) {
   const allMedia = portfolio.portfolio_media || [];
-  
+
+  const videos = allMedia.filter((item: any) => {
+    const media = item.media_detail || item.media;
+    return media?.media_type === 'video';
+  });
+
   const audios = allMedia.filter((item: any) => {
     const media = item.media_detail || item.media;
     return media?.media_type === 'audio';
   });
-  
+
   const documents = allMedia.filter((item: any) => {
     const media = item.media_detail || item.media;
     return media?.media_type === 'document' || media?.media_type === 'pdf';
   });
 
-  return (
-    <TabsContent value="media" className="mt-0 space-y-6">
-      <div className="grid grid-cols-1 gap-6">
-        <CardWithIcon
-          icon={Music}
-          title="فایل‌های صوتی"
-          iconBgColor="bg-pink"
-          iconColor="stroke-pink-2"
-          borderColor="border-b-pink-1"
-          titleExtra={<span className="text-font-s">{audios.length} مورد</span>}
-        >
-          {renderMediaGrid(audios, "audio")}
-        </CardWithIcon>
+  const formatSize = (bytes: number) => {
+    if (!bytes) return 'N/A';
+    const mb = bytes / (1024 * 1024);
+    return `${mb.toFixed(2)} MB`;
+  };
 
+  const hasMedia = videos.length > 0 || audios.length > 0 || documents.length > 0;
+
+  return (
+    <div id="section-media" className="flex flex-col gap-6 scroll-mt-24">
+      {!hasMedia ? (
         <CardWithIcon
-          icon={FileText}
-          title="اسناد"
-          iconBgColor="bg-gray"
-          iconColor="stroke-gray-2"
-          borderColor="border-b-gray-1"
-          titleExtra={<span className="text-font-s">{documents.length} مورد</span>}
+          icon={ImageIcon}
+          title="رسانه‌ها و مستندات"
+          iconBgColor="bg-pink-0/50"
+          iconColor="text-pink-1"
+          cardBorderColor="border-b-pink-1"
+          contentClassName="p-0"
         >
-          {renderMediaGrid(documents, "document")}
+          <EmptyState
+            title="رسانه‌ای یافت نشد"
+            description="ویدئو، پادکست یا سندی برای این نمونه‌کار ثبت نشده است"
+            icon={ImageIcon}
+            size="md"
+            fullBleed={true}
+          />
         </CardWithIcon>
-      </div>
-    </TabsContent>
+      ) : (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-stretch">
+          {/* VIDEO Section */}
+          {videos.length > 0 && (
+            <div className="flex flex-col">
+              <CardWithIcon
+                icon={VideoIcon}
+                title={videos.length > 1 ? "ویدئوهای پروژه" : "ویدئوی معرفی پروژه"}
+                iconBgColor="bg-blue-0/50"
+                iconColor="text-blue-1"
+                cardBorderColor="border-b-blue-1"
+                className="w-full shadow-sm h-full flex flex-col"
+                contentClassName="p-0 flex-1 flex flex-col justify-center"
+              >
+                <div className={cn("w-full flex-1 flex flex-col justify-center", videos.length > 1 ? "grid grid-cols-1 sm:grid-cols-2 gap-4" : "")}>
+                  {videos.map((item: any) => {
+                    const media = item.media_detail || item.media;
+                    const coverUrl = mediaService.getMediaCoverUrl(media);
+
+                    return (
+                      <VideoPlayer
+                        key={item.id}
+                        src={mediaService.getMediaUrlFromObject(media)}
+                        poster={coverUrl}
+                        title={media.title || 'ویدئو پروژه'}
+                        size={formatSize(media.file_size)}
+                        variant={videos.length === 1 ? "featured" : "default"}
+                        className="h-full"
+                      />
+                    );
+                  })}
+                </div>
+              </CardWithIcon>
+            </div>
+          )}
+
+          {/* DOCUMENTS & AUDIO Section */}
+          {(documents.length > 0 || audios.length > 0) && (
+            <div className="flex flex-col">
+              <CardWithIcon
+                icon={FileText}
+                title="اسناد و پادکست آموزشی"
+                iconBgColor="bg-purple-0/50"
+                iconColor="text-purple-1"
+                cardBorderColor="border-b-purple-1"
+                className="w-full shadow-sm h-full flex flex-col"
+                contentClassName="p-4 h-full flex flex-col gap-6"
+                titleExtra={
+                  <div className="flex gap-2">
+                    {documents.length > 0 && (
+                      <Badge variant="purple" className="h-5 px-2 text-[10px] font-black bg-purple-1/10 text-purple-1 border-purple-1/20">
+                        {documents.length.toLocaleString('fa-IR')} سند
+                      </Badge>
+                    )}
+                    {audios.length > 0 && (
+                      <Badge variant="blue" className="h-5 px-2 text-[10px] font-black bg-blue-1/10 text-blue-1 border-blue-1/20">
+                        {audios.length.toLocaleString('fa-IR')} صوت
+                      </Badge>
+                    )}
+                  </div>
+                }
+              >
+                {/* AUDIO Section */}
+                {audios.length > 0 && (
+                  <div className="flex flex-col gap-4">
+                    <label className="text-[10px] font-black text-font-s tracking-widest uppercase opacity-40 mb-1">فایل‌های صوتی</label>
+                    <div className="flex flex-col gap-3">
+                      {audios.map((item: any) => {
+                        const media = item.media_detail || item.media;
+                        return (
+                          <AudioPlayer
+                            key={item.id}
+                            src={mediaService.getMediaUrlFromObject(media)}
+                            title={media.title || 'پادکست/توضیحات صوتی'}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* DOCUMENTS Section */}
+                {documents.length > 0 && (
+                  <div className="flex flex-col gap-3 flex-1">
+                    <label className="text-[10px] font-bold text-font-s tracking-widest uppercase opacity-70 mb-1">ضمائم و اسناد فنی</label>
+                    <div className="flex flex-col gap-2.5">
+                      {documents.map((item: any) => {
+                        const media = item.media_detail || item.media;
+                        return (
+                          <DocumentItem
+                            key={item.id}
+                            title={media.title || 'سند پروژه'}
+                            fileUrl={media.file_url}
+                            fileSize={media.file_size}
+                            downloadUrl={mediaService.getMediaUrlFromObject(media)}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-auto p-4 rounded-xl bg-purple-0/20 border border-purple-1/10 border-dashed">
+                  <p className="text-[9.5px] font-bold text-purple-1/60 leading-relaxed text-center">
+                    تمامی اسناد بر روی سرورهای امن ذخیره شده و فقط برای مدیران و کاربران مجاز قابل دسترس هستند.
+                  </p>
+                </div>
+              </CardWithIcon>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
