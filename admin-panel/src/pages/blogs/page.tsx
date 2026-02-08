@@ -499,6 +499,7 @@ export default function BlogPage() {
             },
           ]}
           filterConfig={blogFilterConfig}
+          filterVariant="sidebar"
         />
       </Suspense>
 

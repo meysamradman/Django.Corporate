@@ -29,6 +29,7 @@ import type { DataTableRowAction } from "@/types/shared/table";
 import { Edit, Trash2 } from "lucide-react";
 import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
 import { DRAWER_IDS } from "@/components/shared/drawer/types";
+const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
 
 export default function PropertyTypesPage() {
 

@@ -33,6 +33,7 @@ export interface FilterConfig {
   type?: 'select' | 'hierarchical' | 'date' | 'date_range' | 'date_range_dropdown' | 'faceted';
   showSearch?: boolean;
   multiSelect?: boolean;
+  isAdvanced?: boolean;
 }
 
 export interface DeleteConfig {

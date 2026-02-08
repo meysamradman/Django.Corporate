@@ -27,8 +27,9 @@ export const getBlogFilterConfig = (
       title: "انتشار",
       type: "faceted",
       options: statusFilterOptions,
-      placeholder: "انتشار",
+      placeholder: "وضعیت انتشار",
       showSearch: false,
+      multiSelect: false,
     },
     {
       columnId: "is_featured",
@@ -37,6 +38,7 @@ export const getBlogFilterConfig = (
       options: booleanFilterOptions,
       placeholder: "ویژه",
       showSearch: false,
+      multiSelect: false,
     },
     {
       columnId: "is_public",
@@ -45,6 +47,7 @@ export const getBlogFilterConfig = (
       options: booleanFilterOptions,
       placeholder: "عمومی",
       showSearch: false,
+      multiSelect: false,
     },
     {
       columnId: "is_active",
@@ -53,6 +56,7 @@ export const getBlogFilterConfig = (
       options: booleanFilterOptions,
       placeholder: "فعال",
       showSearch: false,
+      multiSelect: false,
     },
     {
       columnId: "category",
@@ -61,11 +65,13 @@ export const getBlogFilterConfig = (
       options: categoryOptions,
       placeholder: "دسته‌بندی",
       multiSelect: true,
+      isAdvanced: true,
     },
     {
       columnId: "date_range",
       title: "بازه تاریخ",
       type: "date_range",
       placeholder: "انتخاب بازه تاریخ",
+      isAdvanced: true,
     },
   ];

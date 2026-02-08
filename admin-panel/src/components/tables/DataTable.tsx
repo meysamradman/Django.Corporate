@@ -36,7 +36,7 @@ import { DataTableDateRangeFilter } from "./DataTableDateRangeFilter"
 import { DataTableDateRangeFilterDropdown } from "./DataTableDateRangeFilterDropdown"
 import { DataTableFacetedFilterSimple } from "./DataTableFacetedFilterSimple"
 import type { DateRangeOption } from "@/types/shared/table"
-import { Trash, Search, Download, Printer, FileSpreadsheet, FileText, ChevronDown } from "lucide-react"
+import { Trash, Search, Download, Printer, FileSpreadsheet, FileText, ChevronDown, ListFilter, X } from "lucide-react"
 import { Loader } from "@/components/elements/Loader"
 import { PaginationControls } from "@/components/shared/Pagination"
 import {
@@ -45,7 +45,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/elements/DropdownMenu"
+import { Badge } from "@/components/elements/Badge"
 import { Button } from "@/components/elements/Button"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+  DrawerFooter,
+  DrawerClose,
+} from "@/components/elements/Drawer"
 import type {
   SearchConfig,
   FilterConfig,
@@ -71,6 +81,7 @@ interface DataTableProps<TData extends { id: number | string }, TValue, TClientF
   };
   searchConfig?: SearchConfig;
   filterConfig?: FilterConfig[];
+  filterVariant?: 'inline' | 'sidebar';
   deleteConfig?: DeleteConfig;
   exportConfig?: ExportConfig<TClientFilters>;
   exportConfigs?: ExportConfig<TClientFilters>[];
@@ -78,6 +89,106 @@ interface DataTableProps<TData extends { id: number | string }, TValue, TClientF
   pageSizeOptions?: number[];
   searchValue?: string;
   customHeaderActions?: ReactNode;
+}
+
+/**
+ * Reusable filter renderer to maintain consistency between inline and sidebar layouts
+ */
+function DataTableFilters<TClientFilters extends Record<string, unknown>>({
+  filterConfig,
+  clientFilters,
+  onFilterChange,
+  layout = 'inline',
+  table
+}: {
+  filterConfig: FilterConfig[];
+  clientFilters: TClientFilters;
+  onFilterChange: (filterId: string, value: unknown) => void;
+  layout?: 'inline' | 'sidebar';
+  table: any;
+}) {
+  return (
+    <>
+      {filterConfig.map((filter) => {
+        const isNonColumnFilter = ['category', 'property_type', 'date_from', 'date_to', 'date_range', 'date_range_dropdown'].includes(filter.columnId);
+        const column = isNonColumnFilter ? null : table.getColumn(filter.columnId);
+
+        if (!column && !isNonColumnFilter) return null;
+
+        const filterElement = (
+          <div key={filter.columnId} className={cn(layout === 'sidebar' && "flex flex-col gap-3")}>
+            {layout === 'sidebar' && (
+              <label className="text-[11px] font-black text-font-s uppercase tracking-wider flex items-center gap-2">
+                <span className="size-1.5 rounded-full bg-blue-1/40" />
+                {filter.title}
+              </label>
+            )}
+            <div className="w-full">
+              {filter.type === 'hierarchical' && (
+                <DataTableHierarchicalFilter
+                  title={filter.title}
+                  items={filter.options as unknown as CategoryItem[]}
+                  placeholder={filter.placeholder || filter.title || "انتخاب کنید..."}
+                  value={clientFilters[filter.columnId as keyof TClientFilters] as string | number | undefined}
+                  onChange={(value) => onFilterChange(filter.columnId, value)}
+                  multiSelect={filter.multiSelect}
+                />
+              )}
+
+              {filter.type === 'date_range' && (
+                <DataTableDateRangeFilter
+                  title={filter.title}
+                  value={(clientFilters[filter.columnId as keyof TClientFilters] as { from?: string; to?: string }) || (clientFilters['date_from' as keyof TClientFilters] || clientFilters['date_to' as keyof TClientFilters] ? { from: clientFilters['date_from' as keyof TClientFilters] as string, to: clientFilters['date_to' as keyof TClientFilters] as string } : { from: undefined, to: undefined })}
+                  onChange={(range) => {
+                    onFilterChange(filter.columnId, range);
+                    onFilterChange('date_from', range.from);
+                    onFilterChange('date_to', range.to);
+                  }}
+                  placeholder={filter.placeholder || filter.title || "انتخاب بازه تاریخ"}
+                />
+              )}
+
+              {filter.type === 'date_range_dropdown' && (
+                <DataTableDateRangeFilterDropdown
+                  title={filter.title}
+                  options={(filter.options || []) as DateRangeOption[]}
+                  value={(clientFilters[filter.columnId as keyof TClientFilters] as { from?: string; to?: string }) || (clientFilters['date_from' as keyof TClientFilters] || clientFilters['date_to' as keyof TClientFilters] ? { from: clientFilters['date_from' as keyof TClientFilters] as string, to: clientFilters['date_to' as keyof TClientFilters] as string } : { from: undefined, to: undefined })}
+                  onChange={(range) => {
+                    onFilterChange(filter.columnId, range);
+                    onFilterChange('date_from', range.from);
+                    onFilterChange('date_to', range.to);
+                  }}
+                  placeholder={filter.placeholder || filter.title || "بازه تاریخ"}
+                />
+              )}
+
+              {filter.type === 'date' && (
+                <DataTableDateFilter
+                  title={filter.title}
+                  value={clientFilters[filter.columnId as keyof TClientFilters] as string || undefined}
+                  onChange={(value) => onFilterChange(filter.columnId, value)}
+                  placeholder={filter.placeholder || filter.title || "تاریخ"}
+                />
+              )}
+
+              {(filter.type === 'faceted' || !filter.type) && (
+                <DataTableFacetedFilterSimple
+                  title={filter.title}
+                  options={(filter.options || []) as Array<{ label: string; value: string | boolean; icon?: React.ComponentType<{ className?: string }>; count?: number }>}
+                  value={clientFilters[filter.columnId as keyof TClientFilters] as string | boolean | (string | boolean)[] | undefined}
+                  onChange={(value) => onFilterChange(filter.columnId, value)}
+                  multiSelect={filter.multiSelect !== false}
+                  showSearch={filter.showSearch !== false && (filter.options || []).length > 5}
+                />
+              )}
+            </div>
+          </div>
+        );
+
+        return filterElement;
+      })}
+    </>
+  )
 }
 
 export function DataTable<TData extends { id: number | string }, TValue, TClientFilters extends Record<string, unknown> = Record<string, unknown>>({
@@ -93,6 +204,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
   state: controlledState = {},
   searchConfig: _providedSearchConfig,
   filterConfig = [],
+  filterVariant = 'inline',
   deleteConfig,
   exportConfig,
   exportConfigs,
@@ -156,6 +268,13 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
   };
 
   const activeExportConfigs = exportConfigs || (exportConfig ? [exportConfig] : []);
+
+  const activeFilterCount = Object.keys(clientFilters).filter(k =>
+    clientFilters[k] !== undefined &&
+    clientFilters[k] !== "" &&
+    clientFilters[k] !== null &&
+    k !== 'search'
+  ).length;
 
   return (
     <Card
@@ -242,110 +361,70 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
 
           <div className="flex flex-col flex-wrap gap-2 md:flex-row md:items-center md:gap-2">
             {customHeaderActions}
-            {filterConfig.map((filter) => {
-              const isNonColumnFilter = ['category', 'property_type', 'date_from', 'date_to', 'date_range', 'date_range_dropdown'].includes(filter.columnId);
 
-              const column = isNonColumnFilter ? null : table.getColumn(filter.columnId);
+            {/* Standard Filters (Inline) */}
+            {(filterVariant === 'inline' ? filterConfig : filterConfig.filter(f => !f.isAdvanced)).length > 0 && (
+              <DataTableFilters
+                filterConfig={filterVariant === 'inline' ? filterConfig : filterConfig.filter(f => !f.isAdvanced)}
+                clientFilters={clientFilters}
+                onFilterChange={onFilterChange as any}
+                layout="inline"
+                table={table}
+              />
+            )}
 
-              if (!column && !isNonColumnFilter) return null;
-
-              if (filter.type === 'hierarchical') {
-                return (
-                  <DataTableHierarchicalFilter
-                    key={filter.columnId}
-                    title={filter.title}
-                    items={filter.options as unknown as CategoryItem[]}
-                    placeholder={filter.placeholder || filter.title || "انتخاب کنید..."}
-                    value={clientFilters[filter.columnId as keyof TClientFilters] as string | number | undefined}
-                    onChange={(value) => onFilterChange(filter.columnId, value)}
-                    multiSelect={filter.multiSelect}
-                  />
-                );
-              }
-
-              if (filter.type === 'date_range') {
-                const rangeValue = clientFilters[filter.columnId as keyof TClientFilters] as { from?: string; to?: string } | undefined;
-                const dateFrom = clientFilters['date_from' as keyof TClientFilters] as string | undefined;
-                const dateTo = clientFilters['date_to' as keyof TClientFilters] as string | undefined;
-
-                const currentRange = rangeValue || (dateFrom || dateTo ? { from: dateFrom, to: dateTo } : { from: undefined, to: undefined });
-
-                return (
-                  <DataTableDateRangeFilter
-                    key={filter.columnId}
-                    title={filter.title}
-                    value={currentRange}
-                    onChange={(range) => {
-                      onFilterChange(filter.columnId, range);
-                      onFilterChange('date_from', range.from);
-                      onFilterChange('date_to', range.to);
-                    }}
-                    placeholder={filter.placeholder || filter.title || "انتخاب بازه تاریخ"}
-                  />
-                );
-              }
-
-              if (filter.type === 'date_range_dropdown') {
-                const rangeValue = clientFilters[filter.columnId as keyof TClientFilters] as { from?: string; to?: string } | undefined;
-                const dateFrom = clientFilters['date_from' as keyof TClientFilters] as string | undefined;
-                const dateTo = clientFilters['date_to' as keyof TClientFilters] as string | undefined;
-
-                const currentRange = rangeValue || (dateFrom || dateTo ? { from: dateFrom, to: dateTo } : { from: undefined, to: undefined });
-
-                return (
-                  <DataTableDateRangeFilterDropdown
-                    key={filter.columnId}
-                    title={filter.title}
-                    options={(filter.options || []) as DateRangeOption[]}
-                    value={currentRange}
-                    onChange={(range) => {
-                      onFilterChange(filter.columnId, range);
-                      onFilterChange('date_from', range.from);
-                      onFilterChange('date_to', range.to);
-                    }}
-                    placeholder={filter.placeholder || filter.title || "بازه تاریخ"}
-                  />
-                );
-              }
-
-              if (filter.type === 'date') {
-                return (
-                  <DataTableDateFilter
-                    key={filter.columnId}
-                    title={filter.title}
-                    value={clientFilters[filter.columnId as keyof TClientFilters] as string || undefined}
-                    onChange={(value) => onFilterChange(filter.columnId, value)}
-                    placeholder={filter.placeholder || filter.title || "تاریخ"}
-                  />
-                );
-              }
-
-              if (filter.type === 'faceted') {
-                return (
-                  <DataTableFacetedFilterSimple
-                    key={filter.columnId}
-                    title={filter.title}
-                    options={(filter.options || []) as Array<{ label: string; value: string | boolean; icon?: React.ComponentType<{ className?: string }>; count?: number }>}
-                    value={clientFilters[filter.columnId as keyof TClientFilters] as string | boolean | (string | boolean)[] | undefined}
-                    onChange={(value) => onFilterChange(filter.columnId, value)}
-                    multiSelect={filter.multiSelect}
-                    showSearch={filter.showSearch !== false}
-                  />
-                );
-              }
-
-              return (
-                <DataTableFacetedFilterSimple
-                  key={filter.columnId}
-                  title={filter.title}
-                  options={(filter.options || []) as Array<{ label: string; value: string | boolean; icon?: React.ComponentType<{ className?: string }>; count?: number }>}
-                  value={clientFilters[filter.columnId as keyof TClientFilters] as string | boolean | (string | boolean)[] | undefined}
-                  onChange={(value) => onFilterChange(filter.columnId, value)}
-                  multiSelect={true}
-                  showSearch={filter.showSearch !== false && (filter.options || []).length > 5}
-                />
-              );
-            })}
+            {/* Advanced Filters (Sidebar) */}
+            {filterVariant === 'sidebar' && filterConfig.filter(f => f.isAdvanced).length > 0 && (
+              <Drawer direction="right">
+                <DrawerTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <ListFilter className="h-4 w-4" />
+                    فیلترهای پیشرفته
+                    {activeFilterCount > 0 && (
+                      <Badge variant="blue" className="h-5 min-w-5 px-1 flex items-center justify-center rounded-full text-[10px]">
+                        {activeFilterCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </DrawerTrigger>
+                <DrawerContent className="h-full border-l">
+                  <DrawerHeader className="border-b px-6 py-4 flex flex-row items-center justify-between">
+                    <DrawerTitle className="text-lg font-black flex items-center gap-2">
+                      <ListFilter className="size-5 text-blue-1" />
+                      فیلترهای پیشرفته
+                    </DrawerTitle>
+                    <DrawerClose asChild>
+                      <Button variant="outline" size="icon" className="rounded-full">
+                        <X className="size-5" />
+                      </Button>
+                    </DrawerClose>
+                  </DrawerHeader>
+                  <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
+                    <DataTableFilters
+                      filterConfig={filterConfig.filter(f => f.isAdvanced)}
+                      clientFilters={clientFilters}
+                      onFilterChange={onFilterChange as any}
+                      layout="sidebar"
+                      table={table}
+                    />
+                  </div>
+                  <DrawerFooter className="border-t bg-bg/30 px-6 py-4">
+                    <div className="flex items-center justify-center w-full">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          filterConfig.filter(f => f.isAdvanced).forEach(f => onFilterChange(f.columnId as any, undefined));
+                        }}
+                        className="text-red-1 border-red-1/20 hover:text-red-1/80 hover:bg-red-1/10 w-full"
+                      >
+                        پاکسازی فیلترهای پیشرفته
+                      </Button>
+                    </div>
+                  </DrawerFooter>
+                </DrawerContent>
+              </Drawer>
+            )}
           </div>
 
         </div>
@@ -511,3 +590,5 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
     </Card>
   )
 }
+
+export default DataTable

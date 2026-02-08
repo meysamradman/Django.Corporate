@@ -2,8 +2,8 @@ import type { FilterConfig, FilterOption } from "@/types/shared/table";
 
 export const useAdminFilterOptions = () => {
     const booleanFilterOptions: FilterOption[] = [
-        { label: "فعال", value: true },
-        { label: "غیرفعال", value: false }
+        { label: "بله", value: true },
+        { label: "خیر", value: false }
     ];
 
     const roleFilterOptions: FilterOption[] = [
@@ -24,34 +24,37 @@ export const getAdminFilterConfig = (
     roleFilterOptions: FilterOption[],
     userRoleTypeOptions: FilterOption[]
 ): FilterConfig[] => [
-    {
-        columnId: "user_role_type",
-        title: "نوع کاربر",
-        options: userRoleTypeOptions,
-        placeholder: "نوع کاربر",
-        type: 'faceted',
-        showSearch: false,
-    },
-    {
-        columnId: "is_active",
-        title: "وضعیت",
-        options: booleanFilterOptions,
-        placeholder: "وضعیت",
-        type: 'faceted',
-        showSearch: false,
-    },
-    {
-        columnId: "is_superuser",
-        title: "نقش",
-        options: roleFilterOptions,
-        placeholder: "نقش",
-        type: 'faceted',
-        showSearch: false,
-    },
-    {
-        columnId: "date_range",
-        title: "بازه تاریخ",
-        placeholder: "انتخاب بازه تاریخ",
-        type: 'date_range'
-    },
-]; 
+        {
+            columnId: "user_role_type",
+            title: "نوع کاربر",
+            options: userRoleTypeOptions,
+            placeholder: "نوع کاربر",
+            type: 'faceted',
+            showSearch: false,
+            multiSelect: false,
+        },
+        {
+            columnId: "is_active",
+            title: "وضعیت",
+            options: booleanFilterOptions,
+            placeholder: "وضعیت فعال",
+            type: 'faceted',
+            showSearch: false,
+            multiSelect: false,
+        },
+        {
+            columnId: "is_superuser",
+            title: "نقش",
+            options: roleFilterOptions,
+            placeholder: "نقش",
+            type: 'faceted',
+            showSearch: false,
+            multiSelect: false,
+        },
+        {
+            columnId: "date_range",
+            title: "بازه تاریخ",
+            placeholder: "انتخاب بازه تاریخ",
+            type: 'date_range'
+        },
+    ]; 

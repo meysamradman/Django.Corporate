@@ -502,6 +502,7 @@ export default function PortfolioPage() {
             },
           ]}
           filterConfig={portfolioFilterConfig}
+          filterVariant="sidebar"
         />
       </Suspense>
 

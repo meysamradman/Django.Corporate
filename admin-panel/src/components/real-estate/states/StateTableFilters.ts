@@ -29,8 +29,9 @@ export const getPropertyStateFilterConfig = (
       title: "فعال",
       type: "faceted",
       options: booleanFilterOptions,
-      placeholder: "فعال",
+      placeholder: "وضعیت فعال",
       showSearch: false,
+      multiSelect: false,
     },
     {
       columnId: "date_range",

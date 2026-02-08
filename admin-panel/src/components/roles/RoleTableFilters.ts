@@ -12,29 +12,31 @@ export const useRoleFilterOptions = () => {
 export const getRoleFilterConfig = (
     roleTypeFilterOptions: FilterOption[]
 ): FilterConfig[] => [
-    {
-        columnId: "is_active",
-        title: "وضعیت",
-        options: [
-            { label: "فعال", value: true },
-            { label: "غیرفعال", value: false }
-        ],
-        placeholder: "وضعیت",
-        type: 'faceted',
-        showSearch: false,
-    },
-    {
-        columnId: "is_system_role",
-        title: "نوع نقش",
-        options: roleTypeFilterOptions,
-        placeholder: "نوع نقش",
-        type: 'faceted',
-        showSearch: false,
-    },
-    {
-        columnId: "date_range",
-        title: "بازه تاریخ",
-        placeholder: "انتخاب بازه تاریخ",
-        type: 'date_range'
-    },
-];
+        {
+            columnId: "is_active",
+            title: "وضعیت",
+            options: [
+                { label: "بله", value: true },
+                { label: "خیر", value: false }
+            ],
+            placeholder: "وضعیت فعال",
+            type: 'faceted',
+            showSearch: false,
+            multiSelect: false,
+        },
+        {
+            columnId: "is_system_role",
+            title: "نوع نقش",
+            options: roleTypeFilterOptions,
+            placeholder: "نوع نقش",
+            type: 'faceted',
+            showSearch: false,
+            multiSelect: false,
+        },
+        {
+            columnId: "date_range",
+            title: "بازه تاریخ",
+            placeholder: "انتخاب بازه تاریخ",
+            type: 'date_range'
+        },
+    ];

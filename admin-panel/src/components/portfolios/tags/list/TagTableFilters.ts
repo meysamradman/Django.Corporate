@@ -21,26 +21,28 @@ export const useTagFilterOptions = () => {
 export const getTagFilterConfig = (
   booleanFilterOptions: { label: string; value: string }[]
 ): FilterConfig[] => [
-  {
-    columnId: "is_active",
-    title: "فعال",
-    type: "faceted",
-    options: booleanFilterOptions,
-    placeholder: "فعال",
-    showSearch: false,
-  },
-  {
-    columnId: "is_public",
-    title: "عمومی",
-    type: "faceted",
-    options: booleanFilterOptions,
-    placeholder: "عمومی",
-    showSearch: false,
-  },
-  {
-    columnId: "date_range",
-    title: "بازه تاریخ",
-    type: "date_range",
-    placeholder: "انتخاب بازه تاریخ",
-  },
-];
+    {
+      columnId: "is_active",
+      title: "فعال",
+      type: "faceted",
+      options: booleanFilterOptions,
+      placeholder: "وضعیت فعال",
+      showSearch: false,
+      multiSelect: false,
+    },
+    {
+      columnId: "is_public",
+      title: "عمومی",
+      type: "faceted",
+      options: booleanFilterOptions,
+      placeholder: "وضعیت عمومی",
+      showSearch: false,
+      multiSelect: false,
+    },
+    {
+      columnId: "date_range",
+      title: "بازه تاریخ",
+      type: "date_range",
+      placeholder: "انتخاب بازه تاریخ",
+    },
+  ];

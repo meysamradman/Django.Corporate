@@ -14,19 +14,20 @@ export const usePropertyLabelFilterOptions = () => {
 export const getPropertyLabelFilterConfig = (
   booleanFilterOptions: { label: string; value: boolean }[]
 ): FilterConfig[] => [
-  {
-    columnId: "is_active",
-    title: "فعال",
-    type: "faceted",
-    options: booleanFilterOptions,
-    placeholder: "فعال",
-    showSearch: false,
-  },
-  {
-    columnId: "date_range",
-    title: "بازه تاریخ",
-    type: "date_range",
-    placeholder: "انتخاب بازه تاریخ",
-  },
-];
+    {
+      columnId: "is_active",
+      title: "فعال",
+      type: "faceted",
+      options: booleanFilterOptions,
+      placeholder: "وضعیت فعال",
+      showSearch: false,
+      multiSelect: false,
+    },
+    {
+      columnId: "date_range",
+      title: "بازه تاریخ",
+      type: "date_range",
+      placeholder: "انتخاب بازه تاریخ",
+    },
+  ];
 

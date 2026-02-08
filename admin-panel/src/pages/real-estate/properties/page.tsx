@@ -542,6 +542,7 @@ export default function PropertyPage() {
             },
           ]}
           filterConfig={propertyFilterConfig}
+          filterVariant="sidebar"
         />
       </Suspense>
 

@@ -6,8 +6,14 @@ export const usePropertyFilterOptions = () => {
     { label: "خیر", value: false },
   ];
 
+  const publishStatusOptions = [
+    { label: "منتشر شده", value: true },
+    { label: "پیش‌نویس", value: false },
+  ];
+
   return {
     booleanFilterOptions,
+    publishStatusOptions,
   };
 };
 
@@ -20,27 +26,33 @@ export const getPropertyFilterConfig = (
 ): FilterConfig[] => [
     {
       columnId: "is_published",
-      title: "منتشر شده",
+      title: "انتشار",
       type: "faceted",
-      options: booleanFilterOptions,
-      placeholder: "منتشر شده",
+      options: [
+        { label: "منتشر شده", value: true },
+        { label: "پیش‌نویس", value: false },
+      ],
+      placeholder: "وضعیت انتشار",
       showSearch: false,
+      multiSelect: false,
     },
     {
       columnId: "is_featured",
       title: "ویژه",
       type: "faceted",
       options: booleanFilterOptions,
-      placeholder: "ویژه",
+      placeholder: "وضعیت ویژه",
       showSearch: false,
+      multiSelect: false,
     },
     {
       columnId: "is_active",
       title: "فعال",
       type: "faceted",
       options: booleanFilterOptions,
-      placeholder: "فعال",
+      placeholder: "وضعیت فعال",
       showSearch: false,
+      multiSelect: false,
     },
     {
       columnId: "property_type",
@@ -49,6 +61,7 @@ export const getPropertyFilterConfig = (
       options: propertyTypeOptions,
       placeholder: "نوع ملک",
       multiSelect: true,
+      isAdvanced: true,
     },
     {
       columnId: "state",
@@ -58,6 +71,7 @@ export const getPropertyFilterConfig = (
       placeholder: "وضعیت",
       showSearch: true,
       multiSelect: true,
+      isAdvanced: true,
     },
     {
       columnId: "city",
@@ -67,6 +81,7 @@ export const getPropertyFilterConfig = (
       placeholder: "شهر",
       showSearch: true,
       multiSelect: true,
+      isAdvanced: true,
     },
     {
       columnId: "status",
@@ -76,11 +91,13 @@ export const getPropertyFilterConfig = (
       placeholder: "وضعیت فرآیند",
       showSearch: true,
       multiSelect: true,
+      isAdvanced: true,
     },
     {
       columnId: "date_range",
       title: "بازه تاریخ",
       type: "date_range",
       placeholder: "انتخاب بازه تاریخ",
+      isAdvanced: true,
     },
   ];
