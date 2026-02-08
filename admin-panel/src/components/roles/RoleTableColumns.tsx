@@ -57,7 +57,7 @@ export const useRoleColumns = (rowActions: DataTableRowAction<Role>[]): ColumnDe
     },
     {
       accessorKey: "is_active",
-      header: () => <div className="table-header-text">وضعیت</div>,
+      header: () => <div className="table-header-text">فعال</div>,
       cell: ({ row }) => {
         const isActive = row.getValue("is_active") as boolean;
         return (

@@ -84,7 +84,7 @@ export const usePortfolioColumns = (
     },
     {
       accessorKey: "status",
-      header: () => <div className="table-header-text">وضعیت</div>,
+      header: () => <div className="table-header-text">انتشار</div>,
       cell: ({ row }) => {
         const status = row.original.status;
         return (
@@ -135,7 +135,7 @@ export const usePortfolioColumns = (
     },
     {
       accessorKey: "categories",
-      header: () => <div className="table-header-text">دسته‌بندی‌ها</div>,
+      header: () => <div className="table-header-text">دسته‌بندیها</div>,
       cell: ({ row }) => {
         const portfolio = row.original;
         const categories = portfolio.categories || [];

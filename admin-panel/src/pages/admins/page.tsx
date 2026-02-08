@@ -287,7 +287,7 @@ export default function AdminsPage() {
           </div>
 
           <DataTableFacetedFilterSimple
-            title="وضعیت"
+            title="فعال"
             options={booleanFilterOptions}
             value={clientFilters.is_active}
             onChange={(value) => handleFilterChange('is_active', value)}
@@ -354,7 +354,7 @@ export default function AdminsPage() {
               }}
               title={fullName}
               status={{
-                label: admin.is_active ? "فعال" : "مرخصی",
+                label: admin.is_active ? "فعال" : "غیرفعال",
                 variant: admin.is_active ? "green" : "red",
               }}
               actions={actions}
@@ -379,7 +379,7 @@ export default function AdminsPage() {
                       <p className="text-sm font-medium text-font-p">{roleDisplay || "بدون نقش"}</p>
                     </div>
                     <div className="text-left">
-                      <p className="text-xs text-font-s mb-1">تاریخ استخدام</p>
+                      <p className="text-xs text-font-s mb-1">تاریخ ایجاد</p>
                       <p className="text-sm font-medium text-font-p">{createdDate}</p>
                     </div>
                   </div>

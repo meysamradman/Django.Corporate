@@ -121,7 +121,7 @@ export const useUserColumns = (
     },
     {
       accessorKey: "is_active",
-      header: () => <div className="table-header-text">وضعیت</div>,
+      header: () => <div className="table-header-text">فعال</div>,
       cell: ({ row }) => {
         const isActive = row.original.is_active;
         return (
@@ -143,7 +143,7 @@ export const useUserColumns = (
     },
     {
       accessorKey: "created_at",
-      header: () => <div className="table-header-text">تاریخ عضویت</div>,
+      header: () => <div className="table-header-text">تاریخ ایجاد</div>,
       cell: ({ row }) => {
         const date = row.getValue("created_at") as string;
         return (

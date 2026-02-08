@@ -99,7 +99,7 @@ export const usePropertyFeatureColumns = (
     },
     {
       accessorKey: "group",
-      header: () => <div className="table-header-text">دسته‌بندی</div>,
+      header: () => <div className="table-header-text">دسته‌بندیها</div>,
       cell: ({ row }) => (
         <div className="table-cell-secondary">
           {row.original.group || '-'}

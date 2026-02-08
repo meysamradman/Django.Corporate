@@ -36,7 +36,7 @@ import { DataTableDateRangeFilter } from "./DataTableDateRangeFilter"
 import { DataTableDateRangeFilterDropdown } from "./DataTableDateRangeFilterDropdown"
 import { DataTableFacetedFilterSimple } from "./DataTableFacetedFilterSimple"
 import type { DateRangeOption } from "@/types/shared/table"
-import { Trash, Search, Download, Printer, FileSpreadsheet, FileText, ChevronDown, ListFilter, X } from "lucide-react"
+import { Trash, Search, Download, Printer, FileSpreadsheet, FileText, ChevronDown, ListFilter, X, SlidersHorizontal } from "lucide-react"
 import { Loader } from "@/components/elements/Loader"
 import { PaginationControls } from "@/components/shared/Pagination"
 import {
@@ -377,8 +377,12 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
             {filterVariant === 'sidebar' && filterConfig.filter(f => f.isAdvanced).length > 0 && (
               <Drawer direction="right">
                 <DrawerTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <ListFilter className="h-4 w-4" />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 border-blue-1/20 bg-blue-1/5 text-blue-1 hover:bg-blue-1/10 hover:border-blue-1/30 transition-all font-bold"
+                  >
+                    <SlidersHorizontal className="h-4 w-4" />
                     فیلترهای پیشرفته
                     {activeFilterCount > 0 && (
                       <Badge variant="blue" className="h-5 min-w-5 px-1 flex items-center justify-center rounded-full text-[10px]">
