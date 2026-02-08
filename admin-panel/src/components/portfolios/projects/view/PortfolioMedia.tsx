@@ -64,7 +64,6 @@ export function PortfolioMedia({ portfolio }: PortfolioMediaProps) {
         </CardWithIcon>
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-stretch">
-          {/* VIDEO Section */}
           {videos.length > 0 && (
             <div className="flex flex-col">
               <CardWithIcon
@@ -98,7 +97,6 @@ export function PortfolioMedia({ portfolio }: PortfolioMediaProps) {
             </div>
           )}
 
-          {/* DOCUMENTS & AUDIO Section */}
           {(documents.length > 0 || audios.length > 0) && (
             <div className="flex flex-col">
               <CardWithIcon
@@ -124,7 +122,6 @@ export function PortfolioMedia({ portfolio }: PortfolioMediaProps) {
                   </div>
                 }
               >
-                {/* AUDIO Section */}
                 {audios.length > 0 && (
                   <div className="flex flex-col gap-4">
                     <label className="text-[10px] font-black text-font-s tracking-widest mb-1">فایل‌های صوتی</label>
@@ -143,7 +140,6 @@ export function PortfolioMedia({ portfolio }: PortfolioMediaProps) {
                   </div>
                 )}
 
-                {/* DOCUMENTS Section */}
                 {documents.length > 0 && (
                   <div className="flex flex-col gap-3 flex-1">
                     <label className="text-[10px] font-bold text-font-s tracking-widest mb-1">ضمائم و اسناد فنی</label>

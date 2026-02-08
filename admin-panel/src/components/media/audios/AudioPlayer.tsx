@@ -85,7 +85,6 @@ export function AudioPlayer({
 
             <div className="flex flex-col w-full">
                 <div className="flex items-center gap-4 p-3">
-                    {/* Visualizer / Icon Box */}
                     <div className={cn(
                         "relative size-12 rounded-2xl flex items-center justify-center transition-all duration-500 shrink-0",
                         isPlaying
@@ -103,14 +102,12 @@ export function AudioPlayer({
                             <Music className="size-6 transition-transform duration-300 group-hover/a-item:rotate-12" />
                         )}
 
-                        {/* Status Dot */}
                         <div className={cn(
                             "absolute -top-0.5 -right-0.5 size-2.5 rounded-full border-2 border-wt transition-colors",
                             isPlaying ? "bg-emerald-500 animate-pulse" : "bg-gray-300"
                         )} />
                     </div>
 
-                    {/* Content & Controls */}
                     <ItemContent className="p-0 flex-1 min-w-0 flex flex-col justify-center gap-1.5">
                         <div className="flex items-center justify-between gap-2">
                             <ItemTitle className={cn(
@@ -124,18 +121,14 @@ export function AudioPlayer({
                             </span>
                         </div>
 
-                        {/* Progress Bar Container */}
                         <div className="relative w-full h-1.5 bg-gray-100 rounded-full cursor-pointer group/progress overflow-hidden">
-                            {/* Background Track */}
                             <div className="absolute inset-0 bg-gray-100 rounded-full" />
 
-                            {/* Filled Track */}
                             <div
                                 className="absolute left-0 top-0 h-full bg-gradient-to-r from-pink-1 to-rose-400 rounded-full transition-all duration-100 ease-linear"
                                 style={{ width: `${progress}%` }}
                             />
 
-                            {/* Input Range (Invisible but Interactive) */}
                             <input
                                 type="range"
                                 min="0"
@@ -147,7 +140,6 @@ export function AudioPlayer({
                         </div>
                     </ItemContent>
 
-                    {/* Actions */}
                     <div className="flex items-center gap-1.5 shrink-0 pl-1">
                         <Button
                             variant="outline"

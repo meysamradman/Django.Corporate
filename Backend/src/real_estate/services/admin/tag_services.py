@@ -129,9 +129,7 @@ class PropertyTagAdminService:
             tag = PropertyTag.objects.get(id=tag_id)
         except PropertyTag.DoesNotExist:
             raise PropertyTag.DoesNotExist(TAG_ERRORS["tag_not_found"])
-        
-        # property_count check removed to allow deletion (will auto-remove relations)
-        
+
         with transaction.atomic():
             tag.delete()
         
@@ -146,7 +144,6 @@ class PropertyTagAdminService:
         
         with transaction.atomic():
             tag_list = list(tags)
-            # property_count check removed to allow deletion
             
             deleted_count = tags.count()
             tags.delete()

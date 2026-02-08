@@ -78,8 +78,6 @@ export default function AgentsPage() {
     return { user_role_type: 'consultant' };
   });
 
-
-  // URL State Synchronization
   useURLStateSync(
     setPagination,
     setSearchValue,
@@ -88,11 +86,9 @@ export default function AgentsPage() {
     (urlParams) => {
       const filters: AdminFilters = { user_role_type: 'consultant' };
 
-      // Boolean filters
       filters.is_active = parseBooleanParam(urlParams, 'is_active');
       filters.is_superuser = parseBooleanParam(urlParams, 'is_superuser');
 
-      // Date filters
       Object.assign(filters, parseDateRange(urlParams));
 
       return filters;

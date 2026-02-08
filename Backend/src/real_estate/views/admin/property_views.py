@@ -168,7 +168,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         return self._extract_list(request.data, 'media_ids')
 
     def _extract_segmented_ids(self, request):
-        """Extracts segmented media IDs and covers from request data."""
+
         def _get_dict(key):
             val = request.data.get(key)
             if not val: return {}
@@ -216,7 +216,6 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                     data[field] = extracted
         
         data = self._merge_media_data(data, media_ids, media_files)
-        # Add segmented fields to data for serializer validation
         for m_key, m_val in segmented_media.items():
             if m_val: data[m_key] = m_val
         serializer = self.get_serializer(data=data)
@@ -284,7 +283,6 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                     media_covers = None
         
         data = self._merge_media_data(data, media_ids, media_files)
-        # Add segmented fields to data for serializer validation
         for m_key, m_val in segmented_media.items():
             if m_val: data[m_key] = m_val
             

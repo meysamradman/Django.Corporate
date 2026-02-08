@@ -17,7 +17,6 @@ import {
     parseModuleMedia
 } from "@/components/media/utils/genericMediaUtils";
 
-// Import sub-hooks
 import { useRealEstateMedia } from "./useRealEstateMedia";
 import { useRealEstateTaxonomy } from "./useRealEstateTaxonomy";
 
@@ -39,7 +38,6 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
         mode: "onSubmit",
     });
 
-    // Initialize sub-hooks
     const mediaManager = useRealEstateMedia({ form });
     const taxonomyManager = useRealEstateTaxonomy({ form });
 
@@ -157,7 +155,6 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                 throw new Error(msg.realEstate().validation.mediaLimitExceeded.replace("{max}", uploadMax.toString()));
             }
 
-
             const isPublished = status === "published";
             const segmented = collectSegmentedMediaIds(mediaManager.propertyMedia);
             const mediaCovers = collectMediaCovers(mediaManager.propertyMedia);
@@ -179,7 +176,6 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                 features: validatedData.features_ids,
             };
 
-            // Cleanup payload
             delete payload.og_image_id;
             delete payload.labels_ids;
             delete payload.tags_ids;
@@ -223,7 +219,6 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                 Object.entries(fieldErrors).forEach(([field, message]) => {
                     form.setError(field as keyof PropertyFormValues, { type: "server", message: message as string });
 
-                    // Switch to relevant tab on error - Comprehensive mapping
                     if (["title", "slug", "property_type", "state", "status", "agent", "agency", "short_description", "description"].includes(field))
                         setActiveTab("account");
                     else if (["province", "city", "region", "address", "postal_code", "neighborhood", "latitude", "longitude"].includes(field))
@@ -267,7 +262,6 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                 }
             }
         );
-
 
     return {
         form,

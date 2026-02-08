@@ -132,17 +132,14 @@ class RealEstateAgencySimpleAdminSerializer(serializers.ModelSerializer):
         fields = ['id', 'public_id', 'name', 'slug', 'phone', 'email', 'license_number', 'logo_url']
 
     def get_logo_url(self, obj):
-        # Primary: Agency Profile Picture
         if hasattr(obj, 'profile_picture') and obj.profile_picture and hasattr(obj.profile_picture, 'file') and obj.profile_picture.file:
             try:
                 return obj.profile_picture.file.url
             except Exception:
                 pass
         
-        # Fallback: Created By (Admin) Profile Picture
         try:
             if hasattr(obj, 'created_by') and obj.created_by:
-                # Check if created_by is a User instance and has admin_profile
                 if hasattr(obj.created_by, 'admin_profile'):
                     profile = obj.created_by.admin_profile
                     if profile.profile_picture and profile.profile_picture.file:
@@ -387,14 +384,12 @@ class PropertyAdminDetailSerializer(MediaAggregationMixin, serializers.ModelSeri
         if not obj.created_by:
             return None
             
-        # Try to get name from admin profile
         profile = getattr(obj.created_by, 'admin_profile', None)
         if profile:
             full_name = f"{profile.first_name or ''} {profile.last_name or ''}".strip()
             if full_name:
                 return full_name
         
-        # Fallback to mobile or email or username
         return obj.created_by.mobile or obj.created_by.email or str(obj.created_by)
     
     def get_seo_preview(self, obj):
@@ -751,13 +746,11 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         help_text="New media files to upload"
     )
 
-    # 🎯 Segmented Media IDs (Portfolio Pattern)
     image_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
     video_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
     audio_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
     document_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
     
-    # 🎨 Segmented Media Covers
     image_covers = serializers.DictField(child=serializers.IntegerField(allow_null=True), write_only=True, required=False)
     video_covers = serializers.DictField(child=serializers.IntegerField(allow_null=True), write_only=True, required=False)
     audio_covers = serializers.DictField(child=serializers.IntegerField(allow_null=True), write_only=True, required=False)

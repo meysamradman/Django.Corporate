@@ -136,7 +136,6 @@ export function PropertySidebar({
 
                 <div className="space-y-4 pt-4 border-t border-br">
                     <div className="space-y-4 pt-4 border-t border-br">
-                        {/* Public Status - Blue */}
                         <Item variant="default" size="default" className="py-4 rounded-xl border border-blue-1/30 bg-blue-0/20 hover:border-blue-1/50 transition-colors">
                             <div className="ml-4 p-2 bg-blue rounded-lg">
                                 <Eye className="w-5 h-5 stroke-blue-2" />
@@ -162,7 +161,6 @@ export function PropertySidebar({
                             </ItemActions>
                         </Item>
 
-                        {/* Active Status - Green */}
                         <Item variant="default" size="default" className="py-4 rounded-xl border border-green-1/30 bg-green-0/20 hover:border-green-1/50 transition-colors">
                             <div className="ml-4 p-2 bg-green rounded-lg">
                                 <CheckCircle className="w-5 h-5 stroke-green-2" />
@@ -188,7 +186,6 @@ export function PropertySidebar({
                             </ItemActions>
                         </Item>
 
-                        {/* Featured Status - Orange */}
                         <Item variant="default" size="default" className="py-4 rounded-xl border border-orange-1/30 bg-orange-0/20 hover:border-orange-1/50 transition-colors">
                             <div className="ml-4 p-2 bg-orange rounded-lg">
                                 <Star className="w-5 h-5 stroke-orange-2" />
@@ -214,7 +211,6 @@ export function PropertySidebar({
                             </ItemActions>
                         </Item>
 
-                        {/* Published Status - Purple */}
                         <Item variant="default" size="default" className="py-4 rounded-xl border border-purple-1/30 bg-purple-0/20 hover:border-purple-1/50 transition-colors">
                             <div className="ml-4 p-2 bg-purple rounded-lg">
                                 <FileText className="w-5 h-5 stroke-purple-2" />

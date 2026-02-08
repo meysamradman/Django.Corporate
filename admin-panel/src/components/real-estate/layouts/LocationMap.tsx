@@ -5,7 +5,6 @@ import { showError } from "@/core/toast";
 import { settingsApi } from "@/api/settings/settings";
 import type { MapSettings } from "@/types/real_estate/map";
 
-// Dynamic Providers
 const LeafletMapProvider = lazy(() => import("./maps/LeafletMapProvider"));
 const GoogleMapProvider = lazy(() => import("./maps/GoogleMapProvider"));
 
@@ -46,7 +45,6 @@ export default function LocationMap({
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [mapSettings, setMapSettings] = useState<MapSettings | null>(null);
 
-  // Fetch Settings
   useEffect(() => {
     const fetchSettings = async () => {
       try {

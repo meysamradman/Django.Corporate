@@ -174,10 +174,9 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         }
 
     def _prepare_request_data(self, request):
-        """Prepare and clean request data for create/update, handling multipart list/json issues."""
+
         data = request.data.copy()
         
-        # 1. Clean standard list fields and JSON fields
         for field in ['categories', 'tags', 'options', 'extra_attributes']:
             if field in data:
                 extracted = self._extract_list(data, field, convert_to_int=True) if field != 'extra_attributes' else data.get(field)
@@ -192,16 +191,13 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 else:
                     data[field] = extracted
         
-        # 2. Extract media IDs and files
         media_ids = self._extract_media_ids(request)
         segmented_ids = self._extract_segmented_ids(request)
         media_files = request.FILES.getlist('media_files')
         
-        # 3. Merge media into data
         data = self._merge_media_data(data, media_ids, media_files)
         data.update(segmented_ids)
         
-        # 4. Handle covers if present
         media_covers_raw = data.get('media_covers')
         if media_covers_raw and isinstance(media_covers_raw, str):
             try:

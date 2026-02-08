@@ -77,8 +77,6 @@ export default function AdminsPage() {
     return { user_role_type: 'admin' };
   });
 
-
-  // URL State Synchronization
   useURLStateSync(
     setPagination,
     setSearchValue,
@@ -87,11 +85,9 @@ export default function AdminsPage() {
     (urlParams) => {
       const filters: AdminFilters = { user_role_type: 'admin' };
 
-      // Boolean filters
       filters.is_active = parseBooleanParam(urlParams, 'is_active');
       filters.is_superuser = parseBooleanParam(urlParams, 'is_superuser');
 
-      // Date filters
       Object.assign(filters, parseDateRange(urlParams));
 
       return filters;

@@ -46,7 +46,6 @@ export function EmptyState({
                 className
             )}
         >
-            {/* Decorative Glow Background */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-primary/5 blur-[80px] rounded-full pointer-events-none" />
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-1/5 blur-[60px] rounded-full pointer-events-none" />
 

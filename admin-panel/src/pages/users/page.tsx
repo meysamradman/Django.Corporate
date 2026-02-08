@@ -73,8 +73,6 @@ export default function UsersPage() {
     return {};
   });
 
-
-  // URL State Synchronization
   useURLStateSync(
     setPagination,
     setSearchValue,
@@ -83,11 +81,9 @@ export default function UsersPage() {
     (urlParams) => {
       const filters: Filter = {};
 
-      // Boolean filters
       filters.is_active = parseBooleanParam(urlParams, 'is_active');
       filters.is_verified = parseBooleanParam(urlParams, 'is_verified');
 
-      // Date filters
       Object.assign(filters, parseDateRange(urlParams));
 
       return filters;

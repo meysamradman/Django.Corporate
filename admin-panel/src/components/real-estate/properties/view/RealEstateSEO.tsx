@@ -48,7 +48,6 @@ export function RealEstateSEO({ property }: SEOInfoTabProps) {
         />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-stretch px-5 py-5">
-          {/* Google Preview Section */}
           <div className="flex flex-col h-full gap-5">
             <Card className="flex-1 bg-bg border-br/40 shadow-xs group transition-smooth hover:border-teal-1/30 overflow-hidden relative">
               <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-100 transition-opacity">
@@ -77,7 +76,6 @@ export function RealEstateSEO({ property }: SEOInfoTabProps) {
 
           </div>
 
-          {/* Social Preview Section */}
           <div className="flex flex-col h-full gap-5">
             <Card className="flex-1 bg-wt border-br/60 shadow-xs group transition-smooth hover:border-blue-1/20 overflow-hidden min-h-[140px] relative">
               <div className="absolute top-0 right-0 p-3 z-10 opacity-10 group-hover:opacity-100 transition-opacity">

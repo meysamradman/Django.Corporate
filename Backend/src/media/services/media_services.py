@@ -55,7 +55,6 @@ class MediaAdminService:
                 media = model.objects.get(id=media_id)
                 print(f"✅ [MediaUpdate] Found {media_type} media with ID {media_id}")
             
-            # Handle cover image updates
             if (media_type == 'video' or media_type == 'audio' or media_type == 'pdf') and 'cover_image' in data:
                 cover_image_value = data['cover_image']
                 print(f"🖼️  [MediaUpdate] Processing cover_image update: {cover_image_value} (type: {type(cover_image_value).__name__})")
@@ -77,7 +76,6 @@ class MediaAdminService:
                 
                 data.pop('cover_image', None)
             
-            # Update other fields
             updated_fields = []
             print(f"\n📝 [MediaUpdate] Updating fields:")
             for key, value in data.items():

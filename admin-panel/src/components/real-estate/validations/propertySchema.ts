@@ -349,13 +349,11 @@ export const propertyFormSchema = z.object({
         .record(z.string(), z.number().nullable())
         .optional(),
 
-    // 🎯 Segmented Media IDs
     image_ids: z.array(z.number()).default([]),
     video_ids: z.array(z.number()).default([]),
     audio_ids: z.array(z.number()).default([]),
     document_ids: z.array(z.number()).default([]),
 
-    // 🎨 Segmented Media Covers
     image_covers: z.record(z.string(), z.number().nullable()).optional(),
     video_covers: z.record(z.string(), z.number().nullable()).optional(),
     audio_covers: z.record(z.string(), z.number().nullable()).optional(),

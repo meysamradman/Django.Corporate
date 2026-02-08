@@ -117,7 +117,6 @@ export function MediaDetailsModal({
 
       let updatedMediaData = { ...editedMedia };
 
-      // Handle cover image updates
       if (newCoverImage !== media.cover_image) {
         console.log('[MediaDetailsModal][Save] Cover image changed', {
           oldCover: media.cover_image,

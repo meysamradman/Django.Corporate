@@ -59,7 +59,6 @@ export function showError(
   return errorMessage;
 }
 
-
 export const showSuccess = (message: string, options?: ExternalToast) => {
   toast.success(message, { ...DEFAULT_OPTIONS, ...options });
 };
@@ -71,8 +70,6 @@ export const showInfo = (message: string, options?: ExternalToast) => {
 export const showWarning = (message: string, options?: ExternalToast) => {
   toast.warning(message, { ...DEFAULT_OPTIONS, ...options });
 };
-
-
 
 export function extractFieldErrors(error: unknown): Record<string, string> {
   const fieldErrors: Record<string, string> = {};

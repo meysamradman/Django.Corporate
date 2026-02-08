@@ -36,7 +36,6 @@ export function RealEstateAttributes({ property }: ExtraAttributesInfoTabProps) 
     location_type: { label: "موقعیت جغرافیایی", icon: MapPin, color: "text-emerald-1" },
     property_status: { label: "وضعیت ملک", icon: Key, color: "text-purple-1" },
     unit_number: { label: "شماره واحد", icon: Home, color: "text-pink-1" },
-    // Standard keys from extra_attributes
     property_condition: { label: "وضعیت ملک", icon: Building2, color: "text-indigo-1" },
     property_direction: { label: "جهت ملک", icon: Compass, color: "text-orange-1" },
     city_position: { label: "موقعیت در شهر", icon: MapPin, color: "text-emerald-1" },
@@ -57,7 +56,6 @@ export function RealEstateAttributes({ property }: ExtraAttributesInfoTabProps) 
     if (value === true) return "دارد";
     if (value === false) return "ندارد";
 
-    // Check for translation in fieldOptions
     if (fieldOptions && fieldOptions[key]) {
       const option = fieldOptions[key].find((opt: any) => opt[0] === value);
       if (option) return option[1];

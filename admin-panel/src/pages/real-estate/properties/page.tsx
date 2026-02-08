@@ -132,7 +132,6 @@ export default function PropertyPage() {
     return {};
   });
 
-  // URL State Synchronization
   useURLStateSync(
     setPagination,
     setSearchValue,
@@ -141,12 +140,10 @@ export default function PropertyPage() {
     (urlParams) => {
       const filters: PropertyFilters = {};
 
-      // Boolean filters
       filters.is_published = parseBooleanParam(urlParams, 'is_published');
       filters.is_featured = parseBooleanParam(urlParams, 'is_featured');
       filters.is_active = parseBooleanParam(urlParams, 'is_active');
 
-      // Numeric filters
       const propertyType = urlParams.get('property_type');
       if (propertyType) filters.property_type = parseInt(propertyType);
 
@@ -156,10 +153,8 @@ export default function PropertyPage() {
       const city = urlParams.get('city');
       if (city) filters.city = parseInt(city);
 
-      // String filters
       filters.status = parseStringParam(urlParams, 'status');
 
-      // Date filters
       Object.assign(filters, parseDateRange(urlParams));
 
       return filters;

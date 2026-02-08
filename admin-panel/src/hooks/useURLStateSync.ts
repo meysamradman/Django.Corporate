@@ -20,13 +20,11 @@ export function useURLStateSync<TFilters extends Record<string, unknown>>(
     const location = useLocation();
     const parseFiltersRef = useRef(parseFilters);
 
-    // Update ref on every render but don't trigger re-render
     parseFiltersRef.current = parseFilters;
 
     useEffect(() => {
         const urlParams = new URLSearchParams(location.search);
 
-        // Sync Pagination
         const page = parseInt(urlParams.get('page') || '1', 10);
         const size = parseInt(urlParams.get('size') || '10', 10);
         setPagination(prev => {
@@ -34,14 +32,11 @@ export function useURLStateSync<TFilters extends Record<string, unknown>>(
             return { pageIndex: Math.max(0, page - 1), pageSize: size };
         });
 
-        // Sync Search
         const search = urlParams.get('search') || '';
         setSearchValue(prev => prev === search ? prev : search);
 
-        // Sync Sorting
         setSorting(initSortingFromURL());
 
-        // Sync Filters using custom parser from ref
         const filters = parseFiltersRef.current(urlParams);
 
         setClientFilters(prev => {
@@ -50,7 +45,6 @@ export function useURLStateSync<TFilters extends Record<string, unknown>>(
             if (prevStr === nextStr) return prev;
             return filters;
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [location.search]);
 }
 

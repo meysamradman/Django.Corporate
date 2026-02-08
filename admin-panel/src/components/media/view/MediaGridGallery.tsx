@@ -64,7 +64,6 @@ export function MediaGridGallery({ items, title, className }: MediaGridGalleryPr
     if (!items || items.length === 0) {
         return (
             <div className={cn("relative w-full h-[400px] md:h-[500px] lg:h-[600px] rounded-2xl overflow-hidden border border-br/60 bg-linear-to-b from-bg/20 via-bg/40 to-bg/5 flex items-center justify-center", className)}>
-                {/* Decorative Elements */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-1/5 blur-[100px] rounded-full pointer-events-none" />
 
@@ -80,12 +79,10 @@ export function MediaGridGallery({ items, title, className }: MediaGridGalleryPr
         );
     }
 
-    // Define grid items (up to 5)
     const gridItems = items.slice(0, 5);
     const itemCount = gridItems.length;
     const remainingCount = items.length - 5;
 
-    // Adaptive Grid Class Logic
     const mainItemClass = itemCount === 1 ? "col-span-4" : "col-span-4 lg:col-span-2";
 
     let rightSideClass = "hidden lg:grid col-span-2 gap-3 h-full";
@@ -97,7 +94,6 @@ export function MediaGridGallery({ items, title, className }: MediaGridGalleryPr
         <>
             <div className={cn("relative w-full h-[400px] md:h-[500px] lg:h-[600px] grid grid-cols-4 gap-3 overflow-hidden rounded-2xl group/gallery", className)}>
 
-                {/* Main large item (left side) */}
                 <div className={cn("relative overflow-hidden bg-bg cursor-pointer h-full border border-br/50", mainItemClass)} onClick={() => openLightbox(0)}>
                     {gridItems[0].type === 'video' ? (
                         <div className="w-full h-full relative">
@@ -141,20 +137,12 @@ export function MediaGridGallery({ items, title, className }: MediaGridGalleryPr
                     </button>
                 </div>
 
-                {/* Right side grid (visible only on lg and up) */}
                 {itemCount > 1 && (
                     <div className={rightSideClass}>
                         {gridItems.slice(1, 5).map((item, index) => {
                             const actualIndex = index + 1;
                             const isLastVisible = actualIndex === 4 && remainingCount > 0;
 
-                            // For 4 total items (3 on side), make first one (top-left) span 2 cols to fill top row
-                            // Wait, if grid-cols-2, and 3 items:
-                            // We want Item 1 to span 2 cols? Or Item 3 to span 2 cols?
-                            // Standard: Top Left, Top Right, Bottom Left, Bottom Right.
-                            // 3 items: Item 1, Item 2, Item 3.
-                            // If Item 1 spans 2: Top row full. Item 2, 3 on bottom row.
-                            // This works well.
                             const isFour = itemCount === 4;
                             const spanClass = (isFour && index === 0) ? "col-span-2" : "";
 
@@ -198,7 +186,6 @@ export function MediaGridGallery({ items, title, className }: MediaGridGalleryPr
                     </div>
                 )}
 
-                {/* Show All Photos button */}
                 <button
                     onClick={() => openLightbox(0)}
                     className="absolute bottom-6 left-6 hidden lg:flex items-center gap-2.5 px-5 py-2.5 bg-wt/95 backdrop-blur-md text-font-p border border-br/60 rounded-xl shadow-xl hover:bg-wt hover:scale-105 transition-all duration-300 z-10 font-bold text-sm cursor-pointer active:scale-95"
@@ -207,7 +194,6 @@ export function MediaGridGallery({ items, title, className }: MediaGridGalleryPr
                     مشاهده تمام {items.length} رسانه
                 </button>
 
-                {/* Action icons */}
                 <div className="absolute top-6 left-6 flex gap-3 z-10 opacity-0 group-hover/gallery:opacity-100 transition-opacity duration-300">
                     <button
                         onClick={() => openLightbox(0)}
@@ -219,10 +205,8 @@ export function MediaGridGallery({ items, title, className }: MediaGridGalleryPr
                 </div>
             </div>
 
-            {/* Lightbox */}
             {isLightboxOpen && (
                 <div className="fixed inset-0 z-100 bg-static-b flex flex-col animate-in fade-in duration-300" dir="rtl">
-                    {/* Header */}
                     <div className="flex items-center justify-between p-6 bg-linear-to-b from-static-b/80 to-transparent z-10">
                         <div className="flex items-center gap-4 text-wt">
                             <div className="px-3 py-1 rounded-full bg-wt/10 backdrop-blur-md border border-wt/10 text-xs font-black">
@@ -239,7 +223,6 @@ export function MediaGridGallery({ items, title, className }: MediaGridGalleryPr
                         </button>
                     </div>
 
-                    {/* Main Content */}
                     <div className="flex-1 relative flex items-center justify-center overflow-hidden">
                         <div ref={lightboxRef} className="w-full h-full overflow-hidden">
                             <div className="flex h-full" dir="rtl">
@@ -279,7 +262,6 @@ export function MediaGridGallery({ items, title, className }: MediaGridGalleryPr
                             </div>
                         </div>
 
-                        {/* Navigation Buttons */}
                         {items.length > 1 && (
                             <>
                                 <button
@@ -298,7 +280,6 @@ export function MediaGridGallery({ items, title, className }: MediaGridGalleryPr
                         )}
                     </div>
 
-                    {/* Thumbnail Strip */}
                     {items.length > 1 && (
                         <div className="py-2 px-6 bg-static-b border-t border-wt/5">
                             <div className="max-w-4xl mx-auto flex gap-4 overflow-x-auto py-5 custom-scrollbar snap-x justify-center">

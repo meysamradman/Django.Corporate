@@ -182,13 +182,9 @@ class PropertyAdminService:
         
         logger.debug(f"📊 [PropertyService][Create] Data extracted: labels={len(labels_ids)}, tags={len(tags_ids)}, features={len(features_ids)}, files={len(media_files)}, ids={len(media_ids)}")
 
-        # Auto-assign agent ONLY if user ALREADY has an agent profile
-        # We do NOT want to force every admin to become an agent.
-        # If admin has no agent profile -> agent remains None -> Frontend shows "Admin"
         if not validated_data.get('agent') and created_by and created_by.is_authenticated:
             from src.real_estate.models.agent import PropertyAgent
             
-            # Try to find existing agent for this user
             agent = PropertyAgent.objects.filter(user=created_by).first()
             
             if agent:
@@ -202,13 +198,10 @@ class PropertyAdminService:
         else:
             logger.debug(f"⏭️  [PropertyService][Create] No agent assignment (no authenticated user)")
         
-        # Agency is handled separately and never auto-assigned
         if validated_data.get('agency'):
             logger.info(f"🏢 [PropertyService][Create] Agency explicitly provided: {validated_data.get('agency').id if hasattr(validated_data.get('agency'), 'id') else validated_data.get('agency')}")
 
-        # Slug logic (unchanged but logged)
         if not validated_data.get('slug') and validated_data.get('title'):
-            # ...
             pass # (Simplified for replacement, keep original logic in mind)
 
         with transaction.atomic():

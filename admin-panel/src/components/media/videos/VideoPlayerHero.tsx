@@ -77,7 +77,6 @@ export function VideoPlayerHero({
     return (
         <>
             <div className={cn("flex flex-col h-full bg-wt/50 hover:bg-wt border border-br/40 hover:border-blue-1/30 rounded-2xl overflow-hidden transition-smooth group/v-item w-full", className)}>
-                {/* Hero Thumbnail - Flexible Height */}
                 <div className={cn("relative flex-1 bg-bg overflow-hidden grayscale-[0.2] hover:grayscale-0 transition-all duration-700 min-h-[160px]", heroAspectRatio)}>
                     {poster ? (
                         <img src={poster} alt={title} className="w-full h-full object-cover opacity-90 group-hover/v-item:opacity-100 transition-all duration-700 group-hover/v-item:scale-105" />
@@ -105,7 +104,6 @@ export function VideoPlayerHero({
                     </div>
                 </div>
 
-                {/* Compact Hero Footer */}
                 <div className="p-4 flex items-center justify-between gap-4 bg-linear-to-b from-transparent to-bg/30">
                     <div className="flex-1 min-w-0">
                         <h3 className="text-sm font-black text-font-p truncate mb-0.5">{title}</h3>

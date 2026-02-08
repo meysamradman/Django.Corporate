@@ -19,7 +19,6 @@ export function DocumentItem({
     downloadUrl,
     className,
 }: DocumentItemProps) {
-    // PDF-only icon
     const fileIcon = <FileText className="size-5 text-red-1" />;
 
     const formatSize = (bytes?: number) => {

@@ -11,7 +11,6 @@ from src.real_estate.utils.cache import PropertyCacheManager
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia, detect_media_type_from_extension
 from src.media.services.media_services import MediaAdminService
 
-
 class PropertyAdminMediaService:
     @staticmethod
     def get_main_image_for_model(property_obj):
@@ -237,7 +236,6 @@ class PropertyAdminMediaService:
                     created_count += len(property_media_objects)
         
         if any([media_ids, image_ids, video_ids, audio_ids, document_ids]):
-            # 📋 Standardize ID lists
             media_ids_list = list(set(media_ids)) if media_ids else []
             image_ids_list = list(set(image_ids)) if image_ids else []
             video_ids_list = list(set(video_ids)) if video_ids else []
@@ -246,21 +244,17 @@ class PropertyAdminMediaService:
             
             all_target_ids = list(set(media_ids_list + image_ids_list + video_ids_list + audio_ids_list + document_ids_list))
             
-            # Fetch all media objects
             im_objs, vi_objs, au_objs, do_objs = PropertyAdminMediaService.get_media_by_ids(all_target_ids)
             
-            # Create lookup dictionaries
             image_dict = {m.id: m for m in im_objs}
             video_dict = {m.id: m for m in vi_objs}
             audio_dict = {m.id: m for m in au_objs}
             document_dict = {m.id: m for m in do_objs}
             
-            # Get existing property media to avoid duplicates
             ex_im, ex_vi, ex_au, ex_do = PropertyAdminMediaService.get_existing_property_media(property_id, all_target_ids)
             
             media_to_create = [] # List of (type, media_obj)
             
-            # 1️⃣ Process Typed IDs (High Priority - guaranteed type safety)
             TYPED_ID_MAP = [
                 ('image', image_ids_list, image_dict, ex_im),
                 ('video', video_ids_list, video_dict, ex_vi),
@@ -274,7 +268,6 @@ class PropertyAdminMediaService:
                         media_to_create.append((label, lookup_dict[mid]))
                         existing_set.add(mid) # Prevent double add if also in media_ids
 
-            # 2️⃣ Process Generic media_ids (Fallback - auto-detect type)
             all_ex = ex_im | ex_vi | ex_au | ex_do
             for mid in media_ids_list:
                 if mid in all_ex: continue
@@ -389,10 +382,7 @@ class PropertyAdminMediaService:
                    image_ids=None, video_ids=None, audio_ids=None, document_ids=None,
                    main_image_id=None, media_covers=None,
                    image_covers=None, video_covers=None, audio_covers=None, document_covers=None):
-        """
-        Synchronizes property media using segmented IDs if provided, 
-        or falls back to traditional media_ids with type detection.
-        """
+
         logger.info(f"🔄 [PropertyMedia][Sync] Starting - Property: {property_id}")
         
         with transaction.atomic():
@@ -402,11 +392,9 @@ class PropertyAdminMediaService:
                 logger.error(f"❌ [PropertyMedia][Sync] Error: Property {property_id} not found")
                 raise Property.DoesNotExist("Property not found")
             
-            # Use segmented IDs if provided, otherwise legacy media_ids
             has_segmented = any(x is not None for x in [image_ids, video_ids, audio_ids, document_ids])
             
             if not has_segmented:
-                # 📜 Legacy Mode: Use media_ids with auto-detection
                 media_ids_list = list(set(media_ids)) if media_ids else []
                 logger.info(f"🔄 [PropertyMedia][Sync] Legacy Mode - IDs: {media_ids_list}")
                 
@@ -433,10 +421,8 @@ class PropertyAdminMediaService:
                     PropertyAdminMediaService.add_media_bulk(property_id, media_ids=media_to_add_ids)
             
             else:
-                # 🎯 Segmented Mode: Guaranteed type safety, no collisions
                 logger.info("🔄 [PropertyMedia][Sync] Segmented Mode Active")
                 
-                # Model mapping for elegant looping
                 TYPE_CONFIG = [
                     ('image', PropertyImage, image_ids, 'image_id'),
                     ('video', PropertyVideo, video_ids, 'video_id'),
@@ -458,12 +444,10 @@ class PropertyAdminMediaService:
                             logger.info(f"➕ [PropertyMedia][Sync] Adding {len(to_add)} {label}s: {to_add}")
                             PropertyAdminMediaService.add_media_bulk(property_id, **{f"{label}_ids": list(to_add)})
 
-            # 🖼️ Handle Main Image
             if main_image_id:
                 logger.info(f"🖼️ [PropertyMedia][Sync] Setting main image: {main_image_id}")
                 PropertyAdminMediaService.set_main_image(property_id, main_image_id)
 
-            # 🎨 Handle Media Covers
             if any([media_covers, image_covers, video_covers, audio_covers, document_covers]):
                 PropertyAdminMediaService._update_property_media_covers(
                     property_id, 
@@ -482,10 +466,7 @@ class PropertyAdminMediaService:
     @staticmethod
     def _update_property_media_covers(property_id, media_covers=None,
                                        image_covers=None, video_covers=None, audio_covers=None, document_covers=None):
-        """
-        Optimized cover image updates using segmented dictionaries to avoid ID collisions.
-        """
-        # 1️⃣ Process Segmented Covers (High Precision)
+
         CONFIG = [
             (PropertyImage, 'image_id', image_covers),
             (PropertyVideo, 'video_id', video_covers),
@@ -501,7 +482,6 @@ class PropertyAdminMediaService:
                     model, property_id, media_ids, covers, id_field
                 )
 
-        # 2️⃣ Process Legacy media_covers (Fallback - prone to collisions if IDs clash across types)
         if media_covers:
             logger.info(f"🎨 [PropertyMedia][Sync] Processing legacy media covers (potential collisions)")
             LEGACY_MAP = [
@@ -511,7 +491,6 @@ class PropertyAdminMediaService:
             ]
 
             for model, id_field in LEGACY_MAP:
-                # Find which IDs in media_covers actually belong to this model in this property
                 current_ids = set(model.objects.filter(property_id=property_id).values_list(id_field, flat=True))
                 valid_ids = [int(mid) for mid in media_covers.keys() if int(mid) in current_ids]
                 
@@ -522,7 +501,7 @@ class PropertyAdminMediaService:
 
     @staticmethod
     def _bulk_update_covers(model_class, property_id, media_ids, media_covers, id_field):
-        """Helper for optimized cover updates."""
+
         items = list(model_class.objects.filter(property_id=property_id, **{f"{id_field}__in": media_ids}))
         
         to_update = []
@@ -530,8 +509,6 @@ class PropertyAdminMediaService:
             mid = getattr(item, id_field)
             cover_id = media_covers.get(str(mid)) or media_covers.get(mid)
             
-            # Use filter instead of get to keep it efficient if needed, 
-            # but since we already have the items, let's just update and bulk_update
             item.cover_image_id = cover_id
             to_update.append(item)
             
@@ -581,8 +558,7 @@ class PropertyAdminMediaService:
 
             PropertyCacheManager.invalidate_property(property_id)
             return True
-    
-    
+
     @staticmethod
     def _update_media_cover(model_class, media_type, property_id, media_id, cover_image_id, **filter_kwargs):
         try:

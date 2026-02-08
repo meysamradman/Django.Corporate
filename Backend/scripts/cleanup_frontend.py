@@ -1,4 +1,4 @@
-# Usage: python python scripts/cleanup_frontend.py ../admin-panel/src
+# Usage: python scripts/cleanup_frontend.py ../admin-panel/src
 
 import os
 import sys

@@ -118,7 +118,6 @@ export function PaginationControls({
 
   return (
     <div className={cn("flex w-full items-center justify-between gap-4 px-0", className)} dir="rtl">
-      {/* Page Size (Right side in RTL) */}
       {showPageSize && onPageSizeChange && pageSize && (
         <div className="flex items-center gap-2">
           <p className="text-sm text-font-s whitespace-nowrap hidden sm:block">تعداد در صفحه</p>
@@ -140,7 +139,6 @@ export function PaginationControls({
         </div>
       )}
 
-      {/* Info & Pagination (Left side in RTL) */}
       <div className="flex items-center gap-4 sm:gap-6">
         {showInfo && (
           <div className="text-sm text-font-s whitespace-nowrap">

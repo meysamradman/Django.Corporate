@@ -5,8 +5,6 @@ import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
 import type { PropertyFormValues } from "../validations/propertySchema";
 
-
-
 interface UseRealEstateTaxonomyProps {
     form: UseFormReturn<PropertyFormValues>;
 }

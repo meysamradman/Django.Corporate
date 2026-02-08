@@ -67,7 +67,6 @@ class PortfolioMediaAdminSerializer(serializers.Serializer):
         elif hasattr(instance, 'document') and instance.document:
             return 'pdf'
         
-        # Fallback to isinstance just in case
         if isinstance(instance, PortfolioImage):
             return 'image'
         elif isinstance(instance, PortfolioVideo):

@@ -89,8 +89,6 @@ export function MediaGallery({
       return true;
     });
 
-
-
     if (uniqueNewItems.length < filteredByType.length) {
       showError("برخی از فایل‌های انتخابی تکراری بودند و نادیده گرفته شدند");
     }
@@ -103,7 +101,6 @@ export function MediaGallery({
     const moduleMax = MODULE_MEDIA_CONFIGS[context]?.maxUploadLimit || 999;
     const globalTotal = totalItemsCount !== undefined ? totalItemsCount : mediaItems.length;
 
-    // 1. Check Module-wide limit
     if (globalTotal + uniqueNewItems.length > moduleMax) {
       showError(`حداکثر تعداد کل فایل‌های مجاز برای این بخش ${moduleMax} عدد می‌باشد`);
       const remainingGlobalSlots = moduleMax - globalTotal;
@@ -111,13 +108,10 @@ export function MediaGallery({
         setShowMainLibrary(false);
         return;
       }
-      // Continue with only allowed number of items
       uniqueNewItems.splice(remainingGlobalSlots);
     }
 
-    // 2. Check Gallery-level limit (if maxSelection is provided)
     if (maxSelection === 1 && uniqueNewItems.length > 0) {
-      // For single selection galleries, GIFT of replacement
       onMediaSelect([uniqueNewItems[0]]);
     } else if (maxSelection && mediaItems.length + uniqueNewItems.length > maxSelection) {
       showError(`در این بخش حداکثر ${maxSelection} فایل می‌توان انتخاب کرد`);
@@ -364,7 +358,6 @@ export function MediaGallery({
                   </div>
                 );
               }
-
 
               const assetUI = (
                 <div key={`${mediaType}-item-${index}-${media.id}`} className="group relative flex items-center gap-3 p-3 border border-br rounded-xl bg-wt hover:border-primary/30 transition-all duration-200">

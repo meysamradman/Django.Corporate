@@ -125,7 +125,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
         contentClassName=""
       >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-0 text-font-p">
-          {/* Column 1: Core Identity & Status */}
           <div className="flex flex-col">
             <Item size="sm" className="rounded-none border-x-0 border-t-0 border-b border-br/40 last:border-0 hover:bg-bg/40 transition-colors">
               <ItemMedia className="text-orange-1/60">
@@ -204,7 +203,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
             </Item>
           </div>
 
-          {/* Column 2: Financials & Rooms */}
           <div className="flex flex-col">
             <Item size="sm" className="rounded-none border-x-0 border-t-0 border-b border-br/40 last:border-0 hover:bg-bg/40 transition-colors">
               <ItemMedia className="text-emerald-1/60">
@@ -291,7 +289,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
             </Item>
           </div>
 
-          {/* Column 3: Logistics & Statistics */}
           <div className="flex flex-col">
             <Item size="sm" className="rounded-none border-x-0 border-t-0 border-b border-br/40 last:border-0 hover:bg-bg/40 transition-colors">
               <ItemMedia className="text-gray-1/60">
@@ -577,7 +574,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
                   </AccordionTrigger>
                   <AccordionContent className="pb-8">
                     <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 pt-6 border-t border-br/40">
-                      {/* Right (In RTL, this is the Start/Right side): Stats Grid */}
                       <div className="flex flex-col gap-6 order-2 lg:order-1">
                         <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                           <div className="p-4 rounded-2xl bg-wt/50 border border-br/40 flex flex-col items-center justify-center gap-1.5 text-center group hover:border-indigo-1/30 transition-all shadow-xs hover:shadow-md">
@@ -651,7 +647,6 @@ export function RealEstateOverview({ property }: OverviewTabProps) {
                         )}
                       </div>
 
-                      {/* Left (In RTL, this is the End/Left side): Image */}
                       <div className="order-1 lg:order-2">
                         {(images.length > 0 ||
                           isLoading ||

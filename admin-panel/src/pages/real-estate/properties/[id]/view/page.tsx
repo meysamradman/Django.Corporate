@@ -11,8 +11,6 @@ import {
   PlayCircle
 } from "lucide-react";
 
-
-
 import { Skeleton } from "@/components/elements/Skeleton";
 import { Button } from "@/components/elements/Button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/elements/Tooltip";
@@ -41,11 +39,8 @@ export default function PropertyViewPage() {
     enabled: !!propertyId,
   });
 
-
-
   const { openPrintWindow } = usePropertyPrintView();
   const { exportSinglePropertyPdf, isLoading: isExportingPdf } = usePropertyPdfExport();
-
 
   useEffect(() => {
     const handleScroll = () => {
@@ -129,7 +124,6 @@ export default function PropertyViewPage() {
           <div id="section-features" className="scroll-mt-32">
             <RealEstateFeatures property={propertyData} />
           </div >
-
 
           <div id="section-attributes" className="scroll-mt-32">
             <RealEstateAttributes property={propertyData} />

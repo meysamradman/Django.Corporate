@@ -34,7 +34,6 @@ export function RealEstateGridGallery({ property, className }: RealEstateGridGal
 
     const mediaItems: MediaItem[] = [];
 
-    // Add main image first
     if (property.main_image?.file_url || property.main_image?.url) {
         const mainImageUrl = mediaService.getMediaUrlFromObject(property.main_image as any);
         if (mainImageUrl) {
@@ -49,7 +48,6 @@ export function RealEstateGridGallery({ property, className }: RealEstateGridGal
         }
     }
 
-    // Add other images
     galleryItems.forEach(item => {
         if (!item.isMainMedia && !mediaItems.find(mi => mi.url === item.url)) {
             mediaItems.push(item);

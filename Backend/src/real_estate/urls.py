@@ -18,9 +18,6 @@ router.register(r'admin/real-estate-provinces', location_views.RealEstateProvinc
 router.register(r'admin/real-estate-cities', location_views.RealEstateCityViewSet, basename='admin-real-estate-cities')
 router.register(r'admin/real-estate-city-regions', location_views.RealEstateCityRegionViewSet, basename='admin-real-estate-city-regions')
 
-# Public URLs
-
-
 urlpatterns = [
     path('', include(router.urls)),
 ]

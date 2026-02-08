@@ -30,7 +30,6 @@ export function PortfolioInfo({ portfolio }: PortfolioBasicInfoProps) {
     return (
         <div className="flex flex-col gap-6">
             <Card className="overflow-hidden gap-0 ring-1 ring-static-b/5 border-br/50 shadow-lg">
-                {/* Status Section */}
                 <CardContent className="p-6 border-b bg-wt/50">
                     <div className="grid grid-cols-2 gap-3">
                         <div className={`flex flex-col items-center justify-center p-3 rounded-2xl transition-all group ${portfolio.is_public ? "bg-blue" : "bg-gray"}`}>
@@ -75,7 +74,6 @@ export function PortfolioInfo({ portfolio }: PortfolioBasicInfoProps) {
                     </div>
                 </CardContent>
 
-                {/* Content Section */}
                 <CardContent className="p-0">
                     <div className="p-6 bg-linear-to-bl from-bg/20 to-wt flex flex-col items-center text-center gap-2 border-b border-br/30">
                         <h3 className="text-font-p font-black text-lg leading-tight">

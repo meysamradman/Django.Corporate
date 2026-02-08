@@ -9,7 +9,6 @@ import {
 } from "@/components/media/utils/genericMediaUtils";
 import type { PropertyFormValues } from "../validations/propertySchema";
 
-
 interface UseRealEstateMediaProps {
     form: UseFormReturn<PropertyFormValues>;
     initialMedia?: PropertyMedia;
@@ -26,7 +25,6 @@ export function useRealEstateMedia({ form, initialMedia }: UseRealEstateMediaPro
 
     const updateMediaFormState = useCallback((newMedia: PropertyMedia) => {
         const allMediaIds = collectMediaIds(newMedia);
-        // Avoid losing og_image if it's set manually
         const currentOgImageId = form.getValues("og_image_id");
         if (currentOgImageId && !allMediaIds.includes(currentOgImageId)) {
             allMediaIds.push(currentOgImageId);
@@ -38,7 +36,6 @@ export function useRealEstateMedia({ form, initialMedia }: UseRealEstateMediaPro
         form.setValue("media_ids", allMediaIds, { shouldValidate: false, shouldDirty: true });
         form.setValue("media_covers", mediaCovers, { shouldValidate: false, shouldDirty: true });
 
-        // Set segmented fields
         form.setValue("image_ids", segmented.image_ids, { shouldValidate: false, shouldDirty: true });
         form.setValue("video_ids", segmented.video_ids, { shouldValidate: false, shouldDirty: true });
         form.setValue("audio_ids", segmented.audio_ids, { shouldValidate: false, shouldDirty: true });

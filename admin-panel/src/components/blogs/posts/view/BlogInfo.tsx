@@ -28,7 +28,6 @@ export function BlogInfo({ blog }: BlogBasicInfoProps) {
 
     return (
         <Card className="overflow-hidden gap-0">
-            {/* Status Section */}
             <CardContent className="p-6 border-b bg-wt/50">
                 <div className="grid grid-cols-2 gap-3">
                     <div className={`flex flex-col items-center justify-center py-4 px-3 rounded-lg transition-colors ${blog.is_public ? "bg-blue" : "bg-gray"}`}>
@@ -73,7 +72,6 @@ export function BlogInfo({ blog }: BlogBasicInfoProps) {
                 </div>
             </CardContent>
 
-            {/* Main Content Section - Title and ID */}
             <CardContent className="p-6 border-b">
                 <div className="bg-bg rounded-xl overflow-hidden border border-br/30">
                     <div className="p-5">
@@ -88,7 +86,6 @@ export function BlogInfo({ blog }: BlogBasicInfoProps) {
                 </div>
             </CardContent>
 
-            {/* Main Content Section - Slug and Created At */}
             <CardContent className="p-6 border-b">
                 <div className="space-y-0 [&>div:not(:last-child)]:border-b [&>div:not(:last-child)]:border-br">
                     <div className="flex items-center justify-between gap-3 py-3">

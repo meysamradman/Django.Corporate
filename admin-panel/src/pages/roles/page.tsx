@@ -75,8 +75,6 @@ export default function RolesPage() {
     return {};
   });
 
-
-  // URL State Synchronization
   useURLStateSync(
     setPagination,
     setSearchValue,
@@ -90,11 +88,9 @@ export default function RolesPage() {
         date_to?: string;
       } = {};
 
-      // Boolean filters
       filters.is_active = parseBooleanParam(urlParams, 'is_active');
       filters.is_system_role = parseBooleanParam(urlParams, 'is_system_role');
 
-      // Date filters
       Object.assign(filters, parseDateRange(urlParams));
 
       return filters;

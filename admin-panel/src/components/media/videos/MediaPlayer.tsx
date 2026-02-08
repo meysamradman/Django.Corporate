@@ -186,13 +186,10 @@ export function MediaPlayer({
         "absolute inset-0 z-30 transition-all duration-700 pointer-events-none",
         isControlsVisible ? "opacity-100" : "opacity-0"
       )}>
-        {/* Top Gradient */}
         <div className="absolute top-0 left-0 right-0 h-40 bg-linear-to-b from-black/80 via-black/20 to-transparent pointer-events-none" />
 
-        {/* Bottom Gradient */}
         <div className="absolute bottom-0 left-0 right-0 h-48 bg-linear-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />
 
-        {/* Center Play Icon Toggle Overlay */}
         {!isPlaying && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="size-24 rounded-full bg-wt/10 backdrop-blur-xl border border-wt/10 flex items-center justify-center text-wt scale-110 animate-in zoom-in-50 duration-500 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
@@ -201,15 +198,12 @@ export function MediaPlayer({
           </div>
         )}
 
-        {/* Professional Bottom Control Bar */}
         <div className="absolute bottom-0 left-0 right-0 p-8 pt-0 space-y-5 pointer-events-auto">
-          {/* Pro Progress Bar */}
           <div className="group/progress relative h-1.5 w-full bg-wt/20 rounded-full cursor-pointer transition-all hover:h-2.5">
             <div
               className="absolute left-0 top-0 bottom-0 bg-wt transition-all duration-100 ease-out z-10"
               style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
             />
-            {/* Knob */}
             <div
               className="absolute top-1/2 -translate-y-1/2 size-4 bg-wt border-4 border-black/20 rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity z-20 shadow-xl"
               style={{ left: `calc(${(currentTime / (duration || 1)) * 100}% - 8px)` }}

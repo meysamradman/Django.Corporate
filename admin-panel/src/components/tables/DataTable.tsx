@@ -361,7 +361,6 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
           <div className="flex flex-col flex-wrap gap-2 md:flex-row md:items-center md:gap-2">
             {customHeaderActions}
 
-            {/* Standard Filters (Inline) */}
             {(filterVariant === 'inline' ? filterConfig : filterConfig.filter(f => !f.isAdvanced)).length > 0 && (
               <DataTableFilters
                 filterConfig={filterVariant === 'inline' ? filterConfig : filterConfig.filter(f => !f.isAdvanced)}
@@ -372,7 +371,6 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
               />
             )}
 
-            {/* Advanced Filters (Sidebar) */}
             {filterVariant === 'sidebar' && filterConfig.filter(f => f.isAdvanced).length > 0 && (
               <Drawer direction="left">
                 <DrawerTrigger asChild>

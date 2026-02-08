@@ -60,7 +60,6 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
     const handleInputChange = isFormApproach ? null : (props as any).handleInputChange;
     const editMode = props.editMode;
 
-    // Selection props
     const {
         selectedLabels, selectedTags, selectedFeatures,
         onLabelToggle, onLabelRemove,
@@ -79,9 +78,7 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
     return (
         <div className="space-y-6">
             <div className="flex flex-col lg:flex-row gap-6">
-                {/* Main Column */}
                 <div className="flex-1 min-w-0 flex flex-col gap-6">
-                    {/* Content Section */}
                     <CardWithIcon
                         icon={FileText}
                         title="محتوا و توضیحات"
@@ -94,7 +91,6 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
                         <PropertyDescription {...commonProps} />
                     </CardWithIcon>
 
-                    {/* Classification Section */}
                     <CardWithIcon
                         icon={Settings}
                         title="طبقه‌بندی و وضعیت"
@@ -108,7 +104,6 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
                     </CardWithIcon>
                 </div>
 
-                {/* Sidebar Column */}
                 <div className="w-full lg:w-[420px] lg:shrink-0">
                     <CardWithIcon
                         icon={Settings}

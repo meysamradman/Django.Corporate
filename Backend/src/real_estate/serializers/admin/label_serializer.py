@@ -34,7 +34,6 @@ class PropertyLabelAdminCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(LABEL_ERRORS.get("label_not_found", "This label already exists"))
         return value
 
-    
     def validate(self, data):
         if not data.get('slug') and data.get('title'):
             from django.utils.text import slugify

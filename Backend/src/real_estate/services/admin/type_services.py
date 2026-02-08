@@ -169,9 +169,7 @@ class PropertyTypeAdminService:
         
         if not property_type:
             raise PropertyType.DoesNotExist(TYPE_ERRORS["type_not_found"])
-        
-        # property_count check removed to allow deletion
-        
+
         children_count = property_type.get_children_count()
         if children_count > 0:
             raise ValidationError(TYPE_ERRORS["type_has_children"].format(count=children_count))

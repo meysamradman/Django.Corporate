@@ -75,7 +75,6 @@ export function VideoPlayerFeatured({
     return (
         <>
             <div className={cn("flex flex-col sm:flex-row h-full bg-wt/50 hover:bg-wt transition-smooth group/v-item w-full", className)}>
-                {/* Featured Thumbnail - Full Height Landscape Side */}
                 <div className="relative w-full sm:w-1/2 h-full min-h-[200px] bg-bg overflow-hidden grayscale-[0.2] hover:grayscale-0 transition-all duration-700 order-2 sm:order-1 rounded-none">
                     {poster ? (
                         <img src={poster} alt={title} className="w-full h-full object-cover opacity-90 group-hover/v-item:opacity-100 transition-all duration-700 group-hover/v-item:scale-105" />
@@ -97,7 +96,6 @@ export function VideoPlayerFeatured({
                     </button>
                 </div>
 
-                {/* Featured Content Area - Full Height */}
                 <div className="w-full sm:w-1/2 flex flex-col justify-between p-6 sm:p-8 order-1 sm:order-2 h-full">
                     <div className="space-y-4">
                         <div className="flex items-center gap-2">

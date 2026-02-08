@@ -35,7 +35,6 @@ export function PortfolioOverview({ portfolio }: OverviewTabProps) {
 
   return (
     <div className="flex flex-col gap-6" id="section-overview">
-      {/* Project Specs - Like Real Estate Details */}
       <CardWithIcon
         icon={Info}
         title="جزئیات و مشخصات پروژه"
@@ -124,7 +123,6 @@ export function PortfolioOverview({ portfolio }: OverviewTabProps) {
       </CardWithIcon>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Stats & Status */}
         <CardWithIcon
           icon={Activity}
           title="آمار و وضعیت بازخورد"
@@ -166,7 +164,6 @@ export function PortfolioOverview({ portfolio }: OverviewTabProps) {
           </div>
         </CardWithIcon>
 
-        {/* Media Summary */}
         <CardWithIcon
           icon={ImageIcon}
           title="خلاصه رسانه‌ها"
@@ -210,7 +207,6 @@ export function PortfolioOverview({ portfolio }: OverviewTabProps) {
         </CardWithIcon>
       </div>
 
-      {/* Descriptions */}
       <CardWithIcon
         icon={FileText}
         title="توضیحات و شرح پروژه"

@@ -73,9 +73,7 @@ class PropertyStateAdminService:
         
         if not state_obj:
             raise PropertyState.DoesNotExist(STATE_ERRORS["state_not_found"])
-        
-        # property_count check removed to allow deletion (will set state to NULL)
-        
+
         with transaction.atomic():
             state_obj.delete()
     

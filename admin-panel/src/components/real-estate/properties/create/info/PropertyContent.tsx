@@ -4,7 +4,6 @@ import type { UseFormReturn } from "react-hook-form";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { FileText } from "lucide-react";
 import { FormFieldInput, FormFieldTextarea, FormField } from "@/components/shared/FormField";
-// import { TipTapEditor } from "@/components/shared/TipTapEditor";
 import { formatSlug, generateSlug } from '@/core/slug/generate';
 import type { PropertyFormValues } from "@/components/real-estate/validations/propertySchema";
 

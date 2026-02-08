@@ -107,8 +107,6 @@ export function collectSegmentedMediaIds(moduleMedia: GenericModuleMedia) {
     };
 }
 
-
-
 /**
  * Collects media covers segmented by type to avoid ID collisions.
  */

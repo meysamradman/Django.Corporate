@@ -20,9 +20,7 @@ export function PropertySidebar({ property }: PropertySidebarProps) {
 
     return (
         <div className="w-full h-full">
-            {/* Main Sidebar Card - Use h-full and flex-col to fill space */}
             <Card className="h-full overflow-hidden border-br shadow-2xl bg-card p-0 relative flex flex-col ring-1 ring-br/20">
-                {/* Map Section - Fixed height to avoid blocking, no hover zoom */}
                 <div className="h-[380px] w-full relative bg-bg/50 z-0 overflow-hidden shrink-0 border-b border-br/40">
                     <LocationMap
                         latitude={property.latitude ? Number(property.latitude) : null}
@@ -33,7 +31,6 @@ export function PropertySidebar({ property }: PropertySidebarProps) {
                         minimal={true}
                     />
 
-                    {/* Subtle Overlay */}
                     <div className="absolute inset-0 bg-linear-to-t from-static-b/20 via-transparent to-transparent pointer-events-none z-10" />
 
                     {!hasLocation && (
@@ -49,14 +46,11 @@ export function PropertySidebar({ property }: PropertySidebarProps) {
                     )}
                 </div>
 
-                {/* Info Section - flex-1 to fill the remaining area beautifully */}
                 <div className="flex-1 flex flex-col relative overflow-hidden">
-                    {/* Background Pattern/Gradient to avoid "flat white" look */}
                     <div className="absolute inset-0 bg-linear-to-br from-bg/40 via-wt/20 to-card/40 opacity-50" />
                     <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-blue-1/10 to-transparent" />
 
                     <div className="relative z-10 p-8 flex flex-col items-center justify-center h-full text-center">
-                        {/* MapPin Icon Treatment */}
                         <div className="mb-6">
                             <div className="bg-blue-1 text-wt p-4 rounded-2xl shadow-xl shadow-blue-1/20 ring-4 ring-card flex items-center justify-center">
                                 <MapPin className="w-6 h-6 fill-current" />

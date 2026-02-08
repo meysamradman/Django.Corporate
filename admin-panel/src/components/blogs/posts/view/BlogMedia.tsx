@@ -60,7 +60,6 @@ export function BlogMedia({ blog }: MediaInfoTabProps) {
         </CardWithIcon>
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-stretch">
-          {/* VIDEO Section */}
           {videos.length > 0 && (
             <div className="flex flex-col">
               <CardWithIcon
@@ -94,7 +93,6 @@ export function BlogMedia({ blog }: MediaInfoTabProps) {
             </div>
           )}
 
-          {/* DOCUMENTS & AUDIO Section */}
           {(documents.length > 0 || audios.length > 0) && (
             <div className="flex flex-col">
               <CardWithIcon
@@ -120,7 +118,6 @@ export function BlogMedia({ blog }: MediaInfoTabProps) {
                   </div>
                 }
               >
-                {/* AUDIO ASSETS */}
                 {audios.length > 0 && (
                   <div className="flex flex-col gap-4">
                     <label className="text-[10px] font-black text-font-s tracking-widest uppercase opacity-40 mb-1">فایل‌های صوتی</label>
@@ -139,7 +136,6 @@ export function BlogMedia({ blog }: MediaInfoTabProps) {
                   </div>
                 )}
 
-                {/* DOCUMENTS Section */}
                 {documents.length > 0 && (
                   <div className="flex flex-col gap-3 flex-1">
                     <label className="text-[10px] font-bold text-font-s tracking-widest uppercase opacity-70 mb-1">ضمائم و اسناد</label>

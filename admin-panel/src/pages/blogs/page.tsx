@@ -110,8 +110,6 @@ export default function BlogPage() {
     return {};
   });
 
-
-  // URL State Synchronization
   useURLStateSync(
     setPagination,
     setSearchValue,
@@ -120,16 +118,13 @@ export default function BlogPage() {
     (urlParams) => {
       const filters: BlogFilters = {};
 
-      // Boolean filters
       filters.is_featured = parseBooleanParam(urlParams, 'is_featured');
       filters.is_public = parseBooleanParam(urlParams, 'is_public');
       filters.is_active = parseBooleanParam(urlParams, 'is_active');
 
-      // String filters
       filters.status = parseStringParam(urlParams, 'status');
       filters.category = parseStringParam(urlParams, 'category');
 
-      // Date filters
       Object.assign(filters, parseDateRange(urlParams));
 
       return filters;
