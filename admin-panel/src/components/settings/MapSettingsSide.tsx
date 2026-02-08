@@ -1,16 +1,15 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { settingsApi } from "@/api/settings/settings";
 import { TaxonomyDrawer } from "@/components/templates/TaxonomyDrawer";
-import { FormFieldInput } from "@/components/shared/FormField";
+import { FormFieldInput, FormFieldSelect } from "@/components/shared/FormField";
 import { mapSettingsSchema, type MapSettingsFormValues } from "./validations/settingsSchemas";
 import { showSuccess, showError } from "@/core/toast";
 import { msg } from "@/core/messages";
 import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
 import { DRAWER_IDS } from "@/components/shared/drawer/types";
-import { Label } from "@/components/elements/Label";
 
 export const MapSettingsSide = () => {
     const isOpen = useGlobalDrawerStore(state => state.activeDrawer === DRAWER_IDS.SETTINGS_MAP_FORM);
@@ -22,14 +21,15 @@ export const MapSettingsSide = () => {
         handleSubmit,
         reset,
         watch,
+        control,
         formState: { errors, isSubmitting },
     } = useForm<MapSettingsFormValues>({
         resolver: zodResolver(mapSettingsSchema) as any,
         defaultValues: {
             provider: 'leaflet',
-            google_maps_api_key: "",
-            neshan_api_key: "",
-            cedarmaps_api_key: "",
+            configs: {
+                google_maps: { api_key: "", map_id: "" },
+            }
         },
     });
 
@@ -45,9 +45,12 @@ export const MapSettingsSide = () => {
         if (settingsData) {
             reset({
                 provider: settingsData.provider,
-                google_maps_api_key: settingsData.google_maps_api_key || "",
-                neshan_api_key: settingsData.neshan_api_key || "",
-                cedarmaps_api_key: settingsData.cedarmaps_api_key || "",
+                configs: {
+                    google_maps: {
+                        api_key: settingsData.configs?.google_maps?.api_key || "",
+                        map_id: settingsData.configs?.google_maps?.map_id || "",
+                    },
+                }
             });
         }
     }, [settingsData, reset, isOpen]);
@@ -80,50 +83,43 @@ export const MapSettingsSide = () => {
             submitButtonText="بروزرسانی"
         >
             <div className="space-y-6">
-                <div className="space-y-2">
-                    <Label>سرویس‌دهنده نقشه</Label>
-                    <select
-                        {...register("provider")}
-                        className="w-full h-12 px-4 rounded-xl border border-br bg-bg focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                    >
-                        <option value="leaflet">Leaflet / OpenStreetMap (رایگان)</option>
-                        <option value="google_maps">Google Maps</option>
-                        <option value="neshan">نشان (نقشه ایرانی)</option>
-                        <option value="cedarmaps">سیدار (نقشه ایرانی)</option>
-                    </select>
-                    {errors.provider && <p className="text-xs text-red-500">{errors.provider.message}</p>}
-                </div>
+                <Controller
+                    name="provider"
+                    control={control}
+                    render={({ field }) => (
+                        <FormFieldSelect
+                            label="سرویس‌دهنده نقشه"
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            error={errors.provider?.message}
+                            options={[
+                                { label: "Leaflet / OpenStreetMap (رایگان)", value: "leaflet" },
+                                { label: "Google Maps", value: "google_maps" },
+                            ]}
+                        />
+                    )}
+                />
 
                 <div className="grid gap-5">
                     {selectedProvider === 'google_maps' && (
-                        <FormFieldInput
-                            label="Google Maps API Key"
-                            id="google_maps_api_key"
-                            error={errors.google_maps_api_key?.message}
-                            placeholder="AIza..."
-                            {...register("google_maps_api_key")}
-                        />
+                        <>
+                            <FormFieldInput
+                                label="Google Maps API Key"
+                                id="google_maps_api_key"
+                                error={(errors.configs?.google_maps as any)?.api_key?.message}
+                                placeholder="AIza..."
+                                {...register("configs.google_maps.api_key")}
+                            />
+                            <FormFieldInput
+                                label="Google Maps Map ID"
+                                id="google_maps_map_id"
+                                error={(errors.configs?.google_maps as any)?.map_id?.message}
+                                placeholder="MAP_ID_FROM_GOOGLE_CONSOLE"
+                                {...register("configs.google_maps.map_id")}
+                            />
+                        </>
                     )}
 
-                    {selectedProvider === 'neshan' && (
-                        <FormFieldInput
-                            label="Neshan API Key"
-                            id="neshan_api_key"
-                            error={errors.neshan_api_key?.message}
-                            placeholder="service.xxx..."
-                            {...register("neshan_api_key")}
-                        />
-                    )}
-
-                    {selectedProvider === 'cedarmaps' && (
-                        <FormFieldInput
-                            label="CedarMaps API Key"
-                            id="cedarmaps_api_key"
-                            error={errors.cedarmaps_api_key?.message}
-                            placeholder="xxx..."
-                            {...register("cedarmaps_api_key")}
-                        />
-                    )}
                 </div>
 
                 <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10">

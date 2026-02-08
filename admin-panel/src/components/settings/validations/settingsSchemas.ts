@@ -85,10 +85,13 @@ export const formFieldSchema = z.object({
 export type FormFieldFormValues = z.infer<typeof formFieldSchema>;
 
 export const mapSettingsSchema = z.object({
-    provider: z.enum(['leaflet', 'google_maps', 'neshan', 'cedarmaps']),
-    google_maps_api_key: z.string().optional().nullable().transform(v => v === "" ? null : v),
-    neshan_api_key: z.string().optional().nullable().transform(v => v === "" ? null : v),
-    cedarmaps_api_key: z.string().optional().nullable().transform(v => v === "" ? null : v),
+    provider: z.enum(['leaflet', 'google_maps']),
+    configs: z.object({
+        google_maps: z.object({
+            api_key: z.string().optional().nullable().transform(v => v === "" ? null : v),
+            map_id: z.string().optional().nullable().transform(v => v === "" ? null : v),
+        }).optional(),
+    }),
 });
 
 export type MapSettingsFormValues = z.infer<typeof mapSettingsSchema>;

@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { settingsApi } from "@/api/settings/settings";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
-import { Map, Edit, Key, MousePointer2 } from "lucide-react";
+import { Map as MapIcon, Edit, Key, MousePointer2 } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
 import { DRAWER_IDS } from "@/components/shared/drawer/types";
@@ -23,17 +23,12 @@ export function MapSettingsSection() {
         );
     }
 
-    const providerDisplay = {
-        'leaflet': 'Leaflet / OpenStreetMap',
-        'google_maps': 'Google Maps',
-        'neshan': 'نشان (ایرانی)',
-        'cedarmaps': 'سیدار (ایرانی)',
-    }[settings?.provider || 'leaflet'];
+    const providerDisplay = (settings?.provider === 'google_maps') ? 'Google Maps' : 'Leaflet / OpenStreetMap';
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             <CardWithIcon
-                icon={Map}
+                icon={MapIcon}
                 title="تنظیمات نقشه"
                 iconBgColor="bg-blue"
                 iconColor="stroke-static-w"
@@ -56,45 +51,34 @@ export function MapSettingsSection() {
                     </div>
 
                     <div className="space-y-6">
-                        <div className="grid gap-4">
-                            {settings?.provider === 'google_maps' && (
+                        {settings?.provider === 'google_maps' && (
+                            <div className="grid gap-4">
                                 <DetailItem
                                     icon={<Key className="h-5 w-5" />}
                                     label="Google Maps API Key"
-                                    value={settings.google_maps_api_key}
+                                    value={settings.configs?.google_maps?.api_key}
                                     isSecret
                                 />
-                            )}
-                            {settings?.provider === 'neshan' && (
                                 <DetailItem
                                     icon={<Key className="h-5 w-5" />}
-                                    label="Neshan API Key"
-                                    value={settings.neshan_api_key}
-                                    isSecret
+                                    label="Google Maps Map ID"
+                                    value={settings.configs?.google_maps?.map_id}
                                 />
-                            )}
-                            {settings?.provider === 'cedarmaps' && (
-                                <DetailItem
-                                    icon={<Key className="h-5 w-5" />}
-                                    label="CedarMaps API Key"
-                                    value={settings.cedarmaps_api_key}
-                                    isSecret
-                                />
-                            )}
-                            {settings?.provider === 'leaflet' && (
-                                <div className="p-4 bg-muted/5 rounded-2xl border border-muted/10">
-                                    <p className="text-xs text-font-s leading-relaxed">
-                                        سرویس Leaflet به صورت رایگان و بدون نیاز به کلید API عمل می‌کند.
-                                    </p>
-                                </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
+                        {settings?.provider === 'leaflet' && (
+                            <div className="p-4 bg-muted/5 rounded-2xl border border-muted/10">
+                                <p className="text-xs text-font-s leading-relaxed">
+                                    سرویس Leaflet به صورت رایگان و بدون نیاز به کلید API عمل می‌کند.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 <div className="mt-8 p-6 bg-blue/5 rounded-3xl border border-blue/10">
                     <p className="text-xs text-font-s leading-relaxed">
-                        این تنظیمات تعیین می‌کند که در مدیریت املاک و کل وب‌سایت، از کدام سرویس نقشه استفاده شود. نقشه‌های ایرانی (نشان و سیدار) برای لوکیشن ایران بهینه‌تر هستند.
+                        این تنظیمات تعیین می‌کند که در پنل مدیریت و کل وب‌سایت، از کدام سرویس نقشه استفاده شود.
                     </p>
                 </div>
             </CardWithIcon>

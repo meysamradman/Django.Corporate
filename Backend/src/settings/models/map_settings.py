@@ -6,8 +6,6 @@ class MapSettings(BaseModel):
     PROVIDER_CHOICES = [
         ('leaflet', _('Leaflet / OpenStreetMap')),
         ('google_maps', _('Google Maps')),
-        ('neshan', _('Neshan (Iranian)')),
-        ('cedarmaps', _('CedarMaps (Iranian)')),
     ]
 
     provider = models.CharField(
@@ -17,25 +15,11 @@ class MapSettings(BaseModel):
         verbose_name=_("Map Provider")
     )
 
-    google_maps_api_key = models.CharField(
-        max_length=255,
+    configs = models.JSONField(
+        default=dict,
         blank=True,
-        null=True,
-        verbose_name=_("Google Maps API Key")
-    )
-
-    neshan_api_key = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True,
-        verbose_name=_("Neshan API Key")
-    )
-
-    cedarmaps_api_key = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True,
-        verbose_name=_("CedarMaps API Key")
+        verbose_name=_("Provider Configurations"),
+        help_text=_("Stores API keys and optional settings like Map ID in JSON format.")
     )
 
     class Meta(BaseModel.Meta):

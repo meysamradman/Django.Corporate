@@ -164,14 +164,3 @@ export interface SliderUpdate {
     is_active?: boolean;
 }
 
-export interface MapSettings {
-    id: number;
-    public_id: string;
-    provider: 'leaflet' | 'google_maps' | 'neshan' | 'cedarmaps';
-    google_maps_api_key: string | null;
-    neshan_api_key: string | null;
-    cedarmaps_api_key: string | null;
-    is_active: boolean;
-    created_at: string;
-    updated_at: string;
-}

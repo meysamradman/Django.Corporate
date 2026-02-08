@@ -17,8 +17,8 @@ import type {
     Slider,
     SliderCreate,
     SliderUpdate,
-    MapSettings
 } from "@/types/settings/generalSettings";
+import type { MapSettings } from "@/types/real_estate/map";
 
 class SettingsApi {
     private baseUrl = '/settings/';

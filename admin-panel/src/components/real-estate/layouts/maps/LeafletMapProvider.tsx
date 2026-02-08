@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import type { MapProviderProps } from "@/types/real_estate/mapProvider";
+import type { MapProviderProps } from "@/types/real_estate/map";
 
 const createCustomIcon = (isSelected: boolean) => {
     const color = isSelected ? "#3b82f6" : "#94A3B8";

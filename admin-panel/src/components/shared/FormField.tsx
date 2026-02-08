@@ -165,3 +165,58 @@ export function FormFieldSwitch({
     </Item>
   );
 }
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/elements/Select";
+
+interface FormFieldSelectProps {
+  label: string;
+  error?: string;
+  required?: boolean;
+  description?: string;
+  value: string;
+  onValueChange: (value: string) => void;
+  options: { label: string; value: string }[];
+  placeholder?: string;
+  className?: string;
+}
+
+export function FormFieldSelect({
+  label,
+  error,
+  required,
+  description,
+  value,
+  onValueChange,
+  options,
+  placeholder = "انتخاب کنید...",
+  className,
+}: FormFieldSelectProps) {
+  return (
+    <FormField
+      label={label}
+      error={error}
+      required={required}
+      description={description}
+      className={className}
+    >
+      <Select value={value} onValueChange={onValueChange}>
+        <SelectTrigger className={cn(error && "border-red-1 focus:ring-red-1/20")}>
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </FormField>
+  );
+}

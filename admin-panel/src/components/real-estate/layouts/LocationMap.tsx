@@ -3,12 +3,11 @@ import { MapPin, Loader2 } from "lucide-react";
 import { Label } from "@/components/elements/Label";
 import { showError } from "@/core/toast";
 import { settingsApi } from "@/api/settings/settings";
-import type { MapSettings } from "@/types/settings/generalSettings";
+import type { MapSettings } from "@/types/real_estate/map";
 
 // Dynamic Providers
 const LeafletMapProvider = lazy(() => import("./maps/LeafletMapProvider"));
 const GoogleMapProvider = lazy(() => import("./maps/GoogleMapProvider"));
-const IranianMapProvider = lazy(() => import("./maps/IranianMapProvider"));
 
 interface PropertyLocationMapProps {
   latitude: number | null;
@@ -268,7 +267,7 @@ export default function LocationMap({
         style={{ height: minimal ? "100%" : "400px" }}
       >
         {!isMapReady && (
-          <div className="absolute inset-0 flex items-center justify-center bg-bg/50 z-[1000]">
+          <div className="absolute inset-0 flex items-center justify-center bg-bg/50 z-1000">
             <Loader2 className="animate-spin text-blue" />
           </div>
         )}
@@ -297,23 +296,8 @@ export default function LocationMap({
               onLocationChange={handlePositionChange}
               disabled={disabled}
               setIsMapReady={setIsMapReady}
-              apiKey={mapSettings.google_maps_api_key}
-              cityName={cityName}
-              provinceName={provinceName}
-            />
-          )}
-
-          {(provider === 'neshan' || provider === 'cedarmaps') && (
-            <IranianMapProvider
-              latitude={latitude}
-              longitude={longitude}
-              mapCenter={mapCenter}
-              mapZoom={mapZoom}
-              onLocationChange={handlePositionChange}
-              disabled={disabled}
-              setIsMapReady={setIsMapReady}
-              type={provider}
-              apiKey={provider === 'neshan' ? mapSettings.neshan_api_key : mapSettings.cedarmaps_api_key}
+              apiKey={mapSettings.configs?.google_maps?.api_key}
+              google_maps_map_id={mapSettings.configs?.google_maps?.map_id}
               cityName={cityName}
               provinceName={provinceName}
             />

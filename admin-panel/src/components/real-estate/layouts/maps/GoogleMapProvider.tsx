@@ -1,4 +1,4 @@
-import type { MapProviderProps } from "@/types/real_estate/mapProvider";
+import type { MapProviderProps } from "@/types/real_estate/map";
 
 export default function GoogleMapProvider({
     latitude,
