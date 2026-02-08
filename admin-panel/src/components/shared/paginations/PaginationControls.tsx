@@ -1,4 +1,3 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/core/utils/cn';
 import {
   Select,
@@ -8,6 +7,15 @@ import {
   SelectValue,
 } from "@/components/elements/Select";
 import type { PaginationControlsProps } from '@/types/shared/pagination';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/elements/Pagination"
 
 const generatePaginationRange = (currentPage: number, totalPages: number, siblingCount: number): (number | '...')[] => {
   if (totalPages <= 0) {
@@ -106,14 +114,14 @@ export function PaginationControls({
   }
 
   const validCurrentPage = Math.max(1, Math.min(currentPage, totalPages));
-
   const paginationRange = generatePaginationRange(validCurrentPage, totalPages, siblingCount);
 
   return (
     <div className={cn("flex w-full items-center justify-between gap-4 px-0", className)} dir="rtl">
+      {/* Page Size (Right side in RTL) */}
       {showPageSize && onPageSizeChange && pageSize && (
         <div className="flex items-center gap-2">
-          <p className="text-sm text-font-s whitespace-nowrap">تعداد در صفحه</p>
+          <p className="text-sm text-font-s whitespace-nowrap hidden sm:block">تعداد در صفحه</p>
           <Select
             value={String(pageSize)}
             onValueChange={(value) => onPageSizeChange(parseInt(value, 10))}
@@ -132,56 +140,68 @@ export function PaginationControls({
         </div>
       )}
 
-      <div className="flex items-center gap-4">
+      {/* Info & Pagination (Left side in RTL) */}
+      <div className="flex items-center gap-4 sm:gap-6">
         {showInfo && (
-          <div className="text-sm text-font-s">
+          <div className="text-sm text-font-s whitespace-nowrap">
             {infoText || `${((validCurrentPage - 1) * (pageSize || 10)) + 1} - ${Math.min(validCurrentPage * (pageSize || 10), totalCount)} از ${totalCount}`}
           </div>
         )}
 
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => onPageChange(validCurrentPage - 1)}
-            disabled={validCurrentPage === 1}
-            className="text-font-s hover:text-font-p disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            aria-label="صفحه قبل"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
+        <Pagination className="w-auto mx-0 justify-end">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (validCurrentPage > 1) onPageChange(validCurrentPage - 1);
+                }}
+                aria-disabled={validCurrentPage === 1}
+                className={validCurrentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
 
-          {showPageNumbers && paginationRange.map((pageNumber, index) => {
-            if (pageNumber === '...') {
+            {showPageNumbers && paginationRange.map((pageNumber, index) => {
+              if (pageNumber === '...') {
+                return (
+                  <PaginationItem key={`ellipsis-${index}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                );
+              }
+
+              const isActive = pageNumber === validCurrentPage;
               return (
-                <span key={`ellipsis-${index}`} className="px-2 text-font-s">
-                  ...
-                </span>
+                <PaginationItem key={pageNumber}>
+                  <PaginationLink
+                    href="#"
+                    isActive={isActive}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onPageChange(pageNumber as number);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    {pageNumber}
+                  </PaginationLink>
+                </PaginationItem>
               );
-            }
+            })}
 
-            const isActive = pageNumber === validCurrentPage;
-            return (
-              <button
-                key={pageNumber}
-                onClick={() => onPageChange(pageNumber as number)}
-                className={`px-2 py-1 text-sm rounded-md cursor-pointer ${isActive
-                  ? "bg-bg text-font-p"
-                  : "text-font-s hover:text-font-p"
-                  }`}
-              >
-                {pageNumber}
-              </button>
-            );
-          })}
-
-          <button
-            onClick={() => onPageChange(validCurrentPage + 1)}
-            disabled={validCurrentPage === totalPages}
-            className="text-font-s hover:text-font-p disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            aria-label="صفحه بعد"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-        </div>
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (validCurrentPage < totalPages) onPageChange(validCurrentPage + 1);
+                }}
+                aria-disabled={validCurrentPage === totalPages}
+                className={validCurrentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       </div>
     </div>
   );

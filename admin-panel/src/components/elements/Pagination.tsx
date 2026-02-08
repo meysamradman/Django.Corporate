@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import * as React from "react"
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -8,7 +8,7 @@ import {
 import { cn } from "@/core/utils/cn"
 import { buttonVariants, type Button } from "@/components/elements/Button"
 
-function Pagination({ className, ...props }: ComponentProps<"nav">) {
+function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
     <nav
       role="navigation"
@@ -23,7 +23,7 @@ function Pagination({ className, ...props }: ComponentProps<"nav">) {
 function PaginationContent({
   className,
   ...props
-}: ComponentProps<"ul">) {
+}: React.ComponentProps<"ul">) {
   return (
     <ul
       data-slot="pagination-content"
@@ -33,14 +33,14 @@ function PaginationContent({
   )
 }
 
-function PaginationItem({ ...props }: ComponentProps<"li">) {
+function PaginationItem({ ...props }: React.ComponentProps<"li">) {
   return <li data-slot="pagination-item" {...props} />
 }
 
 type PaginationLinkProps = {
   isActive?: boolean
-} & Pick<ComponentProps<typeof Button>, "size"> &
-  ComponentProps<"a">
+} & Pick<React.ComponentProps<typeof Button>, "size"> &
+  React.ComponentProps<"a">
 
 function PaginationLink({
   className,
@@ -55,9 +55,13 @@ function PaginationLink({
       data-active={isActive}
       className={cn(
         buttonVariants({
-          variant: isActive ? "default" : "outline",
+          variant: "outline",
           size,
         }),
+        "border-none shadow-none transition-colors min-w-9",
+        isActive
+          ? "bg-gray-100 text-black hover:bg-gray-100 hover:text-black font-medium sm:min-w-9"
+          : "text-gray-500 hover:bg-gray-50 hover:text-black bg-transparent",
         className
       )}
       {...props}
@@ -68,16 +72,15 @@ function PaginationLink({
 function PaginationPrevious({
   className,
   ...props
-}: ComponentProps<typeof PaginationLink>) {
+}: React.ComponentProps<typeof PaginationLink>) {
   return (
     <PaginationLink
-      aria-label="برو به صفحه قبل"
-      size="default"
-      className={cn("gap-1 px-2.5", className)}
+      aria-label="Go to previous page"
+      size="icon"
+      className={cn("gap-1", className)}
       {...props}
     >
       <ChevronRightIcon className="h-4 w-4" />
-      <span className="hidden sm:block">قبلی</span>
     </PaginationLink>
   )
 }
@@ -85,15 +88,14 @@ function PaginationPrevious({
 function PaginationNext({
   className,
   ...props
-}: ComponentProps<typeof PaginationLink>) {
+}: React.ComponentProps<typeof PaginationLink>) {
   return (
     <PaginationLink
-      aria-label="برو به صفحه بعد"
-      size="default"
-      className={cn("gap-1 px-2.5", className)}
+      aria-label="Go to next page"
+      size="icon"
+      className={cn("gap-1", className)}
       {...props}
     >
-      <span className="hidden sm:block">بعدی</span>
       <ChevronLeftIcon className="h-4 w-4" />
     </PaginationLink>
   )
@@ -102,7 +104,7 @@ function PaginationNext({
 function PaginationEllipsis({
   className,
   ...props
-}: ComponentProps<"span">) {
+}: React.ComponentProps<"span">) {
   return (
     <span
       aria-hidden
@@ -111,7 +113,7 @@ function PaginationEllipsis({
       {...props}
     >
       <MoreHorizontalIcon className="size-4" />
-      <span className="sr-only">صفحات بیشتر</span>
+      <span className="sr-only">More pages</span>
     </span>
   )
 }
