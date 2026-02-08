@@ -38,7 +38,7 @@ import { DataTableFacetedFilterSimple } from "./DataTableFacetedFilterSimple"
 import type { DateRangeOption } from "@/types/shared/table"
 import { Trash, Search, Download, Printer, FileSpreadsheet, FileText, ChevronDown, X, SlidersHorizontal } from "lucide-react"
 import { Loader } from "@/components/elements/Loader"
-import { PaginationControls } from "@/components/shared/Pagination"
+import { PaginationControls } from "@/components/shared/paginations/PaginationControls"
 import {
   DropdownMenu,
   DropdownMenuContent,

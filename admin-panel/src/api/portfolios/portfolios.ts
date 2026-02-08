@@ -4,7 +4,7 @@ import type { PortfolioCategory } from "@/types/portfolio/category/portfolioCate
 import type { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
 import type { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import type { PaginatedResponse, ApiPagination } from "@/types/shared/pagination";
-import { convertToLimitOffset } from '@/core/utils/pagination';
+import { convertToLimitOffset } from '@/components/shared/paginations/pagination';
 import type {
   PortfolioListParams,
   CategoryListParams,

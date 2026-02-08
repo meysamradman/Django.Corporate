@@ -1,13 +1,13 @@
 import { api } from '@/core/config/api';
 import type { ApiResponse } from '@/types/api/apiResponse'
 import type { Role, PermissionGroup, RoleListParams, BasePermissionDescriptor } from '@/types/auth/permission'
-import { convertToLimitOffset } from '@/core/utils/pagination';
+import { convertToLimitOffset } from '@/components/shared/paginations/pagination';
 import { adminEndpoints } from '@/core/config/adminEndpoints';
 
 export const roleApi = {
   getRoleList: async (params: RoleListParams = {}): Promise<ApiResponse<Role[]>> => {
     const searchParams = new URLSearchParams()
-    
+
     if (params.search && params.search.trim() !== '') {
       searchParams.append('search', params.search.trim())
     }
@@ -21,20 +21,20 @@ export const roleApi = {
     if (params.order_desc !== undefined) searchParams.append('order_desc', params.order_desc.toString())
     if (params.is_active !== undefined) searchParams.append('is_active', params.is_active.toString())
     if (params.is_system_role !== undefined) searchParams.append('is_system_role', params.is_system_role.toString())
-    
+
     const queryString = searchParams.toString()
     const baseUrl = adminEndpoints.roles()
     const url = `${baseUrl}${queryString ? `?${queryString}` : ''}`
-    
+
     const response = await api.get<Role[]>(url)
-    
+
     const responseData = Array.isArray(response.data) ? response.data : [];
     const responsePagination = response.pagination;
-    
+
     const count = responsePagination?.count || responseData.length;
     const pageSize = responsePagination?.page_size || (params?.size || 10);
     const totalPages = responsePagination?.total_pages || Math.ceil(count / pageSize);
-    
+
     return {
       metaData: response.metaData,
       data: responseData,
@@ -99,7 +99,7 @@ export const roleApi = {
       description: data.description || '',
       permissions: data.permissions || { specific_permissions: [] }
     };
-    
+
     return api.post<Role>(adminEndpoints.roles(), requestData)
   },
 
@@ -113,7 +113,7 @@ export const roleApi = {
       description: data.description,
       permissions: data.permissions || { specific_permissions: [] }
     };
-    
+
     return api.put<Role>(`${adminEndpoints.roles()}${id}/`, updateData)
   },
 
@@ -137,8 +137,8 @@ export const roleApi = {
     return api.get<BasePermissionDescriptor[]>(`${adminEndpoints.roles()}base_permissions/`)
   },
 
-  getRolePermissions: async (roleId: number): Promise<ApiResponse<{role_id: number; role_name: string; permissions: Record<string, unknown>}>> => {
-    return api.get<{role_id: number; role_name: string; permissions: Record<string, unknown>}>(`${adminEndpoints.roles()}${roleId}/role_permissions/`)
+  getRolePermissions: async (roleId: number): Promise<ApiResponse<{ role_id: number; role_name: string; permissions: Record<string, unknown> }>> => {
+    return api.get<{ role_id: number; role_name: string; permissions: Record<string, unknown> }>(`${adminEndpoints.roles()}${roleId}/role_permissions/`)
   },
 
   setupDefaultRoles: async (forceUpdate: boolean = false): Promise<ApiResponse<{ success: boolean; message?: string; roles_created?: number }>> => {

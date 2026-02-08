@@ -3,7 +3,7 @@ import type { Blog } from "@/types/blog/blog";
 import type { BlogCategory } from "@/types/blog/category/blogCategory";
 import type { BlogTag } from "@/types/blog/tags/blogTag";
 import type { PaginatedResponse, ApiPagination } from "@/types/shared/pagination";
-import { convertToLimitOffset } from '@/core/utils/pagination';
+import { convertToLimitOffset } from '@/components/shared/paginations/pagination';
 import type {
   BlogListParams,
   CategoryListParams,

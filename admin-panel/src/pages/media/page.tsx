@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/elements/Skeleton";
 import { Input } from '@/components/elements/Input';
 import { mediaService } from '@/components/media/services';
 import { ProtectedButton } from '@/core/permissions';
-import { PaginationControls } from '@/components/shared/Pagination';
+import { PaginationControls } from '@/components/shared/paginations/PaginationControls';
 import { ImageOff, Trash2, Upload, Search, Play, FileAudio, Sparkles } from 'lucide-react';
 import {
   Card,

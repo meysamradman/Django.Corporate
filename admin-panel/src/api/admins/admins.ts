@@ -1,11 +1,11 @@
 import { api } from '@/core/config/api';
 import { adminEndpoints } from '@/core/config/adminEndpoints';
-import { convertToLimitOffset, normalizePaginationParams } from '@/core/utils/pagination';
+import { convertToLimitOffset, normalizePaginationParams } from '@/components/shared/paginations/pagination';
 import type { Pagination } from '@/types/api/apiResponse';
-import type { 
-  AdminWithProfile, 
-  AdminCreateRequest, 
-  AdminUpdateRequest, 
+import type {
+  AdminWithProfile,
+  AdminCreateRequest,
+  AdminUpdateRequest,
   UserType,
   AdminListResponse
 } from '@/types/auth/admin';
@@ -31,7 +31,7 @@ export function createQueryString(params: Record<string, unknown>, additionalPar
       }
     }
   }
-  
+
   return queryParams.toString();
 }
 
@@ -81,9 +81,9 @@ export const adminApi = {
       SERVER_PAGINATION_CONFIG.DEFAULT_LIMIT,
       SERVER_PAGINATION_CONFIG.VALID_PAGE_SIZES
     );
-    
+
     const { limit, offset } = convertToLimitOffset(normalizedParams.page, normalizedParams.size);
-    
+
     const apiFilters = { ...finalFilters };
     delete apiFilters.page;
     delete apiFilters.size;
@@ -91,7 +91,7 @@ export const adminApi = {
     apiFilters.offset = offset;
 
     const queryString = createQueryString(apiFilters);
-    
+
     const endpointUrl = userType === 'admin'
       ? `${adminEndpoints.management()}?${queryString}`
       : `${adminEndpoints.usersManagement()}?${queryString}`;
@@ -100,15 +100,15 @@ export const adminApi = {
 
     const pageSize = typeof finalFilters.size === 'number' ? finalFilters.size : SERVER_PAGINATION_CONFIG.DEFAULT_LIMIT;
     const currentPage = typeof finalFilters.page === 'number' ? finalFilters.page : 1;
-    
+
     let data: AdminWithProfile[] = [];
-    let pagination: Pagination = { 
-      count: 0, 
-      next: null, 
-      previous: null, 
-      page_size: pageSize, 
-      current_page: currentPage, 
-      total_pages: 0 
+    let pagination: Pagination = {
+      count: 0,
+      next: null,
+      previous: null,
+      page_size: pageSize,
+      current_page: currentPage,
+      total_pages: 0
     };
 
     if (response && typeof response === 'object' && 'metaData' in response && Array.isArray(response.data) && response.pagination) {
@@ -136,13 +136,13 @@ export const adminApi = {
       pagination.total_pages = Math.ceil((pagination.count || 0) / (pagination.page_size || 10));
     } else {
       data = [];
-      pagination = { 
-        count: 0, 
-        next: null, 
-        previous: null, 
-        page_size: pageSize, 
-        current_page: 1, 
-        total_pages: 0 
+      pagination = {
+        count: 0,
+        next: null,
+        previous: null,
+        page_size: pageSize,
+        current_page: 1,
+        total_pages: 0
       };
     }
 
@@ -163,8 +163,8 @@ export const adminApi = {
   },
 
   fetchUserById: async (userId: number, userType: UserType = 'admin'): Promise<AdminWithProfile> => {
-    const endpointUrl = userType === 'admin' 
-      ? adminEndpoints.managementById(userId) 
+    const endpointUrl = userType === 'admin'
+      ? adminEndpoints.managementById(userId)
       : adminEndpoints.usersManagementById(userId);
 
     const response = await api.get<AdminWithProfile>(endpointUrl);
@@ -189,10 +189,10 @@ export const adminApi = {
       }
     }
 
-    const endpoint = userType === 'admin' 
-      ? adminEndpoints.management() 
+    const endpoint = userType === 'admin'
+      ? adminEndpoints.management()
       : adminEndpoints.usersManagement();
-    
+
     const response = await api.post<AdminWithProfile>(endpoint, dataToSend);
     return response.data;
   },
@@ -211,13 +211,13 @@ export const adminApi = {
         delete dataToSend.city;
       }
     }
-    
-    const endpoint = userType === 'admin' 
+
+    const endpoint = userType === 'admin'
       ? adminEndpoints.managementById(userId)
       : adminEndpoints.usersManagementById(userId);
-    
+
     const response = await api.put<AdminWithProfile>(endpoint, dataToSend);
-    
+
     if (role_id !== undefined && userType === 'admin') {
       try {
         if (role_id === 'none' || role_id === '' || role_id === null) {
@@ -231,7 +231,7 @@ export const adminApi = {
       } catch {
       }
     }
-    
+
     if (response && response.data) {
       return response.data;
     } else {
@@ -241,20 +241,20 @@ export const adminApi = {
 
   deleteUserByType: async (userId: number): Promise<void> => {
     let endpoint = adminEndpoints.managementById(userId);
-    
+
     if (typeof window !== 'undefined') {
       const currentPath = window.location.pathname;
       if (currentPath.includes('/users')) {
         endpoint = adminEndpoints.usersManagementById(userId);
       }
     }
-    
+
     await api.delete(endpoint);
   },
 
   updateUserStatusByType: async (userId: number, isActive: boolean, userType: UserType): Promise<AdminWithProfile> => {
-    const endpointUrl = userType === 'admin' 
-      ? adminEndpoints.managementById(userId) 
+    const endpointUrl = userType === 'admin'
+      ? adminEndpoints.managementById(userId)
       : adminEndpoints.usersManagementById(userId);
     const payload = { is_active: isActive };
 
@@ -268,20 +268,20 @@ export const adminApi = {
 
   bulkDeleteUsersByType: async (userIds: number[]): Promise<void> => {
     let endpoint = adminEndpoints.managementBulkDelete();
-    
+
     if (typeof window !== 'undefined') {
       const currentPath = window.location.pathname;
       if (currentPath.includes('/users')) {
         endpoint = adminEndpoints.usersManagementBulkDelete();
       }
     }
-    
+
     await api.post(endpoint, { ids: userIds });
   },
 
   getAdminRoles: async (adminId: number): Promise<Array<{ role: number; role_name?: string }>> => {
     const timestamp = Date.now();
-    const response = await api.get<{roles: Array<{ role: number; role_name?: string }>}>(`${adminEndpoints.rolesUserRoles(adminId)}&_t=${timestamp}`);
+    const response = await api.get<{ roles: Array<{ role: number; role_name?: string }> }>(`${adminEndpoints.rolesUserRoles(adminId)}&_t=${timestamp}`);
     return response.data?.roles || [];
   },
 

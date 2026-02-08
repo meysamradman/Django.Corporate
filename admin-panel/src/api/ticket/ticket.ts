@@ -1,6 +1,6 @@
 import { api } from '@/core/config/api';
 import type { PaginatedResponse, ApiPagination } from "@/types/shared/pagination";
-import { convertToLimitOffset } from '@/core/utils/pagination';
+import { convertToLimitOffset } from '@/components/shared/paginations/pagination';
 import type {
   Ticket,
   TicketMessage,
@@ -16,7 +16,7 @@ class TicketApi {
 
   async getList(params: TicketListParams = {}): Promise<PaginatedResponse<Ticket>> {
     const { limit, offset } = convertToLimitOffset(params.page || 1, params.size || 10);
-    
+
     const queryParams = new URLSearchParams();
     if (params.search) queryParams.append('search', params.search);
     if (limit) queryParams.append('limit', limit.toString());
@@ -29,10 +29,10 @@ class TicketApi {
       queryParams.append('ordering', params.order_desc ? `-${params.order_by}` : params.order_by);
     }
 
-    const baseUrlWithQuery = this.baseUrl.endsWith('/') 
+    const baseUrlWithQuery = this.baseUrl.endsWith('/')
       ? `${this.baseUrl}?${queryParams.toString()}`
       : `${this.baseUrl}/?${queryParams.toString()}`;
-    
+
     const response = await api.get<Ticket[]>(baseUrlWithQuery);
 
     if (response.metaData.status !== 'success') {

@@ -14,7 +14,7 @@ import { mediaApi, DEFAULT_MEDIA_PAGE_SIZE } from '@/api/media/media';
 import type { Media, MediaFilter } from '@/types/shared/media';
 import { MediaPreview } from '@/components/media/base/MediaPreview';
 import { Input } from '@/components/elements/Input';
-import { PaginationControls } from '@/components/shared/Pagination';
+import { PaginationControls } from '@/components/shared/paginations/PaginationControls';
 import { ImageOff, CheckSquare, Square, FolderOpen, Upload, Loader2, X, Play, FileAudio, FileText, AlertCircle } from 'lucide-react';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { cn } from '@/core/utils/cn';

@@ -19,7 +19,7 @@ import { CardItem, type CardItemAction } from "@/components/elements/CardItem";
 import { mediaService } from "@/components/media/services";
 import { formatDate } from "@/core/utils/commonFormat";
 import { getPermissionTranslation } from "@/core/messages/permissions";
-import { PaginationControls } from "@/components/shared/Pagination";
+import { PaginationControls } from "@/components/shared/paginations/PaginationControls";
 import { DataTableFacetedFilterSimple } from "@/components/tables/DataTableFacetedFilterSimple";
 import { getConfirm } from '@/core/messages';
 import { Badge } from "@/components/elements/Badge";

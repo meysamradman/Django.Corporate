@@ -9,7 +9,7 @@ import type { PropertyAgent } from "@/types/real_estate/agent/realEstateAgent";
 import type { RealEstateAgency } from "@/types/real_estate/agency/realEstateAgency";
 import type { RealEstateProvince, RealEstateCity, RealEstateCityRegion } from "@/types/real_estate/location";
 import type { PaginatedResponse, ApiPagination } from "@/types/shared/pagination";
-import { convertToLimitOffset } from '@/core/utils/pagination';
+import { convertToLimitOffset } from '@/components/shared/paginations/pagination';
 import type { PropertyListParams } from "@/types/real_estate/realEstateListParams";
 
 export const realEstateApi = {

@@ -164,8 +164,8 @@ export function PaginationControls({
                 key={pageNumber}
                 onClick={() => onPageChange(pageNumber as number)}
                 className={`px-2 py-1 text-sm rounded-md cursor-pointer ${isActive
-                    ? "bg-bg text-font-p"
-                    : "text-font-s hover:text-font-p"
+                  ? "bg-bg text-font-p"
+                  : "text-font-s hover:text-font-p"
                   }`}
               >
                 {pageNumber}

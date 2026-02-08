@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/elements/Card";
 import { Input } from "@/components/elements/Input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { PersianDatePicker } from '@/components/elements/PersianDatePicker';
-import { PaginationControls } from "@/components/shared/Pagination";
+import { PaginationControls } from "@/components/shared/paginations/PaginationControls";
 import { Plus, Search, Phone, Mail, Edit, Trash2, Eye, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
@@ -94,7 +94,7 @@ export default function AdvisorsListPage() {
     {
       label: "حذف",
       icon: <Trash2 className="h-4 w-4" />,
-      onClick: (agent) => {},
+      onClick: (agent) => { },
       isDestructive: true,
     },
   ], [navigate]);
@@ -102,7 +102,7 @@ export default function AdvisorsListPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="مدیریت مشاورین املاک">
-        <ProtectedButton 
+        <ProtectedButton
           permission="real_estate.agent.create"
           size="sm"
           onClick={() => navigate("/real-estate/agents/create")}

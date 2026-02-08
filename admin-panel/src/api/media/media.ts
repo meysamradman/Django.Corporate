@@ -4,7 +4,7 @@ import type { ApiResponse, Pagination } from '@/types/api/apiResponse';
 import { ApiError } from '@/types/api/apiError';
 import { csrfManager } from '@/core/auth/session';
 import { env } from '@/core/config/environment';
-import { normalizePaginationParams } from '@/core/utils/pagination';
+import { normalizePaginationParams } from '@/components/shared/paginations/pagination';
 import { showError } from '@/core/toast';
 
 export const VALID_MEDIA_PAGE_SIZES = [12, 24, 36, 48];

@@ -13,7 +13,7 @@ import { ProtectedButton } from "@/core/permissions";
 import { CardItem, type CardItemAction } from "@/components/elements/CardItem";
 import { mediaService } from "@/components/media/services";
 import { formatDate } from "@/core/utils/commonFormat";
-import { PaginationControls } from "@/components/shared/Pagination";
+import { PaginationControls } from "@/components/shared/paginations/PaginationControls";
 import { Badge } from "@/components/elements/Badge";
 import { CardListLayout } from "@/components/templates/CardListLayout";
 import {

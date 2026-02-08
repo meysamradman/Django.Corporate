@@ -6,7 +6,7 @@ import {
 } from "lucide-react"
 
 import { cn } from "@/core/utils/cn"
-import { Button } from "@/components/elements/Button"
+import { buttonVariants, type Button } from "@/components/elements/Button"
 
 function Pagination({ className, ...props }: ComponentProps<"nav">) {
   return (
@@ -15,7 +15,6 @@ function Pagination({ className, ...props }: ComponentProps<"nav">) {
       aria-label="pagination"
       data-slot="pagination"
       className={cn("mx-auto flex w-full justify-center", className)}
-      dir="rtl"
       {...props}
     />
   )
@@ -28,7 +27,7 @@ function PaginationContent({
   return (
     <ul
       data-slot="pagination-content"
-      className={cn("flex flex-row items-center gap-2", className)}
+      className={cn("flex flex-row items-center gap-1", className)}
       {...props}
     />
   )
@@ -55,11 +54,10 @@ function PaginationLink({
       data-slot="pagination-link"
       data-active={isActive}
       className={cn(
-        "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
-        size === "icon" ? "h-9 w-9" : "h-9 px-3",
-        isActive 
-          ? "bg-gray text-font-p rounded-md" 
-          : "text-font-s hover:text-font-p",
+        buttonVariants({
+          variant: isActive ? "default" : "outline",
+          size,
+        }),
         className
       )}
       {...props}
@@ -73,12 +71,13 @@ function PaginationPrevious({
 }: ComponentProps<typeof PaginationLink>) {
   return (
     <PaginationLink
-      aria-label="Go to previous page"
-      size="icon"
-      className={cn("text-font-s hover:text-font-p", className)}
+      aria-label="برو به صفحه قبل"
+      size="default"
+      className={cn("gap-1 px-2.5", className)}
       {...props}
     >
       <ChevronRightIcon className="h-4 w-4" />
+      <span className="hidden sm:block">قبلی</span>
     </PaginationLink>
   )
 }
@@ -89,11 +88,12 @@ function PaginationNext({
 }: ComponentProps<typeof PaginationLink>) {
   return (
     <PaginationLink
-      aria-label="Go to next page"
-      size="icon"
-      className={cn("text-font-s hover:text-font-p", className)}
+      aria-label="برو به صفحه بعد"
+      size="default"
+      className={cn("gap-1 px-2.5", className)}
       {...props}
     >
+      <span className="hidden sm:block">بعدی</span>
       <ChevronLeftIcon className="h-4 w-4" />
     </PaginationLink>
   )
