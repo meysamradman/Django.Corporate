@@ -1,14 +1,12 @@
 import { useState, type ChangeEvent } from "react";
-import type { UseFormReturn, Path } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Button } from "@/components/elements/Button";
 import type { Media } from "@/types/shared/media";
 import { TabsContent } from "@/components/elements/Tabs";
-import { FormFieldInput, FormFieldTextarea } from "@/components/shared/FormField";
 import type { PortfolioFormValues } from "@/components/portfolios/validations/portfolioSchema";
-import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
-import { mediaService } from "@/components/media/services";
-import { UploadCloud, X, AlertCircle, Search, Image as ImageIcon, Globe } from "lucide-react";
+import { Search } from "lucide-react";
+import { PortfolioSEOMetaFields } from "./seo/PortfolioSEOMetaFields";
+import { PortfolioSEOSocialPreview } from "./seo/PortfolioSEOSocialPreview";
 
 interface SEOTabFormProps {
     form: UseFormReturn<PortfolioFormValues>;
@@ -27,18 +25,15 @@ type SEOTabProps = SEOTabFormProps | SEOTabManualProps;
 
 export default function PortfolioSEO(props: SEOTabProps) {
     const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
-    
+
     const isFormApproach = 'form' in props;
-    
-    const formState = isFormApproach ? props.form.formState : { errors: {} };
-    const register = isFormApproach ? props.form.register : null;
+
     const watch = isFormApproach ? props.form.watch : null;
     const setValue = isFormApproach ? props.form.setValue : null;
-    
+
     const portfolioId = isFormApproach ? props.portfolioId : props.portfolioId;
-    
     const editMode = isFormApproach ? props.editMode : props.editMode;
-    
+
     const {
         formData,
         handleInputChange
@@ -52,65 +47,43 @@ export default function PortfolioSEO(props: SEOTabProps) {
     const robotsMetaValue = isFormApproach ? watch?.("robots_meta") : formData?.robots_meta;
     const ogImageValue = isFormApproach ? watch?.("og_image") : formData?.og_image;
 
-    const ogImageUrl = ogImageValue ? mediaService.getMediaUrlFromObject(ogImageValue) : "";
-
     const handleMetaTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        if (isFormApproach) {
-        } else {
-            handleInputChange?.("meta_title", value);
-        }
+        if (!isFormApproach) handleInputChange?.("meta_title", value);
     };
 
     const handleMetaDescriptionChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
-        if (isFormApproach) {
-        } else {
-            handleInputChange?.("meta_description", value);
-        }
+        if (!isFormApproach) handleInputChange?.("meta_description", value);
     };
 
     const handleOgTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        if (isFormApproach) {
-        } else {
-            handleInputChange?.("og_title", value);
-        }
+        if (!isFormApproach) handleInputChange?.("og_title", value);
     };
 
     const handleOgDescriptionChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
-        if (isFormApproach) {
-        } else {
-            handleInputChange?.("og_description", value);
-        }
+        if (!isFormApproach) handleInputChange?.("og_description", value);
     };
 
     const handleCanonicalUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        if (isFormApproach) {
-        } else {
-            handleInputChange?.("canonical_url", value);
-        }
+        if (!isFormApproach) handleInputChange?.("canonical_url", value);
     };
 
     const handleRobotsMetaChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        if (isFormApproach) {
-        } else {
-            handleInputChange?.("robots_meta", value);
-        }
+        if (!isFormApproach) handleInputChange?.("robots_meta", value);
     };
-    
+
     const handleOgImageSelect = (media: Media | Media[] | null) => {
         const selected = Array.isArray(media) ? media[0] || null : media;
-        
         if (isFormApproach) {
             setValue?.("og_image", selected, { shouldValidate: true });
         } else {
             handleInputChange?.("og_image", selected);
         }
-        
         setIsMediaModalOpen(false);
     };
 
@@ -124,268 +97,45 @@ export default function PortfolioSEO(props: SEOTabProps) {
 
     return (
         <TabsContent value="seo" className="mt-0 space-y-6">
-            <div className="flex flex-col lg:flex-row gap-6">
-                <div className="flex-1 min-w-0 space-y-6">
-                    <CardWithIcon
-                        icon={Search}
-                        title="برچسب‌های Meta"
-                        iconBgColor="bg-emerald"
-                        iconColor="stroke-emerald-2"
-                        borderColor="border-b-emerald-1"
-                    >
-                            <div className="space-y-6">
-                                <div className="flex flex-col lg:flex-row gap-6">
-                                    <div className="lg:w-[35%] lg:max-w-[320px]">
-                                        {isFormApproach ? (
-                                            <FormFieldInput
-                                                label="عنوان متا (Meta Title)"
-                                                id="meta_title"
-                                                error={(formState.errors as any)?.meta_title?.message}
-                                                placeholder="عنوان صفحه برای موتورهای جستجو"
-                                                maxLength={70}
-                                                disabled={!editMode}
-                                                description="حداکثر 70 کاراکتر توصیه می‌شود"
-                                                {...(register ? register("meta_title" as Path<PortfolioFormValues>, {
-                                                    onChange: handleMetaTitleChange
-                                                }) : {})}
-                                            />
-                                        ) : (
-                                            <FormFieldInput
-                                                label="عنوان متا (Meta Title)"
-                                                id="meta_title"
-                                                error={(formState.errors as any)?.meta_title?.message}
-                                                placeholder="عنوان صفحه برای موتورهای جستجو"
-                                                maxLength={70}
-                                                disabled={!editMode}
-                                                description="حداکثر 70 کاراکتر توصیه می‌شود"
-                                                value={metaTitleValue || ""}
-                                                onChange={handleMetaTitleChange}
-                                            />
-                                        )}
-                                    </div>
-                                    
-                                    <div className="lg:flex-1 lg:min-w-0">
-                                        {isFormApproach ? (
-                                            <FormFieldTextarea
-                                                label="توضیحات متا (Meta Description)"
-                                                id="meta_description"
-                                                error={(formState.errors as any)?.meta_description?.message}
-                                                placeholder="توضیحات صفحه برای موتورهای جستجو"
-                                                rows={5}
-                                                maxLength={160}
-                                                disabled={!editMode}
-                                                description="بین 120 تا 160 کاراکتر توصیه می‌شود"
-                                                {...(register ? register("meta_description" as Path<PortfolioFormValues>, {
-                                                    onChange: handleMetaDescriptionChange
-                                                }) : {})}
-                                            />
-                                        ) : (
-                                            <FormFieldTextarea
-                                                label="توضیحات متا (Meta Description)"
-                                                id="meta_description"
-                                                error={(formState.errors as any)?.meta_description?.message}
-                                                placeholder="توضیحات صفحه برای موتورهای جستجو"
-                                                rows={5}
-                                                maxLength={160}
-                                                disabled={!editMode}
-                                                description="بین 120 تا 160 کاراکتر توصیه می‌شود"
-                                                value={metaDescriptionValue || ""}
-                                                onChange={handleMetaDescriptionChange}
-                                            />
-                                        )}
-                                    </div>
-                                </div>
+            <div className="space-y-6">
+                <CardWithIcon
+                    icon={Search}
+                    title="برچسب‌های Meta"
+                    iconBgColor="bg-emerald"
+                    iconColor="stroke-emerald-2"
+                    cardBorderColor="border-b-emerald-1"
+                >
+                    <PortfolioSEOMetaFields
+                        isFormApproach={isFormApproach}
+                        form={isFormApproach ? props.form : undefined}
+                        editMode={editMode}
+                        metaTitleValue={metaTitleValue}
+                        metaDescriptionValue={metaDescriptionValue}
+                        canonicalUrlValue={canonicalUrlValue}
+                        robotsMetaValue={robotsMetaValue}
+                        handleMetaTitleChange={handleMetaTitleChange}
+                        handleMetaDescriptionChange={handleMetaDescriptionChange}
+                        handleCanonicalUrlChange={handleCanonicalUrlChange}
+                        handleRobotsMetaChange={handleRobotsMetaChange}
+                    />
+                </CardWithIcon>
 
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    {isFormApproach ? (
-                                        <FormFieldInput
-                                            label="آدرس کانونیکال (Canonical URL)"
-                                            id="canonical_url"
-                                            error={(formState.errors as any)?.canonical_url?.message}
-                                            placeholder="https://example.com/portfolio/item"
-                                            type="url"
-                                            disabled={!editMode}
-                                            {...(register ? register("canonical_url" as Path<PortfolioFormValues>, {
-                                                onChange: handleCanonicalUrlChange
-                                            }) : {})}
-                                        />
-                                    ) : (
-                                        <FormFieldInput
-                                            label="آدرس کانونیکال (Canonical URL)"
-                                            id="canonical_url"
-                                            error={(formState.errors as any)?.canonical_url?.message}
-                                            placeholder="https://example.com/portfolio/item"
-                                            type="url"
-                                            disabled={!editMode}
-                                            value={canonicalUrlValue || ""}
-                                            onChange={handleCanonicalUrlChange}
-                                        />
-                                    )}
-                                    
-                                    {isFormApproach ? (
-                                        <FormFieldInput
-                                            label="دستورالعمل ربات‌های جستجو (Robots Meta)"
-                                            id="robots_meta"
-                                            error={(formState.errors as any)?.robots_meta?.message}
-                                            placeholder="index,follow"
-                                            disabled={!editMode}
-                                            {...(register ? register("robots_meta" as Path<PortfolioFormValues>, {
-                                                onChange: handleRobotsMetaChange
-                                            }) : {})}
-                                        />
-                                    ) : (
-                                        <FormFieldInput
-                                            label="دستورالعمل ربات‌های جستجو (Robots Meta)"
-                                            id="robots_meta"
-                                            error={(formState.errors as any)?.robots_meta?.message}
-                                            placeholder="index,follow"
-                                            disabled={!editMode}
-                                            value={robotsMetaValue || ""}
-                                            onChange={handleRobotsMetaChange}
-                                        />
-                                    )}
-                                </div>
-                            </div>
-                    </CardWithIcon>
-
-                    <CardWithIcon
-                        icon={Globe}
-                        title="پیش‌نمایش Open Graph"
-                        iconBgColor="bg-blue"
-                        iconColor="stroke-blue-2"
-                        borderColor="border-b-blue-1"
-                    >
-                            <div className="flex flex-col lg:flex-row gap-6">
-                                <div className="lg:w-[35%] lg:max-w-[320px]">
-                                    {isFormApproach ? (
-                                        <FormFieldInput
-                                            label="عنوان Open Graph"
-                                            id="og_title"
-                                            error={(formState.errors as any)?.og_title?.message}
-                                            placeholder="عنوان برای اشتراک‌گذاری در شبکه‌های اجتماعی"
-                                            maxLength={70}
-                                            disabled={!editMode}
-                                            {...(register ? register("og_title" as Path<PortfolioFormValues>, {
-                                                onChange: handleOgTitleChange
-                                            }) : {})}
-                                        />
-                                    ) : (
-                                        <FormFieldInput
-                                            label="عنوان Open Graph"
-                                            id="og_title"
-                                            error={(formState.errors as any)?.og_title?.message}
-                                            placeholder="عنوان برای اشتراک‌گذاری در شبکه‌های اجتماعی"
-                                            maxLength={70}
-                                            disabled={!editMode}
-                                            value={ogTitleValue || ""}
-                                            onChange={handleOgTitleChange}
-                                        />
-                                    )}
-                                </div>
-                                
-                                <div className="lg:flex-1 lg:min-w-0">
-                                    {isFormApproach ? (
-                                        <FormFieldTextarea
-                                            label="توضیحات Open Graph"
-                                            id="og_description"
-                                            error={(formState.errors as any)?.og_description?.message}
-                                            placeholder="توضیحات برای اشتراک‌گذاری در شبکه‌های اجتماعی"
-                                            rows={5}
-                                            maxLength={160}
-                                            disabled={!editMode}
-                                            {...(register ? register("og_description" as Path<PortfolioFormValues>, {
-                                                onChange: handleOgDescriptionChange
-                                            }) : {})}
-                                        />
-                                    ) : (
-                                        <FormFieldTextarea
-                                            label="توضیحات Open Graph"
-                                            id="og_description"
-                                            error={(formState.errors as any)?.og_description?.message}
-                                            placeholder="توضیحات برای اشتراک‌گذاری در شبکه‌های اجتماعی"
-                                            rows={5}
-                                            maxLength={160}
-                                            disabled={!editMode}
-                                            value={ogDescriptionValue || ""}
-                                            onChange={handleOgDescriptionChange}
-                                        />
-                                    )}
-                                </div>
-                            </div>
-                    </CardWithIcon>
-                </div>
-
-                <div className="w-full lg:w-[420px] lg:flex-shrink-0">
-                    <CardWithIcon
-                        icon={ImageIcon}
-                        title="تصویر Open Graph"
-                        iconBgColor="bg-blue"
-                        iconColor="stroke-blue-2"
-                        borderColor={(formState.errors as any)?.og_image ? 'border-b-red-1' : 'border-b-blue-1'}
-                        className="lg:sticky lg:top-20"
-                    >
-                            {ogImageValue && ogImageUrl ? (
-                                <div className="relative w-full aspect-video rounded-lg overflow-hidden group border">
-                                    <img
-                                        src={ogImageUrl}
-                                        alt={ogImageValue.alt_text || "تصویر Open Graph"}
-                                        className="object-cover w-full h-full"
-                                    />
-                                    <div className="absolute inset-0 bg-static-b/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setIsMediaModalOpen(true)}
-                                            className="mx-1"
-                                            disabled={!editMode}
-                                        >
-                                            تغییر تصویر
-                                        </Button>
-
-                                        <Button
-                                            variant="destructive"
-                                            size="sm"
-                                            onClick={handleRemoveOgImage}
-                                            className="mx-1"
-                                            disabled={!editMode}
-                                        >
-                                            <X className="w-4 h-4" />
-                                            حذف
-                                        </Button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div
-                                    onClick={() => editMode && setIsMediaModalOpen(true)}
-                                    className={`relative flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-blue-1 transition-colors ${!editMode ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                >
-                                    <UploadCloud className="w-12 h-12 text-font-s" />
-                                    <p className="font-semibold">انتخاب تصویر Open Graph</p>
-                                    <p className="text-font-s text-center">
-                                        برای انتخاب از کتابخانه کلیک کنید
-                                    </p>
-                                </div>
-                            )}
-                            
-                            {(formState.errors as any)?.og_image?.message && (
-                                <div className="flex items-start gap-2 text-red-2">
-                                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                                    <span>{String((formState.errors as any).og_image.message)}</span>
-                                </div>
-                            )}
-                    </CardWithIcon>
-                </div>
+                <PortfolioSEOSocialPreview
+                    isFormApproach={isFormApproach}
+                    form={isFormApproach ? props.form : undefined}
+                    editMode={editMode}
+                    portfolioId={portfolioId}
+                    ogTitleValue={ogTitleValue}
+                    ogDescriptionValue={ogDescriptionValue}
+                    ogImageValue={ogImageValue}
+                    isMediaModalOpen={isMediaModalOpen}
+                    setIsMediaModalOpen={setIsMediaModalOpen}
+                    handleOgTitleChange={handleOgTitleChange}
+                    handleOgDescriptionChange={handleOgDescriptionChange}
+                    handleOgImageSelect={handleOgImageSelect}
+                    handleRemoveOgImage={handleRemoveOgImage}
+                />
             </div>
-            
-            <MediaLibraryModal
-                isOpen={isMediaModalOpen}
-                onClose={() => setIsMediaModalOpen(false)}
-                onSelect={handleOgImageSelect}
-                selectMultiple={false}
-                initialFileType="image"
-                context="portfolio"
-                contextId={portfolioId}
-            />
         </TabsContent>
     );
 }

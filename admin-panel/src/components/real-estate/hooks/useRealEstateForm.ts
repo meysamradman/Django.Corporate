@@ -181,8 +181,6 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
 
             // Cleanup payload
             delete payload.og_image_id;
-            delete payload.province;
-            delete payload.city;
             delete payload.labels_ids;
             delete payload.tags_ids;
             delete payload.features_ids;

@@ -39,7 +39,7 @@ const TabSkeleton = () => (
           </div>
         </CardWithIcon>
       </div>
-      <div className="w-full lg:w-[420px] lg:flex-shrink-0">
+      <div className="w-full lg:w-[420px] lg:shrink-0">
         <CardWithIcon
           icon={Settings}
           title="تنظیمات"
@@ -116,45 +116,43 @@ export default function EditPortfolioPage() {
       isSubmitting={form.formState.isSubmitting}
       isEditMode={true}
     >
-      <div className="mt-6">
-        {activeTab === "account" && (
-          <Suspense fallback={<TabSkeleton />}>
-            <BaseInfoTab
-              form={form}
-              editMode={true}
-              portfolioId={id}
-            />
-          </Suspense>
-        )}
-        {activeTab === "media" && (
-          <Suspense fallback={<TabSkeleton />}>
-            <MediaTab
-              form={form}
-              portfolioMedia={portfolioMedia}
-              setPortfolioMedia={setPortfolioMedia}
-              editMode={true}
-              portfolioId={id}
-            />
-          </Suspense>
-        )}
-        {activeTab === "seo" && (
-          <Suspense fallback={<TabSkeleton />}>
-            <SEOTab
-              form={form}
-              editMode={true}
-              portfolioId={id}
-            />
-          </Suspense>
-        )}
-        {activeTab === "extra" && (
-          <Suspense fallback={<TabSkeleton />}>
-            <ExtraAttributesTab
-              form={form}
-              editMode={true}
-            />
-          </Suspense>
-        )}
-      </div>
+      {activeTab === "account" && (
+        <Suspense fallback={<TabSkeleton />}>
+          <BaseInfoTab
+            form={form}
+            editMode={true}
+            portfolioId={id}
+          />
+        </Suspense>
+      )}
+      {activeTab === "media" && (
+        <Suspense fallback={<TabSkeleton />}>
+          <MediaTab
+            form={form}
+            portfolioMedia={portfolioMedia}
+            setPortfolioMedia={setPortfolioMedia}
+            editMode={true}
+            portfolioId={id}
+          />
+        </Suspense>
+      )}
+      {activeTab === "seo" && (
+        <Suspense fallback={<TabSkeleton />}>
+          <SEOTab
+            form={form}
+            editMode={true}
+            portfolioId={id}
+          />
+        </Suspense>
+      )}
+      {activeTab === "extra" && (
+        <Suspense fallback={<TabSkeleton />}>
+          <ExtraAttributesTab
+            form={form}
+            editMode={true}
+          />
+        </Suspense>
+      )}
     </PortfolioFormLayout>
   );
 }

@@ -322,7 +322,7 @@ class PropertyAdminDetailSerializer(MediaAggregationMixin, serializers.ModelSeri
             'structured_data', 'hreflang_data',
             'seo_data', 'seo_preview', 'seo_completeness',
             'created_by', 'created_by_name', 'city_name', 'province_name', 'country_name', # ✅ created_by added
-            'district_name', 'region_name',
+            'district_name', 'region_name', 'province',
             'price', 'sale_price', 'pre_sale_price', 'price_per_sqm',
             'monthly_rent', 'rent_amount', 'mortgage_amount', 'security_deposit',
             'land_area', 'built_area',

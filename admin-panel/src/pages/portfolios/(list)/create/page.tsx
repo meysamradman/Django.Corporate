@@ -41,7 +41,7 @@ const TabSkeleton = () => (
         </CardWithIcon>
       </div>
 
-      <div className="w-full lg:w-[420px] lg:flex-shrink-0">
+      <div className="w-full lg:w-[420px] lg:shrink-0">
         <CardWithIcon
           icon={Settings}
           title="تنظیمات"
@@ -93,42 +93,40 @@ export default function CreatePortfolioPage() {
       isSubmitting={form.formState.isSubmitting}
       isEditMode={false}
     >
-      <div className="mt-6">
-        {activeTab === "account" && (
-          <Suspense fallback={<TabSkeleton />}>
-            <BaseInfoTab
-              form={form}
-              editMode={true}
-            />
-          </Suspense>
-        )}
-        {activeTab === "media" && (
-          <Suspense fallback={<TabSkeleton />}>
-            <MediaTab
-              form={form}
-              portfolioMedia={portfolioMedia}
-              setPortfolioMedia={setPortfolioMedia}
-              editMode={true}
-            />
-          </Suspense>
-        )}
-        {activeTab === "seo" && (
-          <Suspense fallback={<TabSkeleton />}>
-            <SEOTab
-              form={form}
-              editMode={true}
-            />
-          </Suspense>
-        )}
-        {activeTab === "extra" && (
-          <Suspense fallback={<TabSkeleton />}>
-            <ExtraAttributesTab
-              form={form}
-              editMode={true}
-            />
-          </Suspense>
-        )}
-      </div>
+      {activeTab === "account" && (
+        <Suspense fallback={<TabSkeleton />}>
+          <BaseInfoTab
+            form={form}
+            editMode={true}
+          />
+        </Suspense>
+      )}
+      {activeTab === "media" && (
+        <Suspense fallback={<TabSkeleton />}>
+          <MediaTab
+            form={form}
+            portfolioMedia={portfolioMedia}
+            setPortfolioMedia={setPortfolioMedia}
+            editMode={true}
+          />
+        </Suspense>
+      )}
+      {activeTab === "seo" && (
+        <Suspense fallback={<TabSkeleton />}>
+          <SEOTab
+            form={form}
+            editMode={true}
+          />
+        </Suspense>
+      )}
+      {activeTab === "extra" && (
+        <Suspense fallback={<TabSkeleton />}>
+          <ExtraAttributesTab
+            form={form}
+            editMode={true}
+          />
+        </Suspense>
+      )}
     </PortfolioFormLayout>
   );
 }

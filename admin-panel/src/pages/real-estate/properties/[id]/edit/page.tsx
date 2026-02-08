@@ -43,7 +43,7 @@ const TabSkeleton = () => (
         </CardWithIcon>
       </div>
 
-      <div className="w-full lg:w-[420px] lg:flex-shrink-0">
+      <div className="w-full lg:w-[420px] lg:shrink-0">
         <CardWithIcon
           icon={Settings}
           title="تنظیمات"
@@ -165,7 +165,6 @@ export default function EditPropertyPage() {
             longitude={formData.longitude}
             onLocationChange={handleLocationChange}
             editMode={true}
-            regionName={(property as any).region_name || ""}
             districtName={(property as any).district_name || null}
           />
         </Suspense>
