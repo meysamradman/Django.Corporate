@@ -17,6 +17,7 @@ export const DRAWER_IDS = {
     SETTINGS_SLIDER_FORM: 'SETTINGS_SLIDER_FORM',
     CHATBOT_FAQ_FORM: 'CHATBOT_FAQ_FORM',
     FORM_BUILDER_FIELD_FORM: 'FORM_BUILDER_FIELD_FORM',
+    SETTINGS_MAP_FORM: 'SETTINGS_MAP_FORM',
 } as const;
 
 export type DrawerId = keyof typeof DRAWER_IDS;
@@ -91,6 +92,9 @@ export interface DrawerProps {
     };
     FORM_BUILDER_FIELD_FORM: {
         editId?: number | null;
+        onSuccess?: () => void;
+    };
+    SETTINGS_MAP_FORM: {
         onSuccess?: () => void;
     };
 }

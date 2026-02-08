@@ -47,7 +47,8 @@ import {
   BookPlus,
   Music,
   Inbox,
-  Send
+  Send,
+  Map as MapIcon
 } from "lucide-react";
 
 import { useMemo, useCallback } from "react"
@@ -376,6 +377,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         access: { module: "settings", allowReadOnly: true, roles: ["super_admin", "agency_manager"] },
         items: [
           { title: "تنظیمات عمومی", url: "/settings/general", icon: Settings },
+          { title: "تنظیمات نقشه", url: "/settings/map", icon: MapIcon },
           { title: "مدیریت اسلایدرها", url: "/settings/sliders", icon: GalleryHorizontal },
           { title: "ارتباطات و تماس", isTitle: true },
           { title: "شماره‌های تماس", url: "/settings/phones", icon: Phone },

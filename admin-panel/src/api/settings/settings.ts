@@ -16,11 +16,27 @@ import type {
     SocialMediaUpdate,
     Slider,
     SliderCreate,
-    SliderUpdate
+    SliderUpdate,
+    MapSettings
 } from "@/types/settings/generalSettings";
 
 class SettingsApi {
     private baseUrl = '/settings/';
+
+    async getMapSettings(): Promise<MapSettings> {
+        const response = await api.get<MapSettings>(
+            `${this.baseUrl}map/`
+        );
+        return response.data;
+    }
+
+    async updateMapSettings(data: Partial<MapSettings>): Promise<MapSettings> {
+        const response = await api.patch<MapSettings>(
+            `${this.baseUrl}map/1/`, // Usually we only have one row or the first row
+            data as unknown as Record<string, unknown>
+        );
+        return response.data;
+    }
 
     async getGeneralSettings(): Promise<GeneralSettings> {
         const response = await api.get<GeneralSettings>(

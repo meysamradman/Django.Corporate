@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from src.settings.views import (
     GeneralSettingsViewSet,
+    MapSettingsViewSet,
     ContactPhoneViewSet,
     ContactMobileViewSet,
     ContactEmailViewSet,
@@ -11,6 +12,7 @@ from src.settings.views import (
 
 router = DefaultRouter()
 router.register(r'settings/general', GeneralSettingsViewSet, basename='general-settings')
+router.register(r'settings/map', MapSettingsViewSet, basename='map-settings')
 router.register(r'settings/phones', ContactPhoneViewSet, basename='contact-phone')
 router.register(r'settings/mobiles', ContactMobileViewSet, basename='contact-mobile')
 router.register(r'settings/emails', ContactEmailViewSet, basename='contact-email')

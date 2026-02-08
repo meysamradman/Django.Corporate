@@ -22,6 +22,7 @@ const SocialMediaSide = lazy(() => import('@/components/settings/SocialMediaSide
 const SliderSide = lazy(() => import('@/components/settings/SliderSide').then(module => ({ default: module.SliderSide })));
 const FAQSide = lazy(() => import('@/components/chatbot/FAQSide').then(module => ({ default: module.FAQSide })));
 const FormFieldSide = lazy(() => import('@/components/form-builder/FormFieldSide').then(module => ({ default: module.FormFieldSide })));
+const MapSettingsSide = lazy(() => import('@/components/settings/MapSettingsSide').then(module => ({ default: module.MapSettingsSide })));
 
 const DRAWERS = {
     [DRAWER_IDS.BLOG_TAG_FORM]: BlogTagSide,
@@ -42,6 +43,7 @@ const DRAWERS = {
     [DRAWER_IDS.SETTINGS_SLIDER_FORM]: SliderSide,
     [DRAWER_IDS.CHATBOT_FAQ_FORM]: FAQSide,
     [DRAWER_IDS.FORM_BUILDER_FIELD_FORM]: FormFieldSide,
+    [DRAWER_IDS.SETTINGS_MAP_FORM]: MapSettingsSide,
 };
 
 export function GlobalDrawer() {

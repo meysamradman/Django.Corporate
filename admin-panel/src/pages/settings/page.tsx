@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { Settings, Phone, Smartphone, Mail, Share2, GalleryHorizontal } from "lucide-react";
+import { Settings, Phone, Smartphone, Mail, Share2, GalleryHorizontal, Map as MapIcon } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
 import { DRAWER_IDS } from "@/components/shared/drawer/types";
@@ -21,6 +21,7 @@ const ContactMobilesSection = lazy(() => import("@/components/settings").then(mo
 const ContactEmailsSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.ContactEmails })));
 const SocialMediaSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.SocialMediaSection })));
 const SlidersSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.SlidersSection })));
+const MapSettingsSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.MapSettingsSection })));
 
 export default function SettingsPage() {
     const openDrawer = useGlobalDrawerStore(state => state.open);
@@ -53,6 +54,8 @@ export default function SettingsPage() {
             openDrawer(DRAWER_IDS.SETTINGS_SLIDER_FORM);
         } else if (action === "edit-slider" && id) {
             openDrawer(DRAWER_IDS.SETTINGS_SLIDER_FORM, { editId: Number(id) });
+        } else if (action === "edit-map") {
+            openDrawer(DRAWER_IDS.SETTINGS_MAP_FORM);
         }
     }, [action, id, openDrawer]);
 
@@ -127,6 +130,18 @@ export default function SettingsPage() {
                     </div>
                     <Suspense fallback={<TabSkeleton />}>
                         <SlidersSection />
+                    </Suspense>
+                </div>
+            )}
+
+            {activeTab === "map" && (
+                <div className="space-y-6">
+                    <div className="flex items-center gap-2 pb-4 border-b">
+                        <MapIcon className="w-6 h-6 text-primary" />
+                        <h1 className="text-xl font-bold">تنظیمات نقشه</h1>
+                    </div>
+                    <Suspense fallback={<TabSkeleton />}>
+                        <MapSettingsSection />
                     </Suspense>
                 </div>
             )}
