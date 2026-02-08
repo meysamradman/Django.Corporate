@@ -1,6 +1,7 @@
-import { useState, lazy, Suspense, useEffect } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { useNavigate } from "react-router-dom";
+import { useURLStateSync, parseBooleanParam, parseDateRange } from "@/hooks/useURLStateSync";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useUserColumns } from "@/components/users/UserTableColumns";
 import { useUserFilterOptions, getUserFilterConfig } from "@/components/users/UserTableFilters";
@@ -36,57 +37,62 @@ export default function UsersPage() {
   const { booleanFilterOptions } = useUserFilterOptions();
   const userFilterConfig = getUserFilterConfig(booleanFilterOptions);
 
-  const [pagination, setPagination] = useState<TablePaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
+  const [pagination, setPagination] = useState<TablePaginationState>(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const page = parseInt(urlParams.get('page') || '1', 10);
+      const size = parseInt(urlParams.get('size') || '10', 10);
+      return {
+        pageIndex: Math.max(0, page - 1),
+        pageSize: size,
+      };
+    }
+    return { pageIndex: 0, pageSize: 10 };
   });
   const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
   const [rowSelection, setRowSelection] = useState({});
-  const [searchValue, setSearchValue] = useState("");
-  const [clientFilters, setClientFilters] = useState<Filter>({});
+  const [searchValue, setSearchValue] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('search') || '';
+    }
+    return '';
+  });
+  const [clientFilters, setClientFilters] = useState<Filter>(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const filters: Filter = {};
+      const isActive = urlParams.get('is_active');
+      if (isActive !== null) filters.is_active = isActive === 'true';
+      const isVerified = urlParams.get('is_verified');
+      if (isVerified !== null) filters.is_verified = isVerified === 'true';
+      if (urlParams.get('date_from')) filters.date_from = urlParams.get('date_from')!;
+      if (urlParams.get('date_to')) filters.date_to = urlParams.get('date_to')!;
+      return filters;
+    }
+    return {};
+  });
 
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
 
-    if (urlParams.get('page')) {
-      const page = parseInt(urlParams.get('page')!, 10);
-      setPagination(prev => ({ ...prev, pageIndex: page - 1 }));
-    }
-    if (urlParams.get('size')) {
-      const size = parseInt(urlParams.get('size')!, 10);
-      setPagination(prev => ({ ...prev, pageSize: size }));
-    }
+  // URL State Synchronization
+  useURLStateSync(
+    setPagination,
+    setSearchValue,
+    setSorting,
+    setClientFilters,
+    (urlParams) => {
+      const filters: Filter = {};
 
-    if (urlParams.get('order_by') && urlParams.get('order_desc') !== null) {
-      const orderBy = urlParams.get('order_by')!;
-      const orderDesc = urlParams.get('order_desc') === 'true';
-      setSorting([{ id: orderBy, desc: orderDesc }]);
-    } else {
-      setSorting(initSortingFromURL());
-    }
+      // Boolean filters
+      filters.is_active = parseBooleanParam(urlParams, 'is_active');
+      filters.is_verified = parseBooleanParam(urlParams, 'is_verified');
 
-    if (urlParams.get('search')) {
-      setSearchValue(urlParams.get('search')!);
-    }
+      // Date filters
+      Object.assign(filters, parseDateRange(urlParams));
 
-    const newClientFilters: typeof clientFilters = {};
-    if (urlParams.get('is_active') !== null) {
-      newClientFilters.is_active = urlParams.get('is_active') === 'true';
+      return filters;
     }
-    if (urlParams.get('is_verified') !== null) {
-      newClientFilters.is_verified = urlParams.get('is_verified') === 'true';
-    }
-    if (urlParams.get('date_from')) {
-      newClientFilters.date_from = urlParams.get('date_from')!;
-    }
-    if (urlParams.get('date_to')) {
-      newClientFilters.date_to = urlParams.get('date_to')!;
-    }
-
-    if (Object.keys(newClientFilters).length > 0) {
-      setClientFilters(newClientFilters);
-    }
-  }, []);
+  );
 
   const { handleFilterChange } = useTableFilters<Filter>(
     setClientFilters,
@@ -201,7 +207,7 @@ export default function UsersPage() {
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
-    window.history.replaceState({}, '', url.toString());
+    navigate(url.search, { replace: true });
   };
 
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
@@ -215,7 +221,7 @@ export default function UsersPage() {
       url.searchParams.delete('order_by');
       url.searchParams.delete('order_desc');
     }
-    window.history.replaceState({}, '', url.toString());
+    navigate(url.search, { replace: true });
   };
 
   if (error) {

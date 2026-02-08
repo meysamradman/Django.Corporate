@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { useNavigate, Link } from "react-router-dom";
+import { useURLStateSync, parseBooleanParam, parseDateRange } from "@/hooks/useURLStateSync";
 import { useAdminFilterOptions } from "@/components/admins/AdminTableFilters";
 import { DataTableDateRangeFilter } from "@/components/tables/DataTableDateRangeFilter";
 import type { AdminWithProfile, AdminListParams, AdminFilters } from "@/types/auth/admin";
@@ -39,60 +40,63 @@ export default function AdminsPage() {
   const { user } = useAuth();
   const { booleanFilterOptions, roleFilterOptions } = useAdminFilterOptions();
 
-  const [pagination, setPagination] = useState<TablePaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
+  const [pagination, setPagination] = useState<TablePaginationState>(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const page = parseInt(urlParams.get('page') || '1', 10);
+      const size = parseInt(urlParams.get('size') || '10', 10);
+      return { pageIndex: Math.max(0, page - 1), pageSize: size };
+    }
+    return { pageIndex: 0, pageSize: 10 };
   });
   const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
-  const [searchValue, setSearchValue] = useState("");
-  const [clientFilters, setClientFilters] = useState<AdminFilters>({
-    user_role_type: 'admin', // فقط ادمین‌ها
+  const [searchValue, setSearchValue] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('search') || '';
+    }
+    return '';
+  });
+  const [clientFilters, setClientFilters] = useState<AdminFilters>(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const filters: AdminFilters = { user_role_type: 'admin' };
+      const isActive = urlParams.get('is_active');
+      if (isActive !== null) filters.is_active = isActive === 'true';
+      const isSuperuser = urlParams.get('is_superuser');
+      if (isSuperuser !== null) filters.is_superuser = isSuperuser === 'true';
+      const dateFrom = urlParams.get('date_from');
+      const dateTo = urlParams.get('date_to');
+      if (dateFrom) filters.date_from = dateFrom;
+      if (dateTo) filters.date_to = dateTo;
+      if (dateFrom || dateTo) {
+        (filters as any).date_range = { from: dateFrom || undefined, to: dateTo || undefined };
+      }
+      return filters;
+    }
+    return { user_role_type: 'admin' };
   });
 
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
 
-    if (urlParams.get('page')) {
-      const page = parseInt(urlParams.get('page')!, 10);
-      setPagination(prev => ({ ...prev, pageIndex: page - 1 }));
-    }
-    if (urlParams.get('size')) {
-      const size = parseInt(urlParams.get('size')!, 10);
-      setPagination(prev => ({ ...prev, pageSize: size }));
-    }
+  // URL State Synchronization
+  useURLStateSync(
+    setPagination,
+    setSearchValue,
+    setSorting,
+    setClientFilters,
+    (urlParams) => {
+      const filters: AdminFilters = { user_role_type: 'admin' };
 
-    if (urlParams.get('order_by') && urlParams.get('order_desc') !== null) {
-      const orderBy = urlParams.get('order_by')!;
-      const orderDesc = urlParams.get('order_desc') === 'true';
-      setSorting([{ id: orderBy, desc: orderDesc }]);
-    } else {
-      setSorting(initSortingFromURL());
-    }
+      // Boolean filters
+      filters.is_active = parseBooleanParam(urlParams, 'is_active');
+      filters.is_superuser = parseBooleanParam(urlParams, 'is_superuser');
 
-    if (urlParams.get('search')) {
-      setSearchValue(urlParams.get('search')!);
-    }
+      // Date filters
+      Object.assign(filters, parseDateRange(urlParams));
 
-    const newClientFilters: typeof clientFilters = {};
-    if (urlParams.get('is_active') !== null) {
-      newClientFilters.is_active = urlParams.get('is_active') === 'true';
+      return filters;
     }
-    if (urlParams.get('is_superuser') !== null) {
-      newClientFilters.is_superuser = urlParams.get('is_superuser') === 'true';
-    }
-    newClientFilters.user_role_type = 'admin';
-    const dateFrom = urlParams.get('date_from');
-    const dateTo = urlParams.get('date_to');
-    if (dateFrom || dateTo) {
-      newClientFilters.date_from = dateFrom || undefined;
-      newClientFilters.date_to = dateTo || undefined;
-      (newClientFilters as any).date_range = { from: dateFrom || undefined, to: dateTo || undefined };
-    }
-
-    if (Object.keys(newClientFilters).length > 0) {
-      setClientFilters(newClientFilters);
-    }
-  }, []);
+  );
 
   const { handleFilterChange: baseHandleFilterChange } = useTableFilters<AdminFilters>(
     setClientFilters,

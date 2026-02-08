@@ -1,6 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useURLStateSync, parseBooleanParam, parseStringParam, parseDateRange } from "@/hooks/useURLStateSync";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useBlogColumns } from "@/components/blogs/posts/list/BlogTableColumns";
 import { useBlogFilterOptions, getBlogFilterConfig } from "@/components/blogs/posts/list/BlogTableFilters";
@@ -109,46 +110,31 @@ export default function BlogPage() {
     return {};
   });
 
-  const location = useLocation();
 
-  useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
-    
-    // Sync Pagination
-    const page = parseInt(urlParams.get('page') || '1', 10);
-    const size = parseInt(urlParams.get('size') || '10', 10);
-    setPagination(prev => {
-      if (prev.pageIndex === Math.max(0, page - 1) && prev.pageSize === size) return prev;
-      return {
-        pageIndex: Math.max(0, page - 1),
-        pageSize: size,
-      };
-    });
+  // URL State Synchronization
+  useURLStateSync(
+    setPagination,
+    setSearchValue,
+    setSorting,
+    setClientFilters,
+    (urlParams) => {
+      const filters: BlogFilters = {};
 
-    // Sync Search Value
-    const search = urlParams.get('search') || '';
-    setSearchValue(prev => prev === search ? prev : search);
+      // Boolean filters
+      filters.is_featured = parseBooleanParam(urlParams, 'is_featured');
+      filters.is_public = parseBooleanParam(urlParams, 'is_public');
+      filters.is_active = parseBooleanParam(urlParams, 'is_active');
 
-    // Sync Sorting
-    setSorting(initSortingFromURL());
+      // String filters
+      filters.status = parseStringParam(urlParams, 'status');
+      filters.category = parseStringParam(urlParams, 'category');
 
-    // Sync Client Filters
-    const filters: BlogFilters = {};
-    if (urlParams.get('status')) filters.status = urlParams.get('status') as string;
-    if (urlParams.get('is_featured')) filters.is_featured = urlParams.get('is_featured') === 'true';
-    if (urlParams.get('is_public')) filters.is_public = urlParams.get('is_public') === 'true';
-    if (urlParams.get('is_active')) filters.is_active = urlParams.get('is_active') === 'true';
-    if (urlParams.get('category')) filters.category = urlParams.get('category') as string;
-    const dateFrom = urlParams.get('date_from');
-    const dateTo = urlParams.get('date_to');
-    if (dateFrom) filters.date_from = dateFrom;
-    if (dateTo) filters.date_to = dateTo;
+      // Date filters
+      Object.assign(filters, parseDateRange(urlParams));
 
-    setClientFilters(prev => {
-      const hasChanged = JSON.stringify(prev) !== JSON.stringify(filters);
-      return hasChanged ? filters : prev;
-    });
-  }, [location.search]);
+      return filters;
+    }
+  );
 
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
@@ -418,7 +404,7 @@ export default function BlogPage() {
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
-    window.history.replaceState({}, '', url.toString());
+    navigate(url.search, { replace: true });
   };
 
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
@@ -436,7 +422,7 @@ export default function BlogPage() {
       url.searchParams.delete('order_by');
       url.searchParams.delete('order_desc');
     }
-    window.history.replaceState({}, '', url.toString());
+    navigate(url.search, { replace: true });
   };
 
   if (error) {

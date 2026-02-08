@@ -1,6 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { useNavigate } from "react-router-dom";
+import { useURLStateSync, parseBooleanParam, parseStringParam, parseDateRange } from "@/hooks/useURLStateSync";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { usePropertyColumns } from "@/components/real-estate/properties/list/RealEstateTableColumns";
 import { usePropertyFilterOptions, getPropertyFilterConfig } from "@/components/real-estate/properties/list/RealEstateTableFilters";
@@ -98,19 +99,72 @@ export default function PropertyPage() {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       const filters: PropertyFilters = {};
-      if (urlParams.get('is_published')) filters.is_published = urlParams.get('is_published') === 'true';
-      if (urlParams.get('is_featured')) filters.is_featured = urlParams.get('is_featured') === 'true';
-      if (urlParams.get('is_active')) filters.is_active = urlParams.get('is_active') === 'true';
-      if (urlParams.get('property_type')) filters.property_type = parseInt(urlParams.get('property_type') || '0');
-      if (urlParams.get('state')) filters.state = parseInt(urlParams.get('state') || '0');
-      if (urlParams.get('city')) filters.city = parseInt(urlParams.get('city') || '0');
-      if (urlParams.get('status')) filters.status = urlParams.get('status') || undefined;
-      if (urlParams.get('date_from')) filters.date_from = urlParams.get('date_from') || undefined;
-      if (urlParams.get('date_to')) filters.date_to = urlParams.get('date_to') || undefined;
+
+      const isPublished = urlParams.get('is_published');
+      if (isPublished !== null) filters.is_published = isPublished === 'true';
+
+      const isFeatured = urlParams.get('is_featured');
+      if (isFeatured !== null) filters.is_featured = isFeatured === 'true';
+
+      const isActive = urlParams.get('is_active');
+      if (isActive !== null) filters.is_active = isActive === 'true';
+
+      const propertyType = urlParams.get('property_type');
+      if (propertyType) filters.property_type = parseInt(propertyType);
+
+      const state = urlParams.get('state');
+      if (state) filters.state = parseInt(state);
+
+      const city = urlParams.get('city');
+      if (city) filters.city = parseInt(city);
+
+      const status = urlParams.get('status');
+      if (status) filters.status = status;
+
+      const dateFrom = urlParams.get('date_from');
+      if (dateFrom) filters.date_from = dateFrom;
+
+      const dateTo = urlParams.get('date_to');
+      if (dateTo) filters.date_to = dateTo;
+
       return filters;
     }
     return {};
   });
+
+  // URL State Synchronization
+  useURLStateSync(
+    setPagination,
+    setSearchValue,
+    setSorting,
+    setClientFilters,
+    (urlParams) => {
+      const filters: PropertyFilters = {};
+
+      // Boolean filters
+      filters.is_published = parseBooleanParam(urlParams, 'is_published');
+      filters.is_featured = parseBooleanParam(urlParams, 'is_featured');
+      filters.is_active = parseBooleanParam(urlParams, 'is_active');
+
+      // Numeric filters
+      const propertyType = urlParams.get('property_type');
+      if (propertyType) filters.property_type = parseInt(propertyType);
+
+      const state = urlParams.get('state');
+      if (state) filters.state = parseInt(state);
+
+      const city = urlParams.get('city');
+      if (city) filters.city = parseInt(city);
+
+      // String filters
+      filters.status = parseStringParam(urlParams, 'status');
+
+      // Date filters
+      Object.assign(filters, parseDateRange(urlParams));
+
+      return filters;
+    }
+  );
 
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
@@ -306,7 +360,7 @@ export default function PropertyPage() {
     {
       label: "مشاهده",
       icon: <Eye className="h-4 w-4" />,
-      onClick: (property) => navigate(`/real-estate/properties/${property.id}/view`),
+      onClick: (property) => navigate(`/ real - estate / properties / ${property.id}/view`),
       permission: "real_estate.property.read",
     },
     {
@@ -422,7 +476,7 @@ export default function PropertyPage() {
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
-    window.history.replaceState({}, '', url.toString());
+    navigate(url.search, { replace: true });
   };
 
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
@@ -440,7 +494,7 @@ export default function PropertyPage() {
       url.searchParams.delete('order_by');
       url.searchParams.delete('order_desc');
     }
-    window.history.replaceState({}, '', url.toString());
+    navigate(url.search, { replace: true });
   };
 
   if (error) {

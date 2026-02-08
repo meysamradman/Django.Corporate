@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { Link, useNavigate } from "react-router-dom";
+import { useURLStateSync, parseBooleanParam, parseDateRange } from "@/hooks/useURLStateSync";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { DataTable } from "@/components/tables/DataTable";
 import { useRoleColumns } from "@/components/roles/RoleTableColumns";
@@ -31,62 +32,74 @@ export default function RolesPage() {
   const { roleTypeFilterOptions } = useRoleFilterOptions();
   const roleFilterConfig = getRoleFilterConfig(roleTypeFilterOptions);
 
-  const [pagination, setPagination] = useState<TablePaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
+  const [pagination, setPagination] = useState<TablePaginationState>(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const page = parseInt(urlParams.get('page') || '1', 10);
+      const size = parseInt(urlParams.get('size') || '10', 10);
+      return { pageIndex: Math.max(0, page - 1), pageSize: size };
+    }
+    return { pageIndex: 0, pageSize: 10 };
   });
   const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
   const [rowSelection, setRowSelection] = useState({});
-  const [searchValue, setSearchValue] = useState("");
+  const [searchValue, setSearchValue] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('search') || '';
+    }
+    return '';
+  });
   const [clientFilters, setClientFilters] = useState<{
     is_active?: boolean;
     is_system_role?: boolean;
     date_from?: string;
     date_to?: string;
-  }>({});
+  }>(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const filters: {
+        is_active?: boolean;
+        is_system_role?: boolean;
+        date_from?: string;
+        date_to?: string;
+      } = {};
+      const isActive = urlParams.get('is_active');
+      if (isActive !== null) filters.is_active = isActive === 'true';
+      const isSystemRole = urlParams.get('is_system_role');
+      if (isSystemRole !== null) filters.is_system_role = isSystemRole === 'true';
+      if (urlParams.get('date_from')) filters.date_from = urlParams.get('date_from') as string;
+      if (urlParams.get('date_to')) filters.date_to = urlParams.get('date_to') as string;
+      return filters;
+    }
+    return {};
+  });
 
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
 
-    if (urlParams.get('page')) {
-      const page = parseInt(urlParams.get('page')!, 10);
-      setPagination(prev => ({ ...prev, pageIndex: page - 1 }));
-    }
-    if (urlParams.get('size')) {
-      const size = parseInt(urlParams.get('size')!, 10);
-      setPagination(prev => ({ ...prev, pageSize: size }));
-    }
+  // URL State Synchronization
+  useURLStateSync(
+    setPagination,
+    setSearchValue,
+    setSorting,
+    setClientFilters,
+    (urlParams) => {
+      const filters: {
+        is_active?: boolean;
+        is_system_role?: boolean;
+        date_from?: string;
+        date_to?: string;
+      } = {};
 
-    if (urlParams.get('order_by') && urlParams.get('order_desc') !== null) {
-      const orderBy = urlParams.get('order_by')!;
-      const orderDesc = urlParams.get('order_desc') === 'true';
-      setSorting([{ id: orderBy, desc: orderDesc }]);
-    } else {
-      setSorting(initSortingFromURL());
-    }
+      // Boolean filters
+      filters.is_active = parseBooleanParam(urlParams, 'is_active');
+      filters.is_system_role = parseBooleanParam(urlParams, 'is_system_role');
 
-    if (urlParams.get('search')) {
-      setSearchValue(urlParams.get('search')!);
-    }
+      // Date filters
+      Object.assign(filters, parseDateRange(urlParams));
 
-    const newClientFilters: typeof clientFilters = {};
-    if (urlParams.get('is_active') !== null) {
-      newClientFilters.is_active = urlParams.get('is_active') === 'true';
+      return filters;
     }
-    if (urlParams.get('is_system_role') !== null) {
-      newClientFilters.is_system_role = urlParams.get('is_system_role') === 'true';
-    }
-    if (urlParams.get('date_from')) {
-      newClientFilters.date_from = urlParams.get('date_from') as string;
-    }
-    if (urlParams.get('date_to')) {
-      newClientFilters.date_to = urlParams.get('date_to') as string;
-    }
-
-    if (Object.keys(newClientFilters).length > 0) {
-      setClientFilters(newClientFilters);
-    }
-  }, []);
+  );
 
   const navigate = useNavigate();
   const { handleFilterChange } = useTableFilters<typeof clientFilters>(

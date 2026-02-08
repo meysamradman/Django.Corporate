@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import type { TablePaginationState } from "@/types/shared/pagination";
 import { cleanupDateRangeFromURL, createFilterChangeHandler } from "./tableSorting";
+import { useNavigate } from "react-router-dom";
 
 /**
  * Hook for managing table filters with date_range support
@@ -16,14 +17,17 @@ export function useTableFilters<TFilters extends Record<string, unknown>>(
     [key: string]: (value: unknown, updateUrl: (url: URL) => void) => void;
   }
 ) {
+  const navigate = useNavigate();
+
   useEffect(() => {
-    cleanupDateRangeFromURL();
-  }, []);
+    cleanupDateRangeFromURL(navigate);
+  }, [navigate]);
 
   const handleFilterChange = createFilterChangeHandler(
     setClientFilters,
     setSearchValue,
     setPagination,
+    navigate,
     customHandlers
   );
 

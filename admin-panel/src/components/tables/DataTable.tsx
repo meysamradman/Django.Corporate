@@ -213,7 +213,6 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
   searchValue,
   customHeaderActions,
 }: DataTableProps<TData, TValue, TClientFilters>) {
-
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(controlledState.columnVisibility ?? {});
 
   const table = useReactTable({

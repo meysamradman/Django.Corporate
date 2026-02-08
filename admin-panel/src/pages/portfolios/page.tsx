@@ -1,6 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { useNavigate } from "react-router-dom";
+import { useURLStateSync, parseBooleanParam, parseStringParam, parseDateRange } from "@/hooks/useURLStateSync";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { usePortfolioColumns } from "@/components/portfolios/projects/list/PortfolioTableColumns";
 import { usePortfolioFilterOptions, getPortfolioFilterConfig } from "@/components/portfolios/projects/list/PortfolioTableFilters";
@@ -108,6 +109,32 @@ export default function PortfolioPage() {
     }
     return {};
   });
+
+
+  // URL State Synchronization
+  useURLStateSync(
+    setPagination,
+    setSearchValue,
+    setSorting,
+    setClientFilters,
+    (urlParams) => {
+      const filters: PortfolioFilters = {};
+
+      // Boolean filters
+      filters.is_featured = parseBooleanParam(urlParams, 'is_featured');
+      filters.is_public = parseBooleanParam(urlParams, 'is_public');
+      filters.is_active = parseBooleanParam(urlParams, 'is_active');
+
+      // String filters
+      filters.status = parseStringParam(urlParams, 'status');
+      filters.category = parseStringParam(urlParams, 'category');
+
+      // Date filters
+      Object.assign(filters, parseDateRange(urlParams));
+
+      return filters;
+    }
+  );
 
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
@@ -382,7 +409,7 @@ export default function PortfolioPage() {
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(newPagination.pageIndex + 1));
     url.searchParams.set('size', String(newPagination.pageSize));
-    window.history.replaceState({}, '', url.toString());
+    navigate(url.search, { replace: true });
   };
 
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
@@ -400,7 +427,7 @@ export default function PortfolioPage() {
       url.searchParams.delete('order_by');
       url.searchParams.delete('order_desc');
     }
-    window.history.replaceState({}, '', url.toString());
+    navigate(url.search, { replace: true });
   };
 
   if (error) {
