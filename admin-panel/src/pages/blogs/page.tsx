@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useBlogColumns } from "@/components/blogs/posts/list/BlogTableColumns";
 import { useBlogFilterOptions, getBlogFilterConfig } from "@/components/blogs/posts/list/BlogTableFilters";
@@ -101,13 +101,54 @@ export default function BlogPage() {
       const dateTo = urlParams.get('date_to');
       if (dateFrom || dateTo) {
         filters.date_range = { from: dateFrom || undefined, to: dateTo || undefined };
-        filters.date_from = dateFrom || undefined;
-        filters.date_to = dateTo || undefined;
       }
+      if (dateFrom) filters.date_from = dateFrom;
+      if (dateTo) filters.date_to = dateTo;
       return filters;
     }
     return {};
   });
+
+  const location = useLocation();
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    
+    // Sync Pagination
+    const page = parseInt(urlParams.get('page') || '1', 10);
+    const size = parseInt(urlParams.get('size') || '10', 10);
+    setPagination(prev => {
+      if (prev.pageIndex === Math.max(0, page - 1) && prev.pageSize === size) return prev;
+      return {
+        pageIndex: Math.max(0, page - 1),
+        pageSize: size,
+      };
+    });
+
+    // Sync Search Value
+    const search = urlParams.get('search') || '';
+    setSearchValue(prev => prev === search ? prev : search);
+
+    // Sync Sorting
+    setSorting(initSortingFromURL());
+
+    // Sync Client Filters
+    const filters: BlogFilters = {};
+    if (urlParams.get('status')) filters.status = urlParams.get('status') as string;
+    if (urlParams.get('is_featured')) filters.is_featured = urlParams.get('is_featured') === 'true';
+    if (urlParams.get('is_public')) filters.is_public = urlParams.get('is_public') === 'true';
+    if (urlParams.get('is_active')) filters.is_active = urlParams.get('is_active') === 'true';
+    if (urlParams.get('category')) filters.category = urlParams.get('category') as string;
+    const dateFrom = urlParams.get('date_from');
+    const dateTo = urlParams.get('date_to');
+    if (dateFrom) filters.date_from = dateFrom;
+    if (dateTo) filters.date_to = dateTo;
+
+    setClientFilters(prev => {
+      const hasChanged = JSON.stringify(prev) !== JSON.stringify(filters);
+      return hasChanged ? filters : prev;
+    });
+  }, [location.search]);
 
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;

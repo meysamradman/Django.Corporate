@@ -36,7 +36,7 @@ import { DataTableDateRangeFilter } from "./DataTableDateRangeFilter"
 import { DataTableDateRangeFilterDropdown } from "./DataTableDateRangeFilterDropdown"
 import { DataTableFacetedFilterSimple } from "./DataTableFacetedFilterSimple"
 import type { DateRangeOption } from "@/types/shared/table"
-import { Trash, Search, Download, Printer, FileSpreadsheet, FileText, ChevronDown, ListFilter, X, SlidersHorizontal, Save } from "lucide-react"
+import { Trash, Search, Download, Printer, FileSpreadsheet, FileText, ChevronDown, X, SlidersHorizontal } from "lucide-react"
 import { Loader } from "@/components/elements/Loader"
 import { PaginationControls } from "@/components/shared/Pagination"
 import {
@@ -53,6 +53,7 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
+  DrawerFooter,
   DrawerClose,
 } from "@/components/elements/Drawer"
 import type {
@@ -394,7 +395,7 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                   <DrawerHeader className="flex-none border-b border-muted/5">
                     <div className="flex items-center justify-between w-full">
                       <DrawerTitle className="text-base font-bold text-font-p tracking-tight leading-none flex items-center gap-2">
-                        <ListFilter className="size-4 text-blue-1" />
+                        <SlidersHorizontal className="size-4 text-blue-1" />
                         فیلترهای پیشرفته
                       </DrawerTitle>
                       <DrawerClose asChild>
@@ -402,42 +403,42 @@ export function DataTable<TData extends { id: number | string }, TValue, TClient
                           variant="outline"
                           size="icon"
                           className="h-8 w-8 text-font-s rounded-full border-muted/20 hover:bg-bg shadow-sm transition-all"
+                          type="button"
                         >
                           <X className="h-4 w-4" />
                         </Button>
                       </DrawerClose>
                     </div>
                   </DrawerHeader>
-
-                  <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar flex flex-col gap-8">
-                    <DataTableFilters
-                      filterConfig={filterConfig.filter(f => f.isAdvanced)}
-                      clientFilters={clientFilters}
-                      onFilterChange={onFilterChange as any}
-                      layout="sidebar"
-                      table={table}
-                    />
+                  <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar">
+                    <div className="space-y-8">
+                      <DataTableFilters
+                        filterConfig={filterConfig.filter(f => f.isAdvanced)}
+                        clientFilters={clientFilters}
+                        onFilterChange={onFilterChange as any}
+                        layout="sidebar"
+                        table={table}
+                      />
+                    </div>
                   </div>
-
-                  <div className="border-t border-muted/10 px-6 py-3 flex flex-row gap-3 flex-none bg-bg/50 backdrop-blur-md">
+                  <DrawerFooter className="border-t border-muted/10 px-6 py-3 flex flex-row gap-3 flex-none bg-bg/50 backdrop-blur-md">
                     <DrawerClose asChild>
                       <Button
                         className="flex-2 bg-blue-1 text-static-w hover:bg-blue-1/90 shadow-md transition-all h-10 text-xs font-bold rounded-xl"
                       >
-                        <Save className="h-3.5 w-3.5 me-2" />
                         مشاهده نتایج
                       </Button>
                     </DrawerClose>
                     <Button
                       variant="outline"
-                      className="flex-1 border-muted/60 hover:bg-bg transition-colors h-10 text-[10px] font-bold rounded-xl text-red-1 hover:text-red-1"
+                      className="flex-1 border-muted/60 hover:bg-bg transition-colors h-10 text-[10px] font-bold rounded-xl"
                       onClick={() => {
                         filterConfig.filter(f => f.isAdvanced).forEach(f => onFilterChange(f.columnId as any, undefined));
                       }}
                     >
                       پاکسازی فیلترها
                     </Button>
-                  </div>
+                  </DrawerFooter>
                 </DrawerContent>
               </Drawer>
             )}
