@@ -6,7 +6,7 @@ import { MultiSelector } from "@/components/shared/MultiSelector";
 import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
 
 const RealEstateCreateDialog = lazy(() =>
-    import("./RealEstateCreateDialog").then(module => ({ default: module.RealEstateCreateDialog }))
+    import("../dialogs/RealEstateCreateDialog").then(module => ({ default: module.RealEstateCreateDialog }))
 );
 
 interface RealEstateTagsProps {

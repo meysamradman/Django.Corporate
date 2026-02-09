@@ -6,7 +6,7 @@ import { MultiSelector } from "@/components/shared/MultiSelector";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
 
 const RealEstateCreateDialog = lazy(() =>
-    import("./RealEstateCreateDialog").then(module => ({ default: module.RealEstateCreateDialog }))
+    import("../dialogs/RealEstateCreateDialog").then(module => ({ default: module.RealEstateCreateDialog }))
 );
 
 interface RealEstateFeaturesProps {

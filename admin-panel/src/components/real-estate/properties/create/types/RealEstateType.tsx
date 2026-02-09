@@ -12,7 +12,7 @@ import type { PropertyState } from "@/types/real_estate/state/realEstateState";
 import type { PropertyFormValues } from "@/components/real-estate/validations/propertySchema";
 
 const RealEstateCreateDialog = lazy(() =>
-    import("./RealEstateCreateDialog").then(module => ({ default: module.RealEstateCreateDialog }))
+    import("../dialogs/RealEstateCreateDialog").then(module => ({ default: module.RealEstateCreateDialog }))
 );
 
 interface RealEstateTypeProps {

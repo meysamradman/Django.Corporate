@@ -3,16 +3,16 @@ import type { UseFormReturn } from "react-hook-form";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { FileText, Settings } from "lucide-react";
 
-import { RealEstateTitle } from "./info/RealEstateTitle";
-import { RealEstateShortDesc } from "./info/RealEstateShortDesc";
-import { RealEstateDescription } from "./info/RealEstateDescription";
-import { RealEstateType } from "./info/RealEstateType";
-import { RealEstateTransaction } from "./info/RealEstateTransaction";
-import { RealEstateAssignment } from "./info/RealEstateAssignment";
-import { RealEstateLabels } from "./info/RealEstateLabels";
-import { RealEstateTags } from "./info/RealEstateTags";
-import { RealEstateFeatures } from "./info/RealEstateFeatures";
-import { RealEstateStatus } from "./info/RealEstateStatus";
+import { RealEstateTitle } from "./title/RealEstateTitle";
+import { RealEstateShortDesc } from "./descriptions/RealEstateShortDesc";
+import { RealEstateDescription } from "./descriptions/RealEstateDescription";
+import { RealEstateType } from "./types/RealEstateType";
+import { RealEstateTransaction } from "./transaction/RealEstateTransaction";
+import { RealEstateAssignment } from "./assignment/RealEstateAssignment";
+import { RealEstateLabels } from "./labels/RealEstateLabels";
+import { RealEstateTags } from "./tags/RealEstateTags";
+import { RealEstateFeatures } from "./features/RealEstateFeatures";
+import { RealEstateStatus } from "./status/RealEstateStatus";
 
 import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
