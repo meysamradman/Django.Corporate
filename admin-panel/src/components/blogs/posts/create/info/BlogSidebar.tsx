@@ -133,6 +133,7 @@ export function BlogSidebar({
             iconColor="stroke-blue-2"
             cardBorderColor="border-b-blue-1"
             className="lg:sticky lg:top-20"
+            showHeaderBorder={false}
         >
             <div className="space-y-8">
                 <BlogSidebarTaxonomy

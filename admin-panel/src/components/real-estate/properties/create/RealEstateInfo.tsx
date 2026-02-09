@@ -78,7 +78,8 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col lg:flex-row gap-6">
+            <div className="flex flex-col lg:flex-row gap-6 items-start">
+                {/* Main Content Area */}
                 <div className="flex-1 min-w-0 flex flex-col gap-6">
                     <CardWithIcon
                         icon={FileText}
@@ -94,27 +95,12 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
 
                     <CardWithIcon
                         icon={Settings}
-                        title="طبقه‌بندی و وضعیت"
-                        iconBgColor="bg-blue"
-                        iconColor="stroke-blue-2"
-                        cardBorderColor="border-b-blue-1"
+                        title="طبقه‌بندی و ویژگی‌ها"
+                        iconBgColor="bg-teal"
+                        iconColor="stroke-teal-2"
+                        cardBorderColor="border-b-teal-1"
                     >
-                        <RealEstateType {...commonProps} />
-                        <RealEstateTransaction {...commonProps} />
-                        <RealEstateAssignment {...commonProps} />
-                    </CardWithIcon>
-                </div>
-
-                <div className="w-full lg:w-[420px] lg:shrink-0">
-                    <CardWithIcon
-                        icon={Settings}
-                        title="تنظیمات"
-                        iconBgColor="bg-blue"
-                        iconColor="stroke-blue-2"
-                        cardBorderColor="border-b-blue-1"
-                        className="lg:sticky lg:top-20"
-                    >
-                        <div className="space-y-8">
+                        <div className="grid grid-cols-1 2xl:grid-cols-3 gap-6 lg:gap-8">
                             <RealEstateLabels
                                 selectedLabels={selectedLabels}
                                 onToggle={onLabelToggle}
@@ -133,9 +119,47 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
                                 onRemove={onFeatureRemove}
                                 editMode={editMode}
                             />
-                            <RealEstateStatus {...commonProps} />
                         </div>
                     </CardWithIcon>
+                </div>
+
+                {/* Sidebar Area */}
+                <div className="w-full lg:w-80 xl:w-96 lg:shrink-0 lg:sticky lg:top-6 self-start z-10">
+                    <div className="flex flex-col gap-6">
+                        <CardWithIcon
+                            icon={Settings}
+                            title="نوع و وضعیت معامله"
+                            iconBgColor="bg-indigo"
+                            iconColor="stroke-indigo-2"
+                            cardBorderColor="border-b-indigo-1"
+                        >
+                            <div className="space-y-6">
+                                <RealEstateType {...commonProps} />
+                                <RealEstateTransaction {...commonProps} />
+                            </div>
+                        </CardWithIcon>
+
+                        <CardWithIcon
+                            icon={Settings}
+                            title="مشاور و آژانس"
+                            iconBgColor="bg-purple"
+                            iconColor="stroke-purple-2"
+                            cardBorderColor="border-b-purple-1"
+                        >
+                            <RealEstateAssignment {...commonProps} />
+                        </CardWithIcon>
+
+                        <CardWithIcon
+                            icon={Settings}
+                            title="وضعیت نمایش و فعال‌سازی"
+                            iconBgColor="bg-blue"
+                            iconColor="stroke-blue-2"
+                            cardBorderColor="border-b-blue-1"
+                            showHeaderBorder={false}
+                        >
+                            <RealEstateStatus {...commonProps} />
+                        </CardWithIcon>
+                    </div>
                 </div>
             </div>
         </div>

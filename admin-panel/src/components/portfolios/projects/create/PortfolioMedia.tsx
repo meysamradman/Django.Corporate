@@ -115,7 +115,7 @@ export default function PortfolioMedia(props: MediaTabProps) {
                     />
                 </div>
 
-                <div className="w-full lg:w-[380px] lg:shrink-0">
+                <div className="w-full lg:w-80 xl:w-96 lg:shrink-0">
                     <PortfolioMediaFeatured
                         currentFeaturedImage={currentFeaturedImage || null}
                         editMode={editMode}

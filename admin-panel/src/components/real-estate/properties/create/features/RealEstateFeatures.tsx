@@ -5,8 +5,8 @@ import { realEstateApi } from "@/api/real-estate";
 import { MultiSelector } from "@/components/shared/MultiSelector";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
 
-const RealEstateCreateDialog = lazy(() =>
-    import("../dialogs/RealEstateCreateDialog").then(module => ({ default: module.RealEstateCreateDialog }))
+const PropertyFeatureSide = lazy(() =>
+    import("../../../features/PropertyFeatureSide").then(module => ({ default: module.PropertyFeatureSide }))
 );
 
 interface RealEstateFeaturesProps {
@@ -50,21 +50,15 @@ export function RealEstateFeatures({ selectedFeatures, onToggle, onRemove, editM
                 colorTheme="teal"
             />
 
-            {showAddDialog && (
-                <Suspense fallback={null}>
-                    <RealEstateCreateDialog
-                        open={showAddDialog}
-                        onOpenChange={setShowAddDialog}
-                        type="feature"
-                        onSubmit={async (data) => await realEstateApi.createFeature(data)}
-                        onSuccess={(created) => {
-                            setFeatures(prev => [...prev, created]);
-                            onToggle(created);
-                        }}
-                        refetchList={fetchFeatures}
-                    />
-                </Suspense>
-            )}
+            <Suspense fallback={null}>
+                <PropertyFeatureSide
+                    isOpen={showAddDialog}
+                    onClose={() => setShowAddDialog(false)}
+                    onSuccess={() => {
+                        fetchFeatures();
+                    }}
+                />
+            </Suspense>
         </>
     );
 }

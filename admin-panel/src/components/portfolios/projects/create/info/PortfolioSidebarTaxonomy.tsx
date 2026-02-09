@@ -8,8 +8,16 @@ import type { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
 import type { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import type { PortfolioFormValues } from "@/components/portfolios/validations/portfolioSchema";
 
-const PortfolioCreateDialog = lazy(() =>
-    import("../PortfolioCreateDialog").then(module => ({ default: module.PortfolioCreateDialog }))
+const PortfolioCategorySide = lazy(() =>
+    import("../../../categories/PortfolioCategorySide").then(module => ({ default: module.PortfolioCategorySide }))
+);
+
+const PortfolioTagSide = lazy(() =>
+    import("../../../tags/PortfolioTagSide").then(module => ({ default: module.PortfolioTagSide }))
+);
+
+const PortfolioOptionSide = lazy(() =>
+    import("../../../options/PortfolioOptionSide").then(module => ({ default: module.PortfolioOptionSide }))
 );
 
 interface PortfolioSidebarTaxonomyProps {
@@ -26,7 +34,6 @@ export function PortfolioSidebarTaxonomy({
     form,
     editMode,
     isFormApproach,
-    portfolioId,
     onCategoryToggle,
     onTagToggle,
     onOptionToggle
@@ -49,19 +56,31 @@ export function PortfolioSidebarTaxonomy({
     const formSelectedTags = isFormApproach ? watch?.("selectedTags") || [] : [];
     const formSelectedOptions = isFormApproach ? watch?.("selectedOptions") || [] : [];
 
-    useEffect(() => {
+    const fetchCategories = () => {
         portfolioApi.getCategories({ page: 1, size: 100 }).then(res => {
             setCategories(res.data || []);
             setLoadingCategories(false);
         });
+    };
+
+    const fetchTags = () => {
         portfolioApi.getTags({ page: 1, size: 100 }).then(res => {
             setTags(res.data || []);
             setLoadingTags(false);
         });
+    };
+
+    const fetchOptions = () => {
         portfolioApi.getOptions({ page: 1, size: 100 }).then(res => {
             setOptions(res.data || []);
             setLoadingOptions(false);
         });
+    };
+
+    useEffect(() => {
+        fetchCategories();
+        fetchTags();
+        fetchOptions();
     }, []);
 
     const handleCategoryToggle = (category: PortfolioCategory) => {
@@ -165,76 +184,29 @@ export function PortfolioSidebarTaxonomy({
                 </div>
             )}
 
-            {showCategoryDialog && (
-                <Suspense fallback={null}>
-                    <PortfolioCreateDialog
-                        open={showCategoryDialog}
-                        onOpenChange={setShowCategoryDialog}
-                        type="category"
-                        onSubmit={async (data) => {
-                            const categoryData: any = {
-                                name: data.name,
-                                slug: data.slug,
-                                is_public: data.is_public ?? true,
-                                is_active: data.is_active ?? true
-                            };
-                            if (data.image_id) categoryData.image_id = data.image_id;
-                            return await portfolioApi.createCategory(categoryData);
-                        }}
-                        onSuccess={(created) => {
-                            setCategories(prev => [...prev, created]);
-                            handleCategoryToggle(created);
-                        }}
-                        refetchList={() => portfolioApi.getCategories({ page: 1, size: 100 }).then(res => setCategories(res.data || []))}
-                        context="portfolio"
-                        contextId={portfolioId}
-                    />
-                </Suspense>
-            )}
-
-            {showTagDialog && (
-                <Suspense fallback={null}>
-                    <PortfolioCreateDialog
-                        open={showTagDialog}
-                        onOpenChange={setShowTagDialog}
-                        type="tag"
-                        onSubmit={async (data) => await portfolioApi.createTag({
-                            name: data.name,
-                            slug: data.slug,
-                            is_public: data.is_public ?? true,
-                            is_active: data.is_active ?? true
-                        })}
-                        onSuccess={(created) => {
-                            setTags(prev => [...prev, created]);
-                            handleTagToggle(created);
-                        }}
-                        refetchList={() => portfolioApi.getTags({ page: 1, size: 100 }).then(res => setTags(res.data || []))}
-                        context="portfolio"
-                        contextId={portfolioId}
-                    />
-                </Suspense>
-            )}
-
-            {showOptionDialog && (
-                <Suspense fallback={null}>
-                    <PortfolioCreateDialog
-                        open={showOptionDialog}
-                        onOpenChange={setShowOptionDialog}
-                        type="option"
-                        onSubmit={async (data) => await portfolioApi.createOption({
-                            name: data.name,
-                            slug: data.slug,
-                        })}
-                        onSuccess={(created) => {
-                            setOptions(prev => [...prev, created]);
-                            handleOptionToggle(created);
-                        }}
-                        refetchList={() => portfolioApi.getOptions({ page: 1, size: 100 }).then(res => setOptions(res.data || []))}
-                        context="portfolio"
-                        contextId={portfolioId}
-                    />
-                </Suspense>
-            )}
+            <Suspense fallback={null}>
+                <PortfolioCategorySide
+                    isOpen={showCategoryDialog}
+                    onClose={() => setShowCategoryDialog(false)}
+                    onSuccess={() => {
+                        fetchCategories();
+                    }}
+                />
+                <PortfolioTagSide
+                    isOpen={showTagDialog}
+                    onClose={() => setShowTagDialog(false)}
+                    onSuccess={() => {
+                        fetchTags();
+                    }}
+                />
+                <PortfolioOptionSide
+                    isOpen={showOptionDialog}
+                    onClose={() => setShowOptionDialog(false)}
+                    onSuccess={() => {
+                        fetchOptions();
+                    }}
+                />
+            </Suspense>
         </div>
     );
 }

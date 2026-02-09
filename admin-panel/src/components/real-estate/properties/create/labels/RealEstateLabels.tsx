@@ -5,8 +5,8 @@ import { realEstateApi } from "@/api/real-estate";
 import { MultiSelector } from "@/components/shared/MultiSelector";
 import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 
-const RealEstateCreateDialog = lazy(() =>
-    import("../dialogs/RealEstateCreateDialog").then(module => ({ default: module.RealEstateCreateDialog }))
+const PropertyLabelSide = lazy(() =>
+    import("../../../labels/PropertyLabelSide").then(module => ({ default: module.PropertyLabelSide }))
 );
 
 interface RealEstateLabelsProps {
@@ -50,21 +50,15 @@ export function RealEstateLabels({ selectedLabels, onToggle, onRemove, editMode 
                 colorTheme="purple"
             />
 
-            {showAddDialog && (
-                <Suspense fallback={null}>
-                    <RealEstateCreateDialog
-                        open={showAddDialog}
-                        onOpenChange={setShowAddDialog}
-                        type="label"
-                        onSubmit={async (data) => await realEstateApi.createLabel(data)}
-                        onSuccess={(created) => {
-                            setLabels(prev => [...prev, created]);
-                            onToggle(created);
-                        }}
-                        refetchList={fetchLabels}
-                    />
-                </Suspense>
-            )}
+            <Suspense fallback={null}>
+                <PropertyLabelSide
+                    isOpen={showAddDialog}
+                    onClose={() => setShowAddDialog(false)}
+                    onSuccess={() => {
+                        fetchLabels();
+                    }}
+                />
+            </Suspense>
         </>
     );
 }

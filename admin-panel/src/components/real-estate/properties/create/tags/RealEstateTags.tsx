@@ -5,8 +5,8 @@ import { realEstateApi } from "@/api/real-estate";
 import { MultiSelector } from "@/components/shared/MultiSelector";
 import type { PropertyTag } from "@/types/real_estate/tags/realEstateTag";
 
-const RealEstateCreateDialog = lazy(() =>
-    import("../dialogs/RealEstateCreateDialog").then(module => ({ default: module.RealEstateCreateDialog }))
+const PropertyTagSide = lazy(() =>
+    import("../../../tags/PropertyTagSide").then(module => ({ default: module.PropertyTagSide }))
 );
 
 interface RealEstateTagsProps {
@@ -50,21 +50,17 @@ export function RealEstateTags({ selectedTags, onToggle, onRemove, editMode }: R
                 colorTheme="indigo"
             />
 
-            {showAddDialog && (
-                <Suspense fallback={null}>
-                    <RealEstateCreateDialog
-                        open={showAddDialog}
-                        onOpenChange={setShowAddDialog}
-                        type="tag"
-                        onSubmit={async (data) => await realEstateApi.createTag(data)}
-                        onSuccess={(created) => {
-                            setTags(prev => [...prev, created]);
-                            onToggle(created);
-                        }}
-                        refetchList={fetchTags}
-                    />
-                </Suspense>
-            )}
+            <Suspense fallback={null}>
+                <PropertyTagSide
+                    isOpen={showAddDialog}
+                    onClose={() => setShowAddDialog(false)}
+                    onSuccess={() => {
+                        fetchTags();
+                        // Ideally we should select the new tag here, but the sidebar doesn't return it directly in onSuccess
+                        // But fetchTags will refresh the list.
+                    }}
+                />
+            </Suspense>
         </>
     );
 }

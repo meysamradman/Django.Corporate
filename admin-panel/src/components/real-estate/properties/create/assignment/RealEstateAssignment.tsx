@@ -64,7 +64,7 @@ export function RealEstateAssignment(props: RealEstateAssignmentProps) {
     };
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
             <FormField
                 label="مشاور مسئول"
                 error={isFormApproach ? formErrors.agent?.message : formErrors?.agent}

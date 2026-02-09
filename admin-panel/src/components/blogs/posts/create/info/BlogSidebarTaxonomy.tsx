@@ -5,8 +5,12 @@ import { blogApi } from "@/api/blogs/blogs";
 import type { BlogCategory } from "@/types/blog/category/blogCategory";
 import type { BlogTag } from "@/types/blog/tags/blogTag";
 
-const BlogCreateDialog = lazy(() =>
-    import("../BlogCreateDialog").then(module => ({ default: module.BlogCreateDialog }))
+const BlogCategorySide = lazy(() =>
+    import("../../../categories/BlogCategorySide").then(module => ({ default: module.BlogCategorySide }))
+);
+
+const BlogTagSide = lazy(() =>
+    import("../../../tags/BlogTagSide").then(module => ({ default: module.BlogTagSide }))
 );
 
 interface BlogSidebarTaxonomyProps {
@@ -42,9 +46,7 @@ export function BlogSidebarTaxonomy({
     selectedCategories,
     selectedTags,
     editMode,
-    isFormApproach,
     errors,
-    blogId,
     showCategoryDialog,
     setShowCategoryDialog,
     showTagDialog,
@@ -106,67 +108,26 @@ export function BlogSidebarTaxonomy({
                 )}
             </div>
 
-            {showCategoryDialog && (
-                <Suspense fallback={null}>
-                    <BlogCreateDialog
-                        open={showCategoryDialog}
-                        onOpenChange={setShowCategoryDialog}
-                        type="category"
-                        onSubmit={async (data) => {
-                            const categoryData: any = {
-                                name: data.name,
-                                slug: data.slug,
-                                is_public: data.is_public ?? true,
-                                is_active: data.is_active ?? true
-                            };
-                            if (data.image_id) {
-                                categoryData.image_id = data.image_id;
-                            }
-                            return await blogApi.createCategory(categoryData);
-                        }}
-                        onSuccess={(createdCategory) => {
-                            setCategories(prev => prev.some(cat => cat.id === createdCategory.id) ? prev : [...prev, createdCategory]);
-                            onCategoryToggle(createdCategory);
-                        }}
-                        refetchList={() => {
-                            blogApi.getCategories({ page: 1, size: 100 }).then(response => {
-                                setCategories(response.data || []);
-                            });
-                        }}
-                        context="blog"
-                        contextId={blogId}
-                    />
-                </Suspense>
-            )}
-
-            {showTagDialog && (
-                <Suspense fallback={null}>
-                    <BlogCreateDialog
-                        open={showTagDialog}
-                        onOpenChange={setShowTagDialog}
-                        type="tag"
-                        onSubmit={async (data) => {
-                            return await blogApi.createTag({
-                                name: data.name,
-                                slug: data.slug,
-                                is_public: data.is_public ?? true,
-                                is_active: data.is_active ?? true
-                            });
-                        }}
-                        onSuccess={(createdTag) => {
-                            setTags(prev => prev.some(tag => tag.id === createdTag.id) ? prev : [...prev, createdTag]);
-                            onTagToggle(createdTag);
-                        }}
-                        refetchList={() => {
-                            blogApi.getTags({ page: 1, size: 100 }).then(response => {
-                                setTags(response.data || []);
-                            });
-                        }}
-                        context="blog"
-                        contextId={blogId}
-                    />
-                </Suspense>
-            )}
+            <Suspense fallback={null}>
+                <BlogCategorySide
+                    isOpen={showCategoryDialog}
+                    onClose={() => setShowCategoryDialog(false)}
+                    onSuccess={() => {
+                        blogApi.getCategories({ page: 1, size: 100 }).then(response => {
+                            setCategories(response.data || []);
+                        });
+                    }}
+                />
+                <BlogTagSide
+                    isOpen={showTagDialog}
+                    onClose={() => setShowTagDialog(false)}
+                    onSuccess={() => {
+                        blogApi.getTags({ page: 1, size: 100 }).then(response => {
+                            setTags(response.data || []);
+                        });
+                    }}
+                />
+            </Suspense>
         </div>
     );
 }

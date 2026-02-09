@@ -11,8 +11,12 @@ import type { PropertyType } from "@/types/real_estate/type/propertyType";
 import type { PropertyState } from "@/types/real_estate/state/realEstateState";
 import type { PropertyFormValues } from "@/components/real-estate/validations/propertySchema";
 
-const RealEstateCreateDialog = lazy(() =>
-    import("../dialogs/RealEstateCreateDialog").then(module => ({ default: module.RealEstateCreateDialog }))
+const PropertyTypeSide = lazy(() =>
+    import("../../../types/PropertyTypeSide").then(module => ({ default: module.PropertyTypeSide }))
+);
+
+const PropertyStateSide = lazy(() =>
+    import("../../../states/PropertyStateSide").then(module => ({ default: module.PropertyStateSide }))
 );
 
 interface RealEstateTypeProps {
@@ -76,7 +80,7 @@ export function RealEstateType(props: RealEstateTypeProps) {
     };
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
             <FormField
                 label="نوع ملک"
                 required
@@ -147,37 +151,22 @@ export function RealEstateType(props: RealEstateTypeProps) {
                 </div>
             </FormField>
 
-            {showTypeDialog && (
-                <Suspense fallback={null}>
-                    <RealEstateCreateDialog
-                        open={showTypeDialog}
-                        onOpenChange={setShowTypeDialog}
-                        type="type"
-                        onSubmit={async (data) => await realEstateApi.createType(data)}
-                        onSuccess={(created) => {
-                            setPropertyTypes(prev => [...prev, created]);
-                            handlePropertyTypeChange(String(created.id));
-                        }}
-                        refetchList={fetchTypes}
-                    />
-                </Suspense>
-            )}
-
-            {showStateDialog && (
-                <Suspense fallback={null}>
-                    <RealEstateCreateDialog
-                        open={showStateDialog}
-                        onOpenChange={setShowStateDialog}
-                        type="state"
-                        onSubmit={async (data) => await realEstateApi.createState(data)}
-                        onSuccess={(created) => {
-                            setPropertyStates(prev => [...prev, created]);
-                            handleStateChange(String(created.id));
-                        }}
-                        refetchList={fetchStates}
-                    />
-                </Suspense>
-            )}
+            <Suspense fallback={null}>
+                <PropertyTypeSide
+                    isOpen={showTypeDialog}
+                    onClose={() => setShowTypeDialog(false)}
+                    onSuccess={() => {
+                        fetchTypes();
+                    }}
+                />
+                <PropertyStateSide
+                    isOpen={showStateDialog}
+                    onClose={() => setShowStateDialog(false)}
+                    onSuccess={() => {
+                        fetchStates();
+                    }}
+                />
+            </Suspense>
         </div>
     );
 }

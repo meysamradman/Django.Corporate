@@ -1,4 +1,4 @@
-import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
+import { Item, ItemMedia, ItemActions } from "@/components/elements/Item";
 import { Switch } from "@/components/elements/Switch";
 import { Eye, CheckCircle, Star } from "lucide-react";
 
@@ -18,63 +18,50 @@ export function BlogSidebarSettings({
     handleSettingChange
 }: BlogSidebarSettingsProps) {
     return (
-        <div className="space-y-4 pt-4 border-t border-br">
-            <Item variant="default" size="default" className="py-4 rounded-xl border border-blue-1/30 bg-blue-0/20 hover:border-blue-1/50 transition-colors">
-                <div className="ml-4 p-2 bg-blue rounded-lg">
-                    <Eye className="w-5 h-5 stroke-blue-2" />
-                </div>
-                <ItemContent>
-                    <ItemTitle className="text-blue-2">نمایش عمومی</ItemTitle>
-                    <ItemDescription className="text-xs">
-                        اگر غیرفعال باشد بلاگ در سایت نمایش داده نمی‌شود.
-                    </ItemDescription>
-                </ItemContent>
-                <ItemActions>
-                    <Switch
-                        checked={isPublic}
-                        disabled={!editMode}
-                        onCheckedChange={(checked) => handleSettingChange("is_public", checked)}
-                    />
-                </ItemActions>
-            </Item>
+        <div className="">
+            <div className="grid grid-cols-2 gap-4">
+                <Item className="p-2.5 h-16 rounded-xl border-blue-1/20 bg-blue-0/10 flex-row items-center gap-3">
+                    <ItemMedia className="p-2 bg-blue/20 rounded-lg shrink-0">
+                        <Eye className="w-4 h-4 stroke-blue-2" />
+                    </ItemMedia>
+                    <span className="flex-1 text-[11px] font-bold text-blue-2 leading-tight text-center">نمایش عمومی</span>
+                    <ItemActions>
+                        <Switch
+                            checked={isPublic}
+                            disabled={!editMode}
+                            onCheckedChange={(checked) => handleSettingChange("is_public", checked)}
+                        />
+                    </ItemActions>
+                </Item>
 
-            <Item variant="default" size="default" className="py-4 rounded-xl border border-green-1/30 bg-green-0/20 hover:border-green-1/50 transition-colors">
-                <div className="ml-4 p-2 bg-green rounded-lg">
-                    <CheckCircle className="w-5 h-5 stroke-green-2" />
-                </div>
-                <ItemContent>
-                    <ItemTitle className="text-green-2">وضعیت فعال</ItemTitle>
-                    <ItemDescription className="text-xs">
-                        با غیرفعال شدن، بلاگ از لیست مدیریت نیز مخفی می‌شود.
-                    </ItemDescription>
-                </ItemContent>
-                <ItemActions>
-                    <Switch
-                        checked={isActive}
-                        disabled={!editMode}
-                        onCheckedChange={(checked) => handleSettingChange("is_active", checked)}
-                    />
-                </ItemActions>
-            </Item>
+                <Item className="p-2.5 h-16 rounded-xl border-green-1/20 bg-green-0/10 flex-row items-center gap-3">
+                    <ItemMedia className="p-2 bg-green/20 rounded-lg shrink-0">
+                        <CheckCircle className="w-4 h-4 stroke-green-2" />
+                    </ItemMedia>
+                    <span className="flex-1 text-[11px] font-bold text-green-2 leading-tight text-center">وضعیت فعال</span>
+                    <ItemActions>
+                        <Switch
+                            checked={isActive}
+                            disabled={!editMode}
+                            onCheckedChange={(checked) => handleSettingChange("is_active", checked)}
+                        />
+                    </ItemActions>
+                </Item>
 
-            <Item variant="default" size="default" className="py-4 rounded-xl border border-orange-1/30 bg-orange-0/20 hover:border-orange-1/50 transition-colors">
-                <div className="ml-4 p-2 bg-orange rounded-lg">
-                    <Star className="w-5 h-5 stroke-orange-2" />
-                </div>
-                <ItemContent>
-                    <ItemTitle className="text-orange-2">وضعیت ویژه</ItemTitle>
-                    <ItemDescription className="text-xs">
-                        بلاگ‌های ویژه در بخش‌های خاص سایت با اولویت نمایش داده می‌شوند.
-                    </ItemDescription>
-                </ItemContent>
-                <ItemActions>
-                    <Switch
-                        checked={isFeatured}
-                        disabled={!editMode}
-                        onCheckedChange={(checked) => handleSettingChange("is_featured", checked)}
-                    />
-                </ItemActions>
-            </Item>
+                <Item className="p-2.5 h-16 rounded-xl border-orange-1/20 bg-orange-0/10 flex-row items-center gap-3">
+                    <ItemMedia className="p-2 bg-orange/20 rounded-lg shrink-0">
+                        <Star className="w-4 h-4 stroke-orange-2" />
+                    </ItemMedia>
+                    <span className="flex-1 text-[11px] font-bold text-orange-2 leading-tight text-center">وضعیت ویژه</span>
+                    <ItemActions>
+                        <Switch
+                            checked={isFeatured}
+                            disabled={!editMode}
+                            onCheckedChange={(checked) => handleSettingChange("is_featured", checked)}
+                        />
+                    </ItemActions>
+                </Item>
+            </div>
         </div>
     );
 }
