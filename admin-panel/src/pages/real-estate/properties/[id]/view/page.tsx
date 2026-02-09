@@ -18,9 +18,9 @@ import { RealEstateGallery as RealEstateGridGallery } from "@/components/real-es
 
 import { RealEstateDetails } from "@/components/real-estate/properties/view/details/RealEstateDetails";
 import { RealEstateAttributes } from "@/components/real-estate/properties/view/attributes/RealEstateAttributes";
-import { RealEstateDescriptions } from "@/components/real-estate/properties/view/info/RealEstateDescriptions";
+import { RealEstateDescriptions } from "@/components/real-estate/properties/view/descriptions/RealEstateDescriptions";
 import { RealEstateFloorPlans } from "@/components/real-estate/properties/view/floor-plans/RealEstateFloorPlans";
-import { RealEstateFeatures } from "@/components/real-estate/properties/view/info/RealEstateFeatures";
+import { RealEstateFeatures } from "@/components/real-estate/properties/view/features/RealEstateFeatures";
 import { RealEstateMedia } from "@/components/real-estate/properties/view/media/RealEstateMedia";
 import { RealEstateSEO } from "@/components/real-estate/properties/view/seo/RealEstateSEO";
 

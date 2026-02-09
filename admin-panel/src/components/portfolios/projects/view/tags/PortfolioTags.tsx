@@ -1,3 +1,4 @@
+
 import { Tag } from "lucide-react";
 import type { Portfolio } from "@/types/portfolio/portfolio";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
@@ -16,7 +17,6 @@ export function PortfolioTags({ portfolio }: PortfolioTagsProps) {
         <CardWithIcon
             icon={Tag}
             title="تگ‌ها"
-            id="section-tags"
             iconBgColor="bg-indigo-0/50"
             iconColor="text-indigo-1"
             cardBorderColor="border-b-indigo-1"

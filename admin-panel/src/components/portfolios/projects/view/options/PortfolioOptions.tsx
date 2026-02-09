@@ -1,3 +1,4 @@
+
 import { FileCode } from "lucide-react";
 import type { Portfolio } from "@/types/portfolio/portfolio";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
@@ -16,7 +17,6 @@ export function PortfolioOptions({ portfolio }: PortfolioOptionsProps) {
         <CardWithIcon
             icon={FileCode}
             title="گزینه‌ها"
-            id="section-options"
             iconBgColor="bg-teal-0/50"
             iconColor="text-teal-1"
             cardBorderColor="border-b-teal-1"

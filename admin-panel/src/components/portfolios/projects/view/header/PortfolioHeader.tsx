@@ -1,28 +1,28 @@
 
 import { Card } from "@/components/elements/Card";
-import type { Property } from "@/types/real_estate/realEstate";
-import { RealEstateTitle } from "./RealEstateTitle";
-import { RealEstateActions } from "../actions/RealEstateActions";
+import type { Portfolio } from "@/types/portfolio/portfolio";
+import { PortfolioTitle } from "./PortfolioTitle";
+import { PortfolioActions } from "../actions/PortfolioActions";
 
-interface RealEstateHeaderProps {
-    property: Property;
+interface PortfolioHeaderProps {
+    portfolio: Portfolio;
     onPrint: () => void;
     onPdf: () => void;
     isExportingPdf: boolean;
 }
 
-export function RealEstateHeader({
-    property,
+export function PortfolioHeader({
+    portfolio,
     onPrint,
     onPdf,
     isExportingPdf,
-}: RealEstateHeaderProps) {
+}: PortfolioHeaderProps) {
     return (
         <Card className="flex-row items-center justify-between gap-4 p-4 lg:px-6 py-4.5 relative overflow-hidden border-br shadow-xs shrink-0 bg-card">
             <div className="absolute top-0 right-0 w-full h-[3px] bg-linear-to-r from-blue-1/40 via-purple-1/40 to-pink-1/40" />
-            <RealEstateTitle property={property} />
-            <RealEstateActions
-                propertyId={String(property.id)}
+            <PortfolioTitle portfolio={portfolio} />
+            <PortfolioActions
+                portfolioId={portfolio.id}
                 onPrint={onPrint}
                 onPdf={onPdf}
                 isExportingPdf={isExportingPdf}

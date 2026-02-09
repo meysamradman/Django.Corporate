@@ -1,19 +1,20 @@
+
 import { mediaService } from "@/components/media/services";
 import type { Portfolio } from "@/types/portfolio/portfolio";
 import { MediaGridGallery, type MediaItem } from "@/components/media/view/MediaGridGallery";
 
-interface PortfolioGridGalleryProps {
+interface PortfolioGalleryProps {
     portfolio: Portfolio;
     className?: string;
 }
 
-export function PortfolioGridGallery({ portfolio, className }: PortfolioGridGalleryProps) {
+export function PortfolioGallery({ portfolio, className }: PortfolioGalleryProps) {
     const allMedia = portfolio.portfolio_media || [];
 
     const galleryItems = allMedia
         .filter((item: any) => {
             const media = item.media_detail || item.media || item;
-            return media?.media_type === 'image' || media?.media_type === 'video';
+            return media?.media_type === 'image';
         })
         .map((item: any) => {
             const media = item.media_detail || item.media || item;
@@ -64,4 +65,3 @@ export function PortfolioGridGallery({ portfolio, className }: PortfolioGridGall
         />
     );
 }
-
