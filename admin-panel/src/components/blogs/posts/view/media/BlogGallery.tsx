@@ -2,18 +2,18 @@ import { mediaService } from "@/components/media/services";
 import type { Blog } from "@/types/blog/blog";
 import { MediaGridGallery, type MediaItem } from "@/components/media/view/MediaGridGallery";
 
-interface BlogGridGalleryProps {
+interface BlogGalleryProps {
     blog: Blog;
     className?: string;
 }
 
-export function BlogGridGallery({ blog, className }: BlogGridGalleryProps) {
+export function BlogGallery({ blog, className }: BlogGalleryProps) {
     const allMedia = blog.blog_media || [];
 
     const galleryItems = allMedia
         .filter((item: any) => {
             const media = item.media_detail || item.media || item;
-            return media?.media_type === 'image' || media?.media_type === 'video';
+            return media?.media_type === 'image';
         })
         .map((item: any) => {
             const media = item.media_detail || item.media || item;
@@ -64,4 +64,3 @@ export function BlogGridGallery({ blog, className }: BlogGridGalleryProps) {
         />
     );
 }
-

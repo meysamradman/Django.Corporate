@@ -15,16 +15,14 @@ export function BlogTags({ blog }: BlogTagsProps) {
     return (
         <CardWithIcon
             icon={Tag}
-            id="section-tags"
             title="تگ‌ها"
-            iconBgColor="bg-indigo-0/50"
-            iconColor="text-indigo-1"
+            iconBgColor="bg-indigo"
+            iconColor="stroke-indigo-2"
             cardBorderColor="border-b-indigo-1"
-            className="shadow-sm"
-            titleExtra={<Badge variant="blue" className="h-5 px-2 text-[10px] font-black bg-indigo-1/10 text-indigo-1 border-indigo-1/20">{tagsCount.toLocaleString('fa-IR')} مورد</Badge>}
+            titleExtra={<Badge variant="blue">{tagsCount.toLocaleString('fa-IR')} مورد</Badge>}
         >
             {hasTags ? (
-                <div className="flex flex-wrap gap-2 px-5 py-2">
+                <div className="flex flex-wrap gap-2">
                     {blog.tags.map((tag) => (
                         <Badge
                             key={tag.id}
