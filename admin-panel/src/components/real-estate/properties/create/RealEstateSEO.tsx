@@ -1,5 +1,6 @@
-import { SEOMetaFields } from "./seo/SEOMetaFields";
-import { SEOSocialPreview } from "./seo/SEOSocialPreview";
+
+import { RealEstateSEOMetaFields } from "./seo/RealEstateSEOMetaFields";
+import { RealEstateSEOSocialPreview } from "./seo/RealEstateSEOSocialPreview";
 
 interface SEOTabProps {
     formData: any;
@@ -11,13 +12,13 @@ interface SEOTabProps {
 export default function RealEstateSEO({ formData, handleInputChange, editMode, propertyId }: SEOTabProps) {
     return (
         <div className="space-y-6">
-            <SEOMetaFields
+            <RealEstateSEOMetaFields
                 formData={formData}
                 handleInputChange={handleInputChange}
                 editMode={editMode}
             />
 
-            <SEOSocialPreview
+            <RealEstateSEOSocialPreview
                 formData={formData}
                 handleInputChange={handleInputChange}
                 editMode={editMode}
@@ -26,4 +27,6 @@ export default function RealEstateSEO({ formData, handleInputChange, editMode, p
         </div>
     );
 }
+
+export { RealEstateSEO };
 

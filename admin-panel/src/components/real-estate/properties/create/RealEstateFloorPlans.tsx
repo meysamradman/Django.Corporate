@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Home } from "lucide-react";
@@ -5,8 +6,8 @@ import { showError, showSuccess } from "@/core/toast";
 import { realEstateApi } from "@/api/real-estate";
 import type { Media } from "@/types/shared/media";
 import { generateSlug } from "@/core/slug/generate";
-import { FloorPlanList } from "./floor-plans/FloorPlanList";
-import { FloorPlanForm } from "./floor-plans/FloorPlanForm";
+import { RealEstateFloorPlanList } from "./floor-plans/RealEstateFloorPlanList";
+import { RealEstateFloorPlanForm } from "./floor-plans/RealEstateFloorPlanForm";
 
 interface FloorPlan {
   id?: number;
@@ -207,17 +208,11 @@ export default function RealEstateFloorPlans({
   };
 
   return (
-    <CardWithIcon icon={Home} title="پلان‌های طبقات" iconBgColor="bg-blue" iconColor="stroke-blue-2" cardBorderColor="border-b-blue-1">
-      <div className="text-center py-8 text-tx-2">مشاهده پلان‌ها</div>
-    </CardWithIcon>
-  );
-
-  return (
     <div className="mt-0 space-y-6">
       <CardWithIcon icon={Home} title="پلان‌های طبقات" iconBgColor="bg-blue" iconColor="stroke-blue-2" cardBorderColor="border-b-blue-1">
         <div className="space-y-6">
           {isAdding ? (
-            <FloorPlanForm
+            <RealEstateFloorPlanForm
               plan={newFloorPlan}
               editingPlanId={editingPlanId}
               isLoading={isLoading}
@@ -229,7 +224,7 @@ export default function RealEstateFloorPlans({
               selectedImages={selectedImages}
             />
           ) : (
-            <FloorPlanList
+            <RealEstateFloorPlanList
               floorPlans={floorPlans}
               propertyId={propertyId}
               isAdding={isAdding}
@@ -244,3 +239,5 @@ export default function RealEstateFloorPlans({
     </div>
   );
 }
+
+export { RealEstateFloorPlans };

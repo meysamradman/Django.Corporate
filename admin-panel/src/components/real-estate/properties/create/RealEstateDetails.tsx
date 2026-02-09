@@ -1,10 +1,11 @@
+
 import { useEffect, useState, useCallback } from "react";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Home, DollarSign, Layers } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
-import { DetailsDimensions } from "./details/DetailsDimensions";
-import { DetailsFacilities } from "./details/DetailsFacilities";
-import { DetailsFinancial } from "./details/DetailsFinancial";
+import { RealEstateDetailsDimensions } from "./details/RealEstateDetailsDimensions";
+import { RealEstateDetailsFacilities } from "./details/RealEstateDetailsFacilities";
+import { RealEstateDetailsFinancial } from "./details/RealEstateDetailsFinancial";
 
 interface DetailsTabProps {
     formData: any;
@@ -58,7 +59,7 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
                 iconColor="stroke-blue-2"
                 cardBorderColor="border-b-blue-1"
             >
-                <DetailsDimensions
+                <RealEstateDetailsDimensions
                     formData={formData}
                     editMode={editMode}
                     errors={errors}
@@ -77,7 +78,7 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
                 iconColor="stroke-purple-2"
                 cardBorderColor="border-b-purple-1"
             >
-                <DetailsFacilities
+                <RealEstateDetailsFacilities
                     formData={formData}
                     editMode={editMode}
                     errors={errors}
@@ -94,7 +95,7 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
                 iconColor="stroke-green-2"
                 cardBorderColor="border-b-green-1"
             >
-                <DetailsFinancial
+                <RealEstateDetailsFinancial
                     formData={formData}
                     editMode={editMode}
                     errors={errors}
@@ -104,3 +105,5 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
         </div>
     );
 }
+
+export { RealEstateDetails };

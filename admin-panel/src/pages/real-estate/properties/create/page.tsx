@@ -42,7 +42,7 @@ const TabSkeleton = () => (
         </CardWithIcon>
       </div>
 
-      <div className="w-full lg:w-[420px] lg:flex-shrink-0">
+      <div className="w-full lg:w-[420px] lg:shrink-0">
         <CardWithIcon
           icon={Settings}
           title="تنظیمات"

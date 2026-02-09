@@ -2,32 +2,30 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
-import { Skeleton } from "@/components/elements/Skeleton";
+import { RealEstateViewSkeleton } from "@/components/real-estate/properties/view/RealEstateViewSkeleton";
 import { Button } from "@/components/elements/Button";
 import { Card } from "@/components/elements/Card";
 import { realEstateApi } from "@/api/real-estate";
 import { usePropertyPrintView } from "@/components/real-estate/hooks/usePropertyPrintView";
 import { usePropertyPdfExport } from "@/components/real-estate/hooks/usePropertyPdfExport";
 
+// Modular Component Imports
 import { RealEstateHeader } from "@/components/real-estate/properties/view/header/RealEstateHeader";
-import { RealEstateManagement } from "@/components/real-estate/properties/view/management/RealEstateManagement";
-
-import { RealEstateLocation } from "@/components/real-estate/properties/view/sidebar/RealEstateLocation";
-
+import { RealEstateCRM } from "@/components/real-estate/properties/view/crm/RealEstateCRM";
+import { RealEstateLocation } from "@/components/real-estate/properties/view/location/RealEstateLocation";
 import { RealEstateNavigation } from "@/components/real-estate/properties/view/navigation/RealEstateNavigation";
+import { RealEstateGallery as RealEstateGridGallery } from "@/components/real-estate/properties/view/media/RealEstateGallery";
 
-import { RealEstateGridGallery } from "@/components/real-estate/properties/view/RealEstateGallery";
-
-import { RealEstateDetailsCard } from "@/components/real-estate/properties/view/RealEstateDetails";
-import { RealEstateStatusCard } from "@/components/real-estate/properties/view/RealEstateStatusCard";
-import { RealEstateMediaSummary } from "@/components/real-estate/properties/view/media/RealEstateMediaSummary";
-import { RealEstateDescriptions } from "@/components/real-estate/properties/view/RealEstateDescriptions";
-import { RealEstateFloorPlans } from "@/components/real-estate/properties/view/RealEstateFloorPlans";
-
-import { RealEstateFeatures } from "@/components/real-estate/properties/view/RealEstateFeatures";
-import { RealEstateAttributes } from "@/components/real-estate/properties/view/RealEstateAttributes";
+import { RealEstateDetails } from "@/components/real-estate/properties/view/details/RealEstateDetails";
+import { RealEstateAttributes } from "@/components/real-estate/properties/view/attributes/RealEstateAttributes";
+import { RealEstateDescriptions } from "@/components/real-estate/properties/view/info/RealEstateDescriptions";
+import { RealEstateFloorPlans } from "@/components/real-estate/properties/view/floor-plans/RealEstateFloorPlans";
+import { RealEstateFeatures } from "@/components/real-estate/properties/view/info/RealEstateFeatures";
 import { RealEstateMedia } from "@/components/real-estate/properties/view/media/RealEstateMedia";
-import { RealEstateSEO } from "@/components/real-estate/properties/view/RealEstateSEO";
+import { RealEstateSEO } from "@/components/real-estate/properties/view/seo/RealEstateSEO";
+
+import { RealEstateStats } from "@/components/real-estate/properties/view/stats/RealEstateStats";
+import { RealEstateMediaSummary } from "@/components/real-estate/properties/view/media/RealEstateMediaSummary";
 
 export default function PropertyViewPage() {
   const params = useParams();
@@ -67,7 +65,7 @@ export default function PropertyViewPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (isLoading) return <Skeleton className="w-full h-96" />;
+  if (isLoading) return <RealEstateViewSkeleton />;
   if (error || !propertyData) return (
     <div className="flex flex-col items-center justify-center py-20 bg-card rounded-2xl border border-br">
       <p className="text-red-1 font-bold mb-4">خطا در بارگذاری اطلاعات ملک</p>
@@ -90,7 +88,7 @@ export default function PropertyViewPage() {
             <RealEstateGridGallery property={propertyData} />
           </div>
 
-          <RealEstateManagement property={propertyData} />
+          <RealEstateCRM property={propertyData} />
         </div>
 
         <div className="lg:col-span-4 xl:col-span-3">
@@ -106,25 +104,21 @@ export default function PropertyViewPage() {
         <div className="flex-1 grid grid-cols-1 gap-6 min-w-0 w-full">
           <div id="section-overview" className="scroll-mt-32">
             <div className="flex flex-col gap-6">
-              <RealEstateDetailsCard property={propertyData} />
+              <RealEstateDetails property={propertyData} />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <RealEstateStatusCard property={propertyData} />
+                <RealEstateStats property={propertyData} />
                 <RealEstateMediaSummary property={propertyData} />
               </div>
 
+              <RealEstateAttributes property={propertyData} />
               <RealEstateDescriptions property={propertyData} />
-
               <RealEstateFloorPlans property={propertyData} />
             </div>
           </div>
 
           <div id="section-features" className="scroll-mt-32">
             <RealEstateFeatures property={propertyData} />
-          </div>
-
-          <div id="section-attributes" className="scroll-mt-32">
-            <RealEstateAttributes property={propertyData} />
           </div>
 
           <div id="section-media" className="scroll-mt-32">

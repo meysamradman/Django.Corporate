@@ -1,3 +1,4 @@
+
 import type { Property } from "@/types/real_estate/realEstate";
 import { mediaService } from "@/components/media/services";
 import { DocumentItem } from "@/components/media/documents/DocumentItem";

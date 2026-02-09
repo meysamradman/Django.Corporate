@@ -1,7 +1,8 @@
+
 import type { UseFormReturn } from "react-hook-form";
-import { LocationSelectors } from "./location/LocationSelectors";
-import { LocationAddress } from "./location/LocationAddress";
-import { LocationMapPicker } from "./location/LocationMapPicker";
+import { RealEstateLocationSelectors } from "./location/RealEstateLocationSelectors";
+import { RealEstateLocationAddress } from "./location/RealEstateLocationAddress";
+import { RealEstateLocationMapPicker } from "./location/RealEstateLocationMapPicker";
 import { MapPin } from "lucide-react";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import type { PropertyFormValues } from "@/components/real-estate/validations/propertySchema";
@@ -52,7 +53,7 @@ export default function RealEstateLocation(props: LocationTabProps) {
                         cardBorderColor="border-b-blue-1"
                     >
                         <div className="space-y-8">
-                            <LocationSelectors
+                            <RealEstateLocationSelectors
                                 form={form}
                                 formData={formData}
                                 handleInputChange={handleInputChange}
@@ -61,7 +62,7 @@ export default function RealEstateLocation(props: LocationTabProps) {
                                 errors={errors}
                                 districtName={props.districtName}
                             />
-                            <LocationAddress
+                            <RealEstateLocationAddress
                                 form={form}
                                 formData={formData}
                                 handleInputChange={handleInputChange}
@@ -73,7 +74,7 @@ export default function RealEstateLocation(props: LocationTabProps) {
                     </CardWithIcon>
                 </div>
                 <div className="flex-1 min-w-0">
-                    <LocationMapPicker
+                    <RealEstateLocationMapPicker
                         form={form}
                         formData={formData}
                         handleInputChange={handleInputChange}
@@ -88,3 +89,5 @@ export default function RealEstateLocation(props: LocationTabProps) {
         </div>
     );
 }
+
+export { RealEstateLocation };

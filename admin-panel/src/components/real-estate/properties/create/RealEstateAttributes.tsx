@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
@@ -5,9 +6,8 @@ import { Settings, Plus, Building2, Compass, MapPin, Home, FileJson } from "luci
 import { realEstateApi } from "@/api/real-estate";
 import { showError } from "@/core/toast";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { AttributeStandardFields } from "./attributes/AttributeStandardFields";
-import { AttributeCustomTable } from "./attributes/AttributeCustomTable";
-import { AttributeAddDialog } from "./attributes/AttributeAddDialog";
+import { RealEstateStandardAttributes } from "./attributes/RealEstateStandardAttributes";
+import { RealEstateExtraFields } from "./attributes/RealEstateExtraFields";
 
 interface ExtraAttributesTabProps {
     formData: any;
@@ -181,7 +181,7 @@ export function RealEstateAttributes({
                 cardBorderColor="border-b-indigo-1"
                 headerClassName="pb-3"
             >
-                <AttributeStandardFields
+                <RealEstateStandardAttributes
                     fieldOptions={fieldOptions}
                     currentAttributes={currentAttributes}
                     handleAttributeChange={handleAttributeChange}
@@ -210,33 +210,13 @@ export function RealEstateAttributes({
                     )
                 }
             >
-                {customAttributes.length === 0 ? (
-                    <div className="text-center py-12">
-                        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-0 mb-3">
-                            <Settings className="h-6 w-6 text-purple-1" />
-                        </div>
-                        <p className="text-font-m font-medium text-font-p mb-1">فیلد اضافی ثبت نشده است</p>
-                        <p className="text-font-s text-font-s/60 mb-4">برای ثبت اطلاعات خاص، فیلد جدید اضافه کنید</p>
-                        {editMode && (
-                            <Button onClick={() => handleOpenDialog()} variant="outline" size="sm">
-                                <Plus className="h-4 w-4 ml-2" />
-                                افزودن فیلد
-                            </Button>
-                        )}
-                    </div>
-                ) : (
-                    <AttributeCustomTable
-                        customAttributes={customAttributes}
-                        editMode={editMode}
-                        handleAttributeChange={handleAttributeChange}
-                        onEditKey={handleOpenDialog}
-                        onDeleteClick={handleDeleteClick}
-                    />
-                )}
-            </CardWithIcon>
+                <RealEstateExtraFields
+                    customAttributes={customAttributes}
+                    editMode={editMode}
+                    handleAttributeChange={handleAttributeChange}
+                    handleOpenDialog={handleOpenDialog}
+                    handleDeleteClick={handleDeleteClick}
 
-            {editMode && (
-                <AttributeAddDialog
                     dialogOpen={dialogOpen}
                     setDialogOpen={setDialogOpen}
                     editingKey={editingKey}
@@ -247,12 +227,13 @@ export function RealEstateAttributes({
                     saving={saving}
                     handleCloseDialog={handleCloseDialog}
                     handleSave={handleSave}
+
                     deleteDialogOpen={deleteDialogOpen}
                     setDeleteDialogOpen={setDeleteDialogOpen}
                     keyToDelete={keyToDelete}
                     handleDelete={handleDelete}
                 />
-            )}
+            </CardWithIcon>
         </div>
     );
 }

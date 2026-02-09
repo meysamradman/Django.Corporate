@@ -1,11 +1,12 @@
+
 import { FileText, Image as ImageIcon } from "lucide-react";
 import type { Property } from "@/types/real_estate/realEstate";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Badge } from "@/components/elements/Badge";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { RealEstateVideos } from "./RealEstateVideos";
+import { RealEstateVideo } from "./RealEstateVideo";
 import { RealEstateDocuments } from "./RealEstateDocuments";
-import { RealEstateAudios } from "./RealEstateAudios";
+import { RealEstateAudio } from "./RealEstateAudio";
 
 interface MediaInfoTabProps {
     property: Property;
@@ -44,7 +45,7 @@ export function RealEstateMedia({ property }: MediaInfoTabProps) {
                 </CardWithIcon>
             ) : (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-stretch">
-                    <RealEstateVideos property={property} />
+                    <RealEstateVideo property={property} />
 
                     {(documents.length > 0 || audios.length > 0) && (
                         <div className="flex flex-col">
@@ -71,7 +72,7 @@ export function RealEstateMedia({ property }: MediaInfoTabProps) {
                                     </div>
                                 }
                             >
-                                <RealEstateAudios property={property} />
+                                <RealEstateAudio property={property} />
                                 <RealEstateDocuments property={property} />
 
                                 <div className="mt-auto p-4 rounded-xl bg-purple-0/20 border border-purple-1/10 border-dashed">

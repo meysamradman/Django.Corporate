@@ -6,6 +6,7 @@ import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import type { Media } from "@/types/shared/media";
 import { Camera, X, User } from "lucide-react";
 import { useMediaContext } from '../MediaContext';
+import { type MediaContextType } from "../constants";
 
 interface ImageSelectorProps {
     selectedMedia: Media | null;
@@ -15,7 +16,7 @@ interface ImageSelectorProps {
     size?: "sm" | "md" | "lg";
     showRemoveButton?: boolean;
     showChangeButton?: boolean;
-    context?: 'media_library' | 'portfolio' | 'blog';
+    context?: MediaContextType;
     contextId?: number | string;
     placeholderText?: string;
     alt?: string;
@@ -53,7 +54,7 @@ export function ImageSelector({
     placeholderColor = "primary",
 }: ImageSelectorProps) {
     const { context, contextId } = useMediaContext(overrideContext, overrideContextId);
-    
+
     const [showMediaSelector, setShowMediaSelector] = useState(false);
     const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
 
@@ -72,11 +73,11 @@ export function ImageSelector({
 
     const sizeClass = sizeClasses[size];
     const iconSize = iconSizes[size];
-    
-    const placeholderBgClass = placeholderColor === "purple" 
-        ? "bg-gradient-to-br from-purple-1 to-purple-2" 
+
+    const placeholderBgClass = placeholderColor === "purple"
+        ? "bg-gradient-to-br from-purple-1 to-purple-2"
         : "bg-gradient-to-br from-primary/80 to-primary";
-    
+
     const getPlaceholderContent = () => {
         if (placeholderText) {
             return <span className="text-2xl">{placeholderText}</span>;
@@ -115,8 +116,8 @@ export function ImageSelector({
                             }}
                             disabled={disabled}
                             aria-label="حذف عکس"
-                            style={{ 
-                                top: '-10px', 
+                            style={{
+                                top: '-10px',
                                 left: '-10px',
                                 zIndex: 9999
                             }}

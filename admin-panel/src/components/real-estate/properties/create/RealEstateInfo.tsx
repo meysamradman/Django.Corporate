@@ -3,16 +3,16 @@ import type { UseFormReturn } from "react-hook-form";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { FileText, Settings } from "lucide-react";
 
-import { PropertyTitle } from "./info/PropertyTitle";
-import { PropertyShortDesc } from "./info/PropertyShortDesc";
-import { PropertyDescription } from "./info/PropertyDescription";
-import { PropertyType } from "./info/PropertyType";
-import { PropertyTransaction } from "./info/PropertyTransaction";
-import { PropertyAssignment } from "./info/PropertyAssignment";
-import { PropertyLabels } from "./info/PropertyLabels";
-import { PropertyTags } from "./info/PropertyTags";
-import { PropertyFeatures } from "./info/PropertyFeatures";
-import { PropertyStatus } from "./info/PropertyStatus";
+import { RealEstateTitle } from "./info/RealEstateTitle";
+import { RealEstateShortDesc } from "./info/RealEstateShortDesc";
+import { RealEstateDescription } from "./info/RealEstateDescription";
+import { RealEstateType } from "./info/RealEstateType";
+import { RealEstateTransaction } from "./info/RealEstateTransaction";
+import { RealEstateAssignment } from "./info/RealEstateAssignment";
+import { RealEstateLabels } from "./info/RealEstateLabels";
+import { RealEstateTags } from "./info/RealEstateTags";
+import { RealEstateFeatures } from "./info/RealEstateFeatures";
+import { RealEstateStatus } from "./info/RealEstateStatus";
 
 import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
@@ -72,7 +72,8 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
         formData,
         handleInputChange,
         editMode,
-        isFormApproach
+        isFormApproach,
+        errors: isFormApproach ? undefined : (props as BaseInfoTabManualProps).errors
     };
 
     return (
@@ -86,9 +87,9 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
                         iconColor="stroke-blue-2"
                         cardBorderColor="border-b-blue-1"
                     >
-                        <PropertyTitle {...commonProps} />
-                        <PropertyShortDesc {...commonProps} />
-                        <PropertyDescription {...commonProps} />
+                        <RealEstateTitle {...commonProps} />
+                        <RealEstateShortDesc {...commonProps} />
+                        <RealEstateDescription {...commonProps} />
                     </CardWithIcon>
 
                     <CardWithIcon
@@ -98,9 +99,9 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
                         iconColor="stroke-blue-2"
                         cardBorderColor="border-b-blue-1"
                     >
-                        <PropertyType {...commonProps} />
-                        <PropertyTransaction {...commonProps} />
-                        <PropertyAssignment {...commonProps} />
+                        <RealEstateType {...commonProps} />
+                        <RealEstateTransaction {...commonProps} />
+                        <RealEstateAssignment {...commonProps} />
                     </CardWithIcon>
                 </div>
 
@@ -114,25 +115,25 @@ export default function RealEstateInfo(props: BaseInfoTabProps) {
                         className="lg:sticky lg:top-20"
                     >
                         <div className="space-y-8">
-                            <PropertyLabels
+                            <RealEstateLabels
                                 selectedLabels={selectedLabels}
                                 onToggle={onLabelToggle}
                                 onRemove={onLabelRemove}
                                 editMode={editMode}
                             />
-                            <PropertyTags
+                            <RealEstateTags
                                 selectedTags={selectedTags}
                                 onToggle={onTagToggle}
                                 onRemove={onTagRemove}
                                 editMode={editMode}
                             />
-                            <PropertyFeatures
+                            <RealEstateFeatures
                                 selectedFeatures={selectedFeatures}
                                 onToggle={onFeatureToggle}
                                 onRemove={onFeatureRemove}
                                 editMode={editMode}
                             />
-                            <PropertyStatus {...commonProps} />
+                            <RealEstateStatus {...commonProps} />
                         </div>
                     </CardWithIcon>
                 </div>
