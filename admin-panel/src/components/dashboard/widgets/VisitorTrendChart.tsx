@@ -88,7 +88,7 @@ export const VisitorTrendChart: FC<{ isLoading?: boolean }> = ({
         title="روند فعالیت املاک"
         iconBgColor="bg-primary/10"
         iconColor="stroke-primary"
-        borderColor="border-b-primary"
+        cardBorderColor="border-b-primary"
         className="h-full"
       >
         <Skeleton className="h-[300px] w-full rounded-lg" />
@@ -102,7 +102,7 @@ export const VisitorTrendChart: FC<{ isLoading?: boolean }> = ({
       title="روند فعالیت املاک"
       iconBgColor="bg-primary/10"
       iconColor="stroke-primary"
-      borderColor="border-b-primary"
+      cardBorderColor="border-b-primary"
       className="h-full"
       contentClassName="space-y-6"
       titleExtra={

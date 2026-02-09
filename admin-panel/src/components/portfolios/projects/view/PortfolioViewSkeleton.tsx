@@ -5,7 +5,6 @@ import { Card } from "@/components/elements/Card";
 export function PortfolioViewSkeleton() {
     return (
         <div className="relative flex flex-col gap-6 animate-pulse">
-            {/* Header Skeleton */}
             <Card className="flex-row items-center justify-between gap-4 p-4 lg:px-6 py-4.5 bg-card border-br shadow-xs h-24">
                 <div className="flex flex-col gap-2 flex-1">
                     <Skeleton className="h-4 w-32 rounded-full" />
@@ -18,7 +17,6 @@ export function PortfolioViewSkeleton() {
                 </div>
             </Card>
 
-            {/* Gallery Skeleton */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
                 <div className="lg:col-span-8 xl:col-span-9">
                     <Skeleton className="w-full h-[500px] rounded-2xl border border-br" />
@@ -28,7 +26,6 @@ export function PortfolioViewSkeleton() {
                 </div>
             </div>
 
-            {/* Main Content Skeleton */}
             <div className="flex flex-col xl:flex-row gap-6 items-start">
                 <div className="flex-1 space-y-6 w-full">
                     <Skeleton className="w-full h-64 rounded-2xl border border-br" />

@@ -18,8 +18,6 @@ export function RealEstateDetailsFacilities({ property }: RealEstateDetailsFacil
         return value.toLocaleString('fa-IR');
     };
 
-
-
     return (
         <div className="flex flex-col">
             <Item size="sm" className="rounded-none border-x-0 border-t-0 border-b border-br/40 last:border-0 hover:bg-bg/40 transition-colors">

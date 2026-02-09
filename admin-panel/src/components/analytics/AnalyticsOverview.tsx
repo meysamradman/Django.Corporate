@@ -48,7 +48,7 @@ const TopPagesSkeleton = () => (
     title="صفحات پربازدید"
     iconBgColor="bg-blue"
     iconColor="stroke-blue-2"
-    borderColor="border-b-blue-1"
+    cardBorderColor="border-b-blue-1"
   >
     <div className="space-y-2">
       {[...Array(5)].map((_, i) => (
@@ -64,7 +64,7 @@ const TopCountriesSkeleton = () => (
     title="کشورهای پربازدید"
     iconBgColor="bg-green"
     iconColor="stroke-green-2"
-    borderColor="border-b-green-1"
+    cardBorderColor="border-b-green-1"
   >
     <div className="space-y-2">
       {[...Array(5)].map((_, i) => (
@@ -140,8 +140,8 @@ export function AnalyticsOverview() {
     <div className="space-y-6">
       <PermissionGate permission="analytics.manage">
         <Suspense fallback={<SummaryCardsSkeleton />}>
-          <SummaryCards 
-            analytics={displayAnalytics} 
+          <SummaryCards
+            analytics={displayAnalytics}
             monthlyStats={monthlyStats}
           />
         </Suspense>
@@ -149,24 +149,24 @@ export function AnalyticsOverview() {
 
       <PermissionGate permission="analytics.manage">
         <Suspense fallback={<VisitorChartSkeleton />}>
-          <VisitorChart 
+          <VisitorChart
             monthlyStats={monthlyStats}
-          analytics={displayAnalytics}
-          isLoading={isLoading}
-        />
+            analytics={displayAnalytics}
+            isLoading={isLoading}
+          />
         </Suspense>
       </PermissionGate>
 
       <PermissionGate permission="analytics.manage">
         <div className="grid md:grid-cols-2 gap-4">
           <Suspense fallback={<TopPagesSkeleton />}>
-            <TopPages 
+            <TopPages
               topPages={displayAnalytics.top_pages}
               isLoading={isLoading}
             />
           </Suspense>
           <Suspense fallback={<TopCountriesSkeleton />}>
-            <TopCountries 
+            <TopCountries
               topCountries={displayAnalytics.top_countries}
               isLoading={isLoading}
             />

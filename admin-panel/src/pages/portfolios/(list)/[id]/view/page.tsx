@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { PortfolioViewSkeleton } from "@/components/portfolios/projects/view/PortfolioViewSkeleton";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 
-// Modular Component Imports
 import { PortfolioGallery } from "@/components/portfolios/projects/view/media/PortfolioGallery";
 import { PortfolioNavigation } from "@/components/portfolios/projects/view/navigation/PortfolioNavigation";
 import { PortfolioDescriptions } from "@/components/portfolios/projects/view/descriptions/PortfolioDescriptions";
@@ -17,7 +16,6 @@ import { PortfolioAttributes } from "@/components/portfolios/projects/view/attri
 import { PortfolioSEO } from "@/components/portfolios/projects/view/seo/PortfolioSEO";
 import { PortfolioSidebar } from "@/components/portfolios/projects/view/sidebar/PortfolioSidebar";
 
-// New Media Components
 import { PortfolioVideo } from "@/components/portfolios/projects/view/media/PortfolioVideo";
 import { PortfolioAttachments } from "@/components/portfolios/projects/view/media/PortfolioAttachments";
 import { PortfolioMediaSummary } from "@/components/portfolios/projects/view/media/PortfolioMediaSummary";
@@ -69,7 +67,6 @@ export default function PortfolioViewPage() {
 
   return (
     <div className="relative flex flex-col gap-6 text-right" dir="rtl">
-      {/* Top Section: Gallery & Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <div className="lg:col-span-8 xl:col-span-9">
           <div id="section-gallery" className="scroll-mt-32">
@@ -92,7 +89,6 @@ export default function PortfolioViewPage() {
         </div>
       </div>
 
-      {/* Bottom Section: Content & Navigation */}
       <div className="flex flex-col xl:flex-row gap-6 items-start relative min-w-0">
         <div className="flex-1 grid grid-cols-1 gap-6 min-w-0 w-full">
 

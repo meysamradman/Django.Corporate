@@ -108,7 +108,7 @@ export default function UserProfile({
             title="اطلاعات شخصی"
             iconBgColor="bg-blue"
             iconColor="stroke-blue-2"
-            borderColor="border-b-blue-1"
+            cardBorderColor="border-b-blue-1"
             className="hover:shadow-lg transition-all duration-300"
           >
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -200,7 +200,7 @@ export default function UserProfile({
             title="موقعیت جغرافیایی"
             iconBgColor="bg-green"
             iconColor="stroke-green-2"
-            borderColor="border-b-green-1"
+            cardBorderColor="border-b-green-1"
             className="hover:shadow-lg transition-all duration-300"
           >
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -278,7 +278,7 @@ export default function UserProfile({
             title="بیوگرافی"
             iconBgColor="bg-purple"
             iconColor="stroke-purple-2"
-            borderColor="border-b-purple-1"
+            cardBorderColor="border-b-purple-1"
             className="hover:shadow-lg transition-all duration-300"
           >
             <FormField

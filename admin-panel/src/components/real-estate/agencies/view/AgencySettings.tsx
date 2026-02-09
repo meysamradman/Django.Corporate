@@ -23,7 +23,7 @@ export default function AgencySettings({ agencyData }: SettingsTabProps) {
                 title="اطلاعات آماری"
                 iconBgColor="bg-primary/10"
                 iconColor="stroke-primary"
-                borderColor="border-b-primary"
+                cardBorderColor="border-b-primary"
                 className="hover:shadow-lg transition-all duration-300"
             >
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -62,7 +62,7 @@ export default function AgencySettings({ agencyData }: SettingsTabProps) {
                     title="SEO و شبکه‌های اجتماعی"
                     iconBgColor="bg-primary/10"
                     iconColor="stroke-primary"
-                    borderColor="border-b-primary"
+                    cardBorderColor="border-b-primary"
                     className="hover:shadow-lg transition-all duration-300"
                 >
                     <div className="space-y-6">
@@ -103,7 +103,7 @@ export default function AgencySettings({ agencyData }: SettingsTabProps) {
                     title="توضیحات تکمیلی"
                     iconBgColor="bg-primary/10"
                     iconColor="stroke-primary"
-                    borderColor="border-b-primary"
+                    cardBorderColor="border-b-primary"
                     className="hover:shadow-lg transition-all duration-300"
                 >
                     <div>
@@ -118,7 +118,7 @@ export default function AgencySettings({ agencyData }: SettingsTabProps) {
                 title="اطلاعات سیستم"
                 iconBgColor="bg-gray-0"
                 iconColor="stroke-gray-1"
-                borderColor="border-b-gray-1"
+                cardBorderColor="border-b-gray-1"
                 className="transition-all duration-300"
             >
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 text-sm">

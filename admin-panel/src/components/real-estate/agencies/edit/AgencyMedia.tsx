@@ -108,7 +108,7 @@ export default function AgencyMedia({
         title="لوگو آژانس"
         iconBgColor="bg-primary/10"
         iconColor="stroke-primary"
-        borderColor="border-b-primary"
+        cardBorderColor="border-b-primary"
         className="hover:shadow-lg transition-all duration-300"
       >
         <div className="space-y-4">

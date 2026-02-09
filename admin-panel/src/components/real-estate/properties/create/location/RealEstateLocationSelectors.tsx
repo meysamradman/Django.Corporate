@@ -4,6 +4,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { FormField } from "@/components/shared/FormField";
 import { realEstateApi } from "@/api/real-estate";
+import { MapPin, Navigation, Landmark } from "lucide-react";
 import { cn } from "@/core/utils/cn";
 import type { PropertyFormValues } from "@/components/real-estate/validations/propertySchema";
 
@@ -135,8 +136,11 @@ export function RealEstateLocationSelectors({
                     onValueChange={handleProvinceChange}
                     disabled={!editMode || loading}
                 >
-                    <SelectTrigger className={cn(provinceError && "border-red-1")}>
-                        <SelectValue placeholder="استان را انتخاب کنید" />
+                    <SelectTrigger className={cn("h-11", provinceError && "border-red-1")}>
+                        <div className="flex items-center gap-2">
+                            <Landmark className="w-4 h-4 text-blue-2" />
+                            <SelectValue placeholder="استان را انتخاب کنید" />
+                        </div>
                     </SelectTrigger>
                     <SelectContent>
                         {provinces.map((p) => (
@@ -152,8 +156,11 @@ export function RealEstateLocationSelectors({
                     onValueChange={handleCityChange}
                     disabled={!editMode || !selectedProvinceId || loading}
                 >
-                    <SelectTrigger className={cn(cityError && "border-red-1")}>
-                        <SelectValue placeholder="شهر را انتخاب کنید" />
+                    <SelectTrigger className={cn("h-11", cityError && "border-red-1")}>
+                        <div className="flex items-center gap-2">
+                            <Navigation className="w-4 h-4 text-green-2" />
+                            <SelectValue placeholder="شهر را انتخاب کنید" />
+                        </div>
                     </SelectTrigger>
                     <SelectContent>
                         {cities.map((c) => (
@@ -163,26 +170,27 @@ export function RealEstateLocationSelectors({
                 </Select>
             </FormField>
 
-            {cityRegions.length > 0 && (
-                <FormField label="منطقه (اختیاری)">
-                    <Select
-                        value={formData?.region ? String(formData.region) : (isFormApproach ? watch?.("region")?.toString() : "")}
-                        onValueChange={handleRegionChange}
-                        disabled={!editMode || !selectedCityId || loading}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="منطقه را انتخاب کنید" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {cityRegions.map((region) => (
-                                <SelectItem key={region.id} value={region.id.toString()}>
-                                    {region.name} (منطقه {region.code})
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </FormField>
-            )}
+            <FormField label="منطقه (اختیاری)">
+                <Select
+                    value={formData?.region ? String(formData.region) : (isFormApproach ? watch?.("region")?.toString() : "")}
+                    onValueChange={handleRegionChange}
+                    disabled={!editMode || !selectedCityId || loading || cityRegions.length === 0}
+                >
+                    <SelectTrigger className="h-11">
+                        <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-purple-2" />
+                            <SelectValue placeholder={cityRegions.length > 0 ? "منطقه را انتخاب کنید" : "منطقه‌ای یافت نشد"} />
+                        </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                        {cityRegions.map((region) => (
+                            <SelectItem key={region.id} value={region.id.toString()}>
+                                {region.name} (منطقه {region.code})
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </FormField>
         </div>
     );
 }

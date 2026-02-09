@@ -23,7 +23,7 @@ export default function AgencyInfo({ agencyData }: BaseInfoTabProps) {
                 title="اطلاعات احراز هویت"
                 iconBgColor="bg-primary/10"
                 iconColor="stroke-primary"
-                borderColor="border-b-primary"
+                cardBorderColor="border-b-primary"
                 className="hover:shadow-lg transition-all duration-300"
             >
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -125,7 +125,7 @@ export default function AgencyInfo({ agencyData }: BaseInfoTabProps) {
                 title="موقعیت مکانی"
                 iconBgColor="bg-purple/10"
                 iconColor="stroke-purple"
-                borderColor="border-b-purple"
+                cardBorderColor="border-b-purple"
                 className="hover:shadow-lg transition-all duration-300"
             >
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

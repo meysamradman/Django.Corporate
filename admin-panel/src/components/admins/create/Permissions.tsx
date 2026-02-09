@@ -63,7 +63,7 @@ export default function Permissions({
         title="نقش و سطح دسترسی"
         iconBgColor="bg-blue"
         iconColor="stroke-blue-2"
-        borderColor="border-b-blue-1"
+        cardBorderColor="border-b-blue-1"
         className="hover:shadow-lg transition-all duration-300"
       >
         <FormField
@@ -113,7 +113,7 @@ export default function Permissions({
           title="دسترسی‌های ویژه"
           iconBgColor="bg-yellow"
           iconColor="stroke-yellow-2"
-          borderColor="border-b-yellow-1"
+          cardBorderColor="border-b-yellow-1"
           className="hover:shadow-lg transition-all duration-300"
         >
           <div className="flex items-center justify-between rounded-lg border p-4 bg-amber">

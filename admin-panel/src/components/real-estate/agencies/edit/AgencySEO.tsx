@@ -26,7 +26,7 @@ export default function AgencySEO({
         title="برچسب‌های Meta"
         iconBgColor="bg-emerald"
         iconColor="stroke-emerald-2"
-        borderColor="border-b-emerald-1"
+        cardBorderColor="border-b-emerald-1"
         className="hover:shadow-lg transition-all duration-300"
       >
         <div className="space-y-4">
@@ -69,7 +69,7 @@ export default function AgencySEO({
         title="Open Graph"
         iconBgColor="bg-pink"
         iconColor="stroke-pink-2"
-        borderColor="border-b-pink-1"
+        cardBorderColor="border-b-pink-1"
         className="hover:shadow-lg transition-all duration-300"
       >
         <div className="space-y-4">
@@ -110,7 +110,7 @@ export default function AgencySEO({
         title="تنظیمات پیشرفته SEO"
         iconBgColor="bg-indigo"
         iconColor="stroke-indigo-2"
-        borderColor="border-b-indigo-1"
+        cardBorderColor="border-b-indigo-1"
         className="hover:shadow-lg transition-all duration-300"
       >
         <div className="space-y-4">

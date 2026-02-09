@@ -62,7 +62,7 @@ export const SystemStats: FC<SystemStatsProps> = ({ systemStats, isLoading = fal
         title="آمار سیستم"
         iconBgColor="bg-primary/10"
         iconColor="stroke-primary"
-        borderColor="border-b-primary"
+        cardBorderColor="border-b-primary"
         className="h-full w-full"
       >
         <div className="space-y-6 h-full p-2">
@@ -82,7 +82,7 @@ export const SystemStats: FC<SystemStatsProps> = ({ systemStats, isLoading = fal
       title="آنالیز منابع سیستم"
       iconBgColor="bg-primary/10"
       iconColor="stroke-primary"
-      borderColor="border-b-primary"
+      cardBorderColor="border-b-primary"
       className="h-full w-full flex flex-col transition-all duration-500 group/card"
       contentClassName="flex-1 flex flex-col pt-5 px-5 pb-0 gap-6"
       titleExtra={<p className="text-[10px] text-font-s opacity-60 font-black tracking-widest uppercase">System Resources</p>}

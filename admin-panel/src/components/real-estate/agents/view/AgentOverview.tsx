@@ -28,7 +28,7 @@ export function AgentOverview({ agent }: AgentOverviewTabProps) {
           title="اطلاعات شخصی"
           iconBgColor="bg-blue"
           iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
+          cardBorderColor="border-b-blue-1"
           headerClassName="pb-3"
         >
           <div className="space-y-4">
@@ -73,7 +73,7 @@ export function AgentOverview({ agent }: AgentOverviewTabProps) {
           title="موقعیت مکانی"
           iconBgColor="bg-purple"
           iconColor="stroke-purple-2"
-          borderColor="border-b-purple-1"
+          cardBorderColor="border-b-purple-1"
           headerClassName="pb-3"
         >
           <div className="space-y-4">
@@ -113,7 +113,7 @@ export function AgentOverview({ agent }: AgentOverviewTabProps) {
             title="بیوگرافی"
             iconBgColor="bg-indigo"
             iconColor="stroke-indigo-2"
-            borderColor="border-b-indigo-1"
+            cardBorderColor="border-b-indigo-1"
             headerClassName="pb-3"
           >
             <ReadMore content={agent.bio || ""} maxHeight="200px" />
@@ -126,7 +126,7 @@ export function AgentOverview({ agent }: AgentOverviewTabProps) {
             title="اطلاعات حرفه‌ای"
             iconBgColor="bg-emerald"
             iconColor="stroke-emerald-2"
-            borderColor="border-b-emerald-1"
+            cardBorderColor="border-b-emerald-1"
             headerClassName="pb-3"
           >
             <div className="space-y-4">
@@ -151,7 +151,7 @@ export function AgentOverview({ agent }: AgentOverviewTabProps) {
           title="آمار و عملکرد"
           iconBgColor="bg-orange"
           iconColor="stroke-orange-2"
-          borderColor="border-b-orange-1"
+          cardBorderColor="border-b-orange-1"
           headerClassName="pb-3"
         >
           <div className="grid grid-cols-2 gap-4">

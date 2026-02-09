@@ -12,7 +12,7 @@ import { usePanelSettings, useUpdatePanelSettings } from '../hooks/usePanelSetti
 import { showSuccess } from '@/core/toast';
 import { Skeleton } from "@/components/elements/Skeleton";
 import type { Media } from '@/types/shared/media';
-import { 
+import {
     FileText,
 } from 'lucide-react';
 
@@ -31,10 +31,10 @@ export interface PanelBrandingTabRef {
 const PanelBrandingTab = forwardRef<PanelBrandingTabRef>((_props, ref) => {
     const { data: panelSettings, isLoading: isLoadingSettings } = usePanelSettings();
     const { mutateAsync: updateSettings, isPending: isSubmitting } = useUpdatePanelSettings();
-    
+
     const [selectedLogo, setSelectedLogo] = useState<Media | null>(null);
     const [selectedFavicon, setSelectedFavicon] = useState<Media | null>(null);
-    
+
     const [logoDeleted, setLogoDeleted] = useState<boolean>(false);
     const [faviconDeleted, setFaviconDeleted] = useState<boolean>(false);
 
@@ -74,14 +74,14 @@ const PanelBrandingTab = forwardRef<PanelBrandingTabRef>((_props, ref) => {
     const onSubmit: SubmitHandler<FormValues> = async (data) => {
         try {
             const formData = new FormData();
-            
+
             if (data.panel_title !== panelSettings?.panel_title) {
                 formData.append('panel_title', data.panel_title);
             }
 
             const currentLogo = panelSettings?.logo_detail || panelSettings?.logo;
             const logoWasRemoved = !selectedLogo && currentLogo;
-            
+
             if (selectedLogo?.id) {
                 formData.append('logo', selectedLogo.id.toString());
             } else if (logoWasRemoved || logoDeleted) {
@@ -90,7 +90,7 @@ const PanelBrandingTab = forwardRef<PanelBrandingTabRef>((_props, ref) => {
 
             const currentFavicon = panelSettings?.favicon_detail || panelSettings?.favicon;
             const faviconWasRemoved = !selectedFavicon && currentFavicon;
-            
+
             if (selectedFavicon?.id) {
                 formData.append('favicon', selectedFavicon.id.toString());
             } else if (faviconWasRemoved || faviconDeleted) {
@@ -118,11 +118,11 @@ const PanelBrandingTab = forwardRef<PanelBrandingTabRef>((_props, ref) => {
     };
 
     const watchedTitle = form.watch('panel_title');
-    
+
     const hasChanges = watchedTitle !== (panelSettings?.panel_title || "") ||
-                      selectedLogo !== (panelSettings?.logo_detail || panelSettings?.logo || null) || 
-                      selectedFavicon !== (panelSettings?.favicon_detail || panelSettings?.favicon || null) || 
-                      logoDeleted || faviconDeleted;
+        selectedLogo !== (panelSettings?.logo_detail || panelSettings?.logo || null) ||
+        selectedFavicon !== (panelSettings?.favicon_detail || panelSettings?.favicon || null) ||
+        logoDeleted || faviconDeleted;
 
     useImperativeHandle(ref, () => ({
         isSubmitting,
@@ -177,7 +177,7 @@ const PanelBrandingTab = forwardRef<PanelBrandingTabRef>((_props, ref) => {
                     title="اطلاعات پنل"
                     iconBgColor="bg-blue"
                     iconColor="stroke-blue-2"
-                    borderColor="border-b-blue-1"
+                    cardBorderColor="border-b-blue-1"
                     className="hover:shadow-lg transition-all duration-300"
                     headerClassName="pb-3"
                 >
@@ -258,29 +258,29 @@ const PanelBrandingTab = forwardRef<PanelBrandingTabRef>((_props, ref) => {
                     title="اطلاعات پنل"
                     iconBgColor="bg-blue"
                     iconColor="stroke-blue-2"
-                    borderColor="border-b-blue-1"
+                    cardBorderColor="border-b-blue-1"
                     className="hover:shadow-lg transition-all duration-300"
                     headerClassName="pb-3"
                 >
-                        <p className="text-font-s mb-4">
-                            عنوان پنل که در بالای صفحه و در تب مرورگر نمایش داده می‌شود
-                        </p>
-                        <FormField
-                            control={form.control}
-                            name="panel_title"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>عنوان پنل</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            {...field}
-                                            placeholder="عنوان پنل مدیریتی"
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                    <p className="text-font-s mb-4">
+                        عنوان پنل که در بالای صفحه و در تب مرورگر نمایش داده می‌شود
+                    </p>
+                    <FormField
+                        control={form.control}
+                        name="panel_title"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>عنوان پنل</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        {...field}
+                                        placeholder="عنوان پنل مدیریتی"
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                 </CardWithIcon>
             </form>
         </Form>

@@ -134,7 +134,7 @@ export function SummaryCards({ analytics, monthlyStats = [] }: SummaryCardsProps
         icon={<Eye className="h-5 w-5" />}
         iconColor="text-blue-1"
         iconBg="bg-blue-0"
-        borderColor="border-b-blue-1"
+        cardBorderColor="border-b-blue-1"
       />
       <StatCard
         title="بازدید 30 روز گذشته"
@@ -143,7 +143,7 @@ export function SummaryCards({ analytics, monthlyStats = [] }: SummaryCardsProps
         icon={<Calendar className="h-5 w-5" />}
         iconColor="text-green-1"
         iconBg="bg-green-0"
-        borderColor="border-b-green-1"
+        cardBorderColor="border-b-green-1"
       />
       <StatCard
         title="بازدید این ماه"
@@ -156,7 +156,7 @@ export function SummaryCards({ analytics, monthlyStats = [] }: SummaryCardsProps
         icon={<Activity className="h-5 w-5" />}
         iconColor="text-purple-1"
         iconBg="bg-purple-0"
-        borderColor="border-b-purple-1"
+        cardBorderColor="border-b-purple-1"
       />
       <StatCard
         title="بازدیدکنندگان یکتا"
@@ -165,7 +165,7 @@ export function SummaryCards({ analytics, monthlyStats = [] }: SummaryCardsProps
         icon={<Users className="h-5 w-5" />}
         iconColor="text-amber-1"
         iconBg="bg-amber-0"
-        borderColor="border-b-amber-1"
+        cardBorderColor="border-b-amber-1"
       />
     </div>
   );

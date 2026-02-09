@@ -35,40 +35,40 @@ export function PageInfo({
                 title="اطلاعات پایه"
                 iconBgColor="bg-blue"
                 iconColor="stroke-blue-2"
-                borderColor="border-b-blue-1"
+                cardBorderColor="border-b-blue-1"
                 className="hover:shadow-lg transition-all duration-300"
                 headerClassName="pb-3"
                 contentClassName="space-y-6"
             >
-                    <div className="space-y-2">
-                        <Label htmlFor="title">عنوان صفحه</Label>
-                        <Input
-                            id="title"
-                            value={title}
-                            onChange={(e) => onTitleChange(e.target.value)}
-                            placeholder="عنوان صفحه"
-                        />
-                    </div>
+                <div className="space-y-2">
+                    <Label htmlFor="title">عنوان صفحه</Label>
+                    <Input
+                        id="title"
+                        value={title}
+                        onChange={(e) => onTitleChange(e.target.value)}
+                        placeholder="عنوان صفحه"
+                    />
+                </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="short_description">توضیح کوتاه</Label>
-                        <Textarea
-                            id="short_description"
-                            value={shortDescription}
-                            onChange={(e) => onShortDescriptionChange(e.target.value)}
-                            placeholder="خلاصه کوتاه از محتوای صفحه"
-                            rows={3}
-                        />
-                    </div>
+                <div className="space-y-2">
+                    <Label htmlFor="short_description">توضیح کوتاه</Label>
+                    <Textarea
+                        id="short_description"
+                        value={shortDescription}
+                        onChange={(e) => onShortDescriptionChange(e.target.value)}
+                        placeholder="خلاصه کوتاه از محتوای صفحه"
+                        rows={3}
+                    />
+                </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="content">محتوای صفحه</Label>
-                        <TipTapEditor
-                            content={content}
-                            onChange={onContentChange}
-                            placeholder="محتوای صفحه را وارد کنید... می‌توانید از عکس، لینک و فرمت‌های مختلف استفاده کنید"
-                        />
-                    </div>
+                <div className="space-y-2">
+                    <Label htmlFor="content">محتوای صفحه</Label>
+                    <TipTapEditor
+                        content={content}
+                        onChange={onContentChange}
+                        placeholder="محتوای صفحه را وارد کنید... می‌توانید از عکس، لینک و فرمت‌های مختلف استفاده کنید"
+                    />
+                </div>
             </CardWithIcon>
 
             <CardWithIcon
@@ -76,17 +76,17 @@ export function PageInfo({
                 title="تصویر شاخص"
                 iconBgColor="bg-orange"
                 iconColor="stroke-orange-2"
-                borderColor="border-b-orange-1"
+                cardBorderColor="border-b-orange-1"
                 className="hover:shadow-lg transition-all duration-300"
                 headerClassName="pb-3"
             >
-                    <ImageSelector
-                        selectedMedia={featuredImage}
-                        onMediaSelect={onFeaturedImageChange}
-                        size="md"
-                        context="media_library"
-                        alt="تصویر شاخص"
-                    />
+                <ImageSelector
+                    selectedMedia={featuredImage}
+                    onMediaSelect={onFeaturedImageChange}
+                    size="md"
+                    context="media_library"
+                    alt="تصویر شاخص"
+                />
             </CardWithIcon>
         </div>
     );

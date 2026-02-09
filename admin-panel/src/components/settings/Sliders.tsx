@@ -69,7 +69,7 @@ export function Sliders() {
                 title="اسلایدرها"
                 iconBgColor="bg-blue"
                 iconColor="stroke-blue-2"
-                borderColor="border-b-blue-1"
+                cardBorderColor="border-b-blue-1"
             >
                 <div className="space-y-4">
                     <Skeleton className="h-10 w-full" />
@@ -90,7 +90,7 @@ export function Sliders() {
                 title="اسلایدرها"
                 iconBgColor="bg-indigo"
                 iconColor="stroke-indigo-2"
-                borderColor="border-b-indigo-1"
+                cardBorderColor="border-b-indigo-1"
                 className="hover:shadow-lg transition-all duration-300"
                 headerClassName="pb-3"
                 titleExtra={

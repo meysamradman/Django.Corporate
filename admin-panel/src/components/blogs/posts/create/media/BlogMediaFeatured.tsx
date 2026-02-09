@@ -30,7 +30,7 @@ export function BlogMediaFeatured({
             }
             iconBgColor="bg-indigo-0"
             iconColor="stroke-indigo-1"
-            borderColor={errors?.featuredImage ? 'border-b-red-1' : 'border-b-indigo-1'}
+            cardBorderColor={errors?.featuredImage ? 'border-b-red-1' : 'border-b-indigo-1'}
             className="lg:sticky lg:top-20"
         >
             <div className="space-y-4">

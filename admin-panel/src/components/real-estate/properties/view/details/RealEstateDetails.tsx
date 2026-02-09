@@ -14,8 +14,8 @@ export function RealEstateDetails({ property }: PropertyDetailsCardProps) {
         <CardWithIcon
             icon={Info}
             title="جزئیات و مشخصات ملک"
-            iconBgColor="bg-blue-0/50"
-            iconColor="text-blue-1"
+            iconBgColor="bg-blue"
+            iconColor="stroke-blue-2"
             cardBorderColor="border-b-blue-1"
             className="shadow-sm"
             contentClassName=""

@@ -78,11 +78,11 @@ export default function Dashboard() {
             <span className="animate-bounce-slow text-lg">👋</span>
           </div>
         }
-        iconBgColor="bg-primary/10"
-        iconColor="stroke-primary"
-        borderColor="border-b-primary"
-        className="!shadow-none !h-fit !py-0"
-        headerClassName="!pt-3 !pb-2 !px-4 !items-center"
+        iconBgColor="bg-blue"
+        iconColor="stroke-blue-2"
+        cardBorderColor="border-b-primary"
+        className="shadow-none! h-fit! py-0!"
+        headerClassName="pt-3! pb-2! px-4! items-center"
         contentClassName="hidden"
         titleExtra={
           <div className="flex items-center gap-5">

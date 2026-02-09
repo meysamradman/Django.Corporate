@@ -28,17 +28,34 @@ export function RealEstateLocationAddress({
 
     return (
         <div className="space-y-6">
-            <FormFieldInput
-                label="نام محله / خیابان اصلی"
-                id="neighborhood"
-                placeholder="مثلاً: پاسداران"
-                disabled={!editMode}
-                error={isFormApproach ? (errorsObj.neighborhood as any)?.message : errorsObj?.neighborhood}
-                {...(isFormApproach ? register?.("neighborhood") : {
-                    value: formData?.neighborhood || "",
-                    onChange: (e) => handleInputChange?.("neighborhood", e.target.value)
-                })}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormFieldInput
+                    label="نام محله / خیابان اصلی"
+                    id="neighborhood"
+                    placeholder="مثلاً: پاسداران"
+                    disabled={!editMode}
+                    className="h-11 bg-bg/20 border-muted/20"
+                    error={isFormApproach ? (errorsObj.neighborhood as any)?.message : errorsObj?.neighborhood}
+                    {...(isFormApproach ? register?.("neighborhood") : {
+                        value: formData?.neighborhood || "",
+                        onChange: (e) => handleInputChange?.("neighborhood", e.target.value)
+                    })}
+                />
+
+                <FormFieldInput
+                    label="کد پستی"
+                    id="postal_code"
+                    placeholder="۱۰ رقم (مانند: ۱۲۳۴۵۶۷۸۹۰)"
+                    disabled={!editMode}
+                    className="h-11 bg-bg/20 border-muted/20"
+                    maxLength={10}
+                    error={isFormApproach ? (errorsObj.postal_code as any)?.message : errorsObj?.postal_code}
+                    {...(isFormApproach ? register?.("postal_code") : {
+                        value: formData?.postal_code || "",
+                        onChange: (e) => handleInputChange?.("postal_code", e.target.value)
+                    })}
+                />
+            </div>
 
             <FormFieldTextarea
                 label="آدرس دقیق"
@@ -46,6 +63,7 @@ export function RealEstateLocationAddress({
                 placeholder="خیابان، کوچه، پلاک، واحد..."
                 rows={3}
                 disabled={!editMode}
+                className="bg-bg/20 border-muted/20"
                 error={isFormApproach ? (errorsObj.address as any)?.message : errorsObj?.address}
                 {...(isFormApproach ? register?.("address") : {
                     value: formData?.address || "",

@@ -27,7 +27,7 @@ export function RealEstateVideos({
         <CardWithIcon
             icon={Video}
             title="ویدیو و تیزر"
-            iconBgColor="bg-purple-0"
+            iconBgColor="bg-purple"
             iconColor="stroke-purple-2"
             cardBorderColor="border-b-purple-1"
         >

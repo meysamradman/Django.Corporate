@@ -40,7 +40,7 @@ export default function AgencyInfo({
         title="اطلاعات احراز هویت"
         iconBgColor="bg-primary/10"
         iconColor="stroke-primary"
-        borderColor="border-b-primary"
+        cardBorderColor="border-b-primary"
         className="hover:shadow-lg transition-all duration-300"
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

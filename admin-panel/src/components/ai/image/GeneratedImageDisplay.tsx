@@ -42,29 +42,29 @@ export function GeneratedImageDisplay({
             }
             iconBgColor="bg-pink"
             iconColor="stroke-pink-2"
-            borderColor="border-b-pink-1"
+            cardBorderColor="border-b-pink-1"
             className="hover:shadow-lg transition-all duration-300"
             headerClassName="pb-3 border-b"
         >
-                <div className="space-y-4">
-                    <div className="relative w-full h-96 rounded-lg overflow-auto border bg-bg/20">
-                        <div className="w-full min-h-full flex items-center justify-center">
-                            {generatedMedia ? (
-                                <MediaImage
-                                    media={generatedMedia}
-                                    alt={generatedMedia.alt_text || generatedMedia.title || 'تصویر تولید شده'}
-                                    className="w-full h-auto max-h-full object-cover"
-                                />
-                            ) : generatedImageUrl ? (
-                                <img
-                                    src={generatedImageUrl}
-                                    alt={prompt || 'تصویر تولید شده'}
-                                    className="w-full h-auto max-h-full object-cover"
-                                />
-                            ) : null}
-                        </div>
+            <div className="space-y-4">
+                <div className="relative w-full h-96 rounded-lg overflow-auto border bg-bg/20">
+                    <div className="w-full min-h-full flex items-center justify-center">
+                        {generatedMedia ? (
+                            <MediaImage
+                                media={generatedMedia}
+                                alt={generatedMedia.alt_text || generatedMedia.title || 'تصویر تولید شده'}
+                                className="w-full h-auto max-h-full object-cover"
+                            />
+                        ) : generatedImageUrl ? (
+                            <img
+                                src={generatedImageUrl}
+                                alt={prompt || 'تصویر تولید شده'}
+                                className="w-full h-auto max-h-full object-cover"
+                            />
+                        ) : null}
                     </div>
-                    <div className="flex gap-2">
+                </div>
+                <div className="flex gap-2">
                     {generatedMedia ? (
                         <>
                             <Button
@@ -107,8 +107,8 @@ export function GeneratedImageDisplay({
                             </Button>
                         </>
                     ) : null}
-                    </div>
                 </div>
+            </div>
         </CardWithIcon>
     );
 }

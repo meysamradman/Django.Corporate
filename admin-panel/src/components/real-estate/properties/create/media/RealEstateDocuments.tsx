@@ -27,7 +27,7 @@ export function RealEstateDocuments({
         <CardWithIcon
             icon={FileText}
             title="مستندات و فایل‌های ضمیمه (PDF)"
-            iconBgColor="bg-orange-0"
+            iconBgColor="bg-orange"
             iconColor="stroke-orange-2"
             cardBorderColor="border-b-orange-1"
         >

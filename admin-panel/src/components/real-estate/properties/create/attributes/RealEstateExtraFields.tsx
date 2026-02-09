@@ -30,7 +30,6 @@ interface RealEstateExtraFieldsProps {
     handleOpenDialog: (key?: string) => void;
     handleDeleteClick: (key: string) => void;
 
-    // Dialog props
     dialogOpen: boolean;
     setDialogOpen: (open: boolean) => void;
     editingKey: string | null;
@@ -42,7 +41,6 @@ interface RealEstateExtraFieldsProps {
     handleCloseDialog: () => void;
     handleSave: () => void;
 
-    // Alert Dialog props
     deleteDialogOpen: boolean;
     setDeleteDialogOpen: (open: boolean) => void;
     keyToDelete: string | null;

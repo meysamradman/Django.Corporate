@@ -29,7 +29,7 @@ const AnalyticsSkeleton = () => (
       title={<Skeleton className="h-6 w-48" />}
       iconBgColor="bg-blue"
       iconColor="stroke-blue-2"
-      borderColor="border-b-blue-1"
+      cardBorderColor="border-b-blue-1"
     >
       <Skeleton className="h-[400px] w-full" />
     </CardWithIcon>
@@ -40,7 +40,7 @@ const AnalyticsSkeleton = () => (
         title="صفحات پربازدید"
         iconBgColor="bg-blue"
         iconColor="stroke-blue-2"
-        borderColor="border-b-blue-1"
+        cardBorderColor="border-b-blue-1"
       >
         <div className="space-y-2">
           {[...Array(5)].map((_, i) => (
@@ -54,7 +54,7 @@ const AnalyticsSkeleton = () => (
         title="کشورهای پربازدید"
         iconBgColor="bg-green"
         iconColor="stroke-green-2"
-        borderColor="border-b-green-1"
+        cardBorderColor="border-b-green-1"
       >
         <div className="space-y-2">
           {[...Array(5)].map((_, i) => (
@@ -85,7 +85,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
+      <PageHeader
         title="آمار و گزارش‌های بازدید"
         description="مشاهده و تحلیل آمار بازدید وب‌سایت و اپلیکیشن"
       >

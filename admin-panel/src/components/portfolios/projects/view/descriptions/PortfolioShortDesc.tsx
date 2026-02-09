@@ -1,7 +1,6 @@
 import { ValueFallback } from "@/components/shared/ValueFallback";
 import type { Portfolio } from "@/types/portfolio/portfolio";
 
-
 interface PortfolioShortDescProps {
     portfolio: Portfolio;
 }

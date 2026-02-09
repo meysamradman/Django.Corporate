@@ -22,7 +22,7 @@ export function TopCountries({ topCountries = [], isLoading }: TopCountriesProps
         title="کشورهای پربازدید"
         iconBgColor="bg-green"
         iconColor="stroke-green-2"
-        borderColor="border-b-green-1"
+        cardBorderColor="border-b-green-1"
       >
         <div className="space-y-2">
           {[...Array(5)].map((_, i) => (
@@ -40,7 +40,7 @@ export function TopCountries({ topCountries = [], isLoading }: TopCountriesProps
         title="کشورهای پربازدید"
         iconBgColor="bg-green"
         iconColor="stroke-green-2"
-        borderColor="border-b-green-1"
+        cardBorderColor="border-b-green-1"
       >
         <div className="text-center py-4 text-font-s text-sm">
           داده‌ای برای نمایش وجود ندارد
@@ -57,7 +57,7 @@ export function TopCountries({ topCountries = [], isLoading }: TopCountriesProps
       title="کشورهای پربازدید"
       iconBgColor="bg-green"
       iconColor="stroke-green-2"
-      borderColor="border-b-green-1"
+      cardBorderColor="border-b-green-1"
       titleExtra={<span className="text-xs text-font-s">{topCountries.length} کشور</span>}
       contentClassName="max-h-[340px] overflow-y-auto scrollbar-thick"
     >

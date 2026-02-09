@@ -56,8 +56,6 @@ export function RealEstateTags({ selectedTags, onToggle, onRemove, editMode }: R
                     onClose={() => setShowAddDialog(false)}
                     onSuccess={() => {
                         fetchTags();
-                        // Ideally we should select the new tag here, but the sidebar doesn't return it directly in onSuccess
-                        // But fetchTags will refresh the list.
                     }}
                 />
             </Suspense>

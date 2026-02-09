@@ -31,8 +31,8 @@ export function MapSettingsSection() {
                 icon={MapIcon}
                 title="تنظیمات نقشه"
                 iconBgColor="bg-blue"
-                iconColor="stroke-static-w"
-                borderColor="border-b-blue/20"
+                iconColor="stroke-blue-2"
+                cardBorderColor="border-b-blue-1"
                 headerClassName="pb-4"
                 titleExtra={
                     <Button onClick={() => openDrawer(DRAWER_IDS.SETTINGS_MAP_FORM)} className="h-9 px-4 rounded-xl shadow-sm">

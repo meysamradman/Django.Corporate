@@ -70,7 +70,7 @@ export const PropertyDistributionChart: FC<PropertyDistributionChartProps> = ({ 
                 title="توزیع املاک"
                 iconBgColor="bg-primary/10"
                 iconColor="stroke-primary"
-                borderColor="border-b-primary"
+                cardBorderColor="border-b-primary"
                 className="h-full w-full"
             >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full p-4">
@@ -95,7 +95,7 @@ export const PropertyDistributionChart: FC<PropertyDistributionChartProps> = ({ 
             title="آنالیز توزیع املاک"
             iconBgColor="bg-primary/10"
             iconColor="stroke-primary"
-            borderColor="border-b-primary"
+            cardBorderColor="border-b-primary"
             className="h-full w-full flex flex-col transition-all duration-500"
             contentClassName="flex-1 flex flex-col pt-6 px-4 pb-4"
             titleExtra={<p className="text-[10px] text-font-s opacity-60 font-black tracking-widest uppercase">Property Segmentation</p>}

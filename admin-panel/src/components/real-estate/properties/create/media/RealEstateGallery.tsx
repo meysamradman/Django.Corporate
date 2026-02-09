@@ -27,7 +27,7 @@ export function RealEstateGallery({
         <CardWithIcon
             icon={ImageIcon}
             title="آرشیو تصاویر و گالری"
-            iconBgColor="bg-blue-0"
+            iconBgColor="bg-blue"
             iconColor="stroke-blue-2"
             cardBorderColor="border-b-blue-1"
         >

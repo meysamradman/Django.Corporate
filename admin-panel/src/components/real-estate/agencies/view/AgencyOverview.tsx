@@ -43,7 +43,7 @@ export function AgencyOverview({ agency }: OverviewTabProps) {
           title="اطلاعات تماس"
           iconBgColor="bg-blue"
           iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
+          cardBorderColor="border-b-blue-1"
           headerClassName="pb-3"
           titleExtra={<Badge variant="blue">{contactInfoCount} مورد</Badge>}
         >
@@ -86,9 +86,9 @@ export function AgencyOverview({ agency }: OverviewTabProps) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-font-s text-xs mb-0.5">وب‌سایت</p>
-                  <a 
-                    href={agency.website} 
-                    target="_blank" 
+                  <a
+                    href={agency.website}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="text-font-p font-medium text-primary hover:underline break-all text-sm block"
                   >
@@ -107,7 +107,7 @@ export function AgencyOverview({ agency }: OverviewTabProps) {
           title="موقعیت مکانی"
           iconBgColor="bg-green"
           iconColor="stroke-green-2"
-          borderColor="border-b-green-1"
+          cardBorderColor="border-b-green-1"
           headerClassName="pb-3"
           titleExtra={<Badge variant="green">{locationInfoCount} مورد</Badge>}
         >
@@ -154,7 +154,7 @@ export function AgencyOverview({ agency }: OverviewTabProps) {
           title="اطلاعات پروانه"
           iconBgColor="bg-orange"
           iconColor="stroke-orange-2"
-          borderColor="border-b-orange-1"
+          cardBorderColor="border-b-orange-1"
           headerClassName="pb-3"
           titleExtra={<Badge variant="orange">{licenseInfoCount} مورد</Badge>}
         >
@@ -200,7 +200,7 @@ export function AgencyOverview({ agency }: OverviewTabProps) {
             title="امتیاز و نظرات"
             iconBgColor="bg-yellow"
             iconColor="stroke-yellow-2"
-            borderColor="border-b-yellow-1"
+            cardBorderColor="border-b-yellow-1"
             headerClassName="pb-3"
             titleExtra={
               <Badge variant="yellow">
@@ -250,7 +250,7 @@ export function AgencyOverview({ agency }: OverviewTabProps) {
           title="توضیحات آژانس"
           iconBgColor="bg-purple"
           iconColor="stroke-purple-2"
-          borderColor="border-b-purple-1"
+          cardBorderColor="border-b-purple-1"
           contentClassName="space-y-6"
         >
           <div>

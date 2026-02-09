@@ -135,7 +135,6 @@ export default function PortfolioInfo(props: BaseInfoTabProps) {
     return (
         <TabsContent value="account" className="mt-0 space-y-6">
             <div className="flex flex-col lg:flex-row gap-6 items-start">
-                {/* Main Content Area */}
                 <div className="flex-1 min-w-0 flex flex-col gap-6">
                     <CardWithIcon
                         icon={FileText}
@@ -152,7 +151,6 @@ export default function PortfolioInfo(props: BaseInfoTabProps) {
                     </CardWithIcon>
                 </div>
 
-                {/* Sidebar Area */}
                 <div className="w-full lg:w-80 xl:w-96 lg:shrink-0 lg:sticky lg:top-6 self-start z-10">
                     <div className="flex flex-col gap-6">
                         <CardWithIcon

@@ -15,7 +15,7 @@ const TabSkeleton = () => (
           title="اطلاعات پایه"
           iconBgColor="bg-blue"
           iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
+          cardBorderColor="border-b-blue-1"
         >
           <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -48,7 +48,7 @@ const TabSkeleton = () => (
           title="تنظیمات"
           iconBgColor="bg-blue"
           iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
+          cardBorderColor="border-b-blue-1"
           className="lg:sticky lg:top-20"
         >
           <div className="space-y-8">

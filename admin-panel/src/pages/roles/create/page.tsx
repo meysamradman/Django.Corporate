@@ -25,7 +25,7 @@ const RoleBasicInfoFormSkeleton = () => (
     title="اطلاعات پایه"
     iconBgColor="bg-blue"
     iconColor="stroke-blue-2"
-    borderColor="border-b-blue-1"
+    cardBorderColor="border-b-blue-1"
   >
     <div className="space-y-6">
       <div className="space-y-2">
@@ -460,7 +460,7 @@ export default function CreateRolePage() {
           title="دسترسی‌ها"
           iconBgColor="bg-blue"
           iconColor="stroke-blue-2"
-          borderColor="border-b-blue-1"
+          cardBorderColor="border-b-blue-1"
           className="hover:shadow-lg transition-all duration-300"
           titleExtra={
             <p className="text-sm text-font-s mt-2">

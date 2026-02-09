@@ -45,9 +45,9 @@ export default function PermissionsManagementPage() {
 
   const groupedPermissions = useMemo(() => {
     if (!Array.isArray(permissionGroups)) return {};
-    
+
     const groups: Record<string, Permission[]> = {};
-    
+
     permissionGroups.forEach((group: PermissionGroup) => {
       if (group.permissions && Array.isArray(group.permissions)) {
         const permissionsWithStandalone = group.permissions.map(perm => ({
@@ -135,7 +135,7 @@ export default function PermissionsManagementPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-                      <h1 className="page-title">مدیریت دسترسی‌ها</h1>
+          <h1 className="page-title">مدیریت دسترسی‌ها</h1>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="space-y-4">
@@ -153,8 +153,8 @@ export default function PermissionsManagementPage() {
   }
 
   return (
-    <PermissionGateLegacy 
-      permission="admin.roles.manage" 
+    <PermissionGateLegacy
+      permission="admin.roles.manage"
       fallback={
         <div className="text-center py-12">
           <Shield className="h-12 w-12 mx-auto text-font-s mb-4" />
@@ -191,57 +191,56 @@ export default function PermissionsManagementPage() {
               title="نقش‌ها"
               iconBgColor="bg-blue"
               iconColor="stroke-blue-2"
-              borderColor="border-b-blue-1"
+              cardBorderColor="border-b-blue-1"
               headerClassName="pb-3"
             >
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-font-s" />
-                  <Input
-                    placeholder="جستجو در نقش‌ها..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-font-s" />
+                <Input
+                  placeholder="جستجو در نقش‌ها..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
 
-                <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {filteredRoles.map((role: RoleWithPermissions) => (
-                    <div
-                      key={role.id}
-                      className={`p-3 border cursor-pointer transition-colors ${
-                        selectedRole?.id === role.id
-                          ? 'border-primary bg-primary/5'
-                          : 'hover:border-primary/50 hover:bg-bg/50'
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {filteredRoles.map((role: RoleWithPermissions) => (
+                  <div
+                    key={role.id}
+                    className={`p-3 border cursor-pointer transition-colors ${selectedRole?.id === role.id
+                      ? 'border-primary bg-primary/5'
+                      : 'hover:border-primary/50 hover:bg-bg/50'
                       }`}
-                      onClick={() => {
-                        setSelectedRole(role);
-                        setModifiedPermissions(new Set());
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-medium text-sm">{role.name}</h3>
-                          {role.description && (
-                            <p className="text-xs text-font-s mt-1">
-                              {role.description}
-                            </p>
-                          )}
-                        </div>
-                        {role.is_protected && (
-                          <Badge variant="gray" className="text-xs">
-                            محافظت شده
-                          </Badge>
+                    onClick={() => {
+                      setSelectedRole(role);
+                      setModifiedPermissions(new Set());
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium text-sm">{role.name}</h3>
+                        {role.description && (
+                          <p className="text-xs text-font-s mt-1">
+                            {role.description}
+                          </p>
                         )}
                       </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-xs text-font-s">
-                          {role.permissions?.length || 0} دسترسی
-                        </span>
-                        <Users className="h-3 w-3 text-font-s" />
-                      </div>
+                      {role.is_protected && (
+                        <Badge variant="gray" className="text-xs">
+                          محافظت شده
+                        </Badge>
+                      )}
                     </div>
-                  ))}
-                </div>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-xs text-font-s">
+                        {role.permissions?.length || 0} دسترسی
+                      </span>
+                      <Users className="h-3 w-3 text-font-s" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardWithIcon>
           </div>
 
@@ -259,78 +258,34 @@ export default function PermissionsManagementPage() {
                 }
                 iconBgColor="bg-blue"
                 iconColor="stroke-blue-2"
-                borderColor="border-b-blue-1"
+                cardBorderColor="border-b-blue-1"
                 titleExtra={
                   <p className="text-sm text-font-s mt-1">
                     تیک زدن یا برداشتن تیک دسترسی‌ها
                   </p>
                 }
               >
-                  {Object.entries(groupedPermissions).map(([resource, permissions]) => (
-                    <div key={resource}>
-                      <div className="flex items-center gap-2 mb-3">
-                        {getResourceIcon(resource)}
-                        <h3 className="font-semibold text-base">{resource}</h3>
-                        <Badge variant="outline" className="text-xs">
-                          {permissions.length} دسترسی
-                        </Badge>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {permissions.map((permission) => {
-                          const hasPermission = roleHasPermission(selectedRole, permission.id);
-                          const isModified = modifiedPermissions.has(permission.id);
-                          
-                          if (permission.is_standalone) {
-                            return (
-                              <div
-                                key={permission.id}
-                                className={`p-4 border-2 transition-all ${
-                                  isModified ? 'border-yellow-1 bg-yellow' : 'border-purple-1 bg-purple/5'
-                                }`}
-                              >
-                                <div className="flex items-center space-x-2 space-x-reverse">
-                                  <Checkbox
-                                    id={`permission-${permission.id}`}
-                                    checked={hasPermission}
-                                    onCheckedChange={() => togglePermission(permission.id)}
-                                    disabled={selectedRole.is_protected && !checkUserPermission("admin.roles.manage")}
-                                  />
-                                  <label 
-                                    htmlFor={`permission-${permission.id}`}
-                                    className="flex-1 cursor-pointer"
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-sm font-medium">
-                                        {permission.action}
-                                      </span>
-                                      <Badge 
-                                        variant="outline" 
-                                        className="text-xs bg-purple text-purple-2 border-purple-1"
-                                      >
-                                        دسترسی کلی
-                                      </Badge>
-                                    </div>
-                                    {permission.description && (
-                                      <p className="text-xs text-font-s mt-1">
-                                        {permission.description}
-                                      </p>
-                                    )}
-                                    <div className="text-xs text-font-s mt-2 italic">
-                                      این ماژول فقط یک دسترسی کلی دارد
-                                    </div>
-                                  </label>
-                                </div>
-                              </div>
-                            );
-                          }
-                          
+                {Object.entries(groupedPermissions).map(([resource, permissions]) => (
+                  <div key={resource}>
+                    <div className="flex items-center gap-2 mb-3">
+                      {getResourceIcon(resource)}
+                      <h3 className="font-semibold text-base">{resource}</h3>
+                      <Badge variant="outline" className="text-xs">
+                        {permissions.length} دسترسی
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {permissions.map((permission) => {
+                        const hasPermission = roleHasPermission(selectedRole, permission.id);
+                        const isModified = modifiedPermissions.has(permission.id);
+
+                        if (permission.is_standalone) {
                           return (
                             <div
                               key={permission.id}
-                              className={`p-3 border transition-all ${
-                                isModified ? 'border-yellow-1 bg-yellow' : ''
-                              }`}
+                              className={`p-4 border-2 transition-all ${isModified ? 'border-yellow-1 bg-yellow' : 'border-purple-1 bg-purple/5'
+                                }`}
                             >
                               <div className="flex items-center space-x-2 space-x-reverse">
                                 <Checkbox
@@ -339,7 +294,7 @@ export default function PermissionsManagementPage() {
                                   onCheckedChange={() => togglePermission(permission.id)}
                                   disabled={selectedRole.is_protected && !checkUserPermission("admin.roles.manage")}
                                 />
-                                <label 
+                                <label
                                   htmlFor={`permission-${permission.id}`}
                                   className="flex-1 cursor-pointer"
                                 >
@@ -347,11 +302,11 @@ export default function PermissionsManagementPage() {
                                     <span className="text-sm font-medium">
                                       {permission.action}
                                     </span>
-                                    <Badge 
-                                      variant="outline" 
-                                      className={`text-xs ${getActionColor(permission.action)}`}
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs bg-purple text-purple-2 border-purple-1"
                                     >
-                                      {permission.action}
+                                      دسترسی کلی
                                     </Badge>
                                   </div>
                                   {permission.description && (
@@ -359,16 +314,58 @@ export default function PermissionsManagementPage() {
                                       {permission.description}
                                     </p>
                                   )}
+                                  <div className="text-xs text-font-s mt-2 italic">
+                                    این ماژول فقط یک دسترسی کلی دارد
+                                  </div>
                                 </label>
                               </div>
                             </div>
                           );
-                        })}
-                      </div>
-                      
-                      <Separator className="mt-4" />
+                        }
+
+                        return (
+                          <div
+                            key={permission.id}
+                            className={`p-3 border transition-all ${isModified ? 'border-yellow-1 bg-yellow' : ''
+                              }`}
+                          >
+                            <div className="flex items-center space-x-2 space-x-reverse">
+                              <Checkbox
+                                id={`permission-${permission.id}`}
+                                checked={hasPermission}
+                                onCheckedChange={() => togglePermission(permission.id)}
+                                disabled={selectedRole.is_protected && !checkUserPermission("admin.roles.manage")}
+                              />
+                              <label
+                                htmlFor={`permission-${permission.id}`}
+                                className="flex-1 cursor-pointer"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-medium">
+                                    {permission.action}
+                                  </span>
+                                  <Badge
+                                    variant="outline"
+                                    className={`text-xs ${getActionColor(permission.action)}`}
+                                  >
+                                    {permission.action}
+                                  </Badge>
+                                </div>
+                                {permission.description && (
+                                  <p className="text-xs text-font-s mt-1">
+                                    {permission.description}
+                                  </p>
+                                )}
+                              </label>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
+
+                    <Separator className="mt-4" />
+                  </div>
+                ))}
               </CardWithIcon>
             ) : (
               <Card>

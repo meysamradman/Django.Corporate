@@ -1,13 +1,8 @@
 
 import type { Portfolio } from "@/types/portfolio/portfolio";
-// import { mediaService } from "@/components/media/services"; // Assuming similar service exists or direct URL use
-// import { AudioPlayer } from "@/components/media/audios/AudioPlayer"; // Assuming AudioPlayer component exists
 
-// Mocking mediaService and AudioPlayer if they don't exist in the context provided, 
-// using the imports seen in RealEstateAudio.tsx as a guide.
 import { mediaService } from "@/components/media/services";
 import { AudioPlayer } from "@/components/media/audios/AudioPlayer";
-
 
 interface PortfolioAudioProps {
     portfolio: Portfolio;

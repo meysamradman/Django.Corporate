@@ -11,7 +11,7 @@ const AIContentGeneratorSkeleton = () => (
     title="تولید محتوای SEO با AI"
     iconBgColor="bg-pink"
     iconColor="stroke-pink-2"
-    borderColor="border-b-pink-1"
+    cardBorderColor="border-b-pink-1"
   >
     <div className="space-y-6">
       <div className="space-y-3">

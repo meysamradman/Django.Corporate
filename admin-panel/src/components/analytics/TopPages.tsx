@@ -22,7 +22,7 @@ export function TopPages({ topPages = [], isLoading }: TopPagesProps) {
         title="صفحات پربازدید"
         iconBgColor="bg-blue"
         iconColor="stroke-blue-2"
-        borderColor="border-b-blue-1"
+        cardBorderColor="border-b-blue-1"
       >
         <div className="space-y-2">
           {[...Array(5)].map((_, i) => (
@@ -40,7 +40,7 @@ export function TopPages({ topPages = [], isLoading }: TopPagesProps) {
         title="صفحات پربازدید"
         iconBgColor="bg-blue"
         iconColor="stroke-blue-2"
-        borderColor="border-b-blue-1"
+        cardBorderColor="border-b-blue-1"
       >
         <div className="text-center py-4 text-font-s text-sm">
           داده‌ای برای نمایش وجود ندارد
@@ -57,7 +57,7 @@ export function TopPages({ topPages = [], isLoading }: TopPagesProps) {
       title="صفحات پربازدید"
       iconBgColor="bg-blue"
       iconColor="stroke-blue-2"
-      borderColor="border-b-blue-1"
+      cardBorderColor="border-b-blue-1"
       titleExtra={<span className="text-xs text-font-s">{topPages.length} صفحه</span>}
       contentClassName="max-h-[340px] overflow-y-auto scrollbar-thick"
     >

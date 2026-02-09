@@ -116,7 +116,7 @@ export const VisitorPieChart: FC<{ isLoading?: boolean }> = ({
         title="آمار بازدید"
         iconBgColor="bg-primary/10"
         iconColor="stroke-primary"
-        borderColor="border-b-primary"
+        cardBorderColor="border-b-primary"
       >
         <div className="flex flex-col gap-4">
           <Skeleton className="h-[280px] w-full max-w-[280px] aspect-square mx-auto rounded-full" />
@@ -136,7 +136,7 @@ export const VisitorPieChart: FC<{ isLoading?: boolean }> = ({
       title="آمار بازدید"
       iconBgColor="bg-primary/10"
       iconColor="stroke-primary"
-      borderColor="border-b-primary"
+      cardBorderColor="border-b-primary"
       className="h-full flex flex-col"
       contentClassName="flex-1 flex flex-col pt-0 px-4 pb-0"
       titleExtra={

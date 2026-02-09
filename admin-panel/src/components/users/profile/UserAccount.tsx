@@ -183,7 +183,7 @@ export function UserAccount({
                         title="اطلاعات کاربران"
                         iconBgColor="bg-blue"
                         iconColor="stroke-blue-2"
-                        borderColor="border-b-blue-1"
+                        cardBorderColor="border-b-blue-1"
                         className="border-0 shadow-md hover:shadow-xl transition-all duration-300 relative overflow-hidden bg-gradient-to-br from-card via-card to-muted/30 before:absolute before:right-0 before:top-0 before:h-full before:w-1 before:bg-gradient-to-b before:from-blue-1 before:via-blue-1 before:to-blue-1"
                         contentClassName="pt-4 pb-4"
                     >
@@ -320,7 +320,7 @@ export function UserAccount({
                         title="اطلاعات کاربری"
                         iconBgColor="bg-primary/10"
                         iconColor="stroke-primary"
-                        borderColor="border-b-primary"
+                        cardBorderColor="border-b-primary"
                         className="hover:shadow-lg transition-all duration-300"
                         titleExtra={
                             !editMode && (

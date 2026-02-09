@@ -74,7 +74,7 @@ export const QuickActionsWidget: FC<{ isLoading?: boolean }> = ({ isLoading }) =
                 title="دسترسی سریع"
                 iconBgColor="bg-primary/10"
                 iconColor="stroke-primary"
-                borderColor="border-b-primary"
+                cardBorderColor="border-b-primary"
                 className="h-full w-full"
             >
                 <div className="grid grid-cols-2 gap-4 h-full p-2">
@@ -92,7 +92,7 @@ export const QuickActionsWidget: FC<{ isLoading?: boolean }> = ({ isLoading }) =
             title="دسترسی سریع"
             iconBgColor="bg-primary/10"
             iconColor="stroke-primary"
-            borderColor="border-b-primary"
+            cardBorderColor="border-b-primary"
             className="h-full w-full flex flex-col transition-all duration-500"
             contentClassName="flex-1 flex flex-col pt-4 px-4 pb-0"
             titleExtra={<p className="text-[10px] text-font-s opacity-60 font-black tracking-widest uppercase">Quick Control</p>}

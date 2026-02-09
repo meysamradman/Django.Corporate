@@ -9,7 +9,6 @@ import { realEstateApi } from "@/api/real-estate";
 import { usePropertyPrintView } from "@/components/real-estate/hooks/usePropertyPrintView";
 import { usePropertyPdfExport } from "@/components/real-estate/hooks/usePropertyPdfExport";
 
-// Modular Component Imports
 import { RealEstateHeader } from "@/components/real-estate/properties/view/header/RealEstateHeader";
 import { RealEstateCRM } from "@/components/real-estate/properties/view/crm/RealEstateCRM";
 import { RealEstateLocation } from "@/components/real-estate/properties/view/location/RealEstateLocation";

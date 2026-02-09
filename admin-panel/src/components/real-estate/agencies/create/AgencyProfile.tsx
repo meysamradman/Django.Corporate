@@ -98,7 +98,7 @@ export default function AgencyProfile({
             title="موقعیت جغرافیایی"
             iconBgColor="bg-green-1/10"
             iconColor="stroke-green-1"
-            borderColor="border-b-green-1"
+            cardBorderColor="border-b-green-1"
             className="hover:shadow-lg transition-all duration-300"
           >
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -170,7 +170,7 @@ export default function AgencyProfile({
             title="اطلاعات تکمیلی"
             iconBgColor="bg-blue-1/10"
             iconColor="stroke-blue-1"
-            borderColor="border-b-blue-1"
+            cardBorderColor="border-b-blue-1"
             className="hover:shadow-lg transition-all duration-300"
           >
             <div className="space-y-4">

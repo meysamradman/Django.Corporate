@@ -328,7 +328,7 @@ export function AdvancedSettings({ admin }: AdvancedSettingsTabProps) {
                     title="اختصاص نقش‌ها"
                     iconBgColor="bg-blue"
                     iconColor="stroke-blue-2"
-                    borderColor="border-b-blue-1"
+                    cardBorderColor="border-b-blue-1"
                     className="hover:shadow-lg transition-all duration-300"
                     titleExtra={
                         <div className="flex gap-2">

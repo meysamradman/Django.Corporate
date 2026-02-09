@@ -27,7 +27,7 @@ export function RealEstateAudios({
         <CardWithIcon
             icon={Music}
             title="توضیحات صوتی"
-            iconBgColor="bg-pink-0"
+            iconBgColor="bg-pink"
             iconColor="stroke-pink-2"
             cardBorderColor="border-b-pink-1"
         >

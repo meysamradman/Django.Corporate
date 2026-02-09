@@ -10,7 +10,6 @@ interface RealEstateLabelsProps {
 }
 
 export function RealEstateLabels({ property }: RealEstateLabelsProps) {
-    // Assuming 'labels' exists in property or similar functionality
     const labels = property.labels || [];
 
     return (

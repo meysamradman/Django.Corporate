@@ -62,7 +62,7 @@ export default function ConsultantFields({ form }: ConsultantFieldsProps) {
         title="اطلاعات حرفه‌ای مشاور"
         iconBgColor="bg-blue-1"
         iconColor="text-white"
-        borderColor="border-b-blue-1"
+        cardBorderColor="border-b-blue-1"
         className="bg-blue-0/10 shadow-sm border-blue-1/20"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -174,7 +174,7 @@ export default function ConsultantFields({ form }: ConsultantFieldsProps) {
         title="تنظیمات سئو و نمایش پروفایل"
         iconBgColor="bg-amber-1"
         iconColor="text-white"
-        borderColor="border-b-amber-1"
+        cardBorderColor="border-b-amber-1"
         className="bg-amber-0/10 shadow-sm border-amber-1/20"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

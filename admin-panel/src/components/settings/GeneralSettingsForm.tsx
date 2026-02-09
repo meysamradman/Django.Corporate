@@ -29,9 +29,9 @@ export function GeneralSettingsForm() {
             <CardWithIcon
                 icon={Settings}
                 title="تنظیمات عمومی سایت"
-                iconBgColor="bg-primary"
-                iconColor="stroke-static-w"
-                borderColor="border-b-primary/20"
+                iconBgColor="bg-blue"
+                iconColor="stroke-blue-2"
+                cardBorderColor="border-b-primary"
                 headerClassName="pb-4"
                 titleExtra={
                     <Button onClick={() => openDrawer(DRAWER_IDS.SETTINGS_GENERAL_FORM)} className="h-9 px-4 rounded-xl shadow-sm">

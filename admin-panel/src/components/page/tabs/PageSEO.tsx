@@ -46,62 +46,62 @@ export function PageSEO({
                 title="SEO - Meta Tags"
                 iconBgColor="bg-emerald"
                 iconColor="stroke-emerald-2"
-                borderColor="border-b-emerald-1"
+                cardBorderColor="border-b-emerald-1"
                 className="hover:shadow-lg transition-all duration-300"
                 headerClassName="pb-3"
                 contentClassName="space-y-6"
             >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="meta_title">Meta Title (حداکثر 70 کاراکتر)</Label>
-                            <Input
-                                id="meta_title"
-                                value={metaTitle}
-                                onChange={(e) => onMetaTitleChange(e.target.value)}
-                                placeholder="عنوان برای SEO"
-                                maxLength={70}
-                            />
-                            <p className="text-xs text-font-s">
-                                {metaTitle.length}/70
-                            </p>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="canonical_url">Canonical URL</Label>
-                            <Input
-                                id="canonical_url"
-                                value={canonicalUrl}
-                                onChange={(e) => onCanonicalUrlChange(e.target.value)}
-                                placeholder="https://example.com/page"
-                                type="url"
-                            />
-                        </div>
-                    </div>
-
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <Label htmlFor="meta_description">Meta Description (حداکثر 300 کاراکتر)</Label>
-                        <Textarea
-                            id="meta_description"
-                            value={metaDescription}
-                            onChange={(e) => onMetaDescriptionChange(e.target.value)}
-                            placeholder="توضیحات برای SEO"
-                            rows={3}
-                            maxLength={300}
+                        <Label htmlFor="meta_title">Meta Title (حداکثر 70 کاراکتر)</Label>
+                        <Input
+                            id="meta_title"
+                            value={metaTitle}
+                            onChange={(e) => onMetaTitleChange(e.target.value)}
+                            placeholder="عنوان برای SEO"
+                            maxLength={70}
                         />
                         <p className="text-xs text-font-s">
-                            {metaDescription.length}/300
+                            {metaTitle.length}/70
                         </p>
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="robots_meta">Robots Meta</Label>
+                        <Label htmlFor="canonical_url">Canonical URL</Label>
                         <Input
-                            id="robots_meta"
-                            value={robotsMeta}
-                            onChange={(e) => onRobotsMetaChange(e.target.value)}
-                            placeholder="index,follow"
+                            id="canonical_url"
+                            value={canonicalUrl}
+                            onChange={(e) => onCanonicalUrlChange(e.target.value)}
+                            placeholder="https://example.com/page"
+                            type="url"
                         />
                     </div>
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="meta_description">Meta Description (حداکثر 300 کاراکتر)</Label>
+                    <Textarea
+                        id="meta_description"
+                        value={metaDescription}
+                        onChange={(e) => onMetaDescriptionChange(e.target.value)}
+                        placeholder="توضیحات برای SEO"
+                        rows={3}
+                        maxLength={300}
+                    />
+                    <p className="text-xs text-font-s">
+                        {metaDescription.length}/300
+                    </p>
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="robots_meta">Robots Meta</Label>
+                    <Input
+                        id="robots_meta"
+                        value={robotsMeta}
+                        onChange={(e) => onRobotsMetaChange(e.target.value)}
+                        placeholder="index,follow"
+                    />
+                </div>
             </CardWithIcon>
 
             <CardWithIcon
@@ -109,46 +109,46 @@ export function PageSEO({
                 title="SEO - Open Graph"
                 iconBgColor="bg-blue"
                 iconColor="stroke-blue-2"
-                borderColor="border-b-blue-1"
+                cardBorderColor="border-b-blue-1"
                 className="hover:shadow-lg transition-all duration-300"
                 headerClassName="pb-3"
                 contentClassName="space-y-6"
             >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="og_title">OG Title</Label>
-                            <Input
-                                id="og_title"
-                                value={ogTitle}
-                                onChange={(e) => onOgTitleChange(e.target.value)}
-                                placeholder="عنوان برای شبکه‌های اجتماعی"
-                                maxLength={70}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="og_description">OG Description</Label>
-                            <Textarea
-                                id="og_description"
-                                value={ogDescription}
-                                onChange={(e) => onOgDescriptionChange(e.target.value)}
-                                placeholder="توضیحات برای شبکه‌های اجتماعی"
-                                rows={2}
-                                maxLength={300}
-                            />
-                        </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="og_title">OG Title</Label>
+                        <Input
+                            id="og_title"
+                            value={ogTitle}
+                            onChange={(e) => onOgTitleChange(e.target.value)}
+                            placeholder="عنوان برای شبکه‌های اجتماعی"
+                            maxLength={70}
+                        />
                     </div>
 
                     <div className="space-y-2">
-                        <Label>OG Image</Label>
-                        <ImageSelector
-                            selectedMedia={ogImage}
-                            onMediaSelect={onOgImageChange}
-                            size="md"
-                            context="media_library"
-                            alt="تصویر Open Graph"
+                        <Label htmlFor="og_description">OG Description</Label>
+                        <Textarea
+                            id="og_description"
+                            value={ogDescription}
+                            onChange={(e) => onOgDescriptionChange(e.target.value)}
+                            placeholder="توضیحات برای شبکه‌های اجتماعی"
+                            rows={2}
+                            maxLength={300}
                         />
                     </div>
+                </div>
+
+                <div className="space-y-2">
+                    <Label>OG Image</Label>
+                    <ImageSelector
+                        selectedMedia={ogImage}
+                        onMediaSelect={onOgImageChange}
+                        size="md"
+                        context="media_library"
+                        alt="تصویر Open Graph"
+                    />
+                </div>
             </CardWithIcon>
         </div>
     );

@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { blogApi } from "@/api/blogs/blogs";
 
-// New Modular Components
 import { BlogGallery } from "@/components/blogs/posts/view/media/BlogGallery";
 import { BlogSidebar } from "@/components/blogs/posts/view/sidebar/BlogSidebar";
 import { BlogDescriptions } from "@/components/blogs/posts/view/descriptions/BlogDescriptions";
@@ -64,7 +63,6 @@ export default function BlogViewPage() {
 
   return (
     <div className="relative flex flex-col gap-8">
-      {/* Top Section: Gallery + Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         <div id="section-gallery" className="lg:col-span-8 xl:col-span-9 scroll-mt-32">
           <BlogGallery blog={blogData} />
@@ -80,7 +78,6 @@ export default function BlogViewPage() {
         </div>
       </div>
 
-      {/* Bottom Section: Content + Navigation */}
       <div className="flex flex-col xl:flex-row gap-8 items-start relative min-w-0">
         <div className="flex-1 grid grid-cols-1 gap-8 min-w-0 w-full">
           <div id="section-overview" className="scroll-mt-32">
@@ -117,5 +114,4 @@ export default function BlogViewPage() {
     </div>
   );
 }
-
 

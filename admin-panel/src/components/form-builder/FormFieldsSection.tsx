@@ -96,7 +96,7 @@ export function FormFieldsSection() {
                 title="فیلدهای فرم تماس"
                 iconBgColor="bg-blue"
                 iconColor="stroke-blue-2"
-                borderColor="border-b-blue-1"
+                cardBorderColor="border-b-blue-1"
             >
                 <div className="space-y-4">
                     <Skeleton className="h-10 w-full" />
@@ -114,7 +114,7 @@ export function FormFieldsSection() {
                 title="فیلدهای فرم تماس"
                 iconBgColor="bg-blue"
                 iconColor="stroke-blue-2"
-                borderColor="border-b-blue-1"
+                cardBorderColor="border-b-blue-1"
                 className="hover:shadow-lg transition-all duration-300"
                 headerClassName="pb-3"
                 titleExtra={

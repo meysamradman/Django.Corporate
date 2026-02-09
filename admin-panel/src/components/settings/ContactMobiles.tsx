@@ -67,7 +67,7 @@ export function ContactMobiles() {
                 title="شماره‌های موبایل"
                 iconBgColor="bg-blue"
                 iconColor="stroke-blue-2"
-                borderColor="border-b-blue-1"
+                cardBorderColor="border-b-blue-1"
             >
                 <div className="space-y-4">
                     <Skeleton className="h-10 w-full" />
@@ -88,7 +88,7 @@ export function ContactMobiles() {
                 title="شماره‌های موبایل"
                 iconBgColor="bg-amber"
                 iconColor="stroke-amber-2"
-                borderColor="border-b-amber-1"
+                cardBorderColor="border-b-amber-1"
                 className="hover:shadow-lg transition-all duration-300"
                 headerClassName="pb-3"
                 titleExtra={

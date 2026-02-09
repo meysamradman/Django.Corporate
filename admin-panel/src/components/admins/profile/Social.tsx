@@ -26,7 +26,7 @@ export function Social({
                 title="شبکه‌های اجتماعی"
                 iconBgColor="bg-pink"
                 iconColor="stroke-pink-2"
-                borderColor="border-b-pink-1"
+                cardBorderColor="border-b-pink-1"
                 className="hover:shadow-lg transition-all duration-300"
             >
                 <div className="space-y-6">

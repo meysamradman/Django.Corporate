@@ -37,7 +37,7 @@ export function PanelDatabaseTab() {
                 title="پشتیبان‌گیری دیتابیس"
                 iconBgColor="bg-green"
                 iconColor="stroke-green-2"
-                borderColor="border-b-green-1"
+                cardBorderColor="border-b-green-1"
                 className="hover:shadow-lg transition-all duration-300"
                 headerClassName="pb-3"
             >
@@ -52,12 +52,12 @@ export function PanelDatabaseTab() {
                             <Skeleton className="h-6 w-12" />
                         </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                         <Skeleton className="h-4 w-full" />
                         <Skeleton className="h-3 w-3/4" />
                     </div>
-                    
+
                     <div className="border border-border rounded-lg overflow-hidden">
                         <div className="bg-secondary/5 px-4 py-2 border-b border-border">
                             <Skeleton className="h-3 w-40" />
@@ -71,7 +71,7 @@ export function PanelDatabaseTab() {
                             ))}
                         </div>
                     </div>
-                    
+
                     <Skeleton className="h-10 w-full" />
                 </div>
             </CardWithIcon>
@@ -84,7 +84,7 @@ export function PanelDatabaseTab() {
             title="پشتیبان‌گیری دیتابیس"
             iconBgColor="bg-green"
             iconColor="stroke-green-2"
-            borderColor="border-b-green-1"
+            cardBorderColor="border-b-green-1"
             className="hover:shadow-lg transition-all duration-300"
             headerClassName="pb-3"
         >

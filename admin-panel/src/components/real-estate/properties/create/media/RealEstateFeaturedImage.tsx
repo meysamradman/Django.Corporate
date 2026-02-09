@@ -53,8 +53,8 @@ export function RealEstateFeaturedImage({
             <CardWithIcon
                 icon={ImageIcon}
                 title="تصویر اصلی ملک"
-                iconBgColor="bg-indigo-0"
-                iconColor="stroke-indigo-1"
+                iconBgColor="bg-indigo"
+                iconColor="stroke-indigo-2"
                 cardBorderColor="border-b-indigo-1"
                 className="lg:sticky lg:top-20"
             >

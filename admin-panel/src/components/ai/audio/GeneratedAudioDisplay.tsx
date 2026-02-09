@@ -69,7 +69,7 @@ export function GeneratedAudioDisplay({
             }
             iconBgColor="bg-purple"
             iconColor="stroke-purple-2"
-            borderColor="border-b-purple-1"
+            cardBorderColor="border-b-purple-1"
             className="hover:shadow-lg transition-all duration-300"
             headerClassName="pb-3 border-b"
         >

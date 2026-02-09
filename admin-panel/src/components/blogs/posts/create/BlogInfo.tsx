@@ -54,7 +54,6 @@ export default function BlogInfo(props: BaseInfoTabProps) {
         ? form
         : { watch: null, setValue: null };
 
-    // Common props for sub-components
     const commonProps = {
         form,
         formData,
@@ -64,7 +63,6 @@ export default function BlogInfo(props: BaseInfoTabProps) {
         errors: isFormApproach ? undefined : (props as BaseInfoTabManualProps).errors
     };
 
-    // Taxonomy handling
     const formSelectedCategories = isFormApproach ? (watch?.("selectedCategories" as any) || []) : (props as any).selectedCategories || [];
     const formSelectedTags = isFormApproach ? watch?.("selectedTags") || [] : (props as any).selectedTags || [];
 
@@ -130,7 +128,6 @@ export default function BlogInfo(props: BaseInfoTabProps) {
     return (
         <div className="space-y-6">
             <div className="flex flex-col lg:flex-row gap-6 items-start">
-                {/* Main Content Area */}
                 <div className="flex-1 min-w-0 flex flex-col gap-6">
                     <CardWithIcon
                         icon={FileText}
@@ -147,7 +144,6 @@ export default function BlogInfo(props: BaseInfoTabProps) {
                     </CardWithIcon>
                 </div>
 
-                {/* Sidebar Area */}
                 <div className="w-full lg:w-80 xl:w-96 lg:shrink-0 lg:sticky lg:top-6 self-start z-10">
                     <div className="flex flex-col gap-6">
                         <CardWithIcon
