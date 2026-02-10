@@ -227,9 +227,11 @@ export const aiApi = {
     },
 
     chat: {
-        getAvailableProviders: async (): Promise<ApiResponse<AvailableProvider[]>> => {
+        getAvailableProviders: async (capability?: string): Promise<ApiResponse<AvailableProvider[]>> => {
             try {
-                const endpoint = '/admin/ai-providers/available/?capability=chat';
+                const endpoint = capability
+                    ? `/admin/ai-providers/available/?capability=${capability}`
+                    : '/admin/ai-providers/available/';
                 return await api.get<AvailableProvider[]>(endpoint);
             } catch (error) {
                 if (error && typeof error === 'object' && 'response' in error && (error.response as { AppStatusCode?: number })?.AppStatusCode !== 404) {

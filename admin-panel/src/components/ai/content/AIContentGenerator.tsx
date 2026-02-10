@@ -8,7 +8,10 @@ import { msg } from '@/core/messages';
 import { ContentInputForm } from './ContentInputForm';
 import { SEOInfoCard } from './SEOInfoCard';
 import { ContentDisplay } from './ContentDisplay';
-import { EmptyProvidersCard } from '../shared';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { Button } from '@/components/elements/Button';
+import { Settings, FileText } from 'lucide-react';
+
 import { useAuth } from '@/core/auth/AuthContext';
 
 interface AIContentGeneratorProps {
@@ -28,23 +31,35 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
     const [copiedField, setCopiedField] = useState<string | null>(null);
     const providersFetched = useRef(false);
 
+    console.log('🚀 [AIContentGenerator] Component Mount/Render. User:', user ? 'Present' : 'Null');
+
     useEffect(() => {
+        console.log('🔄 [AIContentGenerator] useEffect triggered. User:', user ? 'Present' : 'Null', 'providersFetched:', providersFetched.current);
+
         if (user && !providersFetched.current) {
             const permissionsObject = user?.permissions as any;
             const permissionsArray = (permissionsObject?.permissions || []) as string[];
+            console.log('🔑 [AIContentGenerator] Permissions:', permissionsArray);
+
             const hasAIPermission = permissionsArray.some((p: string) =>
                 p === 'all' || p === 'ai.manage' || p.startsWith('ai.')
             );
+            console.log('🛡️ [AIContentGenerator] hasAIPermission:', hasAIPermission);
 
             if (hasAIPermission) {
                 providersFetched.current = true;
+                console.log('⚡ [AIContentGenerator] Permissions OK. Calling fetchAvailableProviders...');
                 fetchAvailableProviders();
                 fetchDestinations();
             } else {
+                console.warn('⛔ [AIContentGenerator] User does NOT have AI permissions.');
                 setLoadingProviders(false);
             }
         } else if (!user) {
+            console.log('⏳ [AIContentGenerator] User not yet loaded. Waiting...');
             setLoadingProviders(true);
+        } else {
+            console.log('⏭️ [AIContentGenerator] Skipping fetch (already fetched or other conditions met).');
         }
     }, [user]);
 
@@ -64,16 +79,20 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
     const fetchAvailableProviders = async () => {
         try {
             setLoadingProviders(true);
+            console.log('🔍 [AIContentGenerator] Fetching available providers...');
             const response = await aiApi.content.getAvailableProviders();
+            console.log('📦 [AIContentGenerator] Response:', response);
 
             if (response.metaData.status === 'success') {
                 const providersData = Array.isArray(response.data)
                     ? response.data
                     : (response.data as any)?.data || [];
 
+                console.log('📋 [AIContentGenerator] Providers data:', providersData);
                 setAvailableProviders(providersData);
             }
         } catch (error: any) {
+            console.error('❌ [AIContentGenerator] Error fetching providers:', error);
             if (error?.response?.AppStatusCode === 404) {
                 setAvailableProviders([]);
             }
@@ -138,9 +157,27 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
             </Card>
         );
     }
-
     if (availableProviders.length === 0) {
-        return <EmptyProvidersCard type="content" onNavigateToSettings={onNavigateToSettings} />;
+        return (
+            <EmptyState
+                title="هیچ Provider فعالی یافت نشد"
+                description="برای تولید محتوا با AI، باید یکی از سرویس‌دهنده‌ها را در تنظیمات فعال کنید"
+                icon={FileText}
+                size="md"
+                action={
+                    onNavigateToSettings && (
+                        <Button
+                            onClick={onNavigateToSettings}
+                            variant="default"
+                            className="gap-2"
+                        >
+                            <Settings className="h-4 w-4" />
+                            رفتن به تنظیمات AI
+                        </Button>
+                    )
+                }
+            />
+        );
     }
 
     return (

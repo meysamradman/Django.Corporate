@@ -8,7 +8,10 @@ import { showSuccess, showError } from '@/core/toast';
 import { msg } from '@/core/messages';
 import { ImageInputForm } from './ImageInputForm';
 import { GeneratedImageDisplay } from './GeneratedImageDisplay';
-import { EmptyProvidersCard } from '../shared';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { Button } from '@/components/elements/Button';
+import { Settings, Wand2 } from 'lucide-react';
+
 import { useAuth } from '@/core/auth/AuthContext';
 
 interface AIImageGeneratorProps {
@@ -32,34 +35,47 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
     const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
     const providersFetched = useRef(false);
 
+    console.log('🚀 [AIImageGenerator] Component Mount/Render. User:', user ? 'Present' : 'Null');
+
     useEffect(() => {
+        console.log('🔄 [AIImageGenerator] useEffect triggered. User:', user ? 'Present' : 'Null', 'providersFetched:', providersFetched.current);
 
         if (user && !providersFetched.current) {
-
             const permissionsObject = user?.permissions as any;
             const permissionsArray = (permissionsObject?.permissions || []) as string[];
-            const hasAIPermission = permissionsArray.some((p: string) => 
+            console.log('🔑 [AIImageGenerator] Permissions:', permissionsArray);
+
+            const hasAIPermission = permissionsArray.some((p: string) =>
                 p === 'all' || p === 'ai.manage' || p.startsWith('ai.')
             );
-            
+            console.log('🛡️ [AIImageGenerator] hasAIPermission:', hasAIPermission);
+
             if (hasAIPermission) {
                 providersFetched.current = true;
+                console.log('⚡ [AIImageGenerator] Permissions OK. Calling fetchAvailableProviders...');
                 fetchAvailableProviders();
             } else {
+                console.warn('⛔ [AIImageGenerator] User does NOT have AI permissions.');
                 setLoadingProviders(false);
             }
         } else if (!user) {
+            console.log('⏳ [AIImageGenerator] User not yet loaded. Waiting...');
             setLoadingProviders(true);
+        } else {
+            console.log('⏭️ [AIImageGenerator] Skipping fetch (already fetched or other conditions met).');
         }
     }, [user]);
 
     const fetchAvailableProviders = async () => {
         try {
             setLoadingProviders(true);
+            console.log('🔍 [AIImageGenerator] Fetching available providers...');
             const response = await aiApi.image.getAvailableProviders('image');
+            console.log('📦 [AIImageGenerator] Response:', response);
+
             if (response.metaData.status === 'success') {
                 let providersData: any[] = [];
-                
+
                 if (Array.isArray(response.data)) {
                     providersData = response.data;
                 } else if (response.data && typeof response.data === 'object') {
@@ -68,20 +84,25 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
                         providersData = dataObj.data;
                     }
                 }
-                
-                const providers = providersData.filter((p: AvailableProvider) => 
+
+                console.log('📋 [AIImageGenerator] Providers data:', providersData);
+
+                const providers = providersData.filter((p: AvailableProvider) =>
                     p.can_generate === true && p.provider_name !== 'gemini'
                 );
-                    
+
+                console.log('✅ [AIImageGenerator] Filtered providers:', providers);
                 setAvailableProviders(providers);
-                
+
                 if (selectedProvider && !providers.some(p => p.provider_name === selectedProvider)) {
                     setSelectedProvider('');
                 }
             }
         } catch (error) {
+            console.error('❌ [AIImageGenerator] Error fetching providers:', error);
             if (error && typeof error === 'object' && 'response' in error) {
                 const apiError = error as { response?: { AppStatusCode?: number } };
+                console.log('📛 [AIImageGenerator] API Error Code:', apiError.response?.AppStatusCode);
                 if (apiError.response?.AppStatusCode === 404) {
                     setAvailableProviders([]);
                 }
@@ -116,7 +137,7 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
 
             if (response.metaData.status === 'success') {
                 const data = response.data as any;
-                
+
                 if ((data as any).saved === false && (data as any).image_data_url) {
                     setGeneratedImageUrl((data as any).image_data_url);
                     setGeneratedMedia(null);
@@ -127,7 +148,7 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
                     showSuccess(msg.ai('imageGeneratedAndSaved'));
                     onImageGenerated?.(data as Media);
                 }
-                
+
                 fetchAvailableProviders();
             }
         } catch {
@@ -147,21 +168,21 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
         setGeneratedMedia(null);
         setGeneratedImageUrl(null);
     };
-    
+
     const handleSaveToDb = async () => {
         if (!generatedImageUrl) return;
-        
+
         try {
             const response = await fetch(generatedImageUrl);
             const blob = await response.blob();
-            
+
             const formData = new FormData();
             formData.append('file', blob, `ai_generated_${Date.now()}.png`);
             formData.append('title', prompt.substring(0, 100));
             formData.append('alt_text', prompt.substring(0, 200));
-            
+
             const uploadResponse = await mediaApi.uploadMedia(formData);
-            
+
             if (uploadResponse.metaData.status === 'success') {
                 const media = uploadResponse.data;
                 setGeneratedMedia(media);
@@ -182,9 +203,27 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
             </div>
         );
     }
-
     if (availableProviders.length === 0) {
-        return <EmptyProvidersCard type="image" onNavigateToSettings={onNavigateToSettings} />;
+        return (
+            <EmptyState
+                title="هیچ مدل AI فعالی برای تولید تصویر وجود ندارد"
+                description="برای تولید تصویر با AI، باید یکی از سرویس‌دهنده‌ها را در تنظیمات فعال کنید"
+                icon={Wand2}
+                size="md"
+                action={
+                    onNavigateToSettings && (
+                        <Button
+                            onClick={onNavigateToSettings}
+                            variant="default"
+                            className="gap-2"
+                        >
+                            <Settings className="h-4 w-4" />
+                            رفتن به تنظیمات AI
+                        </Button>
+                    )
+                }
+            />
+        );
     }
 
     return (

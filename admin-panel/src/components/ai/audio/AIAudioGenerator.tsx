@@ -7,7 +7,10 @@ import type { Media } from '@/types/shared/media';
 import { showSuccess, showError, showInfo } from '@/core/toast';
 import { AudioInputForm } from './AudioInputForm';
 import { GeneratedAudioDisplay } from './GeneratedAudioDisplay';
-import { EmptyProvidersCard } from '../shared';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { Button } from '@/components/elements/Button';
+import { Settings, Mic } from 'lucide-react';
+
 import { useAuth } from '@/core/auth/AuthContext';
 
 interface AIAudioGeneratorProps {
@@ -17,11 +20,11 @@ interface AIAudioGeneratorProps {
     compact?: boolean;
 }
 
-export function AIAudioGenerator({ 
-    onAudioGenerated, 
-    onSelectGenerated, 
-    onNavigateToSettings, 
-    compact = false 
+export function AIAudioGenerator({
+    onAudioGenerated,
+    onSelectGenerated,
+    onNavigateToSettings,
+    compact = false
 }: AIAudioGeneratorProps) {
     const { user } = useAuth();
     const [availableProviders, setAvailableProviders] = useState<AvailableProvider[]>([]);
@@ -38,21 +41,33 @@ export function AIAudioGenerator({
     const providersFetched = useRef(false);
     const [isDemoMode, setIsDemoMode] = useState(false);
 
+    console.log('🚀 [AIAudioGenerator] Component Mount/Render. User:', user ? 'Present' : 'Null');
+
     useEffect(() => {
+        console.log('🔄 [AIAudioGenerator] useEffect triggered. User:', user ? 'Present' : 'Null', 'providersFetched:', providersFetched.current);
+
         if (user && !providersFetched.current) {
             const permissionsObject = user?.permissions as any;
             const permissionsArray = (permissionsObject?.permissions || []) as string[];
-            const hasAIPermission = permissionsArray.some((p: string) => 
+
+            console.log('🔑 [AIAudioGenerator] Permissions:', permissionsArray);
+
+            const hasAIPermission = permissionsArray.some((p: string) =>
                 p === 'all' || p === 'ai.manage' || p === 'ai.audio.manage' || p.startsWith('ai.')
             );
-            
+
+            console.log('🛡️ [AIAudioGenerator] hasAIPermission:', hasAIPermission);
+
             if (hasAIPermission) {
                 providersFetched.current = true;
+                console.log('⚡ [AIAudioGenerator] Permissions OK. Calling fetchAvailableProviders...');
                 fetchAvailableProviders();
             } else {
+                console.warn('⛔ [AIAudioGenerator] User does NOT have AI permissions.');
                 setLoadingProviders(false);
             }
         } else if (!user) {
+            console.log('⏳ [AIAudioGenerator] User not yet loaded. Demo mode...');
             setLoadingProviders(false);
             setIsDemoMode(true);
             setAvailableProviders([{
@@ -69,10 +84,13 @@ export function AIAudioGenerator({
     const fetchAvailableProviders = async () => {
         try {
             setLoadingProviders(true);
+            console.log('🔍 [AIAudioGenerator] Fetching available providers...');
             const response = await aiApi.audio.getAvailableProviders();
+            console.log('📦 [AIAudioGenerator] Response:', response);
+
             if (response.metaData.status === 'success') {
                 let providersData: any[] = [];
-                
+
                 if (Array.isArray(response.data)) {
                     providersData = response.data;
                 } else if (response.data && typeof response.data === 'object') {
@@ -81,13 +99,16 @@ export function AIAudioGenerator({
                         providersData = dataObj.data;
                     }
                 }
-                
-                const providers = providersData.filter((p: AvailableProvider) => 
+
+                console.log('📋 [AIAudioGenerator] Providers data:', providersData);
+
+                const providers = providersData.filter((p: AvailableProvider) =>
                     p.can_generate === true
                 );
-                    
+
+                console.log('✅ [AIAudioGenerator] Filtered providers:', providers);
                 setAvailableProviders(providers);
-                
+
                 if (providers.length > 0) {
                     const firstProvider = providers[0] as any;
                     if (firstProvider.tts_defaults) {
@@ -96,14 +117,15 @@ export function AIAudioGenerator({
                         setSpeed(firstProvider.tts_defaults.speed || 1.0);
                     }
                 }
-                
+
                 if (selectedProvider && !providers.some(p => p.provider_name === selectedProvider)) {
                     setSelectedProvider('');
                 } else if (providers.length > 0 && !selectedProvider) {
                     setSelectedProvider('openai');
                 }
             }
-        } catch {
+        } catch (error) {
+            console.error('❌ [AIAudioGenerator] Error fetching providers:', error);
             setIsDemoMode(true);
             setAvailableProviders([{
                 id: 1,
@@ -151,7 +173,7 @@ export function AIAudioGenerator({
 
             if (response.metaData.status === 'success') {
                 const data = response.data as any;
-                
+
                 if (data.saved === false && data.audio_data_url) {
                     setGeneratedAudioUrl(data.audio_data_url);
                     setGeneratedMedia(null);
@@ -162,7 +184,7 @@ export function AIAudioGenerator({
                     showSuccess('پادکست با موفقیت تولید و ذخیره شد');
                     onAudioGenerated?.(data as Media);
                 }
-                
+
                 fetchAvailableProviders();
             }
         } catch {
@@ -189,20 +211,20 @@ export function AIAudioGenerator({
         setGeneratedMedia(null);
         setGeneratedAudioUrl(null);
     };
-    
+
     const handleSaveToDb = async () => {
         if (!generatedAudioUrl) return;
-        
+
         try {
             const response = await fetch(generatedAudioUrl);
             const blob = await response.blob();
-            
+
             const formData = new FormData();
             formData.append('file', blob, `ai_generated_${Date.now()}.mp3`);
             formData.append('title', text.substring(0, 100));
-            
+
             const uploadResponse = await mediaApi.uploadMedia(formData);
-            
+
             if (uploadResponse.metaData.status === 'success') {
                 const media = uploadResponse.data;
                 setGeneratedMedia(media);
@@ -223,9 +245,27 @@ export function AIAudioGenerator({
             </div>
         );
     }
-
     if (availableProviders.length === 0) {
-        return <EmptyProvidersCard type="audio" onNavigateToSettings={onNavigateToSettings} />;
+        return (
+            <EmptyState
+                title="هیچ مدل AI فعالی برای تولید پادکست وجود ندارد"
+                description="برای تولید پادکست با AI، باید یکی از سرویس‌دهنده‌ها را در تنظیمات فعال کنید"
+                icon={Mic}
+                size="md"
+                action={
+                    onNavigateToSettings && (
+                        <Button
+                            onClick={onNavigateToSettings}
+                            variant="default"
+                            className="gap-2"
+                        >
+                            <Settings className="h-4 w-4" />
+                            رفتن به تنظیمات AI
+                        </Button>
+                    )
+                }
+            />
+        );
     }
 
     return (

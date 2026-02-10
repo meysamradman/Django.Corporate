@@ -21,15 +21,21 @@ export function useChatProviders({ compact = false, hasAIPermission = false, use
     const [showProviderDropdown, setShowProviderDropdown] = useState(false);
     const providersFetched = useRef(false);
 
+    console.log('🚀 [useChatProviders] Hook Init. UserAuthenticated:', userAuthenticated, 'HasPermissions:', hasAIPermission);
+
     useEffect(() => {
+        console.log('🔄 [useChatProviders] useEffect. Auth:', userAuthenticated, 'Fetched:', providersFetched.current);
         if (userAuthenticated && !providersFetched.current) {
             if (hasAIPermission) {
                 providersFetched.current = true;
+                console.log('⚡ [useChatProviders] Calling fetchAvailableProviders...');
                 fetchAvailableProviders();
             } else {
+                console.warn('⛔ [useChatProviders] No permissions.');
                 setLoadingProviders(false);
             }
         } else if (!userAuthenticated) {
+            console.log('⏳ [useChatProviders] Waiting for auth...');
             setLoadingProviders(true);
         }
     }, [userAuthenticated, hasAIPermission]);
@@ -43,17 +49,21 @@ export function useChatProviders({ compact = false, hasAIPermission = false, use
     const fetchAvailableProviders = async () => {
         try {
             setLoadingProviders(true);
-            
+            console.log('🔍 [useChatProviders] Fetching available providers...');
+
             const response = await aiApi.chat.getAvailableProviders();
+            console.log('📦 [useChatProviders] Response:', response);
 
             if (response.metaData.status === 'success') {
                 const providersData = Array.isArray(response.data)
                     ? response.data
                     : (response.data as any)?.data || [];
 
+                console.log('📋 [useChatProviders] Providers data:', providersData);
                 setAvailableProviders(providersData);
             }
-        } catch {
+        } catch (error) {
+            console.error('❌ [useChatProviders] Error fetching providers:', error);
         } finally {
             setLoadingProviders(false);
         }

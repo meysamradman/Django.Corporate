@@ -108,8 +108,10 @@ class AIProviderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='available')
     def available_providers(self, request):
+        from src.ai.providers.capabilities import supports_feature
         
         is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
+        capability = request.query_params.get('capability')
         
         providers = AIProvider.objects.filter(is_active=True).order_by('sort_order')
         serializer = AIProviderListSerializer(providers, many=True, context={'request': request})
@@ -118,12 +120,17 @@ class AIProviderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         for provider_data in serializer.data:
             provider_slug = provider_data['slug']
             
+            # اگر capability مشخص شده، فقط Providerهایی که آن را support می‌کنند
+            if capability and not supports_feature(provider_slug, capability):
+                continue
+            
             has_access = self._check_provider_access(request.user, provider_slug, is_super)
             
             provider_info = {
                 **provider_data,
                 'has_access': has_access,
                 'provider_name': provider_slug,
+                'can_generate': has_access,  # فقط اگر دسترسی داشته باشد می‌تواند generate کند
             }
             available.append(provider_info)
         

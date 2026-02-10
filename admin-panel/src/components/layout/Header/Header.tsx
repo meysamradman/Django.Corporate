@@ -4,6 +4,7 @@ import { Breadcrumb } from "@/components/layout/Breadcrumb/Breadcrumb";
 import { Notifications } from "@/components/layout/Header/Notifications";
 import { DarkMode } from "@/components/theme/DarkMode";
 import { AIChatButton } from "@/components/layout/Header/AIChatButton";
+import { ActiveProvidersBar } from "@/components/layout/Header/ActiveProvidersBar";
 import { cn } from "@/core/utils/cn";
 
 interface HeaderProps {
@@ -40,8 +41,13 @@ export function Header({ onMenuClick, isContentCollapsed = false, onContentToggl
           </button>
         )}
         
-        <div className="hidden flex-1 min-w-0 lg:block">
-          <Breadcrumb />
+        <div className="hidden flex-1 min-w-0 lg:flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <Breadcrumb />
+          </div>
+          <div className="shrink-0">
+            <ActiveProvidersBar />
+          </div>
         </div>
       </div>
 
