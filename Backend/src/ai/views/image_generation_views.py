@@ -411,29 +411,36 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
                         status_code=status.HTTP_400_BAD_REQUEST
                     )
 
-                # Determine model ID (Check if active, else use default)
-                active_model = AICapabilityModel.objects.get_active('image')
+                # Determine model ID (Check request override -> active -> default)
+                # Allow user to override model via request.data['model'] or ['model_id']
+                requested_model = data.get('model') or data.get('model_id')
                 
-                if active_model and active_model.provider_id == provider.id:
-                    model_id = active_model.model_id
-                    model_display_name = active_model.display_name or active_model.model_id
+                if requested_model:
+                    model_id = requested_model
+                    model_display_name = requested_model
                 else:
-                    # On-the-fly provider selection
-                    model_id = get_default_model(provider.slug, 'image')
-                    if not model_id and provider.capabilities:
-                        model_id = provider.capabilities.get('image', {}).get('default_model')
+                    active_model = AICapabilityModel.objects.get_active('image')
                     
-                    if not model_id:
-                        static_models = provider.get_static_models('image')
-                        if static_models:
-                            model_id = static_models[0]
-                    
-                    if not model_id:
-                        return APIResponse.error(
-                            message=f"No default model found for provider {provider.slug}",
-                            status_code=status.HTTP_400_BAD_REQUEST
-                        )
-                    model_display_name = model_id
+                    if active_model and active_model.provider_id == provider.id:
+                        model_id = active_model.model_id
+                        model_display_name = active_model.display_name or active_model.model_id
+                    else:
+                        # On-the-fly provider selection (Default fallback)
+                        model_id = get_default_model(provider.slug, 'image')
+                        if not model_id and provider.capabilities:
+                            model_id = provider.capabilities.get('image', {}).get('default_model')
+                        
+                        if not model_id:
+                            static_models = provider.get_static_models('image')
+                            if static_models:
+                                model_id = static_models[0]
+                        
+                        if not model_id:
+                            return APIResponse.error(
+                                message=f"No default model found for provider {provider.slug}",
+                                status_code=status.HTTP_400_BAD_REQUEST
+                            )
+                        model_display_name = model_id
 
                 # Permission Check
                 is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)

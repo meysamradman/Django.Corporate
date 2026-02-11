@@ -26,6 +26,7 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
     const [availableProviders, setAvailableProviders] = useState<AvailableProvider[]>([]);
     const [loadingProviders, setLoadingProviders] = useState(true);
     const [selectedProvider, setSelectedProvider] = useState<string>('');
+    const [selectedModel, setSelectedModel] = useState<string | null>(null);
     const [prompt, setPrompt] = useState('');
     const size = '1024x1024';
     const quality = 'standard';
@@ -127,6 +128,7 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
                 size,
                 quality,
                 save_to_media: saveToDb,
+                model: selectedModel || undefined,
             });
 
             if (response.metaData.status === 'success') {
@@ -225,11 +227,16 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
             <ImageInputForm
                 providers={availableProviders}
                 selectedProvider={selectedProvider}
+                selectedModel={selectedModel}
                 prompt={prompt}
                 saveToDb={saveToDb}
                 generating={generating}
                 loadingProviders={loadingProviders}
-                onSelectProvider={setSelectedProvider}
+                onSelectProvider={(val) => {
+                    setSelectedProvider(val);
+                    setSelectedModel(null);
+                }}
+                onSelectModel={setSelectedModel}
                 onPromptChange={setPrompt}
                 onSaveToDbChange={setSaveToDb}
                 onGenerate={handleGenerate}

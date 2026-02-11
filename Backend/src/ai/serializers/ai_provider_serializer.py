@@ -17,7 +17,7 @@ class AIProviderListSerializer(serializers.ModelSerializer):
             'id', 'name', 'slug', 'display_name', 'description',
             'allow_personal_keys', 'allow_shared_for_normal_admins',
             'models_count', 'has_shared_api', 'shared_api_key', 'has_personal_api', 'is_active',
-            'total_requests', 'last_used_at', 'created_at'
+            'total_requests', 'last_used_at', 'created_at', 'capabilities'
         ]
         read_only_fields = ['slug', 'total_requests', 'last_used_at']
     

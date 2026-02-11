@@ -24,6 +24,7 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
     const [destinations, setDestinations] = useState<{ key: string; label: string }[]>([]);
     const [loadingProviders, setLoadingProviders] = useState(true);
     const [selectedProvider, setSelectedProvider] = useState<string>('');
+    const [selectedModel, setSelectedModel] = useState<string | null>(null);
     const [destination, setDestination] = useState<string>('none');
     const [topic, setTopic] = useState('');
     const [generating, setGenerating] = useState(false);
@@ -122,6 +123,7 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
                 provider_name: selectedProvider,
                 topic: topic.trim(),
                 destination: destination as any,
+                model_id: selectedModel || undefined,
             });
 
             if (response.metaData.status === 'success') {
@@ -189,11 +191,16 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
                 providers={availableProviders}
                 destinations={destinations}
                 selectedProvider={selectedProvider}
+                selectedModel={selectedModel}
                 destination={destination}
                 topic={topic}
                 generating={generating}
                 loadingProviders={loadingProviders}
-                onSelectProvider={setSelectedProvider}
+                onSelectProvider={(val) => {
+                    setSelectedProvider(val);
+                    setSelectedModel(null);
+                }}
+                onSelectModel={setSelectedModel}
                 onDestinationChange={setDestination}
                 onTopicChange={setTopic}
                 onGenerate={handleGenerate}

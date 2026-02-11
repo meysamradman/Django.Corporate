@@ -45,10 +45,12 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                 ]
             
             provider_name = validated_data.get('provider_name')
+            model_id = validated_data.get('model_id')  # Explicit model override
             
             chat_data = AIChatService.chat(
                 message=validated_data['message'],
                 provider_name=provider_name,
+                model_name=model_id, # Pass to service
                 conversation_history=conversation_history,
                 system_message=validated_data.get('system_message'),
                 temperature=validated_data.get('temperature', 0.7),
@@ -71,12 +73,35 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
-            error_message = str(e)
-            if 'error' not in error_message.lower():
-                error_message = AI_ERRORS["chat_failed"].format(error=error_message)
+            error_message = str(e).lower()
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+            
+            # --- Enhanced Error Categories ---
+            if 'quota' in error_message or 'billing' in error_message or 'credit' in error_message or '429' in error_message:
+                final_msg = "خطای سهمیه یا موجودی (Quota Exceeded). لطفا اعتبار سرویس‌دهنده را بررسی کنید."
+                status_code = status.HTTP_429_TOO_MANY_REQUESTS
+            elif 'api key' in error_message or 'unauthorized' in error_message or 'authentication' in error_message or '401' in error_message:
+                final_msg = "خطای احراز هویت (API Key Lock/Invalid). کلید سرویس‌دهنده نامعتبر است."
+                status_code = status.HTTP_401_UNAUTHORIZED
+            elif 'rate limit' in error_message or 'too many requests' in error_message:
+                 final_msg = "محدودیت تعداد درخواست (Rate Limit). لطفا چند لحظه صبر کنید."
+                 status_code = status.HTTP_429_TOO_MANY_REQUESTS
+            elif 'timeout' in error_message:
+                final_msg = "خطای زمان‌بندی (Timeout). سرویس‌دهنده پاسخ نداد."
+                status_code = status.HTTP_504_GATEWAY_TIMEOUT
+            elif 'model' in error_message and 'not found' in error_message:
+                final_msg = "مدل انتخاب شده یافت نشد یا در دسترس نیست."
+                status_code = status.HTTP_404_NOT_FOUND
+            else:
+                # Clean up generic python exception noise if possible
+                if 'error' not in error_message:
+                    final_msg = AI_ERRORS["chat_failed"].format(error=str(e))
+                else:
+                    final_msg = str(e)
+
             return APIResponse.error(
-                message=error_message,
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+                message=final_msg,
+                status_code=status_code
             )
     
     @action(detail=False, methods=['get'], url_path='capabilities')

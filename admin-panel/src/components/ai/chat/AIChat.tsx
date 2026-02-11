@@ -25,6 +25,8 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
         loadingProviders,
         selectedProvider,
         setSelectedProvider,
+        selectedModel,
+        setSelectedModel,
         showProviderDropdown,
         setShowProviderDropdown,
         selectedProviderData,
@@ -55,6 +57,7 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
         removeAttachedFile,
     } = useChatHandlers({
         selectedProvider,
+        selectedModel,
         messages,
         addMessage,
         removeLastUserMessage,
@@ -140,6 +143,8 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                     showProviderDropdown={showProviderDropdown}
                     setShowProviderDropdown={setShowProviderDropdown}
                     selectedProviderData={selectedProviderData}
+                    selectedModel={selectedModel}
+                    setSelectedModel={setSelectedModel}
                 />
             </div>
         );
@@ -221,6 +226,8 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                     showProviderDropdown={showProviderDropdown}
                     setShowProviderDropdown={setShowProviderDropdown}
                     selectedProviderData={selectedProviderData}
+                    selectedModel={selectedModel}
+                    setSelectedModel={setSelectedModel}
                     variant="bottom"
                 />
             </>

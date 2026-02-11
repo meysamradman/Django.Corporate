@@ -171,6 +171,7 @@ export interface AvailableProvider {
     is_active?: boolean;
     usage_count?: number;
     last_used_at?: string | null;
+    capabilities?: Record<string, any>;
 }
 
 export interface ModelData {
@@ -230,7 +231,7 @@ export interface ActiveCapabilityModel {
   display_name: string | null;
 }
 
-export type ActiveCapabilityModelsResponse = Record<AICapability, ActiveCapabilityModel>;
+export type ActiveCapabilityModelsResponse = Record<string, ActiveCapabilityModel>;
 
 export interface HuggingFaceModel extends ModelCardModel {
   task?: string;

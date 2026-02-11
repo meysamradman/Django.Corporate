@@ -101,11 +101,10 @@ class AIProviderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='available')
     def available_providers(self, request):
-        from src.ai.providers.capabilities import supports_feature
-        
         is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
         capability = request.query_params.get('capability')
         
+        # Get all active providers ordered by sort_order
         providers = AIProvider.objects.filter(is_active=True).order_by('sort_order')
         serializer = AIProviderListSerializer(providers, many=True, context={'request': request})
         
@@ -113,9 +112,15 @@ class AIProviderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         for provider_data in serializer.data:
             provider_slug = provider_data['slug']
             
-            # اگر capability مشخص شده، فقط Providerهایی که آن را support می‌کنند
-            if capability and not supports_feature(provider_slug, capability):
-                continue
+            # Check capability support using the DB configuration (provider_data['capabilities'])
+            # independent of hardcoded files to ensure sync with populate_ai_providers.py
+            provider_caps = provider_data.get('capabilities', {})
+            
+            if capability:
+                cap_config = provider_caps.get(capability)
+                # If capability not in config or explicitly marked not supported
+                if not cap_config or not cap_config.get('supported', False):
+                    continue
             
             has_access = self._check_provider_access(request.user, provider_slug, is_super)
             
@@ -123,7 +128,7 @@ class AIProviderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 **provider_data,
                 'has_access': has_access,
                 'provider_name': provider_slug,
-                'can_generate': has_access,  # فقط اگر دسترسی داشته باشد می‌تواند generate کند
+                'can_generate': has_access,
             }
             available.append(provider_info)
         

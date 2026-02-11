@@ -9,6 +9,7 @@ import {
 import { Textarea } from "@/components/elements/Textarea";
 import { Loader2, Paperclip, X, ArrowUpIcon, Send } from 'lucide-react';
 import { ProviderSelector } from './ProviderSelector';
+import { ModelSelector } from '../../shared/ModelSelector';
 import type { AvailableProvider } from '@/types/ai/ai';
 
 interface ChatInputProps {
@@ -33,6 +34,8 @@ interface ChatInputProps {
     showProviderDropdown: boolean;
     setShowProviderDropdown: (show: boolean) => void;
     selectedProviderData?: AvailableProvider;
+    selectedModel?: string | null;
+    setSelectedModel?: (model: string | null) => void;
     variant?: 'center' | 'bottom';
 }
 
@@ -56,12 +59,14 @@ export function ChatInput({
     showProviderDropdown,
     setShowProviderDropdown,
     selectedProviderData,
+    selectedModel,
+    setSelectedModel,
     variant = 'bottom',
 }: ChatInputProps) {
     if (compact) {
         return (
             <div className="shrink-0 border-t border-br bg-card p-3">
-                <div className="flex items-center justify-end pb-2">
+                <div className="flex items-center justify-end pb-2 gap-2">
                     <ProviderSelector
                         compact={true}
                         loadingProviders={loadingProviders}
@@ -71,6 +76,14 @@ export function ChatInput({
                         showProviderDropdown={showProviderDropdown}
                         setShowProviderDropdown={setShowProviderDropdown}
                         selectedProviderData={selectedProviderData}
+                    />
+                    <ModelSelector
+                        providerSlug={selectedProvider}
+                        selectedModel={selectedModel || null}
+                        onSelectModel={setSelectedModel}
+                        compact
+                        triggerClassName="h-7 text-xs border bg-background/50 hover:bg-background"
+                        capability="chat"
                     />
                 </div>
                 <div className="relative w-full">
@@ -163,6 +176,15 @@ export function ChatInput({
                                 setShowProviderDropdown={setShowProviderDropdown}
                                 selectedProviderData={selectedProviderData}
                                 variant="plus"
+                            />
+
+                            <ModelSelector
+                                providerSlug={selectedProvider}
+                                selectedModel={selectedModel || null}
+                                onSelectModel={setSelectedModel}
+                                capability="chat"
+                                compact
+                                triggerClassName="h-8 text-xs border-0 bg-transparent hover:bg-bg shadow-none text-font-s gap-1"
                             />
 
                             <InputGroupButton

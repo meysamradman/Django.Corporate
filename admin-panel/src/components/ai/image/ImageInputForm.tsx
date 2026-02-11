@@ -4,6 +4,7 @@ import { Label } from '@/components/elements/Label';
 import { Textarea } from '@/components/elements/Textarea';
 import { Checkbox } from '@/components/elements/Checkbox';
 import { ProviderSelector } from '../shared/ProviderSelector';
+import { ModelSelector } from '../shared/ModelSelector';
 import type { AvailableProvider } from '@/types/ai/ai';
 import { Loader2, Sparkles, Wand2, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/core/auth/AuthContext';
@@ -11,6 +12,8 @@ import { useAuth } from '@/core/auth/AuthContext';
 interface ImageInputFormProps {
     providers: AvailableProvider[];
     selectedProvider: string;
+    selectedModel?: string | null;
+    onSelectModel?: (model: string) => void;
     prompt: string;
     saveToDb: boolean;
     generating: boolean;
@@ -25,6 +28,8 @@ interface ImageInputFormProps {
 export function ImageInputForm({
     providers,
     selectedProvider,
+    selectedModel,
+    onSelectModel,
     prompt,
     saveToDb,
     generating,
@@ -55,28 +60,63 @@ export function ImageInputForm({
         <Card className={cardClass}>
             {!compact && (
                 <CardHeader className={headerClass}>
-                    <CardTitle className={`flex items-center gap-3 ${titleClass}`}>
-                        <div className={`${iconPadding} bg-pink rounded-xl shadow-sm`}>
-                            <Wand2 className={`${iconSize} stroke-pink-2`} />
+                    <div className="flex items-center justify-between">
+                        <CardTitle className={`flex items-center gap-3 ${titleClass}`}>
+                            <div className={`${iconPadding} bg-pink rounded-xl shadow-sm`}>
+                                <Wand2 className={`${iconSize} stroke-pink-2`} />
+                            </div>
+                            تولید تصویر با AI
+                        </CardTitle>
+                        <div className="flex items-center gap-2">
+                            <div className="w-48">
+                                <ProviderSelector
+                                    providers={providers}
+                                    selectedProvider={selectedProvider}
+                                    onSelectProvider={onSelectProvider}
+                                    type="image"
+                                    loading={loadingProviders}
+                                    compact={true}
+                                />
+                            </div>
+                            {selectedProvider && onSelectModel && (
+                                <ModelSelector
+                                    providerSlug={selectedProvider}
+                                    selectedModel={selectedModel || null}
+                                    onSelectModel={onSelectModel}
+                                    capability="image"
+                                    compact={true}
+                                    triggerClassName="h-10 w-40"
+                                />
+                            )}
                         </div>
-                        تولید تصویر با AI
-                    </CardTitle>
+                    </div>
                 </CardHeader>
             )}
             <CardContent className={compact ? "space-y-3 pt-4" : "space-y-6"}>
-                <div className="space-y-3">
-                    <Label className={`flex items-center gap-2 ${compact ? 'text-sm' : 'text-base font-medium'}`}>
-                        <span>{compact ? 'Provider:' : 'انتخاب Provider'}</span>
-                    </Label>
-                    <ProviderSelector
-                        providers={providers}
-                        selectedProvider={selectedProvider}
-                        onSelectProvider={onSelectProvider}
-                        type="image"
-                        loading={loadingProviders}
-                        compact={compact}
-                    />
-                </div>
+                {compact && (
+                   <div className="space-y-3">
+                        <Label className={`flex items-center gap-2 ${compact ? 'text-sm' : 'text-base font-medium'}`}>
+                            <span>Provider:</span>
+                        </Label>
+                        <ProviderSelector
+                            providers={providers}
+                            selectedProvider={selectedProvider}
+                            onSelectProvider={onSelectProvider}
+                            type="image"
+                            loading={loadingProviders}
+                            compact={compact}
+                        />
+                         {selectedProvider && onSelectModel && (
+                            <ModelSelector
+                                providerSlug={selectedProvider}
+                                selectedModel={selectedModel || null}
+                                onSelectModel={onSelectModel}
+                                capability="image"
+                                compact={compact}
+                            />
+                        )}
+                    </div>
+                )}
 
                 <div className="space-y-2">
                     <Label htmlFor="prompt" className={compact ? "text-sm" : ""}>

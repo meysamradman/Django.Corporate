@@ -27,11 +27,9 @@ export const aiApi = {
             }
         },
 
-        getAvailableProviders: async (capability?: string): Promise<ApiResponse<AvailableProvider[]>> => {
+        getAvailableProviders: async (capability: string = 'image'): Promise<ApiResponse<AvailableProvider[]>> => {
             try {
-                const endpoint = capability
-                    ? `/admin/ai-providers/available/?capability=${capability}`
-                    : '/admin/ai-providers/available/';
+                const endpoint = `/admin/ai-providers/available/?capability=${capability}`;
                 return await api.get<AvailableProvider[]>(endpoint);
             } catch (error) {
                 if (error && typeof error === 'object' && 'response' in error && (error.response as { AppStatusCode?: number })?.AppStatusCode !== 404) {
@@ -135,6 +133,7 @@ export const aiApi = {
             size?: string;
             quality?: string;
             save_to_media?: boolean;
+            model?: string;
         }): Promise<ApiResponse<Media>> => {
             const endpoint = '/admin/ai-images/generate/';
             return await api.post<Media>(endpoint, data as Record<string, unknown>);
@@ -228,11 +227,9 @@ export const aiApi = {
     },
 
     chat: {
-        getAvailableProviders: async (capability?: string): Promise<ApiResponse<AvailableProvider[]>> => {
+        getAvailableProviders: async (capability: string = 'chat'): Promise<ApiResponse<AvailableProvider[]>> => {
             try {
-                const endpoint = capability
-                    ? `/admin/ai-providers/available/?capability=${capability}`
-                    : '/admin/ai-providers/available/';
+                const endpoint = `/admin/ai-providers/available/?capability=${capability}`;
                 return await api.get<AvailableProvider[]>(endpoint);
             } catch (error) {
                 if (error && typeof error === 'object' && 'response' in error && (error.response as { AppStatusCode?: number })?.AppStatusCode !== 404) {
@@ -537,6 +534,7 @@ export const aiApi = {
         }): Promise<ApiResponse<AIModelDetail>> => {
             try {
                 // Backend now handles provider selection via this endpoint
+                console.log('[DEBUG selectModel] Sending to backend:', JSON.stringify(data, null, 2));
                 const endpoint = '/admin/ai-models/select-provider/';
                 return await api.post<AIModelDetail>(endpoint, data as Record<string, unknown>);
             } catch {
@@ -554,6 +552,16 @@ export const aiApi = {
             } catch {
                 throw new Error('خطا در غیرفعال‌سازی مدل');
             }
+        },
+
+        getModels: async (provider: string, capability: string): Promise<ApiResponse<AIModelList[]>> => {
+             const params = new URLSearchParams({
+                provider: provider.toLowerCase(),
+                capability: capability,
+                use_cache: 'true'
+            });
+            const endpoint = `/admin/ai-models/browse-models/?${params.toString()}`;
+            return await api.get<AIModelList[]>(endpoint);
         },
 
         getActiveCapabilities: async (): Promise<ApiResponse<ActiveCapabilityModelsResponse>> => {

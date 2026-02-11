@@ -316,7 +316,7 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             content_data = AIContentGenerationService.generate_content(
                 topic=validated_data['topic'],
                 provider_name=validated_data.get('provider_name'),
-                model_name=None,
+                model_name=validated_data.get('model_id') or validated_data.get('model'), # Allow override
                 word_count=validated_data.get('word_count', 500),
                 tone=validated_data.get('tone', 'professional'),
                 keywords=validated_data.get('keywords', []),

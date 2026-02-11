@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Save, Check } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/elements/Card';
 import { Skeleton } from '@/components/elements/Skeleton';
@@ -22,6 +22,7 @@ import type { ActiveCapabilityModelsResponse, AICapability } from '@/types/ai/ai
 interface ProviderOption {
   slug: string;
   name: string;
+  capabilities?: Record<string, any>;
 }
 
 export default function AIModelsPage() {
@@ -39,7 +40,7 @@ export default function AIModelsPage() {
       const response = await aiApi.models.getActiveCapabilities();
       return response.data as ActiveCapabilityModelsResponse;
     },
-    staleTime: 0, // Always fetch fresh
+    staleTime: 0,
   });
 
   // Fetch all available providers for dropdowns
@@ -64,37 +65,34 @@ export default function AIModelsPage() {
     staleTime: 60_000,
   });
 
-  useEffect(() => {
-    if (!isAuthLoading && !hasAccess) {
-      showError('این صفحه فقط برای سوپر ادمین‌ها قابل دسترسی است');
-      navigate('/ai/settings', { replace: true });
-    }
-  }, [isAuthLoading, hasAccess, navigate]);
+  const isLoading = isActiveLoading || isProvidersLoading;
 
-  // Mutation to change provider
+  // Mutation to change provider or model
   const selectProviderMutation = useMutation({
-    mutationFn: async ({ capability, provider }: { capability: AICapability; provider: string }) => {
-      return aiApi.models.selectModel({ capability, provider }); // In backend this acts as select-provider
+    mutationFn: async ({ capability, provider, model_id }: { capability: AICapability; provider: string; model_id?: string }) => {
+       console.log(`[Frontend] Selecting Provider/Model for ${capability}:`, { provider, model_id });
+       return aiApi.models.selectModel({ capability, provider, model_id });
     },
     onSuccess: (_, { capability }) => {
-      showSuccess(`ارائه‌دهنده ${capability} با موفقیت تغییر کرد`);
+      console.log(`[Frontend] Successfully updated ${capability}`);
+      showSuccess(`تنظیمات ${capability} ذخیره شد`);
       queryClient.invalidateQueries({ queryKey: ['ai-active-capabilities'] });
     },
     onError: (err) => {
-      showError('خطا در تغییر ارائه‌دهنده');
-      console.error(err);
+      console.error('[Frontend] Error updating:', err);
+      showError('خطا در ذخیره تنظیمات');
     },
   });
-
-  const isLoading = isActiveLoading || isProvidersLoading;
-
-  const handleProviderChange = (capability: AICapability, providerSlug: string) => {
-    selectProviderMutation.mutate({ capability, provider: providerSlug });
-  };
 
   const rows = useMemo(() => {
     const safeActive = activeData || ({} as ActiveCapabilityModelsResponse);
     const safeProviders = providersData || { chat: [], content: [], image: [], audio: [] };
+
+    // DEBUG: Log Raw Data
+    console.groupCollapsed('[Frontend] AI Configuration Data');
+    console.log('Active Configuration:', safeActive);
+    console.log('Available Providers:', safeProviders);
+    console.groupEnd();
 
     const items: Array<{ capability: AICapability; title: string; icon: string }> = [
       { capability: 'chat', title: 'چت', icon: '💬' },
@@ -107,21 +105,41 @@ export default function AIModelsPage() {
       const cm = safeActive[item.capability];
       const availableProviders = safeProviders[item.capability as keyof typeof safeProviders] || [];
       
-      // Map to consistent format
       const options: ProviderOption[] = availableProviders.map((p) => ({
-        slug: p.slug,
-        name: p.display_name,
+        slug: p.slug || 'unknown',
+        name: p.display_name || p.provider_name || 'Unknown',
+        capabilities: (p as any).capabilities, 
       }));
+      
+      // Find currently selected provider to get its model list
+      const selectedProviderObj = options.find(o => o.slug === cm?.provider_slug);
+      let allowedModels: string[] = [];
+      
+      // Safely access capabilities to get models list
+      if (selectedProviderObj && selectedProviderObj.capabilities) {
+          const capConfig = selectedProviderObj.capabilities[item.capability];
+          if (capConfig && Array.isArray(capConfig.models)) {
+              allowedModels = capConfig.models;
+          }
+      }
 
       return {
         ...item,
         isActive: Boolean(cm?.is_active),
         currentProviderSlug: cm?.provider_slug || '',
-        currentModelName: cm?.model_id || '—',
+        currentModelName: cm?.model_id || '',
         options,
+        allowedModels: allowedModels.length > 0 ? allowedModels : [],
       };
     });
   }, [activeData, providersData]);
+
+  useEffect(() => {
+    if (!isAuthLoading && !hasAccess) {
+      showError('این صفحه فقط برای سوپر ادمین‌ها قابل دسترسی است');
+      navigate('/ai/settings', { replace: true });
+    }
+  }, [isAuthLoading, hasAccess, navigate]);
 
   return (
     <div className="space-y-6" suppressHydrationWarning>
@@ -134,7 +152,7 @@ export default function AIModelsPage() {
             <div>
               <div>AI Settings (Provider Selection)</div>
               <p className="text-sm font-normal text-font-s mt-1">
-                ارائه‌دهنده (Provider) مورد نظر را انتخاب کنید. مدل به‌صورت خودکار (Hardcoded) انتخاب می‌شود.
+                 ارائه‌دهنده را انتخاب کنید. در اینجا فقط مدل‌های از پیش تعریف شده (Hardcoded) نمایش داده می‌شوند. اگر چند مدل تعریف شده باشد، می‌توانید مدل فعال را مشاهده کنید.
               </p>
             </div>
           </CardTitle>
@@ -153,7 +171,7 @@ export default function AIModelsPage() {
                 <div key={row.capability} className="flex flex-col sm:flex-row sm:items-center justify-between border rounded-lg p-5 gap-4">
                   
                   {/* Left: Icon & Title */}
-                  <div className="flex items-center gap-3 min-w-[150px]">
+                  <div className="flex items-center gap-3 min-w-[150px] sm:min-w-[180px]">
                     <span className="text-2xl">{row.icon}</span>
                     <div>
                       <div className="font-medium text-lg text-font-p">{row.title}</div>
@@ -167,13 +185,15 @@ export default function AIModelsPage() {
                     </div>
                   </div>
 
-                  {/* Right: Provider Select */}
-                  <div className="flex items-center gap-3 flex-1 justify-end max-w-md w-full">
-                    <div className="w-full">
+                  {/* Right: Provider Select & Model Select */}
+                  <div className="flex flex-col sm:flex-row items-center gap-3 flex-1 justify-end max-w-2xl w-full">
+                    
+                    {/* Provider Select */}
+                    <div className="w-full sm:w-1/2">
                       <Select
                         dir="rtl"
                         value={row.currentProviderSlug}
-                        onValueChange={(val) => handleProviderChange(row.capability, val)}
+                        onValueChange={(val) => selectProviderMutation.mutate({ capability: row.capability, provider: val })}
                         disabled={selectProviderMutation.isPending}
                       >
                         <SelectTrigger className="w-full">
@@ -194,6 +214,35 @@ export default function AIModelsPage() {
                         </SelectContent>
                       </Select>
                     </div>
+
+                    {/* Model Select Display */}
+                    <div className="w-full sm:w-1/2">
+                        <Select
+                            dir="ltr"
+                            value={row.currentModelName}
+                            onValueChange={(val) => {
+                                // When changing model, we must keep the current provider
+                                selectProviderMutation.mutate({ 
+                                    capability: row.capability, 
+                                    provider: row.currentProviderSlug,
+                                    model_id: val 
+                                });
+                            }}
+                            disabled={selectProviderMutation.isPending || row.allowedModels.length <= 1} 
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder={row.currentModelName || "مدل..."} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {row.allowedModels.map((m) => (
+                                    <SelectItem key={m} value={m}>
+                                        {m}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
                   </div>
 
                 </div>

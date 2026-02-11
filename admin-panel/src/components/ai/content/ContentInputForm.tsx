@@ -5,6 +5,7 @@ import { Textarea } from '@/components/elements/Textarea';
 import { Loader2, Sparkles, Type } from 'lucide-react';
 import { msg } from '@/core/messages';
 import { ProviderSelector } from '../shared/ProviderSelector';
+import { ModelSelector } from '../shared/ModelSelector';
 import type { AvailableProvider } from '@/types/ai/ai';
 
 interface ContentInputFormProps {
@@ -12,6 +13,8 @@ interface ContentInputFormProps {
     selectedProvider: string;
     loadingProviders: boolean;
     onSelectProvider: (providerName: string) => void;
+    selectedModel?: string | null;
+    onSelectModel?: (modelId: string | null) => void;
     destinations: { key: string; label: string }[];
     destination: string;
     topic: string;
@@ -33,6 +36,8 @@ export function ContentInputForm({
     onDestinationChange,
     onTopicChange,
     onGenerate,
+    selectedModel,
+    onSelectModel,
 }: ContentInputFormProps) {
     return (
         <CardWithIcon
@@ -43,10 +48,33 @@ export function ContentInputForm({
             cardBorderColor="border-b-pink-1"
             className="hover:shadow-lg transition-all duration-300"
             headerClassName="pb-3"
+            titleExtra={
+                <div className="hidden md:flex items-center gap-2">
+                    <div className="w-48">
+                        <ProviderSelector
+                            providers={providers}
+                            selectedProvider={selectedProvider}
+                            onSelectProvider={onSelectProvider}
+                            type="content"
+                            loading={loadingProviders}
+                            compact={true}
+                        />
+                    </div>
+                    <ModelSelector
+                        providerSlug={selectedProvider}
+                        selectedModel={selectedModel || null}
+                        onSelectModel={onSelectModel}
+                        capability="content"
+                        compact={true}
+                        triggerClassName="h-10 w-full min-w-[160px]"
+                    />
+                </div>
+            }
         >
             <div className="space-y-6">
-                <div className="space-y-3">
-                    <Label className="flex items-center gap-2 text-base font-medium">
+                {/* Mobile/Compact View for Provider Selection */}
+                <div className="block md:hidden space-y-3">
+                     <Label className="flex items-center gap-2 text-base font-medium">
                         انتخاب Provider
                     </Label>
                     <ProviderSelector
@@ -55,6 +83,14 @@ export function ContentInputForm({
                         onSelectProvider={onSelectProvider}
                         type="content"
                         loading={loadingProviders}
+                        compact={true}
+                    />
+                     <ModelSelector
+                        providerSlug={selectedProvider}
+                        selectedModel={selectedModel || null}
+                        onSelectModel={onSelectModel}
+                        capability="content"
+                        compact={true}
                     />
                 </div>
 

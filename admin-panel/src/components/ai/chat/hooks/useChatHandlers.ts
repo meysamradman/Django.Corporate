@@ -10,6 +10,7 @@ interface ChatMessage {
 
 interface UseChatHandlersOptions {
     selectedProvider: string;
+    selectedModel?: string | null;
     messages: ChatMessage[];
     addMessage: (message: ChatMessage) => void;
     removeLastUserMessage: (content: string) => void;
@@ -18,6 +19,7 @@ interface UseChatHandlersOptions {
 
 export function useChatHandlers({
     selectedProvider,
+    selectedModel,
     messages,
     addMessage,
     removeLastUserMessage,
@@ -66,6 +68,7 @@ export function useChatHandlers({
             const response = await aiApi.chat.sendMessage({
                 message: currentMessage,
                 provider_name: selectedProvider,
+                model_id: selectedModel || undefined,
                 conversation_history: conversationHistory,
                 file: attachedFile,
             });

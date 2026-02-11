@@ -18,6 +18,7 @@ export function useChatProviders({ compact = false, hasAIPermission = false, use
         }
         return '';
     });
+    const [selectedModel, setSelectedModel] = useState<string | null>(null);
     
     const [showProviderDropdown, setShowProviderDropdown] = useState(false);
     const providersFetched = useRef(false);
@@ -68,11 +69,26 @@ export function useChatProviders({ compact = false, hasAIPermission = false, use
         p => (p.slug || p.provider_name || String(p.id)) === selectedProvider
     );
 
+    const handleSetSelectedProvider = (val: string | ((prev: string) => string)) => {
+        if (typeof val === 'function') {
+            setSelectedProvider(prev => {
+                const newState = val(prev);
+                if (newState !== prev) setSelectedModel(null);
+                return newState;
+            });
+        } else {
+             if (val !== selectedProvider) setSelectedModel(null);
+             setSelectedProvider(val);
+        }
+    };
+
     return {
         availableProviders,
         loadingProviders,
         selectedProvider,
-        setSelectedProvider,
+        setSelectedProvider: handleSetSelectedProvider,
+        selectedModel,
+        setSelectedModel,
         showProviderDropdown,
         setShowProviderDropdown,
         selectedProviderData,
