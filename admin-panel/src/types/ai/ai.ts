@@ -137,7 +137,8 @@ export interface AIProvider {
 }
 
 export interface AIContentGenerationRequest {
-    provider_name: string;
+  provider_name: string;
+    model_id?: string;
     topic: string;
     word_count?: number;
     tone?: string;
@@ -217,6 +218,19 @@ export interface OpenRouterModel extends ModelCardModel {
   };
   category?: 'chat' | 'image' | 'audio' | 'content';
 }
+
+export type AICapability = 'chat' | 'content' | 'image' | 'audio';
+
+export interface ActiveCapabilityModel {
+  capability: AICapability;
+  is_active: boolean;
+  provider_slug: string | null;
+  provider_display: string | null;
+  model_id: string | null;
+  display_name: string | null;
+}
+
+export type ActiveCapabilityModelsResponse = Record<AICapability, ActiveCapabilityModel>;
 
 export interface HuggingFaceModel extends ModelCardModel {
   task?: string;

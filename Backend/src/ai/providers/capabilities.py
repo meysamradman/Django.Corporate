@@ -5,17 +5,19 @@ PROVIDER_CAPABILITIES = {
         'supports_chat': True,
         'supports_content': True,
         'supports_image': True,
-        'supports_audio': True,
+        'supports_audio': False,
         'has_dynamic_models': True,
         'models': {
             'chat': 'dynamic',
             'content': 'dynamic',
             'image': 'dynamic',
-            'audio': 'dynamic',
+            'audio': [],
         },
         'default_models': {
-            'chat': 'google/gemini-2.0-flash-exp',
-            'content': 'google/gemini-2.0-flash-exp',
+            # Keep consistent with our product rule: admin selects provider only,
+            # backend picks a stable default model per capability.
+            'chat': 'openai/gpt-oss-20b:free',
+            'content': 'openai/gpt-oss-20b:free',
             'image': 'openai/dall-e-3',
             'audio': None,
         }
@@ -23,8 +25,10 @@ PROVIDER_CAPABILITIES = {
     'gemini': {
         'supports_chat': True,
         'supports_content': True,
-        'supports_image': True,
-        'supports_audio': True,
+        # Provider implementation currently raises NotImplementedError for image
+        # and has no audio generation implementation.
+        'supports_image': False,
+        'supports_audio': False,
         'has_dynamic_models': False,
         'models': {
             'chat': [
@@ -48,7 +52,7 @@ PROVIDER_CAPABILITIES = {
         'default_models': {
             'chat': 'gemini-2.0-flash-exp',
             'content': 'gemini-2.0-flash-exp',
-            'image': 'imagen-3.0-generate-001',
+            'image': None,
             'audio': None,
         }
     },
@@ -92,8 +96,8 @@ PROVIDER_CAPABILITIES = {
     'deepseek': {
         'supports_chat': True,
         'supports_content': True,
-        'supports_image': True,
-        'supports_audio': True,
+        'supports_image': False,
+        'supports_audio': False,
         'has_dynamic_models': False,
         'models': {
             'chat': [
@@ -117,18 +121,18 @@ PROVIDER_CAPABILITIES = {
     'groq': {
         'supports_chat': True,
         'supports_content': True,
-        'supports_image': True,
-        'supports_audio': True,
+        'supports_image': False,
+        'supports_audio': False,
         'has_dynamic_models': True,
         'models': {
             'chat': 'dynamic',
             'content': 'dynamic',
-            'image': 'dynamic',
-            'audio': 'dynamic',
+            'image': [],
+            'audio': [],
         },
         'default_models': {
-            'chat': 'llama-3.3-70b-versatile',
-            'content': 'llama-3.3-70b-versatile',
+            'chat': 'llama-3.1-8b-instant',
+            'content': 'llama-3.1-8b-instant',
             'image': None,
             'audio': None,
         }
@@ -137,7 +141,7 @@ PROVIDER_CAPABILITIES = {
         'supports_chat': True,
         'supports_content': True,
         'supports_image': True,
-        'supports_audio': True,
+        'supports_audio': False,
         'has_dynamic_models': True,
         'models': {
             'chat': 'dynamic',
@@ -147,11 +151,12 @@ PROVIDER_CAPABILITIES = {
                 'stabilityai/stable-diffusion-2-1',
                 'runwayml/stable-diffusion-v1-5',
             ],
-            'audio': 'dynamic',
+            'audio': [],
         },
         'default_models': {
-            'chat': None,
-            'content': None,
+            # Router OpenAI-compatible chat model IDs (best-effort default)
+            'chat': 'meta-llama/Llama-3.1-8B-Instruct',
+            'content': 'meta-llama/Llama-3.1-8B-Instruct',
             'image': 'stabilityai/stable-diffusion-xl-base-1.0',
             'audio': None,
         }
@@ -163,8 +168,9 @@ def get_provider_capabilities(provider_name: str) -> dict:
         'supports_chat': False,
         'supports_content': False,
         'supports_image': False,
-        'models': {'chat': [], 'content': [], 'image': []},
-        'default_models': {'chat': None, 'content': None, 'image': None},
+        'supports_audio': False,
+        'models': {'chat': [], 'content': [], 'image': [], 'audio': []},
+        'default_models': {'chat': None, 'content': None, 'image': None, 'audio': None},
     })
 
 def get_available_models(provider_name: str, model_type: str):
@@ -206,52 +212,38 @@ class ProviderAvailabilityManager:
             'huggingface': 'Hugging Face',
         }
         
-        db_capability = capability
-        
-        providers_with_models = AIProvider.objects.filter(
-            is_active=True,
-            models__capabilities__contains=db_capability,
-            models__is_active=True
-        ).distinct().values('id', 'slug')
-        
-        providers_list = list(providers_with_models)
-        existing_ids = {p['id'] for p in providers_list}
-        
-        if include_api_based:
-            api_based_providers = ProviderAvailabilityManager._get_api_based_providers(capability)
-            
-            for provider_slug in api_based_providers:
-                api_provider = AIProvider.objects.filter(
-                    slug=provider_slug,
-                    is_active=True
-                ).values('id', 'slug').first()
-                
-                if api_provider and api_provider['id'] not in existing_ids:
-                    providers_list.append(api_provider)
-                    existing_ids.add(api_provider['id'])
+        # Product rule (2026-02): no DB-managed per-provider model rows.
+        # Available providers come from active AIProvider rows filtered by static capability flags.
+        providers_list = list(
+            AIProvider.objects.filter(is_active=True).order_by('sort_order', 'display_name').values('id', 'slug')
+        )
         
         result = []
         for provider in providers_list:
-            if supports_feature(provider['slug'], capability):
-                result.append({
-                    'id': provider['id'],
-                    'provider_name': provider['slug'],
-                    'display_name': PROVIDER_DISPLAY_NAMES.get(provider['slug'], provider['slug'].title()),
-                    'is_active': True,
-                    'can_generate': True,
-                })
+            if not supports_feature(provider['slug'], capability):
+                continue
+
+            result.append({
+                'id': provider['id'],
+                'provider_name': provider['slug'],
+                'display_name': PROVIDER_DISPLAY_NAMES.get(provider['slug'], provider['slug'].title()),
+                'is_active': True,
+                'can_generate': True,
+            })
         
         return result
     
     @staticmethod
     def _get_api_based_providers(capability: str) -> list:
+        # Kept for backwards compatibility with older callers.
+        # With provider-only selection, API-based vs static providers are treated the same.
         api_based_map = {
             'chat': ['openrouter', 'groq', 'huggingface'],
             'content': ['openrouter', 'groq', 'huggingface'],
             'image': ['openrouter', 'huggingface'],
             'audio': [],
         }
-        
+
         candidates = api_based_map.get(capability, [])
         return [p for p in candidates if supports_feature(p, capability)]
     

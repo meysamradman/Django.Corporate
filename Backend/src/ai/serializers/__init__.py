@@ -2,9 +2,6 @@ from .ai_provider_serializer import (
     AIProviderListSerializer,
     AIProviderDetailSerializer,
     AIProviderCreateUpdateSerializer,
-    AIModelListSerializer,
-    AIModelDetailSerializer,
-    AIModelCreateUpdateSerializer,
     AdminProviderSettingsSerializer,
     AdminProviderSettingsUpdateSerializer,
 )

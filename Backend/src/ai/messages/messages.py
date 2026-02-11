@@ -144,7 +144,7 @@ AUDIO_ERRORS = {
     "providers_list_error": "خطا در دریافت Provider ها: {error}",
     "text_empty": "متن الزامی است",
     "text_too_long": "متن نباید بیشتر از 4096 کاراکتر باشد",
-    "provider_tts_not_supported": "Provider '{provider_name}' از text-to-speech پشتیبانی نمی‌کند",
+    "provider_tts_not_supported": "Provider '{provider_name}' از تبدیل متن به صدا (TTS/پادکست) پشتیبانی نمی‌کند. لطفاً Provider دیگری انتخاب کنید.",
 }
 
 SETTINGS_SUCCESS = {
@@ -298,6 +298,8 @@ AI_ERRORS = {
     "no_active_model": "هیچ مدل فعالی برای این Provider+Capability وجود ندارد",
     "no_active_model_any_provider": "هیچ مدل فعالی برای capability '{capability}' در هیچ providerی یافت نشد",
     "model_no_capability": "این مدل از capability '{capability}' پشتیبانی نمی‌کند",
+    "active_model_no_capability": "مدل فعال Provider '{provider_name}' از قابلیت '{capability}' پشتیبانی نمی‌کند. مدل‌ها از سمت سرور/seed تنظیم می‌شوند (صفحه /ai/models فقط خلاصه است).",
+    "active_model_not_set": "برای Provider '{provider_name}' هیچ مدل فعالی تنظیم نشده است. مدل‌ها باید از سمت سرور/seed تنظیم شوند (صفحه /ai/models فقط خلاصه است).",
     "operation_not_supported": "عملیات '{operation}' توسط provider '{provider}' پشتیبانی نمی‌شود",
     "capability_required": "پارامتر capability الزامی است",
     "model_access_denied": "شما دسترسی به استفاده از این مدل را ندارید",

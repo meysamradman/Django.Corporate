@@ -60,7 +60,19 @@ export function ChatInput({
 }: ChatInputProps) {
     if (compact) {
         return (
-            <div className="flex-shrink-0 border-t border-br bg-card p-3">
+            <div className="shrink-0 border-t border-br bg-card p-3">
+                <div className="flex items-center justify-end pb-2">
+                    <ProviderSelector
+                        compact={true}
+                        loadingProviders={loadingProviders}
+                        availableProviders={availableProviders}
+                        selectedProvider={selectedProvider}
+                        setSelectedProvider={setSelectedProvider}
+                        showProviderDropdown={showProviderDropdown}
+                        setShowProviderDropdown={setShowProviderDropdown}
+                        selectedProviderData={selectedProviderData}
+                    />
+                </div>
                 <div className="relative w-full">
                     <Textarea
                         ref={textareaRef}
@@ -68,7 +80,7 @@ export function ChatInput({
                         onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setMessage(e.target.value)}
                         onKeyPress={handleKeyPress}
                         placeholder="پیام خود را بنویسید..."
-                        className="min-h-[44px] max-h-[120px] resize-none w-full border border-br bg-card pr-10 pl-12 rounded-lg text-xs py-2"
+                        className="min-h-11 max-h-30 resize-none w-full border border-br bg-card pr-10 pl-12 rounded-lg text-xs py-2"
                         disabled={sending || !selectedProvider}
                     />
                     <div className="absolute left-2 top-1/2 -translate-y-1/2">
@@ -137,7 +149,7 @@ export function ChatInput({
                             }}
                             placeholder="چیزی بپرسید..."
                             disabled={sending}
-                            className="min-h-[44px] max-h-[200px] text-base px-2 py-3"
+                            className="min-h-11 max-h-50 text-base px-2 py-3"
                         />
 
                         <InputGroupAddon align="block-start" className="gap-2 px-2 pb-2">

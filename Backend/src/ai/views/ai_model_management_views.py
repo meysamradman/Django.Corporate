@@ -1,427 +1,138 @@
-from rest_framework import viewsets, status
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from django.core.cache import cache
 
 from src.core.responses.response import APIResponse
-from src.ai.models import AIProvider, AIModel
-from src.ai.providers.registry import AIProviderRegistry
-from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
-from src.user.access_control import PermissionValidator, ai_permission
-from src.ai.utils.cache import AICacheManager
+from src.ai.models import AIProvider, AICapabilityModel
+from src.ai.messages.messages import AI_ERRORS
+from src.user.access_control import ai_permission
+from src.ai.providers.capabilities import get_default_model
+
 
 class AIModelManagementViewSet(viewsets.ViewSet):
+    """Capability-based AI configuration.
+
+    Product rule (2026-02): Admin selects PROVIDER per capability.
+    Model selection is not exposed; backend resolves a default model_id.
+
+    Frontend compatibility:
+    - POST select-model exists but delegates to select-provider.
+    """
+
     permission_classes = [ai_permission]
-    
-    def list(self, request):
-        
-        provider_id = request.query_params.get('provider')
-        capability = request.query_params.get('capability')
-        search = request.query_params.get('search')
-        
-        try:
-            queryset = AIModel.objects.filter(
-                is_active=True,
-                provider__is_active=True
-            ).select_related('provider').order_by('provider__sort_order', 'sort_order')
-            
-            if provider_id:
-                queryset = queryset.filter(provider_id=provider_id)
-            
-            if capability:
-                queryset = [m for m in queryset if capability in m.capabilities]
-            else:
-                queryset = list(queryset)
-            
-            if search:
-                search_lower = search.lower()
-                queryset = [
-                    m for m in queryset 
-                    if search_lower in m.name.lower() 
-                    or search_lower in m.display_name.lower()
-                    or search_lower in m.model_id.lower()
-                ]
-            
-            result = []
-            for model in queryset:
-                result.append({
-                    'id': model.id,
-                    'name': model.name,
-                    'model_id': model.model_id,
-                    'model_name': model.display_name,
-                    'display_name': model.display_name,
-                    'description': model.description or '',
-                    'provider': model.provider.id,
-                    'provider_name': model.provider.name,
-                    'provider_slug': model.provider.slug,
-                    'provider_display': model.provider.display_name,
-                    'capabilities': model.capabilities,
-                    'pricing_input': float(model.pricing_input) if model.pricing_input else None,
-                    'pricing_output': float(model.pricing_output) if model.pricing_output else None,
-                    'is_free': model.pricing_input is None and model.pricing_output is None,
-                    'max_tokens': model.max_tokens,
-                    'context_window': model.context_window,
-                    'is_active': model.is_active,
-                    'total_requests': model.total_requests,
-                    'last_used_at': model.last_used_at.isoformat() if model.last_used_at else None,
-                    'sort_order': model.sort_order,
-                })
-            
-            return APIResponse.success(
-                message=f"Found {len(result)} models",
-                data=result
-            )
-            
-        except Exception as e:
-            return APIResponse.error(
-                message=f"Error retrieving models: {str(e)}",
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-    
-    @action(detail=False, methods=['get'], url_path='browse-models')
-    def browse_models(self, request):
-        provider_slug = request.query_params.get('provider')
-        if not provider_slug:
-            return APIResponse.error(
-                message="Provider parameter is required",
-                status_code=status.HTTP_400_BAD_REQUEST
-            )
-        
-        capability = request.query_params.get('capability')
-        use_cache = request.query_params.get('use_cache', 'true').lower() != 'false'
-        
-        try:
-            try:
-                provider = AIProvider.objects.get(slug=provider_slug, is_active=True)
-            except AIProvider.DoesNotExist:
-                return APIResponse.error(
-                    message=f"Provider '{provider_slug}' not found or inactive",
-                    status_code=status.HTTP_404_NOT_FOUND
-                )
-            
-            provider_class = AIProviderRegistry.get(provider_slug)
-            if not provider_class or not hasattr(provider_class, 'get_available_models'):
-                return APIResponse.error(
-                    message=f"Provider '{provider_slug}' does not support model listing",
-                    status_code=status.HTTP_400_BAD_REQUEST
-                )
-            
-            api_key = provider.get_shared_api_key() if provider.shared_api_key else None
-            
-            models_data = self._fetch_models_from_provider(
-                provider_class,
-                provider_slug,
-                api_key,
-                use_cache,
-                request.query_params
-            )
-            
-            if not models_data:
-                return APIResponse.success(
-                    message="No models found",
-                    data={'models': [], 'count': 0}
-                )
-            
-            if capability:
-                models_data = self._filter_by_capability(models_data, capability, provider_slug)
-            
-            for model in models_data:
-                if 'capabilities' not in model:
-                    model['capabilities'] = self._detect_capabilities(model, provider_slug)
-            
-            return APIResponse.success(
-                message=f"Found {len(models_data)} models from {provider_slug}",
-                data={
-                    'provider': provider_slug,
-                    'models': models_data,
-                    'count': len(models_data),
-                    'capability_filter': capability
+
+    @action(detail=False, methods=['get'], url_path='active-capabilities')
+    def active_capabilities(self, request):
+        result = {}
+        for capability in ['chat', 'content', 'image', 'audio']:
+            cm = AICapabilityModel.objects.get_active(capability)
+            if not cm:
+                result[capability] = {
+                    'capability': capability,
+                    'is_active': False,
+                    'provider_slug': None,
+                    'provider_display': None,
+                    'model_id': None,
+                    'display_name': None,
                 }
-            )
-            
-        except Exception as e:
-            return APIResponse.error(
-                message=f"Error fetching models: {str(e)}",
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-    
+                continue
+
+            result[capability] = {
+                'capability': capability,
+                'is_active': True,
+                'provider_slug': cm.provider.slug,
+                'provider_display': cm.provider.display_name,
+                'model_id': cm.model_id,
+                'display_name': cm.display_name or cm.model_id,
+            }
+
+        return APIResponse.success(message='Active capability models', data=result)
+
+    def list(self, request):
+        """
+        Stub to prevent 404 if frontend tries to list models.
+        Returns active capabilities structure or empty list.
+        """
+        return self.active_capabilities(request)
+
     @action(detail=False, methods=['post'], url_path='select-model')
     def select_model(self, request):
-        
-        provider_slug = request.data.get('provider')
-        capability = request.data.get('capability')
-        model_id = request.data.get('model_id')
-        model_name = request.data.get('model_name')
-        
-        if not all([provider_slug, capability, model_id, model_name]):
-            return APIResponse.error(
-                message="Missing required fields: provider, capability, model_id, model_name",
-                status_code=status.HTTP_400_BAD_REQUEST
-            )
-        
-        try:
-            provider = AIProvider.objects.get(slug=provider_slug, is_active=True)
-            
-            deactivated_count = AIModel.objects.deactivate_other_models(
-                provider_id=provider.id,
-                capability=capability
-            )
-            
-            try:
-                model = AIModel.objects.get(
-                    provider=provider,
-                    model_id=model_id
-                )
-                if capability not in model.capabilities:
-                    model.capabilities.append(capability)
-                
-                model.name = model_name
-                model.display_name = model_name
-                model.is_active = True
-                
-                if request.data.get('pricing_input') is not None:
-                    model.pricing_input = request.data.get('pricing_input')
-                if request.data.get('pricing_output') is not None:
-                    model.pricing_output = request.data.get('pricing_output')
-                
-                model.save()
-                created = False
-                
-            except AIModel.DoesNotExist:
-                model = AIModel.objects.create(
-                    provider=provider,
-                    model_id=model_id,
-                    name=model_name,
-                    display_name=model_name,
-                    capabilities=[capability],
-                    is_active=True,
-                    pricing_input=request.data.get('pricing_input'),
-                    pricing_output=request.data.get('pricing_output'),
-                )
-                created = True
-            
-            AICacheManager.invalidate_models()
-            cache_key = f"active_model_{provider_slug}_{capability}"
-            cache.delete(cache_key)
-            
-            action_performed = "created" if created else "updated"
-            message_parts = [
-                f"Model {action_performed} successfully",
-            ]
-            
-            if deactivated_count > 0:
-                message_parts.append(f"{deactivated_count} other model(s) deactivated")
-            
-            return APIResponse.success(
-                message=". ".join(message_parts),
-                data={
-                    'id': model.id,
-                    'model_id': model.model_id,
-                    'name': model.display_name,
-                    'provider': {
-                        'id': provider.id,
-                        'slug': provider.slug,
-                        'name': provider.display_name
-                    },
-                    'capability': capability,
-                    'capabilities': model.capabilities,
-                    'is_active': model.is_active,
-                    'created': created,
-                    'deactivated_count': deactivated_count,
-                    'pricing': {
-                        'input': float(model.pricing_input) if model.pricing_input else None,
-                        'output': float(model.pricing_output) if model.pricing_output else None,
-                        'is_free': model.pricing_input is None and model.pricing_output is None
-                    }
-                }
-            )
-            
-        except AIProvider.DoesNotExist:
-            return APIResponse.error(
-                message=f"Provider '{provider_slug}' not found",
-                status_code=status.HTTP_404_NOT_FOUND
-            )
-        except Exception as e:
-            return APIResponse.error(
-                message=f"Error selecting model: {str(e)}",
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-    
-    @action(detail=False, methods=['get'], url_path='selected-models')
-    def get_selected_models(self, request):
-        provider_slug = request.query_params.get('provider')
-        capability = request.query_params.get('capability')
-        
-        try:
-            queryset = AIModel.objects.filter(
-                is_active=True,
-                provider__is_active=True
-            ).select_related('provider').order_by('provider__sort_order', 'sort_order')
-            
-            if provider_slug:
-                queryset = queryset.filter(provider__slug=provider_slug)
-            
-            if capability:
-                queryset = [m for m in queryset if capability in m.capabilities]
-            else:
-                queryset = list(queryset)
-            
-            result = []
-            for model in queryset:
-                result.append({
-                    'id': model.id,
-                    'model_id': model.model_id,
-                    'name': model.display_name,
-                    'provider': {
-                        'slug': model.provider.slug,
-                        'name': model.provider.display_name
-                    },
-                    'capabilities': model.capabilities,
-                    'pricing_input': float(model.pricing_input) if model.pricing_input else None,
-                    'pricing_output': float(model.pricing_output) if model.pricing_output else None,
-                    'is_active': model.is_active
-                })
-            
-            return APIResponse.success(
-                message="Selected models retrieved successfully",
-                data={'models': result, 'count': len(result)}
-            )
-            
-        except Exception as e:
-            return APIResponse.error(
-                message=f"Error retrieving selected models: {str(e)}",
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-    
-    @action(detail=False, methods=['get'], url_path='active-model')
-    def get_active_model(self, request):
-        provider_slug = request.query_params.get('provider')
-        capability = request.query_params.get('capability')
-        
+        """Legacy endpoint kept for compatibility.
+
+        The request may include model_id/model_name, but we ignore it.
+        """
+        return self.select_provider(request)
+
+    @action(detail=False, methods=['post'], url_path='select-provider')
+    def select_provider(self, request):
+        provider_slug = (request.data.get('provider') or '').strip().lower()
+        capability = (request.data.get('capability') or '').strip().lower()
+
         if not provider_slug or not capability:
             return APIResponse.error(
-                message="Both provider and capability are required",
-                status_code=status.HTTP_400_BAD_REQUEST
+                message='Missing required fields: provider, capability',
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         try:
-            model = AIModel.objects.get_active_model(provider_slug, capability)
-            
-            if not model:
-                return APIResponse.error(
-                    message=f"No active model found for {provider_slug}/{capability}",
-                    status_code=status.HTTP_404_NOT_FOUND
-                )
-            
-            return APIResponse.success(
-                message="Active model retrieved",
-                data={
-                    'id': model.id,
-                    'model_id': model.model_id,
-                    'name': model.display_name,
-                    'provider': model.provider.slug,
-                    'capabilities': model.capabilities
-                }
-            )
-            
-        except Exception as e:
+            provider = AIProvider.objects.get(slug=provider_slug, is_active=True)
+        except AIProvider.DoesNotExist:
             return APIResponse.error(
-                message=f"Error retrieving active model: {str(e)}",
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+                message=AI_ERRORS.get('provider_not_found_or_inactive', 'Provider not found or inactive').format(
+                    provider_name=provider_slug
+                ),
+                status_code=status.HTTP_404_NOT_FOUND,
             )
-    
-    @action(detail=False, methods=['get'], url_path='providers')
-    def get_providers(self, request):
-        capability = request.query_params.get('capability')
-        
-        registry = AIProviderRegistry()
-        all_providers = registry.get_all_providers()
-        
-        db_providers = AIProvider.objects.filter(is_active=True)
-        
-        result = []
-        for slug, provider_class in all_providers.items():
-            try:
-                db_provider = db_providers.get(slug=slug)
-                
-                if capability:
-                    from src.ai.providers.capabilities import supports_feature
-                    if not supports_feature(slug, capability):
-                        continue
-                
-                result.append({
-                    'slug': slug,
-                    'name': db_provider.display_name,
-                    'has_api_key': bool(db_provider.shared_api_key),
-                    'is_active': db_provider.is_active
-                })
-            except AIProvider.DoesNotExist:
-                continue
-        
-        return APIResponse.success(
-            message=f"Found {len(result)} providers",
-            data=result
+
+        # 1. Try to get default model from provider configuration (DB)
+        default_model_id = None
+        if provider.capabilities:
+            cap_config = provider.capabilities.get(capability)
+            if isinstance(cap_config, dict):
+                default_model_id = cap_config.get('default_model')
+
+        # 2. Fallback to hardcoded defaults in capabilities.py
+        if not default_model_id:
+            default_model_id = get_default_model(provider_slug, capability)
+
+        # 3. Fallback to first static model
+        if not default_model_id:
+            static_models = provider.get_static_models(capability)
+            if static_models:
+                default_model_id = static_models[0]
+            else:
+                return APIResponse.error(
+                    message=f'No hardcoded default model for provider={provider_slug} capability={capability}',
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                )
+
+        obj, _ = AICapabilityModel.objects.update_or_create(
+            capability=capability,
+            provider=provider,
+            defaults={
+                'model_id': default_model_id,
+                'display_name': default_model_id,
+                'config': {},
+                'sort_order': 0,
+                'is_active': True,
+            },
         )
-    
-    def _fetch_models_from_provider(self, provider_class, provider_slug: str, 
-                                    api_key: str, use_cache: bool, query_params) -> list:
-        if provider_slug == 'huggingface':
-            task_filter = query_params.get('task_filter')
-            return provider_class.get_available_models(
-                api_key=api_key,
-                task_filter=task_filter,
-                use_cache=use_cache
-            )
-        elif provider_slug == 'openrouter':
-            provider_filter = query_params.get('provider_filter')
-            return provider_class.get_available_models(
-                api_key=api_key,
-                provider_filter=provider_filter,
-                use_cache=use_cache
-            )
-        else:
-            return provider_class.get_available_models(
-                api_key=api_key,
-                use_cache=use_cache
-            )
-    
-    def _detect_capabilities(self, model_data: dict, provider_slug: str) -> list:
-        model_id = (model_data.get('id') or model_data.get('modelId', '')).lower()
-        name = (model_data.get('name') or model_data.get('modelId', '')).lower()
-        task = model_data.get('task') or model_data.get('pipeline_tag', '')
-        task = task.lower() if task else ''
-        
-        capabilities = []
-        
-        image_keywords = ['dall-e', 'stable-diffusion', 'flux', 'midjourney', 'imagen', 'image']
-        if any(kw in model_id or kw in name for kw in image_keywords):
-            capabilities.append('image')
-        
-        if provider_slug == 'huggingface':
-            if task in ['text-to-image', 'image-to-image']:
-                capabilities.append('image')
-            if task == 'text-generation':
-                capabilities.extend(['chat', 'content'])
-            if task in ['text-to-speech', 'automatic-speech-recognition']:
-                capabilities.append('audio')
-        
-        audio_keywords = ['tts', 'text-to-speech', 'whisper', 'audio']
-        if any(kw in model_id or kw in name for kw in audio_keywords):
-            capabilities.append('audio')
-        
-        if not capabilities:
-            text_keywords = ['gpt', 'llama', 'gemini', 'claude', 'mistral', 'chat', 'instruct']
-            if any(kw in model_id or kw in name for kw in text_keywords):
-                capabilities.extend(['chat', 'content'])
-        
-        if not capabilities:
-            capabilities.append('chat')
-        
-        return list(set(capabilities))
-    
-    def _filter_by_capability(self, models_data: list, capability: str, provider_slug: str) -> list:
-        filtered = []
-        for model_data in models_data:
-            capabilities = self._detect_capabilities(model_data, provider_slug)
-            if capability in capabilities:
-                filtered.append(model_data)
-        return filtered
+
+        if not obj.is_active:
+            obj.is_active = True
+            obj.save(update_fields=['is_active', 'updated_at'])
+
+        cache.delete(f'active_capability_model_{capability}')
+
+        return APIResponse.success(
+            message='Provider selected successfully',
+            data={
+                'capability': capability,
+                'provider_slug': provider.slug,
+                'provider_display': provider.display_name,
+                'model_id': obj.model_id,
+                'display_name': obj.display_name,
+                'is_active': True,
+            },
+            status_code=status.HTTP_200_OK,
+        )

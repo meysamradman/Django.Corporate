@@ -14,8 +14,11 @@ class DeepSeekProvider(BaseProvider):
     
     def __init__(self, api_key: str, config: Optional[Dict[str, Any]] = None):
         super().__init__(api_key, config)
-        self.chat_model = config.get('chat_model', 'deepseek-chat') if config else 'deepseek-chat'
-        self.content_model = config.get('content_model', 'deepseek-chat') if config else 'deepseek-chat'
+        # Product rule: services set config['model'] based on capability defaults.
+        # Keep backward compatibility with older config keys.
+        model_override = (config or {}).get('model')
+        self.chat_model = (config or {}).get('chat_model') or model_override or 'deepseek-chat'
+        self.content_model = (config or {}).get('content_model') or model_override or 'deepseek-chat'
     
     def get_provider_name(self) -> str:
         return 'deepseek'
@@ -40,8 +43,10 @@ class DeepSeekProvider(BaseProvider):
             tone=tone
         )
         
+        model_to_use = self.config.get('model') or kwargs.get('model') or self.content_model
+
         payload = {
-            "model": self.content_model,
+            "model": model_to_use,
             "messages": [
                 {"role": "system", "content": DEEPSEEK_SYSTEM_MESSAGES['content_writer']},
                 {"role": "user", "content": full_prompt}
@@ -105,8 +110,10 @@ class DeepSeekProvider(BaseProvider):
             "Content-Type": "application/json",
         }
         
+        model_to_use = self.config.get('model') or kwargs.get('model') or self.content_model
+
         payload = {
-            "model": self.content_model,
+            "model": model_to_use,
             "messages": [
                 {"role": "system", "content": DEEPSEEK_SYSTEM_MESSAGES['seo_expert']},
                 {"role": "user", "content": prompt}
@@ -210,8 +217,10 @@ class DeepSeekProvider(BaseProvider):
         else:
             messages.append({"role": "user", "content": message})
         
+        model_to_use = self.config.get('model') or kwargs.get('model') or self.chat_model
+
         payload = {
-            "model": kwargs.get('model', self.chat_model),
+            "model": model_to_use,
             "messages": messages,
             "temperature": kwargs.get('temperature', 0.7),
             "max_tokens": kwargs.get('max_tokens', 2048),

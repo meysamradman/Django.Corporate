@@ -2,20 +2,20 @@ import { CardWithIcon } from '@/components/elements/CardWithIcon';
 import { Button } from '@/components/elements/Button';
 import { Label } from '@/components/elements/Label';
 import { Textarea } from '@/components/elements/Textarea';
+import { Loader2, Sparkles, Type } from 'lucide-react';
+import { msg } from '@/core/messages';
 import { ProviderSelector } from '../shared/ProviderSelector';
 import type { AvailableProvider } from '@/types/ai/ai';
-import { Loader2, Sparkles, Brain, Type, Database } from 'lucide-react';
-import { msg } from '@/core/messages';
 
 interface ContentInputFormProps {
     providers: AvailableProvider[];
-    destinations: { key: string; label: string }[];
     selectedProvider: string;
+    loadingProviders: boolean;
+    onSelectProvider: (providerName: string) => void;
+    destinations: { key: string; label: string }[];
     destination: string;
     topic: string;
     generating: boolean;
-    loadingProviders: boolean;
-    onSelectProvider: (providerName: string) => void;
     onDestinationChange: (destination: string) => void;
     onTopicChange: (topic: string) => void;
     onGenerate: () => void;
@@ -23,13 +23,13 @@ interface ContentInputFormProps {
 
 export function ContentInputForm({
     providers,
-    destinations,
     selectedProvider,
+    loadingProviders,
+    onSelectProvider,
+    destinations,
     destination,
     topic,
     generating,
-    loadingProviders,
-    onSelectProvider,
     onDestinationChange,
     onTopicChange,
     onGenerate,
@@ -47,8 +47,7 @@ export function ContentInputForm({
             <div className="space-y-6">
                 <div className="space-y-3">
                     <Label className="flex items-center gap-2 text-base font-medium">
-                        <Brain className="w-4 h-4 text-font-s" />
-                        {msg.aiUI('selectModel')}
+                        انتخاب Provider
                     </Label>
                     <ProviderSelector
                         providers={providers}
@@ -95,7 +94,7 @@ export function ContentInputForm({
 
                 <Button
                     onClick={onGenerate}
-                    disabled={generating || !topic.trim() || !selectedProvider}
+                    disabled={generating || !topic.trim()}
                     className="w-full h-12 text-base font-semibold"
                     size="lg"
                 >

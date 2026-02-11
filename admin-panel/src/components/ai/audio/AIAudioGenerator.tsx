@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { aiApi } from '@/api/ai/ai';
-import type { AvailableProvider } from '@/types/ai/ai';
 import { mediaApi } from '@/api/media/media';
 import type { Media } from '@/types/shared/media';
-import { showSuccess, showError, showInfo } from '@/core/toast';
+import { showSuccess, showError } from '@/core/toast';
 import { AudioInputForm } from './AudioInputForm';
 import { GeneratedAudioDisplay } from './GeneratedAudioDisplay';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Button } from '@/components/elements/Button';
 import { Settings, Mic } from 'lucide-react';
+import type { AvailableProvider } from '@/types/ai/ai';
 
 import { useAuth } from '@/core/auth/AuthContext';
 
@@ -27,66 +27,50 @@ export function AIAudioGenerator({
     compact = false
 }: AIAudioGeneratorProps) {
     const { user } = useAuth();
+    const [supportedProviders, setSupportedProviders] = useState<AvailableProvider[]>([]);
     const [availableProviders, setAvailableProviders] = useState<AvailableProvider[]>([]);
     const [loadingProviders, setLoadingProviders] = useState(true);
     const [selectedProvider, setSelectedProvider] = useState<string>('');
     const [text, setText] = useState('');
-    const [model, setModel] = useState('tts-1');
     const [voice, setVoice] = useState('alloy');
     const [speed, setSpeed] = useState(1.0);
     const [saveToDb, setSaveToDb] = useState(false);
     const [generating, setGenerating] = useState(false);
     const [generatedMedia, setGeneratedMedia] = useState<Media | null>(null);
     const [generatedAudioUrl, setGeneratedAudioUrl] = useState<string | null>(null);
-    const providersFetched = useRef(false);
-    const [isDemoMode, setIsDemoMode] = useState(false);
 
-    console.log('🚀 [AIAudioGenerator] Component Mount/Render. User:', user ? 'Present' : 'Null');
+    const providersFetched = useRef(false);
 
     useEffect(() => {
-        console.log('🔄 [AIAudioGenerator] useEffect triggered. User:', user ? 'Present' : 'Null', 'providersFetched:', providersFetched.current);
+        if (!user) {
+            setLoadingProviders(true);
+            return;
+        }
 
         if (user && !providersFetched.current) {
             const permissionsObject = user?.permissions as any;
             const permissionsArray = (permissionsObject?.permissions || []) as string[];
 
-            console.log('🔑 [AIAudioGenerator] Permissions:', permissionsArray);
-
             const hasAIPermission = permissionsArray.some((p: string) =>
                 p === 'all' || p === 'ai.manage' || p === 'ai.audio.manage' || p.startsWith('ai.')
             );
 
-            console.log('🛡️ [AIAudioGenerator] hasAIPermission:', hasAIPermission);
-
             if (hasAIPermission) {
                 providersFetched.current = true;
-                console.log('⚡ [AIAudioGenerator] Permissions OK. Calling fetchAvailableProviders...');
                 fetchAvailableProviders();
             } else {
-                console.warn('⛔ [AIAudioGenerator] User does NOT have AI permissions.');
                 setLoadingProviders(false);
             }
-        } else if (!user) {
-            console.log('⏳ [AIAudioGenerator] User not yet loaded. Demo mode...');
-            setLoadingProviders(false);
-            setIsDemoMode(true);
-            setAvailableProviders([{
-                id: 1,
-                provider_name: 'openai',
-                display_name: 'OpenAI',
-                is_active: true,
-                can_generate: true,
-            } as AvailableProvider]);
-            setSelectedProvider('openai');
         }
     }, [user]);
 
     const fetchAvailableProviders = async () => {
         try {
             setLoadingProviders(true);
-            console.log('🔍 [AIAudioGenerator] Fetching available providers...');
-            const response = await aiApi.audio.getAvailableProviders();
-            console.log('📦 [AIAudioGenerator] Response:', response);
+            const [response, activeResponse] = await Promise.all([
+                 aiApi.audio.getAvailableProviders(),
+                 aiApi.models.getActiveCapabilities().catch(() => ({ data: null }))
+            ]);
 
             if (response.metaData.status === 'success') {
                 let providersData: any[] = [];
@@ -100,41 +84,34 @@ export function AIAudioGenerator({
                     }
                 }
 
-                console.log('📋 [AIAudioGenerator] Providers data:', providersData);
+                setSupportedProviders(providersData as AvailableProvider[]);
 
-                const providers = providersData.filter((p: AvailableProvider) =>
+                const accessibleProviders = (providersData as AvailableProvider[]).filter((p: AvailableProvider) =>
                     p.can_generate === true
                 );
 
-                console.log('✅ [AIAudioGenerator] Filtered providers:', providers);
-                setAvailableProviders(providers);
+                setAvailableProviders(accessibleProviders);
 
-                if (providers.length > 0) {
-                    const firstProvider = providers[0] as any;
-                    if (firstProvider.tts_defaults) {
-                        setModel(firstProvider.tts_defaults.model || 'tts-1');
-                        setVoice(firstProvider.tts_defaults.voice || 'alloy');
-                        setSpeed(firstProvider.tts_defaults.speed || 1.0);
+                if (!selectedProvider && accessibleProviders.length > 0) {
+                     // Smart default
+                    const activeSlug = (activeResponse as any)?.data?.audio?.provider_slug;
+                    const activeProvider = activeSlug 
+                        ? accessibleProviders.find(p => (p.slug === activeSlug || p.provider_name === activeSlug))
+                        : null;
+
+                    if (activeProvider) {
+                         setSelectedProvider(activeProvider.slug || activeProvider.provider_name || '');
+                    } else {
+                        const first = accessibleProviders[0] as any;
+                        setSelectedProvider(first.provider_name || first.slug || '');
                     }
-                }
-
-                if (selectedProvider && !providers.some(p => p.provider_name === selectedProvider)) {
-                    setSelectedProvider('');
-                } else if (providers.length > 0 && !selectedProvider) {
-                    setSelectedProvider('openai');
                 }
             }
         } catch (error) {
-            console.error('❌ [AIAudioGenerator] Error fetching providers:', error);
-            setIsDemoMode(true);
-            setAvailableProviders([{
-                id: 1,
-                provider_name: 'openai',
-                display_name: 'OpenAI',
-                is_active: true,
-                can_generate: true,
-            } as AvailableProvider]);
-            setSelectedProvider('openai');
+            showError(error);
+            setSupportedProviders([]);
+            setAvailableProviders([]);
+            // Don't clear selectedProvider immediately if it was set by saved pref, let it be handled above
         } finally {
             setLoadingProviders(false);
         }
@@ -142,7 +119,7 @@ export function AIAudioGenerator({
 
     const handleGenerate = async () => {
         if (!selectedProvider) {
-            showError('لطفاً مدل AI را انتخاب کنید');
+            showError('لطفاً Provider را انتخاب کنید');
             return;
         }
 
@@ -164,7 +141,6 @@ export function AIAudioGenerator({
             const response = await aiApi.audio.generateAudio({
                 provider_name: selectedProvider,
                 text: text.trim(),
-                model,
                 voice,
                 speed,
                 response_format: 'mp3',
@@ -185,18 +161,11 @@ export function AIAudioGenerator({
                     onAudioGenerated?.(data as Media);
                 }
 
-                fetchAvailableProviders();
             }
-        } catch {
-            if (isDemoMode) {
-                setTimeout(() => {
-                    setGeneratedAudioUrl('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
-                    showInfo('حالت نمایشی: این یک نمونه است. برای استفاده واقعی، API را فعال کنید.');
-                    setGenerating(false);
-                }, 1500);
-            } else {
-                setGenerating(false);
-            }
+        } catch (error) {
+            showError(error);
+        } finally {
+            setGenerating(false);
         }
     };
 
@@ -246,6 +215,29 @@ export function AIAudioGenerator({
         );
     }
     if (availableProviders.length === 0) {
+        if (supportedProviders.length > 0) {
+            return (
+                <EmptyState
+                    title="برای تولید پادکست به کلید API دسترسی ندارید"
+                    description="یک Provider سازگار با پادکست وجود دارد، اما برای این ادمین کلید API تنظیم نشده یا دسترسی به Shared API فعال نیست. لطفاً در تنظیمات AI کلید را تنظیم کنید یا Shared را فعال کنید."
+                    icon={Mic}
+                    size="md"
+                    action={
+                        onNavigateToSettings && (
+                            <Button
+                                onClick={onNavigateToSettings}
+                                variant="default"
+                                className="gap-2"
+                            >
+                                <Settings className="h-4 w-4" />
+                                رفتن به تنظیمات AI
+                            </Button>
+                        )
+                    }
+                />
+            );
+        }
+
         return (
             <EmptyState
                 title="هیچ مدل AI فعالی برای تولید پادکست وجود ندارد"
@@ -274,7 +266,6 @@ export function AIAudioGenerator({
                 providers={availableProviders}
                 selectedProvider={selectedProvider}
                 text={text}
-                model={model}
                 voice={voice}
                 speed={speed}
                 saveToDb={saveToDb}
@@ -282,7 +273,6 @@ export function AIAudioGenerator({
                 loadingProviders={loadingProviders}
                 onSelectProvider={setSelectedProvider}
                 onTextChange={setText}
-                onModelChange={setModel}
                 onVoiceChange={setVoice}
                 onSpeedChange={setSpeed}
                 onSaveToDbChange={setSaveToDb}

@@ -32,7 +32,9 @@ export const NETWORK_ERROR_MESSAGES = {
   unknown: 'خطای نامشخصی رخ داده است',
 } as const;
 
-export const BACKEND_MESSAGE_CODES = [422, 409] as const;
+// Use backend-provided messages for admin-facing clarity.
+// Especially important for AI capability mismatch errors (HTTP 400).
+export const BACKEND_MESSAGE_CODES = [400, 422, 409] as const;
 export const SILENT_STATUS_CODES = [401, 403] as const;
 
 export const getError = (key: keyof typeof ERROR_MESSAGES): string => {

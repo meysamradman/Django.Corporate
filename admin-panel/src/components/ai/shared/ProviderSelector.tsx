@@ -44,24 +44,26 @@ export function ProviderSelector({
 
     if (compact) {
         return (
-            <Select
-                value={selectedProvider || undefined}
-                onValueChange={onSelectProvider}
-            >
-                <SelectTrigger className="w-full">
-                    <SelectValue placeholder="انتخاب مدل AI" />
-                </SelectTrigger>
-                <SelectContent>
-                    {providers.map((provider) => (
-                        <SelectItem key={provider.id} value={provider.provider_name || `provider-${provider.id}`}>
-                            <div className="flex items-center gap-2">
-                                <span className="text-lg">{getProviderIcon(provider)}</span>
-                                <span>مدل {getProviderDisplayName(provider)}</span>
-                            </div>
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
+            <div className="flex flex-col gap-2">
+                <Select
+                    value={selectedProvider || undefined}
+                    onValueChange={onSelectProvider}
+                >
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="انتخاب سرویس‌دهنده" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {providers.map((provider) => (
+                            <SelectItem key={provider.id} value={provider.provider_name || `provider-${provider.id}`}>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-lg">{getProviderIcon(provider)}</span>
+                                    <span>{getProviderDisplayName(provider)}</span>
+                                </div>
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
         );
     }
 
@@ -70,6 +72,7 @@ export function ProviderSelector({
             {providers.map((provider) => {
                 const providerName = provider.provider_name || `provider-${provider.id}`;
                 const isSelected = selectedProvider === providerName;
+
                 return (
                     <div
                         key={provider.provider_name}

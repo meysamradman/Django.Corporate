@@ -1,6 +1,5 @@
 from .ai_provider_views import (
     AIProviderViewSet,
-    AIModelViewSet,
     AdminProviderSettingsViewSet,
 )
 from .image_generation_views import (
@@ -14,7 +13,6 @@ from .ai_model_management_views import AIModelManagementViewSet
 
 __all__ = [
     'AIProviderViewSet',
-    'AIModelViewSet',
     'AdminProviderSettingsViewSet',
     'AIImageProviderViewSet',
     'AIImageGenerationViewSet',

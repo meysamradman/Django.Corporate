@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.db.models import Q
 
-from src.ai.models import AIProvider, AIModel, AdminProviderSettings
+from src.ai.models import AIProvider, AdminProviderSettings
 from src.ai.messages.messages import IMAGE_ERRORS
 from src.ai.utils.state_machine import ModelAccessState
 
@@ -138,144 +138,22 @@ class AIProviderCreateUpdateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(IMAGE_ERRORS['provider_name_duplicate'])
         return value
 
-class AIModelListSerializer(serializers.ModelSerializer):
-    provider_name = serializers.CharField(source='provider.display_name', read_only=True)
-    provider_slug = serializers.CharField(source='provider.slug', read_only=True)
-    is_free = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = AIModel
-        fields = [
-            'id', 'name', 'model_id', 'display_name', 'description',
-            'provider_name', 'provider_slug', 'capabilities',
-            'pricing_input', 'pricing_output', 'is_free',
-            'max_tokens', 'context_window', 'is_active',
-            'total_requests', 'last_used_at', 'sort_order'
-        ]
-        read_only_fields = ['total_requests', 'last_used_at']
-    
-    def get_is_free(self, obj):
-        return obj.pricing_input is None or obj.pricing_input == 0
 
-class AIModelDetailSerializer(serializers.ModelSerializer):
-    provider = AIProviderListSerializer(read_only=True)
-    is_free = serializers.SerializerMethodField()
-    
-    access_state = serializers.SerializerMethodField()
-    api_config = serializers.SerializerMethodField()
-    actions = serializers.SerializerMethodField()
-    usage_info = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = AIModel
-        fields = [
-            'id', 'name', 'model_id', 'display_name', 'description',
-            'provider', 'capabilities',
-            'pricing_input', 'pricing_output', 'is_free',
-            'max_tokens', 'context_window', 'config',
-            'is_active', 'sort_order',
-            'total_requests', 'last_used_at',
-            'access_state', 'api_config', 'actions', 'usage_info',
-            'created_at', 'updated_at'
-        ]
-        read_only_fields = ['total_requests', 'last_used_at']
-    
-    def get_is_free(self, obj):
-        return obj.pricing_input is None or obj.pricing_input == 0
-    
-    def get_access_state(self, obj):
-        request = self.context.get('request')
-        if request and request.user:
-            state = ModelAccessState.calculate(obj.provider, obj, request.user)
-            return state.value
-        return ModelAccessState.NO_ACCESS.value
-    
-    def get_api_config(self, obj):
-        request = self.context.get('request')
-        if request and request.user:
-            return obj.get_api_config(request.user)
-        return None
-    
-    def get_actions(self, obj):
-        request = self.context.get('request')
-        if request and request.user:
-            return obj.get_actions(request.user)
-        return None
-    
-    def get_usage_info(self, obj):
-        request = self.context.get('request')
-        if request and request.user:
-            return obj.get_usage_info(request.user)
-        return None
+# AIModel serializers removed as we don't use AIModel table anymore.
+# Logic is now handled via AICapabilityModel and hardcoded providers.
 
-class AIModelCreateUpdateSerializer(serializers.ModelSerializer):
-    provider_id = serializers.IntegerField(write_only=True)
-    
-    class Meta:
-        model = AIModel
-        fields = [
-            'provider_id', 'name', 'model_id', 'display_name', 'description',
-            'capabilities', 'pricing_input', 'pricing_output',
-            'max_tokens', 'context_window', 'config',
-            'is_active', 'sort_order'
-        ]
-    
-    def validate_provider_id(self, value):
-        try:
-            AIProvider.objects.get(pk=value, is_active=True)
-        except AIProvider.DoesNotExist:
-            raise serializers.ValidationError(IMAGE_ERRORS['provider_not_found_or_inactive'])
-        return value
-    
-    def validate(self, attrs):
-        is_active = attrs.get('is_active', False)
-        provider_id = attrs.get('provider_id') or (self.instance.provider_id if self.instance else None)
-        capabilities = attrs.get('capabilities', [])
-        
-        if is_active and provider_id and capabilities:
-            existing_active = AIModel.objects.filter(
-                provider_id=provider_id,
-                is_active=True
-            )
-            
-            if self.instance:
-                existing_active = existing_active.exclude(pk=self.instance.pk)
-            
-            conflicting_models = []
-            for model in existing_active:
-                for capability in capabilities:
-                    if capability in model.capabilities:
-                        conflicting_models.append({
-                            'model': model.display_name,
-                            'capability': capability
-                        })
-            
-            if conflicting_models:
-                pass
-        
-        return attrs
-    
-    def create(self, validated_data):
-        provider_id = validated_data.pop('provider_id')
-        model_id = validated_data.get('model_id')
-        
-        try:
-            existing_model = AIModel.objects.get(
-                provider_id=provider_id,
-                model_id=model_id
-            )
-            for key, value in validated_data.items():
-                setattr(existing_model, key, value)
-            existing_model.save()
-            return existing_model
-        except AIModel.DoesNotExist:
-            validated_data['provider_id'] = provider_id
-            return super().create(validated_data)
-    
-    def update(self, instance, validated_data):
-        if 'provider_id' in validated_data:
-            validated_data['provider_id'] = validated_data.pop('provider_id')
-        return super().update(instance, validated_data)
+class AIModelDetailSerializer(serializers.Serializer):
+    """
+    Placeholder serializer if needed, but logic is gone.
+    """
+    pass
+
+
+class AIModelCreateUpdateSerializer(serializers.Serializer):
+    """
+    Placeholder serializer if needed.
+    """
+    pass
 
 class AdminProviderSettingsSerializer(serializers.ModelSerializer):
     provider_name = serializers.CharField(source='provider.display_name', read_only=True)

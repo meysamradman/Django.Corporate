@@ -34,37 +34,25 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
     console.log('🚀 [AIContentGenerator] Component Mount/Render. User:', user ? 'Present' : 'Null');
 
     useEffect(() => {
-        console.log('🔄 [AIContentGenerator] useEffect triggered. User:', user ? 'Present' : 'Null', 'providersFetched:', providersFetched.current);
-
         if (user && !providersFetched.current) {
             const permissionsObject = user?.permissions as any;
             const permissionsArray = (permissionsObject?.permissions || []) as string[];
-            console.log('🔑 [AIContentGenerator] Permissions:', permissionsArray);
 
             const hasAIPermission = permissionsArray.some((p: string) =>
                 p === 'all' || p === 'ai.manage' || p.startsWith('ai.')
             );
-            console.log('🛡️ [AIContentGenerator] hasAIPermission:', hasAIPermission);
 
             if (hasAIPermission) {
                 providersFetched.current = true;
-                console.log('⚡ [AIContentGenerator] Permissions OK. Calling fetchAvailableProviders...');
                 fetchAvailableProviders();
                 fetchDestinations();
             } else {
-                console.warn('⛔ [AIContentGenerator] User does NOT have AI permissions.');
                 setLoadingProviders(false);
             }
         } else if (!user) {
-            console.log('⏳ [AIContentGenerator] User not yet loaded. Waiting...');
             setLoadingProviders(true);
-        } else {
-            console.log('⏭️ [AIContentGenerator] Skipping fetch (already fetched or other conditions met).');
         }
     }, [user]);
-
-    useEffect(() => {
-    }, [loadingProviders, availableProviders.length, generatedContent]);
 
     const fetchDestinations = async () => {
         try {
@@ -79,20 +67,34 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
     const fetchAvailableProviders = async () => {
         try {
             setLoadingProviders(true);
-            console.log('🔍 [AIContentGenerator] Fetching available providers...');
-            const response = await aiApi.content.getAvailableProviders();
-            console.log('📦 [AIContentGenerator] Response:', response);
+            const [response, activeResponse] = await Promise.all([
+                aiApi.content.getAvailableProviders(),
+                aiApi.models.getActiveCapabilities().catch(() => ({ data: null }))
+            ]);
 
             if (response.metaData.status === 'success') {
                 const providersData = Array.isArray(response.data)
                     ? response.data
                     : (response.data as any)?.data || [];
-
-                console.log('📋 [AIContentGenerator] Providers data:', providersData);
                 setAvailableProviders(providersData);
+
+                if (!selectedProvider && providersData.length > 0) {
+                    // Smart default: active provider first
+                    const activeSlug = (activeResponse as any)?.data?.content?.provider_slug;
+                    const activeProvider = activeSlug 
+                        ? providersData.find((p: any) => p.slug === activeSlug || p.provider_name === activeSlug)
+                        : null;
+
+                    if (activeProvider) {
+                        const pv = activeProvider as any;
+                        setSelectedProvider(pv.slug || pv.provider_name || '');
+                    } else {
+                        const first = providersData[0] as any;
+                        setSelectedProvider(first.provider_name || first.slug || '');
+                    }
+                }
             }
         } catch (error: any) {
-            console.error('❌ [AIContentGenerator] Error fetching providers:', error);
             if (error?.response?.AppStatusCode === 404) {
                 setAvailableProviders([]);
             }
@@ -126,7 +128,8 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
                 setGeneratedContent(response.data);
                 showSuccess(msg.ai('contentGenerated'));
             }
-        } catch {
+        } catch (error) {
+            showError(error);
         } finally {
             setGenerating(false);
         }
@@ -191,7 +194,6 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
                 generating={generating}
                 loadingProviders={loadingProviders}
                 onSelectProvider={setSelectedProvider}
-
                 onDestinationChange={setDestination}
                 onTopicChange={setTopic}
                 onGenerate={handleGenerate}

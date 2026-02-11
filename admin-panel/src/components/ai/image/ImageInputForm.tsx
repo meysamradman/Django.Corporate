@@ -5,7 +5,7 @@ import { Textarea } from '@/components/elements/Textarea';
 import { Checkbox } from '@/components/elements/Checkbox';
 import { ProviderSelector } from '../shared/ProviderSelector';
 import type { AvailableProvider } from '@/types/ai/ai';
-import { Loader2, Sparkles, Wand2, Brain, AlertCircle } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/core/auth/AuthContext';
 
 interface ImageInputFormProps {
@@ -66,8 +66,7 @@ export function ImageInputForm({
             <CardContent className={compact ? "space-y-3 pt-4" : "space-y-6"}>
                 <div className="space-y-3">
                     <Label className={`flex items-center gap-2 ${compact ? 'text-sm' : 'text-base font-medium'}`}>
-                        {!compact && <Brain className="w-4 h-4 text-font-s" />}
-                        <span>{compact ? 'مدل AI:' : 'انتخاب مدل AI'}</span>
+                        <span>{compact ? 'Provider:' : 'انتخاب Provider'}</span>
                     </Label>
                     <ProviderSelector
                         providers={providers}
@@ -93,7 +92,7 @@ export function ImageInputForm({
                     />
                     {!compact && (
                         <div className="flex items-start gap-2 text-xs text-font-s bg-blue border border-blue-1 rounded-lg p-2">
-                            <AlertCircle className="h-4 w-4 text-blue-1 mt-0.5 flex-shrink-0" />
+                            <AlertCircle className="h-4 w-4 text-blue-1 mt-0.5 shrink-0" />
                             <div className="flex-1">
                                 <p className="font-medium text-blue-2 mb-1">💡 نکته برای کیفیت بهتر:</p>
                                 <p>برای نتیجه بهتر، توضیحات را به <strong>انگلیسی</strong> بنویسید. مثال: "a beautiful cat, high quality, detailed"</p>

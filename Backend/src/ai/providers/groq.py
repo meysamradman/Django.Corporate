@@ -14,8 +14,21 @@ class GroqProvider(BaseProvider):
     
     def __init__(self, api_key: str, config: Optional[Dict[str, Any]] = None):
         super().__init__(api_key, config)
-        self.chat_model = config.get('chat_model', 'llama-3.1-8b-instant') if config else 'llama-3.1-8b-instant'
-        self.content_model = config.get('content_model', 'llama-3.1-8b-instant') if config else 'llama-3.1-8b-instant'
+        selected_model = (config or {}).get('model') if config else None
+
+        # Back-compat + service-driven behavior:
+        # - New capability-based services pass the resolved model in `config['model']`.
+        # - Existing configs may still provide capability-specific keys.
+        self.chat_model = (
+            config.get('chat_model')
+            if config and config.get('chat_model')
+            else selected_model or 'llama-3.1-8b-instant'
+        )
+        self.content_model = (
+            config.get('content_model')
+            if config and config.get('content_model')
+            else selected_model or 'llama-3.1-8b-instant'
+        )
     
     def get_provider_name(self) -> str:
         return 'groq'

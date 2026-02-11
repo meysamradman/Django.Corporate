@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.conf import settings
@@ -266,32 +267,48 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
 
 class AIModelManager(models.Manager):
 
-    def get_active_model(self, provider_slug: str, capability: str):
-        
-        cache_key = f"active_model_{provider_slug}_{capability}"
-        model_id = cache.get(cache_key)
-        
-        if model_id is not None:
+    def get_active_model(self, provider_slug: str, capability: str | None = None):
+        import logging
+        logger = logging.getLogger(__name__)
+
+        cache_key = f"active_model_{provider_slug}_{capability or 'any'}"
+        cached_model_id = cache.get(cache_key)
+
+        if cached_model_id is not None:
             try:
-                return self.select_related('provider').get(id=model_id)
+                cached_model = self.select_related('provider').get(id=cached_model_id)
+                if capability and (not cached_model.capabilities or capability not in cached_model.capabilities):
+                    cache.delete(cache_key)
+                else:
+                    return cached_model
             except self.model.DoesNotExist:
                 cache.delete(cache_key)
-        
-        models = self.filter(
-            provider__slug=provider_slug,
-            provider__is_active=True,
-            is_active=True
-        ).select_related('provider')
-        
-        model = None
-        for m in models:
-            if capability in m.capabilities:
-                model = m
-                break
-        
+
+        queryset = (
+            self.filter(
+                provider__slug=provider_slug,
+                provider__is_active=True,
+                is_active=True,
+            )
+            .select_related('provider')
+            .order_by('sort_order', 'id')
+        )
+
+        if capability:
+            for model in queryset:
+                if model.capabilities and capability in model.capabilities:
+                    cache.set(cache_key, model.id, 300)
+                    return model
+            logger.info(
+                "[AIModel] No active model for provider=%s with capability=%s",
+                provider_slug,
+                capability,
+            )
+            return None
+
+        model = queryset.first()
         if model:
-            cache.set(cache_key, model.id, 300)  # 5 min cache
-        
+            cache.set(cache_key, model.id, 300)
         return model
     
     def deactivate_other_models(self, provider_id: int, capability: str, exclude_id: int = None):
@@ -434,6 +451,13 @@ class AIModel(BaseModel, CacheMixin):
         indexes = [
             models.Index(fields=['provider', 'is_active', 'sort_order']),
         ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['provider'],
+                condition=Q(is_active=True),
+                name='ai_unique_active_model_per_provider',
+            )
+        ]
     
     def __str__(self):
         return f"{self.provider.name} - {self.display_name}"
@@ -450,23 +474,25 @@ class AIModel(BaseModel, CacheMixin):
             except AIModel.DoesNotExist:
                 pass
         
-        if self.is_active and (is_new or not was_active):
-            for capability in self.capabilities:
-                AIModel.objects.deactivate_other_models(
-                    provider_id=self.provider_id,
-                    capability=capability,
-                    exclude_id=self.pk
-                )
+        if self.is_active and self.provider_id:
+            # Enforce a single active model per provider.
+            AIModel.objects.filter(
+                provider_id=self.provider_id,
+                is_active=True,
+            ).exclude(pk=self.pk).update(is_active=False)
         
         super().save(*args, **kwargs)
         
         if self.provider and self.provider.slug:
             AICacheManager.invalidate_models_by_provider(self.provider.slug)
             AICacheManager.invalidate_models()
+
+            # New provider-level cache
+            cache.delete(f"active_model_{self.provider.slug}")
             
+            # Legacy per-capability cache keys (safe to clear)
             for capability in self.capabilities:
-                cache_key = f"active_model_{self.provider.slug}_{capability}"
-                cache.delete(cache_key)
+                cache.delete(f"active_model_{self.provider.slug}_{capability}")
     
     def increment_usage(self):
         self.total_requests += 1
@@ -561,18 +587,21 @@ class AIModel(BaseModel, CacheMixin):
         result = cache.get(cache_key)
         
         if result is None:
-            models = cls.objects.filter(
-                provider__slug__in=provider_slugs,
-                provider__is_active=True,
-                is_active=True
-            ).select_related('provider').order_by('provider__sort_order', 'sort_order')
+            models = (
+                cls.objects.filter(
+                    provider__slug__in=provider_slugs,
+                    provider__is_active=True,
+                    is_active=True
+                )
+                .select_related('provider')
+                .order_by('provider__sort_order', 'sort_order', 'id')
+            )
             
             result = {}
             for model in models:
                 provider_slug = model.provider.slug
                 if provider_slug not in result:
-                    result[provider_slug] = []
-                result[provider_slug].append(model)
+                    result[provider_slug] = model
             
             cache.set(cache_key, result, cls.CACHE_TIMEOUT)
         

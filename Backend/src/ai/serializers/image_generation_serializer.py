@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from src.ai.models import AIProvider, AIModel
+from src.ai.models import AIProvider
 from src.ai.messages.messages import IMAGE_ERRORS
 from src.ai.services.image_generation_service import AIImageGenerationService
 
@@ -57,10 +57,17 @@ class AIProviderListSerializer(serializers.ModelSerializer):
         return obj.models.filter(is_active=True).count()
 
 class AIImageGenerationRequestSerializer(serializers.Serializer):
+    provider_name = serializers.CharField(
+        required=False,
+        allow_null=True,
+        allow_blank=True,
+        default=None,
+        help_text="Optional. If omitted, server uses the default image model."
+    )
     model_id = serializers.IntegerField(
         required=False,
         allow_null=True,
-        help_text="AI Model ID with 'image' capability (optional - uses active model if not provided)"
+        help_text="Deprecated/ignored. Model is resolved from provider active model."
     )
     prompt = serializers.CharField(
         required=True,
@@ -91,7 +98,7 @@ class AIImageGenerationRequestSerializer(serializers.Serializer):
     )
     
     save_to_media = serializers.BooleanField(
-        default=True,
+        default=False,
         required=False
     )
     title = serializers.CharField(
@@ -111,4 +118,15 @@ class AIImageGenerationRequestSerializer(serializers.Serializer):
         if len(value.strip()) < 3:
             raise serializers.ValidationError(IMAGE_ERRORS["prompt_invalid"])
         return value.strip()
+
+    def validate_provider_name(self, value: str):
+        provider_slug = (value or '').strip().lower()
+        if not provider_slug:
+            return None
+
+        provider = AIProvider.objects.filter(slug=provider_slug, is_active=True).first()
+        if not provider:
+            raise serializers.ValidationError("Provider نامعتبر یا غیرفعال است")
+
+        return provider_slug
 

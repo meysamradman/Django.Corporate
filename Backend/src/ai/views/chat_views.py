@@ -44,7 +44,7 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                     for msg in validated_data['conversation_history']
                 ]
             
-            provider_name = validated_data.get('provider_name', 'gemini')
+            provider_name = validated_data.get('provider_name')
             
             chat_data = AIChatService.chat(
                 message=validated_data['message'],

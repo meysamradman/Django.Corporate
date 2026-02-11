@@ -58,26 +58,16 @@ class BaseProvider(ABC):
         }
     
     async def close(self):
-        await self.client.aclose()
-    
-    def __del__(self):
+        """Properly close the async HTTP client."""
         try:
-            if hasattr(self, 'client') and self.client:
-                try:
-                    if asyncio.iscoroutinefunction(self.client.aclose):
-                        try:
-                            loop = asyncio.get_event_loop()
-                            if loop.is_running():
-                                asyncio.create_task(self.client.aclose())
-                            else:
-                                loop.run_until_complete(self.client.aclose())
-                        except RuntimeError:
-                            pass
-                    else:
-                        if hasattr(self.client, 'close'):
-                            self.client.close()
-                except Exception:
-                    pass
+            if hasattr(self, 'client') and self.client and not self.client.is_closed:
+                await self.client.aclose()
         except Exception:
             pass
+    
+    def __del__(self):
+        """Cleanup resources on deletion - avoid closing async client here."""
+        # Note: We should NOT close async resources in __del__
+        # Async clients should be explicitly closed using context managers or close() method
+        pass
 

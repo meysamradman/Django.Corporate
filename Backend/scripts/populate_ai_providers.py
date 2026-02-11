@@ -1,16 +1,7 @@
-"""
-✅ Populate AI Providers Script
+"""✅ Populate AI Providers Script
 
-این اسکریپت Provider های AI رو به دیتابیس اضافه می‌کنه.
-
-⚠️ مهم: این اسکریپت فقط Provider ها رو اضافه می‌کنه، نه Model ها!
-Model ها باید از طریق management command sync شوند:
-    python manage.py sync_ai_models
-
-سیستم جدید (Dynamic AI):
-- Provider ها از Registry خودکار شناسایی می‌شوند
-- Model ها از API sync می‌شوند (OpenRouter, Groq, HuggingFace)
-- همه چیز دینامیک است - بدون hardcode
+این اسکریپت Provider های AI رو به دیتابیس اضافه می‌کنه و همچنین Default Model ها را
+برای هر capability (chat/content/image/audio) داخل جدول `AIModel` seed می‌کند.
 
 استفاده:
     python manage.py shell < scripts/populate_ai_providers.py
@@ -28,7 +19,8 @@ sys.path.insert(0, project_root)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.django.base')
 django.setup()
 
-from src.ai.models import AIProvider, AIModel
+from src.ai.models import AIProvider, AICapabilityModel
+from src.ai.providers.capabilities import get_default_model
 
 
 def populate_providers():
@@ -61,22 +53,26 @@ def populate_providers():
                 'chat': {
                     'supported': True,
                     'has_dynamic_models': False,
-                    'models': ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo', 'o1', 'o1-mini']
+                    'models': ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo', 'o1', 'o1-mini'],
+                    'default_model': 'gpt-4o'
                 },
                 'content': {
                     'supported': True,
                     'has_dynamic_models': False,
-                    'models': ['gpt-4o', 'gpt-4o-mini']
+                    'models': ['gpt-4o', 'gpt-4o-mini'],
+                    'default_model': 'gpt-4o-mini'
                 },
                 'image': {
                     'supported': True,
                     'has_dynamic_models': False,
-                    'models': ['dall-e-3', 'dall-e-2']
+                    'models': ['dall-e-3', 'dall-e-2'],
+                    'default_model': 'dall-e-3'
                 },
                 'audio': {
                     'supported': True,
                     'has_dynamic_models': False,
-                    'models': ['tts-1', 'tts-1-hd', 'whisper-1']
+                    'models': ['tts-1', 'tts-1-hd', 'whisper-1'],
+                    'default_model': 'tts-1'
                 }
             },
             'allow_personal_keys': True,
@@ -96,17 +92,20 @@ def populate_providers():
                 'chat': {
                     'supported': True,
                     'has_dynamic_models': False,
-                    'models': ['gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-1.5-flash']
+                    'models': ['gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-1.5-flash'],
+                    'default_model': 'gemini-2.0-flash-exp'
                 },
                 'content': {
                     'supported': True,
                     'has_dynamic_models': False,
-                    'models': ['gemini-2.0-flash-exp', 'gemini-1.5-pro']
+                    'models': ['gemini-2.0-flash-exp', 'gemini-1.5-pro'],
+                    'default_model': 'gemini-1.5-pro'
                 },
                 'image': {
                     'supported': True,
                     'has_dynamic_models': False,
-                    'models': ['imagen-3']
+                    'models': ['imagen-3'],
+                    'default_model': 'imagen-3'
                 },
                 'audio': {
                     'supported': False
@@ -142,8 +141,7 @@ def populate_providers():
                     'description': 'تولید تصویر با DALL-E, Flux, Stable Diffusion'
                 },
                 'audio': {
-                    'supported': True,
-                    'has_dynamic_models': True
+                    'supported': False
                 }
             },
             'allow_personal_keys': True,
@@ -163,12 +161,14 @@ def populate_providers():
                 'chat': {
                     'supported': True,
                     'has_dynamic_models': False,
-                    'models': ['deepseek-chat', 'deepseek-reasoner']
+                    'models': ['deepseek-chat', 'deepseek-reasoner'],
+                    'default_model': 'deepseek-chat'
                 },
                 'content': {
                     'supported': True,
                     'has_dynamic_models': False,
-                    'models': ['deepseek-chat']
+                    'models': ['deepseek-chat'],
+                    'default_model': 'deepseek-chat'
                 },
                 'image': {
                     'supported': False
@@ -206,8 +206,7 @@ def populate_providers():
                     'description': 'Stable Diffusion, FLUX, و ...'
                 },
                 'audio': {
-                    'supported': True,
-                    'has_dynamic_models': True
+                    'supported': False
                 }
             },
             'allow_personal_keys': True,
@@ -237,9 +236,7 @@ def populate_providers():
                     'supported': False
                 },
                 'audio': {
-                    'supported': True,
-                    'has_dynamic_models': True,
-                    'description': 'Whisper برای Speech-to-Text'
+                    'supported': False
                 }
             },
             'allow_personal_keys': True,
@@ -282,65 +279,78 @@ def populate_providers():
     return created_count, updated_count, deactivated_count
 
 
-def populate_models():
+def populate_capability_defaults():
     """
-    ⚠️ این تابع دیگر استفاده نمی‌شود!
+    تنظیم مدل‌های پیش‌فرض برای هر Capability بر اساس تنظیمات Script.
     
-    با سیستم جدید Dynamic AI:
-    - Model ها باید از طریق management command sync شوند:
-      python manage.py sync_ai_models
-    
-    - برای Provider های دینامیک (OpenRouter, Groq, HuggingFace):
-      مدل‌ها خودکار از API دریافت و در DB ذخیره می‌شوند
-    
-    - برای Provider های استاتیک (Gemini, OpenAI, DeepSeek):
-      مدل‌ها باید در Admin Panel از لیست انتخاب و فعال شوند
-    
-    این طراحی باعث می‌شود:
-    1️⃣ Admin فقط مدل‌هایی رو می‌بینه که خودش انتخاب کرده
-    2️⃣ هیچ مدل اضافی یا default نداریم
-    3️⃣ تمام مدل‌ها قابل فعال/غیرفعال کردن هستند
-    4️⃣ فقط یک مدل فعال برای هر provider+capability
+    این تابع:
+    1. برای هر Provider و Capability، اگر `default_model` تعریف شده باشد، آن را در `AICapabilityModel` ثبت می‌کند.
+    2. اگر هیچ مدل فعالی برای یک capability وجود نداشته باشد، مدل OpenAI را (اگر موجود باشد) فعال می‌کند.
     """
-    print("⚠️  این تابع دیگر استفاده نمی‌شود!")
-    print("💡 برای sync مدل‌ها از دستور زیر استفاده کنید:")
-    print("   python manage.py sync_ai_models")
-    print("   python manage.py sync_ai_models --provider openrouter")
-    print("   python manage.py sync_ai_models --provider groq")
-    print("   python manage.py sync_ai_models --provider huggingface")
-    return 0, 0, 0
+    print("\n⚙️  Applying Hardcoded Capability Defaults...")
+    
+    capabilities = ['chat', 'content', 'image', 'audio']
+    preferred_default_provider = {
+        'chat': 'openai',
+        'content': 'openai',
+        'image': 'openai',
+        'audio': 'openai',
+    }
 
+    created = 0
+    updated = 0
 
-def clear_existing_models():
-    """
-    حذف مدل‌های موجود در دیتابیس
+    providers = list(AIProvider.objects.all())
     
-    این تابع تمام مدل‌های قدیمی (که از populate_models اضافه شده‌اند)
-    را پاک می‌کند تا Admin بتواند از پاپ‌آپ مدل‌های جدید انتخاب کند.
-    """
-    total = AIModel.objects.count()
-    
-    if total == 0:
-        print("✅ هیچ مدلی برای حذف وجود ندارد")
-        return 0
-    
-    print(f"\n🗑️  در حال حذف {total} مدل موجود...")
-    
-    # نمایش مدل‌ها
-    print("\n📋 مدل‌های موجود:")
-    for model in AIModel.objects.all()[:10]:
-        print(f"   - {model.provider.display_name}: {model.display_name}")
-    
-    if total > 10:
-        print(f"   ... و {total - 10} مدل دیگر")
-    
-    # حذف
-    deleted_count, _ = AIModel.objects.all().delete()
-    
-    print(f"\n✅ {deleted_count} مدل با موفقیت حذف شد!")
-    print("💡 حالا می‌تونی از پنل ادمین مدل‌های مورد نظرت رو انتخاب کنی!\n")
-    
-    return deleted_count
+    for provider in providers:
+        prov_caps = provider.capabilities or {}
+        
+        for capability in capabilities:
+            if not provider.supports_capability(capability):
+                continue
+            
+            cap_config = prov_caps.get(capability, {})
+            desired_model_id = cap_config.get('default_model')
+            
+            if not desired_model_id:
+                desired_model_id = get_default_model(provider.slug, capability)
+            if not desired_model_id:
+                static_models = cap_config.get('models', [])
+                if isinstance(static_models, list) and static_models:
+                    desired_model_id = static_models[0]
+            
+            if not desired_model_id:
+                continue
+
+            any_active_exists = AICapabilityModel.objects.filter(capability=capability, is_active=True).exists()
+            should_activate = (not any_active_exists) and (preferred_default_provider.get(capability) == provider.slug)
+
+            defaults = {
+                'model_id': desired_model_id,
+                'display_name': desired_model_id,
+                'config': {},
+                'sort_order': 0,
+            }
+            if should_activate:
+                defaults['is_active'] = True
+            
+            obj, was_created = AICapabilityModel.objects.update_or_create(
+                capability=capability,
+                provider=provider,
+                defaults=defaults
+            )
+            
+            if should_activate and not obj.is_active:
+                obj.is_active = True
+                obj.save(update_fields=['is_active'])
+
+            if was_created:
+                created += 1
+            else:
+                updated += 1
+                
+    print(f"✅ Capability defaults applied: {created} created, {updated} updated")
+    return created, updated
 
 
 def run():
@@ -352,30 +362,16 @@ def run():
     print("\n📦 Step 1: Creating/Updating Providers...")
     providers_created, providers_updated, providers_deactivated = populate_providers()
     
-    print("\n📦 Step 2: Clearing existing models...")
-    models_deleted = clear_existing_models()
+    print("\n📦 Step 2: Seeding capability defaults...")
+    cap_created, cap_updated = populate_capability_defaults()
     
     print("\n" + "=" * 60)
     print("✅ DONE!")
     print(f"   Providers: {providers_created} created, {providers_updated} updated, {providers_deactivated} deactivated")
-    print(f"   Models: {models_deleted} deleted")
+    print(f"   Default Models: {cap_created} created, {cap_updated} updated")
     print("=" * 60)
-    print("\n💡 مراحل بعدی:")
-    print("   1️⃣ Sync مدل‌های دینامیک:")
-    print("      python manage.py sync_ai_models")
-    print("      python manage.py sync_ai_models --provider openrouter")
-    print("      python manage.py sync_ai_models --provider groq")
-    print("      python manage.py sync_ai_models --provider huggingface")
-    print("\n   2️⃣ از پنل ادمین مدل‌های مورد نظرت رو فعال کن:")
-    print("      🔹 OpenRouter: 400+ مدل از 60+ Provider (از API sync می‌شوند)")
-    print("      🔹 Hugging Face: هزاران مدل Open Source (از API sync می‌شوند)")
-    print("      🔹 Groq: مدل‌های سریع و رایگان (از API sync می‌شوند)")
-    print("      🔹 Gemini, OpenAI, DeepSeek: از لیست انتخاب و فعال کن")
-    print("\n   3️⃣ فقط یک مدل فعال برای هر capability:")
-    print("      - یک مدل برای chat")
-    print("      - یک مدل برای content")
-    print("      - یک مدل برای image")
-    print("      - یک مدل برای audio (text_to_speech)")
+    print("\n💡 مراحل بعدی (در صورت نیاز):")
+    print("   - Sync مدل‌های دینامیک (اختیاری): python manage.py sync_ai_models")
     print("=" * 60)
 
 

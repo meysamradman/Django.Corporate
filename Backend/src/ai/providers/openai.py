@@ -21,6 +21,8 @@ class OpenAIProvider(BaseProvider):
         return 'openai'
     
     async def generate_image(self, prompt: str, **kwargs) -> BytesIO:
+        # Use model from config or kwargs, fall back to image_model
+        model_to_use = self.config.get('model') or kwargs.get('model') or self.image_model
         url = f"{self.BASE_URL}/images/generations"
         
         headers = {
@@ -33,9 +35,9 @@ class OpenAIProvider(BaseProvider):
         n = kwargs.get('n', 1)
         
         payload = {
-            "model": self.image_model,
+            "model": model_to_use,
             "prompt": prompt,
-            "n": min(n, 1) if self.image_model == 'dall-e-3' else min(n, 10),
+            "n": min(n, 1) if model_to_use == 'dall-e-3' else min(n, 10),
             "size": size,
             "quality": quality,
             "response_format": "url"
@@ -85,6 +87,8 @@ class OpenAIProvider(BaseProvider):
             raise Exception(AI_ERRORS["image_generation_failed"].format(error=str(e)))
     
     async def generate_content(self, prompt: str, **kwargs) -> str:
+        # Use model from config or kwargs, fall back to content_model
+        model_to_use = self.config.get('model') or kwargs.get('model') or self.content_model
         url = f"{self.BASE_URL}/chat/completions"
         
         headers = {
@@ -98,7 +102,7 @@ class OpenAIProvider(BaseProvider):
         full_prompt = f
         
         payload = {
-            "model": self.content_model,
+            "model": model_to_use,
             "messages": [
                 {"role": "system", "content": "You are an expert SEO content writer writing in Persian (Farsi)."},
                 {"role": "user", "content": full_prompt}

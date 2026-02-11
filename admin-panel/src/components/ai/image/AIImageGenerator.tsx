@@ -33,45 +33,38 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
     const [generating, setGenerating] = useState(false);
     const [generatedMedia, setGeneratedMedia] = useState<Media | null>(null);
     const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+
     const providersFetched = useRef(false);
 
-    console.log('🚀 [AIImageGenerator] Component Mount/Render. User:', user ? 'Present' : 'Null');
-
     useEffect(() => {
-        console.log('🔄 [AIImageGenerator] useEffect triggered. User:', user ? 'Present' : 'Null', 'providersFetched:', providersFetched.current);
-
         if (user && !providersFetched.current) {
             const permissionsObject = user?.permissions as any;
             const permissionsArray = (permissionsObject?.permissions || []) as string[];
-            console.log('🔑 [AIImageGenerator] Permissions:', permissionsArray);
 
             const hasAIPermission = permissionsArray.some((p: string) =>
                 p === 'all' || p === 'ai.manage' || p.startsWith('ai.')
             );
-            console.log('🛡️ [AIImageGenerator] hasAIPermission:', hasAIPermission);
 
             if (hasAIPermission) {
                 providersFetched.current = true;
-                console.log('⚡ [AIImageGenerator] Permissions OK. Calling fetchAvailableProviders...');
                 fetchAvailableProviders();
             } else {
-                console.warn('⛔ [AIImageGenerator] User does NOT have AI permissions.');
                 setLoadingProviders(false);
             }
         } else if (!user) {
-            console.log('⏳ [AIImageGenerator] User not yet loaded. Waiting...');
             setLoadingProviders(true);
-        } else {
-            console.log('⏭️ [AIImageGenerator] Skipping fetch (already fetched or other conditions met).');
         }
     }, [user]);
 
     const fetchAvailableProviders = async () => {
         try {
             setLoadingProviders(true);
-            console.log('🔍 [AIImageGenerator] Fetching available providers...');
-            const response = await aiApi.image.getAvailableProviders('image');
-            console.log('📦 [AIImageGenerator] Response:', response);
+            
+            // Fetch both available and active to set smart default
+            const [response, activeResponse] = await Promise.all([
+                aiApi.image.getAvailableProviders('image'),
+                aiApi.models.getActiveCapabilities().catch(() => ({ data: null })) // Fail gracefully
+            ]);
 
             if (response.metaData.status === 'success') {
                 let providersData: any[] = [];
@@ -85,28 +78,28 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
                     }
                 }
 
-                console.log('📋 [AIImageGenerator] Providers data:', providersData);
-
                 const providers = providersData.filter((p: AvailableProvider) =>
-                    p.can_generate === true && p.provider_name !== 'gemini'
+                    p.can_generate === true && p.provider_name !== 'gemini' // Gemini typically text/chat only or specific check
                 );
 
-                console.log('✅ [AIImageGenerator] Filtered providers:', providers);
                 setAvailableProviders(providers);
 
-                if (selectedProvider && !providers.some(p => p.provider_name === selectedProvider)) {
-                    setSelectedProvider('');
+                if (!selectedProvider && providers.length > 0) {
+                    // Try to match active capability first
+                    const activeSlug = (activeResponse as any)?.data?.image?.provider_slug;
+                    const activeProvider = activeSlug 
+                        ? providers.find(p => p.slug === activeSlug || p.provider_name === activeSlug)
+                        : null;
+
+                    if (activeProvider) {
+                        setSelectedProvider(activeProvider.slug || activeProvider.provider_name || '');
+                    } else {
+                        setSelectedProvider((providers[0] as any)?.provider_name || (providers[0] as any)?.slug || '');
+                    }
                 }
             }
-        } catch (error) {
-            console.error('❌ [AIImageGenerator] Error fetching providers:', error);
-            if (error && typeof error === 'object' && 'response' in error) {
-                const apiError = error as { response?: { AppStatusCode?: number } };
-                console.log('📛 [AIImageGenerator] API Error Code:', apiError.response?.AppStatusCode);
-                if (apiError.response?.AppStatusCode === 404) {
-                    setAvailableProviders([]);
-                }
-            }
+        } catch {
+            setAvailableProviders([]);
         } finally {
             setLoadingProviders(false);
         }
@@ -126,13 +119,14 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
         try {
             setGenerating(true);
             setGeneratedMedia(null);
+            setGeneratedImageUrl(null);
 
             const response = await aiApi.image.generateImage({
                 provider_name: selectedProvider,
                 prompt: prompt.trim(),
                 size,
                 quality,
-                save_to_db: saveToDb,
+                save_to_media: saveToDb,
             });
 
             if (response.metaData.status === 'success') {
@@ -149,9 +143,9 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
                     onImageGenerated?.(data as Media);
                 }
 
-                fetchAvailableProviders();
             }
-        } catch {
+        } catch (error) {
+            showError(error);
         } finally {
             setGenerating(false);
         }

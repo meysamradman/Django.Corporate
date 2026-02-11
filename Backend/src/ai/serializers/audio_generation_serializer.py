@@ -1,19 +1,22 @@
 from rest_framework import serializers
 from src.ai.models import AIProvider
 from src.ai.messages.messages import AI_ERRORS
+from src.ai.providers.capabilities import supports_feature
 
 class AIAudioGenerationRequestSerializer(serializers.Serializer):
     
     model_id = serializers.IntegerField(
         required=False,
         allow_null=True,
-        help_text="AI Model ID with 'text_to_speech' capability (optional - uses active model if not provided)"
+        help_text="Deprecated/ignored. Model is resolved from provider active model."
     )
     
-    provider_name = serializers.ChoiceField(
-        choices=[('openai', 'OpenAI')],
+    provider_name = serializers.CharField(
         required=False,
-        help_text="AI provider name (deprecated - use model_id instead)"
+        allow_null=True,
+        allow_blank=True,
+        default=None,
+        help_text="Optional. If omitted, server uses the default audio model."
     )
     
     text = serializers.CharField(
@@ -78,4 +81,18 @@ class AIAudioGenerationRequestSerializer(serializers.Serializer):
             raise serializers.ValidationError(AI_ERRORS["text_too_long"])
         
         return value.strip()
+
+    def validate_provider_name(self, value: str):
+        provider_slug = (value or '').strip().lower()
+        if not provider_slug:
+            return None
+
+        provider = AIProvider.objects.filter(slug=provider_slug, is_active=True).first()
+        if not provider:
+            raise serializers.ValidationError("Provider نامعتبر یا غیرفعال است")
+
+        if not supports_feature(provider_slug, 'audio'):
+            raise serializers.ValidationError("این Provider قابلیت audio را پشتیبانی نمی‌کند")
+
+        return provider_slug
 

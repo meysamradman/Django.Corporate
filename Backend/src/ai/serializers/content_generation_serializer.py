@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from src.ai.messages.messages import AI_ERRORS
+from src.ai.models import AIProvider
+from src.ai.providers.capabilities import supports_feature
 
 class AIContentGenerationRequestSerializer(serializers.Serializer):
     
@@ -9,17 +11,18 @@ class AIContentGenerationRequestSerializer(serializers.Serializer):
         help_text="Content topic or title"
     )
     
-    model_id = serializers.IntegerField(
+    model_id = serializers.CharField(
         required=False,
         allow_null=True,
-        help_text="AI Model ID with 'content' capability (optional - uses active model if not provided)"
+        help_text="Deprecated/ignored. Model is resolved from provider active model."
     )
     
-    provider_name = serializers.ChoiceField(
-        choices=['gemini', 'openai', 'deepseek', 'openrouter', 'groq', 'huggingface'],
-        default='gemini',
+    provider_name = serializers.CharField(
+        default=None,
         required=False,
-        help_text="AI model for content generation (deprecated - use model_id instead)"
+        allow_null=True,
+        allow_blank=True,
+        help_text="Optional. If omitted, server uses the default content model."
     )
     
     word_count = serializers.IntegerField(
@@ -63,6 +66,20 @@ class AIContentGenerationRequestSerializer(serializers.Serializer):
         if value < 100 or value > 2000:
             raise serializers.ValidationError(AI_ERRORS["invalid_word_count"])
         return value
+
+    def validate_provider_name(self, value: str):
+        provider_slug = (value or '').strip().lower()
+        if not provider_slug:
+            return None
+
+        provider = AIProvider.objects.filter(slug=provider_slug, is_active=True).first()
+        if not provider:
+            raise serializers.ValidationError("Provider نامعتبر یا غیرفعال است")
+
+        if not supports_feature(provider_slug, 'content'):
+            raise serializers.ValidationError("این Provider قابلیت content را پشتیبانی نمی‌کند")
+
+        return provider_slug
 
 class AIContentGenerationResponseSerializer(serializers.Serializer):
     

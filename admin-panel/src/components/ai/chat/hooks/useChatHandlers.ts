@@ -30,7 +30,7 @@ export function useChatHandlers({
 
     const handleSend = async () => {
         if (!selectedProvider) {
-            showError('لطفاً ابتدا یک مدل AI انتخاب کنید');
+            showError('لطفاً ابتدا یک Provider انتخاب کنید');
             return;
         }
 
@@ -83,15 +83,8 @@ export function useChatHandlers({
         } catch (error: any) {
             removeLastUserMessage(currentMessage);
 
-            let errorMessage = 'خطا در ارسال پیام. لطفاً دوباره تلاش کنید.';
-
-            if (error?.response?.message) {
-                errorMessage = error.response.message;
-            } else if (error?.message) {
-                errorMessage = error.message;
-            }
-
-            showError(errorMessage);
+            // showError will extract backend message when available (e.g. capability mismatch)
+            showError(error);
         } finally {
             setSending(false);
         }

@@ -6,13 +6,12 @@ import { Checkbox } from '@/components/elements/Checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/elements/Select';
 import { ProviderSelector } from '../shared/ProviderSelector';
 import type { AvailableProvider } from '@/types/ai/ai';
-import { Loader2, Sparkles, Brain, Mic, Volume2, AlertCircle } from 'lucide-react';
+import { Loader2, Sparkles, Brain, Mic, AlertCircle } from 'lucide-react';
 
 interface AudioInputFormProps {
     providers: AvailableProvider[];
     selectedProvider: string;
     text: string;
-    model: string;
     voice: string;
     speed: number;
     saveToDb: boolean;
@@ -20,7 +19,6 @@ interface AudioInputFormProps {
     loadingProviders: boolean;
     onSelectProvider: (providerName: string) => void;
     onTextChange: (text: string) => void;
-    onModelChange: (model: string) => void;
     onVoiceChange: (voice: string) => void;
     onSpeedChange: (speed: number) => void;
     onSaveToDbChange: (save: boolean) => void;
@@ -41,7 +39,6 @@ export function AudioInputForm({
     providers,
     selectedProvider,
     text,
-    model,
     voice,
     speed,
     saveToDb,
@@ -49,7 +46,6 @@ export function AudioInputForm({
     loadingProviders,
     onSelectProvider,
     onTextChange,
-    onModelChange,
     onVoiceChange,
     onSpeedChange,
     onSaveToDbChange,
@@ -81,13 +77,13 @@ export function AudioInputForm({
                 <div className="space-y-3">
                     <Label className={`flex items-center gap-2 ${compact ? 'text-sm' : 'text-base font-medium'}`}>
                         {!compact && <Brain className="w-4 h-4 text-font-s" />}
-                        <span>{compact ? 'مدل AI:' : 'انتخاب مدل AI'}</span>
+                        <span>{compact ? 'Provider:' : 'انتخاب Provider'}</span>
                     </Label>
                     <ProviderSelector
                         providers={providers}
                         selectedProvider={selectedProvider}
                         onSelectProvider={onSelectProvider}
-                        type="content"
+                        type="audio"
                         loading={loadingProviders}
                         compact={compact}
                     />
@@ -116,23 +112,7 @@ export function AudioInputForm({
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="model" className="text-sm flex items-center gap-2">
-                            <Volume2 className="w-4 h-4 text-font-s" />
-                            مدل
-                        </Label>
-                        <Select value={model} onValueChange={onModelChange}>
-                            <SelectTrigger id="model">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="tts-1">TTS-1 (سریع)</SelectItem>
-                                <SelectItem value="tts-1-hd">TTS-1-HD (کیفیت بالا)</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="voice" className="text-sm flex items-center gap-2">
                             <Mic className="w-4 h-4 text-font-s" />
@@ -176,7 +156,7 @@ export function AudioInputForm({
 
                 {!compact && (
                     <div className="flex items-start gap-2 text-xs text-font-s bg-purple/10 border border-purple-1 rounded-lg p-3">
-                        <AlertCircle className="h-4 w-4 text-purple-1 mt-0.5 flex-shrink-0" />
+                        <AlertCircle className="h-4 w-4 text-purple-1 mt-0.5 shrink-0" />
                         <div className="flex-1">
                             <p className="font-medium text-purple-2 mb-1">💡 نکته:</p>
                             <p>متن می‌تواند به فارسی یا انگلیسی باشد. OpenAI TTS از هر دو زبان پشتیبانی می‌کند.</p>

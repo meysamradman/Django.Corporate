@@ -1,8 +1,8 @@
 import { createMessageGetter } from '../utils';
 
 export const AI_MESSAGES = {
-  selectModel: 'لطفاً یک مدل AI انتخاب کنید',
-  selectModelWithInstructions: 'لطفاً یک مدل AI انتخاب کنید. ابتدا باید در تنظیمات پنل > تنظیمات مدل‌های AI، یک Provider را فعال کنید.',
+  selectModel: 'لطفاً یک Provider انتخاب کنید',
+  selectModelWithInstructions: 'لطفاً یک Provider انتخاب کنید. ابتدا باید در تنظیمات پنل > تنظیمات AI، یک Provider را فعال کنید.',
   enterTopic: 'لطفاً موضوع محتوا را وارد کنید',
   enterPrompt: 'لطفاً توضیحات تصویر را وارد کنید',
   enterMessage: 'لطفاً پیام خود را وارد کنید',
@@ -19,10 +19,10 @@ export const AI_MESSAGES = {
 } as const;
 
 export const AI_UI_MESSAGES = {
-  selectModel: 'انتخاب مدل AI',
+  selectModel: 'انتخاب Provider AI',
   imagePrompt: 'توضیحات تصویر',
   contentTopic: 'موضوع محتوا',
-  selectModelPlaceholder: 'انتخاب مدل',
+  selectModelPlaceholder: 'انتخاب Provider',
   messagePlaceholder: 'پیام خود را بنویسید... (Enter برای ارسال، Shift+Enter برای خط جدید)',
   topicPlaceholder: 'مثال: راهنمای کامل طراحی وب سایت',
   promptPlaceholder: 'مثال: a beautiful cat, professional photography, high quality...',
@@ -52,15 +52,15 @@ export const AI_UI_MESSAGES = {
   times: 'بار',
   notSaved: '(ذخیره نشده)',
   noActiveProviders: 'هیچ Provider فعالی یافت نشد',
-  noActiveProvidersForImage: 'هیچ مدل AI فعالی برای تولید تصویر وجود ندارد',
+  noActiveProvidersForImage: 'هیچ Provider فعالی برای تولید تصویر وجود ندارد',
   noActiveModel: 'هیچ مدل فعالی یافت نشد',
   startConversation: 'شروع مکالمه',
   chatDescription: 'سوالات خود را از AI بپرسید. پیام‌ها ذخیره نمی‌شوند.',
   chatInstructions: 'برای استفاده از چت، لطفاً یک Provider را در تنظیمات پنل فعال کنید.',
-  chatInstructionsFull: 'برای استفاده از چت با AI، ابتدا باید یک Provider (Gemini، OpenAI یا DeepSeek) را در تنظیمات پنل > تنظیمات مدل‌های AI فعال کنید.',
+  chatInstructionsFull: 'برای استفاده از چت با AI، ابتدا باید یک Provider (Gemini، OpenAI یا DeepSeek) را در تنظیمات پنل > تنظیمات AI فعال کنید.',
   imageGenerationInstructions: 'برای تولید تصویر با AI، باید:',
   imageGenerationStep1: 'به تب "تنظیمات AI" بروید',
-  imageGenerationStep2: 'برای یک مدل AI (مثل OpenAI DALL-E) API key وارد کنید',
+  imageGenerationStep2: 'برای یک Provider (مثل OpenAI) API key وارد کنید',
   imageGenerationStep3: 'API key را ذخیره کنید',
   imageGenerationStep4: 'Switch را فعال کنید',
   qualityTipTitle: '💡 نکته برای کیفیت بهتر:',

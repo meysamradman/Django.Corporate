@@ -7,12 +7,13 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 import tempfile
 import os
 
-from src.ai.models import AIProvider, AdminProviderSettings, AIModel
+from src.ai.models import AIProvider, AdminProviderSettings, AICapabilityModel
 from src.media.models.media import ImageMedia
 from src.media.services.media_services import MediaAdminService
 from src.ai.providers.registry import AIProviderRegistry
 from src.ai.messages.messages import AI_ERRORS
 from src.ai.providers.capabilities import ProviderAvailabilityManager
+from src.ai.providers.capabilities import get_default_model
 
 class AIImageGenerationService:
     
@@ -62,16 +63,44 @@ class AIImageGenerationService:
     @classmethod
     def generate_image_only(
         cls,
-        provider_name: str,
+        provider_name: Optional[str],
         prompt: str,
         admin=None,
         model_name: Optional[str] = None,
         **kwargs
     ) -> tuple[BytesIO, dict]:
-        if not model_name:
-            active_model = AIModel.objects.get_active_model(provider_name, 'image')
-            if active_model:
-                model_name = active_model.model_id
+        capability = 'image'
+
+        if not provider_name or not str(provider_name).strip():
+            cm = AICapabilityModel.objects.get_active(capability)
+            if not cm:
+                raise ValueError(
+                    AI_ERRORS.get('no_active_model_any_provider', 'No active model').format(capability=capability)
+                )
+            provider_name = cm.provider.slug
+            model_name = cm.model_id
+        elif not model_name:
+            cm = (
+                AICapabilityModel.objects.filter(
+                    capability=capability,
+                    provider__slug=provider_name,
+                    provider__is_active=True,
+                )
+                .select_related('provider')
+                .order_by('sort_order', 'id')
+                .first()
+            )
+            if cm:
+                model_name = cm.model_id
+            else:
+                default_model_id = get_default_model(provider_name, capability)
+                if default_model_id:
+                    model_name = default_model_id
+                else:
+                    provider = AIProvider.get_provider_by_slug(provider_name)
+                    static_models = provider.get_static_models(capability) if provider else []
+                    if static_models:
+                        model_name = static_models[0]
         
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
             try:
@@ -128,15 +157,26 @@ class AIImageGenerationService:
     @classmethod
     def generate_and_save_to_media(
         cls,
-        provider_name: str,
+        provider_name: Optional[str],
         prompt: str,
         user_id: Optional[int] = None,
         title: Optional[str] = None,
         alt_text: Optional[str] = None,
         save_to_db: bool = True,
         admin=None,
+        model_name: Optional[str] = None,
         **kwargs
     ) -> ImageMedia:
+        capability = 'image'
+        if not provider_name or not str(provider_name).strip():
+            cm = AICapabilityModel.objects.get_active(capability)
+            if not cm:
+                raise ValueError(
+                    AI_ERRORS.get('no_active_model_any_provider', 'No active model').format(capability=capability)
+                )
+            provider_name = cm.provider.slug
+            model_name = cm.model_id
+
         try:
             provider = AIProvider.objects.get(slug=provider_name, is_active=True)
         except AIProvider.DoesNotExist:
@@ -157,6 +197,32 @@ class AIImageGenerationService:
             api_key = provider.get_shared_api_key()
         
         config = provider.config or {}
+
+        if not model_name:
+            cm = (
+                AICapabilityModel.objects.filter(
+                    capability=capability,
+                    provider__slug=provider_name,
+                    provider__is_active=True,
+                )
+                .select_related('provider')
+                .order_by('sort_order', 'id')
+                .first()
+            )
+            if cm:
+                model_name = cm.model_id
+            else:
+                default_model_id = get_default_model(provider_name, capability)
+                if default_model_id:
+                    model_name = default_model_id
+                else:
+                    provider = AIProvider.get_provider_by_slug(provider_name)
+                    static_models = provider.get_static_models(capability) if provider else []
+                    if static_models:
+                        model_name = static_models[0]
+
+        if model_name:
+            config['model'] = model_name
         
         image_bytes = cls.generate_image(
             provider_name=provider_name,

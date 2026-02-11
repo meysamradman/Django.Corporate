@@ -13,6 +13,7 @@ from src.ai.utils.cache import AICacheKeys
 class HuggingFaceProvider(BaseProvider):
     
     BASE_URL = os.getenv('HUGGINGFACE_API_BASE_URL', 'https://router.huggingface.co/hf-inference')
+    ROUTER_V1_BASE_URL = os.getenv('HUGGINGFACE_ROUTER_BASE_URL', 'https://router.huggingface.co/v1')
     
     TEXT_GENERATION_TASK = 'text-generation'
     
@@ -32,18 +33,71 @@ class HuggingFaceProvider(BaseProvider):
         return 'huggingface'
     
     @staticmethod
-    def get_available_models(api_key: Optional[str] = None, task_filter: Optional[str] = None, use_cache: bool = True):
-        cache_key = AICacheKeys.provider_models('huggingface', task_filter)
+    def get_available_models(
+        api_key: Optional[str] = None,
+        task_filter: Optional[str] = None,
+        capability: Optional[str] = None,
+        use_cache: bool = True,
+    ):
+        import logging
+        logger = logging.getLogger(__name__)
+
+        cache_suffix = capability or task_filter
+        cache_key = AICacheKeys.provider_models('huggingface', cache_suffix)
+        logger.info(
+            f"[HuggingFace] Fetching models capability={capability}, task_filter={task_filter}, use_cache={use_cache}"
+        )
         
         if use_cache:
             cached_models = cache.get(cache_key)
             if cached_models is not None:
+                logger.info(f"[HuggingFace] Returning {len(cached_models)} cached models")
                 return cached_models
         
         try:
+            # For chat, use Hugging Face Router OpenAI-compatible API.
+            # This avoids listing Hub models that are not runnable on the router.
+            if capability == 'chat':
+                url = f"{HuggingFaceProvider.ROUTER_V1_BASE_URL}/models"
+                headers = {}
+                if api_key:
+                    headers['Authorization'] = f'Bearer {api_key}'
+
+                with httpx.Client(timeout=30.0) as client:
+                    response = client.get(url, headers=headers)
+                    response.raise_for_status()
+                    payload = response.json()
+
+                models_data = []
+                if isinstance(payload, dict):
+                    if isinstance(payload.get('data'), list):
+                        models_data = payload['data']
+                    elif isinstance(payload.get('models'), list):
+                        models_data = payload['models']
+
+                models = []
+                for model in models_data:
+                    if not isinstance(model, dict):
+                        continue
+                    model_id = model.get('id') or model.get('name')
+                    if not model_id:
+                        continue
+                    models.append({
+                        'id': model_id,
+                        'name': model.get('name', model_id),
+                        'description': model.get('description', ''),
+                        'pricing': model.get('pricing', {}),
+                        'context_length': model.get('context_length') or model.get('context_window'),
+                    })
+
+                logger.info(f"[HuggingFace] Router returned {len(models)} chat models")
+                if use_cache:
+                    cache.set(cache_key, models, 6 * 60 * 60)
+                return models
             
             url = "https://huggingface.co/api/models"
             
+            # ✅ دریافت مدل‌های پرطرفدار
             params = {
                 'sort': 'downloads',
                 'direction': '-1',
@@ -76,9 +130,16 @@ class HuggingFaceProvider(BaseProvider):
                 model_id = model.get('id', '')
                 task = model.get('pipeline_tag', '')
                 
+                # ✅ فیلتر task
                 if task_filter:
                     if task != task_filter:
                         continue
+                
+                # ✅ فقط مدل‌هایی که inference status دارن
+                inference_status = model.get('inference', 'cold')
+                if inference_status not in ['warm', 'hot']:
+                    logger.debug(f"[HuggingFace] Skipping {model_id} - inference={inference_status}")
+                    continue
                 
                 models.append({
                     'id': model_id,
@@ -88,18 +149,24 @@ class HuggingFaceProvider(BaseProvider):
                     'downloads': model.get('downloads', 0),
                     'likes': model.get('likes', 0),
                     'tags': model.get('tags', []),
+                    'inference': inference_status,  # 🔥 اضافه کردن inference status
                 })
+            
+            logger.info(f"[HuggingFace] Successfully fetched {len(models)} models from API")
             
             if use_cache:
                 cache.set(cache_key, models, 6 * 60 * 60)
             
             return models
             
-        except Exception:
+        except Exception as e:
+            logger.error(f"[HuggingFace] Error fetching models: {str(e)}")
             return []
     
     async def generate_image(self, prompt: str, **kwargs) -> BytesIO:
-        url = f"{self.BASE_URL}/models/{self.image_model}"
+        # Use model from config (set by service) or fall back to image_model
+        model_to_use = self.config.get('model') or kwargs.get('model') or self.image_model
+        url = f"{self.BASE_URL}/models/{model_to_use}"
         
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -196,7 +263,9 @@ class HuggingFaceProvider(BaseProvider):
             raise Exception(AI_ERRORS["image_generation_failed"].format(error=error_str))
     
     async def generate_content(self, prompt: str, **kwargs) -> str:
-        url = f"{self.BASE_URL}/models/{self.content_model}"
+        # Use model from config (set by service) or fall back to content_model
+        model_to_use = self.config.get('model') or kwargs.get('model') or self.content_model
+        url = f"{self.BASE_URL}/models/{model_to_use}"
         
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -279,9 +348,34 @@ class HuggingFaceProvider(BaseProvider):
         
         keywords_str = ', '.join(keywords) if keywords else ''
         
-        seo_prompt = f
+        seo_prompt = (
+            "لطفاً یک محتوای وبلاگ حرفه‌ای و کاملاً سئو شده به زبان فارسی برای موضوع زیر بنویسید.\n\n"
+            f"موضوع: {topic}\n"
+            f"کلمات کلیدی (در صورت وجود): {keywords_str}\n\n"
+            "ملاحظات:\n"
+            f"- طول محتوا: حدود {word_count} کلمه\n"
+            f"- سبک: {tone}\n"
+            "- محتوا باید برای SEO بهینه باشد\n"
+            "- استفاده از کلمات کلیدی طبیعی (keyword stuffing نکنید)\n"
+            "- ساختار منطقی و خوانا\n"
+            "- محتوا باید شامل تگ‌های HTML <h2> و <h3> باشد\n\n"
+            "فقط و فقط JSON معتبر را برگردانید (بدون توضیح اضافی و بدون ```). فرمت دقیق JSON باید این باشد:\n"
+            "{\n"
+            "  \"title\": \"عنوان اصلی (H1)\",\n"
+            "  \"meta_title\": \"عنوان متا برای SEO (50-60 کاراکتر)\",\n"
+            "  \"meta_description\": \"توضیحات متا برای SEO (150-160 کاراکتر)\",\n"
+            "  \"slug\": \"url-friendly-slug\",\n"
+            "  \"h1\": \"عنوان اصلی\",\n"
+            "  \"h2_list\": [\"عنوان H2 اول\", \"عنوان H2 دوم\"],\n"
+            "  \"h3_list\": [\"عنوان H3 اول\", \"عنوان H3 دوم\"],\n"
+            "  \"content\": \"<p>...</p>\\n\\n<h2>...</h2>\\n<p>...</p>\",\n"
+            "  \"keywords\": [\"کلمه کلیدی 1\", \"کلمه کلیدی 2\"]\n"
+            "}\n"
+        )
         
-        url = f"{self.BASE_URL}/models/{self.content_model}"
+        # Use model from config (set by service) or fall back to content_model
+        model_to_use = self.config.get('model') or kwargs.get('model') or self.content_model
+        url = f"{self.BASE_URL}/models/{model_to_use}"
         
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -362,76 +456,103 @@ class HuggingFaceProvider(BaseProvider):
             raise Exception(AI_ERRORS["content_generation_failed"].format(error=str(e)))
     
     async def chat(self, message: str, conversation_history: Optional[List[Dict[str, str]]] = None, **kwargs) -> str:
-        url = f"{self.BASE_URL}/models/{self.content_model}"
-        
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        }
-        
-        system_message = kwargs.get('system_message') or 'You are a helpful AI assistant.'
-        
-        full_prompt = system_message + "\n\n"
-        
-        if conversation_history:
-            for msg in conversation_history:
-                role = msg.get('role', 'user')
-                content = msg.get('content', '')
-                if role == 'user':
-                    full_prompt += f"User: {content}\n"
-                elif role == 'assistant':
-                    full_prompt += f"Assistant: {content}\n"
-        
-        full_prompt += f"User: {message}\nAssistant:"
-        
-        payload = {
-            "inputs": full_prompt,
-            "parameters": {
-                "max_new_tokens": kwargs.get('max_tokens', 2048),
-                "temperature": kwargs.get('temperature', 0.7),
-                "top_p": 0.9,
-                "return_full_text": False,
-                "do_sample": True,
-            }
-        }
+        # Use model from config (set by service) or fall back to content_model
+        model_to_use = self.config.get('model') or kwargs.get('model') or self.content_model
 
+        # If an image is provided, keep using the HF inference task endpoint for now.
+        # (Router chat is OpenAI-compatible, but multimodal support varies by model.)
         if kwargs.get('image'):
+            url = f"{self.BASE_URL}/models/{model_to_use}"
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+            }
+
+            system_message = kwargs.get('system_message') or 'You are a helpful AI assistant.'
+            full_prompt = system_message + "\n\n"
+            if conversation_history:
+                for msg in conversation_history:
+                    role = msg.get('role', 'user')
+                    content = msg.get('content', '')
+                    if role == 'user':
+                        full_prompt += f"User: {content}\n"
+                    elif role == 'assistant':
+                        full_prompt += f"Assistant: {content}\n"
+
+            full_prompt += f"User: {message}\nAssistant:"
+            payload = {
+                "inputs": full_prompt,
+                "parameters": {
+                    "max_new_tokens": kwargs.get('max_tokens', 2048),
+                    "temperature": kwargs.get('temperature', 0.7),
+                    "top_p": 0.9,
+                    "return_full_text": False,
+                    "do_sample": True,
+                }
+            }
+
             import base64
             image_file = kwargs['image']
             if hasattr(image_file, 'read'):
                 image_content = image_file.read()
                 if isinstance(image_content, str):
                     image_content = image_content.encode('utf-8')
-                
                 base64_image = base64.b64encode(image_content).decode('utf-8')
-                
                 payload['image'] = base64_image
                 payload['images'] = [base64_image]
-                
                 if "<image>" not in full_prompt:
                     payload["inputs"] = f"User: <image>\n{message}\nAssistant:"
+        else:
+            url = f"{self.ROUTER_V1_BASE_URL}/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+            }
+
+            messages: List[Dict[str, Any]] = []
+            system_message = kwargs.get('system_message')
+            if system_message:
+                messages.append({"role": "system", "content": system_message})
+
+            if conversation_history:
+                for msg in conversation_history:
+                    role = msg.get('role')
+                    content = msg.get('content')
+                    if role in ('user', 'assistant', 'system') and content:
+                        messages.append({"role": role, "content": content})
+
+            messages.append({"role": "user", "content": message})
+
+            payload = {
+                "model": model_to_use,
+                "messages": messages,
+                "max_tokens": kwargs.get('max_tokens', 2048),
+                "temperature": kwargs.get('temperature', 0.7),
+            }
 
         try:
             response = await self.client.post(url, json=payload, headers=headers)
             response.raise_for_status()
             
             data = response.json()
-            
+
+            # Router OpenAI-compatible response
+            if isinstance(data, dict) and 'choices' in data:
+                try:
+                    content = data['choices'][0]['message'].get('content', '')
+                    if content:
+                        return content.strip()
+                except Exception:
+                    pass
+
+            # HF inference (text-generation) response
             if isinstance(data, list) and len(data) > 0:
                 generated_text = data[0].get('generated_text', '')
                 if generated_text:
-                    if full_prompt in generated_text:
-                         generated_text = generated_text.replace(full_prompt, '').strip()
-                    if payload["inputs"] in generated_text:
-                        generated_text = generated_text.replace(payload["inputs"], '').strip()
                     return generated_text.strip()
-            elif isinstance(data, dict):
-                if 'generated_text' in data:
-                    generated_text = data['generated_text']
-                    if full_prompt in generated_text:
-                        generated_text = generated_text.replace(full_prompt, '').strip()
-                    if payload["inputs"] in generated_text:
-                        generated_text = generated_text.replace(payload["inputs"], '').strip()
+            elif isinstance(data, dict) and 'generated_text' in data:
+                generated_text = data.get('generated_text', '')
+                if generated_text:
                     return generated_text.strip()
             
             raise Exception(AI_ERRORS["chat_failed"].format(error="No response received"))

@@ -16,7 +16,7 @@ export function AISettingsHeader({ searchQuery, onSearchChange }: AISettingsHead
         <Button asChild>
           <Link to="/ai/models">
             <List className="w-4 h-4" />
-            انتخاب مدل‌ها
+            مدل‌های فعال
           </Link>
         </Button>
       </PageHeader>

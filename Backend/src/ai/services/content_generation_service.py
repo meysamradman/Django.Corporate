@@ -2,15 +2,52 @@ import asyncio
 import time
 from typing import Dict, Any, Optional
 from django.utils.text import slugify
-from src.ai.models import AIProvider, AdminProviderSettings, AIModel
+from src.ai.models import AIProvider, AdminProviderSettings, AICapabilityModel
 from src.ai.providers.registry import AIProviderRegistry
 from src.ai.messages.messages import AI_ERRORS, SETTINGS_ERRORS
 from src.ai.providers.capabilities import ProviderAvailabilityManager
+from src.ai.providers.capabilities import get_default_model
 
 class AIContentGenerationService:
     
     @classmethod
-    def get_provider(cls, provider_name: str, admin=None, model_name: Optional[str] = None):
+    def get_provider(cls, provider_name: Optional[str], admin=None, model_name: Optional[str] = None):
+        provider_name = (provider_name or '').strip().lower() or None
+
+        capability = 'content'
+
+        if not provider_name:
+            cm = AICapabilityModel.objects.get_active(capability)
+            if not cm:
+                raise ValueError(
+                    AI_ERRORS.get('no_active_model_any_provider', 'No active model').format(capability=capability)
+                )
+            provider_name = cm.provider.slug
+            model_name = cm.model_id
+        else:
+            cm = (
+                AICapabilityModel.objects.filter(
+                    capability=capability,
+                    provider__slug=provider_name,
+                    provider__is_active=True,
+                )
+                .select_related('provider')
+                .order_by('sort_order', 'id')
+                .first()
+            )
+            if cm:
+                model_name = cm.model_id
+            else:
+                provider = AIProvider.get_provider_by_slug(provider_name)
+                default_model_id = get_default_model(provider_name, capability)
+                if default_model_id:
+                    model_name = default_model_id
+                else:
+                    static_models = provider.get_static_models(capability) if provider else []
+                    if not static_models:
+                        raise ValueError(AI_ERRORS.get('no_active_model', 'No active model'))
+                    model_name = static_models[0]
+
         provider_class = AIProviderRegistry.get(provider_name)
         if not provider_class:
             raise ValueError(AI_ERRORS["provider_not_supported"].format(provider_name=provider_name))
@@ -18,11 +55,6 @@ class AIContentGenerationService:
         provider = AIProvider.get_provider_by_slug(provider_name)
         if not provider:
             raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
-        
-        if not model_name:
-            active_model = AIModel.objects.get_active_model(provider_name, 'chat')
-            if active_model:
-                model_name = active_model.model_id
         
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
             try:
@@ -48,21 +80,22 @@ class AIContentGenerationService:
                 raise ValueError(SETTINGS_ERRORS.get("shared_api_key_not_set", "Shared API Key not set").format(provider_name=provider_name))
         
         config = provider.config or {}
-        if model_name:
-            config['model'] = model_name
+        config['model'] = model_name
         
         return provider_class(api_key=api_key, config=config)
     
     @classmethod
-    def generate_content(cls, topic: str, provider_name: str = 'gemini', admin=None, **kwargs) -> Dict[str, Any]:
+    def generate_content(cls, topic: str, provider_name: Optional[str] = None, admin=None, model_name: Optional[str] = None, **kwargs) -> Dict[str, Any]:
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         keywords = kwargs.get('keywords', [])
         
         start_time = time.time()
+        provider = None
         
         try:
-            provider = cls.get_provider(provider_name, admin=admin)
+            provider_name = (provider_name or '').strip().lower() or None
+            provider = cls.get_provider(provider_name, admin=admin, model_name=model_name)
             
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -76,6 +109,11 @@ class AIContentGenerationService:
                     )
                 )
             finally:
+                # Properly close the async client
+                try:
+                    loop.run_until_complete(provider.close())
+                except Exception:
+                    pass
                 loop.close()
             
             generation_time_ms = int((time.time() - start_time) * 1000)

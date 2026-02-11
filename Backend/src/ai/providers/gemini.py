@@ -22,7 +22,9 @@ class GeminiProvider(BaseProvider):
         raise NotImplementedError(AI_ERRORS["gemini_not_implemented"])
     
     async def generate_content(self, prompt: str, **kwargs) -> str:
-        url = f"{self.BASE_URL}/models/{self.model}:generateContent"
+        # Use model from config or kwargs, fall back to self.model
+        model_to_use = self.config.get('model') or kwargs.get('model') or self.model
+        url = f"{self.BASE_URL}/models/{model_to_use}:generateContent"
         params = {'key': self.api_key}
         
         word_count = kwargs.get('word_count', 500)
@@ -204,7 +206,9 @@ class GeminiProvider(BaseProvider):
             raise Exception(GEMINI_ERRORS["content_generation_error"].format(error=str(e)))
     
     async def chat(self, message: str, conversation_history: Optional[list] = None, **kwargs) -> str:
-        url = f"{self.BASE_URL}/models/{self.model}:generateContent"
+        # Use model from config or kwargs, fall back to self.model
+        model_to_use = self.config.get('model') or kwargs.get('model') or self.model
+        url = f"{self.BASE_URL}/models/{model_to_use}:generateContent"
         params = {'key': self.api_key}
         
         contents = []

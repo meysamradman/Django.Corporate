@@ -405,7 +405,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
         items: [
           { title: "پنل ادمین", url: "/panel", icon: LayoutDashboard },
           { title: "ویژگی‌های سیستم", url: "/panel?tab=feature-flags", icon: Flag },
-          { title: "مدیریت مدل‌های AI", url: "/ai/models", icon: Cpu },
+          { title: "مدل‌های فعال AI", url: "/ai/models", icon: Cpu },
           { title: "تنظیمات Providerها", url: "/ai/settings", icon: Cpu },
         ]
       },

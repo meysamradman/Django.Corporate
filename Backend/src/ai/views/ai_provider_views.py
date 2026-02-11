@@ -1,17 +1,14 @@
-from django.db.models import Q, Count
+from django.db.models import Count
 from src.ai.utils.cache import AICacheManager
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from django_filters.rest_framework import DjangoFilterBackend
-from src.ai.models import AIProvider, AIModel, AdminProviderSettings
+from src.ai.models import AIProvider, AdminProviderSettings, AICapabilityModel
 from src.ai.serializers.ai_provider_serializer import (
     AIProviderListSerializer,
     AIProviderDetailSerializer,
     AIProviderCreateUpdateSerializer,
-    AIModelListSerializer,
-    AIModelDetailSerializer,
-    AIModelCreateUpdateSerializer,
     AdminProviderSettingsSerializer,
     AdminProviderSettingsUpdateSerializer,
 )
@@ -45,13 +42,9 @@ class AIProviderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         is_super = getattr(self.request.user, 'is_superuser', False) or getattr(self.request.user, 'is_admin_full', False)
         
         if is_super:
-            return AIProvider.objects.all().annotate(
-                models_count=Count('models', filter=Q(models__is_active=True))
-            )
+            return AIProvider.objects.all()
         else:
-            return AIProvider.objects.filter(is_active=True).annotate(
-                models_count=Count('models', filter=Q(models__is_active=True))
-            )
+            return AIProvider.objects.filter(is_active=True)
     
     def get_serializer_class(self):
         if self.action == 'list':
@@ -171,145 +164,9 @@ class AIProviderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             message=AI_SUCCESS.get('statistics_retrieved', 'Statistics retrieved successfully'),
             data={
                 'total_providers': providers.count(),
-                'total_models': AIModel.objects.filter(provider__is_active=True, is_active=True).count(),
+                'total_models': AICapabilityModel.objects.filter(provider__is_active=True, is_active=True).count(),
                 'total_requests': sum(p.total_requests for p in providers),
             },
-            status_code=status.HTTP_200_OK
-        )
-
-class AIModelViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
-    permission_classes = [ai_permission]
-    
-    permission_map = {
-        'list': 'ai.manage',
-        'retrieve': 'ai.manage',
-        'create': 'ai.manage',
-        'update': 'ai.manage',
-        'partial_update': 'ai.manage',
-        'destroy': 'ai.manage',
-        'by_capability': 'ai.manage',
-        'by_provider': 'ai.manage',
-        'active_model': 'ai.manage',
-    }
-    permission_denied_message = AI_ERRORS['settings_not_authorized']
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['provider', 'is_active']
-    search_fields = ['name', 'display_name', 'description', 'model_id']
-    ordering_fields = ['name', 'sort_order', 'total_requests', 'created_at']
-    ordering = ['provider__sort_order', 'sort_order', 'name']
-    
-    def get_queryset(self):
-        queryset = AIModel.objects.filter(
-            provider__is_active=True
-        ).select_related('provider')
-        
-        capability = self.request.query_params.get('capability')
-        if capability:
-            queryset = [m for m in queryset if capability in m.capabilities]
-        
-        return queryset
-    
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return AIModelListSerializer
-        elif self.action in ['create', 'update', 'partial_update']:
-            return AIModelCreateUpdateSerializer
-        return AIModelDetailSerializer
-    
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['request'] = self.request
-        return context
-    
-    def perform_create(self, serializer):
-        serializer.save()
-        AICacheManager.invalidate_models()
-    
-    def perform_update(self, serializer):
-        serializer.save()
-        AICacheManager.invalidate_models()
-    
-    @action(detail=False, methods=['get'])
-    def by_capability(self, request):
-        capability = request.query_params.get('capability')
-        if not capability:
-            return APIResponse.error(
-                message=AI_ERRORS['validation_error'],
-                status_code=status.HTTP_400_BAD_REQUEST
-            )
-        
-        include_inactive = request.query_params.get('include_inactive', 'true').lower() == 'true'
-        models = AIModel.get_models_by_capability(capability, include_inactive=include_inactive)
-        
-        is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
-        if not is_super:
-            models = [m for m in models if m.provider.is_active]
-        
-        serializer = AIModelListSerializer(models, many=True, context={'request': request})
-        return APIResponse.success(
-            message=AI_SUCCESS.get('models_list_retrieved', 'Models retrieved successfully'),
-            data=serializer.data,
-            status_code=status.HTTP_200_OK
-        )
-    
-    @action(detail=False, methods=['get'])
-    def by_provider(self, request):
-        provider_slug = request.query_params.get('provider')
-        if not provider_slug:
-            return APIResponse.error(
-                message=AI_ERRORS['validation_error'],
-                status_code=status.HTTP_400_BAD_REQUEST
-            )
-        
-        is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
-        if not is_super:
-            try:
-                provider = AIProvider.objects.get(slug=provider_slug)
-                if not provider.is_active:
-                    return APIResponse.error(
-                        message=AI_ERRORS['provider_not_active'],
-                        status_code=status.HTTP_403_FORBIDDEN
-                    )
-            except AIProvider.DoesNotExist:
-                return APIResponse.error(
-                    message=AI_ERRORS['provider_not_found'],
-                    status_code=status.HTTP_404_NOT_FOUND
-                )
-        
-        capability = request.query_params.get('capability')
-        models = AIModel.get_models_by_provider(provider_slug, capability)
-        serializer = AIModelListSerializer(models, many=True, context={'request': request})
-        return APIResponse.success(
-            message=AI_SUCCESS.get('models_list_retrieved', 'Models retrieved successfully'),
-            data=serializer.data,
-            status_code=status.HTTP_200_OK
-        )
-    
-    @action(detail=False, methods=['get'])
-    def active_model(self, request):
-        
-        provider_slug = request.query_params.get('provider')
-        capability = request.query_params.get('capability')
-        
-        if not provider_slug or not capability:
-            return APIResponse.error(
-                message=AI_ERRORS['validation_error'],
-                errors={'detail': 'Both provider and capability are required'},
-                status_code=status.HTTP_400_BAD_REQUEST
-            )
-        
-        active_model = AIModel.objects.get_active_model(provider_slug, capability)
-        
-        if not active_model:
-            return APIResponse.error(
-                message=AI_ERRORS.get('no_active_model', 'No active model found for this provider+capability'),
-                status_code=status.HTTP_404_NOT_FOUND
-            )
-        
-        serializer = AIModelDetailSerializer(active_model, context={'request': request})
-        return APIResponse.success(
-            message=AI_SUCCESS.get('model_retrieved', 'Active model retrieved successfully'),
-            data=serializer.data,
             status_code=status.HTTP_200_OK
         )
 

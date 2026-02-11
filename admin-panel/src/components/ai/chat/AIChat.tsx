@@ -4,7 +4,7 @@ import { Trash2, Sparkles } from 'lucide-react';
 import { useAuth } from '@/core/auth/AuthContext';
 import { mediaService } from '@/components/media/services';
 import { useChatMessages, useChatProviders, useChatHandlers } from './hooks';
-import { ChatMessageList, ChatInput, ProviderSelector } from './components';
+import { ChatMessageList, ChatInput } from './components';
 
 interface AIChatProps {
     compact?: boolean;
@@ -16,18 +16,9 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
 
     const permissionsObject = user?.permissions as any;
     const permissionsArray = (permissionsObject?.permissions || []) as string[];
-
     const hasAIPermission = permissionsArray.some((p: string) =>
         p === 'all' || p === 'ai.manage' || p.startsWith('ai.')
     );
-
-    const {
-        messages,
-        messagesEndRef,
-        addMessage,
-        removeLastUserMessage,
-        clearMessages,
-    } = useChatMessages({ compact, userAuthenticated: !!user });
 
     const {
         availableProviders,
@@ -37,8 +28,19 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
         showProviderDropdown,
         setShowProviderDropdown,
         selectedProviderData,
-        clearProviderStorage,
-    } = useChatProviders({ compact, hasAIPermission, userAuthenticated: !!user });
+    } = useChatProviders({
+        compact,
+        hasAIPermission,
+        userAuthenticated: !!user,
+    });
+
+    const {
+        messages,
+        messagesEndRef,
+        addMessage,
+        removeLastUserMessage,
+        clearMessages,
+    } = useChatMessages({ compact, userAuthenticated: !!user });
 
     const {
         message,
@@ -86,24 +88,14 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
 
     const handleClearChat = () => {
         clearMessages();
-        clearProviderStorage();
     };
 
     if (compact) {
         return (
             <div className="flex flex-col h-full relative">
-                <div className="flex-shrink-0 flex items-center justify-between p-3 border-b border-br bg-bg/50">
+                <div className="shrink-0 flex items-center justify-between p-3 border-b border-br bg-bg/50">
                     <div className="flex items-center gap-2">
                         <h3 className="text-sm font-semibold text-font-p">چت با AI</h3>
-                        <ProviderSelector
-                            compact={true}
-                            loadingProviders={loadingProviders}
-                            availableProviders={availableProviders}
-                            selectedProvider={selectedProvider}
-                            setSelectedProvider={setSelectedProvider}
-                            showProviderDropdown={showProviderDropdown}
-                            setShowProviderDropdown={setShowProviderDropdown}
-                        />
                     </div>
                     {messages.length > 0 && (
                         <Button
@@ -147,6 +139,7 @@ export function AIChat({ compact = false }: AIChatProps = {}) {
                     setSelectedProvider={setSelectedProvider}
                     showProviderDropdown={showProviderDropdown}
                     setShowProviderDropdown={setShowProviderDropdown}
+                    selectedProviderData={selectedProviderData}
                 />
             </div>
         );

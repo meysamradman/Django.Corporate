@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 
 from src.ai.models import AIProvider, AdminProviderSettings
+from src.ai.utils.state_machine import ModelAccessState
 from src.ai.serializers.audio_generation_serializer import AIAudioGenerationRequestSerializer
 from src.ai.services.audio_generation_service import AIAudioGenerationService
 from src.media.serializers.media_serializer import MediaAdminSerializer
@@ -11,7 +12,11 @@ from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.core.responses.response import APIResponse
 from src.user.access_control import ai_permission, PermissionRequiredMixin
+from src.ai.providers.registry import AIProviderRegistry
 import base64
+import logging
+
+logger = logging.getLogger(__name__)
 
 class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
@@ -86,18 +91,48 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
         
         validated_data = serializer.validated_data
         save_to_db = validated_data.get('save_to_db', False)
+
+        provider_slug = validated_data.get('provider_name')
+        if not provider_slug:
+            for candidate in AIProvider.objects.filter(is_active=True).order_by('sort_order', 'display_name'):
+                if not AIProviderRegistry.get(candidate.slug):
+                    continue
+                if not candidate.supports_capability('audio'):
+                    continue
+                provider_slug = candidate.slug
+                break
+
+        if not provider_slug:
+            return APIResponse.error(
+                message=AI_ERRORS.get('no_active_providers', 'هیچ Provider فعالی یافت نشد'),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            provider = AIProvider.objects.get(slug=provider_slug, is_active=True)
+        except AIProvider.DoesNotExist:
+            return APIResponse.error(
+                message=AI_ERRORS["provider_not_found_or_inactive"].format(provider_name=provider_slug),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        state = ModelAccessState.calculate(provider, None, request.user)
+        if state not in [ModelAccessState.AVAILABLE_SHARED, ModelAccessState.AVAILABLE_PERSONAL]:
+            return APIResponse.error(
+                message=AI_ERRORS["model_access_denied"],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
         
         try:
             if save_to_db:
                 with transaction.atomic():
                     media = AIAudioGenerationService.generate_and_save_to_media(
-                        provider_name=validated_data['provider_name'],
+                        provider_name=provider_slug,
                         text=validated_data['text'],
                         user_id=request.user.id if hasattr(request.user, 'id') else None,
                         title=validated_data.get('title'),
                         save_to_db=True,
                         admin=request.user,
-                        model=validated_data.get('model', 'tts-1'),
                         voice=validated_data.get('voice', 'alloy'),
                         speed=validated_data.get('speed', 1.0),
                         response_format=validated_data.get('response_format', 'mp3'),
@@ -115,9 +150,8 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
                     )
             else:
                 audio_bytes, metadata = AIAudioGenerationService.generate_audio_only(
-                    provider_name=validated_data['provider_name'],
+                    provider_name=provider_slug,
                     text=validated_data['text'],
-                    model=validated_data.get('model', 'tts-1'),
                     voice=validated_data.get('voice', 'alloy'),
                         speed=validated_data.get('speed', 1.0),
                         response_format=validated_data.get('response_format', 'mp3'),
@@ -140,6 +174,20 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
                     status_code=status.HTTP_200_OK
                 )
             
+        except NotImplementedError as e:
+            # e.g. provider.text_to_speech not implemented
+            logger.warning(
+                "AI audio generation not supported by provider",
+                extra={
+                    'provider': provider_slug,
+                    'admin_id': getattr(request.user, 'id', None),
+                    'save_to_db': save_to_db,
+                }
+            )
+            return APIResponse.error(
+                message=AI_ERRORS.get('provider_tts_not_supported', str(e)).format(provider_name=provider_slug),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
         except ValueError as e:
             error_message = str(e)
             if any(key in error_message for key in ['Provider', 'API key', 'not active', 'not supported']):
@@ -153,6 +201,14 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
+            logger.exception(
+                "AI audio generation failed",
+                extra={
+                    'provider': provider_slug,
+                    'admin_id': getattr(request.user, 'id', None),
+                    'save_to_db': save_to_db,
+                }
+            )
             return APIResponse.error(
                 message=AI_ERRORS["audio_generation_failed"].format(error=str(e)),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR

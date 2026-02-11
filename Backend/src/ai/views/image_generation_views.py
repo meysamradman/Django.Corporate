@@ -4,7 +4,7 @@ from django.db import transaction
 import time
 import base64
 
-from src.ai.models import AIProvider, AIModel, AdminProviderSettings
+from src.ai.models import AIProvider, AdminProviderSettings, AICapabilityModel
 from src.ai.utils.state_machine import ModelAccessState
 from src.ai.services.image_generation_service import AIImageGenerationService
 from src.ai.serializers.image_generation_serializer import (
@@ -16,7 +16,7 @@ from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.core.responses.response import APIResponse
 from src.user.access_control import ai_permission, SuperAdminOnly, PermissionValidator
-from src.ai.providers.capabilities import PROVIDER_CAPABILITIES, get_provider_capabilities
+from src.ai.providers.capabilities import PROVIDER_CAPABILITIES, get_provider_capabilities, get_default_model
 from src.ai.providers.openrouter import OpenRouterProvider, OpenRouterModelCache
 from src.ai.providers.huggingface import HuggingFaceProvider
 from src.media.serializers.media_serializer import MediaAdminSerializer
@@ -374,36 +374,99 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
             )
         
         data = serializer.validated_data
-        model_id = data.get('model_id')
-        save_to_db = data.get('save_to_media', True)
+        provider_name = data.get('provider_name')
+        save_to_db = data.get('save_to_media', False)
         
         try:
-            model = AIModel.objects.select_related('provider').get(id=model_id)
-            
-            state = ModelAccessState.calculate(model.provider, model, request.user)
-            if state not in [ModelAccessState.AVAILABLE_SHARED, ModelAccessState.AVAILABLE_PERSONAL]:
-                return APIResponse.error(
-                    message=AI_ERRORS["model_access_denied"],
-                    status_code=status.HTTP_403_FORBIDDEN
-                )
-            
-            if 'image' not in model.capabilities:
-                return APIResponse.error(
-                    message=AI_ERRORS["model_no_image_capability"],
-                    status_code=status.HTTP_400_BAD_REQUEST
-                )
+            provider = None
+            active_model = None
+
+            # If provider is not specified, use the single active capability mapping.
+            if not provider_name:
+                active_model = AICapabilityModel.objects.get_active('image')
+                if not active_model:
+                    return APIResponse.error(
+                        message=AI_ERRORS.get('no_active_model_any_provider', 'No active model').format(capability='image'),
+                        status_code=status.HTTP_400_BAD_REQUEST
+                    )
+
+                provider = active_model.provider
+
+                state = ModelAccessState.calculate(provider, active_model, request.user)
+                if state not in [ModelAccessState.AVAILABLE_SHARED, ModelAccessState.AVAILABLE_PERSONAL]:
+                    return APIResponse.error(
+                        message=AI_ERRORS["model_access_denied"],
+                        status_code=status.HTTP_403_FORBIDDEN
+                    )
+                
+                model_id = active_model.model_id
+                model_display_name = active_model.display_name or active_model.model_id
+
+            else:
+                try:
+                    provider = AIProvider.objects.get(slug=provider_name, is_active=True)
+                except AIProvider.DoesNotExist:
+                    return APIResponse.error(
+                        message=AI_ERRORS["provider_not_found_or_inactive"].format(provider_name=provider_name),
+                        status_code=status.HTTP_400_BAD_REQUEST
+                    )
+
+                # Determine model ID (Check if active, else use default)
+                active_model = AICapabilityModel.objects.get_active('image')
+                
+                if active_model and active_model.provider_id == provider.id:
+                    model_id = active_model.model_id
+                    model_display_name = active_model.display_name or active_model.model_id
+                else:
+                    # On-the-fly provider selection
+                    model_id = get_default_model(provider.slug, 'image')
+                    if not model_id and provider.capabilities:
+                        model_id = provider.capabilities.get('image', {}).get('default_model')
+                    
+                    if not model_id:
+                        static_models = provider.get_static_models('image')
+                        if static_models:
+                            model_id = static_models[0]
+                    
+                    if not model_id:
+                        return APIResponse.error(
+                            message=f"No default model found for provider {provider.slug}",
+                            status_code=status.HTTP_400_BAD_REQUEST
+                        )
+                    model_display_name = model_id
+
+                # Permission Check
+                is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
+                has_access = False
+                
+                if is_super:
+                    has_access = True
+                else:
+                    settings = AdminProviderSettings.objects.filter(admin=request.user, provider=provider, is_active=True).first()
+                    if settings and settings.personal_api_key:
+                        has_access = True
+                    elif provider.allow_shared_for_normal_admins and provider.shared_api_key:
+                        has_access = True
+                
+                if not has_access:
+                    return APIResponse.error(
+                        message=AI_ERRORS["model_access_denied"],
+                        status_code=status.HTTP_403_FORBIDDEN
+                    )
+
             
             start_time = time.time()
             
             if save_to_db:
                 with transaction.atomic():
                     media = AIImageGenerationService.generate_and_save_to_media(
-                        provider_name=model.provider.slug,
+                        provider_name=provider.slug,
                         prompt=data.get('prompt'),
                         admin=request.user,
                         title=data.get('title', data.get('prompt')[:100]),
                         alt_text=data.get('alt_text', data.get('prompt')[:200]),
                         save_to_db=True,
+                        model_name=model_id,
                         size=data.get('size', '1024x1024'),
                         quality=data.get('quality', 'standard'),
                         style=data.get('style', 'vivid'),
@@ -423,9 +486,10 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
                     )
             else:
                 image_bytes, metadata = AIImageGenerationService.generate_image_only(
-                    provider_name=model.provider.slug,
+                    provider_name=provider.slug,
                     prompt=data.get('prompt'),
                     admin=request.user,
+                    model_name=model_id,
                     size=data.get('size', '1024x1024'),
                     quality=data.get('quality', 'standard'),
                     style=data.get('style', 'vivid'),
@@ -439,19 +503,14 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
                     data={
                         'image_data_url': f"data:image/png;base64,{image_base64}",
                         'prompt': data.get('prompt'),
-                        'provider': model.provider.display_name,
-                        'model': model.display_name,
+                        'provider': provider.display_name,
+                        'model': model_display_name,
                         'saved': False,
                         'generation_time_ms': int((time.time() - start_time) * 1000)
                     },
                     status_code=status.HTTP_200_OK
                 )
         
-        except AIModel.DoesNotExist:
-            return APIResponse.error(
-                message=AI_ERRORS["model_not_found"],
-                status_code=status.HTTP_404_NOT_FOUND
-            )
         except ValueError:
             return APIResponse.error(
                 message=AI_ERRORS["validation_error"],
@@ -465,32 +524,9 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='models')
     def available_models(self, request):
-        models = AIModel.objects.filter(
-            provider__is_active=True,
-            is_active=True
-        ).select_related('provider')
-        
-        result = []
-        for model in models:
-            if 'image' not in model.capabilities:
-                continue
-            
-            state = ModelAccessState.calculate(model.provider, model, request.user)
-            if state in [ModelAccessState.AVAILABLE_SHARED, ModelAccessState.AVAILABLE_PERSONAL]:
-                result.append({
-                    'id': model.id,
-                    'name': model.display_name,
-                    'provider': model.provider.display_name,
-                    'capabilities': model.capabilities,
-                    'is_free': model.pricing_input is None or model.pricing_input == 0,
-                    'access_source': state.value,
-                    'config': {
-                        'max_size': '1024x1024',
-                        'supported_sizes': ['256x256', '512x512', '1024x1024', '1024x1792', '1792x1024']
-                    }
-                })
-        
+        # Legacy endpoint kept to avoid breaking older clients.
+        # Model selection is no longer supported.
         return APIResponse.success(
-            message=AI_SUCCESS["models_list_retrieved"],
-            data=result
+            message=AI_SUCCESS.get("models_list_retrieved", "OK"),
+            data=[]
         )

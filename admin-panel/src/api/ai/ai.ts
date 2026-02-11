@@ -11,6 +11,7 @@ import type {
     AIModelList,
     AIModelDetail,
     AdminProviderSettings,
+    ActiveCapabilityModelsResponse,
 } from '@/types/ai/ai';
 
 export const aiApi = {
@@ -133,9 +134,9 @@ export const aiApi = {
             alt_text?: string;
             size?: string;
             quality?: string;
-            save_to_db?: boolean;
+            save_to_media?: boolean;
         }): Promise<ApiResponse<Media>> => {
-            const endpoint = '/admin/ai-generate/generate/';
+            const endpoint = '/admin/ai-images/generate/';
             return await api.post<Media>(endpoint, data as Record<string, unknown>);
         },
     },
@@ -275,7 +276,7 @@ export const aiApi = {
         sendMessage: async (data: {
             message: string;
             provider_name?: string;
-            model?: string;
+            model_id?: string;
             conversation_history?: Array<{ role: 'user' | 'assistant'; content: string }>;
             system_message?: string;
             temperature?: number;
@@ -285,6 +286,7 @@ export const aiApi = {
             message: string;
             reply: string;
             provider_name: string;
+            model_name?: string;
             generation_time_ms: number;
         }>> => {
             const endpoint = '/admin/ai-chat/send-message/';
@@ -293,7 +295,7 @@ export const aiApi = {
                 const formData = new FormData();
                 formData.append('message', data.message);
                 if (data.provider_name) formData.append('provider_name', data.provider_name);
-                if (data.model) formData.append('model', data.model);
+                if (data.model_id) formData.append('model_id', data.model_id);
                 if (data.system_message) formData.append('system_message', data.system_message);
                 if (data.temperature) formData.append('temperature', data.temperature.toString());
                 if (data.max_tokens) formData.append('max_tokens', data.max_tokens.toString());
@@ -307,6 +309,7 @@ export const aiApi = {
                     message: string;
                     reply: string;
                     provider_name: string;
+                    model_name?: string;
                     generation_time_ms: number;
                 }>(endpoint, formData as unknown as Record<string, unknown>);
             }
@@ -315,6 +318,7 @@ export const aiApi = {
                 message: string;
                 reply: string;
                 provider_name: string;
+                model_name?: string;
                 generation_time_ms: number;
             }>(endpoint, data as Record<string, unknown>);
         },
@@ -454,9 +458,11 @@ export const aiApi = {
             }
         },
 
-        getActiveModel: async (providerSlug: string, capability: string): Promise<ApiResponse<AIModelDetail>> => {
+        getActiveModel: async (providerSlug: string, capability?: string): Promise<ApiResponse<AIModelDetail>> => {
             try {
-                const endpoint = `/admin/ai-models/active-model/?provider=${providerSlug}&capability=${capability}`;
+                const params = new URLSearchParams({ provider: providerSlug });
+                if (capability) params.append('capability', capability);
+                const endpoint = `/admin/ai-models/active-model/?${params.toString()}`;
                 return await api.get<AIModelDetail>(endpoint);
             } catch {
                 throw new Error('خطا در دریافت مدل فعال');
@@ -524,16 +530,40 @@ export const aiApi = {
         selectModel: async (data: {
             provider: string;  // provider slug
             capability: string;
-            model_id: string;
-            model_name: string;
+            model_id?: string; // Optional/Ignored by backend
+            model_name?: string; // Optional/Ignored by backend
             pricing_input?: number;
             pricing_output?: number;
         }): Promise<ApiResponse<AIModelDetail>> => {
             try {
-                const endpoint = '/admin/ai-models/select-model/';
+                // Backend now handles provider selection via this endpoint
+                const endpoint = '/admin/ai-models/select-provider/';
                 return await api.post<AIModelDetail>(endpoint, data as Record<string, unknown>);
             } catch {
-                throw new Error('خطا در انتخاب مدل');
+                throw new Error('خطا در انتخاب Provider');
+            }
+        },
+
+        deactivateModel: async (data: {
+            provider: string;
+            model_id: string;
+        }): Promise<ApiResponse<{ model_id: string; is_active: boolean }>> => {
+            try {
+                const endpoint = '/admin/ai-models/deactivate-model/';
+                return await api.post<{ model_id: string; is_active: boolean }>(endpoint, data as Record<string, unknown>);
+            } catch {
+                throw new Error('خطا در غیرفعال‌سازی مدل');
+            }
+        },
+
+        getActiveCapabilities: async (): Promise<ApiResponse<ActiveCapabilityModelsResponse>> => {
+            try {
+                const endpoint = '/admin/ai-models/active-capabilities/';
+                return await api.get<ActiveCapabilityModelsResponse>(endpoint);
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'خطا در دریافت مدل‌های پیش‌فرض';
+                showError(errorMessage);
+                throw error;
             }
         },
     },

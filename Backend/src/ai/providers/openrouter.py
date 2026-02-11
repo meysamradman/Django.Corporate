@@ -40,10 +40,28 @@ class OpenRouterProvider(BaseProvider):
     
     def __init__(self, api_key: str, config: Optional[Dict[str, Any]] = None):
         super().__init__(api_key, config)
-        
-        self.chat_model = config.get('chat_model', 'google/gemini-2.5-flash') if config else 'google/gemini-2.5-flash'
-        self.content_model = config.get('content_model', 'google/gemini-2.5-flash') if config else 'google/gemini-2.5-flash'
-        self.image_model = config.get('image_model', 'openai/dall-e-3') if config else 'openai/dall-e-3'
+
+        selected_model = (config or {}).get('model') if config else None
+
+        # Back-compat + service-driven behavior:
+        # - New capability-based services pass the resolved model in `config['model']`.
+        # - Existing configs may still provide capability-specific keys.
+        self.chat_model = (
+            config.get('chat_model')
+            if config and config.get('chat_model')
+            else selected_model or 'google/gemini-2.5-flash'
+        )
+        self.content_model = (
+            config.get('content_model')
+            if config and config.get('content_model')
+            else selected_model or 'google/gemini-2.5-flash'
+        )
+        self.image_model = (
+            config.get('image_model')
+            if config and config.get('image_model')
+            else selected_model or 'openai/dall-e-3'
+        )
+
         self.http_referer = config.get('http_referer', '') if config else ''
         self.x_title = config.get('x_title', 'Corporate Admin Panel') if config else 'Corporate Admin Panel'
     
