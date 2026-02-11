@@ -80,7 +80,7 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
                 }
 
                 const providers = providersData.filter((p: AvailableProvider) =>
-                    p.can_generate === true && p.provider_name !== 'gemini' // Gemini typically text/chat only or specific check
+                    p.can_generate === true
                 );
 
                 setAvailableProviders(providers);

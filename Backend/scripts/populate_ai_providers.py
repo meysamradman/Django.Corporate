@@ -18,258 +18,110 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.django.base')
 django.setup()
 
 from src.ai.models import AIProvider, AICapabilityModel
-from src.ai.providers.capabilities import get_default_model
+from src.ai.providers.capabilities import PROVIDER_CAPABILITIES
 
 def populate_providers():
     """
-    Populate providers with Hardcoded Default Models.
-    UPDATED FOR 2026 CONTEXT (GPT-5, o3/o4, Gemini 2.0, Grok 3)
+    Populate providers, merging metadata with model lists from capabilities.py
     """
-    providers_data = [
-        {
+    # Base metadata (The only thing strictly hardcoded here now)
+    providers_meta = {
+        'openai': {
             'name': 'OpenAI',
-            'slug': 'openai',
-            'display_name': 'OpenAI',
+            'display_name': 'OpenAI', 
             'website': 'https://openai.com',
             'api_base_url': 'https://api.openai.com/v1',
             'description': 'Flagship: GPT-5, o4-mini | Reasoning: o3/o1',
             'provider_class': 'src.ai.providers.openai.OpenAIProvider',
-            'capabilities': {
-                'chat': {
-                    'supported': True,
-                    'has_dynamic_models': False,
-                    'models': [
-                        # Latest 2026 Series
-                        'gpt-5',
-                        'gpt-5-mini',
-                        'o4-mini',
-                        'o3-mini',
-                        
-                        # Legacy / 2025 Series
-                        'o1',
-                        'gpt-4o', 
-                        'gpt-4o-mini'
-                    ],
-                    'default_model': 'gpt-5'
-                },
-                'content': {
-                    'supported': True,
-                    'has_dynamic_models': False,
-                    'models': ['gpt-5', 'gpt-5-mini', 'gpt-4o'],
-                    'default_model': 'gpt-5-mini'
-                },
-                'image': {
-                    'supported': True,
-                    'has_dynamic_models': False,
-                    'models': ['dall-e-3', 'dall-e-4-preview'],
-                    'default_model': 'dall-e-3'
-                },
-                'audio': {
-                    'supported': True,
-                    'has_dynamic_models': False,
-                    'models': ['tts-1', 'tts-1-hd', 'tts-2-preview'],
-                    'default_model': 'tts-1'
-                }
-            },
-            'allow_personal_keys': True,
-            'allow_shared_for_normal_admins': False,
-            'is_active': True, 
             'sort_order': 1,
         },
-        {
+        'google': {
             'name': 'Google Gemini',
-            'slug': 'gemini',
             'display_name': 'Google Gemini',
             'website': 'https://ai.google.dev',
             'api_base_url': 'https://generativelanguage.googleapis.com/v1',
             'description': 'Gemini 2.0 Flash/Pro | Imagen 3',
             'provider_class': 'src.ai.providers.gemini.GeminiProvider',
-            'capabilities': {
-                'chat': {
-                    'supported': True,
-                    'has_dynamic_models': False,
-                    'models': [
-                        'gemini-2.0-pro',
-                        'gemini-2.0-flash',
-                        'gemini-1.5-pro', 
-                        'gemini-1.5-flash'
-                    ],
-                    'default_model': 'gemini-2.0-pro'
-                },
-                'content': {
-                    'supported': True,
-                    'has_dynamic_models': False,
-                    'models': ['gemini-2.0-pro', 'gemini-2.0-flash'],
-                    'default_model': 'gemini-2.0-flash'
-                },
-                'image': {
-                    'supported': True,
-                    'has_dynamic_models': False,
-                    'models': ['imagen-3', 'imagen-3-fast'],
-                    'default_model': 'imagen-3'
-                },
-                'audio': {
-                    'supported': False
-                }
-            },
-            'allow_personal_keys': True,
-            'allow_shared_for_normal_admins': False,
-            'is_active': True,
             'sort_order': 2,
         },
-        {
+        'deepseek': {
             'name': 'DeepSeek',
-            'slug': 'deepseek',
             'display_name': 'DeepSeek AI',
             'website': 'https://deepseek.com',
             'api_base_url': 'https://api.deepseek.com',
             'description': 'Chat: DeepSeek V3 | Reasoning: R1',
             'provider_class': 'src.ai.providers.deepseek.DeepSeekProvider',
-            'capabilities': {
-                'chat': {
-                    'supported': True,
-                    'has_dynamic_models': False,
-                    'models': ['deepseek-chat', 'deepseek-reasoner'],
-                    'default_model': 'deepseek-chat'
-                },
-                'content': {
-                    'supported': True,
-                    'has_dynamic_models': False,
-                    'models': ['deepseek-chat', 'deepseek-reasoner'],
-                    'default_model': 'deepseek-chat'
-                },
-                'image': {
-                    'supported': False
-                },
-                'audio': {
-                    'supported': False
-                }
-            },
-            'allow_personal_keys': True,
-            'allow_shared_for_normal_admins': True,
-            'is_active': True,
             'sort_order': 3,
         },
-        {
+        'openrouter': {
             'name': 'OpenRouter',
-            'slug': 'openrouter',
             'display_name': 'OpenRouter',
             'website': 'https://openrouter.ai',
             'api_base_url': 'https://openrouter.ai/api/v1',
             'description': 'Hub: Claude 3.5/Opus, Grok 2/3, Llama 3/4',
             'provider_class': 'src.ai.providers.openrouter.OpenRouterProvider',
-            'capabilities': {
-                'chat': {
-                    'supported': True,
-                    'has_dynamic_models': True,
-                    'models': [
-                        # --- Paid / Premium (Best) ---
-                        'anthropic/claude-3.7-sonnet',    # Projected 2026/Late 2025
-                        'anthropic/claude-3.5-opus',
-                        'xai/grok-2',
-                        'xai/grok-3-beta',               # Projected 2026
-                        'meta-llama/llama-4-70b-instruct', # Projected 2026
-                        'google/gemini-2.0-pro-exp:free', # Sometimes free on OR
-                        
-                        # --- Cost Effective / Free Tier ---
-                        'meta-llama/llama-3.2-3b-instruct:free',
-                        'microsoft/phi-4-mini:free',
-                        'mistralai/mistral-small-24b-instruct-2501'
-                    ],
-                    'default_model': 'anthropic/claude-3.7-sonnet'
-                },
-                'content': {
-                    'supported': True,
-                    'has_dynamic_models': True,
-                    'models': [
-                        'anthropic/claude-3.7-sonnet',
-                        'xai/grok-2',
-                        'google/gemini-2.0-flash'
-                    ],
-                    'default_model': 'anthropic/claude-3.7-sonnet'
-                },
-                'image': {
-                    'supported': True,
-                    'has_dynamic_models': True,
-                    'models': [
-                        'black-forest-labs/flux-1-pro',
-                        'stabilityai/stable-diffusion-3.5-large',
-                        'openai/dall-e-3'
-                    ],
-                    'default_model': 'black-forest-labs/flux-1-pro'
-                },
-                'audio': {
-                    'supported': False
-                }
-            },
-            'allow_personal_keys': True,
-            'allow_shared_for_normal_admins': True,
-            'is_active': True,
             'sort_order': 4,
         },
-        {
+        'huggingface': {
             'name': 'Hugging Face',
-            'slug': 'huggingface',
             'display_name': 'Hugging Face',
             'website': 'https://huggingface.co',
             'api_base_url': 'https://api-inference.huggingface.co',
             'description': 'Open Source Inference API',
             'provider_class': 'src.ai.providers.huggingface.HuggingFaceProvider',
-            'capabilities': {
-                'chat': {
-                    'supported': True,
-                    'has_dynamic_models': True,
-                    'models': [
-                        # Reliable Inference Endpoints
-                        'meta-llama/Meta-Llama-3-8B-Instruct',
-                        'meta-llama/Llama-3.2-3B-Instruct',
-                        'mistralai/Mistral-Nemo-Instruct-2407',
-                        'google/gemma-2-27b-it'
-                    ],
-                    'default_model': 'meta-llama/Meta-Llama-3-8B-Instruct'
-                },
-                'content': {
-                    'supported': True,
-                    'has_dynamic_models': True,
-                    'models': [
-                        'meta-llama/Meta-Llama-3-8B-Instruct',
-                        'Qwen/Qwen2.5-7B-Instruct'
-                    ],
-                    'default_model': 'meta-llama/Meta-Llama-3-8B-Instruct'
-                },
-                'image': {
-                    'supported': True,
-                    'has_dynamic_models': True,
-                    'models': [
-                        'black-forest-labs/FLUX.1-dev',
-                        'stabilityai/stable-diffusion-3.5-large'
-                    ],
-                    'default_model': 'black-forest-labs/FLUX.1-dev'
-                },
-                'audio': {
-                    'supported': False
-                }
-            },
-            'allow_personal_keys': True,
-            'allow_shared_for_normal_admins': True,
-            'is_active': True,
             'sort_order': 5,
         }
-    ]
+    }
 
-    print(f'Populating {len(providers_data)} Providers...')
+    print(f'Populating {len(providers_meta)} Providers from Capabilities...')
     
     valid_slugs = []
     created_count = 0
     updated_count = 0
 
-    for data in providers_data:
-        slug = data['slug']
+    for slug, meta in providers_meta.items():
         valid_slugs.append(slug)
         
+        # Check for name collision with DIFFERENT slug
+        # Because we update_or_create by slug, if slug not found -> tries create -> name unique fails if name exists on another slug.
+        try:
+            colliding_provider = AIProvider.objects.filter(name=meta['name']).exclude(slug=slug).first()
+            if colliding_provider:
+                print(f" WARN: Provider '{meta['name']}' exists with different slug '{colliding_provider.slug}'. Deleting collision...")
+                colliding_provider.delete()
+        except Exception as e:
+            print(f" Warning checking collision: {e}")
+
+        # Merge basic meta with the 'capabilities' dict from PROVIDER_CAPABILITIES
+        # But wait, PROVIDER_CAPABILITIES structure is flat (supports_chat, models={chat:[]})
+        # We need to transform it back to the DB format: capabilities: { chat: { supported: T, models: [] } }
+        
+        cap_source = PROVIDER_CAPABILITIES.get(slug, {})
+        
+        # Transform flat structure to DB JSON structure
+        db_capabilities = {}
+        for cap_type in ['chat', 'content', 'image', 'audio']:
+            is_supported = cap_source.get(f'supports_{cap_type}', False)
+            model_list = cap_source.get('models', {}).get(cap_type, [])
+            default_model = cap_source.get('default_models', {}).get(cap_type)
+            
+            db_capabilities[cap_type] = {
+                'supported': is_supported,
+                'has_dynamic_models': cap_source.get('has_dynamic_models', False),
+                'models': model_list,
+                'default_model': default_model
+            }
+        
+        defaults = meta.copy()
+        defaults['slug'] = slug
+        defaults['capabilities'] = db_capabilities
+        defaults['allow_personal_keys'] = True
+        defaults['allow_shared_for_normal_admins'] = (slug != 'openai' and slug != 'google') # Logic from before
+        defaults['is_active'] = True
+
         provider, created = AIProvider.objects.update_or_create(
             slug=slug,
-            defaults=data
+            defaults=defaults
         )
         if created:
             created_count += 1

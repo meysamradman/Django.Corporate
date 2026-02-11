@@ -65,7 +65,7 @@ class AIModelManagementViewSet(viewsets.ViewSet):
 
         if provider_slug == 'openrouter':
             from src.ai.providers.openrouter import OpenRouterProvider
-            from src.ai.models import AIProvider
+            # AIProvider is already imported at module level
             try:
                 # 1. Fetch provider details to get API Key (if using shared/configured)
                 provider_obj = AIProvider.objects.filter(slug='openrouter').first()

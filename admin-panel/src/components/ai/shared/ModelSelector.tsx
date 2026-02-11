@@ -58,7 +58,8 @@ export function ModelSelector({
                 setModels([]);
             }
             setFetchedProvider(providerSlug);
-        } catch {
+        } catch (e) {
+            console.error('[ModelSelector] Error fetching:', e);
             // Silently fail for standard providers if they don't support listing
              setModels([]);
         } finally {

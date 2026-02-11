@@ -1,61 +1,6 @@
 from src.ai.models import AIProvider
 
 PROVIDER_CAPABILITIES = {
-    'openrouter': {
-        'supports_chat': True,
-        'supports_content': True,
-        'supports_image': True,
-        'supports_audio': False,
-        'has_dynamic_models': True,
-        'models': {
-            'chat': 'dynamic',
-            'content': 'dynamic',
-            'image': 'dynamic',
-            'audio': [],
-        },
-        'default_models': {
-            # Keep consistent with our product rule: admin selects provider only,
-            # backend picks a stable default model per capability.
-            'chat': 'openai/gpt-oss-20b:free',
-            'content': 'openai/gpt-oss-20b:free',
-            'image': 'openai/dall-e-3',
-            'audio': None,
-        }
-    },
-    'gemini': {
-        'supports_chat': True,
-        'supports_content': True,
-        # Provider implementation currently raises NotImplementedError for image
-        # and has no audio generation implementation.
-        'supports_image': False,
-        'supports_audio': False,
-        'has_dynamic_models': False,
-        'models': {
-            'chat': [
-                'gemini-2.0-flash-exp',
-                'gemini-1.5-pro',
-                'gemini-1.5-flash',
-                'gemini-1.0-pro',
-            ],
-            'content': [
-                'gemini-2.0-flash-exp',
-                'gemini-1.5-pro',
-                'gemini-1.5-flash',
-                'gemini-1.0-pro',
-            ],
-            'image': [
-                'imagen-3.0-generate-001',
-                'imagen-3.0-fast-generate-001',
-            ],
-            'audio': [],
-        },
-        'default_models': {
-            'chat': 'gemini-2.0-flash-exp',
-            'content': 'gemini-2.0-flash-exp',
-            'image': None,
-            'audio': None,
-        }
-    },
     'openai': {
         'supports_chat': True,
         'supports_content': True,
@@ -64,34 +9,60 @@ PROVIDER_CAPABILITIES = {
         'has_dynamic_models': False,
         'models': {
             'chat': [
-                'gpt-4o',
-                'gpt-4o-mini',
-                'gpt-4-turbo',
-                'gpt-4',
-                'gpt-3.5-turbo',
+                # Latest 2026 Series
+                'gpt-5',
+                'gpt-5-mini',
+                'o4-mini',
+                'o3-mini',
+                # Legacy / 2025 Series
+                'o1',
+                'gpt-4o', 
+                'gpt-4o-mini'
             ],
             'content': [
-                'gpt-4o',
-                'gpt-4o-mini',
-                'gpt-4-turbo',
-                'gpt-4',
-                'gpt-3.5-turbo',
+                'gpt-5',
+                'gpt-5-mini', 
+                'gpt-4o', 
+                'gpt-4o-mini'
             ],
-            'image': [
-                'dall-e-3',
-                'dall-e-2',
-            ],
-            'audio': [
-                'tts-1',
-                'tts-1-hd',
-            ],
+            'image': ['dall-e-3', 'dall-e-4-preview'],
+            'audio': ['tts-1', 'tts-1-hd', 'tts-2-preview'],
         },
         'default_models': {
-            'chat': 'gpt-4o-mini',
-            'content': 'gpt-4o-mini',
+            'chat': 'gpt-5',
+            'content': 'gpt-5-mini',
             'image': 'dall-e-3',
             'audio': 'tts-1',
-        }
+        },
+        'provider_class': 'src.ai.providers.openai.OpenAIProvider',
+    },
+    'google': {
+        'supports_chat': True,
+        'supports_content': True,
+        'supports_image': True,
+        'supports_audio': False,
+        'has_dynamic_models': False,
+        'models': {
+            'chat': [
+                'gemini-2.0-pro',
+                'gemini-2.0-flash',
+                'gemini-1.5-pro',
+                'gemini-1.5-flash',
+            ],
+            'content': [
+                'gemini-2.0-pro',
+                'gemini-2.0-flash',
+            ],
+            'image': ['imagen-3', 'imagen-3-fast'],
+            'audio': [],
+        },
+        'default_models': {
+            'chat': 'gemini-2.0-pro',
+            'content': 'gemini-2.0-flash',
+            'image': 'imagen-3',
+            'audio': None,
+        },
+        'provider_class': 'src.ai.providers.gemini.GeminiProvider',
     },
     'deepseek': {
         'supports_chat': True,
@@ -100,14 +71,8 @@ PROVIDER_CAPABILITIES = {
         'supports_audio': False,
         'has_dynamic_models': False,
         'models': {
-            'chat': [
-                'deepseek-chat',
-                'deepseek-coder',
-            ],
-            'content': [
-                'deepseek-chat',
-                'deepseek-coder',
-            ],
+            'chat': ['deepseek-chat', 'deepseek-reasoner'],
+            'content': ['deepseek-chat', 'deepseek-reasoner'],
             'image': [],
             'audio': [],
         },
@@ -116,26 +81,44 @@ PROVIDER_CAPABILITIES = {
             'content': 'deepseek-chat',
             'image': None,
             'audio': None,
-        }
+        },
+        'provider_class': 'src.ai.providers.deepseek.DeepSeekProvider',
     },
-    'groq': {
+    'openrouter': {
         'supports_chat': True,
         'supports_content': True,
-        'supports_image': False,
+        'supports_image': True,
         'supports_audio': False,
         'has_dynamic_models': True,
         'models': {
-            'chat': 'dynamic',
-            'content': 'dynamic',
-            'image': [],
+            'chat': [
+                'anthropic/claude-3.7-sonnet',
+                'anthropic/claude-3.5-opus',
+                'xai/grok-2',
+                'xai/grok-3-beta',
+                'meta-llama/llama-4-70b-instruct',
+                'google/gemini-2.0-pro-exp:free',
+                'meta-llama/llama-3.2-3b-instruct:free',
+            ],
+            'content': [
+                'anthropic/claude-3.7-sonnet',
+                'xai/grok-2',
+                'google/gemini-2.0-flash'
+            ],
+            'image': [
+                'black-forest-labs/flux-1-pro',
+                'stabilityai/stable-diffusion-3.5-large',
+                'openai/dall-e-3'
+            ],
             'audio': [],
         },
         'default_models': {
-            'chat': 'llama-3.1-8b-instant',
-            'content': 'llama-3.1-8b-instant',
-            'image': None,
+            'chat': 'anthropic/claude-3.7-sonnet',
+            'content': 'anthropic/claude-3.7-sonnet',
+            'image': 'black-forest-labs/flux-1-pro',
             'audio': None,
-        }
+        },
+        'provider_class': 'src.ai.providers.openrouter.OpenRouterProvider',
     },
     'huggingface': {
         'supports_chat': True,
@@ -144,23 +127,30 @@ PROVIDER_CAPABILITIES = {
         'supports_audio': False,
         'has_dynamic_models': True,
         'models': {
-            'chat': 'dynamic',
-            'content': 'dynamic',
+            'chat': [
+                'meta-llama/Meta-Llama-3-8B-Instruct',
+                'meta-llama/Llama-3.2-3B-Instruct',
+                'mistralai/Mistral-Nemo-Instruct-2407',
+                'google/gemma-2-27b-it'
+            ],
+            'content': [
+                'meta-llama/Meta-Llama-3-8B-Instruct',
+                'Qwen/Qwen2.5-7B-Instruct'
+            ],
             'image': [
-                'stabilityai/stable-diffusion-xl-base-1.0',
-                'stabilityai/stable-diffusion-2-1',
-                'runwayml/stable-diffusion-v1-5',
+                'black-forest-labs/FLUX.1-dev',
+                'stabilityai/stable-diffusion-3.5-large'
             ],
             'audio': [],
         },
         'default_models': {
-            # Router OpenAI-compatible chat model IDs (best-effort default)
-            'chat': 'meta-llama/Llama-3.1-8B-Instruct',
-            'content': 'meta-llama/Llama-3.1-8B-Instruct',
-            'image': 'stabilityai/stable-diffusion-xl-base-1.0',
+            'chat': 'meta-llama/Meta-Llama-3-8B-Instruct',
+            'content': 'meta-llama/Meta-Llama-3-8B-Instruct',
+            'image': 'black-forest-labs/FLUX.1-dev',
             'audio': None,
-        }
-    },
+        },
+        'provider_class': 'src.ai.providers.huggingface.HuggingFaceProvider',
+    }
 }
 
 def get_provider_capabilities(provider_name: str) -> dict:

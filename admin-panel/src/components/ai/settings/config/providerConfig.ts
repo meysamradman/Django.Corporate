@@ -24,7 +24,15 @@ export const PROVIDER_METADATA: Record<string, ProviderMetadata> = {
     category: 'popular',
     supportedFeatures: ['chat', 'content', 'image'],
   },
-  'gemini': {
+  'google': {
+    name: 'Google Gemini',
+    icon: '🔵',
+    description: 'Gemini 2.0 Flash, Pro',
+    apiKeyLabel: 'Google API Key',
+    category: 'popular',
+    supportedFeatures: ['chat', 'content'],
+  },
+  'gemini': { // Legacy/Fallback
     name: 'Google Gemini',
     icon: '🔵',
     description: 'Gemini 2.0 Flash, Pro',
@@ -87,7 +95,8 @@ export const BACKEND_TO_FRONTEND_ID: Record<string, string> = {
   'openrouter': 'openrouter',
   'openai': 'openai',
   'deepseek': 'deepseek',
-  'gemini': 'gemini',
+  'google': 'google',
+  'gemini': 'google', // Map 'gemini' from backend (if lingering) to 'google' frontend
   'huggingface': 'huggingface',
   'groq': 'groq',
 };
@@ -96,7 +105,8 @@ export const FRONTEND_TO_BACKEND_NAME: Record<string, string> = {
   'openrouter': 'openrouter',
   'openai': 'openai',
   'deepseek': 'deepseek',
-  'gemini': 'gemini',
+  'google': 'google', // New slug
+  'gemini': 'google', // Old frontend usage maps to new backend slug
   'huggingface': 'huggingface',
   'groq': 'groq',
 };

@@ -51,6 +51,22 @@ export function useChatProviders({ compact = false, hasAIPermission = false, use
                     ? response.data
                     : (response.data as any)?.data || [];
                 setAvailableProviders(providersData);
+
+                // Auto-select migration (gemini -> google) or default
+                if (providersData.length > 0) {
+                    setSelectedProvider(prev => {
+                        if (prev === 'gemini') {
+                             const googleExists = providersData.some((p: any) => p.slug === 'google');
+                             if (googleExists) return 'google';
+                        }
+                        
+                        const isValid = providersData.some((p: any) => (p.slug || p.provider_name || String(p.id)) === prev);
+                        if (!isValid) {
+                            return providersData[0].slug || providersData[0].provider_name || String(providersData[0].id);
+                        }
+                        return prev;
+                    });
+                }
             }
         } catch (error) {
             console.error('Error fetching providers:', error);

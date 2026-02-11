@@ -7,6 +7,7 @@ export const getProviderDisplayName = (provider: AvailableProvider): string => {
     }
 
     const providerMap: Record<string, string> = {
+        'google': 'Google Gemini',
         'gemini': 'Google Gemini',
         'openai': 'OpenAI GPT',
         'deepseek': 'DeepSeek',
@@ -25,7 +26,7 @@ export const getProviderDisplayName = (provider: AvailableProvider): string => {
 
     if (provider.provider_display) {
         const name = provider.provider_display.toLowerCase();
-        if (name.includes('gemini')) return 'Google Gemini';
+        if (name.includes('google') || name.includes('gemini')) return 'Google Gemini';
         if (name.includes('openai') || name.includes('gpt') || name.includes('dall-e') || name.includes('dalle')) return 'OpenAI GPT';
         if (name.includes('deepseek')) return 'DeepSeek';
         if (name.includes('openrouter')) return 'OpenRouter';
@@ -53,6 +54,7 @@ export const getProviderDescription = (provider: AvailableProvider, _type: 'cont
     const key = String(providerName).toLowerCase();
 
     const providerNameMap: Record<string, string> = {
+        'google': 'Gemini',
         'gemini': 'Gemini',
         'openai': 'OpenAI',
         'deepseek': 'DeepSeek',
@@ -78,7 +80,7 @@ export const getProviderIcon = (provider: AvailableProvider): string => {
     if (!providerName) return '✨';
 
     const name = String(providerName).toLowerCase();
-    if (name.includes('gemini')) return '🔵';
+    if (name.includes('google') || name.includes('gemini')) return '🔵';
     if (name.includes('openai') || name.includes('dall-e') || name.includes('dalle') || name.includes('gpt')) return '🤖';
     if (name.includes('deepseek')) return '🔷';
     if (name.includes('openrouter')) return '🌐';
