@@ -1,12 +1,10 @@
 import { useState } from "react";
-import { Button } from "@/components/elements/Button";
 import { Label } from "@/components/elements/Label";
-import { MediaImage } from "@/components/media/base/MediaImage";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import type { Media } from "@/types/shared/media";
-import { Camera, X, User } from "lucide-react";
 import { useMediaContext } from '../MediaContext';
 import { type MediaContextType } from "../constants";
+import { ImageSelectorPreview } from './ImageSelectorPreview';
 
 interface ImageSelectorProps {
     selectedMedia: Media | null;
@@ -78,73 +76,29 @@ export function ImageSelector({
         ? "bg-gradient-to-br from-purple-1 to-purple-2"
         : "bg-gradient-to-br from-primary/80 to-primary";
 
-    const getPlaceholderContent = () => {
-        if (placeholderText) {
-            return <span className="text-2xl">{placeholderText}</span>;
+    const handleRemove = () => {
+        if (!disabled && onMediaSelect) {
+            onMediaSelect(null);
         }
-        if (name) {
-            return <span className="text-4xl font-bold">{name[0]?.toUpperCase() || "IMG"}</span>;
-        }
-        return <User className={iconSize} strokeWidth={1.5} />;
     };
 
     const imageContent = (
         <div className="relative shrink-0 group">
-            {selectedMedia ? (
-                <>
-                    <div className={`${sizeClass} rounded-xl overflow-hidden border-4 border-card relative`}>
-                        <MediaImage
-                            media={selectedMedia}
-                            alt={alt}
-                            className="object-cover"
-                            fill
-                            sizes={size === "lg" ? "256px" : size === "md" ? "192px" : "128px"}
-                        />
-                    </div>
-                    {showRemoveButton && (
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="absolute h-8 w-8 p-0 rounded-full bg-card border-2 hover:bg-bg transition-colors shadow-lg pointer-events-auto flex items-center justify-center"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                if (!disabled && onMediaSelect) {
-                                    onMediaSelect(null);
-                                }
-                            }}
-                            disabled={disabled}
-                            aria-label="حذف عکس"
-                            style={{
-                                top: '-10px',
-                                left: '-10px',
-                                zIndex: 9999
-                            }}
-                        >
-                            <X className="h-4 w-4 text-destructive" />
-                        </Button>
-                    )}
-                </>
-            ) : (
-                <div className={`${sizeClass} rounded-xl ${placeholderBgClass} flex items-center justify-center text-static-w border-4 border-card`}>
-                    {getPlaceholderContent()}
-                </div>
-            )}
-
-            {showChangeButton && (
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="absolute -bottom-1 -right-1 h-8 w-8 p-0 rounded-full bg-card border-2 hover:bg-bg transition-colors flex items-center justify-center"
-                    onClick={() => setShowMediaSelector(true)}
-                    disabled={disabled}
-                    aria-label="تغییر عکس"
-                >
-                    <Camera className="h-4 w-4" />
-                </Button>
-            )}
+            <ImageSelectorPreview
+                selectedMedia={selectedMedia}
+                disabled={disabled}
+                sizeClass={sizeClass}
+                iconSize={iconSize}
+                size={size}
+                showRemoveButton={showRemoveButton}
+                showChangeButton={showChangeButton}
+                placeholderText={placeholderText}
+                placeholderBgClass={placeholderBgClass}
+                name={name}
+                alt={alt}
+                onRemove={handleRemove}
+                onOpenSelector={() => setShowMediaSelector(true)}
+            />
 
             <MediaLibraryModal
                 isOpen={showMediaSelector}

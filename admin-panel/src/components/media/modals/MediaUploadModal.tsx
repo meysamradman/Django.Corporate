@@ -3,11 +3,10 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
-  DialogClose
 } from "@/components/elements/Dialog";
 import { Button } from "@/components/elements/Button";
 import { Progress } from "@/components/elements/Progress";
-import { Loader2, X, Upload, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { showError, showWarning } from "@/core/toast";
 import { mediaService } from "@/components/media/services";
 import { FileDropzone } from '@/components/media/upload/MediaUploadZone';
@@ -16,6 +15,9 @@ import { useMediaUpload } from '@/components/media/hooks/useMediaUpload';
 import type { Media } from '@/types/shared/media';
 import { useUserPermissions } from '@/core/permissions/hooks/useUserPermissions';
 import { useMediaContext } from '../MediaContext';
+import { MediaUploadModalHeader } from '@/components/media/modals/upload/MediaUploadModalHeader';
+import { MediaUploadNoAccess } from '@/components/media/modals/upload/MediaUploadNoAccess';
+import { MediaUploadActionBar } from '@/components/media/modals/upload/MediaUploadActionBar';
 
 interface MediaUploadModalProps {
   isOpen: boolean;
@@ -123,28 +125,7 @@ export function MediaUploadModal({
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto p-0" showCloseButton={false}>
         <DialogTitle className="sr-only">آپلود رسانه</DialogTitle>
-
-        <div className="bg-gradient-to-r from-bg/80 to-bg/50 border-b px-6 py-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Upload className="h-5 w-5 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold text-font-p">آپلود رسانه</h3>
-            </div>
-            <div className="flex items-center">
-              <DialogClose asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0 cursor-pointer hover:bg-font-s/10 transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </DialogClose>
-            </div>
-          </div>
-        </div>
+        <MediaUploadModalHeader />
 
         <div className="space-y-6 py-6">
           {canUploadMedia ? (
@@ -176,7 +157,7 @@ export function MediaUploadModal({
                     {validationErrors && validationErrors.length > 0 && (
                       <div className="bg-red-0 border border-red-1/30 p-4 space-y-2">
                         <div className="flex items-start gap-2">
-                          <AlertCircle className="w-5 h-5 text-red-1 flex-shrink-0 mt-0.5" />
+                          <AlertCircle className="w-5 h-5 text-red-1 shrink-0 mt-0.5" />
                           <div className="flex-1 space-y-1">
                             <p className="text-sm font-medium text-red-1">خطا در آپلود فایل:</p>
                             <ul className="list-disc list-inside space-y-1 text-sm text-red-1/80">
@@ -218,39 +199,17 @@ export function MediaUploadModal({
               )}
             </>
           ) : (
-            <div className="px-6 py-12 text-center space-y-3">
-              <p className="text-font-p font-medium text-lg">دسترسی آپلود برای شما فعال نیست</p>
-              <p className="text-font-s text-sm">
-                برای بارگذاری رسانه باید مجوز مدیریت رسانه‌ها را داشته باشید. برای دریافت دسترسی با مدیر سیستم تماس بگیرید.
-              </p>
-            </div>
+            <MediaUploadNoAccess />
           )}
         </div>
 
         {canUploadMedia && files.length > 0 && (
-          <div className="bg-gradient-to-r from-bg/80 to-bg/50 border-t px-6 py-4">
-            <div className="flex gap-3 justify-between">
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={handleClose}
-                  disabled={isUploading}
-                  className="hover:bg-font-s/10"
-                >
-                  انصراف
-                </Button>
-              </div>
-              <Button
-                onClick={handleUpload}
-                disabled={isUploading || files.length === 0}
-                className="bg-primary hover:bg-primary/90 text-static-w gap-2 font-medium"
-              >
-                {isUploading && <Loader2 className="h-4 w-4 animate-spin" />}
-                {!isUploading && <Upload className="h-4 w-4" />}
-                {isUploading ? "در حال آپلود..." : `آپلود ${files.length} فایل`}
-              </Button>
-            </div>
-          </div>
+          <MediaUploadActionBar
+            isUploading={isUploading}
+            fileCount={files.length}
+            onCancel={handleClose}
+            onUpload={handleUpload}
+          />
         )}
       </DialogContent>
     </Dialog>

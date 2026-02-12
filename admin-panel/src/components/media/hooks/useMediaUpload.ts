@@ -1,43 +1,11 @@
 import { useState, useCallback } from 'react';
-import { getFileCategory, formatBytes } from '@/components/media/services';
 import { showError, showSuccess } from "@/core/toast";
 import { api } from '@/core/config/api';
 import { useMediaContext } from '../MediaContext';
-import { MEDIA_CONFIG } from '@/core/config/environment';
-
-export type MediaFile = {
-  file: File;
-  id: string;
-  progress: number;
-  status: 'pending' | 'uploading' | 'success' | 'error';
-  error?: string;
-  title?: string;
-  alt_text?: string;
-  description?: string;
-  is_public?: boolean;
-  coverFile?: File | null;
-};
-
-export type UploadSettings = {
-  sizeLimit: {
-    image: number;
-    video: number;
-    audio: number;
-    document: number;
-  };
-  allowedTypes: {
-    image: string[];
-    video: string[];
-    audio: string[];
-    document: string[];
-  };
-  sizeLimitFormatted: {
-    image: string;
-    video: string;
-    audio: string;
-    document: string;
-  };
-}
+import { createUploadSettings } from './upload/uploadSettings';
+import { validateAndPrepareFiles } from './upload/fileValidation';
+import type { MediaFile } from './upload/types';
+export type { MediaFile, UploadSettings } from './upload/types';
 
 export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' | 'blog' | 'real_estate', overrideContextId?: number | string) => {
   const { context, contextId } = useMediaContext(overrideContext, overrideContextId);
@@ -46,79 +14,12 @@ export const useMediaUpload = (overrideContext?: 'media_library' | 'portfolio' |
   const [isUploading, setIsUploading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-  const uploadSettings = {
-    sizeLimit: {
-      image: MEDIA_CONFIG.IMAGE_SIZE_LIMIT,
-      video: MEDIA_CONFIG.VIDEO_SIZE_LIMIT,
-      audio: MEDIA_CONFIG.AUDIO_SIZE_LIMIT,
-      document: MEDIA_CONFIG.PDF_SIZE_LIMIT,
-    },
-    allowedTypes: {
-      image: MEDIA_CONFIG.IMAGE_EXTENSIONS as unknown as string[],
-      video: MEDIA_CONFIG.VIDEO_EXTENSIONS as unknown as string[],
-      audio: MEDIA_CONFIG.AUDIO_EXTENSIONS as unknown as string[],
-      document: MEDIA_CONFIG.PDF_EXTENSIONS as unknown as string[],
-    },
-    sizeLimitFormatted: {
-      image: formatBytes(MEDIA_CONFIG.IMAGE_SIZE_LIMIT),
-      video: formatBytes(MEDIA_CONFIG.VIDEO_SIZE_LIMIT),
-      audio: formatBytes(MEDIA_CONFIG.AUDIO_SIZE_LIMIT),
-      document: formatBytes(MEDIA_CONFIG.PDF_SIZE_LIMIT),
-    }
-  };
+  const uploadSettings = createUploadSettings();
 
   const processFiles = useCallback((filesToProcess: File[]) => {
     setValidationErrors([]);
 
-    const errors: string[] = [];
-    const validFiles = filesToProcess.filter(file => {
-      const ext = file.name.split('.').pop()?.toLowerCase() || '';
-      const category = getFileCategory(file) as keyof typeof uploadSettings.allowedTypes;
-
-      if (!uploadSettings || !uploadSettings.allowedTypes || !uploadSettings.sizeLimit) {
-        errors.push('خطا در دریافت تنظیمات آپلود. لطفا صفحه را رفرش کنید');
-        return false;
-      }
-
-      const allowedExts = uploadSettings.allowedTypes[category] || [];
-      if (!ext || !allowedExts.includes(ext)) {
-        errors.push(`فایل "${file.name}": پسوند "${ext}" برای نوع "${category}" مجاز نیست. پسوندهای مجاز: ${allowedExts.join(', ')}`);
-        return false;
-      }
-
-      const maxSize = uploadSettings.sizeLimit[category];
-      if (!maxSize) {
-        errors.push(`فایل "${file.name}": تنظیمات حجم فایل برای نوع "${category}" یافت نشد`);
-        return false;
-      }
-
-      if (file.size > maxSize) {
-        const maxSizeFormatted = uploadSettings.sizeLimitFormatted[category] || formatBytes(maxSize);
-        const fileSizeFormatted = formatBytes(file.size);
-        errors.push(`فایل "${file.name}": حجم فایل (${fileSizeFormatted}) از حد مجاز (${maxSizeFormatted}) بیشتر است`);
-        return false;
-      }
-
-      if (!file.name || file.name.trim() === '') return false;
-      const dangerousChars = /[<>:"/\\|?*\x00-\x1f]/;
-      if (dangerousChars.test(file.name)) return false;
-      if (file.name.length > 255) return false;
-      if (file.size === 0) return false;
-
-      return true;
-    });
-
-    const newFiles: MediaFile[] = validFiles.map(file => ({
-      file,
-      id: crypto.randomUUID(),
-      progress: 0,
-      status: 'pending',
-      title: file.name.split('.')[0],
-      alt_text: '',
-      description: '',
-      is_public: true,
-      coverFile: null
-    }));
+    const { errors, newFiles } = validateAndPrepareFiles(filesToProcess, uploadSettings);
 
     if (errors.length > 0) {
       setValidationErrors(errors);

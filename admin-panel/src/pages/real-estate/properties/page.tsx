@@ -1,22 +1,13 @@
-import { useState, useEffect, lazy, Suspense } from "react";
-import { useTableFilters } from "@/components/tables/utils/useTableFilters";
+import { lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
-import { useURLStateSync, parseBooleanParam, parseStringParam, parseDateRange } from "@/hooks/useURLStateSync";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { usePropertyColumns } from "@/components/real-estate/properties/list/RealEstateTableColumns";
-import { usePropertyFilterOptions, getPropertyFilterConfig } from "@/components/real-estate/properties/list/RealEstateTableFilters";
 import type { PropertyFilters } from "@/types/real_estate/realEstateListParams";
 import { Edit, Trash2, Plus, Eye, FileText } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
-import { showError, showSuccess, showWarning } from '@/core/toast';
-import type { OnChangeFn, SortingState } from "@tanstack/react-table";
-import type { TablePaginationState } from '@/types/shared/pagination';
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
-
-const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
-import { msg, getConfirm, getStatus } from '@/core/messages';
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getConfirm } from "@/core/messages";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,224 +22,28 @@ import {
 import type { Property } from "@/types/real_estate/realEstate";
 import type { ColumnDef } from "@tanstack/react-table";
 import { realEstateApi } from "@/api/real-estate";
-import { usePropertyPrintView } from "@/components/real-estate/hooks/usePropertyPrintView";
 import type { DataTableRowAction } from "@/types/shared/table";
-import type { PropertyType } from "@/types/real_estate/type/propertyType";
-import type { PropertyState } from "@/types/real_estate/state/realEstateState";
-import type { CategoryItem } from "@/types/shared/table";
-import { usePropertyExcelExport } from "@/components/real-estate/hooks/usePropertyExcelExport";
-import { usePropertyPdfExport } from "@/components/real-estate/hooks/usePropertyPdfExport";
+import { usePropertyListTableState } from "@/components/real-estate/hooks/usePropertyListTableState";
+import { usePropertyListActions } from "@/components/real-estate/hooks/usePropertyListActions";
 
-const convertPropertyTypesToHierarchical = (types: PropertyType[]): CategoryItem[] => {
-  const rootTypes = types.filter(type => !type.parent_id);
-
-  const buildTree = (type: PropertyType): CategoryItem => {
-    const children = types.filter(t => t.parent_id === type.id);
-
-    return {
-      id: type.id,
-      label: type.title,
-      value: type.id.toString(),
-      parent_id: type.parent_id,
-      children: children.map(buildTree)
-    };
-  };
-
-  return rootTypes.map(buildTree);
-};
+const DataTable = lazy(() => import("@/components/tables/DataTable").then((mod) => ({ default: mod.DataTable })));
 
 export default function PropertyPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { booleanFilterOptions } = usePropertyFilterOptions();
 
-  const [_propertyTypes, setPropertyTypes] = useState<PropertyType[]>([]);
-  const [propertyTypeOptions, setPropertyTypeOptions] = useState<CategoryItem[]>([]);
-
-  const [_states, setStates] = useState<PropertyState[]>([]);
-  const [stateOptions, setStateOptions] = useState<{ label: string; value: string }[]>([]);
-
-  const [cityOptions, setCityOptions] = useState<{ label: string; value: string }[]>([]);
-  const [statusOptions, setStatusOptions] = useState<{ label: string; value: string }[]>([]);
-
-  const [pagination, setPagination] = useState<TablePaginationState>(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const page = parseInt(urlParams.get('page') || '1', 10);
-      const size = parseInt(urlParams.get('size') || '10', 10);
-      return {
-        pageIndex: Math.max(0, page - 1),
-        pageSize: size,
-      };
-    }
-    return {
-      pageIndex: 0,
-      pageSize: 10,
-    };
-  });
-  const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
-  const [rowSelection, setRowSelection] = useState({});
-  const [searchValue, setSearchValue] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('search') || '';
-    }
-    return '';
-  });
-  const [clientFilters, setClientFilters] = useState<PropertyFilters>(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const filters: PropertyFilters = {};
-
-      const isPublished = urlParams.get('is_published');
-      if (isPublished !== null) filters.is_published = isPublished === 'true';
-
-      const isFeatured = urlParams.get('is_featured');
-      if (isFeatured !== null) filters.is_featured = isFeatured === 'true';
-
-      const isActive = urlParams.get('is_active');
-      if (isActive !== null) filters.is_active = isActive === 'true';
-
-      const propertyType = urlParams.get('property_type');
-      if (propertyType) filters.property_type = parseInt(propertyType);
-
-      const state = urlParams.get('state');
-      if (state) filters.state = parseInt(state);
-
-      const city = urlParams.get('city');
-      if (city) filters.city = parseInt(city);
-
-      const status = urlParams.get('status');
-      if (status) filters.status = status;
-
-      const dateFrom = urlParams.get('date_from');
-      if (dateFrom) filters.date_from = dateFrom;
-
-      const dateTo = urlParams.get('date_to');
-      if (dateTo) filters.date_to = dateTo;
-
-      return filters;
-    }
-    return {};
-  });
-
-  useURLStateSync(
-    setPagination,
-    setSearchValue,
-    setSorting,
-    setClientFilters,
-    (urlParams) => {
-      const filters: PropertyFilters = {};
-
-      filters.is_published = parseBooleanParam(urlParams, 'is_published');
-      filters.is_featured = parseBooleanParam(urlParams, 'is_featured');
-      filters.is_active = parseBooleanParam(urlParams, 'is_active');
-
-      const propertyType = urlParams.get('property_type');
-      if (propertyType) filters.property_type = parseInt(propertyType);
-
-      const state = urlParams.get('state');
-      if (state) filters.state = parseInt(state);
-
-      const city = urlParams.get('city');
-      if (city) filters.city = parseInt(city);
-
-      filters.status = parseStringParam(urlParams, 'status');
-
-      Object.assign(filters, parseDateRange(urlParams));
-
-      return filters;
-    }
-  );
-
-  const [deleteConfirm, setDeleteConfirm] = useState<{
-    open: boolean;
-    propertyId?: number;
-    propertyIds?: number[];
-    isBulk: boolean;
-  }>({
-    open: false,
-    isBulk: false,
-  });
-
-  useEffect(() => {
-    const fetchOptions = async () => {
-      try {
-        const [typesResponse, statesResponse, citiesResponse] = await Promise.all([
-          realEstateApi.getTypes({ page: 1, size: 1000, is_active: true }),
-          realEstateApi.getStates({ page: 1, size: 1000, is_active: true }),
-          realEstateApi.getCitiesWithProperties(),
-        ]);
-
-        setPropertyTypes(typesResponse.data);
-        setPropertyTypeOptions(convertPropertyTypesToHierarchical(typesResponse.data));
-
-        setStates(statesResponse.data);
-        setStateOptions(statesResponse.data.map((s: PropertyState) => ({ label: s.title, value: s.id.toString() })));
-
-        setCityOptions(citiesResponse.map(city => ({
-          label: `${city.name} (${(city as any).property_count || 0} ملک)`,
-          value: city.id.toString()
-        })));
-
-        const fieldOptions = await realEstateApi.getFieldOptions();
-        if (fieldOptions.status) {
-          setStatusOptions(fieldOptions.status.map(([value, label]) => ({ label, value })));
-        }
-      } catch (error) {
-      }
-    };
-
-    fetchOptions();
-  }, []);
-
-  const { handleFilterChange } = useTableFilters<PropertyFilters>(
-    setClientFilters,
-    setSearchValue,
-    setPagination,
-    {
-      property_type: (value, updateUrl) => {
-        const numValue = value ? (typeof value === 'string' ? parseInt(value) : value) : undefined;
-        setClientFilters(prev => ({
-          ...prev,
-          property_type: numValue as number | undefined
-        }));
-        setPagination(prev => ({ ...prev, pageIndex: 0 }));
-
-        const url = new URL(window.location.href);
-        if (numValue && numValue !== 0) {
-          url.searchParams.set('property_type', String(numValue));
-        } else {
-          url.searchParams.delete('property_type');
-        }
-        updateUrl(url);
-      },
-      status: (value, updateUrl) => {
-        const statusValue = value ? (typeof value === 'string' ? value : String(value)) : undefined;
-        setClientFilters(prev => ({
-          ...prev,
-          status: statusValue as string | undefined
-        }));
-        setPagination(prev => ({ ...prev, pageIndex: 0 }));
-
-        const url = new URL(window.location.href);
-        if (statusValue && statusValue !== '') {
-          url.searchParams.set('status', statusValue);
-        } else {
-          url.searchParams.delete('status');
-        }
-        updateUrl(url);
-      }
-    }
-  );
-
-  const propertyFilterConfig = getPropertyFilterConfig(
-    booleanFilterOptions,
-    propertyTypeOptions,
-    stateOptions,
-    cityOptions,
-    statusOptions
-  );
+  const {
+    pagination,
+    sorting,
+    rowSelection,
+    setRowSelection,
+    searchValue,
+    clientFilters,
+    handleFilterChange,
+    propertyFilterConfig,
+    handlePaginationChange,
+    handleSortingChange,
+  } = usePropertyListTableState({ navigate });
 
   const queryParams = {
     search: searchValue,
@@ -268,7 +63,23 @@ export default function PropertyPage() {
   };
 
   const { data: properties, isLoading, error } = useQuery({
-    queryKey: ['properties', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_published, queryParams.is_featured, queryParams.is_active, queryParams.property_type, queryParams.state, queryParams.status, queryParams.city, queryParams.date_from, queryParams.date_to],
+    queryKey: [
+      "properties",
+      queryParams.search,
+      queryParams.page,
+      queryParams.size,
+      queryParams.order_by,
+      queryParams.order_desc,
+      queryParams.is_published,
+      queryParams.is_featured,
+      queryParams.is_active,
+      queryParams.property_type,
+      queryParams.state,
+      queryParams.status,
+      queryParams.city,
+      queryParams.date_from,
+      queryParams.date_to,
+    ],
     queryFn: async () => {
       const response = await realEstateApi.getPropertyList(queryParams);
       return response;
@@ -280,82 +91,34 @@ export default function PropertyPage() {
   const data: Property[] = properties?.data || [];
   const pageCount = properties?.pagination?.total_pages || 1;
 
-  const deletePropertyMutation = useMutation({
-    mutationFn: (propertyId: number) => realEstateApi.deleteProperty(propertyId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['properties'] });
-      showSuccess(msg.crud('deleted', { item: 'ملک' }));
-    },
-    onError: (_error) => {
-      showError('خطای سرور رخ داد');
-    },
+  const {
+    deleteConfirm,
+    setDeleteConfirm,
+    handleDeleteProperty,
+    handleDeleteSelected,
+    handleConfirmDelete,
+    handleToggleActive,
+    handleExcelExport,
+    handlePdfExport,
+    handlePrintAction,
+    exportSinglePropertyPdf,
+    isExcelLoading,
+    isPdfLoading,
+  } = usePropertyListActions({
+    data,
+    totalCount: properties?.pagination?.count || 0,
+    pagination,
+    sorting,
+    rowSelection,
+    setRowSelection,
+    queryParams,
   });
-
-  const bulkDeleteMutation = useMutation({
-    mutationFn: (propertyIds: number[]) => realEstateApi.bulkDeleteProperties(propertyIds),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['properties'] });
-      showSuccess(msg.crud('deleted', { item: 'ملک‌ها' }));
-      setRowSelection({});
-    },
-    onError: (_error) => {
-      showError('خطای سرور رخ داد');
-    },
-  });
-
-  const toggleActiveMutation = useMutation({
-    mutationFn: async ({ id, is_active }: { id: number; is_active: boolean }) => {
-      return realEstateApi.partialUpdateProperty(id, { is_active });
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['properties'] });
-      showSuccess(data.is_active ? getStatus('active') : getStatus('inactive'));
-    },
-    onError: (_error) => {
-      showError(getStatus('statusChangeError'));
-    },
-  });
-
-  const handleToggleActive = (property: Property) => {
-    toggleActiveMutation.mutate({
-      id: property.id,
-      is_active: !property.is_active,
-    });
-  };
-
-  const handleDeleteProperty = (propertyId: number | string) => {
-    setDeleteConfirm({
-      open: true,
-      propertyId: Number(propertyId),
-      isBulk: false,
-    });
-  };
-
-  const handleDeleteSelected = (selectedIds: (string | number)[]) => {
-    setDeleteConfirm({
-      open: true,
-      propertyIds: selectedIds.map(id => Number(id)),
-      isBulk: true,
-    });
-  };
-
-  const handleConfirmDelete = async () => {
-    try {
-      if (deleteConfirm.isBulk && deleteConfirm.propertyIds) {
-        await bulkDeleteMutation.mutateAsync(deleteConfirm.propertyIds);
-      } else if (!deleteConfirm.isBulk && deleteConfirm.propertyId) {
-        await deletePropertyMutation.mutateAsync(deleteConfirm.propertyId);
-      }
-    } catch (error) {
-    }
-    setDeleteConfirm({ open: false, isBulk: false });
-  };
 
   const rowActions: DataTableRowAction<Property>[] = [
     {
       label: "مشاهده",
       icon: <Eye className="h-4 w-4" />,
-      onClick: (property) => navigate(`/ real - estate / properties / ${property.id}/view`),
+      onClick: (property) => navigate(`/real-estate/properties/${property.id}/view`),
       permission: "real_estate.property.read",
     },
     {
@@ -381,117 +144,6 @@ export default function PropertyPage() {
 
   const columns = usePropertyColumns(rowActions, handleToggleActive) as ColumnDef<Property>[];
 
-  const { exportExcel, isLoading: isExcelLoading } = usePropertyExcelExport();
-  const { exportPropertyListPdf, exportSinglePropertyPdf, isLoading: isPdfLoading } = usePropertyPdfExport();
-  const { openPrintWindow } = usePropertyPrintView();
-
-  const handleExcelExport = async (filters: PropertyFilters, search: string, exportAll: boolean = false) => {
-    const exportParams: any = {
-      search: search || undefined,
-      order_by: sorting.length > 0 ? sorting[0].id : "created_at",
-      order_desc: sorting.length > 0 ? sorting[0].desc : true,
-      is_published: filters.is_published,
-      is_featured: filters.is_featured,
-      is_active: filters.is_active,
-      property_types__in: filters.property_type ? String(filters.property_type) : undefined,
-      states__in: filters.state ? String(filters.state) : undefined,
-      statuses__in: filters.status ? String(filters.status) : undefined,
-      cities__in: filters.city ? String(filters.city) : undefined,
-    };
-
-    if (exportAll) exportParams.export_all = true;
-    else {
-      exportParams.page = pagination.pageIndex + 1;
-      exportParams.size = pagination.pageSize;
-    }
-
-    await exportExcel(data, properties?.pagination?.count || 0, exportParams);
-  };
-
-  const handlePdfExport = async (filters: PropertyFilters, search: string, exportAll: boolean = false) => {
-    const exportParams: any = {
-      search: search || undefined,
-      order_by: sorting.length > 0 ? sorting[0].id : "created_at",
-      order_desc: sorting.length > 0 ? sorting[0].desc : true,
-      is_published: filters.is_published,
-      is_featured: filters.is_featured,
-      is_active: filters.is_active,
-      property_types__in: filters.property_type ? String(filters.property_type) : undefined,
-      states__in: filters.state ? String(filters.state) : undefined,
-      statuses__in: filters.status ? String(filters.status) : undefined,
-      cities__in: filters.city ? String(filters.city) : undefined,
-    };
-
-    if (exportAll) exportParams.export_all = true;
-    else {
-      exportParams.page = pagination.pageIndex + 1;
-      exportParams.size = pagination.pageSize;
-    }
-
-    exportPropertyListPdf(exportParams);
-  };
-
-  const handlePrintAction = async (printAll: boolean = false) => {
-    if (!printAll) {
-      const selectedIds = Object.keys(rowSelection).filter(key => (rowSelection as any)[key]).map(idx => data[parseInt(idx)].id);
-      if (selectedIds.length > 0) {
-        openPrintWindow(selectedIds);
-      } else {
-        openPrintWindow(data.map(p => p.id));
-      }
-      return;
-    }
-
-    try {
-      showWarning("در حال آماده‌سازی فایل پرینت برای تمامی موارد...");
-      const response = await realEstateApi.getPropertyList({
-        ...queryParams,
-        page: 1,
-        size: 10000,
-      });
-
-      const allIds = response.data.map(p => p.id);
-      if (allIds.length > 0) {
-        openPrintWindow(allIds);
-      } else {
-        showError("داده‌ای برای پرینت یافت نشد");
-      }
-    } catch (error) {
-      showError("خطا در بارگذاری داده‌ها برای پرینت");
-    }
-  };
-
-  const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
-    const newPagination = typeof updaterOrValue === 'function'
-      ? updaterOrValue(pagination)
-      : updaterOrValue;
-
-    setPagination(newPagination);
-
-    const url = new URL(window.location.href);
-    url.searchParams.set('page', String(newPagination.pageIndex + 1));
-    url.searchParams.set('size', String(newPagination.pageSize));
-    navigate(url.search, { replace: true });
-  };
-
-  const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function'
-      ? updaterOrValue(sorting)
-      : updaterOrValue;
-
-    setSorting(newSorting);
-
-    const url = new URL(window.location.href);
-    if (newSorting.length > 0) {
-      url.searchParams.set('order_by', newSorting[0].id);
-      url.searchParams.set('order_desc', String(newSorting[0].desc));
-    } else {
-      url.searchParams.delete('order_by');
-      url.searchParams.delete('order_desc');
-    }
-    navigate(url.search, { replace: true });
-  };
-
   if (error) {
     return (
       <div className="space-y-6">
@@ -501,16 +153,13 @@ export default function PropertyPage() {
           <p className="text-sm text-font-s mb-4">
             سرور با خطای 500 پاسخ داده است. لطفاً با مدیر سیستم تماس بگیرید.
           </p>
-          <Button
-            onClick={() => window.location.reload()}
-            className="mt-4"
-          >
+          <Button onClick={() => window.location.reload()} className="mt-4">
             تلاش مجدد
           </Button>
           <Button
             variant="outline"
             onClick={() => {
-              queryClient.invalidateQueries({ queryKey: ['properties'] });
+              queryClient.invalidateQueries({ queryKey: ["properties"] });
               window.location.reload();
             }}
             className="mt-4 mr-2"
@@ -528,7 +177,7 @@ export default function PropertyPage() {
         <ProtectedButton
           permission="real_estate.property.create"
           size="sm"
-          onClick={() => navigate('/real-estate/properties/create')}
+          onClick={() => navigate("/real-estate/properties/create")}
         >
           <Plus className="h-4 w-4" />
           افزودن ملک
@@ -561,7 +210,7 @@ export default function PropertyPage() {
           exportConfigs={[
             {
               onExport: (filters, search) => handleExcelExport(filters as PropertyFilters, search, false),
-              buttonText: `خروجی اکسل (صفحه فعلی)${isExcelLoading ? '...' : ''}`,
+              buttonText: `خروجی اکسل (صفحه فعلی)${isExcelLoading ? "..." : ""}`,
               value: "excel",
             },
             {
@@ -571,7 +220,7 @@ export default function PropertyPage() {
             },
             {
               onExport: (filters, search) => handlePdfExport(filters as PropertyFilters, search, false),
-              buttonText: `خروجی PDF (صفحه فعلی)${isPdfLoading ? '...' : ''}`,
+              buttonText: `خروجی PDF (صفحه فعلی)${isPdfLoading ? "..." : ""}`,
               value: "pdf",
             },
             {
@@ -595,28 +244,19 @@ export default function PropertyPage() {
         />
       </Suspense>
 
-      <AlertDialog
-        open={deleteConfirm.open}
-        onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
-      >
+      <AlertDialog open={deleteConfirm.open} onOpenChange={(open) => setDeleteConfirm((prev) => ({ ...prev, open }))}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>تایید حذف</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteConfirm.isBulk
-                ? getConfirm('bulkDelete', { item: 'ملک', count: deleteConfirm.propertyIds?.length || 0 })
-                : getConfirm('delete', { item: 'ملک' })
-              }
+                ? getConfirm("bulkDelete", { item: "ملک", count: deleteConfirm.propertyIds?.length || 0 })
+                : getConfirm("delete", { item: "ملک" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>
-              لغو
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              className="bg-destructive text-static-w hover:bg-destructive/90"
-            >
+            <AlertDialogCancel>لغو</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-static-w hover:bg-destructive/90">
               حذف
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -625,4 +265,3 @@ export default function PropertyPage() {
     </div>
   );
 }
-

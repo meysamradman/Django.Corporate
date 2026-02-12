@@ -1,5 +1,37 @@
 import type { Media } from "@/types/shared/media";
 
+const createEmptyModuleMedia = (): GenericModuleMedia => ({
+    featuredImage: null,
+    imageGallery: [],
+    videoGallery: [],
+    audioGallery: [],
+    pdfDocuments: []
+});
+
+const resolveMediaItem = (item: any): any => item.media || item.media_detail || item;
+
+const resolveMediaType = (item: any, mediaItem: any): string => (
+    item.media_type
+    || item.file_type
+    || mediaItem.media_type
+    || mediaItem.file_type
+    || mediaItem.type
+    || mediaItem.kind
+    || 'image'
+);
+
+const isFeaturedMediaItem = (item: any): boolean => Boolean(
+    item.is_featured || item.featured || item.is_main_image || item.is_main
+);
+
+const extractMediaIdArray = (items: Media[] | undefined): number[] =>
+    (items || []).map(m => m.id).filter(Boolean) as number[];
+
+const extractCoverId = (item: Media): number | null | undefined => {
+    if (!item.id || !item.cover_image) return undefined;
+    return typeof item.cover_image === 'object' ? item.cover_image.id : item.cover_image;
+};
+
 /**
  * Generic structure for media galleries across different modules.
  */
@@ -15,19 +47,13 @@ export interface GenericModuleMedia {
  * Parses a flat list of media items from the backend into a structured media object.
  */
 export function parseModuleMedia(media: any[]): GenericModuleMedia {
-    const result: GenericModuleMedia = {
-        featuredImage: null,
-        imageGallery: [],
-        videoGallery: [],
-        audioGallery: [],
-        pdfDocuments: []
-    };
+    const result: GenericModuleMedia = createEmptyModuleMedia();
 
     if (!Array.isArray(media)) return result;
 
     media.forEach((item: any, index: number) => {
-        const mediaItem = item.media || item.media_detail || item;
-        const type = item.media_type || (item as any).file_type || mediaItem.media_type || (mediaItem as any).file_type || (mediaItem as any).type || (mediaItem as any).kind || 'image';
+        const mediaItem = resolveMediaItem(item);
+        const type = resolveMediaType(item, mediaItem);
 
         console.log(`🔍 [parseModuleMedia][Item ${index}]`, {
             id: item.id,
@@ -37,7 +63,7 @@ export function parseModuleMedia(media: any[]): GenericModuleMedia {
             mediaItem
         });
 
-        if (item.is_featured || item.featured || item.is_main_image || item.is_main) {
+        if (isFeaturedMediaItem(item)) {
             result.featuredImage = mediaItem;
         }
 
@@ -101,9 +127,9 @@ export function collectSegmentedMediaIds(moduleMedia: GenericModuleMedia) {
 
     return {
         image_ids: Array.from(imageIds),
-        video_ids: (moduleMedia.videoGallery || []).map(m => m.id).filter(Boolean) as number[],
-        audio_ids: (moduleMedia.audioGallery || []).map(m => m.id).filter(Boolean) as number[],
-        document_ids: (moduleMedia.pdfDocuments || []).map(m => m.id).filter(Boolean) as number[],
+        video_ids: extractMediaIdArray(moduleMedia.videoGallery),
+        audio_ids: extractMediaIdArray(moduleMedia.audioGallery),
+        document_ids: extractMediaIdArray(moduleMedia.pdfDocuments),
     };
 }
 
@@ -120,8 +146,9 @@ export function collectSegmentedMediaCovers(moduleMedia: GenericModuleMedia) {
 
     const process = (items: Media[] | undefined, target: Record<number, number | null>) => {
         items?.forEach(item => {
-            if (item.id && item.cover_image) {
-                target[item.id] = typeof item.cover_image === 'object' ? item.cover_image.id : item.cover_image;
+            const coverId = extractCoverId(item);
+            if (item.id && coverId !== undefined) {
+                target[item.id] = coverId;
             }
         });
     };
@@ -141,8 +168,9 @@ export function collectModuleMediaCovers(moduleMedia: GenericModuleMedia): Recor
     const covers: Record<number, number | null> = {};
 
     const processItem = (item: Media) => {
-        if (item.id && item.cover_image) {
-            covers[item.id] = typeof item.cover_image === 'object' ? item.cover_image.id : item.cover_image;
+        const coverId = extractCoverId(item);
+        if (item.id && coverId !== undefined) {
+            covers[item.id] = coverId;
         }
     };
 

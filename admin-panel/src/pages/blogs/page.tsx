@@ -1,25 +1,17 @@
-import { useState, useEffect, lazy, Suspense } from "react";
-import { useTableFilters } from "@/components/tables/utils/useTableFilters";
+import { lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
-import { useURLStateSync, parseBooleanParam, parseStringParam, parseDateRange } from "@/hooks/useURLStateSync";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useBlogColumns } from "@/components/blogs/posts/list/BlogTableColumns";
-import { useBlogFilterOptions, getBlogFilterConfig } from "@/components/blogs/posts/list/BlogTableFilters";
 import type { BlogFilters } from "@/types/blog/blogListParams";
 import { Eye, Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
-import { showError, showSuccess, showWarning } from '@/core/toast';
-import type { OnChangeFn, SortingState } from "@tanstack/react-table";
-import type { TablePaginationState } from '@/types/shared/pagination';
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
-import { useExcelExport } from "@/components/blogs/hooks/useExcelExport";
-import { usePdfExport } from "@/components/blogs/hooks/usePdfExport";
-import { usePrintView } from "@/components/blogs/hooks/usePrintView";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useBlogListTableState } from "@/components/blogs/hooks/useBlogListTableState";
+import { useBlogListActions } from "@/components/blogs/hooks/useBlogListActions";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
-import { msg, getConfirm } from '@/core/messages';
+import { getConfirm } from '@/core/messages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,159 +27,22 @@ import type { Blog } from "@/types/blog/blog";
 import type { ColumnDef } from "@tanstack/react-table";
 import { blogApi } from "@/api/blogs/blogs";
 import type { DataTableRowAction } from "@/types/shared/table";
-import type { BlogCategory } from "@/types/blog/category/blogCategory";
-
-const convertCategoriesToHierarchical = (categories: BlogCategory[]): any[] => {
-  const rootCategories = categories.filter(cat => !cat.parent_id);
-
-  const buildTree = (category: BlogCategory): any => {
-    const children = categories.filter(cat => cat.parent_id === category.id);
-
-    return {
-      id: category.id,
-      label: category.name,
-      value: category.id.toString(),
-      parent_id: category.parent_id,
-      children: children.map(buildTree)
-    };
-  };
-
-  return rootCategories.map(buildTree);
-};
 
 export default function BlogPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { statusFilterOptions, booleanFilterOptions } = useBlogFilterOptions();
-
-  const [_categories, setCategories] = useState<BlogCategory[]>([]);
-  const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
-
-  const [pagination, setPagination] = useState<TablePaginationState>(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const page = parseInt(urlParams.get('page') || '1', 10);
-      const size = parseInt(urlParams.get('size') || '10', 10);
-      return {
-        pageIndex: Math.max(0, page - 1),
-        pageSize: size,
-      };
-    }
-    return {
-      pageIndex: 0,
-      pageSize: 10,
-    };
-  });
-  const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
-  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
-  const [searchValue, setSearchValue] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('search') || '';
-    }
-    return '';
-  });
-  const [clientFilters, setClientFilters] = useState<BlogFilters>(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const filters: BlogFilters = {};
-      if (urlParams.get('status')) filters.status = urlParams.get('status') as string;
-      if (urlParams.get('is_featured')) filters.is_featured = urlParams.get('is_featured') === 'true';
-      if (urlParams.get('is_public')) filters.is_public = urlParams.get('is_public') === 'true';
-      if (urlParams.get('is_active')) filters.is_active = urlParams.get('is_active') === 'true';
-      if (urlParams.get('category')) {
-        filters.category = urlParams.get('category') as string;
-      }
-      const dateFrom = urlParams.get('date_from');
-      const dateTo = urlParams.get('date_to');
-      if (dateFrom || dateTo) {
-        filters.date_range = { from: dateFrom || undefined, to: dateTo || undefined };
-      }
-      if (dateFrom) filters.date_from = dateFrom;
-      if (dateTo) filters.date_to = dateTo;
-      return filters;
-    }
-    return {};
-  });
-
-  useURLStateSync(
-    setPagination,
-    setSearchValue,
-    setSorting,
-    setClientFilters,
-    (urlParams) => {
-      const filters: BlogFilters = {};
-
-      filters.is_featured = parseBooleanParam(urlParams, 'is_featured');
-      filters.is_public = parseBooleanParam(urlParams, 'is_public');
-      filters.is_active = parseBooleanParam(urlParams, 'is_active');
-
-      filters.status = parseStringParam(urlParams, 'status');
-      filters.category = parseStringParam(urlParams, 'category');
-
-      Object.assign(filters, parseDateRange(urlParams));
-
-      return filters;
-    }
-  );
-
-  const [deleteConfirm, setDeleteConfirm] = useState<{
-    open: boolean;
-    blogId?: number;
-    blogIds?: number[];
-    isBulk: boolean;
-  }>({
-    open: false,
-    isBulk: false,
-  });
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await blogApi.getCategories({
-          page: 1,
-          size: 1000,
-          is_active: true,
-          is_public: true
-        });
-
-        setCategories(response.data);
-        setCategoryOptions(convertCategoriesToHierarchical(response.data));
-      } catch (error) {
-      }
-    };
-
-    fetchCategories();
-  }, []);
-
-  const { handleFilterChange } = useTableFilters<BlogFilters>(
-    setClientFilters,
-    setSearchValue,
-    setPagination,
-    {
-      categories: (value, updateUrl) => {
-        setClientFilters(prev => ({
-          ...prev,
-          category: value as string | undefined
-        }));
-        setPagination(prev => ({ ...prev, pageIndex: 0 }));
-
-        const url = new URL(window.location.href);
-        if (value && value !== 'all' && value !== '') {
-          url.searchParams.set('category', String(value));
-        } else {
-          url.searchParams.delete('category');
-        }
-        updateUrl(url);
-      }
-    }
-  );
-
-  const blogFilterConfig = getBlogFilterConfig(
-    statusFilterOptions,
-    booleanFilterOptions,
-    categoryOptions
-  );
+  const {
+    pagination,
+    sorting,
+    rowSelection,
+    setRowSelection,
+    searchValue,
+    clientFilters,
+    handleFilterChange,
+    blogFilterConfig,
+    handlePaginationChange,
+    handleSortingChange,
+  } = useBlogListTableState({ navigate });
 
   const queryParams = {
     search: searchValue,
@@ -218,76 +73,27 @@ export default function BlogPage() {
   const data: Blog[] = blogs?.data || [];
   const pageCount = blogs?.pagination?.total_pages || 1;
 
-  const deleteBlogMutation = useMutation({
-    mutationFn: (blogId: number) => blogApi.deleteBlog(blogId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['blogs'] });
-      showSuccess(msg.crud('deleted', { item: 'بلاگ' }));
-    },
-    onError: (_error) => {
-      showError("خطای سرور");
-    },
+  const {
+    deleteConfirm,
+    setDeleteConfirm,
+    handleDeleteBlog,
+    handleDeleteSelected,
+    handleConfirmDelete,
+    handleToggleActive,
+    handleExcelExport,
+    handlePdfExport,
+    handlePrintAction,
+    isExcelLoading,
+    isPdfLoading,
+  } = useBlogListActions({
+    data,
+    totalCount: blogs?.pagination?.count || 0,
+    pagination,
+    sorting,
+    rowSelection,
+    setRowSelection,
+    queryParams,
   });
-
-  const bulkDeleteMutation = useMutation({
-    mutationFn: (blogIds: number[]) => blogApi.bulkDeleteBlogs(blogIds),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['blogs'] });
-      showSuccess(msg.crud('deleted', { item: 'بلاگ' }));
-      setRowSelection({});
-    },
-    onError: (_error) => {
-      showError("خطای سرور");
-    },
-  });
-
-  const toggleActiveMutation = useMutation({
-    mutationFn: async ({ id, is_active }: { id: number; is_active: boolean }) => {
-      return blogApi.partialUpdateBlog(id, { is_active });
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['blogs'] });
-      showSuccess(`بلاگ با موفقیت ${data.is_active ? 'فعال' : 'غیرفعال'} شد`);
-    },
-    onError: (_error) => {
-      showError("خطا در تغییر وضعیت");
-    },
-  });
-
-  const handleToggleActive = (blog: Blog) => {
-    toggleActiveMutation.mutate({
-      id: blog.id,
-      is_active: !blog.is_active,
-    });
-  };
-
-  const handleDeleteBlog = (blogId: number | string) => {
-    setDeleteConfirm({
-      open: true,
-      blogId: Number(blogId),
-      isBulk: false,
-    });
-  };
-
-  const handleDeleteSelected = (selectedIds: (string | number)[]) => {
-    setDeleteConfirm({
-      open: true,
-      blogIds: selectedIds.map(id => Number(id)),
-      isBulk: true,
-    });
-  };
-
-  const handleConfirmDelete = async () => {
-    try {
-      if (deleteConfirm.isBulk && deleteConfirm.blogIds) {
-        await bulkDeleteMutation.mutateAsync(deleteConfirm.blogIds);
-      } else if (!deleteConfirm.isBulk && deleteConfirm.blogId) {
-        await deleteBlogMutation.mutateAsync(deleteConfirm.blogId);
-      }
-    } catch (error) {
-    }
-    setDeleteConfirm({ open: false, isBulk: false });
-  };
 
   const rowActions: DataTableRowAction<Blog>[] = [
     {
@@ -312,113 +118,6 @@ export default function BlogPage() {
   ];
 
   const columns = useBlogColumns(rowActions, handleToggleActive) as ColumnDef<Blog>[];
-
-  const { exportExcel, isLoading: isExcelLoading } = useExcelExport();
-  const { exportBlogListPdf, isLoading: isPdfLoading } = usePdfExport();
-  const { openPrintWindow } = usePrintView();
-
-  const handleExcelExport = async (filters: BlogFilters, search: string, exportAll: boolean = false) => {
-    const exportParams: any = {
-      search: search || undefined,
-      order_by: sorting.length > 0 ? sorting[0].id : "created_at",
-      order_desc: sorting.length > 0 ? sorting[0].desc : true,
-      status: filters.status,
-      is_featured: filters.is_featured,
-      is_public: filters.is_public,
-      is_active: filters.is_active,
-      categories__in: filters.categories ? filters.categories.toString() : undefined,
-    };
-
-    if (exportAll) exportParams.export_all = true;
-    else {
-      exportParams.page = pagination.pageIndex + 1;
-      exportParams.size = pagination.pageSize;
-    }
-
-    await exportExcel(data, blogs?.pagination?.count || 0, exportParams);
-  };
-
-  const handlePdfExport = async (filters: BlogFilters, search: string, exportAll: boolean = false) => {
-    const exportParams: any = {
-      search: search || undefined,
-      order_by: sorting.length > 0 ? sorting[0].id : "created_at",
-      order_desc: sorting.length > 0 ? sorting[0].desc : true,
-      status: filters.status,
-      is_featured: filters.is_featured,
-      is_public: filters.is_public,
-      is_active: filters.is_active,
-      categories__in: filters.categories ? filters.categories.toString() : undefined,
-    };
-
-    if (exportAll) exportParams.export_all = true;
-    else {
-      exportParams.page = pagination.pageIndex + 1;
-      exportParams.size = pagination.pageSize;
-    }
-
-    exportBlogListPdf(exportParams);
-  };
-
-  const handlePrintAction = async (printAll: boolean = false) => {
-    if (!printAll) {
-      const selectedIds = Object.keys(rowSelection).filter(key => (rowSelection as any)[key]).map(idx => data[parseInt(idx)].id);
-      if (selectedIds.length > 0) {
-        openPrintWindow(selectedIds);
-      } else {
-        openPrintWindow(data.map(b => b.id));
-      }
-      return;
-    }
-
-    try {
-      showWarning("در حال آماده‌سازی فایل پرینت برای تمامی موارد...");
-      const response = await blogApi.getBlogList({
-        ...queryParams,
-        page: 1,
-        size: 10000, // Fetch all reasonable amount
-      });
-
-      const allIds = response.data.map(b => b.id);
-      if (allIds.length > 0) {
-        openPrintWindow(allIds);
-      } else {
-        showError("داده‌ای برای پرینت یافت نشد");
-      }
-    } catch (error) {
-      showError("خطا در بارگذاری داده‌ها برای پرینت");
-    }
-  };
-
-  const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
-    const newPagination = typeof updaterOrValue === 'function'
-      ? updaterOrValue(pagination)
-      : updaterOrValue;
-
-    setPagination(newPagination);
-
-    const url = new URL(window.location.href);
-    url.searchParams.set('page', String(newPagination.pageIndex + 1));
-    url.searchParams.set('size', String(newPagination.pageSize));
-    navigate(url.search, { replace: true });
-  };
-
-  const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function'
-      ? updaterOrValue(sorting)
-      : updaterOrValue;
-
-    setSorting(newSorting);
-
-    const url = new URL(window.location.href);
-    if (newSorting.length > 0) {
-      url.searchParams.set('order_by', newSorting[0].id);
-      url.searchParams.set('order_desc', String(newSorting[0].desc));
-    } else {
-      url.searchParams.delete('order_by');
-      url.searchParams.delete('order_desc');
-    }
-    navigate(url.search, { replace: true });
-  };
 
   if (error) {
     return (

@@ -1,4 +1,3 @@
-import { useRef } from 'react';
 import type { ChangeEvent } from 'react';
 import { 
   X, 
@@ -9,15 +8,14 @@ import {
   FileVideo,
   FileAudio,
   FileText,
-  File,
-  Plus
+  File
 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
-import { Input } from "@/components/elements/Input";
-import { Label } from "@/components/elements/Label";
 import { TruncatedText } from "@/components/elements/TruncatedText";
 import type { MediaFile } from '../hooks/useMediaUpload';
 import { getFileCategory, formatBytes } from '../services';
+import { FileItemMetadataFields } from './FileItemMetadataFields';
+import { FileItemCoverPicker } from './FileItemCoverPicker';
 
 interface FileItemProps {
   file: MediaFile;
@@ -36,8 +34,6 @@ export function FileItem({
   onRemoveCoverFile,
   disabled = false 
 }: FileItemProps) {
-  const coverFileInputRef = useRef<HTMLInputElement>(null);
-  
   const fileCategory = getFileCategory(file.file);
   const needsCover = ['video', 'audio', 'document'].includes(fileCategory);
 
@@ -89,21 +85,15 @@ export function FileItem({
     );
   };
 
-  const handleCoverFileSelectClick = () => {
-    if (coverFileInputRef.current) {
-      coverFileInputRef.current.click();
-    }
-  };
-
   return (
     <div className="border rounded-xl p-5 bg-card hover:shadow-lg transition-all duration-200 flex flex-col gap-5">
       <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 mt-0.5">
-          <div className="w-11 h-11 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center text-primary border border-primary/20">
+        <div className="shrink-0 mt-0.5">
+          <div className="w-11 h-11 rounded-lg bg-linear-to-br from-primary/10 to-primary/5 flex items-center justify-center text-primary border border-primary/20">
             {getFileIcon(file.file)}
           </div>
         </div>
-        <div className="flex-grow min-w-0">
+        <div className="grow min-w-0">
           <div className="mb-2">
             <TruncatedText 
               text={file.file.name}
@@ -118,7 +108,7 @@ export function FileItem({
           </div>
         </div>
 
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           {file.status === 'pending' && (
             <Button 
               type="button" 
@@ -146,7 +136,7 @@ export function FileItem({
       {file.status === 'uploading' && (
         <div className="w-full bg-bg rounded-full h-2 overflow-hidden">
           <div 
-            className="bg-gradient-to-r from-primary to-primary/80 h-2 rounded-full transition-all duration-300"
+            className="bg-linear-to-r from-primary to-primary/80 h-2 rounded-full transition-all duration-300"
             style={{ width: `${file.progress}%` }}
           />
         </div>
@@ -155,7 +145,7 @@ export function FileItem({
       {file.status === 'error' && file.error && (
         <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
           <p className="text-xs text-destructive flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{file.error}</span>
           </p>
         </div>
@@ -170,33 +160,14 @@ export function FileItem({
               </div>
 
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor={`title-${file.id}`} className="text-sm font-medium text-font-p">
-                    عنوان
-                  </Label>
-                  <Input
-                    id={`title-${file.id}`}
-                    value={file.title || ''}
-                    onChange={(e) => onUpdateMetadata(file.id, 'title', e.target.value)}
-                    placeholder="عنوان فایل"
-                    className="h-9 text-sm"
-                    disabled={disabled}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor={`altText-${file.id}`} className="text-sm font-medium text-font-p">
-                    متن جایگزین (برای تصاویر)
-                  </Label>
-                  <Input
-                    id={`altText-${file.id}`}
-                    value={file.alt_text || ''}
-                    onChange={(e) => onUpdateMetadata(file.id, 'alt_text', e.target.value)}
-                    placeholder="توضیح کوتاه برای دسترسی‌پذیری"
-                    className="h-9 text-sm"
-                    disabled={disabled}
-                  />
-                </div>
+                <FileItemMetadataFields
+                  fileId={file.id}
+                  title={file.title || ''}
+                  altText={file.alt_text || ''}
+                  disabled={disabled}
+                  onTitleChange={(value) => onUpdateMetadata(file.id, 'title', value)}
+                  onAltTextChange={(value) => onUpdateMetadata(file.id, 'alt_text', value)}
+                />
               </div>
             </>
           ) : (
@@ -206,80 +177,23 @@ export function FileItem({
                   {renderFilePreview()}
                 </div>
 
-                <div className="space-y-3">
-                  <input
-                    ref={coverFileInputRef}
-                    type="file"
-                    id={`cover-file-${file.id}`}
-                    className="hidden"
-                    accept="image/*"
-                    onChange={(e) => onCoverFileChange(e, file.id)}
-                    disabled={disabled}
-                  />
-                  
-                  {file.coverFile ? (
-                    <div className="relative w-full h-48 bg-bg/30 rounded-lg overflow-hidden border shadow-sm group">
-                      <img 
-                        src={URL.createObjectURL(file.coverFile)}
-                        alt="کاور"
-                        className="w-full h-full object-cover"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                        onClick={() => onRemoveCoverFile(file.id)}
-                        disabled={disabled}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div 
-                      onClick={handleCoverFileSelectClick}
-                      className="border-2 border-dashed rounded-lg h-48 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-gradient-to-br hover:from-primary/5 hover:to-transparent transition-all duration-200 group"
-                    >
-                      <div className="w-16 h-16 rounded-full bg-bg flex items-center justify-center mb-3 group-hover:bg-primary/10 group-hover:scale-110 transition-all duration-200">
-                        <Plus className="h-8 w-8 text-font-s group-hover:text-primary transition-colors" />
-                      </div>
-                      <p className="text-sm font-medium text-font-p">
-                        تصویر کاور ({fileCategory === 'video' ? 'ویدیو' : fileCategory === 'audio' ? 'فایل صوتی' : 'سند PDF'})
-                      </p>
-                    </div>
-                  )}
-                </div>
+                <FileItemCoverPicker
+                  file={file}
+                  fileCategory={fileCategory}
+                  disabled={disabled}
+                  onCoverFileChange={onCoverFileChange}
+                  onRemoveCoverFile={onRemoveCoverFile}
+                />
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor={`title-${file.id}`} className="text-sm font-medium text-font-p">
-                    عنوان
-                  </Label>
-                  <Input
-                    id={`title-${file.id}`}
-                    value={file.title || ''}
-                    onChange={(e) => onUpdateMetadata(file.id, 'title', e.target.value)}
-                    placeholder="عنوان فایل"
-                    className="h-9 text-sm"
-                    disabled={disabled}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor={`altText-${file.id}`} className="text-sm font-medium text-font-p">
-                    متن جایگزین (برای تصاویر)
-                  </Label>
-                  <Input
-                    id={`altText-${file.id}`}
-                    value={file.alt_text || ''}
-                    onChange={(e) => onUpdateMetadata(file.id, 'alt_text', e.target.value)}
-                    placeholder="توضیح کوتاه برای دسترسی‌پذیری"
-                    className="h-9 text-sm"
-                    disabled={disabled}
-                  />
-                </div>
-              </div>
+              <FileItemMetadataFields
+                fileId={file.id}
+                title={file.title || ''}
+                altText={file.alt_text || ''}
+                disabled={disabled}
+                onTitleChange={(value) => onUpdateMetadata(file.id, 'title', value)}
+                onAltTextChange={(value) => onUpdateMetadata(file.id, 'alt_text', value)}
+              />
             </div>
           )}
         </div>

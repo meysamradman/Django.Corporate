@@ -29,7 +29,6 @@ export function AudioPlayer({
         } else {
             audioRef.current.play();
         }
-        setIsPlaying(!isPlaying);
     };
 
     const handleTimeUpdate = () => {
@@ -37,7 +36,11 @@ export function AudioPlayer({
             const current = audioRef.current.currentTime;
             const total = audioRef.current.duration;
             setCurrentTime(current);
-            setProgress((current / total) * 100);
+            if (Number.isFinite(total) && total > 0) {
+                setProgress((current / total) * 100);
+            } else {
+                setProgress(0);
+            }
         }
     };
 
@@ -71,12 +74,14 @@ export function AudioPlayer({
     return (
         <Item className={cn(
             "p-0 border-br/40 transition-all duration-300 group/a-item overflow-hidden",
-            isPlaying ? 'bg-gradient-to-l from-pink-0/20 to-wt border-pink-1/30 shadow-md shadow-pink-1/5' : 'bg-wt hover:border-pink-1/30',
+            isPlaying ? 'bg-linear-to-l from-pink-0/20 to-wt border-pink-1/30 shadow-md shadow-pink-1/5' : 'bg-wt hover:border-pink-1/30',
             className
         )}>
             <audio
                 ref={audioRef}
                 src={src}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
                 onTimeUpdate={handleTimeUpdate}
                 onLoadedMetadata={handleLoadedMetadata}
                 onEnded={handleEnded}
@@ -88,11 +93,11 @@ export function AudioPlayer({
                     <div className={cn(
                         "relative size-12 rounded-2xl flex items-center justify-center transition-all duration-500 shrink-0",
                         isPlaying
-                            ? 'bg-gradient-to-tr from-pink-1 to-rose-400 text-wt shadow-lg shadow-pink-1/30 rotate-3 scale-105'
+                            ? 'bg-linear-to-tr from-pink-1 to-rose-400 text-wt shadow-lg shadow-pink-1/30 rotate-3 scale-105'
                             : 'bg-pink-0/40 text-pink-1 group-hover/a-item:bg-pink-0/80 group-hover/a-item:scale-105'
                     )}>
                         {isPlaying ? (
-                            <div className="flex gap-[3px] items-end h-5 pb-1.5 justify-center">
+                            <div className="flex gap-0.75 items-end h-5 pb-1.5 justify-center">
                                 <span className="w-1 bg-current rounded-full animate-[music-bar_0.6s_ease-in-out_infinite]" />
                                 <span className="w-1 bg-current rounded-full animate-[music-bar_0.8s_ease-in-out_infinite_0.1s] h-4" />
                                 <span className="w-1 bg-current rounded-full animate-[music-bar_1s_ease-in-out_infinite_0.2s] h-3" />
@@ -125,7 +130,7 @@ export function AudioPlayer({
                             <div className="absolute inset-0 bg-gray-100 rounded-full" />
 
                             <div
-                                className="absolute left-0 top-0 h-full bg-gradient-to-r from-pink-1 to-rose-400 rounded-full transition-all duration-100 ease-linear"
+                                className="absolute left-0 top-0 h-full bg-linear-to-r from-pink-1 to-rose-400 rounded-full transition-all duration-100 ease-linear"
                                 style={{ width: `${progress}%` }}
                             />
 
@@ -158,7 +163,6 @@ export function AudioPlayer({
                                 <Play className="size-5 fill-current ml-0.5" />
                             )}
                         </Button>
-                        -
                         <Button
                             variant="outline"
                             size="icon"

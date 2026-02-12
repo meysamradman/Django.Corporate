@@ -1,20 +1,12 @@
 import type { Media } from '@/types/shared/media';
-import { MEDIA_CONFIG } from '@/core/config/environment';
-
-export type MediaType = 'image' | 'video' | 'audio' | 'document';
-
-export interface ValidationResult {
-    isValid: boolean;
-    errors: string[];
-    warnings: string[];
-    fileInfo: {
-        name: string;
-        size: number;
-        type: string;
-        extension: string;
-        category: MediaType;
-    };
-}
+import {
+    ALLOWED_MIME_TYPES,
+    getAcceptTypes,
+    getMaxSizeForCategory,
+    isAllowedExtension,
+} from './validation/rules';
+import type { MediaType, ValidationResult } from './validation/types';
+export type { MediaType, ValidationResult } from './validation/types';
 
 export const getFileCategory = (input: File | Media): MediaType => {
     let ext: string = '';
@@ -40,20 +32,10 @@ export const getFileCategory = (input: File | Media): MediaType => {
         }
     }
 
-    const isExtensionAllowed = (extension: string, type: MediaType): boolean => {
-        switch (type) {
-            case 'image': return (MEDIA_CONFIG.IMAGE_EXTENSIONS as readonly string[]).includes(extension);
-            case 'video': return (MEDIA_CONFIG.VIDEO_EXTENSIONS as readonly string[]).includes(extension);
-            case 'audio': return (MEDIA_CONFIG.AUDIO_EXTENSIONS as readonly string[]).includes(extension);
-            case 'document': return (MEDIA_CONFIG.PDF_EXTENSIONS as readonly string[]).includes(extension);
-            default: return false;
-        }
-    };
-
-    if (isExtensionAllowed(ext, 'image')) return 'image';
-    if (isExtensionAllowed(ext, 'video')) return 'video';
-    if (isExtensionAllowed(ext, 'audio')) return 'audio';
-    if (isExtensionAllowed(ext, 'document')) return 'document';
+    if (isAllowedExtension(ext, 'image')) return 'image';
+    if (isAllowedExtension(ext, 'video')) return 'video';
+    if (isAllowedExtension(ext, 'audio')) return 'audio';
+    if (isAllowedExtension(ext, 'document')) return 'document';
 
     if (mimeType.startsWith('image/')) return 'image';
     if (mimeType.startsWith('video/')) return 'video';
@@ -64,51 +46,29 @@ export const getFileCategory = (input: File | Media): MediaType => {
 };
 
 export const getImageAcceptTypes = (): string => {
-    return (MEDIA_CONFIG.IMAGE_EXTENSIONS as readonly string[]).map(ext => `.${ext}`).join(',');
+    return getAcceptTypes('image');
 };
 
 export const getVideoAcceptTypes = (): string => {
-    return (MEDIA_CONFIG.VIDEO_EXTENSIONS as readonly string[]).map(ext => `.${ext}`).join(',');
+    return getAcceptTypes('video');
 };
 
 export const getAudioAcceptTypes = (): string => {
-    return (MEDIA_CONFIG.AUDIO_EXTENSIONS as readonly string[]).map(ext => `.${ext}`).join(',');
+    return getAcceptTypes('audio');
 };
 
 export const getDocumentAcceptTypes = (): string => {
-    return (MEDIA_CONFIG.PDF_EXTENSIONS as readonly string[]).map(ext => `.${ext}`).join(',');
+    return getAcceptTypes('document');
 };
 
 export const validateFileSize = (file: File, type: MediaType): boolean => {
-    let maxSize = 0;
-    switch (type) {
-        case 'image': maxSize = MEDIA_CONFIG.IMAGE_SIZE_LIMIT; break;
-        case 'video': maxSize = MEDIA_CONFIG.VIDEO_SIZE_LIMIT; break;
-        case 'audio': maxSize = MEDIA_CONFIG.AUDIO_SIZE_LIMIT; break;
-        case 'document': maxSize = MEDIA_CONFIG.PDF_SIZE_LIMIT; break;
-    }
+    const maxSize = getMaxSizeForCategory(type);
     return file.size <= maxSize;
 };
 
 export const validateFileType = (file: File, type: MediaType): boolean => {
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    switch (type) {
-        case 'image': return (MEDIA_CONFIG.IMAGE_EXTENSIONS as readonly string[]).includes(ext);
-        case 'video': return (MEDIA_CONFIG.VIDEO_EXTENSIONS as readonly string[]).includes(ext);
-        case 'audio': return (MEDIA_CONFIG.AUDIO_EXTENSIONS as readonly string[]).includes(ext);
-        case 'document': return (MEDIA_CONFIG.PDF_EXTENSIONS as readonly string[]).includes(ext);
-        default: return false;
-    }
-};
-
-const getMaxSizeForCategory = (category: MediaType): number => {
-    switch (category) {
-        case 'image': return MEDIA_CONFIG.IMAGE_SIZE_LIMIT;
-        case 'video': return MEDIA_CONFIG.VIDEO_SIZE_LIMIT;
-        case 'audio': return MEDIA_CONFIG.AUDIO_SIZE_LIMIT;
-        case 'document': return MEDIA_CONFIG.PDF_SIZE_LIMIT;
-        default: return 0;
-    }
+    return isAllowedExtension(ext, type);
 };
 
 export const formatBytes = (bytes: number): string => {
@@ -183,15 +143,8 @@ export const validateFileAdvanced = (file: File): ValidationResult => {
 };
 
 export const validateMimeType = (file: File): boolean => {
-    const allowedMimeTypes = {
-        'image': ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'],
-        'video': ['video/mp4', 'video/webm', 'video/quicktime'],
-        'audio': ['audio/mpeg', 'audio/ogg'],
-        'document': ['application/pdf']
-    };
-
     const category = getFileCategory(file);
-    const categoryMimes = allowedMimeTypes[category];
+    const categoryMimes = ALLOWED_MIME_TYPES[category];
 
     if (!categoryMimes) return false;
 

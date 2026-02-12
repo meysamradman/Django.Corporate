@@ -1,46 +1,33 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { cleanupDateRangeFromURL } from '@/components/tables/utils/tableSorting';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/PageHeader/PageHeader';
-import { useDebounce } from '@/core/hooks/useDebounce';
 import { mediaApi, DEFAULT_MEDIA_PAGE_SIZE } from '@/api/media/media';
 import type { Media, MediaFilter } from '@/types/shared/media';
-import { MediaImage } from '@/components/media/base/MediaImage';
 import { Skeleton } from "@/components/elements/Skeleton";
-import { Input } from '@/components/elements/Input';
-import { mediaService } from '@/components/media/services';
-import { ProtectedButton } from '@/core/permissions';
 import { PaginationControls } from '@/components/shared/paginations/PaginationControls';
-import { ImageOff, Trash2, Upload, Search, Play, FileAudio, Sparkles } from 'lucide-react';
 import {
   Card,
   CardContent,
   CardHeader,
   CardFooter,
 } from "@/components/elements/Card";
-import { Checkbox } from '@/components/elements/Checkbox';
 import { toast, showError } from '@/core/toast';
 import { useUserPermissions } from '@/core/permissions';
-import { cn } from '@/core/utils/cn';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/elements/AlertDialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/elements/Dialog";
-import { DataTableFacetedFilterSimple } from "@/components/tables/DataTableFacetedFilterSimple";
-import { DataTableDateRangeFilter } from "@/components/tables/DataTableDateRangeFilter";
 import { Loader } from '@/components/elements/Loader';
+import { MediaPageFilters } from '@/components/media/page/MediaPageFilters';
+import { MediaPageGrid } from '@/components/media/page/MediaPageGrid';
+import { MediaPageHeaderActions } from '@/components/media/page/MediaPageHeaderActions';
+import { MediaDeleteConfirmDialog } from '@/components/media/page/MediaDeleteConfirmDialog';
+import { MediaAIGenerateDialog } from '@/components/media/page/MediaAIGenerateDialog';
+import {
+  parseMediaFiltersFromSearch,
+  type MediaFiltersWithRange,
+} from '@/components/media/page/mediaPageFilterUrl';
+import { useMediaPageSelection } from '@/components/media/page/useMediaPageSelection';
+import { useMediaPageData } from '@/components/media/page/useMediaPageData';
+import { useMediaPageDialogs } from '@/components/media/page/useMediaPageDialogs';
+import { useMediaPageFilters } from '@/components/media/page/useMediaPageFilters';
 
 const MediaGridSkeleton = () => (
   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 p-6">
@@ -73,177 +60,67 @@ const actualDefaultFilters: MediaFilter = {
   date_to: "",
 };
 
-interface MediaFiltersWithRange extends MediaFilter {
-  date_range?: { from?: string; to?: string };
-}
-
 export default function MediaPage() {
   const navigate = useNavigate();
 
-  const [mediaItems, setMediaItems] = useState<Media[]>([]);
-  const [totalCount, setTotalCount] = useState<number>(0);
   const [filters, setFilters] = useState<MediaFiltersWithRange>(actualDefaultFilters);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [selectedItems, setSelectedItems] = useState<Record<string | number, boolean>>({});
-  const [error, setError] = useState<string | null>(null);
-  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; title: string; description: string; onConfirm: () => void; }>({ open: false, title: "", description: "", onConfirm: () => { } });
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [detailMedia, setDetailMedia] = useState<Media | null>(null);
-  const [isDetailModalOpen, setDetailModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const {
+    mediaItems,
+    setMediaItems,
+    totalCount,
+    isLoading,
+    error,
+    fetchMedia,
+  } = useMediaPageData();
   const { getResourceAccess, hasModuleAction } = useUserPermissions();
   const mediaAccess = getResourceAccess('media');
   const canDeleteMedia = mediaAccess.delete || mediaAccess.manage;
   const canUseAI = hasModuleAction('ai', 'create');
+  const {
+    confirmDialog,
+    setConfirmDialog,
+    closeConfirmDialog,
+    isUploadModalOpen,
+    openUploadModal,
+    closeUploadModal,
+    detailMedia,
+    setDetailMedia,
+    isDetailModalOpen,
+    openDetailModal,
+    closeDetailModal,
+    isAIGenerateModalOpen,
+    setIsAIGenerateModalOpen,
+    openAIGenerateModal,
+    closeAIGenerateModal,
+  } = useMediaPageDialogs();
+  const {
+    selectedItems,
+    selectedIds,
+    allSelected,
+    someSelected,
+    handleSelectItem,
+    handleSelectAll,
+    clearSelection,
+  } = useMediaPageSelection(mediaItems);
+  const {
+    debouncedSearch,
+    handlePageChange,
+    handleLimitChange,
+    handleFileTypeChange,
+    handleDateRangeChange,
+  } = useMediaPageFilters({ setFilters });
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const fetchMedia = useCallback(async (currentFilters: MediaFilter) => {
-    setIsLoading(true);
-    setError(null);
-
-    const apiFilters: MediaFilter = {
-      search: currentFilters.search || undefined,
-      file_type: currentFilters.file_type === "all" ? undefined : currentFilters.file_type,
-      page: currentFilters.page,
-      size: currentFilters.size,
-      date_from: currentFilters.date_from || undefined,
-      date_to: currentFilters.date_to || undefined,
-    };
-
-    try {
-      const response = await mediaApi.getMediaList(apiFilters);
-
-      if (response.metaData.status === 'success') {
-        const mediaData = Array.isArray(response.data) ? response.data : [];
-        setMediaItems(mediaData);
-        setTotalCount(response.pagination?.count || mediaData.length || 0);
-      } else {
-        setError(response.metaData.message || "خطا در دریافت رسانه‌ها");
-      }
-    } catch (error) {
-      setError("خطا در دریافت رسانه‌ها");
-      setMediaItems([]);
-      setTotalCount(0);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   const location = useLocation();
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
-
     cleanupDateRangeFromURL();
-
-    const urlFilters: Partial<MediaFilter> = {};
-
-    if (urlParams.get('search')) urlFilters.search = urlParams.get('search')!;
-    if (urlParams.get('file_type')) urlFilters.file_type = urlParams.get('file_type')!;
-    const dateFrom = urlParams.get('date_from');
-    const dateTo = urlParams.get('date_to');
-    if (dateFrom || dateTo) {
-      urlFilters.date_from = dateFrom || '';
-      urlFilters.date_to = dateTo || '';
-      (urlFilters as any).date_range = { from: dateFrom || undefined, to: dateTo || undefined };
-    }
-    if (urlParams.get('page')) urlFilters.page = parseInt(urlParams.get('page')!, 10);
-    if (urlParams.get('limit')) urlFilters.size = parseInt(urlParams.get('limit')!, 10);
-
-    if (Object.keys(urlFilters).length > 0) {
-      const newFilters = { ...actualDefaultFilters, ...urlFilters };
-      setFilters(newFilters);
-    } else {
-      setFilters(actualDefaultFilters);
-    }
+    setFilters(parseMediaFiltersFromSearch(location.search, actualDefaultFilters));
   }, [location.search]);
-
-  const debouncedSearch = useDebounce((searchTerm: string) => {
-    setFilters(prev => ({ ...prev, search: searchTerm, page: 1 }));
-
-    const url = new URL(window.location.href);
-    if (searchTerm) {
-      url.searchParams.set('search', searchTerm);
-    } else {
-      url.searchParams.delete('search');
-    }
-    url.searchParams.set('page', '1');
-    window.history.replaceState({}, '', url.toString());
-  }, 500);
-
-  const handlePageChange = (newPage: number) => {
-    setFilters(prev => ({ ...prev, page: newPage }));
-
-    const url = new URL(window.location.href);
-    url.searchParams.set('page', newPage.toString());
-    window.history.replaceState({}, '', url.toString());
-  };
-
-  const handleLimitChange = (newLimit: number) => {
-    setFilters(prev => ({ ...prev, size: newLimit, page: 1 }));
-
-    const url = new URL(window.location.href);
-    url.searchParams.set('limit', newLimit.toString());
-    url.searchParams.set('page', '1');
-    window.history.replaceState({}, '', url.toString());
-  };
-
-  const handleFileTypeChange = (fileType: string) => {
-    setFilters(prev => ({ ...prev, file_type: fileType === "all" ? "all" : fileType, page: 1 }));
-
-    const url = new URL(window.location.href);
-    url.searchParams.set('file_type', fileType);
-    url.searchParams.set('page', '1');
-    window.history.replaceState({}, '', url.toString());
-  };
-
-  const handleDateRangeChange = (range: { from?: string; to?: string }) => {
-    setFilters(prev => ({
-      ...prev,
-      date_from: range.from || '',
-      date_to: range.to || '',
-      date_range: range,
-      page: 1
-    }));
-
-    const url = new URL(window.location.href);
-    url.searchParams.delete('date_range');
-
-    if (range.from) {
-      url.searchParams.set('date_from', range.from);
-    } else {
-      url.searchParams.delete('date_from');
-    }
-    if (range.to) {
-      url.searchParams.set('date_to', range.to);
-    } else {
-      url.searchParams.delete('date_to');
-    }
-    url.searchParams.set('page', '1');
-    window.history.replaceState({}, '', url.toString());
-  };
-
-  const handleSelectItem = (itemId: number, checked: boolean) => {
-    setSelectedItems(prev => ({
-      ...prev,
-      [itemId]: checked
-    }));
-  };
-
-  const handleSelectAll = (checked: boolean) => {
-    const newSelection: Record<string | number, boolean> = {};
-    if (checked) {
-      mediaItems.forEach(item => newSelection[item.id] = true);
-    }
-    setSelectedItems(newSelection);
-  };
-
-  const selectedIds = Object.keys(selectedItems);
-  const allSelected = mediaItems.length > 0 && selectedIds.length === mediaItems.length;
-  const someSelected = selectedIds.length > 0 && !allSelected;
 
   const handleDeleteSelected = async () => {
     if (!canDeleteMedia) {
@@ -267,7 +144,7 @@ export default function MediaPage() {
             loading: 'در حال حذف رسانه‌ها...',
             success: (response: any) => {
               fetchMedia(filters);
-              setSelectedItems({});
+              clearSelection();
               return `${response.data?.deleted_count || selectedMediaItems.length} رسانه برای حذف علامت‌گذاری شد.`;
             },
             error: (error: any) => {
@@ -279,14 +156,12 @@ export default function MediaPage() {
     });
   };
 
-  const [isAIGenerateModalOpen, setIsAIGenerateModalOpen] = useState(false);
-
   const handleAIGenerateClick = () => {
-    setIsAIGenerateModalOpen(true);
+    openAIGenerateModal();
   };
 
   const handleUploadClick = () => {
-    setIsUploadModalOpen(true);
+    openUploadModal();
   };
 
   const handleUploadComplete = () => {
@@ -294,12 +169,11 @@ export default function MediaPage() {
   };
 
   const handleMediaClick = (media: Media) => {
-    setDetailMedia(media);
-    setDetailModalOpen(true);
+    openDetailModal(media);
   };
 
   const handleEditMedia = () => {
-    setDetailModalOpen(false);
+    closeDetailModal();
   };
 
   const handleMediaUpdated = (updatedMedia: Media) => {
@@ -319,30 +193,10 @@ export default function MediaPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="کتابخانه رسانه">
-        <>
-          <ProtectedButton
-            permission="ai.create"
-            size="sm"
-            className="border border-pink-1 bg-pink text-pink-2 shadow-sm transition hover:bg-pink/90"
-            onClick={handleAIGenerateClick}
-            showDenyToast={false}
-          >
-            <Sparkles className="h-4 w-4" />
-            تولید با AI
-          </ProtectedButton>
-
-          <ProtectedButton
-            permission={['media.upload', 'media.image.upload', 'media.video.upload', 'media.audio.upload', 'media.document.upload']}
-            requireAll={false}
-            size="sm"
-            className="bg-primary text-static-w shadow-sm hover:shadow-md"
-            onClick={handleUploadClick}
-            showDenyToast={false}
-          >
-            <Upload className="h-4 w-4" />
-            آپلود رسانه
-          </ProtectedButton>
-        </>
+        <MediaPageHeaderActions
+          onAIGenerateClick={handleAIGenerateClick}
+          onUploadClick={handleUploadClick}
+        />
       </PageHeader>
 
       {error && (
@@ -353,164 +207,32 @@ export default function MediaPage() {
 
       <Card className="gap-0 shadow-sm border-0">
         <CardHeader className="border-b">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="select-all"
-                  checked={allSelected || (someSelected ? 'indeterminate' : false)}
-                  onCheckedChange={handleSelectAll}
-                  aria-label="انتخاب همه موارد این صفحه"
-                  className="h-4 w-4"
-                />
-                <span className="text-xs text-font-s">انتخاب همه</span>
-              </div>
-
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-font-s" />
-                <Input
-                  placeholder="جستجو..."
-                  defaultValue={filters.search}
-                  onChange={(e) => debouncedSearch(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              {selectedIds.length > 0 && (
-                <ProtectedButton
-                  permission="media.delete"
-                  variant="destructive"
-                  onClick={handleDeleteSelected}
-                  size="sm"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  حذف ({selectedIds.length})
-                </ProtectedButton>
-              )}
-            </div>
-
-            <div className="flex flex-col flex-wrap gap-2 md:flex-row md:items-center md:gap-2">
-              {mounted && (
-                <DataTableFacetedFilterSimple
-                  title="نوع فایل"
-                  options={[
-                    { label: "تصویر", value: "image" },
-                    { label: "ویدیو", value: "video" },
-                    { label: "صوت", value: "audio" },
-                    { label: "مستند", value: "pdf" },
-                  ]}
-                  value={filters.file_type === "all" ? undefined : filters.file_type}
-                  onChange={(value) => {
-                    if (value === undefined || value === null) {
-                      handleFileTypeChange("all");
-                    } else {
-                      handleFileTypeChange(value as string);
-                    }
-                  }}
-                  multiSelect={false}
-                  showSearch={false}
-                />
-              )}
-
-              <DataTableDateRangeFilter
-                title="بازه تاریخ"
-                value={filters.date_range || { from: filters.date_from || undefined, to: filters.date_to || undefined }}
-                onChange={handleDateRangeChange}
-                placeholder="انتخاب بازه تاریخ"
-              />
-            </div>
-          </div>
+          <MediaPageFilters
+            allSelected={allSelected}
+            someSelected={someSelected}
+            selectedCount={selectedIds.length}
+            searchValue={filters.search}
+            fileType={filters.file_type}
+            mounted={mounted}
+            dateRange={filters.date_range || { from: filters.date_from || undefined, to: filters.date_to || undefined }}
+            onSelectAll={(checked) => handleSelectAll(!!checked)}
+            onSearchChange={debouncedSearch}
+            onDeleteSelected={handleDeleteSelected}
+            onFileTypeChange={handleFileTypeChange}
+            onDateRangeChange={handleDateRangeChange}
+          />
         </CardHeader>
 
         <CardContent className="p-0">
           {isLoading ? (
             <MediaGridSkeleton />
-          ) : mediaItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-font-s">
-              <ImageOff className="h-16 w-16 mb-4" />
-              <p className="text-lg">رسانه‌ای یافت نشد</p>
-              <p className="text-sm mt-1">آپلود رسانه جدید یا تغییر فیلترها</p>
-            </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 p-6">
-              {mediaItems.map((item) => {
-                const displayName = item.title || item.original_file_name || item.file_name || 'بدون عنوان';
-
-                const coverImageUrl = mediaService.getMediaCoverUrl(item);
-                const hasCoverImage = !!coverImageUrl && coverImageUrl.length > 0;
-
-                return (
-                  <Card
-                    key={`media-item-${item.media_type}-${item.id}`}
-                    className={cn(
-                      "overflow-hidden group relative transition-all border-2 cursor-pointer hover:shadow-lg p-0",
-                      selectedItems[item.id] ? "border-primary shadow-md" : "border-transparent hover:border-font-s/20"
-                    )}
-                    onClick={() => handleMediaClick(item)}
-                  >
-                    <div className="w-full h-48 flex items-center justify-center bg-bg relative overflow-hidden">
-                      {hasCoverImage ? (
-                        <MediaImage
-                          media={item}
-                          src={coverImageUrl}
-                          alt={item.alt_text || item.title || 'تصویر رسانه'}
-                          fill
-                          showSkeleton={false}
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 16vw, 12.5vw"
-                        />
-                      ) : item.media_type === 'image' && item.file_url ? (
-                        <MediaImage
-                          media={item}
-                          src={item.file_url || ''}
-                          alt={item.alt_text || item.title || 'تصویر رسانه'}
-                          fill
-                          showSkeleton={false}
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 16vw, 12.5vw"
-                        />
-                      ) : (
-                        <div className="flex flex-col items-center justify-center w-full h-full">
-                          <ImageOff className="h-8 w-8 text-font-s mb-2" />
-                          <span className="text-xs text-font-s capitalize">
-                            {item.media_type === 'video' ? 'ویدیو' : item.media_type === 'audio' ? 'صوت' : item.media_type}
-                          </span>
-                        </div>
-                      )}
-
-                      {(item.media_type === 'video' || item.media_type === 'audio') && (
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                          <div className="bg-static-b/50 p-3">
-                            {item.media_type === 'video' ? (
-                              <Play className="h-6 w-6 text-static-w" />
-                            ) : (
-                              <FileAudio className="h-6 w-6 text-static-w" />
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
-                      <Checkbox
-                        id={`select-${item.id}`}
-                        checked={!!selectedItems[item.id]}
-                        onCheckedChange={(checked) => handleSelectItem(item.id, !!checked)}
-                        aria-label={`انتخاب ${item.title || 'رسانه'}`}
-                        className="bg-card/90 border-foreground/50 data-[state=checked]:bg-primary data-[state=checked]:text-static-w"
-                      />
-                    </div>
-
-                    <div className={cn(
-                      "absolute bottom-0 left-0 right-0 p-3 text-xs z-0 transition-all duration-300 bg-gradient-to-t from-black/90 via-black/60 to-transparent pointer-events-none",
-                      selectedItems[item.id] ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                    )}>
-                      <p className="truncate drop-shadow-lg text-static-w" title={displayName}>{displayName}</p>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
+            <MediaPageGrid
+              mediaItems={mediaItems}
+              selectedItems={selectedItems}
+              onMediaClick={handleMediaClick}
+              onSelectItem={handleSelectItem}
+            />
           )}
         </CardContent>
 
@@ -535,66 +257,45 @@ export default function MediaPage() {
         )}
       </Card>
 
-      <AlertDialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog(prev => ({ ...prev, open: false }))}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{confirmDialog.title}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {confirmDialog.description}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setConfirmDialog(prev => ({ ...prev, open: false }))}>
-              انصراف
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDialog.onConfirm} className="bg-destructive text-static-w hover:bg-destructive/90">
-              تأیید حذف
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <MediaDeleteConfirmDialog
+        confirmDialog={confirmDialog}
+        onClose={closeConfirmDialog}
+      />
 
       <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader /></div>}>
         <MediaUploadModal
           isOpen={isUploadModalOpen}
-          onClose={() => setIsUploadModalOpen(false)}
+          onClose={closeUploadModal}
           onUploadComplete={handleUploadComplete}
           context="media_library"
         />
       </Suspense>
 
       {canUseAI && (
-        <Dialog open={isAIGenerateModalOpen} onOpenChange={setIsAIGenerateModalOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>تولید تصویر با AI</DialogTitle>
-            </DialogHeader>
-            <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader /></div>}>
-              <AIImageGenerator
-                compact={true}
-                onImageGenerated={() => {
-                  fetchMedia(filters);
-                  setIsAIGenerateModalOpen(false);
-                }}
-                onSelectGenerated={(media) => {
-                  handleMediaClick(media);
-                  setIsAIGenerateModalOpen(false);
-                }}
-                onNavigateToSettings={() => {
-                  setIsAIGenerateModalOpen(false);
-                  navigate('/settings/ai');
-                }}
-              />
-            </Suspense>
-          </DialogContent>
-        </Dialog>
+        <MediaAIGenerateDialog
+          isOpen={isAIGenerateModalOpen}
+          onOpenChange={setIsAIGenerateModalOpen}
+          AIImageGeneratorComponent={AIImageGenerator}
+          onImageGenerated={() => {
+            fetchMedia(filters);
+            closeAIGenerateModal();
+          }}
+          onSelectGenerated={(media) => {
+            handleMediaClick(media);
+            closeAIGenerateModal();
+          }}
+          onNavigateToSettings={() => {
+            closeAIGenerateModal();
+            navigate('/settings/ai');
+          }}
+        />
       )}
 
       <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader /></div>}>
         <MediaDetailsModal
           media={detailMedia}
           isOpen={isDetailModalOpen}
-          onClose={() => setDetailModalOpen(false)}
+          onClose={closeDetailModal}
           onEdit={handleEditMedia}
           showEditButton={true}
           onMediaUpdated={handleMediaUpdated}

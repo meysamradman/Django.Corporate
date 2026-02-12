@@ -1,60 +1,38 @@
 import type { Media } from '@/types/shared/media';
 import { env } from '@/core/config/environment';
 
+const buildNamedMediaUrl = (name: string, folder: string): string => {
+    if (!name) return '';
+    if (name.startsWith('/')) return name;
+    return `${env.MEDIA_BASE_URL}/${folder}/${name}`;
+};
+
 export const GetImageUrl = (imageName: string): string => {
-    if (!imageName) return '';
-    if (imageName.startsWith('/')) {
-        return imageName;
-    }
-    return `${env.MEDIA_BASE_URL}/images/${imageName}`;
+    return buildNamedMediaUrl(imageName, 'images');
 };
 
 export const GetVideoUrl = (videoName: string): string => {
-    if (!videoName) return '';
-    if (videoName.startsWith('/')) {
-        return videoName;
-    }
-    return `${env.MEDIA_BASE_URL}/videos/${videoName}`;
+    return buildNamedMediaUrl(videoName, 'videos');
 };
 
 export const GetVideoCoverUrl = (coverName: string): string => {
-    if (!coverName) return '';
-    if (coverName.startsWith('/')) {
-        return coverName;
-    }
-    return `${env.MEDIA_BASE_URL}/covers/video_covers/${coverName}`;
+    return buildNamedMediaUrl(coverName, 'covers/video_covers');
 };
 
 export const GetAudioUrl = (audioName: string): string => {
-    if (!audioName) return '';
-    if (audioName.startsWith('/')) {
-        return audioName;
-    }
-    return `${env.MEDIA_BASE_URL}/audios/${audioName}`;
+    return buildNamedMediaUrl(audioName, 'audios');
 };
 
 export const GetAudioCoverUrl = (coverName: string): string => {
-    if (!coverName) return '';
-    if (coverName.startsWith('/')) {
-        return coverName;
-    }
-    return `${env.MEDIA_BASE_URL}/covers/audio_covers/${coverName}`;
+    return buildNamedMediaUrl(coverName, 'covers/audio_covers');
 };
 
 export const GetPdfUrl = (pdfName: string): string => {
-    if (!pdfName) return '';
-    if (pdfName.startsWith('/')) {
-        return pdfName;
-    }
-    return `${env.MEDIA_BASE_URL}/pdfs/${pdfName}`;
+    return buildNamedMediaUrl(pdfName, 'pdfs');
 };
 
 export const GetPdfCoverUrl = (coverName: string): string => {
-    if (!coverName) return '';
-    if (coverName.startsWith('/')) {
-        return coverName;
-    }
-    return `${env.MEDIA_BASE_URL}/covers/pdf_covers/${coverName}`;
+    return buildNamedMediaUrl(coverName, 'covers/pdf_covers');
 };
 
 export const GetCategoryImageUrl = (imageName: string): string => {

@@ -1,22 +1,15 @@
-import { useState, useEffect, lazy, Suspense } from "react";
-import { useTableFilters } from "@/components/tables/utils/useTableFilters";
+import { lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
-import { useURLStateSync, parseBooleanParam, parseStringParam, parseDateRange } from "@/hooks/useURLStateSync";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { usePortfolioColumns } from "@/components/portfolios/projects/list/PortfolioTableColumns";
-import { usePortfolioFilterOptions, getPortfolioFilterConfig } from "@/components/portfolios/projects/list/PortfolioTableFilters";
 import type { PortfolioFilters } from "@/types/portfolio/portfolioListParams";
 import { Eye, Edit, Trash2, Plus, FileText } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
-import { showError, showSuccess, showWarning } from '@/core/toast';
-import type { OnChangeFn, SortingState } from "@tanstack/react-table";
-import type { TablePaginationState } from '@/types/shared/pagination';
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
-import { msg, getConfirm, getStatus } from '@/core/messages';
+import { getConfirm } from '@/core/messages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,162 +25,24 @@ import type { Portfolio } from "@/types/portfolio/portfolio";
 import type { ColumnDef } from "@tanstack/react-table";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import type { DataTableRowAction } from "@/types/shared/table";
-import type { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
-import { usePortfolioExcelExport } from "@/components/portfolios/hooks/usePortfolioExcelExport";
-import { usePortfolioPdfExport } from "@/components/portfolios/hooks/usePortfolioPdfExport";
-import { usePortfolioPrintView } from "@/components/portfolios/hooks/usePortfolioPrintView";
-
-const convertCategoriesToHierarchical = (categories: PortfolioCategory[]): any[] => {
-  const rootCategories = categories.filter(cat => !cat.parent_id);
-
-  const buildTree = (category: PortfolioCategory): any => {
-    const children = categories.filter(cat => cat.parent_id === category.id);
-
-    return {
-      id: category.id,
-      label: category.name,
-      value: category.id.toString(),
-      parent_id: category.parent_id,
-      children: children.map(buildTree)
-    };
-  };
-
-  return rootCategories.map(buildTree);
-};
+import { usePortfolioListTableState } from "@/components/portfolios/hooks/usePortfolioListTableState";
+import { usePortfolioListActions } from "@/components/portfolios/hooks/usePortfolioListActions";
 
 export default function PortfolioPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { statusFilterOptions, booleanFilterOptions } = usePortfolioFilterOptions();
-
-  const [_categories, setCategories] = useState<PortfolioCategory[]>([]);
-  const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
-
-  const [pagination, setPagination] = useState<TablePaginationState>(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const page = parseInt(urlParams.get('page') || '1', 10);
-      const size = parseInt(urlParams.get('size') || '10', 10);
-      return {
-        pageIndex: Math.max(0, page - 1),
-        pageSize: size,
-      };
-    }
-    return {
-      pageIndex: 0,
-      pageSize: 10,
-    };
-  });
-  const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
-  const [rowSelection, setRowSelection] = useState({});
-  const [searchValue, setSearchValue] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('search') || '';
-    }
-    return '';
-  });
-  const [clientFilters, setClientFilters] = useState<PortfolioFilters>(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const filters: PortfolioFilters = {};
-      if (urlParams.get('status')) filters.status = urlParams.get('status') as string;
-      if (urlParams.get('is_featured')) filters.is_featured = urlParams.get('is_featured') === 'true';
-      if (urlParams.get('is_public')) filters.is_public = urlParams.get('is_public') === 'true';
-      if (urlParams.get('is_active')) filters.is_active = urlParams.get('is_active') === 'true';
-      if (urlParams.get('category')) {
-        filters.category = urlParams.get('category') as string;
-      }
-      const dateFrom = urlParams.get('date_from');
-      const dateTo = urlParams.get('date_to');
-      if (dateFrom || dateTo) {
-        (filters as any).date_range = { from: dateFrom || undefined, to: dateTo || undefined };
-        filters.date_from = dateFrom || undefined;
-        filters.date_to = dateTo || undefined;
-      }
-      return filters;
-    }
-    return {};
-  });
-
-  useURLStateSync(
-    setPagination,
-    setSearchValue,
-    setSorting,
-    setClientFilters,
-    (urlParams) => {
-      const filters: PortfolioFilters = {};
-
-      filters.is_featured = parseBooleanParam(urlParams, 'is_featured');
-      filters.is_public = parseBooleanParam(urlParams, 'is_public');
-      filters.is_active = parseBooleanParam(urlParams, 'is_active');
-
-      filters.status = parseStringParam(urlParams, 'status');
-      filters.category = parseStringParam(urlParams, 'category');
-
-      Object.assign(filters, parseDateRange(urlParams));
-
-      return filters;
-    }
-  );
-
-  const [deleteConfirm, setDeleteConfirm] = useState<{
-    open: boolean;
-    portfolioId?: number;
-    portfolioIds?: number[];
-    isBulk: boolean;
-  }>({
-    open: false,
-    isBulk: false,
-  });
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await portfolioApi.getCategories({
-          page: 1,
-          size: 1000,
-          is_active: true,
-          is_public: true
-        });
-
-        setCategories(response.data);
-        setCategoryOptions(convertCategoriesToHierarchical(response.data));
-      } catch (error) {
-      }
-    };
-
-    fetchCategories();
-  }, []);
-
-  const { handleFilterChange } = useTableFilters<PortfolioFilters>(
-    setClientFilters,
-    setSearchValue,
-    setPagination,
-    {
-      categories: (value, updateUrl) => {
-        setClientFilters(prev => ({
-          ...prev,
-          category: value as string | undefined
-        }));
-        setPagination(prev => ({ ...prev, pageIndex: 0 }));
-
-        const url = new URL(window.location.href);
-        if (value && value !== 'all' && value !== '') {
-          url.searchParams.set('category', String(value));
-        } else {
-          url.searchParams.delete('category');
-        }
-        updateUrl(url);
-      }
-    }
-  );
-
-  const portfolioFilterConfig = getPortfolioFilterConfig(
-    statusFilterOptions,
-    booleanFilterOptions,
-    categoryOptions
-  );
+  const {
+    pagination,
+    sorting,
+    rowSelection,
+    setRowSelection,
+    searchValue,
+    clientFilters,
+    handleFilterChange,
+    portfolioFilterConfig,
+    handlePaginationChange,
+    handleSortingChange,
+  } = usePortfolioListTableState({ navigate });
 
   const queryParams = {
     search: searchValue,
@@ -217,76 +72,28 @@ export default function PortfolioPage() {
   const data: Portfolio[] = portfolios?.data || [];
   const pageCount = portfolios?.pagination?.total_pages || 1;
 
-  const deletePortfolioMutation = useMutation({
-    mutationFn: (portfolioId: number) => portfolioApi.deletePortfolio(portfolioId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['portfolios'] });
-      showSuccess(msg.crud('deleted', { item: 'نمونه‌کار' }));
-    },
-    onError: (_error) => {
-      showError('خطای سرور رخ داد');
-    },
+  const {
+    deleteConfirm,
+    setDeleteConfirm,
+    handleDeletePortfolio,
+    handleDeleteSelected,
+    handleConfirmDelete,
+    handleToggleActive,
+    handleExcelExport,
+    handlePdfExport,
+    handlePrintAction,
+    exportSinglePortfolioPdf,
+    isExcelLoading,
+    isPdfLoading,
+  } = usePortfolioListActions({
+    data,
+    totalCount: portfolios?.pagination?.count || 0,
+    pagination,
+    sorting,
+    rowSelection,
+    setRowSelection,
+    queryParams,
   });
-
-  const bulkDeleteMutation = useMutation({
-    mutationFn: (portfolioIds: number[]) => portfolioApi.bulkDeletePortfolios(portfolioIds),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['portfolios'] });
-      showSuccess(msg.crud('deleted', { item: 'نمونه‌کارها' }));
-      setRowSelection({});
-    },
-    onError: (_error) => {
-      showError('خطای سرور رخ داد');
-    },
-  });
-
-  const toggleActiveMutation = useMutation({
-    mutationFn: async ({ id, is_active }: { id: number; is_active: boolean }) => {
-      return portfolioApi.partialUpdatePortfolio(id, { is_active });
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['portfolios'] });
-      showSuccess(data.is_active ? getStatus('active') : getStatus('inactive'));
-    },
-    onError: (_error) => {
-      showError(getStatus('statusChangeError'));
-    },
-  });
-
-  const handleToggleActive = (portfolio: Portfolio) => {
-    toggleActiveMutation.mutate({
-      id: portfolio.id,
-      is_active: !portfolio.is_active,
-    });
-  };
-
-  const handleDeletePortfolio = (portfolioId: number | string) => {
-    setDeleteConfirm({
-      open: true,
-      portfolioId: Number(portfolioId),
-      isBulk: false,
-    });
-  };
-
-  const handleDeleteSelected = (selectedIds: (string | number)[]) => {
-    setDeleteConfirm({
-      open: true,
-      portfolioIds: selectedIds.map(id => Number(id)),
-      isBulk: true,
-    });
-  };
-
-  const handleConfirmDelete = async () => {
-    try {
-      if (deleteConfirm.isBulk && deleteConfirm.portfolioIds) {
-        await bulkDeleteMutation.mutateAsync(deleteConfirm.portfolioIds);
-      } else if (!deleteConfirm.isBulk && deleteConfirm.portfolioId) {
-        await deletePortfolioMutation.mutateAsync(deleteConfirm.portfolioId);
-      }
-    } catch (error) {
-    }
-    setDeleteConfirm({ open: false, isBulk: false });
-  };
 
   const rowActions: DataTableRowAction<Portfolio>[] = [
     {
@@ -317,113 +124,6 @@ export default function PortfolioPage() {
   ];
 
   const columns = usePortfolioColumns(rowActions, handleToggleActive) as ColumnDef<Portfolio>[];
-
-  const { exportExcel, isLoading: isExcelLoading } = usePortfolioExcelExport();
-  const { exportPortfolioListPdf, exportSinglePortfolioPdf, isLoading: isPdfLoading } = usePortfolioPdfExport();
-  const { openPrintWindow } = usePortfolioPrintView();
-
-  const handleExcelExport = async (filters: PortfolioFilters, search: string, exportAll: boolean = false) => {
-    const exportParams: any = {
-      search: search || undefined,
-      order_by: sorting.length > 0 ? sorting[0].id : "created_at",
-      order_desc: sorting.length > 0 ? sorting[0].desc : true,
-      status: filters.status,
-      is_featured: filters.is_featured,
-      is_public: filters.is_public,
-      is_active: filters.is_active,
-      categories__in: filters.category ? filters.category.toString() : undefined,
-    };
-
-    if (exportAll) exportParams.export_all = true;
-    else {
-      exportParams.page = pagination.pageIndex + 1;
-      exportParams.size = pagination.pageSize;
-    }
-
-    await exportExcel(data, portfolios?.pagination?.count || 0, exportParams);
-  };
-
-  const handlePdfExport = async (filters: PortfolioFilters, search: string, exportAll: boolean = false) => {
-    const exportParams: any = {
-      search: search || undefined,
-      order_by: sorting.length > 0 ? sorting[0].id : "created_at",
-      order_desc: sorting.length > 0 ? sorting[0].desc : true,
-      status: filters.status,
-      is_featured: filters.is_featured,
-      is_public: filters.is_public,
-      is_active: filters.is_active,
-      categories__in: filters.category ? filters.category.toString() : undefined,
-    };
-
-    if (exportAll) exportParams.export_all = true;
-    else {
-      exportParams.page = pagination.pageIndex + 1;
-      exportParams.size = pagination.pageSize;
-    }
-
-    exportPortfolioListPdf(exportParams);
-  };
-
-  const handlePrintAction = async (printAll: boolean = false) => {
-    if (!printAll) {
-      const selectedIds = Object.keys(rowSelection).filter(key => (rowSelection as any)[key]).map(idx => data[parseInt(idx)].id);
-      if (selectedIds.length > 0) {
-        openPrintWindow(selectedIds);
-      } else {
-        openPrintWindow(data.map(p => p.id));
-      }
-      return;
-    }
-
-    try {
-      showWarning("در حال آماده‌سازی فایل پرینت برای تمامی موارد...");
-      const response = await portfolioApi.getPortfolioList({
-        ...queryParams,
-        page: 1,
-        size: 10000, // Fetch all reasonable amount
-      });
-
-      const allIds = response.data.map(p => p.id);
-      if (allIds.length > 0) {
-        openPrintWindow(allIds);
-      } else {
-        showError("داده‌ای برای پرینت یافت نشد");
-      }
-    } catch (error) {
-      showError("خطا در بارگذاری داده‌ها برای پرینت");
-    }
-  };
-
-  const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
-    const newPagination = typeof updaterOrValue === 'function'
-      ? updaterOrValue(pagination)
-      : updaterOrValue;
-
-    setPagination(newPagination);
-
-    const url = new URL(window.location.href);
-    url.searchParams.set('page', String(newPagination.pageIndex + 1));
-    url.searchParams.set('size', String(newPagination.pageSize));
-    navigate(url.search, { replace: true });
-  };
-
-  const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function'
-      ? updaterOrValue(sorting)
-      : updaterOrValue;
-
-    setSorting(newSorting);
-
-    const url = new URL(window.location.href);
-    if (newSorting.length > 0) {
-      url.searchParams.set('order_by', newSorting[0].id);
-      url.searchParams.set('order_desc', String(newSorting[0].desc));
-    } else {
-      url.searchParams.delete('order_by');
-      url.searchParams.delete('order_desc');
-    }
-    navigate(url.search, { replace: true });
-  };
 
   if (error) {
     return (

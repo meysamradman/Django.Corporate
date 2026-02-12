@@ -1,0 +1,89 @@
+import { useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { portfolioApi } from "@/api/portfolios/portfolios";
+import { showError, showSuccess } from "@/core/toast";
+import { msg } from "@/core/messages";
+
+interface DeleteConfirmState {
+  open: boolean;
+  categoryId?: number;
+  categoryIds?: number[];
+  isBulk: boolean;
+}
+
+interface UsePortfolioCategoryListActionsParams {
+  setRowSelection: Dispatch<SetStateAction<Record<string, boolean>>>;
+}
+
+export function usePortfolioCategoryListActions({ setRowSelection }: UsePortfolioCategoryListActionsParams) {
+  const queryClient = useQueryClient();
+  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({
+    open: false,
+    isBulk: false,
+  });
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: (categoryId: number) => {
+      return portfolioApi.deleteCategory(categoryId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries();
+      showSuccess(msg.crud("deleted", { item: "دسته‌بندی نمونه‌کار" }));
+    },
+    onError: () => {
+      showError("خطای سرور");
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (categoryIds: number[]) => {
+      return portfolioApi.bulkDeleteCategories(categoryIds);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries();
+      showSuccess(msg.crud("deleted", { item: "دسته‌بندی نمونه‌کار" }));
+      setRowSelection({});
+    },
+    onError: () => {
+      showError("خطای سرور");
+    },
+  });
+
+  const handleDeleteCategory = (categoryId: number | string) => {
+    setDeleteConfirm({
+      open: true,
+      categoryId: Number(categoryId),
+      isBulk: false,
+    });
+  };
+
+  const handleDeleteSelected = (selectedIds: (string | number)[]) => {
+    setDeleteConfirm({
+      open: true,
+      categoryIds: selectedIds.map((id) => Number(id)),
+      isBulk: true,
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      if (deleteConfirm.isBulk && deleteConfirm.categoryIds) {
+        await bulkDeleteMutation.mutateAsync(deleteConfirm.categoryIds);
+      } else if (!deleteConfirm.isBulk && deleteConfirm.categoryId) {
+        await deleteCategoryMutation.mutateAsync(deleteConfirm.categoryId);
+      }
+    } catch {
+    }
+
+    setDeleteConfirm({ open: false, isBulk: false });
+  };
+
+  return {
+    deleteConfirm,
+    setDeleteConfirm,
+    handleDeleteCategory,
+    handleDeleteSelected,
+    handleConfirmDelete,
+  };
+}

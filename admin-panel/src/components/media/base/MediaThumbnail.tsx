@@ -20,6 +20,33 @@ interface MediaThumbnailProps {
   style?: CSSProperties;
 }
 
+const MEDIA_BG_CLASS_MAP: Record<string, string> = {
+  video: 'bg-red/20',
+  audio: 'bg-blue/20',
+  document: 'bg-orange/20',
+  pdf: 'bg-orange/20',
+};
+
+const getMediaTypeLabel = (mediaType: string | null | undefined): string =>
+  (mediaType || 'file').toUpperCase();
+
+const getMediaBgClass = (mediaType: string | null | undefined): string =>
+  MEDIA_BG_CLASS_MAP[mediaType || ''] || 'bg-gray/20';
+
+const renderMediaIcon = (mediaType: string | null | undefined) => {
+  switch (mediaType || 'file') {
+    case 'video':
+      return <Play className="h-8 w-8" />;
+    case 'audio':
+      return <FileAudio className="h-8 w-8" />;
+    case 'document':
+    case 'pdf':
+      return <FileText className="h-8 w-8" />;
+    default:
+      return <File className="h-8 w-8" />;
+  }
+};
+
 export function MediaThumbnail({
   media,
   alt,
@@ -31,6 +58,7 @@ export function MediaThumbnail({
 }: MediaThumbnailProps) {
   const [hasError, setError] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const mediaType = media.media_type || '';
 
   const getThumbnailUrl = () => {
     if ((media.media_type || '') === 'image') {
@@ -48,51 +76,31 @@ export function MediaThumbnail({
   const thumbnailUrl = getThumbnailUrl();
   const hasThumbnail = thumbnailUrl && !hasError;
 
-  const getMediaIcon = () => {
-    const mediaType = media.media_type || 'file';
-    switch (mediaType) {
-      case 'video':
-        return <Play className="h-8 w-8" />;
-      case 'audio':
-        return <FileAudio className="h-8 w-8" />;
-      case 'document':
-      case 'pdf':
-        return <FileText className="h-8 w-8" />;
-      default:
-        return <File className="h-8 w-8" />;
-    }
-  };
+  const isImageType = mediaType === 'image';
 
-  const getMediaBgColor = () => {
-    const mediaType = media.media_type || 'file';
-    switch (mediaType) {
-      case 'video':
-        return 'bg-red/20';
-      case 'audio':
-        return 'bg-blue/20';
-      case 'document':
-      case 'pdf':
-        return 'bg-orange/20';
-      default:
-        return 'bg-gray/20';
-    }
-  };
+  const renderIconOverlay = (overlayClasses: string) => (
+    <div className={overlayClasses}>
+      <div className="bg-static-w/90 rounded-full p-2 shadow-lg">
+        {renderMediaIcon(mediaType)}
+      </div>
+    </div>
+  );
 
   if (!hasThumbnail) {
     return (
       <div 
         className={cn(
           "flex items-center justify-center bg-bg relative",
-          getMediaBgColor(),
+          getMediaBgClass(mediaType),
           className
         )}
         style={style}
       >
         {showIcon && (
           <div className="flex flex-col items-center justify-center text-font-s">
-            {getMediaIcon()}
+            {renderMediaIcon(mediaType)}
             <span className="text-xs mt-1 font-medium">
-              {(media.media_type || 'file').toUpperCase()}
+              {getMediaTypeLabel(mediaType)}
             </span>
           </div>
         )}
@@ -122,13 +130,7 @@ export function MediaThumbnail({
           onLoad={() => setLoaded(true)}
           style={style}
         />
-        {showIcon && (media.media_type || '') !== 'image' && (
-          <div className={overlayClasses}>
-            <div className="bg-static-w/90 rounded-full p-2 shadow-lg">
-              {getMediaIcon()}
-            </div>
-          </div>
-        )}
+        {showIcon && !isImageType && renderIconOverlay(overlayClasses)}
       </div>
     );
   }
@@ -145,13 +147,7 @@ export function MediaThumbnail({
         onLoad={() => setLoaded(true)}
         style={style}
       />
-      {showIcon && (media.media_type || '') !== 'image' && (
-        <div className={overlayClasses}>
-          <div className="bg-static-w/90 rounded-full p-2 shadow-lg">
-            {getMediaIcon()}
-          </div>
-        </div>
-      )}
+      {showIcon && !isImageType && renderIconOverlay(overlayClasses)}
     </div>
   );
 }
