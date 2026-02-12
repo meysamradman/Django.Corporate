@@ -8,7 +8,7 @@ import { cn } from '@/core/utils/cn';
 interface ModelSelectorProps {
     providerSlug: string;
     selectedModel: string | null;
-    onSelectModel: (modelId: string) => void;
+    onSelectModel?: (modelId: string) => void;
     capability: 'chat' | 'image' | 'content';
     className?: string;
     compact?: boolean;
@@ -37,6 +37,37 @@ export function ModelSelector({
         } 
     }, [providerSlug, capability]);
 
+    // Use a unified model type for display
+    interface NormalizedModel {
+        id: string; // The distinct identifier
+        display: string; // The display name
+        rawId: string | number; // Original ID for debugging/keys
+    }
+
+    const [normalizedModels, setNormalizedModels] = useState<NormalizedModel[]>([]);
+
+    useEffect(() => {
+        if (!models) {
+            setNormalizedModels([]);
+            return;
+        }
+
+        const norm = models.map(m => {
+            // Handle different model shapes from API/Type definitions
+            // AIModelList -> id is number, model_id is string, name is string
+            // Dynamic logic (openrouter) -> id is string
+            const idVal = (m as any).model_id || (m as any).id;
+            const nameVal = m.name || (m as any).display_name || String(idVal);
+            
+            return {
+                id: String(idVal),
+                display: nameVal,
+                rawId: (m as any).id
+            };
+        });
+        setNormalizedModels(norm);
+    }, [models]);
+
     const fetchModels = async () => {
         setLoading(true);
         setError(false);
@@ -52,8 +83,11 @@ export function ModelSelector({
                 response = await aiApi.models.getModels(providerSlug, capability);
             }
 
-            if (response?.data) {
-                setModels(response.data);
+            if (response && (response as any).data) { // Handle wrapped response safely
+                 const data = Array.isArray(response) ? response : (response as any).data;
+                 setModels(Array.isArray(data) ? data : []);
+            } else if (Array.isArray(response)) {
+                 setModels(response);
             } else {
                 setModels([]);
             }
@@ -71,34 +105,41 @@ export function ModelSelector({
     // This prevents UI jumping.
     // if ((!models || models.length === 0) && !loading) return null;
 
+    const disabled = loading || (normalizedModels.length === 0 && !loading);
+    // console.log('[ModelSelector] Render state:', { providerSlug, modelsLen: models.length, loading, disabled, selectedModel });
+
     return (
         <div className={cn("animate-in fade-in slide-in-from-top-1 duration-200", className)}>
             <Select
-                value={selectedModel || ''}
+                key={providerSlug} // Force re-mount when provider changes to prevent stale state
+                value={selectedModel || undefined}
                 onValueChange={(val) => {
+                    if (!onSelectModel) { 
+                        return; // Prevent crash if handler not provided
+                    }
                     if (val === 'default_auto') {
-                        onSelectModel(''); // Or null, depending on handler
+                        onSelectModel(''); 
                     } else {
                         onSelectModel(val);
                     }
                 }}
-                disabled={loading || (models.length === 0 && !loading)}
+                disabled={disabled}
             >
                 <SelectTrigger className={cn("w-full bg-background/50", compact ? "h-8 text-xs" : "h-10")}>
                     <SelectValue placeholder={
                         loading ? "در حال دریافت..." : 
-                        (models.length === 0 ? "مدلی یافت نشد (پیش‌فرض)" : "انتخاب مدل (لخنیاری)")
+                        (normalizedModels.length === 0 ? "مدلی یافت نشد (پیش‌فرض)" : "انتخاب مدل (هوش مصنوعی)")
                     } />
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="default_auto">
                         <span className="text-font-s italic">انتخاب خودکار (پیش‌فرض)</span>
                     </SelectItem>
-                    {models.map((model) => (
-                        <SelectItem key={model.id} value={model.id}>
+                    {normalizedModels.map((model) => (
+                        <SelectItem key={String(model.rawId)} value={model.id}>
                             <div className="flex flex-col text-right">
-                                <span>{model.name || model.id}</span>
-                                {model.id !== model.name && (
+                                <span>{model.display}</span>
+                                {model.id !== model.display && (
                                      <span className="text-[10px] text-font-s/70 font-mono text-left" dir="ltr">
                                         {model.id}
                                     </span>

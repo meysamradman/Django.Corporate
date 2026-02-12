@@ -7,12 +7,16 @@ import json
 import re
 from django.core.cache import cache
 from .base import BaseProvider
-from src.ai.messages.messages import AI_ERRORS, HUGGINGFACE_PROMPTS
+from src.ai.messages.messages import AI_ERRORS
 from src.ai.utils.cache import AICacheKeys
+from src.ai.prompts.content import get_content_prompt, get_seo_prompt
+from src.ai.prompts.chat import get_chat_system_message
+from src.ai.prompts.image import get_image_prompt, enhance_image_prompt, get_negative_prompt
+from src.ai.prompts.audio import get_audio_prompt, calculate_word_count, estimate_duration
 
 class HuggingFaceProvider(BaseProvider):
     
-    BASE_URL = os.getenv('HUGGINGFACE_API_BASE_URL', 'https://router.huggingface.co/hf-inference')
+    BASE_URL = os.getenv('HUGGINGFACE_API_BASE_URL', 'https://api-inference.huggingface.co')
     ROUTER_V1_BASE_URL = os.getenv('HUGGINGFACE_ROUTER_BASE_URL', 'https://router.huggingface.co/v1')
     
     TEXT_GENERATION_TASK = 'text-generation'
@@ -175,6 +179,7 @@ class HuggingFaceProvider(BaseProvider):
         
         size = kwargs.get('size', '1024x1024')
         quality = kwargs.get('quality', 'standard')
+        style = kwargs.get('style', 'realistic')
         
         width, height = 1024, 1024
         if 'x' in size:
@@ -192,12 +197,11 @@ class HuggingFaceProvider(BaseProvider):
             num_inference_steps = kwargs.get('num_inference_steps', 50)
             guidance_scale = kwargs.get('guidance_scale', 7.5)
         
-        enhanced_prompt = prompt
-        if 'high quality' not in enhanced_prompt.lower() and 'detailed' not in enhanced_prompt.lower():
-            if quality == 'hd':
-                enhanced_prompt = f"{enhanced_prompt}, ultra high quality, highly detailed, professional photography, 4k, masterpiece"
-            else:
-                enhanced_prompt = f"{enhanced_prompt}, high quality, detailed, professional photography"
+        # Use centralized image prompt enhancement from prompts module
+        enhanced_prompt = enhance_image_prompt(prompt, style=style, add_quality=(quality == 'hd'))
+        
+        # Get negative prompt from prompts module
+        negative_prompt = kwargs.get('negative_prompt') or get_negative_prompt(provider='huggingface')
         
         payload = {
             "inputs": enhanced_prompt,
@@ -206,7 +210,7 @@ class HuggingFaceProvider(BaseProvider):
                 "height": height,
                 "num_inference_steps": num_inference_steps,
                 "guidance_scale": guidance_scale,
-                "negative_prompt": kwargs.get('negative_prompt', 'blurry, low quality, distorted, deformed, ugly, bad anatomy, worst quality'),
+                "negative_prompt": negative_prompt,
             }
         }
         
@@ -275,7 +279,9 @@ class HuggingFaceProvider(BaseProvider):
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         
-        full_prompt = HUGGINGFACE_PROMPTS["content_generation_prompt"].format(
+        # Use centralized content prompt from prompts module
+        content_prompt_template = get_content_prompt(provider='huggingface')
+        full_prompt = content_prompt_template.format(
             topic=prompt,
             word_count=word_count,
             tone=tone
@@ -346,31 +352,14 @@ class HuggingFaceProvider(BaseProvider):
         tone = kwargs.get('tone', 'professional')
         keywords = kwargs.get('keywords', [])
         
-        keywords_str = ', '.join(keywords) if keywords else ''
+        keywords_str = f", {', '.join(keywords)}" if keywords else ""
         
-        seo_prompt = (
-            "لطفاً یک محتوای وبلاگ حرفه‌ای و کاملاً سئو شده به زبان فارسی برای موضوع زیر بنویسید.\n\n"
-            f"موضوع: {topic}\n"
-            f"کلمات کلیدی (در صورت وجود): {keywords_str}\n\n"
-            "ملاحظات:\n"
-            f"- طول محتوا: حدود {word_count} کلمه\n"
-            f"- سبک: {tone}\n"
-            "- محتوا باید برای SEO بهینه باشد\n"
-            "- استفاده از کلمات کلیدی طبیعی (keyword stuffing نکنید)\n"
-            "- ساختار منطقی و خوانا\n"
-            "- محتوا باید شامل تگ‌های HTML <h2> و <h3> باشد\n\n"
-            "فقط و فقط JSON معتبر را برگردانید (بدون توضیح اضافی و بدون ```). فرمت دقیق JSON باید این باشد:\n"
-            "{\n"
-            "  \"title\": \"عنوان اصلی (H1)\",\n"
-            "  \"meta_title\": \"عنوان متا برای SEO (50-60 کاراکتر)\",\n"
-            "  \"meta_description\": \"توضیحات متا برای SEO (150-160 کاراکتر)\",\n"
-            "  \"slug\": \"url-friendly-slug\",\n"
-            "  \"h1\": \"عنوان اصلی\",\n"
-            "  \"h2_list\": [\"عنوان H2 اول\", \"عنوان H2 دوم\"],\n"
-            "  \"h3_list\": [\"عنوان H3 اول\", \"عنوان H3 دوم\"],\n"
-            "  \"content\": \"<p>...</p>\\n\\n<h2>...</h2>\\n<p>...</p>\",\n"
-            "  \"keywords\": [\"کلمه کلیدی 1\", \"کلمه کلیدی 2\"]\n"
-            "}\n"
+        # Use centralized SEO prompt from prompts module
+        seo_prompt_template = get_seo_prompt(provider='huggingface')
+        seo_prompt = seo_prompt_template.format(
+            topic=topic,
+            keywords_str=keywords_str,
+            word_count=word_count
         )
         
         # Use model from config (set by service) or fall back to content_model
@@ -459,6 +448,10 @@ class HuggingFaceProvider(BaseProvider):
         # Use model from config (set by service) or fall back to content_model
         model_to_use = self.config.get('model') or kwargs.get('model') or self.content_model
 
+        # Get system message based on persona
+        persona = kwargs.get('persona', 'default')
+        system_message = kwargs.get('system_message') or get_chat_system_message(persona=persona, provider='huggingface')
+
         # If an image is provided, keep using the HF inference task endpoint for now.
         # (Router chat is OpenAI-compatible, but multimodal support varies by model.)
         if kwargs.get('image'):
@@ -468,7 +461,6 @@ class HuggingFaceProvider(BaseProvider):
                 "Content-Type": "application/json",
             }
 
-            system_message = kwargs.get('system_message') or 'You are a helpful AI assistant.'
             full_prompt = system_message + "\n\n"
             if conversation_history:
                 for msg in conversation_history:
@@ -510,9 +502,8 @@ class HuggingFaceProvider(BaseProvider):
             }
 
             messages: List[Dict[str, Any]] = []
-            system_message = kwargs.get('system_message')
-            if system_message:
-                messages.append({"role": "system", "content": system_message})
+            # Always add system message
+            messages.append({"role": "system", "content": system_message})
 
             if conversation_history:
                 for msg in conversation_history:

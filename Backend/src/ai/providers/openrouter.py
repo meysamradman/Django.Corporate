@@ -10,6 +10,10 @@ from django.core.cache import cache
 from .base import BaseProvider
 from src.ai.messages.messages import AI_ERRORS, IMAGE_ERRORS, CONTENT_ERRORS, CHAT_ERRORS
 from src.ai.utils.cache import AICacheKeys, AICacheManager
+from src.ai.prompts.content import get_content_prompt, get_seo_prompt
+from src.ai.prompts.chat import get_chat_system_message
+from src.ai.prompts.image import get_image_prompt, enhance_image_prompt, get_negative_prompt
+from src.ai.prompts.audio import get_audio_prompt, calculate_word_count, estimate_duration
 
 class OpenRouterModelCache:
     
@@ -77,10 +81,14 @@ class OpenRouterProvider(BaseProvider):
             "Content-Type": "application/json",
         }
         
+        # Use HTTP-Referer from config or environment variable
+        # This is important for security and proper tracking in production
         if self.http_referer:
             headers["HTTP-Referer"] = self.http_referer
         else:
-            headers["HTTP-Referer"] = "https://localhost:3000"
+            # Get from environment variable or use default
+            default_referer = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+            headers["HTTP-Referer"] = default_referer
         
         if self.x_title:
             headers["X-Title"] = self.x_title
@@ -176,58 +184,100 @@ class OpenRouterProvider(BaseProvider):
     async def generate_image(self, prompt: str, **kwargs) -> BytesIO:
         if not any(img_model in self.image_model.lower() for img_model in ['dall-e', 'stability', 'flux', 'midjourney']):
             raise NotImplementedError(IMAGE_ERRORS["model_no_image_capability"])
-        
-        url = f"{self.BASE_URL}/chat/completions"
-        
+
+        # OpenRouter exposes OpenAI-compatible endpoints; image generation is via /images/generations.
+        url = f"{self.BASE_URL}/images/generations"
+
         headers = self._get_headers()
-        
+
         size = kwargs.get('size', '1024x1024')
         quality = kwargs.get('quality', 'standard')
-        
+        style = kwargs.get('style', 'realistic')
+        n = kwargs.get('n', 1)
+
         model_id = self.image_model
         
+        # Use centralized image prompt enhancement from prompts module
+        enhanced_prompt = enhance_image_prompt(prompt, style=style, add_quality=(quality == 'hd'))
+
         payload = {
             "model": model_id,
-            "messages": [
-                {
-                    "role": "user",
-                    "content": f"Generate an image: {prompt}"
-                }
-            ],
-            "max_tokens": 1000,
+            "prompt": enhanced_prompt,
+            "n": n,
+            "size": size,
+            "quality": quality,
         }
-        
+        if style and style in ['natural', 'vivid']:  # OpenRouter/DALL-E specific styles
+            payload["style"] = style
+
         try:
             response = await self.client.post(url, json=payload, headers=headers)
             response.raise_for_status()
-            
+
             data = response.json()
-            
-            if 'choices' in data and len(data['choices']) > 0:
-                content = data['choices'][0]['message']['content']
-                
-                url_pattern = r'https?://[^\s]+'
-                urls = re.findall(url_pattern, content)
-                
-                if urls:
-                    image_url = urls[0]
+
+            images = data.get('data') if isinstance(data, dict) else None
+            if isinstance(images, list) and len(images) > 0:
+                first = images[0] if isinstance(images[0], dict) else {}
+                image_url = first.get('url')
+                b64_json = first.get('b64_json')
+
+                if b64_json:
+                    import base64
+                    return BytesIO(base64.b64decode(b64_json))
+                if image_url:
                     return await self.download_image(image_url)
-                else:
-                    raise Exception(IMAGE_ERRORS["model_no_image_capability"])
-            
-            raise Exception(IMAGE_ERRORS["image_generation_failed"])
-            
+
+                raise Exception(AI_ERRORS.get("image_generation_failed").format(error="پاسخ نامعتبر از سرویس‌دهنده"))
+
+        except httpx.TimeoutException:
+            raise Exception(IMAGE_ERRORS["image_timeout"])
+
         except httpx.HTTPStatusError as e:
-            error_msg = IMAGE_ERRORS["image_generation_failed"]
+            status_code = getattr(e.response, 'status_code', None)
+            detail = None
             try:
                 error_data = e.response.json()
-                if 'error' in error_data:
-                    error_msg = error_data['error'].get('message', error_msg)
-            except:
-                pass
-            raise Exception(IMAGE_ERRORS["image_generation_failed"].format(error=f"{error_msg}: {str(e)}"))
+                if isinstance(error_data, dict):
+                    if isinstance(error_data.get('error'), dict):
+                        detail = error_data['error'].get('message')
+                    detail = detail or error_data.get('detail') or error_data.get('message')
+            except Exception:
+                detail = None
+
+            detail_str = (detail or '').strip()
+            detail_lower = detail_str.lower()
+
+            if status_code in (401, 403):
+                raise Exception(IMAGE_ERRORS["api_key_invalid"])
+
+            if status_code == 429:
+                raise Exception(IMAGE_ERRORS["image_rate_limit"])
+
+            if status_code == 400 and (
+                'not a valid model id' in detail_lower or
+                ('model' in detail_lower and 'valid' in detail_lower)
+            ):
+                raise Exception(IMAGE_ERRORS["model_not_found"])
+
+            # Do not leak raw upstream error details in admin-panel toasts.
+            raise Exception(IMAGE_ERRORS["image_generation_failed_simple"])
+
         except Exception as e:
-            raise Exception(IMAGE_ERRORS["image_generation_failed"].format(error=str(e)))
+            # Preserve already-localized messages; otherwise use a safe Persian fallback.
+            msg = str(e).strip()
+            if msg in IMAGE_ERRORS.values():
+                raise Exception(msg)
+
+            msg_lower = msg.lower()
+            if 'timeout' in msg_lower:
+                raise Exception(IMAGE_ERRORS["image_timeout"])
+            if 'rate limit' in msg_lower or 'too many requests' in msg_lower or '429' in msg_lower:
+                raise Exception(IMAGE_ERRORS["image_rate_limit"])
+            if 'quota' in msg_lower or 'billing' in msg_lower or 'credit' in msg_lower:
+                raise Exception(IMAGE_ERRORS["image_quota_exceeded"])
+
+            raise Exception(IMAGE_ERRORS["image_generation_failed_simple"])
     
     async def generate_content(self, prompt: str, **kwargs) -> str:
         url = f"{self.BASE_URL}/chat/completions"
@@ -280,8 +330,15 @@ class OpenRouterProvider(BaseProvider):
         tone = kwargs.get('tone', 'professional')
         keywords = kwargs.get('keywords', [])
         
-        keywords_str = ", ".join(keywords) if keywords else ""
-        seo_prompt = f
+        keywords_str = f", {', '.join(keywords)}" if keywords else ""
+        
+        # دریافت prompt از ماژول prompts
+        seo_prompt_template = get_seo_prompt(provider='openrouter')
+        seo_prompt = seo_prompt_template.format(
+            topic=topic,
+            keywords_str=keywords_str,
+            word_count=word_count
+        )
 
         url = f"{self.BASE_URL}/chat/completions"
         

@@ -33,8 +33,9 @@ export const NETWORK_ERROR_MESSAGES = {
 } as const;
 
 // Use backend-provided messages for admin-facing clarity.
-// Especially important for AI capability mismatch errors (HTTP 400).
-export const BACKEND_MESSAGE_CODES = [400, 422, 409] as const;
+// Especially important for AI capability mismatch errors (HTTP 400),
+// quota/rate-limit (429), server errors (500), and timeouts (504).
+export const BACKEND_MESSAGE_CODES = [400, 404, 409, 422, 429, 500, 504] as const;
 export const SILENT_STATUS_CODES = [401, 403] as const;
 
 export const getError = (key: keyof typeof ERROR_MESSAGES): string => {

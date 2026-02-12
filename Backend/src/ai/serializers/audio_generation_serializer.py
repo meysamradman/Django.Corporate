@@ -89,10 +89,10 @@ class AIAudioGenerationRequestSerializer(serializers.Serializer):
 
         provider = AIProvider.objects.filter(slug=provider_slug, is_active=True).first()
         if not provider:
-            raise serializers.ValidationError("Provider نامعتبر یا غیرفعال است")
+            raise serializers.ValidationError(AI_ERRORS.get('provider_not_found_or_inactive'))
 
         if not supports_feature(provider_slug, 'audio'):
-            raise serializers.ValidationError("این Provider قابلیت audio را پشتیبانی نمی‌کند")
+            raise serializers.ValidationError(AI_ERRORS.get('provider_not_supported'))
 
         return provider_slug
 

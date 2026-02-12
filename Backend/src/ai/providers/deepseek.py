@@ -6,7 +6,11 @@ import os
 import re
 from django.utils.text import slugify
 from .base import BaseProvider
-from src.ai.messages.messages import DEEPSEEK_PROMPTS, DEEPSEEK_ERRORS, DEEPSEEK_SYSTEM_MESSAGES, AI_SYSTEM_MESSAGES
+from src.ai.messages.messages import AI_ERRORS, DEEPSEEK_SYSTEM_MESSAGES, AI_SYSTEM_MESSAGES
+from src.ai.prompts.content import get_content_prompt, get_seo_prompt
+from src.ai.prompts.chat import get_chat_system_message
+from src.ai.prompts.image import get_image_prompt, enhance_image_prompt, get_negative_prompt
+from src.ai.prompts.audio import get_audio_prompt, calculate_word_count, estimate_duration
 
 class DeepSeekProvider(BaseProvider):
     
@@ -37,7 +41,9 @@ class DeepSeekProvider(BaseProvider):
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         
-        full_prompt = DEEPSEEK_PROMPTS['content_generation'].format(
+        # دریافت prompt از ماژول prompts
+        content_prompt_template = get_content_prompt(provider='deepseek')
+        full_prompt = content_prompt_template.format(
             topic=prompt,
             word_count=word_count,
             tone=tone
@@ -64,7 +70,7 @@ class DeepSeekProvider(BaseProvider):
                 content = data['choices'][0]['message']['content']
                 return content.strip()
             
-            raise Exception(DEEPSEEK_ERRORS['no_response_received'])
+            raise Exception(AI_ERRORS["content_generation_failed"])
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
@@ -73,21 +79,19 @@ class DeepSeekProvider(BaseProvider):
                 error_msg = error_data.get('error', {}).get('message', '')
                 
                 if status_code == 429:
-                    raise Exception(DEEPSEEK_ERRORS['rate_limit'])
+                    raise Exception(AI_ERRORS["generic_rate_limit"])
                 elif status_code == 401:
-                    raise Exception(DEEPSEEK_ERRORS['invalid_api_key'])
+                    raise Exception(AI_ERRORS["generic_api_key_invalid"])
                 elif status_code == 403:
-                    raise Exception(DEEPSEEK_ERRORS['api_access_denied'])
+                    raise Exception(AI_ERRORS["provider_not_authorized"])
                 
-                raise Exception(DEEPSEEK_ERRORS['api_error'].format(error_msg=error_msg))
+                raise Exception(AI_ERRORS["content_generation_failed"])
             except Exception as ex:
-                if 'DeepSeek API error' in str(ex):
-                    raise ex
                 if status_code == 429:
-                    raise Exception(DEEPSEEK_ERRORS['rate_limit_with_info'])
-                raise Exception(DEEPSEEK_ERRORS['http_error'].format(status_code=status_code))
+                    raise Exception(AI_ERRORS["generic_rate_limit"])
+                raise Exception(AI_ERRORS["content_generation_failed"])
         except Exception as e:
-            raise Exception(DEEPSEEK_ERRORS['content_generation_failed'].format(error=str(e)))
+            raise Exception(AI_ERRORS["content_generation_failed"])
     
     async def generate_seo_content(self, topic: str, **kwargs) -> Dict[str, Any]:
         word_count = kwargs.get('word_count', 500)
@@ -96,7 +100,7 @@ class DeepSeekProvider(BaseProvider):
         
         keywords_str = ', '.join(keywords) if keywords else ''
         
-        prompt = DEEPSEEK_PROMPTS['seo_content_generation'].format(
+        prompt = self.SEO_PROMPT.format(
             topic=topic,
             word_count=word_count,
             tone=tone,
@@ -138,14 +142,14 @@ class DeepSeekProvider(BaseProvider):
                     if json_match:
                         seo_data = json.loads(json_match.group(1))
                     else:
-                        raise Exception(DEEPSEEK_ERRORS['json_parse_error'].format(error="Invalid JSON format"))
+                        raise Exception(AI_ERRORS["invalid_json"])
                 
                 if 'slug' not in seo_data or not seo_data['slug']:
                     seo_data['slug'] = slugify(seo_data.get('title', topic))
                 
                 return seo_data
             
-            raise Exception(DEEPSEEK_ERRORS['no_response_received'])
+            raise Exception(AI_ERRORS["content_generation_failed"])
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
@@ -154,23 +158,21 @@ class DeepSeekProvider(BaseProvider):
                 error_msg = error_data.get('error', {}).get('message', '')
                 
                 if status_code == 429:
-                    raise Exception(DEEPSEEK_ERRORS['rate_limit_with_info'])
+                    raise Exception(AI_ERRORS["generic_rate_limit"])
                 elif status_code == 401:
-                    raise Exception(DEEPSEEK_ERRORS['invalid_api_key'])
+                    raise Exception(AI_ERRORS["generic_api_key_invalid"])
                 elif status_code == 403:
-                    raise Exception(DEEPSEEK_ERRORS['api_access_denied'])
+                    raise Exception(AI_ERRORS["provider_not_authorized"])
                 
-                raise Exception(DEEPSEEK_ERRORS['api_error'].format(error_msg=error_msg))
+                raise Exception(AI_ERRORS["content_generation_failed"])
             except Exception as ex:
-                if 'DeepSeek API error' in str(ex):
-                    raise ex
                 if status_code == 429:
-                    raise Exception(DEEPSEEK_ERRORS['rate_limit_error'])
-                raise Exception(DEEPSEEK_ERRORS['http_error'].format(status_code=status_code))
+                    raise Exception(AI_ERRORS["generic_rate_limit"])
+                raise Exception(AI_ERRORS["content_generation_failed"])
         except json.JSONDecodeError as e:
-            raise Exception(DEEPSEEK_ERRORS['json_parse_error'].format(error=str(e)))
+            raise Exception(AI_ERRORS["invalid_json"])
         except Exception as e:
-            raise Exception(DEEPSEEK_ERRORS['content_generation_failed'].format(error=str(e)))
+            raise Exception(AI_ERRORS["content_generation_failed"])
     
     async def chat(self, message: str, conversation_history: Optional[list] = None, **kwargs) -> str:
         url = f"{self.BASE_URL}/chat/completions"
@@ -235,7 +237,7 @@ class DeepSeekProvider(BaseProvider):
                 reply = data['choices'][0]['message']['content']
                 return reply.strip()
             
-            raise Exception(DEEPSEEK_ERRORS['no_response_received'])
+            raise Exception(AI_ERRORS["chat_failed"])
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
@@ -244,21 +246,19 @@ class DeepSeekProvider(BaseProvider):
                 error_msg = error_data.get('error', {}).get('message', '')
                 
                 if status_code == 429:
-                    raise Exception(DEEPSEEK_ERRORS['rate_limit_with_info'])
+                    raise Exception(AI_ERRORS["generic_rate_limit"])
                 elif status_code == 401:
-                    raise Exception(DEEPSEEK_ERRORS['invalid_api_key'])
+                    raise Exception(AI_ERRORS["generic_api_key_invalid"])
                 elif status_code == 403:
-                    raise Exception(DEEPSEEK_ERRORS['api_access_denied'])
+                    raise Exception(AI_ERRORS["provider_not_authorized"])
                 
-                raise Exception(DEEPSEEK_ERRORS['api_error'].format(error_msg=error_msg))
+                raise Exception(AI_ERRORS["chat_failed"])
             except Exception as ex:
-                if 'DeepSeek API error' in str(ex):
-                    raise ex
                 if status_code == 429:
-                    raise Exception(DEEPSEEK_ERRORS['rate_limit_or_error'])
-                raise Exception(DEEPSEEK_ERRORS['http_error'].format(status_code=status_code))
+                    raise Exception(AI_ERRORS["generic_rate_limit"])
+                raise Exception(AI_ERRORS["chat_failed"])
         except Exception as e:
-            raise Exception(DEEPSEEK_ERRORS['chat_error'].format(error=str(e)))
+            raise Exception(AI_ERRORS["chat_failed"])
     
     def validate_api_key(self) -> bool:
         try:

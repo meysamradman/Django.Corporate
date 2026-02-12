@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from src.ai.messages.messages import CHAT_ERRORS
+from src.ai.messages.messages import CHAT_ERRORS, AI_ERRORS
 from src.ai.models import AIProvider
 from src.ai.providers.capabilities import supports_feature
 
@@ -82,7 +82,7 @@ class AIChatRequestSerializer(serializers.Serializer):
             try:
                 return json.loads(value)
             except ValueError:
-                raise serializers.ValidationError("Invalid JSON string for conversation_history")
+                raise serializers.ValidationError(AI_ERRORS.get('invalid_json'))
         return value
     
     def validate_message(self, value):
@@ -97,10 +97,10 @@ class AIChatRequestSerializer(serializers.Serializer):
 
         provider = AIProvider.objects.filter(slug=provider_slug, is_active=True).first()
         if not provider:
-            raise serializers.ValidationError("Provider نامعتبر یا غیرفعال است")
+            raise serializers.ValidationError(AI_ERRORS.get('provider_not_found_or_inactive'))
 
         if not supports_feature(provider_slug, 'chat'):
-            raise serializers.ValidationError("این Provider قابلیت chat را پشتیبانی نمی‌کند")
+            raise serializers.ValidationError(AI_ERRORS.get('provider_not_supported'))
 
         return provider_slug
 

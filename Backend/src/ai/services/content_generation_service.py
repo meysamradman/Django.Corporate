@@ -12,7 +12,10 @@ class AIContentGenerationService:
     
     @classmethod
     def get_provider(cls, provider_name: Optional[str], admin=None, model_name: Optional[str] = None):
+        """Returns tuple: (provider_instance, provider_model, model_name)"""
         provider_name = (provider_name or '').strip().lower() or None
+        
+        explicit_model = bool(model_name and str(model_name).strip())
 
         capability = 'content'
 
@@ -20,69 +23,73 @@ class AIContentGenerationService:
             cm = AICapabilityModel.objects.get_active(capability)
             if not cm:
                 raise ValueError(
-                    AI_ERRORS.get('no_active_model_any_provider', 'No active model').format(capability=capability)
+                    AI_ERRORS.get('no_active_model_any_provider').format(capability=capability)
                 )
             provider_name = cm.provider.slug
-            model_name = cm.model_id
-        else:
-            cm = (
-                AICapabilityModel.objects.filter(
-                    capability=capability,
-                    provider__slug=provider_name,
-                    provider__is_active=True,
-                )
-                .select_related('provider')
-                .order_by('sort_order', 'id')
-                .first()
-            )
-            if cm:
+            if not explicit_model:
                 model_name = cm.model_id
-            else:
-                provider = AIProvider.get_provider_by_slug(provider_name)
-                default_model_id = get_default_model(provider_name, capability)
-                if default_model_id:
-                    model_name = default_model_id
+        else:
+            if not explicit_model:
+                cm = (
+                    AICapabilityModel.objects.filter(
+                        capability=capability,
+                        provider__slug=provider_name,
+                        provider__is_active=True,
+                    )
+                    .select_related('provider')
+                    .order_by('sort_order', 'id')
+                    .first()
+                )
+                if cm:
+                    model_name = cm.model_id
                 else:
-                    static_models = provider.get_static_models(capability) if provider else []
-                    if not static_models:
-                        raise ValueError(AI_ERRORS.get('no_active_model', 'No active model'))
-                    model_name = static_models[0]
+                    provider_obj = AIProvider.get_provider_by_slug(provider_name)
+                    default_model_id = get_default_model(provider_name, capability)
+                    if default_model_id:
+                        model_name = default_model_id
+                    else:
+                        static_models = provider_obj.get_static_models(capability) if provider_obj else []
+                        if not static_models:
+                            raise ValueError(AI_ERRORS.get('no_active_model'))
+                        model_name = static_models[0]
 
         provider_class = AIProviderRegistry.get(provider_name)
         if not provider_class:
             raise ValueError(AI_ERRORS["provider_not_supported"].format(provider_name=provider_name))
         
-        provider = AIProvider.get_provider_by_slug(provider_name)
-        if not provider:
+        provider_model = AIProvider.get_provider_by_slug(provider_name)
+        if not provider_model:
             raise ValueError(AI_ERRORS["provider_not_available"].format(provider_name=provider_name))
         
         if admin and hasattr(admin, 'user_type') and admin.user_type == 'admin':
             try:
                 settings = AdminProviderSettings.objects.get(
                     admin=admin,
-                    provider=provider,
+                    provider=provider_model,
                     is_active=True
                 )
                 
                 api_key = settings.get_personal_api_key()
                 if not api_key or not api_key.strip():
-                    api_key = provider.get_shared_api_key()
+                    api_key = provider_model.get_shared_api_key()
                     if not api_key or not api_key.strip():
                         raise ValueError(SETTINGS_ERRORS.get("shared_api_key_not_set", "API Key not set").format(provider_name=provider_name))
                     
             except AdminProviderSettings.DoesNotExist:
-                api_key = provider.get_shared_api_key()
+                api_key = provider_model.get_shared_api_key()
                 if not api_key or not api_key.strip():
                     raise ValueError(SETTINGS_ERRORS.get("shared_api_key_not_set", "Shared API Key not set").format(provider_name=provider_name))
         else:
-            api_key = provider.get_shared_api_key()
+            api_key = provider_model.get_shared_api_key()
             if not api_key or not api_key.strip():
                 raise ValueError(SETTINGS_ERRORS.get("shared_api_key_not_set", "Shared API Key not set").format(provider_name=provider_name))
         
-        config = provider.config or {}
+        config = provider_model.config or {}
         config['model'] = model_name
         
-        return provider_class(api_key=api_key, config=config)
+        provider_instance = provider_class(api_key=api_key, config=config)
+        
+        return provider_instance, provider_model, model_name
     
     @classmethod
     def generate_content(cls, topic: str, provider_name: Optional[str] = None, admin=None, model_name: Optional[str] = None, **kwargs) -> Dict[str, Any]:
@@ -91,17 +98,16 @@ class AIContentGenerationService:
         keywords = kwargs.get('keywords', [])
         
         start_time = time.time()
-        provider = None
         
         try:
             provider_name = (provider_name or '').strip().lower() or None
-            provider = cls.get_provider(provider_name, admin=admin, model_name=model_name)
+            provider_instance, provider_model, resolved_model_name = cls.get_provider(provider_name, admin=admin, model_name=model_name)
             
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
                 seo_data = loop.run_until_complete(
-                    provider.generate_seo_content(
+                    provider_instance.generate_seo_content(
                         topic=topic,
                         word_count=word_count,
                         tone=tone,
@@ -109,9 +115,8 @@ class AIContentGenerationService:
                     )
                 )
             finally:
-                # Properly close the async client
                 try:
-                    loop.run_until_complete(provider.close())
+                    loop.run_until_complete(provider_instance.close())
                 except Exception:
                     pass
                 loop.close()
@@ -138,19 +143,19 @@ class AIContentGenerationService:
                 try:
                     settings = AdminProviderSettings.objects.get(
                         admin=admin,
-                        provider=provider,
+                        provider=provider_model,
                         is_active=True
                     )
                     if settings.use_shared_api:
-                        provider.increment_usage()
+                        provider_model.increment_usage()
                     else:
                         settings.increment_usage()
                 except AdminProviderSettings.DoesNotExist:
-                    provider.increment_usage()
+                    provider_model.increment_usage()
             else:
-                provider.increment_usage()
+                provider_model.increment_usage()
             
-            return {
+            response = {
                 'title': seo_data['title'],
                 'meta_title': seo_data['meta_title'],
                 'meta_description': seo_data['meta_description'],
@@ -162,9 +167,10 @@ class AIContentGenerationService:
                 'provider_name': provider_name,
                 'generation_time_ms': generation_time_ms,
             }
+            return response
             
-        except ValueError as e:
-            raise e
+        except ValueError:
+            raise
         except Exception as e:
             raise Exception(AI_ERRORS["content_generation_failed"].format(error=str(e)))
     

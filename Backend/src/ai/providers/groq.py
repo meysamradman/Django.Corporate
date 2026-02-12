@@ -6,7 +6,11 @@ import os
 from django.core.cache import cache
 from .base import BaseProvider
 from src.ai.utils.cache import AICacheKeys
-from src.ai.messages.messages import GROQ_ERRORS, GROQ_PROMPTS, AI_SYSTEM_MESSAGES, DEEPSEEK_SYSTEM_MESSAGES
+from src.ai.messages.messages import AI_ERRORS, AI_SYSTEM_MESSAGES, DEEPSEEK_SYSTEM_MESSAGES
+from src.ai.prompts.content import get_content_prompt, get_seo_prompt
+from src.ai.prompts.chat import get_chat_system_message
+from src.ai.prompts.image import get_image_prompt, enhance_image_prompt, get_negative_prompt
+from src.ai.prompts.audio import get_audio_prompt, calculate_word_count, estimate_duration
 
 class GroqProvider(BaseProvider):
     
@@ -148,7 +152,9 @@ class GroqProvider(BaseProvider):
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         
-        full_prompt = GROQ_PROMPTS["content_generation"].format(
+        # دریافت prompt از ماژول prompts
+        content_prompt_template = get_content_prompt(provider='groq')
+        full_prompt = content_prompt_template.format(
             topic=prompt,
             word_count=word_count,
             tone=tone
@@ -179,11 +185,11 @@ class GroqProvider(BaseProvider):
                 content = data['choices'][0]['message']['content']
                 return content.strip()
             
-            raise Exception(GROQ_ERRORS["no_response_received"])
+            raise Exception(AI_ERRORS["content_generation_failed"])
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
-            error_msg = GROQ_ERRORS["content_generation_error"]
+            error_msg = AI_ERRORS["content_generation_failed"]
             
             try:
                 error_data = e.response.json()
@@ -192,15 +198,15 @@ class GroqProvider(BaseProvider):
                 pass
             
             if status_code == 429:
-                raise Exception(GROQ_ERRORS["rate_limit"])
+                raise Exception(AI_ERRORS["generic_rate_limit"])
             elif status_code == 401:
-                raise Exception(GROQ_ERRORS["invalid_api_key"])
+                raise Exception(AI_ERRORS["generic_api_key_invalid"])
             elif status_code == 403:
-                raise Exception(GROQ_ERRORS["api_access_denied"])
+                raise Exception(AI_ERRORS["provider_not_authorized"])
             
-            raise Exception(GROQ_ERRORS["api_error"].format(error_msg=error_msg))
+            raise Exception(AI_ERRORS["content_generation_failed"])
         except Exception as e:
-            raise Exception(GROQ_ERRORS["content_generation_failed"].format(error=str(e)))
+            raise Exception(AI_ERRORS["content_generation_failed"])
     
     async def generate_seo_content(self, topic: str, **kwargs) -> Dict[str, Any]:
         
@@ -210,7 +216,7 @@ class GroqProvider(BaseProvider):
         
         keywords_str = ', '.join(keywords) if keywords else ''
         
-        prompt = GROQ_PROMPTS["seo_content_generation"].format(
+        prompt = self.SEO_PROMPT.format(
             topic=topic,
             word_count=word_count,
             tone=tone,
@@ -253,18 +259,18 @@ class GroqProvider(BaseProvider):
                     if json_match:
                         seo_data = json.loads(json_match.group(1))
                     else:
-                        raise Exception(GROQ_ERRORS['json_parse_error'].format(error="Invalid JSON format"))
+                        raise Exception(AI_ERRORS["invalid_json"])
                 
                 if 'slug' not in seo_data or not seo_data['slug']:
                     seo_data['slug'] = slugify(seo_data.get('title', topic))
                 
                 return seo_data
             
-            raise Exception(GROQ_ERRORS["no_response_received"])
+            raise Exception(AI_ERRORS["content_generation_failed"])
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
-            error_msg = GROQ_ERRORS["content_generation_error"]
+            error_msg = AI_ERRORS["content_generation_failed"]
             
             try:
                 error_data = e.response.json()
@@ -273,17 +279,17 @@ class GroqProvider(BaseProvider):
                 pass
             
             if status_code == 429:
-                raise Exception(GROQ_ERRORS["rate_limit"])
+                raise Exception(AI_ERRORS["generic_rate_limit"])
             elif status_code == 401:
-                raise Exception(GROQ_ERRORS["invalid_api_key"])
+                raise Exception(AI_ERRORS["generic_api_key_invalid"])
             elif status_code == 403:
-                raise Exception(GROQ_ERRORS["api_access_denied"])
+                raise Exception(AI_ERRORS["provider_not_authorized"])
             
-            raise Exception(GROQ_ERRORS["api_error"].format(error_msg=error_msg))
+            raise Exception(AI_ERRORS["content_generation_failed"])
         except json.JSONDecodeError as e:
-            raise Exception(GROQ_ERRORS["json_parse_error"].format(error=str(e)))
+            raise Exception(AI_ERRORS["invalid_json"])
         except Exception as e:
-            raise Exception(GROQ_ERRORS["content_generation_failed"].format(error=str(e)))
+            raise Exception(AI_ERRORS["content_generation_failed"])
     
     async def chat(self, message: str, conversation_history: Optional[List[Dict[str, str]]] = None, **kwargs) -> str:
         url = f"{self.BASE_URL}/chat/completions"
@@ -343,11 +349,11 @@ class GroqProvider(BaseProvider):
                 reply = data['choices'][0]['message']['content']
                 return reply.strip()
             
-            raise Exception(GROQ_ERRORS["no_response_received"])
+            raise Exception(AI_ERRORS["chat_failed"])
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
-            error_msg = GROQ_ERRORS["chat_error"].format(error="")
+            error_msg = AI_ERRORS["chat_failed"]
             
             try:
                 error_data = e.response.json()
@@ -356,13 +362,13 @@ class GroqProvider(BaseProvider):
                 pass
             
             if status_code == 429:
-                raise Exception(GROQ_ERRORS["rate_limit"])
+                raise Exception(AI_ERRORS["generic_rate_limit"])
             elif status_code == 401:
-                raise Exception(GROQ_ERRORS["invalid_api_key"])
+                raise Exception(AI_ERRORS["generic_api_key_invalid"])
             elif status_code == 403:
-                raise Exception(GROQ_ERRORS["api_access_denied"])
+                raise Exception(AI_ERRORS["provider_not_authorized"])
             
-            raise Exception(GROQ_ERRORS["api_error"].format(error_msg=error_msg))
+            raise Exception(AI_ERRORS["chat_failed"])
         except Exception as e:
-            raise Exception(GROQ_ERRORS["chat_error"].format(error=str(e)))
+            raise Exception(AI_ERRORS["chat_failed"])
 

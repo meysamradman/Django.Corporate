@@ -78,26 +78,22 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             
             # --- Enhanced Error Categories ---
             if 'quota' in error_message or 'billing' in error_message or 'credit' in error_message or '429' in error_message:
-                final_msg = "خطای سهمیه یا موجودی (Quota Exceeded). لطفا اعتبار سرویس‌دهنده را بررسی کنید."
+                final_msg = AI_ERRORS["generic_quota_exceeded"]
                 status_code = status.HTTP_429_TOO_MANY_REQUESTS
             elif 'api key' in error_message or 'unauthorized' in error_message or 'authentication' in error_message or '401' in error_message:
-                final_msg = "خطای احراز هویت (API Key Lock/Invalid). کلید سرویس‌دهنده نامعتبر است."
-                status_code = status.HTTP_401_UNAUTHORIZED
+                final_msg = AI_ERRORS["generic_api_key_invalid"]
+                status_code = status.HTTP_400_BAD_REQUEST
             elif 'rate limit' in error_message or 'too many requests' in error_message:
-                 final_msg = "محدودیت تعداد درخواست (Rate Limit). لطفا چند لحظه صبر کنید."
-                 status_code = status.HTTP_429_TOO_MANY_REQUESTS
+                final_msg = AI_ERRORS["generic_rate_limit"]
+                status_code = status.HTTP_429_TOO_MANY_REQUESTS
             elif 'timeout' in error_message:
-                final_msg = "خطای زمان‌بندی (Timeout). سرویس‌دهنده پاسخ نداد."
+                final_msg = AI_ERRORS["generic_timeout"]
                 status_code = status.HTTP_504_GATEWAY_TIMEOUT
             elif 'model' in error_message and 'not found' in error_message:
-                final_msg = "مدل انتخاب شده یافت نشد یا در دسترس نیست."
+                final_msg = AI_ERRORS["generic_model_not_found"]
                 status_code = status.HTTP_404_NOT_FOUND
             else:
-                # Clean up generic python exception noise if possible
-                if 'error' not in error_message:
-                    final_msg = AI_ERRORS["chat_failed"].format(error=str(e))
-                else:
-                    final_msg = str(e)
+                final_msg = AI_ERRORS["chat_failed"]
 
             return APIResponse.error(
                 message=final_msg,
@@ -112,7 +108,7 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             caps = get_provider_capabilities(provider_name)
             if not supports_feature(provider_name, 'chat'):
                 return APIResponse.error(
-                    message=AI_ERRORS["provider_not_supported"].format(provider_name=provider_name),
+                    message=AI_ERRORS["provider_not_supported"],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             return APIResponse.success(
@@ -133,6 +129,7 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='available-providers')
     def available_providers(self, request):
+        """Returns providers that support chat with their hardcoded models."""
         is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
         
         try:
@@ -140,14 +137,20 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             
             result = []
             for provider in providers_qs:
+                # Check if provider supports chat
+                if not provider.supports_capability('chat'):
+                    continue
+                
                 has_access = self._check_provider_access(request.user, provider, is_super)
                 
                 provider_info = {
                     'id': provider.id,
                     'slug': provider.slug,
-                    'name': provider.display_name,
+                    'provider_name': provider.display_name,
+                    'display_name': provider.display_name,
                     'description': provider.description,
                     'has_access': has_access,
+                    'capabilities': provider.capabilities,  # Include hardcoded models
                 }
                 result.append(provider_info)
             
@@ -158,7 +161,7 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=AI_ERRORS["providers_list_error"].format(error=str(e)),
+                message=AI_ERRORS["providers_list_error"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     

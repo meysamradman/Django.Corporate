@@ -166,7 +166,7 @@ class AIProviderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     def stats(self, request):
         providers = self.get_queryset()
         return APIResponse.success(
-            message=AI_SUCCESS.get('statistics_retrieved', 'Statistics retrieved successfully'),
+            message=AI_SUCCESS.get('statistics_retrieved'),
             data={
                 'total_providers': providers.count(),
                 'total_models': AICapabilityModel.objects.filter(provider__is_active=True, is_active=True).count(),

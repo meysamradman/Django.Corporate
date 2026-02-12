@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from src.ai.models import AIProvider
-from src.ai.messages.messages import IMAGE_ERRORS
+from src.ai.messages.messages import IMAGE_ERRORS, AI_ERRORS
 from src.ai.services.image_generation_service import AIImageGenerationService
 
 class AIProviderSerializer(serializers.ModelSerializer):
@@ -126,7 +126,7 @@ class AIImageGenerationRequestSerializer(serializers.Serializer):
 
         provider = AIProvider.objects.filter(slug=provider_slug, is_active=True).first()
         if not provider:
-            raise serializers.ValidationError("Provider نامعتبر یا غیرفعال است")
+            raise serializers.ValidationError(AI_ERRORS.get('provider_not_found_or_inactive'))
 
         return provider_slug
 

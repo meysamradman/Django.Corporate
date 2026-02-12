@@ -4,7 +4,7 @@ import { showError } from '@/core/toast';
 import type { Media } from '@/types/shared/media';
 import type {
     AIContentGenerationRequest,
-    AIContentGenerationResponse,
+    AIContentGenerationResult,
     AvailableProvider,
     AIProviderList,
     AIProviderDetail,
@@ -21,8 +21,7 @@ export const aiApi = {
                 const endpoint = '/admin/ai-providers/';
                 return await api.get<AIProviderList[]>(endpoint);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'خطا در دریافت لیست Provider ها';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -32,10 +31,8 @@ export const aiApi = {
                 const endpoint = `/admin/ai-providers/available/?capability=${capability}`;
                 return await api.get<AvailableProvider[]>(endpoint);
             } catch (error) {
-                if (error && typeof error === 'object' && 'response' in error && (error.response as { AppStatusCode?: number })?.AppStatusCode !== 404) {
-                    const errorMessage = error instanceof Error ? error.message : 'خطا در دریافت لیست Provider های فعال';
-                    showError(errorMessage);
-                }
+                const statusCode = (error as any)?.response?.AppStatusCode;
+                if (statusCode !== 404) showError(error);
                 throw error;
             }
         },
@@ -45,8 +42,7 @@ export const aiApi = {
                 const endpoint = `/admin/ai-providers/${id}/`;
                 return await api.get<AIProviderDetail>(endpoint);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'خطا در دریافت اطلاعات Provider';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -67,8 +63,7 @@ export const aiApi = {
                 const method = data.id ? 'patch' : 'post';
                 return await api[method]<AIProviderDetail>(endpoint, data as Record<string, unknown>);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'خطا در ذخیره Provider';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -78,8 +73,7 @@ export const aiApi = {
                 const endpoint = `/admin/ai-providers/${id}/${activate ? 'activate' : 'deactivate'}/`;
                 return await api.post<AIProviderDetail>(endpoint, {});
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : `خطا در ${activate ? 'فعال' : 'غیرفعال'} کردن Provider`;
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -89,8 +83,7 @@ export const aiApi = {
                 const endpoint = `/admin/ai-providers/${id}/validate-api-key/`;
                 return await api.post<{ valid: boolean; message: string }>(endpoint, {});
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'خطا در بررسی اعتبار API key';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -105,8 +98,8 @@ export const aiApi = {
                 if (provider) params.append('provider_filter', provider);
                 const endpoint = `/admin/ai-models/browse-models/?${params.toString()}`;
                 return await api.get<AIModelList[]>(endpoint);
-            } catch {
-                throw new Error('خطا در دریافت لیست مدل‌های OpenRouter');
+            } catch (error) {
+                throw error;
             }
         },
 
@@ -120,8 +113,8 @@ export const aiApi = {
                 if (task) params.append('task_filter', task);
                 const endpoint = `/admin/ai-models/browse-models/?${params.toString()}`;
                 return await api.get<AIModelList[]>(endpoint);
-            } catch {
-                throw new Error('خطا در دریافت لیست مدل‌های HuggingFace');
+            } catch (error) {
+                throw error;
             }
         },
 
@@ -151,10 +144,8 @@ export const aiApi = {
                 const endpoint = '/admin/ai-providers/available/?capability=content';
                 return await api.get<AvailableProvider[]>(endpoint);
             } catch (error) {
-                if (error && typeof error === 'object' && 'response' in error && (error.response as { AppStatusCode?: number })?.AppStatusCode !== 404) {
-                    const errorMessage = error instanceof Error ? error.message : 'خطا در دریافت لیست Provider های فعال';
-                    showError(errorMessage);
-                }
+                const statusCode = (error as any)?.response?.AppStatusCode;
+                if (statusCode !== 404) showError(error);
                 throw error;
             }
         },
@@ -169,8 +160,8 @@ export const aiApi = {
                 if (provider) params.append('provider_filter', provider);
                 const endpoint = `/admin/ai-models/browse-models/?${params.toString()}`;
                 return await api.get<AIModelList[]>(endpoint);
-            } catch {
-                throw new Error('خطا در دریافت لیست مدل‌های OpenRouter');
+            } catch (error) {
+                throw error;
             }
         },
 
@@ -184,16 +175,17 @@ export const aiApi = {
                 if (task) params.append('task_filter', task);
                 const endpoint = `/admin/ai-models/browse-models/?${params.toString()}`;
                 return await api.get<AIModelList[]>(endpoint);
-            } catch {
-                throw new Error('خطا در دریافت لیست مدل‌های HuggingFace');
+            } catch (error) {
+                throw error;
             }
         },
 
         generateContent: async (
             data: AIContentGenerationRequest
-        ): Promise<ApiResponse<AIContentGenerationResponse>> => {
+        ): Promise<ApiResponse<AIContentGenerationResult>> => {
             const endpoint = '/admin/ai-content/generate/';
-            return await api.post<AIContentGenerationResponse>(endpoint, data as unknown as Record<string, unknown>);
+            const response = await api.post<AIContentGenerationResult>(endpoint, data as unknown as Record<string, unknown>);
+            return response;
         },
     },
 
@@ -203,10 +195,8 @@ export const aiApi = {
                 const endpoint = '/admin/ai-providers/available/?capability=audio';
                 return await api.get<AvailableProvider[]>(endpoint);
             } catch (error) {
-                if (error && typeof error === 'object' && 'response' in error && (error.response as { AppStatusCode?: number })?.AppStatusCode !== 404) {
-                    const errorMessage = error instanceof Error ? error.message : 'خطا در دریافت لیست Provider های فعال';
-                    showError(errorMessage);
-                }
+                const statusCode = (error as any)?.response?.AppStatusCode;
+                if (statusCode !== 404) showError(error);
                 throw error;
             }
         },
@@ -232,10 +222,8 @@ export const aiApi = {
                 const endpoint = `/admin/ai-providers/available/?capability=${capability}`;
                 return await api.get<AvailableProvider[]>(endpoint);
             } catch (error) {
-                if (error && typeof error === 'object' && 'response' in error && (error.response as { AppStatusCode?: number })?.AppStatusCode !== 404) {
-                    const errorMessage = error instanceof Error ? error.message : 'خطا در دریافت لیست Provider های فعال';
-                    showError(errorMessage);
-                }
+                const statusCode = (error as any)?.response?.AppStatusCode;
+                if (statusCode !== 404) showError(error);
                 throw error;
             }
         },
@@ -250,8 +238,8 @@ export const aiApi = {
                 if (provider) params.append('provider_filter', provider);
                 const endpoint = `/admin/ai-models/browse-models/?${params.toString()}`;
                 return await api.get<AIModelList[]>(endpoint);
-            } catch {
-                throw new Error('خطا در دریافت لیست مدل‌های OpenRouter');
+            } catch (error) {
+                throw error;
             }
         },
 
@@ -265,8 +253,8 @@ export const aiApi = {
                 if (task) params.append('task_filter', task);
                 const endpoint = `/admin/ai-models/browse-models/?${params.toString()}`;
                 return await api.get<AIModelList[]>(endpoint);
-            } catch {
-                throw new Error('خطا در دریافت لیست مدل‌های HuggingFace');
+            } catch (error) {
+                throw error;
             }
         },
 
@@ -326,8 +314,7 @@ export const aiApi = {
                 const endpoint = '/admin/ai-settings/';
                 return await api.get<AdminProviderSettings[]>(endpoint);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'خطا در دریافت تنظیمات شخصی';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -349,8 +336,7 @@ export const aiApi = {
                 const method = data.id ? 'patch' : 'post';
                 return await api[method]<AdminProviderSettings>(endpoint, data as Record<string, unknown>);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'خطا در ذخیره تنظیمات شخصی';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -360,8 +346,7 @@ export const aiApi = {
                 const endpoint = `/admin/ai-settings/${id}/`;
                 return await api.delete<{ success: boolean }>(endpoint);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'خطا در حذف تنظیمات شخصی';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -371,8 +356,7 @@ export const aiApi = {
                 const endpoint = '/admin/ai-settings/global-control/';
                 return await api.get<{ allow_regular_admins_use_shared_api: boolean }>(endpoint);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'خطا در دریافت تنظیمات Global Control';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -384,8 +368,7 @@ export const aiApi = {
                     allow_regular_admins_use_shared_api: allowRegularAdmins,
                 } as Record<string, unknown>);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'خطا در به‌روزرسانی تنظیمات Global Control';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -397,8 +380,7 @@ export const aiApi = {
                 const endpoint = '/admin/ai-providers/';
                 return await api.get<AIProviderList[]>(endpoint);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'خطا در دریافت لیست Provider ها';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -408,8 +390,7 @@ export const aiApi = {
                 const endpoint = `/admin/ai-providers/${id}/`;
                 return await api.get<AIProviderDetail>(endpoint);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'خطا در دریافت اطلاعات Provider';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -427,8 +408,7 @@ export const aiApi = {
                     total_requests: number;
                 }>(endpoint);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'خطا در دریافت آمار';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -449,8 +429,7 @@ export const aiApi = {
                 const endpoint = `/admin/ai-models/${params.toString() ? `?${params.toString()}` : ''}`;
                 return await api.get<AIModelList[]>(endpoint);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'خطا در دریافت لیست Model ها';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -461,8 +440,8 @@ export const aiApi = {
                 if (capability) params.append('capability', capability);
                 const endpoint = `/admin/ai-models/active-model/?${params.toString()}`;
                 return await api.get<AIModelDetail>(endpoint);
-            } catch {
-                throw new Error('خطا در دریافت مدل فعال');
+            } catch (error) {
+                throw error;
             }
         },
 
@@ -471,8 +450,7 @@ export const aiApi = {
                 const endpoint = `/admin/ai-models/${id}/`;
                 return await api.get<AIModelDetail>(endpoint);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'خطا در دریافت اطلاعات Model';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -482,8 +460,7 @@ export const aiApi = {
                 const endpoint = `/admin/ai-models/by_capability/?capability=${capability}&include_inactive=${includeInactive}`;
                 return await api.get<AIModelList[]>(endpoint);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'خطا در دریافت Model ها';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -496,8 +473,7 @@ export const aiApi = {
                 const endpoint = `/admin/ai-models/by_provider/?${params.toString()}`;
                 return await api.get<AIModelList[]>(endpoint);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'خطا در دریافت Model ها';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -507,8 +483,7 @@ export const aiApi = {
                 const endpoint = `/admin/ai-models/${id}/`;
                 return await api.patch<AIModelDetail>(endpoint, data as Record<string, unknown>);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'خطا در به‌روزرسانی Model';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -518,8 +493,7 @@ export const aiApi = {
                 const endpoint = '/admin/ai-models/';
                 return await api.post<AIModelDetail>(endpoint, data as Record<string, unknown>);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'خطا در ایجاد Model';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -533,12 +507,10 @@ export const aiApi = {
             pricing_output?: number;
         }): Promise<ApiResponse<AIModelDetail>> => {
             try {
-                // Backend now handles provider selection via this endpoint
-                console.log('[DEBUG selectModel] Sending to backend:', JSON.stringify(data, null, 2));
                 const endpoint = '/admin/ai-models/select-provider/';
                 return await api.post<AIModelDetail>(endpoint, data as Record<string, unknown>);
-            } catch {
-                throw new Error('خطا در انتخاب Provider');
+            } catch (error) {
+                throw error;
             }
         },
 
@@ -549,8 +521,8 @@ export const aiApi = {
             try {
                 const endpoint = '/admin/ai-models/deactivate-model/';
                 return await api.post<{ model_id: string; is_active: boolean }>(endpoint, data as Record<string, unknown>);
-            } catch {
-                throw new Error('خطا در غیرفعال‌سازی مدل');
+            } catch (error) {
+                throw error;
             }
         },
 
@@ -569,8 +541,7 @@ export const aiApi = {
                 const endpoint = '/admin/ai-models/active-capabilities/';
                 return await api.get<ActiveCapabilityModelsResponse>(endpoint);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'خطا در دریافت مدل‌های پیش‌فرض';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },
@@ -582,8 +553,7 @@ export const aiApi = {
                 const endpoint = '/admin/ai-settings/my_settings/';
                 return await api.get<AdminProviderSettings[]>(endpoint);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'Error fetching settings';
-                showError(errorMessage);
+                showError(error);
                 throw error;
             }
         },

@@ -30,6 +30,7 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
     
     @action(detail=False, methods=['get'], url_path='available-providers')
     def available_providers(self, request):
+        """Returns providers that support audio generation with their hardcoded models."""
         is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
         
         try:
@@ -37,14 +38,20 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
             
             result = []
             for provider in providers_qs:
+                # Check if provider supports audio
+                if not provider.supports_capability('audio'):
+                    continue
+                    
                 has_access = self._check_provider_access(request.user, provider, is_super)
                 
                 provider_info = {
                     'id': provider.id,
                     'slug': provider.slug,
-                    'name': provider.display_name,
+                    'provider_name': provider.display_name,
+                    'display_name': provider.display_name,
                     'description': provider.description,
                     'has_access': has_access,
+                    'capabilities': provider.capabilities,
                 }
                 result.append(provider_info)
             
@@ -55,7 +62,7 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
             )
         except Exception as e:
             return APIResponse.error(
-                message=AI_ERRORS["providers_list_error"].format(error=str(e)),
+                message=AI_ERRORS["providers_list_error"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -103,8 +110,8 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
                 break
 
         if not provider_slug:
-            return APIResponse.error(
-                message=AI_ERRORS.get('no_active_providers', 'هیچ Provider فعالی یافت نشد'),
+                return APIResponse.error(
+                    message=AI_ERRORS.get('no_active_providers'),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
@@ -112,7 +119,7 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
             provider = AIProvider.objects.get(slug=provider_slug, is_active=True)
         except AIProvider.DoesNotExist:
             return APIResponse.error(
-                message=AI_ERRORS["provider_not_found_or_inactive"].format(provider_name=provider_slug),
+                message=AI_ERRORS["provider_not_found_or_inactive"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
@@ -185,17 +192,12 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
                 }
             )
             return APIResponse.error(
-                message=AI_ERRORS.get('provider_tts_not_supported', str(e)).format(provider_name=provider_slug),
+                message=AI_ERRORS.get('provider_tts_not_supported', AI_ERRORS.get("audio_generation_failed")),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except ValueError as e:
             error_message = str(e)
-            if any(key in error_message for key in ['Provider', 'API key', 'not active', 'not supported']):
-                return APIResponse.error(
-                    message=error_message,
-                    status_code=status.HTTP_400_BAD_REQUEST
-                )
-            final_message = AI_ERRORS["provider_not_available"].format(provider_name=error_message) if 'Provider' in error_message else AI_ERRORS["audio_generation_failed"].format(error=error_message)
+            final_message = AI_ERRORS["provider_not_available"] if 'provider' in error_message.lower() else AI_ERRORS["audio_generation_failed"]
             return APIResponse.error(
                 message=final_message,
                 status_code=status.HTTP_400_BAD_REQUEST
@@ -209,8 +211,29 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
                     'save_to_db': save_to_db,
                 }
             )
+            error_message = str(e).lower()
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+            if 'quota' in error_message or 'billing' in error_message or 'credit' in error_message or '429' in error_message:
+                final_msg = AI_ERRORS["generic_quota_exceeded"]
+                status_code = status.HTTP_429_TOO_MANY_REQUESTS
+            elif 'api key' in error_message or 'unauthorized' in error_message or 'authentication' in error_message or '401' in error_message:
+                final_msg = AI_ERRORS["generic_api_key_invalid"]
+                status_code = status.HTTP_400_BAD_REQUEST
+            elif 'rate limit' in error_message or 'too many requests' in error_message:
+                final_msg = AI_ERRORS["generic_rate_limit"]
+                status_code = status.HTTP_429_TOO_MANY_REQUESTS
+            elif 'timeout' in error_message:
+                final_msg = AI_ERRORS["generic_timeout"]
+                status_code = status.HTTP_504_GATEWAY_TIMEOUT
+            elif 'model' in error_message and 'not found' in error_message:
+                final_msg = AI_ERRORS["generic_model_not_found"]
+                status_code = status.HTTP_404_NOT_FOUND
+            else:
+                final_msg = AI_ERRORS["audio_generation_failed"]
+
             return APIResponse.error(
-                message=AI_ERRORS["audio_generation_failed"].format(error=str(e)),
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+                message=final_msg,
+                status_code=status_code
             )
 

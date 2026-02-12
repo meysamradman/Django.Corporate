@@ -238,32 +238,28 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
     
     @classmethod
     def get_active_providers(cls):
-        cache_key = AICacheKeys.providers_active()
-        providers = cache.get(cache_key)
-        
-        if providers is None:
-            providers = list(
-                cls.objects.filter(is_active=True)
-                .order_by('sort_order')
-                .only('id', 'name', 'slug', 'display_name', 'is_active', 'allow_shared_for_normal_admins')
-            )
-            cache.set(cache_key, providers, cls.CACHE_TIMEOUT)
-        
+        """
+        Get active providers - don't cache Django model objects
+        to avoid JSON serialization issues with Redis
+        """
+        providers = list(
+            cls.objects.filter(is_active=True)
+            .order_by('sort_order')
+            .only('id', 'name', 'slug', 'display_name', 'is_active', 'allow_shared_for_normal_admins')
+        )
         return providers
     
     @classmethod
     def get_provider_by_slug(cls, slug: str):
-        cache_key = AICacheKeys.provider(slug)
-        provider = cache.get(cache_key)
-        
-        if provider is None:
-            try:
-                provider = cls.objects.get(slug=slug, is_active=True)
-                cache.set(cache_key, provider, cls.CACHE_TIMEOUT)
-            except cls.DoesNotExist:
-                return None
-        
-        return provider
+        """
+        Get provider by slug - don't cache the Django model object
+        to avoid JSON serialization issues with Redis
+        """
+        try:
+            provider = cls.objects.get(slug=slug, is_active=True)
+            return provider
+        except cls.DoesNotExist:
+            return None
 
 class AIModelManager(models.Manager):
 
@@ -562,48 +558,40 @@ class AIModel(BaseModel, CacheMixin):
     
     @classmethod
     def get_models_by_provider(cls, provider_slug: str, capability: str | None = None):
-        cache_key = AICacheKeys.models_by_provider(provider_slug, capability)
-        models_list = cache.get(cache_key)
+        # Don't cache Django model objects to avoid JSON serialization issues
+        query = cls.objects.filter(
+            provider__slug=provider_slug,
+            provider__is_active=True,
+            is_active=True
+        ).select_related('provider').order_by('sort_order')
         
-        if models_list is None:
-            query = cls.objects.filter(
-                provider__slug=provider_slug,
-                provider__is_active=True,
-                is_active=True
-            ).select_related('provider').order_by('sort_order')
-            
-            if capability:
-                models_list = [m for m in query if capability in m.capabilities]
-            else:
-                models_list = list(query)
-            
-            cache.set(cache_key, models_list, cls.CACHE_TIMEOUT)
+        if capability:
+            models_list = [m for m in query if capability in m.capabilities]
+        else:
+            models_list = list(query)
         
         return models_list
     
     @classmethod
     def get_active_models_bulk(cls, provider_slugs: list[str]):
-        cache_key = AICacheKeys.models_bulk(provider_slugs)
-        result = cache.get(cache_key)
-        
-        if result is None:
-            models = (
-                cls.objects.filter(
-                    provider__slug__in=provider_slugs,
-                    provider__is_active=True,
-                    is_active=True
-                )
-                .select_related('provider')
-                .order_by('provider__sort_order', 'sort_order', 'id')
+        """
+        Get active models for multiple providers - don't cache to avoid JSON serialization issues
+        """
+        models = (
+            cls.objects.filter(
+                provider__slug__in=provider_slugs,
+                provider__is_active=True,
+                is_active=True
             )
-            
-            result = {}
-            for model in models:
-                provider_slug = model.provider.slug
-                if provider_slug not in result:
-                    result[provider_slug] = model
-            
-            cache.set(cache_key, result, cls.CACHE_TIMEOUT)
+            .select_related('provider')
+            .order_by('provider__sort_order', 'sort_order', 'id')
+        )
+        
+        result = {}
+        for model in models:
+            provider_slug = model.provider.slug
+            if provider_slug not in result:
+                result[provider_slug] = model
         
         return result
     

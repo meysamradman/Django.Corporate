@@ -159,6 +159,16 @@ export interface AIContentGenerationResponse {
     generation_time_ms: number;
 }
 
+export interface AIContentGenerationResult {
+    content: AIContentGenerationResponse;
+    destination: {
+        saved: boolean;
+        destination: string;
+        message: string;
+        id?: number;
+    };
+}
+
 export interface AvailableProvider {
     id: number;
     provider_name?: string;

@@ -6,7 +6,11 @@ import os
 import json
 import re
 from .base import BaseProvider
-from src.ai.messages.messages import AI_ERRORS, AI_SYSTEM_MESSAGES, OPENAI_ERRORS, OPENAI_PROMPTS
+from src.ai.messages.messages import AI_ERRORS, AI_SYSTEM_MESSAGES
+from src.ai.prompts.content import get_content_prompt, get_seo_prompt
+from src.ai.prompts.chat import get_chat_system_message
+from src.ai.prompts.image import get_image_prompt, enhance_image_prompt, get_negative_prompt
+from src.ai.prompts.audio import get_audio_prompt, calculate_word_count, estimate_duration
 
 class OpenAIProvider(BaseProvider):
     
@@ -32,11 +36,16 @@ class OpenAIProvider(BaseProvider):
         
         size = kwargs.get('size', '1024x1024')
         quality = kwargs.get('quality', 'standard')
+        style = kwargs.get('style', 'realistic')
         n = kwargs.get('n', 1)
+        
+        # Use centralized image prompt enhancement from prompts module
+        # For DALL-E, enhance based on quality level
+        enhanced_prompt = enhance_image_prompt(prompt, style=style, add_quality=(quality == 'hd'))
         
         payload = {
             "model": model_to_use,
-            "prompt": prompt,
+            "prompt": enhanced_prompt,
             "n": min(n, 1) if model_to_use == 'dall-e-3' else min(n, 10),
             "size": size,
             "quality": quality,
@@ -59,32 +68,23 @@ class OpenAIProvider(BaseProvider):
                 if image_b64:
                     return BytesIO(base64.b64decode(image_b64))
             
-            raise Exception(AI_ERRORS["openai_invalid_response"])
+            raise Exception(AI_ERRORS["image_generation_failed"])
             
         except httpx.HTTPStatusError as e:
-            error_msg = AI_ERRORS["image_generation_http_error"].format(
-                status_code=e.response.status_code,
-                detail=""
-            )
+            error_msg = AI_ERRORS["image_generation_http_error"]
             try:
                 error_data = e.response.json()
                 error_detail = error_data.get('error', {}).get('message', '')
                 
                 if 'billing' in error_detail.lower() or 'limit' in error_detail.lower() or 'hard limit' in error_detail.lower():
-                    error_msg = AI_ERRORS["openai_billing_limit"]
+                    error_msg = AI_ERRORS["image_quota_exceeded"]
                 else:
-                    error_msg = AI_ERRORS["image_generation_http_error"].format(
-                        status_code=e.response.status_code,
-                        detail=error_detail if error_detail else str(e.response.text)
-                    )
+                    error_msg = AI_ERRORS["image_generation_http_error"]
             except:
-                error_msg = AI_ERRORS["image_generation_http_error"].format(
-                    status_code=e.response.status_code,
-                    detail=str(e.response.text)
-                )
+                error_msg = AI_ERRORS["image_generation_http_error"]
             raise Exception(error_msg)
         except Exception as e:
-            raise Exception(AI_ERRORS["image_generation_failed"].format(error=str(e)))
+            raise Exception(AI_ERRORS["image_generation_failed"])
     
     async def generate_content(self, prompt: str, **kwargs) -> str:
         # Use model from config or kwargs, fall back to content_model
@@ -99,7 +99,13 @@ class OpenAIProvider(BaseProvider):
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         
-        full_prompt = f
+        # دریافت prompt از ماژول prompts
+        content_prompt_template = get_content_prompt(provider='openai')
+        full_prompt = content_prompt_template.format(
+            topic=prompt,
+            word_count=word_count,
+            tone=tone
+        )
         
         payload = {
             "model": model_to_use,
@@ -120,17 +126,17 @@ class OpenAIProvider(BaseProvider):
                 content = data['choices'][0]['message']['content']
                 return content.strip()
             
-            raise Exception(OPENAI_ERRORS['no_content_generated'])
+            raise Exception(AI_ERRORS["content_generation_failed"])
             
         except httpx.HTTPStatusError as e:
             try:
                 error_data = e.response.json()
                 error_msg = error_data.get('error', {}).get('message', '')
-                raise Exception(OPENAI_ERRORS['api_error'].format(error_msg=error_msg))
+                raise Exception(AI_ERRORS["content_generation_failed"])
             except:
-                raise Exception(OPENAI_ERRORS['http_error'].format(status_code=e.response.status_code))
+                raise Exception(AI_ERRORS["content_generation_failed"])
         except Exception as e:
-            raise Exception(OPENAI_ERRORS['content_generation_failed'].format(error=str(e)))
+            raise Exception(AI_ERRORS["content_generation_failed"])
     
     async def generate_seo_content(self, topic: str, **kwargs) -> Dict[str, Any]:
         word_count = kwargs.get('word_count', 500)
@@ -139,7 +145,9 @@ class OpenAIProvider(BaseProvider):
         
         keywords_str = f", {', '.join(keywords)}" if keywords else ""
         
-        seo_prompt = OPENAI_PROMPTS['seo_content_generation'].format(
+        # دریافت prompt از ماژول prompts
+        seo_prompt_template = get_seo_prompt(provider='openai')
+        seo_prompt = seo_prompt_template.format(
             topic=topic,
             keywords_str=keywords_str,
             word_count=word_count
@@ -179,9 +187,9 @@ class OpenAIProvider(BaseProvider):
                     if json_match:
                         seo_data = json.loads(json_match.group())
                         return seo_data
-                    raise Exception(OPENAI_ERRORS['json_parse_error'])
+                    raise Exception(AI_ERRORS["invalid_json"])
             
-            raise Exception(OPENAI_ERRORS['no_content_generated'])
+            raise Exception(AI_ERRORS["content_generation_failed"])
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
@@ -191,23 +199,23 @@ class OpenAIProvider(BaseProvider):
                 
                 if status_code == 429:
                     if 'quota' in error_msg.lower() or 'billing' in error_msg.lower():
-                        raise Exception(OPENAI_ERRORS['billing_limit'])
+                        raise Exception(AI_ERRORS["generic_quota_exceeded"])
                     else:
-                        raise Exception(OPENAI_ERRORS['rate_limit'])
+                        raise Exception(AI_ERRORS["generic_rate_limit"])
                 elif status_code == 401:
-                    raise Exception(OPENAI_ERRORS['invalid_api_key'])
+                    raise Exception(AI_ERRORS["generic_api_key_invalid"])
                 elif status_code == 403:
-                    raise Exception(OPENAI_ERRORS['api_access_denied'])
+                    raise Exception(AI_ERRORS["provider_not_authorized"])
                 
-                raise Exception(OPENAI_ERRORS['api_error'].format(error_msg=error_msg))
+                raise Exception(AI_ERRORS["content_generation_failed"])
             except Exception as ex:
                 if status_code == 429:
-                    raise Exception(OPENAI_ERRORS['rate_limit_or_billing'])
-                raise Exception(OPENAI_ERRORS['http_error'].format(status_code=status_code))
+                    raise Exception(AI_ERRORS["generic_rate_limit"])
+                raise Exception(AI_ERRORS["content_generation_failed"])
         except json.JSONDecodeError as e:
-            raise Exception(OPENAI_ERRORS['json_parse_error'])
+            raise Exception(AI_ERRORS["invalid_json"])
         except Exception as e:
-            raise Exception(OPENAI_ERRORS['content_generation_failed'].format(error=str(e)))
+            raise Exception(AI_ERRORS["content_generation_failed"])
     
     async def chat(self, message: str, conversation_history: Optional[list] = None, **kwargs) -> str:
         url = f"{self.BASE_URL}/chat/completions"
@@ -271,7 +279,7 @@ class OpenAIProvider(BaseProvider):
                 reply = data['choices'][0]['message']['content']
                 return reply.strip()
             
-            raise Exception(OPENAI_ERRORS['no_response_received'])
+            raise Exception(AI_ERRORS["chat_failed"])
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
@@ -281,21 +289,21 @@ class OpenAIProvider(BaseProvider):
                 
                 if status_code == 429:
                     if 'quota' in error_msg.lower() or 'billing' in error_msg.lower():
-                        raise Exception(OPENAI_ERRORS['billing_limit'])
+                        raise Exception(AI_ERRORS["generic_quota_exceeded"])
                     else:
-                        raise Exception(OPENAI_ERRORS['rate_limit'])
+                        raise Exception(AI_ERRORS["generic_rate_limit"])
                 elif status_code == 401:
-                    raise Exception(OPENAI_ERRORS['invalid_api_key'])
+                    raise Exception(AI_ERRORS["generic_api_key_invalid"])
                 elif status_code == 403:
-                    raise Exception(OPENAI_ERRORS['api_access_denied'])
+                    raise Exception(AI_ERRORS["provider_not_authorized"])
                 
-                raise Exception(OPENAI_ERRORS['api_error'].format(error_msg=error_msg))
+                raise Exception(AI_ERRORS["chat_failed"])
             except Exception as ex:
                 if status_code == 429:
-                    raise Exception(OPENAI_ERRORS['rate_limit_or_billing'])
-                raise Exception(OPENAI_ERRORS['http_error'].format(status_code=status_code))
+                    raise Exception(AI_ERRORS["generic_rate_limit"])
+                raise Exception(AI_ERRORS["chat_failed"])
         except Exception as e:
-            raise Exception(OPENAI_ERRORS['chat_error'].format(error=str(e)))
+            raise Exception(AI_ERRORS["chat_failed"])
     
     async def text_to_speech(self, text: str, **kwargs) -> BytesIO:
         url = f"{self.BASE_URL}/audio/speech"
@@ -332,21 +340,21 @@ class OpenAIProvider(BaseProvider):
                 
                 if status_code == 429:
                     if 'quota' in error_msg.lower() or 'billing' in error_msg.lower():
-                        raise Exception(OPENAI_ERRORS['billing_limit'])
+                        raise Exception(AI_ERRORS["generic_quota_exceeded"])
                     else:
-                        raise Exception(OPENAI_ERRORS['rate_limit'])
+                        raise Exception(AI_ERRORS["generic_rate_limit"])
                 elif status_code == 401:
-                    raise Exception(OPENAI_ERRORS['invalid_api_key'])
+                    raise Exception(AI_ERRORS["generic_api_key_invalid"])
                 elif status_code == 403:
-                    raise Exception(OPENAI_ERRORS['api_access_denied'])
+                    raise Exception(AI_ERRORS["provider_not_authorized"])
                 
-                raise Exception(OPENAI_ERRORS['api_error'].format(error_msg=error_msg))
+                raise Exception(AI_ERRORS["audio_generation_failed"])
             except Exception as ex:
                 if status_code == 429:
-                    raise Exception(OPENAI_ERRORS['rate_limit_or_billing'])
-                raise Exception(OPENAI_ERRORS['http_error'].format(status_code=status_code))
+                    raise Exception(AI_ERRORS["generic_rate_limit"])
+                raise Exception(AI_ERRORS["audio_generation_failed"])
         except Exception as e:
-            raise Exception(OPENAI_ERRORS['audio_generation_error'].format(error=str(e)))
+            raise Exception(AI_ERRORS["audio_generation_failed"])
     
     def validate_api_key(self) -> bool:
         try:

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/elements/Card';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { aiApi } from '@/api/ai/ai';
-import type { AvailableProvider, AIContentGenerationResponse } from '@/types/ai/ai';
+import type { AvailableProvider, AIContentGenerationResponse, AIContentGenerationResult } from '@/types/ai/ai';
 import { showSuccess, showError } from '@/core/toast';
 import { msg } from '@/core/messages';
 import { ContentInputForm } from './ContentInputForm';
@@ -31,8 +31,6 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
     const [generatedContent, setGeneratedContent] = useState<AIContentGenerationResponse | null>(null);
     const [copiedField, setCopiedField] = useState<string | null>(null);
     const providersFetched = useRef(false);
-
-    console.log('🚀 [AIContentGenerator] Component Mount/Render. User:', user ? 'Present' : 'Null');
 
     useEffect(() => {
         if (user && !providersFetched.current) {
@@ -115,22 +113,25 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
             return;
         }
 
+        const requestPayload = {
+            provider_name: selectedProvider,
+            topic: topic.trim(),
+            destination: destination as any,
+            model_id: selectedModel || undefined,
+        };
+
         try {
             setGenerating(true);
             setGeneratedContent(null);
 
-            const response = await aiApi.content.generateContent({
-                provider_name: selectedProvider,
-                topic: topic.trim(),
-                destination: destination as any,
-                model_id: selectedModel || undefined,
-            });
+            const response = await aiApi.content.generateContent(requestPayload);
 
             if (response.metaData.status === 'success') {
-                setGeneratedContent(response.data);
+                const result = response.data as AIContentGenerationResult;
+                setGeneratedContent(result.content);
                 showSuccess(msg.ai('contentGenerated'));
             }
-        } catch (error) {
+        } catch (error: any) {
             showError(error);
         } finally {
             setGenerating(false);

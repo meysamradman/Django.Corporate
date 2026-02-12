@@ -45,17 +45,34 @@ class AIContentGenerationRequestSerializer(serializers.Serializer):
         help_text="SEO keywords (optional)"
     )
     
-    destination = serializers.ChoiceField(
-        choices=['direct', 'blog', 'portfolio'],
+    destination = serializers.CharField(
         required=False,
+        allow_null=True,
+        allow_blank=True,
         default='direct',
-        help_text="Content save destination: direct (display only), blog (save to blog), portfolio (save to portfolio)"
+        help_text="Content save destination: direct (display only), blog (save to blog), portfolio (save to portfolio), none (same as direct)"
     )
     destination_data = serializers.JSONField(
         required=False,
         default=dict,
         help_text="Additional data for destination (e.g., category, tag, status)"
     )
+    
+    def validate_destination(self, value):
+        """Normalize destination value and validate."""
+        # Normalize 'none' or empty to 'direct'
+        if not value or value.strip().lower() in ['none', '']:
+            return 'direct'
+        
+        value = value.strip().lower()
+        valid_choices = ['direct', 'blog', 'portfolio']
+        
+        if value not in valid_choices:
+            raise serializers.ValidationError(
+                AI_ERRORS.get('destination_invalid')
+            )
+        
+        return value
 
     def validate_topic(self, value):
         if not value or not value.strip():
@@ -74,10 +91,10 @@ class AIContentGenerationRequestSerializer(serializers.Serializer):
 
         provider = AIProvider.objects.filter(slug=provider_slug, is_active=True).first()
         if not provider:
-            raise serializers.ValidationError("Provider نامعتبر یا غیرفعال است")
+            raise serializers.ValidationError(AI_ERRORS.get('provider_not_found_or_inactive'))
 
         if not supports_feature(provider_slug, 'content'):
-            raise serializers.ValidationError("این Provider قابلیت content را پشتیبانی نمی‌کند")
+            raise serializers.ValidationError(AI_ERRORS.get('provider_not_supported'))
 
         return provider_slug
 

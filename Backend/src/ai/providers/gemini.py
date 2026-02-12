@@ -5,7 +5,11 @@ import os
 import json
 import re
 from .base import BaseProvider
-from src.ai.messages.messages import AI_ERRORS, GEMINI_ERRORS, GEMINI_PROMPTS
+from src.ai.messages.messages import AI_ERRORS
+from src.ai.prompts.content import get_content_prompt, get_seo_prompt
+from src.ai.prompts.chat import get_chat_system_message
+from src.ai.prompts.image import get_image_prompt, enhance_image_prompt, get_negative_prompt
+from src.ai.prompts.audio import get_audio_prompt, calculate_word_count, estimate_duration
 
 class GeminiProvider(BaseProvider):
     
@@ -31,7 +35,9 @@ class GeminiProvider(BaseProvider):
         tone = kwargs.get('tone', 'professional')
         language = kwargs.get('language', 'fa')
         
-        full_prompt = GEMINI_PROMPTS["content_generation"].format(
+        # دریافت prompt از ماژول prompts
+        content_prompt_template = get_content_prompt(provider='gemini')
+        full_prompt = content_prompt_template.format(
             topic=prompt,
             word_count=word_count,
             tone=tone
@@ -60,7 +66,7 @@ class GeminiProvider(BaseProvider):
                 content = data['candidates'][0]['content']['parts'][0]['text']
                 return content.strip()
             
-            raise Exception(GEMINI_ERRORS["no_content_generated"])
+            raise Exception(AI_ERRORS["content_generation_failed"])
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
@@ -84,25 +90,24 @@ class GeminiProvider(BaseProvider):
                 
                 if 'api key' in error_lower or 'permission' in error_lower or 'forbidden' in error_lower or 'api_key_not_valid' in error_lower or not error_detail or status_code == 403:
                     error_detail_formatted = error_detail if error_detail != 'Access denied' else '403 Forbidden'
-                    raise Exception(GEMINI_ERRORS["api_access_denied_detailed"].format(error_detail=error_detail_formatted))
+                    raise Exception(AI_ERRORS["generic_api_key_invalid"])
                 else:
-                    raise Exception(GEMINI_ERRORS["api_access_denied_simple"].format(error_detail=error_detail))
+                    raise Exception(AI_ERRORS["provider_not_authorized"])
             elif status_code == 400:
-                error_detail = error_msg or error_text or "Invalid request"
-                raise Exception(GEMINI_ERRORS["invalid_request"].format(error_detail=error_detail))
+                raise Exception(AI_ERRORS["validation_error"])
             elif status_code == 429:
-                raise Exception(GEMINI_ERRORS["rate_limit"])
+                raise Exception(AI_ERRORS["generic_rate_limit"])
             elif status_code == 401:
-                raise Exception(GEMINI_ERRORS["invalid_api_key"])
+                raise Exception(AI_ERRORS["generic_api_key_invalid"])
             
             if error_msg:
-                raise Exception(GEMINI_ERRORS["http_error_with_message"].format(error_message=error_msg))
+                raise Exception(AI_ERRORS["content_generation_failed"])
             elif error_text:
-                raise Exception(GEMINI_ERRORS["http_error_with_detail"].format(status_code=status_code, error_detail=error_text[:200]))
+                raise Exception(AI_ERRORS["content_generation_failed"])
             else:
-                raise Exception(GEMINI_ERRORS["http_error"].format(status_code=status_code))
+                raise Exception(AI_ERRORS["content_generation_failed"])
         except Exception as e:
-            raise Exception(GEMINI_ERRORS["content_generation_error"].format(error=str(e)))
+            raise Exception(AI_ERRORS["content_generation_failed"])
     
     async def generate_seo_content(self, topic: str, **kwargs) -> Dict[str, Any]:
         word_count = kwargs.get('word_count', 500)
@@ -111,7 +116,9 @@ class GeminiProvider(BaseProvider):
         
         keywords_str = f", {', '.join(keywords)}" if keywords else ""
         
-        seo_prompt = GEMINI_PROMPTS["seo_content_generation"].format(
+        # دریافت prompt از ماژول prompts
+        seo_prompt_template = get_seo_prompt(provider='gemini')
+        seo_prompt = seo_prompt_template.format(
             topic=topic,
             keywords_str=keywords_str,
             word_count=word_count
@@ -157,9 +164,9 @@ class GeminiProvider(BaseProvider):
                     if json_match:
                         seo_data = json.loads(json_match.group())
                         return seo_data
-                    raise Exception(GEMINI_ERRORS["json_parse_error"])
+                    raise Exception(AI_ERRORS["invalid_json"])
             
-            raise Exception(GEMINI_ERRORS["no_content_generated"])
+            raise Exception(AI_ERRORS["content_generation_failed"])
             
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
@@ -183,33 +190,36 @@ class GeminiProvider(BaseProvider):
                 
                 if 'api key' in error_lower or 'permission' in error_lower or 'forbidden' in error_lower or 'api_key_not_valid' in error_lower or not error_detail or status_code == 403:
                     error_detail_formatted = error_detail if error_detail != 'Access denied' else '403 Forbidden'
-                    raise Exception(GEMINI_ERRORS["api_access_denied_detailed"].format(error_detail=error_detail_formatted))
+                    raise Exception(AI_ERRORS["generic_api_key_invalid"])
                 else:
-                    raise Exception(GEMINI_ERRORS["api_access_denied_simple"].format(error_detail=error_detail))
+                    raise Exception(AI_ERRORS["provider_not_authorized"])
             elif status_code == 400:
-                error_detail = error_msg or error_text or "Invalid request"
-                raise Exception(GEMINI_ERRORS["invalid_request"].format(error_detail=error_detail))
+                raise Exception(AI_ERRORS["validation_error"])
             elif status_code == 429:
-                raise Exception(GEMINI_ERRORS["rate_limit"])
+                raise Exception(AI_ERRORS["generic_rate_limit"])
             elif status_code == 401:
-                raise Exception(GEMINI_ERRORS["invalid_api_key"])
+                raise Exception(AI_ERRORS["generic_api_key_invalid"])
             
             if error_msg:
-                raise Exception(GEMINI_ERRORS["http_error_with_message"].format(error_message=error_msg))
+                raise Exception(AI_ERRORS["content_generation_failed"])
             elif error_text:
-                raise Exception(GEMINI_ERRORS["http_error_with_detail"].format(status_code=status_code, error_detail=error_text[:200]))
+                raise Exception(AI_ERRORS["content_generation_failed"])
             else:
-                raise Exception(GEMINI_ERRORS["http_error"].format(status_code=status_code))
+                raise Exception(AI_ERRORS["content_generation_failed"])
         except json.JSONDecodeError as e:
-            raise Exception(GEMINI_ERRORS["json_parse_error"])
+            raise Exception(AI_ERRORS["invalid_json"])
         except Exception as e:
-            raise Exception(GEMINI_ERRORS["content_generation_error"].format(error=str(e)))
+            raise Exception(AI_ERRORS["content_generation_failed"])
     
     async def chat(self, message: str, conversation_history: Optional[list] = None, **kwargs) -> str:
         # Use model from config or kwargs, fall back to self.model
         model_to_use = self.config.get('model') or kwargs.get('model') or self.model
         url = f"{self.BASE_URL}/models/{model_to_use}:generateContent"
         params = {'key': self.api_key}
+        
+        # Get system message based on persona
+        persona = kwargs.get('persona', 'default')
+        system_message = get_chat_system_message(persona=persona, provider='gemini')
         
         contents = []
         
@@ -262,6 +272,9 @@ class GeminiProvider(BaseProvider):
         
         payload = {
             "contents": contents,
+            "systemInstruction": {
+                "parts": [{"text": system_message}]
+            },
             "generationConfig": {
                 "temperature": kwargs.get('temperature', 0.7),
                 "topK": 40,
@@ -279,10 +292,10 @@ class GeminiProvider(BaseProvider):
                 reply = data['candidates'][0]['content']['parts'][0]['text']
                 return reply.strip()
             
-            raise Exception(GEMINI_ERRORS["no_response_received"])
+            raise Exception(AI_ERRORS["chat_failed"])
             
         except httpx.ReadTimeout:
-            raise Exception(GEMINI_ERRORS["response_timeout"])
+            raise Exception(AI_ERRORS["generic_timeout"])
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
             error_msg = ""
@@ -300,16 +313,15 @@ class GeminiProvider(BaseProvider):
                     error_text = ""
             
             if status_code == 403:
-                raise Exception(GEMINI_ERRORS["api_access_denied_simple"].format(error_detail=error_msg or error_text or "403 Forbidden"))
+                raise Exception(AI_ERRORS["provider_not_authorized"])
             elif status_code == 429:
-                raise Exception(GEMINI_ERRORS["chat_rate_limit"])
+                raise Exception(AI_ERRORS["generic_rate_limit"])
             elif status_code == 401:
-                raise Exception(GEMINI_ERRORS["invalid_api_key_simple"])
+                raise Exception(AI_ERRORS["generic_api_key_invalid"])
             else:
-                error_detail = error_msg or error_text or f"HTTP {status_code}"
-                raise Exception(GEMINI_ERRORS["http_error_with_message"].format(error_message=error_detail))
+                raise Exception(AI_ERRORS["chat_failed"])
         except Exception as e:
-            raise Exception(GEMINI_ERRORS["chat_error"].format(error=str(e)))
+            raise Exception(AI_ERRORS["chat_failed"])
     
     def validate_api_key(self) -> bool:
         try:

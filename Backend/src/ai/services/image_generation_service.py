@@ -75,7 +75,7 @@ class AIImageGenerationService:
             cm = AICapabilityModel.objects.get_active(capability)
             if not cm:
                 raise ValueError(
-                    AI_ERRORS.get('no_active_model_any_provider', 'No active model').format(capability=capability)
+                    AI_ERRORS.get('no_active_model_any_provider').format(capability=capability)
                 )
             provider_name = cm.provider.slug
             model_name = cm.model_id
@@ -172,7 +172,7 @@ class AIImageGenerationService:
             cm = AICapabilityModel.objects.get_active(capability)
             if not cm:
                 raise ValueError(
-                    AI_ERRORS.get('no_active_model_any_provider', 'No active model').format(capability=capability)
+                    AI_ERRORS.get('no_active_model_any_provider').format(capability=capability)
                 )
             provider_name = cm.provider.slug
             model_name = cm.model_id

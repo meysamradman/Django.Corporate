@@ -109,6 +109,7 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='available')
     def available_providers(self, request):
+        """Returns providers that support image generation with their hardcoded models."""
         try:
             is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
             
@@ -116,14 +117,20 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
             
             result = []
             for provider in providers_qs:
+                # Check if provider supports image
+                if not provider.supports_capability('image'):
+                    continue
+                    
                 has_access = self._check_provider_access(request.user, provider, is_super)
                 
                 provider_info = {
                     'id': provider.id,
                     'slug': provider.slug,
-                    'name': provider.display_name,
+                    'provider_name': provider.display_name,
+                    'display_name': provider.display_name,
                     'description': provider.description,
                     'has_access': has_access,
+                    'capabilities': provider.capabilities,
                 }
                 result.append(provider_info)
             
@@ -133,7 +140,7 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=AI_ERRORS["providers_list_error"].format(error=str(e)),
+                message=AI_ERRORS["providers_list_error"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -190,7 +197,7 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=AI_ERRORS["openrouter_models_error"].format(error=str(e)),
+                message=AI_ERRORS["openrouter_models_error"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -247,7 +254,7 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=AI_ERRORS["huggingface_models_error"].format(error=str(e)),
+                message=AI_ERRORS["huggingface_models_error"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -261,7 +268,7 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=AI_ERRORS["cache_clear_error"].format(error=str(e)),
+                message=AI_ERRORS["cache_clear_error"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -297,7 +304,7 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=AI_ERRORS["activation_failed"].format(error=str(e)),
+                message=AI_ERRORS["activation_failed"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -336,7 +343,7 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=AI_ERRORS["validation_error"].format(error=str(e)),
+                message=AI_ERRORS["validation_error"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -386,7 +393,7 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
                 active_model = AICapabilityModel.objects.get_active('image')
                 if not active_model:
                     return APIResponse.error(
-                        message=AI_ERRORS.get('no_active_model_any_provider', 'No active model').format(capability='image'),
+                        message=AI_ERRORS.get('no_active_model_any_provider').format(capability='image'),
                         status_code=status.HTTP_400_BAD_REQUEST
                     )
 
@@ -407,7 +414,7 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
                     provider = AIProvider.objects.get(slug=provider_name, is_active=True)
                 except AIProvider.DoesNotExist:
                     return APIResponse.error(
-                        message=AI_ERRORS["provider_not_found_or_inactive"].format(provider_name=provider_name),
+                        message=AI_ERRORS["provider_not_found_or_inactive"],
                         status_code=status.HTTP_400_BAD_REQUEST
                     )
 
@@ -437,7 +444,7 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
                         
                         if not model_id:
                             return APIResponse.error(
-                                message=f"No default model found for provider {provider.slug}",
+                                message=AI_ERRORS["no_active_model"],
                                 status_code=status.HTTP_400_BAD_REQUEST
                             )
                         model_display_name = model_id
@@ -518,15 +525,40 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
                     status_code=status.HTTP_200_OK
                 )
         
-        except ValueError:
+        except ValueError as e:
             return APIResponse.error(
                 message=AI_ERRORS["validation_error"],
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
+            error_message = str(e).lower()
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+            if 'quota' in error_message or 'billing' in error_message or 'credit' in error_message or '429' in error_message:
+                final_msg = AI_ERRORS["image_quota_exceeded"]
+                status_code = status.HTTP_429_TOO_MANY_REQUESTS
+            elif 'api key' in error_message or 'unauthorized' in error_message or 'authentication' in error_message or '401' in error_message:
+                final_msg = AI_ERRORS["api_key_invalid"]
+                status_code = status.HTTP_400_BAD_REQUEST
+            elif 'rate limit' in error_message or 'too many requests' in error_message:
+                final_msg = AI_ERRORS["image_rate_limit"]
+                status_code = status.HTTP_429_TOO_MANY_REQUESTS
+            elif 'timeout' in error_message:
+                final_msg = AI_ERRORS["image_timeout"]
+                status_code = status.HTTP_504_GATEWAY_TIMEOUT
+            elif (
+                ('model' in error_message and 'not found' in error_message) or
+                ('not a valid model id' in error_message) or
+                ('valid model id' in error_message)
+            ):
+                final_msg = AI_ERRORS["model_not_found"]
+                status_code = status.HTTP_404_NOT_FOUND
+            else:
+                final_msg = AI_ERRORS["image_generation_failed_simple"]
+
             return APIResponse.error(
-                message=AI_ERRORS["image_generation_failed"].format(error=str(e)),
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+                message=final_msg,
+                status_code=status_code
             )
     
     @action(detail=False, methods=['get'], url_path='models')
@@ -534,6 +566,6 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
         # Legacy endpoint kept to avoid breaking older clients.
         # Model selection is no longer supported.
         return APIResponse.success(
-            message=AI_SUCCESS.get("models_list_retrieved", "OK"),
+            message=AI_SUCCESS.get("models_list_retrieved"),
             data=[]
         )

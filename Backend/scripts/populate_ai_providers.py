@@ -142,11 +142,20 @@ def populate_providers():
     populate_capability_defaults()
 
 def populate_capability_defaults():
-    print('\\nApplying Hardcoded Defaults to AICapabilityModel...')
+    print('\\n' + '='*60)
+    print('🔧 CLEANING UP & SETTING HARDCODED DEFAULTS')
+    print('='*60)
+    
     capabilities = ['chat', 'content', 'image', 'audio']
     
-    # Iterate all we just touched
-    providers = AIProvider.objects.all()
+    # Step 1: Clean up - Deactivate ALL existing capability models
+    print('\\n🧹 Step 1: Deactivating all existing capability models...')
+    deactivated = AICapabilityModel.objects.filter(is_active=True).update(is_active=False)
+    print(f'   ✅ Deactivated {deactivated} models')
+    
+    # Step 2: Set hardcoded defaults
+    print('\\n🎯 Step 2: Setting hardcoded defaults from populate script...')
+    providers = AIProvider.objects.filter(is_active=True)
 
     for provider in providers:
         prov_caps = provider.capabilities or {}
@@ -159,20 +168,26 @@ def populate_capability_defaults():
             # HARDCODED DEFAULT FROM SCRIPT
             default_model = cap_config.get('default_model')
             if default_model:
-                # We find the AICapabilityModel for this provider+capability
-                # If this provider IS active, we update the model_id to match the hardcoded default
-                
-                AICapabilityModel.objects.update_or_create(
+                # Create or update the model entry (but keep is_active=False)
+                # User/Admin will choose which provider to activate per capability
+                obj, created = AICapabilityModel.objects.update_or_create(
                     capability=cap,
                     provider=provider,
                     defaults={
                         'model_id': default_model,
                         'display_name': default_model,
                         'config': {},
-                        # Do not force is_active=True, user chooses provider
+                        'is_active': False,  # Not active by default
+                        'sort_order': 0,
                     }
                 )
-                print(f'  - Synced default for {provider.slug}/{cap} -> {default_model}')
+                status = 'Created' if created else 'Updated'
+                print(f'   {status}: {provider.slug}/{cap} -> {default_model}')
+    
+    print('\\n' + '='*60)
+    print('✅ HARDCODED DEFAULTS CONFIGURED')
+    print('   Admin must select provider for each capability in settings.')
+    print('='*60)
 
 if __name__ == '__main__':
     populate_providers()

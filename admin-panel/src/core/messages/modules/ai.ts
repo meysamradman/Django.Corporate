@@ -16,6 +16,45 @@ export const AI_MESSAGES = {
   operationSuccess: 'عملیات با موفقیت انجام شد',
   copyError: 'خطا در کپی کردن',
   saveImageError: 'خطا در ذخیره تصویر',
+  
+  // Provider & API Key Errors
+  noApiKey: 'API Key برای این Provider تنظیم نشده است. لطفاً ابتدا به تنظیمات AI بروید و API Key را وارد کنید.',
+  invalidApiKey: 'API Key نامعتبر است. لطفاً API Key صحیح را در تنظیمات وارد کنید.',
+  providerNotActive: 'این Provider فعال نیست. لطفاً ابتدا از تنظیمات AI آن را فعال کنید.',
+  providerNotSupported: 'این Provider پشتیبانی نمی‌شود یا در دسترس نیست.',
+  
+  // Billing & Credit Errors
+  insufficientCredit: 'اعتبار کافی ندارید. لطفاً حساب خود را شارژ کنید یا با پشتیبانی تماس بگیرید.',
+  billingLimitReached: 'محدودیت صورتحساب شما به پایان رسیده است. لطفاً پلن خود را ارتقا دهید.',
+  quotaExceeded: 'سهمیه استفاده شما تمام شده است. لطفاً تا تمدید سهمیه صبر کنید یا پلن خود را ارتقا دهید.',
+  
+  // Rate Limit Errors
+  rateLimitExceeded: 'تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً چند لحظه صبر کنید و دوباره تلاش کنید.',
+  tooManyRequests: 'درخواست‌های زیادی ارسال کرده‌اید. لطفاً 1-2 دقیقه صبر کنید.',
+  
+  // Model Errors
+  modelNotFound: 'مدل انتخابی یافت نشد یا در دسترس نیست. لطفاً مدل دیگری را انتخاب کنید.',
+  modelNotAvailable: 'این مدل در حال حاضر در دسترس نیست. لطفاً بعداً تلاش کنید یا مدل دیگری را امتحان کنید.',
+  modelLoadingError: 'خطا در بارگذاری مدل. این مدل ممکن است غیرفعال باشد.',
+  
+  // Generation Errors
+  contentGenerationFailed: 'خطا در تولید محتوا. لطفاً دوباره تلاش کنید.',
+  imageGenerationFailed: 'خطا در تولید تصویر. لطفاً دوباره تلاش کنید.',
+  chatFailed: 'خطا در ارتباط با AI. لطفاً دوباره تلاش کنید.',
+  
+  // Network & Timeout Errors
+  networkError: 'خطا در اتصال به سرویس AI. لطفاً اتصال اینترنت خود را بررسی کنید.',
+  timeoutError: 'زمان درخواست به پایان رسید. لطفاً دوباره تلاش کنید.',
+  serverError: 'خطای سرور AI رخ داد. لطفاً چند لحظه بعد تلاش کنید.',
+  
+  // Input Validation Errors
+  promptTooShort: 'توضیحات خیلی کوتاه است. لطفاً توضیحات بیشتری وارد کنید.',
+  promptTooLong: 'توضیحات خیلی طولانی است. لطفاً آن را کوتاه‌تر کنید.',
+  invalidInput: 'ورودی نامعتبر است. لطفاً اطلاعات را بررسی کنید.',
+  
+  // General Errors
+  unknownError: 'خطای نامشخصی رخ داد. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.',
+  operationFailed: 'عملیات با شکست مواجه شد.',
 } as const;
 
 export const AI_UI_MESSAGES = {

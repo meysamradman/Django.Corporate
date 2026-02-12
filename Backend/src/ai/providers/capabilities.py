@@ -128,24 +128,26 @@ PROVIDER_CAPABILITIES = {
         'has_dynamic_models': True,
         'models': {
             'chat': [
-                'meta-llama/Meta-Llama-3-8B-Instruct',
-                'meta-llama/Llama-3.2-3B-Instruct',
-                'mistralai/Mistral-Nemo-Instruct-2407',
-                'google/gemma-2-27b-it'
+                'Qwen/Qwen2.5-7B-Instruct',
+                'Qwen/Qwen2.5-3B-Instruct',
+                'mistralai/Mistral-7B-Instruct-v0.3',
+                'microsoft/Phi-3-mini-4k-instruct'
             ],
             'content': [
-                'meta-llama/Meta-Llama-3-8B-Instruct',
-                'Qwen/Qwen2.5-7B-Instruct'
+                'Qwen/Qwen2.5-7B-Instruct',
+                'Qwen/Qwen2.5-3B-Instruct',
+                'mistralai/Mistral-7B-Instruct-v0.3'
             ],
             'image': [
                 'black-forest-labs/FLUX.1-dev',
-                'stabilityai/stable-diffusion-3.5-large'
+                'stabilityai/stable-diffusion-3.5-large',
+                'stabilityai/stable-diffusion-xl-base-1.0'
             ],
             'audio': [],
         },
         'default_models': {
-            'chat': 'meta-llama/Meta-Llama-3-8B-Instruct',
-            'content': 'meta-llama/Meta-Llama-3-8B-Instruct',
+            'chat': 'Qwen/Qwen2.5-7B-Instruct',
+            'content': 'Qwen/Qwen2.5-7B-Instruct',
             'image': 'black-forest-labs/FLUX.1-dev',
             'audio': None,
         },

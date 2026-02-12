@@ -80,19 +80,13 @@ export default function AIModelsPage() {
     },
     onError: (err) => {
       console.error('[Frontend] Error updating:', err);
-      showError('خطا در ذخیره تنظیمات');
+      showError(err);
     },
   });
 
   const rows = useMemo(() => {
     const safeActive = activeData || ({} as ActiveCapabilityModelsResponse);
     const safeProviders = providersData || { chat: [], content: [], image: [], audio: [] };
-
-    // DEBUG: Log Raw Data
-    console.groupCollapsed('[Frontend] AI Configuration Data');
-    console.log('Active Configuration:', safeActive);
-    console.log('Available Providers:', safeProviders);
-    console.groupEnd();
 
     const items: Array<{ capability: AICapability; title: string; icon: string }> = [
       { capability: 'chat', title: 'چت', icon: '💬' },
@@ -111,11 +105,11 @@ export default function AIModelsPage() {
         capabilities: (p as any).capabilities, 
       }));
       
-      // Find currently selected provider to get its model list
+      // Find currently selected provider to get its hardcoded model list
       const selectedProviderObj = options.find(o => o.slug === cm?.provider_slug);
       let allowedModels: string[] = [];
       
-      // Safely access capabilities to get models list
+      // Get hardcoded models from provider capabilities
       if (selectedProviderObj && selectedProviderObj.capabilities) {
           const capConfig = selectedProviderObj.capabilities[item.capability];
           if (capConfig && Array.isArray(capConfig.models)) {
@@ -129,7 +123,7 @@ export default function AIModelsPage() {
         currentProviderSlug: cm?.provider_slug || '',
         currentModelName: cm?.model_id || '',
         options,
-        allowedModels: allowedModels.length > 0 ? allowedModels : [],
+        allowedModels,
       };
     });
   }, [activeData, providersData]);
@@ -150,9 +144,9 @@ export default function AIModelsPage() {
               <Sparkles className="w-5 h-5 text-pink-2" />
             </div>
             <div>
-              <div>AI Settings (Provider Selection)</div>
+              <div>تنظیمات مدل‌های AI</div>
               <p className="text-sm font-normal text-font-s mt-1">
-                 ارائه‌دهنده را انتخاب کنید. در اینجا فقط مدل‌های از پیش تعریف شده (Hardcoded) نمایش داده می‌شوند. اگر چند مدل تعریف شده باشد، می‌توانید مدل فعال را مشاهده کنید.
+                انتخاب ارائه‌دهنده (Provider) برای هر قابلیت. مدل‌ها به صورت Hardcode تعریف شده‌اند.
               </p>
             </div>
           </CardTitle>
@@ -215,32 +209,41 @@ export default function AIModelsPage() {
                       </Select>
                     </div>
 
-                    {/* Model Select Display */}
+                    {/* Model Display/Select */}
                     <div className="w-full sm:w-1/2">
-                        <Select
-                            dir="ltr"
-                            value={row.currentModelName}
-                            onValueChange={(val) => {
-                                // When changing model, we must keep the current provider
-                                selectProviderMutation.mutate({ 
-                                    capability: row.capability, 
-                                    provider: row.currentProviderSlug,
-                                    model_id: val 
-                                });
-                            }}
-                            disabled={selectProviderMutation.isPending || row.allowedModels.length <= 1} 
-                        >
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder={row.currentModelName || "مدل..."} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {row.allowedModels.map((m) => (
-                                    <SelectItem key={m} value={m}>
-                                        {m}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        {row.allowedModels.length === 0 ? (
+                          <div className="px-3 py-2 text-sm text-font-s border rounded-md bg-surface-s">
+                            مدلی تعریف نشده
+                          </div>
+                        ) : row.allowedModels.length === 1 ? (
+                          <div className="px-3 py-2 text-sm text-font-p border rounded-md bg-surface-s">
+                            {row.currentModelName || row.allowedModels[0]}
+                          </div>
+                        ) : (
+                          <Select
+                              dir="ltr"
+                              value={row.currentModelName}
+                              onValueChange={(val) => {
+                                  selectProviderMutation.mutate({ 
+                                      capability: row.capability, 
+                                      provider: row.currentProviderSlug,
+                                      model_id: val 
+                                  });
+                              }}
+                              disabled={selectProviderMutation.isPending}
+                          >
+                              <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="انتخاب مدل..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                  {row.allowedModels.map((m) => (
+                                      <SelectItem key={m} value={m}>
+                                          {m}
+                                      </SelectItem>
+                                  ))}
+                              </SelectContent>
+                          </Select>
+                        )}
                     </div>
 
                   </div>
