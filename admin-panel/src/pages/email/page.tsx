@@ -1,11 +1,12 @@
 import { useState, useEffect, lazy } from "react";
 
-import { EmailSidebar, EmailList, EmailSearch, EmailToolbar, type ComposeEmailData } from "@/components/email";
+import { EmailSidebar, EmailList, EmailSearch, EmailToolbar } from "@/components/email";
 import { Checkbox } from "@/components/elements/Checkbox";
 import type { EmailMessage } from "@/types/email/emailMessage";
 import { MessagingLayout } from "@/components/templates/MessagingLayout";
 import { useEmailListState } from "@/components/email/hooks/useEmailListState";
 import { useEmailListActions } from "@/components/email/hooks/useEmailListActions";
+import { useEmailListDerived } from "@/components/email/hooks/useEmailListDerived";
 
 const EmailDetailView = lazy(() => import("@/components/email").then(mod => ({ default: mod.EmailDetailView })));
 const ComposeEmailDialog = lazy(() => import("@/components/email/EmailComposeDialog.tsx").then(mod => ({ default: mod.EmailComposeDialog })));
@@ -29,9 +30,12 @@ export default function EmailPage() {
     handleSelectEmail,
     handleSelectAll,
     handleReplyEmail,
-    filteredEmails,
-    mailboxCounts,
-  } = useEmailListState({ emails });
+  } = useEmailListState();
+
+  const { filteredEmails, mailboxCounts } = useEmailListDerived({
+    emails,
+    selectedMailbox,
+  });
 
   const {
     fetchEmails,

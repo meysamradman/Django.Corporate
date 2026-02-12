@@ -1,9 +1,9 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { Settings, Phone, Smartphone, Mail, Share2, GalleryHorizontal, Map as MapIcon } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
 import { DRAWER_IDS } from "@/components/shared/drawer/types";
+import { useOpenDrawerFromUrlAction } from "@/components/shared/drawer/useOpenDrawerFromUrlAction";
 
 const TabSkeleton = () => (
     <div className="space-y-6">
@@ -23,41 +23,27 @@ const SocialMediaSection = lazy(() => import("@/components/settings").then(mod =
 const SlidersSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.SlidersSection })));
 const MapSettingsSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.MapSettingsSection })));
 
+const SETTINGS_DRAWER_ACTIONS = {
+    "edit-general": { drawerId: DRAWER_IDS.SETTINGS_GENERAL_FORM },
+    "create-phone": { drawerId: DRAWER_IDS.SETTINGS_PHONE_FORM },
+    "edit-phone": { drawerId: DRAWER_IDS.SETTINGS_PHONE_FORM, withEditId: true },
+    "create-mobile": { drawerId: DRAWER_IDS.SETTINGS_MOBILE_FORM },
+    "edit-mobile": { drawerId: DRAWER_IDS.SETTINGS_MOBILE_FORM, withEditId: true },
+    "create-email": { drawerId: DRAWER_IDS.SETTINGS_EMAIL_FORM },
+    "edit-email": { drawerId: DRAWER_IDS.SETTINGS_EMAIL_FORM, withEditId: true },
+    "create-social": { drawerId: DRAWER_IDS.SETTINGS_SOCIAL_FORM },
+    "edit-social": { drawerId: DRAWER_IDS.SETTINGS_SOCIAL_FORM, withEditId: true },
+    "create-slider": { drawerId: DRAWER_IDS.SETTINGS_SLIDER_FORM },
+    "edit-slider": { drawerId: DRAWER_IDS.SETTINGS_SLIDER_FORM, withEditId: true },
+    "edit-map": { drawerId: DRAWER_IDS.SETTINGS_MAP_FORM },
+} as const;
+
 export default function SettingsPage() {
-    const openDrawer = useGlobalDrawerStore(state => state.open);
     const { tab } = useParams();
     const [searchParams] = useSearchParams();
     const activeTab = tab || "general";
-    const action = searchParams.get("action");
-    const id = searchParams.get("id");
 
-    useEffect(() => {
-        if (action === "edit-general") {
-            openDrawer(DRAWER_IDS.SETTINGS_GENERAL_FORM);
-        } else if (action === "create-phone") {
-            openDrawer(DRAWER_IDS.SETTINGS_PHONE_FORM);
-        } else if (action === "edit-phone" && id) {
-            openDrawer(DRAWER_IDS.SETTINGS_PHONE_FORM, { editId: Number(id) });
-        } else if (action === "create-mobile") {
-            openDrawer(DRAWER_IDS.SETTINGS_MOBILE_FORM);
-        } else if (action === "edit-mobile" && id) {
-            openDrawer(DRAWER_IDS.SETTINGS_MOBILE_FORM, { editId: Number(id) });
-        } else if (action === "create-email") {
-            openDrawer(DRAWER_IDS.SETTINGS_EMAIL_FORM);
-        } else if (action === "edit-email" && id) {
-            openDrawer(DRAWER_IDS.SETTINGS_EMAIL_FORM, { editId: Number(id) });
-        } else if (action === "create-social") {
-            openDrawer(DRAWER_IDS.SETTINGS_SOCIAL_FORM);
-        } else if (action === "edit-social" && id) {
-            openDrawer(DRAWER_IDS.SETTINGS_SOCIAL_FORM, { editId: Number(id) });
-        } else if (action === "create-slider") {
-            openDrawer(DRAWER_IDS.SETTINGS_SLIDER_FORM);
-        } else if (action === "edit-slider" && id) {
-            openDrawer(DRAWER_IDS.SETTINGS_SLIDER_FORM, { editId: Number(id) });
-        } else if (action === "edit-map") {
-            openDrawer(DRAWER_IDS.SETTINGS_MAP_FORM);
-        }
-    }, [action, id, openDrawer]);
+    useOpenDrawerFromUrlAction({ searchParams, actionMap: SETTINGS_DRAWER_ACTIONS });
 
     return (
         <div className="space-y-6 pb-28 relative">

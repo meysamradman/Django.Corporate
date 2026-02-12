@@ -1,23 +1,17 @@
-import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { FormFieldsSection } from "@/components/form-builder/FormFieldsSection";
-import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
 import { DRAWER_IDS } from "@/components/shared/drawer/types";
+import { useOpenDrawerFromUrlAction } from "@/components/shared/drawer/useOpenDrawerFromUrlAction";
+
+const FORM_BUILDER_DRAWER_ACTIONS = {
+    "create-field": { drawerId: DRAWER_IDS.FORM_BUILDER_FIELD_FORM },
+    "edit-field": { drawerId: DRAWER_IDS.FORM_BUILDER_FIELD_FORM, withEditId: true },
+} as const;
 
 export default function FormSettingsPage() {
     const [searchParams] = useSearchParams();
-    const openDrawer = useGlobalDrawerStore(state => state.open);
 
-    useEffect(() => {
-        const action = searchParams.get("action");
-        const editId = searchParams.get("id") ? parseInt(searchParams.get("id")!) : null;
-
-        if (action === "create-field") {
-            openDrawer(DRAWER_IDS.FORM_BUILDER_FIELD_FORM);
-        } else if (action === "edit-field" && editId) {
-            openDrawer(DRAWER_IDS.FORM_BUILDER_FIELD_FORM, { editId });
-        }
-    }, [searchParams, openDrawer]);
+    useOpenDrawerFromUrlAction({ searchParams, actionMap: FORM_BUILDER_DRAWER_ACTIONS });
 
     return (
         <div className="space-y-6">

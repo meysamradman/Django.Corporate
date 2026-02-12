@@ -1,10 +1,10 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { MessageSquare, Settings as SettingsIcon } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
 import { DRAWER_IDS } from "@/components/shared/drawer/types";
+import { useOpenDrawerFromUrlAction } from "@/components/shared/drawer/useOpenDrawerFromUrlAction";
 
 const TabSkeleton = () => (
   <div className="space-y-6">
@@ -19,20 +19,16 @@ const TabSkeleton = () => (
 const FAQManagement = lazy(() => import("@/components/chatbot/FAQManagement").then(mod => ({ default: mod.FAQManagement })));
 const ChatbotSettingsForm = lazy(() => import("@/components/chatbot/ChatbotSettingsForm").then(mod => ({ default: mod.ChatbotSettingsForm })));
 
+const CHATBOT_DRAWER_ACTIONS = {
+  "create-faq": { drawerId: DRAWER_IDS.CHATBOT_FAQ_FORM },
+  "edit-faq": { drawerId: DRAWER_IDS.CHATBOT_FAQ_FORM, withEditId: true },
+} as const;
+
 export default function ChatbotSettingsPage() {
-  const openDrawer = useGlobalDrawerStore(state => state.open);
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "faq";
-  const action = searchParams.get("action");
-  const id = searchParams.get("id");
 
-  useEffect(() => {
-    if (action === "create-faq") {
-      openDrawer(DRAWER_IDS.CHATBOT_FAQ_FORM);
-    } else if (action === "edit-faq" && id) {
-      openDrawer(DRAWER_IDS.CHATBOT_FAQ_FORM, { editId: Number(id) });
-    }
-  }, [action, id, openDrawer]);
+  useOpenDrawerFromUrlAction({ searchParams, actionMap: CHATBOT_DRAWER_ACTIONS });
 
   const setActiveTab = (tab: string) => {
     setSearchParams({ tab });

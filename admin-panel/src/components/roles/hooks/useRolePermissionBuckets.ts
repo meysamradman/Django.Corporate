@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { getBasePermissionIds, type BasePermissionRef, type RolePermissionGroup } from "@/components/roles/hooks/rolePermissionUtils";
 
 const getAnalyticsPermissions = (permissions: any[]): string[] => {
   if (!permissions || !Array.isArray(permissions)) return [];
@@ -36,24 +37,6 @@ const getAIPermissions = (permissions: any[]): string[] => {
   return aiPerms;
 };
 
-const getBasePermissionIds = (permissionGroups: any[], basePermissions: any[]) => {
-  if (!basePermissions || !Array.isArray(basePermissions)) return [];
-
-  const basePermissionIds: number[] = [];
-
-  basePermissions.forEach((basePerm: any) => {
-    permissionGroups.forEach((group: any) => {
-      group.permissions.forEach((permission: any) => {
-        if (permission.resource === basePerm.resource && permission.action === basePerm.action) {
-          basePermissionIds.push(permission.id);
-        }
-      });
-    });
-  });
-
-  return basePermissionIds;
-};
-
 const isStandaloneResource = (resource: any) => {
   const perms = resource.permissions || [];
   return perms.some((perm: any) => perm.is_standalone === true);
@@ -75,7 +58,13 @@ const isAdminOnlyResource = (resource: any) => {
   return perms.every((perm: any) => perm.requires_superadmin === true);
 };
 
-export function useRolePermissionBuckets({ permissions, basePermissions }: { permissions: any[]; basePermissions: any[] }) {
+export function useRolePermissionBuckets({
+  permissions,
+  basePermissions,
+}: {
+  permissions: RolePermissionGroup[];
+  basePermissions: BasePermissionRef[];
+}) {
   const allPermissions = useMemo(() => permissions?.flatMap((group: any) => group.permissions) || [], [permissions]);
 
   const organizedPermissions = useMemo(() => {

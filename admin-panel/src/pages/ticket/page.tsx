@@ -1,4 +1,4 @@
-import { useEffect, useMemo, lazy } from "react";
+import { useEffect, lazy } from "react";
 import { useSearchParams } from "react-router-dom";
 import { TicketSidebar, TicketList, TicketSearch, TicketToolbar } from "@/components/ticket";
 import { Checkbox } from "@/components/elements/Checkbox";
@@ -6,6 +6,7 @@ import { useTicketList, useTicket, useTicketMessages, useCreateTicketMessage, us
 import { MessagingLayout } from "@/components/templates/MessagingLayout";
 import { useTicketListState } from "@/components/ticket/hooks/useTicketListState";
 import { useTicketListActions } from "@/components/ticket/hooks/useTicketListActions";
+import { useTicketListDerived } from "@/components/ticket/hooks/useTicketListDerived";
 
 const TicketDetailView = lazy(() => import("@/components/ticket").then(mod => ({ default: mod.TicketDetail })));
 const ReplyTicketDialog = lazy(() => import("@/components/ticket/TicketReplyDialog.tsx").then(mod => ({ default: mod.TicketReplyDialog })));
@@ -58,47 +59,11 @@ export default function TicketPage() {
     }
   }, [ticketIdFromUrl, tickets, setSelectedTicket]);
 
-  const filteredTickets = useMemo(() => {
-    let filtered = tickets;
-
-    if (selectedStatus !== "all") {
-      filtered = filtered.filter((item) => item.status === selectedStatus);
-    }
-
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (item) =>
-          item.subject.toLowerCase().includes(query) ||
-          item.description.toLowerCase().includes(query) ||
-          item.user?.full_name?.toLowerCase().includes(query) ||
-          item.user?.email?.toLowerCase().includes(query) ||
-          item.user?.mobile?.includes(query)
-      );
-    }
-
-    return filtered;
-  }, [tickets, selectedStatus, searchQuery]);
-
-  const statusCounts = useMemo(
-    () => ({
-      all: tickets.length,
-      all_unread: tickets.filter((item) => item.unread_messages_count && item.unread_messages_count > 0).length,
-      open: tickets.filter((item) => item.status === "open").length,
-      open_unread: tickets.filter((item) => item.status === "open" && item.unread_messages_count && item.unread_messages_count > 0).length,
-      in_progress: tickets.filter((item) => item.status === "in_progress").length,
-      in_progress_unread: tickets.filter(
-        (item) => item.status === "in_progress" && item.unread_messages_count && item.unread_messages_count > 0
-      ).length,
-      resolved: tickets.filter((item) => item.status === "resolved").length,
-      resolved_unread: tickets.filter(
-        (item) => item.status === "resolved" && item.unread_messages_count && item.unread_messages_count > 0
-      ).length,
-      closed: tickets.filter((item) => item.status === "closed").length,
-      closed_unread: tickets.filter((item) => item.status === "closed" && item.unread_messages_count && item.unread_messages_count > 0).length,
-    }),
-    [tickets]
-  );
+  const { filteredTickets, statusCounts } = useTicketListDerived({
+    tickets,
+    selectedStatus,
+    searchQuery,
+  });
 
   const { handleRefresh, handleDeleteTicket, handleStatusChangeForTicket, handleSendReply } = useTicketListActions({
     refetch,

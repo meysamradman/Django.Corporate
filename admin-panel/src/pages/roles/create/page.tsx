@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreateRole, usePermissions, useBasePermissions, useUserPermissions } from "@/core/permissions";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
@@ -19,6 +19,8 @@ import { extractFieldErrors, hasFieldErrors, showError } from '@/core/toast';
 import { getResourceIcon } from "@/components/roles/form/utils";
 import { getPermissionTranslation } from "@/core/messages/permissions";
 import { useRolePermissionBuckets } from "@/components/roles/hooks/useRolePermissionBuckets";
+import { useRolePermissionSelection } from "@/components/roles/hooks/useRolePermissionSelection";
+import { buildSpecificPermissionsPayload } from "@/components/roles/hooks/rolePermissionUtils";
 
 const RoleBasicInfoFormSkeleton = () => (
   <CardWithIcon
@@ -69,8 +71,6 @@ export default function CreateRolePage() {
   const { data: basePermissions } = useBasePermissions();
   const { isSuperAdmin } = useUserPermissions();
 
-  const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
-
   const form = useForm<RoleFormValues>({
     resolver: zodResolver(roleFormSchema),
     defaultValues: roleFormDefaults,
@@ -83,127 +83,25 @@ export default function CreateRolePage() {
     setValue,
   } = form;
 
-  const togglePermission = (permissionId: number) => {
-    setSelectedPermissions(prev => {
-      const allPermissions = permissions?.flatMap((g: any) => g.permissions) || [];
-      const toggledPerm = allPermissions.find((p: any) => p.id === permissionId);
-      const isCurrentlySelected = prev.includes(permissionId);
-
-      let newPermissions: number[];
-      const resource = (toggledPerm as any)?.resource || '';
-      const action = (toggledPerm as any)?.action || '';
-
-      const isManageAction = action?.toLowerCase() === 'manage';
-
-      if (isManageAction) {
-        if (isCurrentlySelected) {
-          newPermissions = prev.filter(id => id !== permissionId);
-        } else {
-          newPermissions = [...prev, permissionId];
-        }
-      } else {
-        const parentManagePerm = allPermissions.find((p: any) =>
-          p.resource === resource && p.action?.toLowerCase() === 'manage'
-        );
-        const isParentManageSelected = parentManagePerm && prev.includes(parentManagePerm.id);
-
-        if (isParentManageSelected) {
-          return prev; // Parent manage is active, so child is implicitly active and can't be toggled.
-        }
-
-        newPermissions = isCurrentlySelected
-          ? prev.filter(id => id !== permissionId)
-          : [...prev, permissionId];
-      }
-
-      const isOpAction = ['create', 'edit', 'delete', 'update', 'post', 'patch', 'destroy', 'remove'].includes(action.toLowerCase());
-      const isViewAction = ['view', 'read', 'get', 'list'].includes(action.toLowerCase());
-
-      if (isOpAction && !isCurrentlySelected) {
-        const viewPerm = allPermissions.find((p: any) =>
-          p.resource === resource && ['view', 'read'].includes(p.action.toLowerCase())
-        );
-        if (viewPerm && !newPermissions.includes(viewPerm.id)) {
-          newPermissions.push(viewPerm.id);
-        }
-      } else if (isViewAction && isCurrentlySelected) {
-        const opPermIds = allPermissions
-          .filter((p: any) =>
-            p.resource === resource &&
-            ['create', 'edit', 'delete', 'update', 'post', 'put', 'patch', 'destroy', 'remove'].includes(p.action.toLowerCase())
-          )
-          .map((p: any) => p.id);
-        newPermissions = newPermissions.filter(id => !opPermIds.includes(id));
-      }
-
-      setValue("permission_ids", newPermissions, { shouldValidate: true });
-
-      return newPermissions;
-    });
-  };
-
-  const toggleAllResourcePermissions = (resourcePermissions: any[]) => {
-    const resourcePermissionIds = resourcePermissions.map(p => p.id);
-
-    const allSelected = resourcePermissionIds.every(id => selectedPermissions.includes(id));
-
-    setSelectedPermissions(prev => {
-      const newSelected = allSelected
-        ? prev.filter(id => !resourcePermissionIds.includes(id))
-        : (() => {
-          const updated = [...prev];
-          resourcePermissionIds.forEach(id => {
-            if (!updated.includes(id)) {
-              updated.push(id);
-            }
-          });
-          return updated;
-        })();
-
-      setValue("permission_ids", newSelected, { shouldValidate: true });
-
-      return newSelected;
-    });
-  };
-
-  const isPermissionSelected = (permissionId: number | undefined) => {
-    if (!permissionId) return false;
-    return selectedPermissions.includes(permissionId);
-  };
-
-  const areAllResourcePermissionsSelected = (resourcePermissions: any[]) => {
-    const resourcePermissionIds = resourcePermissions.map(p => p.id);
-    return resourcePermissionIds.every(id => selectedPermissions.includes(id));
-  };
+  const {
+    selectedPermissions,
+    setSelectedPermissions,
+    togglePermission,
+    toggleAllResourcePermissions,
+    isPermissionSelected,
+    areAllResourcePermissionsSelected,
+    getActionPermission,
+  } = useRolePermissionSelection({
+    permissions,
+    setValue,
+  });
 
   const onSubmit = async (data: RoleFormValues) => {
     try {
-      const selectedPermsData: Array<{ module: string; action: string; permission_key?: string }> = [];
-
-      if (permissions) {
-        permissions.forEach((group: any) => {
-          group.permissions.forEach((perm: any) => {
-            if (selectedPermissions.includes(perm.id)) {
-              if (perm.original_key) {
-                selectedPermsData.push({
-                  module: perm.resource,
-                  action: perm.action.toLowerCase(),
-                  permission_key: perm.original_key
-                });
-              } else {
-                selectedPermsData.push({
-                  module: perm.resource,
-                  action: perm.action.toLowerCase()
-                });
-              }
-            }
-          });
-        });
-      }
-
-      const permissionsPayload = selectedPermsData.length > 0
-        ? { specific_permissions: selectedPermsData }
-        : {};
+      const permissionsPayload = buildSpecificPermissionsPayload(
+        permissions || [],
+        selectedPermissions
+      );
 
       const payload = {
         name: data.name,
@@ -231,22 +129,6 @@ export default function CreateRolePage() {
         showError(error);
       }
     }
-  };
-
-  const getActionPermission = (resourcePermissions: any[], action: string) => {
-    const actionVariants: Record<string, string[]> = {
-      'view': ['view', 'list', 'read', 'get'],
-      'create': ['create', 'post', 'write', 'add'],
-      'edit': ['edit', 'update', 'put', 'patch', 'modify'],
-      'delete': ['delete', 'remove', 'destroy'],
-      'manage': ['manage', 'admin']
-    };
-
-    const variants = actionVariants[action] || [action];
-
-    return resourcePermissions.find(p =>
-      variants.includes(p.action.toLowerCase())
-    );
   };
 
   const {

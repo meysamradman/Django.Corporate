@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useState, useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRole, useUpdateRole, usePermissions, useBasePermissions } from "@/core/permissions";
 import { Button } from "@/components/elements/Button";
@@ -26,6 +26,9 @@ import { getResourceIcon } from "@/components/roles/form/utils";
 import { getPermissionTranslation } from "@/core/messages/permissions";
 import { Switch } from "@/components/elements/Switch";
 import { useRolePermissionBuckets } from "@/components/roles/hooks/useRolePermissionBuckets";
+import { useRolePermissionSelection } from "@/components/roles/hooks/useRolePermissionSelection";
+import { useRoleEditSelectedPermissionsInit } from "@/components/roles/hooks/useRoleEditSelectedPermissionsInit";
+import { buildSpecificPermissionsPayload, getBasePermissionIds } from "@/components/roles/hooks/rolePermissionUtils";
 
 const roleSchema = z.object({
   name: z.string().min(2, "نام نقش باید حداقل 2 کاراکتر باشد"),
@@ -45,8 +48,6 @@ export default function EditRolePage() {
   const { data: basePermissions } = useBasePermissions();
   const { isSuperAdmin } = useUserPermissions();
 
-  const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
-
   const form = useForm<RoleFormData>({
     resolver: zodResolver(roleSchema),
   });
@@ -59,6 +60,19 @@ export default function EditRolePage() {
     setValue,
   } = form;
 
+  const {
+    selectedPermissions,
+    setSelectedPermissions,
+    togglePermission,
+    toggleAllResourcePermissions,
+    isPermissionSelected,
+    areAllResourcePermissionsSelected,
+    getActionPermission,
+  } = useRolePermissionSelection({
+    permissions,
+    setValue,
+  });
+
   useEffect(() => {
     if (role) {
       reset({
@@ -68,219 +82,12 @@ export default function EditRolePage() {
     }
   }, [role, reset]);
 
-  useEffect(() => {
-    if (role && permissions) {
-      const basePermissionIds = getBasePermissionIds(permissions);
-      const rolePermissionIds: number[] = [];
-
-      if (role.permissions?.specific_permissions && Array.isArray(role.permissions.specific_permissions)) {
-        const specificPerms = role.permissions.specific_permissions;
-
-        permissions.forEach(group => {
-          group.permissions.forEach(permission => {
-            if (basePermissionIds.includes(permission.id)) {
-              return;
-            }
-
-            const hasPermission = specificPerms.some((perm: any) => {
-              const permOriginalKey = (permission as any).original_key;
-
-              if (permOriginalKey && perm.permission_key) {
-                return perm.permission_key === permOriginalKey;
-              }
-
-              if (permission.resource === 'analytics' && permOriginalKey) {
-                return perm.permission_key === permOriginalKey;
-              }
-
-              if (permission.is_standalone && permOriginalKey) {
-                return perm.permission_key === permOriginalKey;
-              }
-
-              const permModule = (perm.module || perm.resource || '').toLowerCase();
-              const permissionResource = (permission.resource || '').toLowerCase();
-              const permResourceMatch = permModule === permissionResource;
-
-              const backendAction = (perm.action || '').toLowerCase();
-              const frontendAction = (permission.action || '').toLowerCase();
-              const permActionMatch = backendAction === frontendAction;
-
-              return permResourceMatch && permActionMatch;
-            });
-
-            if (hasPermission) {
-              rolePermissionIds.push(permission.id);
-            }
-          });
-        });
-      } else {
-        const roleModules = role.permissions?.modules || [];
-        const roleActions = role.permissions?.actions || [];
-
-        if (roleModules.length === 0 && roleActions.length === 0) {
-          setSelectedPermissions([...basePermissionIds]);
-          return;
-        }
-
-        permissions.forEach(group => {
-          group.permissions.forEach(permission => {
-            if (basePermissionIds.includes(permission.id)) {
-              return;
-            }
-
-            const hasModule = roleModules.includes('all') || roleModules.includes(permission.resource);
-            const hasAction = roleActions.includes('all') || roleActions.includes(permission.action?.toLowerCase());
-
-            if (hasModule && hasAction) {
-              rolePermissionIds.push(permission.id);
-            }
-          });
-        });
-      }
-
-      const uniqueIds = Array.from(new Set([...basePermissionIds, ...rolePermissionIds]))
-        .filter(id => typeof id === 'number' && !isNaN(id));
-
-      setSelectedPermissions(prev => {
-        const prevSet = new Set(prev);
-        const newSet = new Set(uniqueIds);
-
-        if (prevSet.size !== newSet.size ||
-          !Array.from(prevSet).every(id => newSet.has(id))) {
-          return uniqueIds;
-        }
-        return prev;
-      });
-    }
-  }, [role, permissions, basePermissions]);
-
-  const getBasePermissionIds = (permissionGroups: any[]) => {
-    if (!basePermissions || !Array.isArray(basePermissions)) return [];
-
-    const basePermissionIds: number[] = [];
-
-    basePermissions.forEach((basePerm: any) => {
-      permissionGroups.forEach(group => {
-        group.permissions.forEach((permission: any) => {
-          if (permission.resource === basePerm.resource &&
-            permission.action === basePerm.action) {
-            basePermissionIds.push(permission.id);
-          }
-        });
-      });
-    });
-
-    return basePermissionIds;
-  };
-
-  const togglePermission = (permissionId: number) => {
-    setSelectedPermissions(prev => {
-      const allPermissions = permissions?.flatMap(g => g.permissions) || [];
-      const toggledPerm = allPermissions.find((p: any) => p.id === permissionId);
-      const isCurrentlySelected = prev.includes(permissionId);
-
-      let newPermissions: number[];
-      const resource = (toggledPerm as any)?.resource || '';
-      const action = (toggledPerm as any)?.action || '';
-
-      const isManageAction = action?.toLowerCase() === 'manage';
-
-      if (isManageAction) {
-        if (isCurrentlySelected) {
-          newPermissions = prev.filter(id => id !== permissionId);
-        } else {
-          newPermissions = [...prev, permissionId];
-        }
-      } else {
-        const parentManagePerm = allPermissions.find((p: any) =>
-          p.resource === resource && p.action?.toLowerCase() === 'manage'
-        );
-        const isParentManageSelected = parentManagePerm && prev.includes(parentManagePerm.id);
-
-        if (isParentManageSelected) {
-          return prev;
-        }
-
-        newPermissions = isCurrentlySelected
-          ? prev.filter(id => id !== permissionId)
-          : [...prev, permissionId];
-      }
-
-      const isOpAction = ['create', 'edit', 'delete', 'update', 'post', 'patch', 'destroy', 'remove'].includes(action.toLowerCase());
-      const isViewAction = ['view', 'read', 'get', 'list'].includes(action.toLowerCase());
-
-      if (isOpAction && !isCurrentlySelected) {
-        const viewPerm = allPermissions.find((p: any) =>
-          p.resource === resource && ['view', 'read'].includes(p.action.toLowerCase())
-        );
-        if (viewPerm && !newPermissions.includes(viewPerm.id)) {
-          newPermissions.push(viewPerm.id);
-        }
-      } else if (isViewAction && isCurrentlySelected) {
-        const opPermIds = allPermissions
-          .filter((p: any) =>
-            p.resource === resource &&
-            ['create', 'edit', 'delete', 'update', 'post', 'put', 'patch', 'destroy', 'remove'].includes(p.action.toLowerCase())
-          )
-          .map((p: any) => p.id);
-        newPermissions = newPermissions.filter(id => !opPermIds.includes(id));
-      }
-
-      setValue("permission_ids", newPermissions, { shouldValidate: true });
-
-      return newPermissions;
-    });
-  };
-
-  const toggleAllResourcePermissions = (resourcePermissions: any[]) => {
-    const resourcePermissionIds = resourcePermissions.map(p => p.id);
-
-    const allSelected = resourcePermissionIds.every(id => selectedPermissions.includes(id));
-
-    setSelectedPermissions(prev => {
-      const newSelected = allSelected
-        ? prev.filter(id => !resourcePermissionIds.includes(id))
-        : (() => {
-          const updated = [...prev];
-          resourcePermissionIds.forEach(id => {
-            if (!updated.includes(id)) {
-              updated.push(id);
-            }
-          });
-          return updated;
-        })();
-
-      setValue("permission_ids", newSelected, { shouldValidate: true });
-
-      return newSelected;
-    });
-  };
-
-  const isPermissionSelected = (permissionId: number | undefined) => {
-    if (!permissionId) return false;
-    return selectedPermissions.includes(permissionId);
-  };
-
-  const areAllResourcePermissionsSelected = (resourcePermissions: any[]) => {
-    const resourcePermissionIds = resourcePermissions.map(p => p.id);
-    return resourcePermissionIds.every(id => selectedPermissions.includes(id));
-  };
-
-  const getActionPermission = (resourcePermissions: any[], action: string) => {
-    const actionVariants: Record<string, string[]> = {
-      'view': ['view', 'list', 'read', 'get'],
-      'create': ['create', 'post', 'write', 'add'],
-      'edit': ['edit', 'update', 'put', 'patch', 'modify'],
-      'delete': ['delete', 'remove', 'destroy'],
-      'manage': ['manage', 'admin']
-    };
-
-    const variants = actionVariants[action] || [action];
-
-    return resourcePermissions.find(p =>
-      variants.includes(p.action.toLowerCase())
-    );
-  };
+  useRoleEditSelectedPermissionsInit({
+    role,
+    permissions,
+    basePermissions,
+    setSelectedPermissions,
+  });
 
   const {
     allPermissions,
@@ -298,38 +105,16 @@ export default function EditRolePage() {
 
   const onSubmit = async (data: RoleFormData) => {
     try {
-      const basePermissionIds = getBasePermissionIds(permissions || []);
+      const basePermissionIds = getBasePermissionIds(permissions || [], basePermissions || []);
 
       const userSelectedPermissions = selectedPermissions.filter(
         id => !basePermissionIds.includes(id)
       );
 
-      const selectedPermsData: Array<{ module: string; action: string; permission_key?: string }> = [];
-
-      if (permissions) {
-        permissions.forEach((group: any) => {
-          group.permissions.forEach((perm: any) => {
-            if (userSelectedPermissions.includes(perm.id)) {
-              if ((perm as any).original_key) {
-                selectedPermsData.push({
-                  module: perm.resource,
-                  action: perm.action.toLowerCase(),
-                  permission_key: (perm as any).original_key
-                });
-              } else {
-                selectedPermsData.push({
-                  module: perm.resource,
-                  action: perm.action.toLowerCase()
-                });
-              }
-            }
-          });
-        });
-      }
-
-      const permissionsPayload = selectedPermsData.length > 0
-        ? { specific_permissions: selectedPermsData }
-        : {};
+      const permissionsPayload = buildSpecificPermissionsPayload(
+        permissions || [],
+        userSelectedPermissions
+      );
 
       const payload = {
         name: data.name,
