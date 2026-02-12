@@ -1,11 +1,9 @@
-import { useState, useEffect, lazy, useMemo } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/api/admins/admins";
-import { roleApi } from "@/api/admins/roles/roles";
-import type { Role } from "@/types/auth/permission";
 import { extractFieldErrors, hasFieldErrors } from '@/core/toast';
 import { showSuccess, showError } from '@/core/toast';
 import { msg } from '@/core/messages';
@@ -13,9 +11,11 @@ import { adminFormSchema, adminFormDefaults } from "@/components/admins/validati
 import type { AdminFormValues } from "@/components/admins/validations/adminSchema";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { User, UserCircle, ShieldCheck, Building2 } from "lucide-react";
+import { User } from "lucide-react";
 import type { Media } from "@/types/shared/media";
-import { TabbedPageLayout, type TabbedPageTab } from "@/components/templates/TabbedPageLayout";
+import { TabbedPageLayout } from "@/components/templates/TabbedPageLayout";
+import { useAdminRolesOptions } from "@/components/admins/hooks/useAdminRolesOptions";
+import { useCreateAdminPageTabs } from "@/components/admins/hooks/useCreateAdminPageTabs";
 
 const TabSkeleton = () => (
     <div className="mt-0 space-y-6">
@@ -54,11 +54,6 @@ const TabSkeleton = () => (
     </div>
 );
 
-const BaseInfoTab = lazy(() => import("@/components/admins/create/Info"));
-const ProfileTab = lazy(() => import("@/components/admins/create/Profile"));
-const PermissionsTab = lazy(() => import("@/components/admins/create/Permissions"));
-const ConsultantFields = lazy(() => import("@/components/admins/ConsultantFields"));
-
 export default function CreateAdminPage() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -66,9 +61,7 @@ export default function CreateAdminPage() {
     const [editMode] = useState(true);
     const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
 
-    const [roles, setRoles] = useState<Role[]>([]);
-    const [loadingRoles, setLoadingRoles] = useState(true);
-    const [rolesError, setRolesError] = useState<string | null>(null);
+    const { roles, loadingRoles, rolesError } = useAdminRolesOptions();
 
     const form = useForm<AdminFormValues>({
         resolver: zodResolver(adminFormSchema),
@@ -173,23 +166,6 @@ export default function CreateAdminPage() {
         },
     });
 
-    useEffect(() => {
-        const fetchRoles = async () => {
-            setLoadingRoles(true);
-            setRolesError(null);
-            try {
-                const fetchedRoles = await roleApi.getAllRoles();
-                setRoles(fetchedRoles);
-            } catch (error) {
-                setRolesError('بارگذاری نقش‌ها ناموفق بود.');
-                showError(error, { customMessage: 'بارگذاری نقش‌ها ناموفق بود' });
-            } finally {
-                setLoadingRoles(false);
-            }
-        };
-        fetchRoles();
-    }, []);
-
     const handleSubmit = async () => {
         const isValid = await form.trigger();
         if (!isValid) return;
@@ -198,48 +174,15 @@ export default function CreateAdminPage() {
         createAdminMutation.mutate(data);
     };
 
-    const tabs: TabbedPageTab[] = useMemo(() => [
-        {
-            id: "base-info",
-            label: "اطلاعات پایه",
-            icon: <User className="w-4 h-4" />,
-            content: <BaseInfoTab form={form} editMode={editMode} />
-        },
-        {
-            id: "profile",
-            label: "پروفایل",
-            icon: <UserCircle className="w-4 h-4" />,
-            content: (
-                <ProfileTab
-                    form={form}
-                    selectedMedia={selectedMedia}
-                    setSelectedMedia={setSelectedMedia}
-                    editMode={editMode}
-                />
-            )
-        },
-        {
-            id: "consultant",
-            label: "اطلاعات مشاور",
-            icon: <Building2 className="w-4 h-4" />,
-            isVisible: form.watch("admin_role_type") === "consultant",
-            content: <ConsultantFields form={form} isEdit={false} />
-        },
-        {
-            id: "permissions",
-            label: "دسترسی‌ها",
-            icon: <ShieldCheck className="w-4 h-4" />,
-            content: (
-                <PermissionsTab
-                    form={form}
-                    roles={roles}
-                    loadingRoles={loadingRoles}
-                    rolesError={rolesError}
-                    editMode={editMode}
-                />
-            )
-        }
-    ], [form, editMode, selectedMedia, setSelectedMedia, roles, loadingRoles, rolesError, form.watch("admin_role_type")]);
+    const { tabs } = useCreateAdminPageTabs({
+        form,
+        editMode,
+        selectedMedia,
+        setSelectedMedia,
+        roles,
+        loadingRoles,
+        rolesError,
+    });
 
     return (
         <TabbedPageLayout

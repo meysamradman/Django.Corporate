@@ -1,11 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
-import { useTableFilters } from "@/components/tables/utils/useTableFilters";
+import { useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAdminFilterOptions } from "@/components/admins/AdminTableFilters";
 import { DataTableDateRangeFilter } from "@/components/tables/DataTableDateRangeFilter";
 import { realEstateApi } from "@/api/real-estate/properties";
-import { showSuccess, showError } from '@/core/toast';
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Edit, Trash2, Plus, Search, Building2, Phone } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
@@ -27,93 +25,28 @@ import {
   AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
 import { getConfirm } from '@/core/messages';
-import type { SortingState } from "@tanstack/react-table";
-import type { TablePaginationState } from '@/types/shared/pagination';
-import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 import { DataTableFacetedFilterSimple } from "@/components/tables/DataTableFacetedFilterSimple";
-
-interface AgencyFilters {
-  search?: string;
-  is_active?: boolean;
-  date_from?: string;
-  date_to?: string;
-  date_range?: { from?: string; to?: string };
-  [key: string]: unknown;
-}
+import { useAdminsAgenciesListTableState } from "@/components/admins/hooks/useAdminsAgenciesListTableState";
+import { useAdminsAgenciesListActions } from "@/components/admins/hooks/useAdminsAgenciesListActions";
 
 export default function AdminsAgenciesPage() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { booleanFilterOptions } = useAdminFilterOptions();
+  const {
+    pagination,
+    sorting,
+    searchValue,
+    clientFilters,
+    handleFilterChange,
+    handlePaginationChange,
+  } = useAdminsAgenciesListTableState();
 
-  const [pagination, setPagination] = useState<TablePaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
-  const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
-  const [searchValue, setSearchValue] = useState("");
-  const [clientFilters, setClientFilters] = useState<AgencyFilters>({});
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-
-    if (urlParams.get('page')) {
-      const page = parseInt(urlParams.get('page')!, 10);
-      setPagination(prev => ({ ...prev, pageIndex: page - 1 }));
-    }
-    if (urlParams.get('size')) {
-      const size = parseInt(urlParams.get('size')!, 10);
-      setPagination(prev => ({ ...prev, pageSize: size }));
-    }
-
-    if (urlParams.get('order_by') && urlParams.get('order_desc') !== null) {
-      const orderBy = urlParams.get('order_by')!;
-      const orderDesc = urlParams.get('order_desc') === 'true';
-      setSorting([{ id: orderBy, desc: orderDesc }]);
-    } else {
-      setSorting(initSortingFromURL());
-    }
-
-    if (urlParams.get('search')) {
-      setSearchValue(urlParams.get('search')!);
-    }
-
-    const newClientFilters: typeof clientFilters = {};
-    if (urlParams.get('is_active') !== null) {
-      newClientFilters.is_active = urlParams.get('is_active') === 'true';
-    }
-    const dateFrom = urlParams.get('date_from');
-    const dateTo = urlParams.get('date_to');
-    if (dateFrom || dateTo) {
-      newClientFilters.date_from = dateFrom || undefined;
-      newClientFilters.date_to = dateTo || undefined;
-      (newClientFilters as any).date_range = { from: dateFrom || undefined, to: dateTo || undefined };
-    }
-
-    if (Object.keys(newClientFilters).length > 0) {
-      setClientFilters(newClientFilters);
-    }
-  }, []);
-
-  const { handleFilterChange: baseHandleFilterChange } = useTableFilters<AgencyFilters>(
-    setClientFilters,
-    setSearchValue,
-    setPagination
-  );
-
-  const handleFilterChange = (filterId: keyof AgencyFilters, value: unknown) => {
-    baseHandleFilterChange(filterId as string, value);
-  };
-
-  const [deleteConfirm, setDeleteConfirm] = useState<{
-    open: boolean;
-    agencyId?: number;
-    agencyIds?: number[];
-    isBulk: boolean;
-  }>({
-    open: false,
-    isBulk: false,
-  });
+  const {
+    deleteConfirm,
+    setDeleteConfirm,
+    handleDeleteAgency,
+    handleConfirmDelete,
+  } = useAdminsAgenciesListActions();
 
   const queryParams = {
     search: searchValue,
@@ -136,35 +69,6 @@ export default function AdminsAgenciesPage() {
 
   const data = response?.data || [];
   const pageCount = response?.pagination?.total_pages || 1;
-
-  const deleteAgencyMutation = useMutation({
-    mutationFn: (agencyId: number) => realEstateApi.deleteAgency(agencyId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['agencies'] });
-      showSuccess("با موفقیت حذف شد");
-    },
-    onError: () => {
-      showError("خطای سرور");
-    },
-  });
-
-  const handleDeleteAgency = (agencyId: number | string) => {
-    setDeleteConfirm({
-      open: true,
-      agencyId: Number(agencyId),
-      isBulk: false,
-    });
-  };
-
-  const handleConfirmDelete = async () => {
-    try {
-      if (deleteConfirm.agencyId) {
-        await deleteAgencyMutation.mutateAsync(deleteConfirm.agencyId);
-      }
-    } catch (error) {
-    }
-    setDeleteConfirm({ open: false, isBulk: false });
-  };
 
   const actions = useMemo(() => {
     const agencyActions: CardItemAction<any>[] = [];
@@ -193,7 +97,7 @@ export default function AdminsAgenciesPage() {
     });
 
     return agencyActions;
-  }, [navigate]);
+  }, [navigate, handleDeleteAgency]);
 
   const getAgencyFullName = (agency: any) => {
     return agency.name || "";
@@ -208,15 +112,6 @@ export default function AdminsAgenciesPage() {
     return agency.logo
       ? mediaService.getMediaUrlFromObject(agency.logo)
       : null;
-  };
-
-  const handlePaginationChange = (updaterOrValue: TablePaginationState | ((prev: TablePaginationState) => TablePaginationState)) => {
-    const newPagination = typeof updaterOrValue === 'function' ? updaterOrValue(pagination) : updaterOrValue;
-    setPagination(newPagination);
-    const url = new URL(window.location.href);
-    url.searchParams.set('page', String(newPagination.pageIndex + 1));
-    url.searchParams.set('size', String(newPagination.pageSize));
-    window.history.replaceState({}, '', url.toString());
   };
 
   if (error) {
@@ -250,7 +145,7 @@ export default function AdminsAgenciesPage() {
       }
       filters={
         <>
-          <div className="relative w-full sm:w-[240px]">
+          <div className="relative w-full sm:w-60">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-font-s pointer-events-none" />
             <Input
               placeholder="جستجو نام آژانس، شهر..."

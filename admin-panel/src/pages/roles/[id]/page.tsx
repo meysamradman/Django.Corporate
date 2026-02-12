@@ -1,6 +1,4 @@
-import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useRole, useBasePermissions, usePermissions, usePermissionMap } from "@/core/permissions";
 import { FloatingActions } from "@/components/elements/FloatingActions";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Badge } from "@/components/elements/Badge";
@@ -15,36 +13,26 @@ import {
   Sparkles
 } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { getPermissionTranslation } from "@/core/messages/permissions";
+import { useRoleDetailViewState } from "@/components/roles/hooks/useRoleDetailViewState";
 
 export default function RoleDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const roleId = Number(id);
 
-  const { data: role, isLoading, error } = useRole(roleId);
-  const { data: basePermissions } = useBasePermissions();
-  const { data: permissions } = usePermissions();
-  const { data: permissionMap } = usePermissionMap();
-
-  const actualBasePermissions = basePermissions && Array.isArray(basePermissions) && basePermissions.length > 0
-    ? basePermissions
-    : (permissionMap?.base || []);
-
-  const permissionDisplayNames = useMemo(() => {
-    if (!permissions || !Array.isArray(permissions)) return {} as Record<string, string>;
-
-    const displayMap: Record<string, string> = {};
-
-    permissions.forEach((group: any) => {
-      group.permissions?.forEach((perm: any) => {
-        const permKey = perm.original_key || `${perm.resource}.${perm.action}`;
-        displayMap[permKey] = perm.display_name;
-      });
-    });
-
-    return displayMap;
-  }, [permissions]);
+  const {
+    role,
+    isLoading,
+    error,
+    actualBasePermissions,
+    basePermsCount,
+    specificPermsCount,
+    totalPermsCount,
+    isProtected,
+    formatDate,
+    translateBasePermission,
+    specificPermissionBadges,
+  } = useRoleDetailViewState(roleId);
 
   if (isLoading) {
     return (
@@ -69,54 +57,6 @@ export default function RoleDetailPage() {
       </div>
     );
   }
-
-  const basePermsCount = actualBasePermissions && Array.isArray(actualBasePermissions) ? actualBasePermissions.length : 0;
-  const specificPermsCount = role.permissions?.specific_permissions && Array.isArray(role.permissions.specific_permissions)
-    ? role.permissions.specific_permissions.length
-    : 0;
-  const totalPermsCount = basePermsCount + specificPermsCount;
-  const isProtected = (role as any).is_protected || false;
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "نامشخص";
-    return new Date(dateString).toLocaleDateString('fa-IR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const translateBasePermission = (basePerm: any): string => {
-    const permissionKey = typeof basePerm === 'string'
-      ? basePerm
-      : (basePerm.permission_key || basePerm.key ||
-        (basePerm.module && basePerm.action ? `${basePerm.module}.${basePerm.action}` : ''));
-
-    if (permissionKey) {
-      const directTranslation = getPermissionTranslation(permissionKey, "description");
-      if (directTranslation && directTranslation !== permissionKey) {
-        return directTranslation;
-      }
-    }
-
-    if (typeof basePerm === 'object' && basePerm.display_name) {
-      const displayTranslation = getPermissionTranslation(basePerm.display_name, "description");
-      if (displayTranslation && displayTranslation !== basePerm.display_name) {
-        return displayTranslation;
-      }
-    }
-
-    const parts = permissionKey.split('.');
-    if (parts.length >= 2) {
-      const module = parts[0];
-      const action = parts[1];
-      const moduleTranslated = getPermissionTranslation(module, "resource");
-      const actionTranslated = getPermissionTranslation(action, "action");
-      return `${actionTranslated} ${moduleTranslated}`;
-    }
-
-    return permissionKey || 'نامشخص';
-  };
 
   return (
     <div className="space-y-6">
@@ -147,8 +87,8 @@ export default function RoleDetailPage() {
             <div className="space-y-6">
               <div className="flex flex-col items-center justify-center py-6 px-4 border border-br bg-bg/50">
                 <div className={`relative p-4 mb-4 ${isProtected
-                    ? "bg-gradient-to-br from-blue-1 to-indigo-1"
-                    : "bg-gradient-to-br from-gray-1 to-gray-2"
+                    ? "bg-linear-to-br from-blue-1 to-indigo-1"
+                    : "bg-linear-to-br from-gray-1 to-gray-2"
                   }`}>
                   {isProtected ? (
                     <ShieldCheck className="h-8 w-8 text-white" />
@@ -287,87 +227,32 @@ export default function RoleDetailPage() {
               ) : null
             }
           >
-            {(() => {
-              if (role.permissions?.specific_permissions && Array.isArray(role.permissions.specific_permissions) && role.permissions.specific_permissions.length > 0) {
-                const specificPerms = role.permissions.specific_permissions;
-
-                const matchedPermissions = specificPerms.map((perm: any) => {
-                  const permKey = perm.permission_key || `${perm.module}.${perm.action}`;
-                  const moduleActionKey = `${perm.module}.${perm.action}`;
-
-                  let displayName = permissionDisplayNames[permKey] ||
-                    permissionDisplayNames[moduleActionKey] ||
-                    permissionDisplayNames[perm.permission_key || ''];
-
-                  const finalDisplayName = displayName || `${perm.module}.${perm.action}`;
-
-                  return {
-                    key: permKey,
-                    displayName: finalDisplayName,
-                    module: perm.module,
-                    action: perm.action,
-                    originalKey: perm.permission_key,
-                  };
-                });
-
-                const translatePermission = (perm: typeof matchedPermissions[0]) => {
-                  if (perm.originalKey) {
-                    const keyTranslated = getPermissionTranslation(perm.originalKey, "description");
-                    if (keyTranslated !== perm.originalKey) return keyTranslated;
-                  }
-
-                  if (perm.displayName) {
-                    const descTranslated = getPermissionTranslation(perm.displayName, "description");
-                    if (descTranslated !== perm.displayName) return descTranslated;
-
-                    const resourceTranslated = getPermissionTranslation(perm.displayName, "resource");
-                    if (resourceTranslated !== perm.displayName) return resourceTranslated;
-                  }
-
-                  const moduleTranslated = getPermissionTranslation(perm.module, "resource");
-                  const actionTranslated = getPermissionTranslation(perm.action, "action");
-
-                  if (moduleTranslated !== perm.module && actionTranslated !== perm.action) {
-                    return `${actionTranslated} ${moduleTranslated}`;
-                  }
-
-                  return perm.displayName;
-                };
-
-                return (
-                  <div className="space-y-4">
-                    <p className="text-sm text-font-s leading-relaxed p-3 bg-purple-0/30 border border-purple-1/20">
-                      دسترسی‌های اختصاصی که فقط به این نقش تعلق دارد.
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {matchedPermissions.map((perm, index) => {
-                        const finalText = translatePermission(perm);
-
-                        return (
-                          <Badge
-                            key={index}
-                            variant="purple"
-                            className="text-xs"
-                          >
-                            {finalText}
-                          </Badge>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              }
-
-              return (
-                <div className="text-center py-12">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-0 border-2 border-purple-1 mb-4">
-                    <Shield className="h-8 w-8 text-purple-1" />
-                  </div>
-                  <p className="text-font-p font-semibold mb-2">فقط دسترسی‌های پایه</p>
-                  <p className="text-sm text-font-s">این نقش هیچ دسترسی اختصاصی ندارد</p>
+            {specificPermissionBadges.length > 0 ? (
+              <div className="space-y-4">
+                <p className="text-sm text-font-s leading-relaxed p-3 bg-purple-0/30 border border-purple-1/20">
+                  دسترسی‌های اختصاصی که فقط به این نقش تعلق دارد.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {specificPermissionBadges.map((perm, index) => (
+                    <Badge
+                      key={`${perm.key}-${index}`}
+                      variant="purple"
+                      className="text-xs"
+                    >
+                      {perm.text}
+                    </Badge>
+                  ))}
                 </div>
-              );
-            })()}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-0 border-2 border-purple-1 mb-4">
+                  <Shield className="h-8 w-8 text-purple-1" />
+                </div>
+                <p className="text-font-p font-semibold mb-2">فقط دسترسی‌های پایه</p>
+                <p className="text-sm text-font-s">این نقش هیچ دسترسی اختصاصی ندارد</p>
+              </div>
+            )}
           </CardWithIcon>
         </div>
       </div>

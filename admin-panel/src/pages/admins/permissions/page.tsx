@@ -1,4 +1,3 @@
-import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/elements/Card";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Badge } from "@/components/elements/Badge";
@@ -11,8 +10,9 @@ import { useRoles, usePermissions } from "@/core/permissions/hooks/useRoles";
 import { useUserPermissions } from "@/core/permissions/hooks/useUserPermissions";
 import { PermissionGate as PermissionGateLegacy } from "@/core/permissions/components/PermissionGateLegacy";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { showSuccess, showError } from '@/core/toast';
-import type { PermissionGroup, Permission, RoleWithPermissions } from "@/types/auth/permission";
+import type { PermissionGroup, RoleWithPermissions } from "@/types/auth/permission";
+import { usePermissionsManagementState } from "@/components/admins/hooks/usePermissionsManagementState";
+import { usePermissionsManagementActions } from "@/components/admins/hooks/usePermissionsManagementActions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,74 +29,30 @@ export default function PermissionsManagementPage() {
   const { data: rolesData, isLoading: rolesLoading } = useRoles();
   const { data: permissionsData, isLoading: permissionsLoading } = usePermissions();
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedRole, setSelectedRole] = useState<RoleWithPermissions | null>(null);
-  const [modifiedPermissions, setModifiedPermissions] = useState<Set<number>>(new Set());
-  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const roles = (rolesData?.data || []) as unknown as RoleWithPermissions[];
+  const permissionGroups = (permissionsData || []) as PermissionGroup[];
 
-  const roles = rolesData?.data || [];
-  const permissionGroups = permissionsData || [];
+  const {
+    searchTerm,
+    setSearchTerm,
+    selectedRole,
+    modifiedPermissions,
+    setModifiedPermissions,
+    saveDialogOpen,
+    setSaveDialogOpen,
+    filteredRoles,
+    groupedPermissions,
+    roleHasPermission,
+    selectRole,
+    togglePermission,
+  } = usePermissionsManagementState({ roles, permissionGroups });
 
-  const filteredRoles = (roles as unknown as RoleWithPermissions[]).filter((role: RoleWithPermissions) =>
-    role.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (role.description?.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
-  const groupedPermissions = useMemo(() => {
-    if (!Array.isArray(permissionGroups)) return {};
-
-    const groups: Record<string, Permission[]> = {};
-
-    permissionGroups.forEach((group: PermissionGroup) => {
-      if (group.permissions && Array.isArray(group.permissions)) {
-        const permissionsWithStandalone = group.permissions.map(perm => ({
-          ...perm,
-          is_standalone: perm.is_standalone || false
-        }));
-        groups[group.resource] = permissionsWithStandalone;
-      }
-    });
-
-    return groups;
-  }, [permissionGroups]);
-
-  const roleHasPermission = (role: RoleWithPermissions, permissionId: number): boolean => {
-    return role.permissions?.some(perm => perm.id === permissionId) || false;
-  };
-
-  const togglePermission = (permissionId: number) => {
-    if (!selectedRole) return;
-
-    const newModified = new Set(modifiedPermissions);
-    newModified.add(permissionId);
-    setModifiedPermissions(newModified);
-
-    const currentHasPermission = roleHasPermission(selectedRole, permissionId);
-    const updatedPermissions = currentHasPermission
-      ? selectedRole.permissions.filter(p => p.id !== permissionId)
-      : [...selectedRole.permissions, { id: permissionId, resource: "", action: "" }];
-
-    setSelectedRole({
-      ...selectedRole,
-      permissions: updatedPermissions
-    });
-  };
-
-  const handleSaveChanges = async () => {
-    if (!selectedRole || modifiedPermissions.size === 0) return;
-
-    setIsSaving(true);
-    try {
-      showSuccess("تغییرات با موفقیت ذخیره شد");
-      setModifiedPermissions(new Set());
-      setSaveDialogOpen(false);
-    } catch (error) {
-      showError("خطا در ذخیره تغییرات");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  const { isSaving, handleSaveChanges } = usePermissionsManagementActions({
+    selectedRole,
+    modifiedPermissions,
+    setModifiedPermissions,
+    setSaveDialogOpen,
+  });
 
   const getResourceIcon = (resource: string) => {
     switch (resource) {
@@ -213,8 +169,7 @@ export default function PermissionsManagementPage() {
                       : 'hover:border-primary/50 hover:bg-bg/50'
                       }`}
                     onClick={() => {
-                      setSelectedRole(role);
-                      setModifiedPermissions(new Set());
+                      selectRole(role);
                     }}
                   >
                     <div className="flex items-center justify-between">

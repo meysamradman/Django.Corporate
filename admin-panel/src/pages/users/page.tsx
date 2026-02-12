@@ -1,7 +1,5 @@
-import { useState, lazy, Suspense } from "react";
-import { useTableFilters } from "@/components/tables/utils/useTableFilters";
+import { lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
-import { useURLStateSync, parseBooleanParam, parseDateRange } from "@/hooks/useURLStateSync";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { useUserColumns } from "@/components/users/UserTableColumns";
 import { useUserFilterOptions, getUserFilterConfig } from "@/components/users/UserTableFilters";
@@ -11,11 +9,7 @@ import type { Filter } from "@/types/auth/adminFilter";
 import { Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
-import { showError, showSuccess } from '@/core/toast';
-import type { OnChangeFn, SortingState } from "@tanstack/react-table";
-import type { TablePaginationState } from '@/types/shared/pagination';
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
+import { useQuery } from "@tanstack/react-query";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
 
@@ -30,81 +24,33 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
+import { useUsersListTableState } from "@/components/users/hooks/useUsersListTableState";
+import { useUsersListActions } from "@/components/users/hooks/useUsersListActions";
 
 export default function UsersPage() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { booleanFilterOptions } = useUserFilterOptions();
   const userFilterConfig = getUserFilterConfig(booleanFilterOptions);
 
-  const [pagination, setPagination] = useState<TablePaginationState>(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const page = parseInt(urlParams.get('page') || '1', 10);
-      const size = parseInt(urlParams.get('size') || '10', 10);
-      return {
-        pageIndex: Math.max(0, page - 1),
-        pageSize: size,
-      };
-    }
-    return { pageIndex: 0, pageSize: 10 };
-  });
-  const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
-  const [rowSelection, setRowSelection] = useState({});
-  const [searchValue, setSearchValue] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('search') || '';
-    }
-    return '';
-  });
-  const [clientFilters, setClientFilters] = useState<Filter>(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const filters: Filter = {};
-      const isActive = urlParams.get('is_active');
-      if (isActive !== null) filters.is_active = isActive === 'true';
-      const isVerified = urlParams.get('is_verified');
-      if (isVerified !== null) filters.is_verified = isVerified === 'true';
-      if (urlParams.get('date_from')) filters.date_from = urlParams.get('date_from')!;
-      if (urlParams.get('date_to')) filters.date_to = urlParams.get('date_to')!;
-      return filters;
-    }
-    return {};
-  });
+  const {
+    pagination,
+    sorting,
+    rowSelection,
+    setRowSelection,
+    searchValue,
+    clientFilters,
+    handleFilterChange,
+    handlePaginationChange,
+    handleSortingChange,
+  } = useUsersListTableState({ navigate });
 
-  useURLStateSync(
-    setPagination,
-    setSearchValue,
-    setSorting,
-    setClientFilters,
-    (urlParams) => {
-      const filters: Filter = {};
-
-      filters.is_active = parseBooleanParam(urlParams, 'is_active');
-      filters.is_verified = parseBooleanParam(urlParams, 'is_verified');
-
-      Object.assign(filters, parseDateRange(urlParams));
-
-      return filters;
-    }
-  );
-
-  const { handleFilterChange } = useTableFilters<Filter>(
-    setClientFilters,
-    setSearchValue,
-    setPagination
-  );
-
-  const [deleteConfirm, setDeleteConfirm] = useState<{
-    open: boolean;
-    userId?: number;
-    userIds?: number[];
-    isBulk: boolean;
-  }>({
-    open: false,
-    isBulk: false,
-  });
+  const {
+    deleteConfirm,
+    setDeleteConfirm,
+    handleDeleteUser,
+    handleDeleteSelected,
+    handleConfirmDelete,
+  } = useUsersListActions({ setRowSelection });
 
   const queryParams: Filter = {
     search: searchValue,
@@ -130,57 +76,6 @@ export default function UsersPage() {
   const totalCount = response?.pagination?.count || 0;
   const pageCount = response?.pagination?.total_pages || Math.ceil(totalCount / pagination.pageSize) || 1;
 
-  const deleteUserMutation = useMutation({
-    mutationFn: (userId: number) => adminApi.deleteUserByType(userId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      showSuccess("با موفقیت حذف شد");
-    },
-    onError: (_error) => {
-      showError("خطای سرور");
-    },
-  });
-
-  const bulkDeleteMutation = useMutation({
-    mutationFn: (userIds: number[]) => adminApi.bulkDeleteUsersByType(userIds),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      showSuccess("با موفقیت حذف شد");
-      setRowSelection({});
-    },
-    onError: (_error) => {
-      showError("خطای سرور");
-    },
-  });
-
-  const handleDeleteUser = (userId: number | string) => {
-    setDeleteConfirm({
-      open: true,
-      userId: Number(userId),
-      isBulk: false,
-    });
-  };
-
-  const handleDeleteSelected = (selectedIds: (string | number)[]) => {
-    setDeleteConfirm({
-      open: true,
-      userIds: selectedIds.map(id => Number(id)),
-      isBulk: true,
-    });
-  };
-
-  const handleConfirmDelete = async () => {
-    try {
-      if (deleteConfirm.isBulk && deleteConfirm.userIds) {
-        await bulkDeleteMutation.mutateAsync(deleteConfirm.userIds);
-      } else if (!deleteConfirm.isBulk && deleteConfirm.userId) {
-        await deleteUserMutation.mutateAsync(deleteConfirm.userId);
-      }
-    } catch (error) {
-    }
-    setDeleteConfirm({ open: false, isBulk: false });
-  };
-
   const columns = useUserColumns([
     {
       label: "ویرایش",
@@ -196,29 +91,6 @@ export default function UsersPage() {
       permission: "users.delete",
     },
   ]);
-
-  const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
-    const newPagination = typeof updaterOrValue === 'function' ? updaterOrValue(pagination) : updaterOrValue;
-    setPagination(newPagination);
-    const url = new URL(window.location.href);
-    url.searchParams.set('page', String(newPagination.pageIndex + 1));
-    url.searchParams.set('size', String(newPagination.pageSize));
-    navigate(url.search, { replace: true });
-  };
-
-  const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function' ? updaterOrValue(sorting) : updaterOrValue;
-    setSorting(newSorting);
-    const url = new URL(window.location.href);
-    if (newSorting.length > 0) {
-      url.searchParams.set('order_by', newSorting[0].id);
-      url.searchParams.set('order_desc', String(newSorting[0].desc));
-    } else {
-      url.searchParams.delete('order_by');
-      url.searchParams.delete('order_desc');
-    }
-    navigate(url.search, { replace: true });
-  };
 
   if (error) {
     return (

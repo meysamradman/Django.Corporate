@@ -1,36 +1,36 @@
-import { useState, useEffect, useCallback, useMemo, lazy } from "react";
-import { useSearchParams, useLocation } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
-import { TicketSidebar, TicketList, TicketSearch, TicketToolbar, type ReplyTicketData } from "@/components/ticket";
+import { useEffect, useMemo, lazy } from "react";
+import { useSearchParams } from "react-router-dom";
+import { TicketSidebar, TicketList, TicketSearch, TicketToolbar } from "@/components/ticket";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { useTicketList, useTicket, useTicketMessages, useCreateTicketMessage, useUpdateTicketStatus, useDeleteTicket, useMarkTicketAsRead } from "@/components/ticket/hooks/useTicket";
-import type { Ticket, TicketStatusType } from "@/types/ticket/ticket";
-import { showSuccess } from "@/core/toast";
 import { MessagingLayout } from "@/components/templates/MessagingLayout";
+import { useTicketListState } from "@/components/ticket/hooks/useTicketListState";
+import { useTicketListActions } from "@/components/ticket/hooks/useTicketListActions";
 
 const TicketDetailView = lazy(() => import("@/components/ticket").then(mod => ({ default: mod.TicketDetail })));
 const ReplyTicketDialog = lazy(() => import("@/components/ticket/TicketReplyDialog.tsx").then(mod => ({ default: mod.TicketReplyDialog })));
 
 export default function TicketPage() {
   const [searchParams] = useSearchParams();
-  const ticketIdFromUrl = searchParams.get('ticketId');
-  const queryClient = useQueryClient();
+  const ticketIdFromUrl = searchParams.get("ticketId");
 
-  const [selectedStatus, setSelectedStatus] = useState<TicketStatusType | 'all'>('all');
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTickets, setSelectedTickets] = useState<Set<number>>(new Set());
-  const [replyOpen, setReplyOpen] = useState(false);
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-  const [replyToTicket, setReplyToTicket] = useState<Ticket | null>(null);
-  const location = useLocation();
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const statusParam = params.get('status') as TicketStatusType | null;
-    if (statusParam && ['open', 'in_progress', 'resolved', 'closed'].includes(statusParam)) {
-      setSelectedStatus(statusParam);
-    }
-  }, [location.search]);
+  const {
+    selectedStatus,
+    searchQuery,
+    setSearchQuery,
+    selectedTickets,
+    replyOpen,
+    setReplyOpen,
+    selectedTicket,
+    setSelectedTicket,
+    replyToTicket,
+    setReplyToTicket,
+    handleStatusChange,
+    handleSelectTicket,
+    handleSelectAll,
+    handleTicketClick,
+    handleReplyTicket,
+  } = useTicketListState();
 
   const { data: ticketsData, isLoading, refetch } = useTicketList({
     page: 1,
@@ -48,12 +48,69 @@ export default function TicketPage() {
 
   const tickets = ticketsData?.data || [];
 
-  const handleRefresh = useCallback(() => {
-    refetch();
-    queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    queryClient.invalidateQueries({ queryKey: ['ticket-stats'] });
-    showSuccess('داده‌ها به‌روزرسانی شدند');
-  }, [refetch, queryClient]);
+  useEffect(() => {
+    if (ticketIdFromUrl && tickets.length > 0) {
+      const ticket = tickets.find((item) => item.id.toString() === ticketIdFromUrl);
+      if (ticket) {
+        setSelectedTicket(ticket);
+        window.history.replaceState({}, "", "/ticket");
+      }
+    }
+  }, [ticketIdFromUrl, tickets, setSelectedTicket]);
+
+  const filteredTickets = useMemo(() => {
+    let filtered = tickets;
+
+    if (selectedStatus !== "all") {
+      filtered = filtered.filter((item) => item.status === selectedStatus);
+    }
+
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (item) =>
+          item.subject.toLowerCase().includes(query) ||
+          item.description.toLowerCase().includes(query) ||
+          item.user?.full_name?.toLowerCase().includes(query) ||
+          item.user?.email?.toLowerCase().includes(query) ||
+          item.user?.mobile?.includes(query)
+      );
+    }
+
+    return filtered;
+  }, [tickets, selectedStatus, searchQuery]);
+
+  const statusCounts = useMemo(
+    () => ({
+      all: tickets.length,
+      all_unread: tickets.filter((item) => item.unread_messages_count && item.unread_messages_count > 0).length,
+      open: tickets.filter((item) => item.status === "open").length,
+      open_unread: tickets.filter((item) => item.status === "open" && item.unread_messages_count && item.unread_messages_count > 0).length,
+      in_progress: tickets.filter((item) => item.status === "in_progress").length,
+      in_progress_unread: tickets.filter(
+        (item) => item.status === "in_progress" && item.unread_messages_count && item.unread_messages_count > 0
+      ).length,
+      resolved: tickets.filter((item) => item.status === "resolved").length,
+      resolved_unread: tickets.filter(
+        (item) => item.status === "resolved" && item.unread_messages_count && item.unread_messages_count > 0
+      ).length,
+      closed: tickets.filter((item) => item.status === "closed").length,
+      closed_unread: tickets.filter((item) => item.status === "closed" && item.unread_messages_count && item.unread_messages_count > 0).length,
+    }),
+    [tickets]
+  );
+
+  const { handleRefresh, handleDeleteTicket, handleStatusChangeForTicket, handleSendReply } = useTicketListActions({
+    refetch,
+    selectedTicket,
+    setSelectedTicket,
+    replyToTicket,
+    setReplyToTicket,
+    setReplyOpen,
+    deleteTicketById: (id) => deleteTicket.mutateAsync(id),
+    updateTicketStatusById: (id, status) => updateStatus.mutateAsync({ id, status }),
+    createTicketMessage: (payload) => createMessage.mutateAsync(payload),
+  });
 
   useEffect(() => {
     if (selectedTicket && selectedTicket.unread_messages_count && selectedTicket.unread_messages_count > 0) {
@@ -63,130 +120,6 @@ export default function TicketPage() {
       return () => clearTimeout(timer);
     }
   }, [selectedTicket?.id, selectedTicket?.unread_messages_count]);
-
-  useEffect(() => {
-    if (ticketIdFromUrl && tickets.length > 0) {
-      const ticket = tickets.find(t => t.id.toString() === ticketIdFromUrl);
-      if (ticket) {
-        setSelectedTicket(ticket);
-        window.history.replaceState({}, '', '/ticket');
-      }
-    }
-  }, [ticketIdFromUrl, tickets]);
-
-  const handleStatusChange = useCallback((status: TicketStatusType | 'all') => {
-    setSelectedStatus(status);
-    setSelectedTickets(new Set());
-    setSelectedTicket(null);
-  }, []);
-
-  const handleSelectTicket = useCallback((ticketId: number) => {
-    setSelectedTickets(prev => {
-      const newSelected = new Set(prev);
-      if (newSelected.has(ticketId)) {
-        newSelected.delete(ticketId);
-      } else {
-        newSelected.add(ticketId);
-      }
-      return newSelected;
-    });
-  }, []);
-
-  const handleSelectAll = useCallback((filteredTickets: Ticket[]) => {
-    setSelectedTickets(prev => {
-      const filteredIds = new Set(filteredTickets.map((t) => t.id));
-      const allSelected = filteredTickets.length > 0 && filteredTickets.every(t => prev.has(t.id));
-      if (allSelected) {
-        return new Set([...prev].filter(id => !filteredIds.has(id)));
-      }
-      return new Set([...prev, ...filteredTickets.map(t => t.id)]);
-    });
-  }, []);
-
-  const handleTicketClick = useCallback((ticket: Ticket) => {
-    setSelectedTicket(ticket);
-  }, []);
-
-  const handleReplyTicket = useCallback((ticket: Ticket) => {
-    setReplyToTicket(ticket);
-    setReplyOpen(true);
-  }, []);
-
-  const handleDeleteTicket = useCallback(async (ticket: Ticket) => {
-    try {
-      await deleteTicket.mutateAsync(ticket.id);
-      setSelectedTicket(null);
-      refetch();
-    } catch (error) {
-    }
-  }, [deleteTicket, refetch]);
-
-  const handleStatusChangeForTicket = useCallback(async (ticket: Ticket, status: Ticket['status']) => {
-    try {
-      await updateStatus.mutateAsync({ id: ticket.id, status });
-      refetch();
-      if (selectedTicket?.id === ticket.id) {
-        setSelectedTicket({ ...selectedTicket, status });
-      }
-    } catch (error) {
-    }
-  }, [updateStatus, refetch, selectedTicket]);
-
-  const handleSendReply = useCallback(async (data: ReplyTicketData) => {
-    if (!replyToTicket) return;
-
-    try {
-      await createMessage.mutateAsync({
-        ticket: replyToTicket.id,
-        message: data.message,
-        sender_type: 'admin',
-        attachment_ids: data.attachment_ids,
-      });
-      setReplyToTicket(null);
-      setReplyOpen(false);
-      refetch();
-      if (selectedTicket?.id === replyToTicket.id) {
-        refetch();
-      }
-    } catch (error) {
-    }
-  }, [replyToTicket, createMessage, refetch, selectedTicket]);
-
-  const filteredTickets = useMemo(() => {
-    let filtered = tickets;
-
-    if (selectedStatus !== 'all') {
-      filtered = filtered.filter(t => t.status === selectedStatus);
-    }
-
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(t =>
-        t.subject.toLowerCase().includes(query) ||
-        t.description.toLowerCase().includes(query) ||
-        t.user?.full_name?.toLowerCase().includes(query) ||
-        t.user?.email?.toLowerCase().includes(query) ||
-        t.user?.mobile?.includes(query)
-      );
-    }
-
-    return filtered;
-  }, [tickets, selectedStatus, searchQuery]);
-
-  const statusCounts = useMemo(() => {
-    return {
-      all: tickets.length,
-      all_unread: tickets.filter(t => t.unread_messages_count && t.unread_messages_count > 0).length,
-      open: tickets.filter(t => t.status === 'open').length,
-      open_unread: tickets.filter(t => t.status === 'open' && t.unread_messages_count && t.unread_messages_count > 0).length,
-      in_progress: tickets.filter(t => t.status === 'in_progress').length,
-      in_progress_unread: tickets.filter(t => t.status === 'in_progress' && t.unread_messages_count && t.unread_messages_count > 0).length,
-      resolved: tickets.filter(t => t.status === 'resolved').length,
-      resolved_unread: tickets.filter(t => t.status === 'resolved' && t.unread_messages_count && t.unread_messages_count > 0).length,
-      closed: tickets.filter(t => t.status === 'closed').length,
-      closed_unread: tickets.filter(t => t.status === 'closed' && t.unread_messages_count && t.unread_messages_count > 0).length,
-    };
-  }, [tickets]);
 
   return (
     <MessagingLayout

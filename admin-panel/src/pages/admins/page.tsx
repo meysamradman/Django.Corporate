@@ -1,20 +1,14 @@
-import { useState, useMemo } from "react";
-import { useTableFilters } from "@/components/tables/utils/useTableFilters";
+import { useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useURLStateSync, parseBooleanParam, parseDateRange } from "@/hooks/useURLStateSync";
 import { useAdminFilterOptions } from "@/components/admins/AdminTableFilters";
 import { DataTableDateRangeFilter } from "@/components/tables/DataTableDateRangeFilter";
-import type { AdminWithProfile, AdminListParams, AdminFilters } from "@/types/auth/admin";
+import type { AdminWithProfile, AdminListParams } from "@/types/auth/admin";
 import { useAuth } from "@/core/auth/AuthContext";
 import { adminApi } from "@/api/admins/admins";
 import { Edit, Trash2, Plus, Search, Building2, UserCog, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
-import { showSuccess, showError } from '@/core/toast';
-import type { SortingState } from "@tanstack/react-table";
-import type { TablePaginationState } from '@/types/shared/pagination';
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
+import { useQuery } from "@tanstack/react-query";
 import { CardItem, type CardItemAction } from "@/components/elements/CardItem";
 import { mediaService } from "@/components/media/services";
 import { formatDate } from "@/core/utils/commonFormat";
@@ -33,90 +27,29 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
+import { useAdminsListTableState } from "@/components/admins/hooks/useAdminsListTableState";
+import { useAdminsListActions } from "@/components/admins/hooks/useAdminsListActions";
 
 export default function AdminsPage() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { user } = useAuth();
   const { booleanFilterOptions, roleFilterOptions } = useAdminFilterOptions();
 
-  const [pagination, setPagination] = useState<TablePaginationState>(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const page = parseInt(urlParams.get('page') || '1', 10);
-      const size = parseInt(urlParams.get('size') || '10', 10);
-      return { pageIndex: Math.max(0, page - 1), pageSize: size };
-    }
-    return { pageIndex: 0, pageSize: 10 };
-  });
-  const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
-  const [searchValue, setSearchValue] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('search') || '';
-    }
-    return '';
-  });
-  const [clientFilters, setClientFilters] = useState<AdminFilters>(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const filters: AdminFilters = { user_role_type: 'admin' };
-      const isActive = urlParams.get('is_active');
-      if (isActive !== null) filters.is_active = isActive === 'true';
-      const isSuperuser = urlParams.get('is_superuser');
-      if (isSuperuser !== null) filters.is_superuser = isSuperuser === 'true';
-      const dateFrom = urlParams.get('date_from');
-      const dateTo = urlParams.get('date_to');
-      if (dateFrom) filters.date_from = dateFrom;
-      if (dateTo) filters.date_to = dateTo;
-      if (dateFrom || dateTo) {
-        (filters as any).date_range = { from: dateFrom || undefined, to: dateTo || undefined };
-      }
-      return filters;
-    }
-    return { user_role_type: 'admin' };
-  });
+  const {
+    pagination,
+    sorting,
+    searchValue,
+    clientFilters,
+    handleFilterChange,
+    handlePaginationChange,
+  } = useAdminsListTableState();
 
-  useURLStateSync(
-    setPagination,
-    setSearchValue,
-    setSorting,
-    setClientFilters,
-    (urlParams) => {
-      const filters: AdminFilters = { user_role_type: 'admin' };
-
-      filters.is_active = parseBooleanParam(urlParams, 'is_active');
-      filters.is_superuser = parseBooleanParam(urlParams, 'is_superuser');
-
-      Object.assign(filters, parseDateRange(urlParams));
-
-      return filters;
-    }
-  );
-
-  const { handleFilterChange: baseHandleFilterChange } = useTableFilters<AdminFilters>(
-    setClientFilters,
-    setSearchValue,
-    setPagination
-  );
-
-  const handleFilterChange = (filterId: keyof AdminFilters, value: unknown) => {
-    if (filterId === 'user_role_type') {
-      return;
-    } else {
-      baseHandleFilterChange(filterId as string, value);
-    }
-  };
-
-  const [deleteConfirm, setDeleteConfirm] = useState<{
-    open: boolean;
-    adminId?: number;
-    adminIds?: number[];
-    isBulk: boolean;
-  }>({
-    open: false,
-    isBulk: false,
-  });
+  const {
+    deleteConfirm,
+    setDeleteConfirm,
+    handleDeleteAdmin,
+    handleConfirmDelete,
+  } = useAdminsListActions();
 
   const queryParams: AdminListParams = {
     search: searchValue,
@@ -141,35 +74,6 @@ export default function AdminsPage() {
 
   const data = response?.data || [];
   const pageCount = response?.pagination?.total_pages || 1;
-
-  const deleteAdminMutation = useMutation({
-    mutationFn: (adminId: number) => adminApi.deleteAdmin(adminId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admins'] });
-      showSuccess("با موفقیت حذف شد");
-    },
-    onError: () => {
-      showError("خطای سرور");
-    },
-  });
-
-  const handleDeleteAdmin = (adminId: number | string) => {
-    setDeleteConfirm({
-      open: true,
-      adminId: Number(adminId),
-      isBulk: false,
-    });
-  };
-
-  const handleConfirmDelete = async () => {
-    try {
-      if (deleteConfirm.adminId) {
-        await deleteAdminMutation.mutateAsync(deleteConfirm.adminId);
-      }
-    } catch (error) {
-    }
-    setDeleteConfirm({ open: false, isBulk: false });
-  };
 
   const currentUserId = user?.id;
   const isSuperAdmin = user?.is_superuser || false;
@@ -208,7 +112,7 @@ export default function AdminsPage() {
     });
 
     return adminActions;
-  }, [navigate, currentUserId, isSuperAdmin]);
+  }, [navigate, currentUserId, isSuperAdmin, handleDeleteAdmin]);
 
   const getAdminFullName = (admin: AdminWithProfile) => {
     const profile = admin.profile;
@@ -242,15 +146,6 @@ export default function AdminsPage() {
     return null;
   };
 
-  const handlePaginationChange = (updaterOrValue: TablePaginationState | ((prev: TablePaginationState) => TablePaginationState)) => {
-    const newPagination = typeof updaterOrValue === 'function' ? updaterOrValue(pagination) : updaterOrValue;
-    setPagination(newPagination);
-    const url = new URL(window.location.href);
-    url.searchParams.set('page', String(newPagination.pageIndex + 1));
-    url.searchParams.set('size', String(newPagination.pageSize));
-    window.history.replaceState({}, '', url.toString());
-  };
-
   if (error) {
     return (
       <CardListLayout title="مدیریت ادمین‌ها">
@@ -276,7 +171,7 @@ export default function AdminsPage() {
       )}
       filters={
         <>
-          <div className="relative w-full sm:w-[240px]">
+          <div className="relative w-full sm:w-60">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-font-s pointer-events-none" />
             <Input
               placeholder="جستجو نام، ایمیل..."

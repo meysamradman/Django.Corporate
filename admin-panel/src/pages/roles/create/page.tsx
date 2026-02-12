@@ -1,4 +1,4 @@
-import { useState, useMemo, lazy, Suspense } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreateRole, usePermissions, useBasePermissions, useUserPermissions } from "@/core/permissions";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
@@ -18,6 +18,7 @@ import { roleFormSchema, roleFormDefaults, type RoleFormValues } from "@/compone
 import { extractFieldErrors, hasFieldErrors, showError } from '@/core/toast';
 import { getResourceIcon } from "@/components/roles/form/utils";
 import { getPermissionTranslation } from "@/core/messages/permissions";
+import { useRolePermissionBuckets } from "@/components/roles/hooks/useRolePermissionBuckets";
 
 const RoleBasicInfoFormSkeleton = () => (
   <CardWithIcon
@@ -59,42 +60,6 @@ const ManagementPermissionsCard = lazy(
 const RoleBasicInfoForm = lazy(
   () => import("@/components/roles/form").then(mod => ({ default: mod.RoleInfoForm }))
 );
-
-const getAnalyticsPermissions = (permissions: any[]): string[] => {
-  if (!permissions || !Array.isArray(permissions)) return [];
-
-  const analyticsPerms: string[] = [];
-  permissions.forEach((group: any) => {
-    if (group.resource === 'analytics' || group.resource?.startsWith('analytics.')) {
-      group.permissions?.forEach((perm: any) => {
-        const originalKey = perm.original_key || `${perm.resource}.${perm.action}`;
-        if (originalKey.startsWith('analytics.') && !analyticsPerms.includes(originalKey)) {
-          analyticsPerms.push(originalKey);
-        }
-      });
-    }
-  });
-
-  return analyticsPerms;
-};
-
-const getAIPermissions = (permissions: any[]): string[] => {
-  if (!permissions || !Array.isArray(permissions)) return [];
-
-  const aiPerms: string[] = [];
-  permissions.forEach((group: any) => {
-    if (group.resource === 'ai' || group.resource?.startsWith('ai.')) {
-      group.permissions?.forEach((perm: any) => {
-        const originalKey = perm.original_key || `${perm.resource}.${perm.action}`;
-        if (originalKey.startsWith('ai.') && !aiPerms.includes(originalKey)) {
-          aiPerms.push(originalKey);
-        }
-      });
-    }
-  });
-
-  return aiPerms;
-};
 
 export default function CreateRolePage() {
   const navigate = useNavigate();
@@ -268,51 +233,6 @@ export default function CreateRolePage() {
     }
   };
 
-  const getBasePermissionIds = (permissionGroups: any[]) => {
-    if (!basePermissions || !Array.isArray(basePermissions)) return [];
-
-    const basePermissionIds: number[] = [];
-
-    basePermissions.forEach((basePerm: any) => {
-      permissionGroups.forEach(group => {
-        group.permissions.forEach((permission: any) => {
-          if (permission.resource === basePerm.resource &&
-            permission.action === basePerm.action) {
-            basePermissionIds.push(permission.id);
-          }
-        });
-      });
-    });
-
-    return basePermissionIds;
-  };
-
-  const getOrganizedPermissions = () => {
-    if (!permissions) return [];
-
-    const basePermissionIds = getBasePermissionIds(permissions);
-
-    const resourceMap: Record<string, any> = {};
-
-    permissions.forEach(group => {
-      const filteredPermissions = group.permissions.filter((p: any) => !basePermissionIds.includes(p.id));
-
-      if (filteredPermissions.length === 0) return;
-
-      if (!resourceMap[group.resource]) {
-        resourceMap[group.resource] = {
-          resource: group.resource,
-          display_name: group.display_name,
-          permissions: []
-        };
-      }
-
-      resourceMap[group.resource].permissions.push(...filteredPermissions);
-    });
-
-    return Object.values(resourceMap);
-  };
-
   const getActionPermission = (resourcePermissions: any[], action: string) => {
     const actionVariants: Record<string, string[]> = {
       'view': ['view', 'list', 'read', 'get'],
@@ -329,123 +249,19 @@ export default function CreateRolePage() {
     );
   };
 
-  const organizedPermissions = useMemo(() => getOrganizedPermissions(), [permissions]);
-
-  const analyticsUsedPermissions = useMemo(() => {
-    return getAnalyticsPermissions(permissions || []);
-  }, [permissions]);
-
-  const aiUsedPermissions = useMemo(() => {
-    return getAIPermissions(permissions || []);
-  }, [permissions]);
-
-  const isStandaloneResource = (resource: any) => {
-    const perms = resource.permissions || [];
-    return perms.some((p: any) => p.is_standalone === true);
-  };
-
-  const hasContentMasterToggle = (resource: any) => {
-    const perms = resource.permissions || [];
-    return perms.some((p: any) =>
-      p.is_standalone === true &&
-      p.action?.toLowerCase() === 'manage' &&
-      p.permission_category === 'content_master'
-    );
-  };
-
-  const isAdminOnlyResource = (resource: any) => {
-    const perms = resource.permissions || [];
-    if (perms.length === 0) return false;
-    return perms.every((p: any) => p.requires_superadmin === true);
-  };
-
-  const standaloneResources = useMemo(() => {
-    return organizedPermissions.filter((r: any) => {
-      if (r.resource === 'analytics' || r.resource?.startsWith('analytics.')) {
-        return false;
-      }
-      if (r.resource === 'ai' || r.resource?.startsWith('ai.')) {
-        return false;
-      }
-      if (hasContentMasterToggle(r)) {
-        return false;
-      }
-      return isStandaloneResource(r);
-    });
-  }, [organizedPermissions]);
-
-  const analyticsResources = useMemo(() => {
-    const filtered = organizedPermissions.filter((r: any) => {
-      return r.resource === 'analytics' || r.resource?.startsWith('analytics.');
-    });
-
-    if (filtered.length > 1) {
-      const permissionMap = new Map<number, any>();
-      filtered.forEach((r: any) => {
-        r.permissions?.forEach((perm: any) => {
-          if (perm.id && !permissionMap.has(perm.id)) {
-            permissionMap.set(perm.id, perm);
-          }
-        });
-      });
-
-      const mergedResource = {
-        resource: 'analytics',
-        display_name: filtered[0]?.display_name || 'Analytics',
-        permissions: Array.from(permissionMap.values())
-      };
-      return [mergedResource];
-    }
-
-    return filtered;
-  }, [organizedPermissions]);
-
-  const aiResources = useMemo(() => {
-    const filtered = organizedPermissions.filter((r: any) => {
-      return r.resource === 'ai' || r.resource?.startsWith('ai.');
-    });
-
-    if (filtered.length > 1) {
-      const permissionMap = new Map<number, any>();
-      filtered.forEach((r: any) => {
-        r.permissions?.forEach((perm: any) => {
-          if (perm.id && !permissionMap.has(perm.id)) {
-            permissionMap.set(perm.id, perm);
-          }
-        });
-      });
-
-      const mergedResource = {
-        resource: 'ai',
-        display_name: filtered[0]?.display_name || 'AI Tools',
-        permissions: Array.from(permissionMap.values())
-      };
-      return [mergedResource];
-    }
-
-    return filtered;
-  }, [organizedPermissions]);
-
-  const standardResources = useMemo(() => {
-    return organizedPermissions.filter((r: any) => {
-      if (r.resource === 'analytics' || r.resource?.startsWith('analytics.')) {
-        return false;
-      }
-      if (r.resource === 'ai' || r.resource?.startsWith('ai.')) {
-        return false;
-      }
-      if (hasContentMasterToggle(r)) {
-        return false;
-      }
-      if (isStandaloneResource(r)) {
-        return false;
-      }
-      if (isAdminOnlyResource(r)) {
-        return false;
-      }
-      return true;
-    });
-  }, [organizedPermissions]);
+  const {
+    allPermissions,
+    analyticsUsedPermissions,
+    aiUsedPermissions,
+    standaloneResources,
+    analyticsResources,
+    aiResources,
+    standardResources,
+    moduleMasterPermissions,
+  } = useRolePermissionBuckets({
+    permissions: permissions || [],
+    basePermissions: basePermissions || [],
+  });
 
   const handleFormSubmit = () => {
     handleSubmit(onSubmit)();
@@ -522,19 +338,11 @@ export default function CreateRolePage() {
                   </CardHeader>
                   <CardContent className="space-y-8">
                     {(() => {
-                      const moduleMasterPerms = permissions
-                        ?.flatMap((g: any) => g.permissions)
-                        .filter((p: any) =>
-                          p.is_standalone === true &&
-                          p.action?.toLowerCase() === 'manage' &&
-                          p.permission_category === 'content_master'
-                        );
-
-                      if (!moduleMasterPerms || moduleMasterPerms.length === 0) return null;
+                      if (!moduleMasterPermissions || moduleMasterPermissions.length === 0) return null;
 
                       return (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-6 border-b border-dashed border-green-500/20">
-                          {moduleMasterPerms.map((perm: any) => (
+                          {moduleMasterPermissions.map((perm: any) => (
                             <div
                               key={perm.id}
                               className={`flex items-center justify-between p-4 rounded-xl border transition-all duration-200 ${isPermissionSelected(perm.id)
@@ -581,7 +389,7 @@ export default function CreateRolePage() {
                       areAllResourcePermissionsSelected={areAllResourcePermissionsSelected}
                       getActionPermission={getActionPermission}
                       getResourceIcon={getResourceIcon}
-                      allPermissions={permissions?.flatMap((g: any) => g.permissions) || []}
+                      allPermissions={allPermissions}
                     />
                   </CardContent>
                 </Card>
@@ -622,7 +430,7 @@ export default function CreateRolePage() {
                   }}
                   isPermissionSelected={isPermissionSelected}
                   getResourceIcon={getResourceIcon}
-                  allPermissions={permissions?.flatMap((g: any) => g.permissions) || []}
+                  allPermissions={allPermissions}
                 />
               )}
 
@@ -647,7 +455,7 @@ export default function CreateRolePage() {
 
               {errors.permission_ids?.message && (
                 <div className="flex items-start gap-2 text-sm text-destructive mt-4 p-3 bg-destructive/10">
-                  <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                   <span>{String(errors.permission_ids.message)}</span>
                 </div>
               )}
@@ -670,7 +478,7 @@ export default function CreateRolePage() {
         </Suspense>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
+      <div className="fixed bottom-0 left-0 right-0 lg:right-80 z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
         <Button
           onClick={handleFormSubmit}
           size="lg"

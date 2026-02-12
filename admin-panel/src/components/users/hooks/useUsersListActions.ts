@@ -1,0 +1,84 @@
+import { useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { adminApi } from "@/api/admins/admins";
+import { showError, showSuccess } from "@/core/toast";
+
+interface DeleteConfirmState {
+  open: boolean;
+  userId?: number;
+  userIds?: number[];
+  isBulk: boolean;
+}
+
+interface UseUsersListActionsParams {
+  setRowSelection: Dispatch<SetStateAction<Record<string, boolean>>>;
+}
+
+export function useUsersListActions({ setRowSelection }: UseUsersListActionsParams) {
+  const queryClient = useQueryClient();
+
+  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({
+    open: false,
+    isBulk: false,
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: (userId: number) => adminApi.deleteUserByType(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      showSuccess("با موفقیت حذف شد");
+    },
+    onError: () => {
+      showError("خطای سرور");
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (userIds: number[]) => adminApi.bulkDeleteUsersByType(userIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      showSuccess("با موفقیت حذف شد");
+      setRowSelection({});
+    },
+    onError: () => {
+      showError("خطای سرور");
+    },
+  });
+
+  const handleDeleteUser = (userId: number | string) => {
+    setDeleteConfirm({
+      open: true,
+      userId: Number(userId),
+      isBulk: false,
+    });
+  };
+
+  const handleDeleteSelected = (selectedIds: (string | number)[]) => {
+    setDeleteConfirm({
+      open: true,
+      userIds: selectedIds.map((id) => Number(id)),
+      isBulk: true,
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      if (deleteConfirm.isBulk && deleteConfirm.userIds) {
+        await bulkDeleteMutation.mutateAsync(deleteConfirm.userIds);
+      } else if (!deleteConfirm.isBulk && deleteConfirm.userId) {
+        await deleteUserMutation.mutateAsync(deleteConfirm.userId);
+      }
+    } catch {
+    }
+    setDeleteConfirm({ open: false, isBulk: false });
+  };
+
+  return {
+    deleteConfirm,
+    setDeleteConfirm,
+    handleDeleteUser,
+    handleDeleteSelected,
+    handleConfirmDelete,
+  };
+}
