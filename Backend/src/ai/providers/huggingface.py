@@ -187,7 +187,10 @@ class HuggingFaceProvider(BaseProvider):
     async def generate_image(self, prompt: str, **kwargs) -> BytesIO:
         # Use model from config (set by service) or fall back to image_model
         model_to_use = self.config.get('model') or kwargs.get('model') or self.image_model
-        url = f"{self.BASE_URL}/models/{model_to_use}"
+        router_base = self.ROUTER_V1_BASE_URL
+        if router_base.endswith('/v1'):
+            router_base = router_base[:-3]
+        url = f"{router_base}/hf-inference/models/{model_to_use}"
         
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -261,6 +264,8 @@ class HuggingFaceProvider(BaseProvider):
             raise Exception(AI_ERRORS["connection_timeout"])
         except httpx.HTTPStatusError as e:
             error_detail = self._extract_http_error_detail(e)
+            if e.response.status_code == 402:
+                raise Exception(AI_ERRORS["provider_model_paid_required"])
             if e.response.status_code == 503 or 'loading' in error_detail.lower():
                 raise Exception(AI_ERRORS["huggingface_model_loading"])
             self.raise_mapped_http_error(e, "image_generation_http_error")

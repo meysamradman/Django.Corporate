@@ -139,7 +139,7 @@ PROVIDER_CAPABILITIES = {
     'huggingface': {
         'supports_chat': True,
         'supports_content': True,
-        'supports_image': False,
+        'supports_image': True,
         'supports_audio': False,
         'has_dynamic_models': True,
         'models': {
@@ -151,13 +151,15 @@ PROVIDER_CAPABILITIES = {
                 'deepseek-ai/DeepSeek-R1-0528',
                 'ServiceNow-AI/Apriel-1.6-15b-Thinker',
             ],
-            'image': [],
+            'image': [
+                'black-forest-labs/FLUX.1-schnell',
+            ],
             'audio': [],
         },
         'default_models': {
             'chat': 'deepseek-ai/DeepSeek-R1-0528',
             'content': 'deepseek-ai/DeepSeek-R1-0528',
-            'image': None,
+            'image': 'black-forest-labs/FLUX.1-schnell',
             'audio': None,
         },
         'provider_class': 'src.ai.providers.huggingface.HuggingFaceProvider',
