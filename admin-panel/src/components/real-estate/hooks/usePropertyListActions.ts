@@ -11,13 +11,8 @@ import { showError, showSuccess, showWarning } from '@/core/toast';
 import { usePropertyExcelExport } from '@/components/real-estate/hooks/usePropertyExcelExport';
 import { usePropertyPdfExport } from '@/components/real-estate/hooks/usePropertyPdfExport';
 import { usePropertyPrintView } from '@/components/real-estate/hooks/usePropertyPrintView';
+import type { PropertyDeleteConfirmState } from '@/types/shared/deleteConfirm';
 
-interface DeleteConfirmState {
-  open: boolean;
-  propertyId?: number;
-  propertyIds?: number[];
-  isBulk: boolean;
-}
 
 interface UsePropertyListActionsParams {
   data: Property[];
@@ -39,7 +34,7 @@ export function usePropertyListActions({
   queryParams,
 }: UsePropertyListActionsParams) {
   const queryClient = useQueryClient();
-  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({
+  const [deleteConfirm, setDeleteConfirm] = useState<PropertyDeleteConfirmState>({
     open: false,
     isBulk: false,
   });

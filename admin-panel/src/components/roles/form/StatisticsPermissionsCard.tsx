@@ -5,16 +5,10 @@ import { PieChart, Shield } from "lucide-react";
 import { getPermissionTranslation, PERMISSION_TRANSLATIONS } from "@/core/messages/permissions";
 import { useMemo } from "react";
 import type { ReactElement } from "react";
-
-interface Permission {
-  id: number;
-  original_key?: string;
-  display_name: string;
-  requires_superadmin?: boolean;
-}
+import type { RolePermission } from "@/types/roles";
 
 interface StatisticsPermissionsCardProps {
-  permissions: Permission[];
+  permissions: RolePermission[];
   selectedPermissions: number[];
   isSuperAdmin: boolean;
   statisticsUsedPermissions: readonly string[];

@@ -4,13 +4,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import { showError, showSuccess } from "@/core/toast";
 import { msg } from "@/core/messages";
+import type { PortfolioCategoryDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
-interface DeleteConfirmState {
-  open: boolean;
-  categoryId?: number;
-  categoryIds?: number[];
-  isBulk: boolean;
-}
 
 interface UsePortfolioCategoryListActionsParams {
   setRowSelection: Dispatch<SetStateAction<Record<string, boolean>>>;
@@ -18,7 +13,7 @@ interface UsePortfolioCategoryListActionsParams {
 
 export function usePortfolioCategoryListActions({ setRowSelection }: UsePortfolioCategoryListActionsParams) {
   const queryClient = useQueryClient();
-  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({
+  const [deleteConfirm, setDeleteConfirm] = useState<PortfolioCategoryDeleteConfirmState>({
     open: false,
     isBulk: false,
   });

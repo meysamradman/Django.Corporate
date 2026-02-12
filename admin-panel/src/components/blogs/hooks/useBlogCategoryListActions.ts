@@ -4,13 +4,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { blogApi } from "@/api/blogs/blogs";
 import { showSuccess, showError } from "@/core/toast";
 import { msg } from "@/core/messages";
+import type { BlogCategoryDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
-interface DeleteConfirmState {
-  open: boolean;
-  categoryId?: number;
-  categoryIds?: number[];
-  isBulk: boolean;
-}
 
 interface UseBlogCategoryListActionsParams {
   setRowSelection: Dispatch<SetStateAction<Record<string, boolean>>>;
@@ -18,7 +13,7 @@ interface UseBlogCategoryListActionsParams {
 
 export function useBlogCategoryListActions({ setRowSelection }: UseBlogCategoryListActionsParams) {
   const queryClient = useQueryClient();
-  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({
+  const [deleteConfirm, setDeleteConfirm] = useState<BlogCategoryDeleteConfirmState>({
     open: false,
     isBulk: false,
   });

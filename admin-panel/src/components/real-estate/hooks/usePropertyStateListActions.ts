@@ -5,13 +5,8 @@ import { showError, showSuccess } from "@/core/toast";
 import { getStatus, msg } from "@/core/messages";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyState } from "@/types/real_estate/state/realEstateState";
+import type { PropertyStateDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
-interface DeleteConfirmState {
-  open: boolean;
-  stateId?: number;
-  stateIds?: number[];
-  isBulk: boolean;
-}
 
 interface UsePropertyStateListActionsParams {
   setRowSelection: Dispatch<SetStateAction<Record<string, boolean>>>;
@@ -19,7 +14,7 @@ interface UsePropertyStateListActionsParams {
 
 export function usePropertyStateListActions({ setRowSelection }: UsePropertyStateListActionsParams) {
   const queryClient = useQueryClient();
-  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({
+  const [deleteConfirm, setDeleteConfirm] = useState<PropertyStateDeleteConfirmState>({
     open: false,
     isBulk: false,
   });

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { getBasePermissionIds, type BasePermissionRef, type RolePermissionGroup } from "@/components/roles/hooks/rolePermissionUtils";
+import { getBasePermissionIds } from "@/components/roles/hooks/rolePermissionUtils";
+import type { BasePermissionRef, RolePermissionGroup } from "@/types/roles";
 
 interface UseRoleEditSelectedPermissionsInitParams {
   role: any;

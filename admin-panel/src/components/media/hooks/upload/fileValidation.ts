@@ -1,12 +1,12 @@
 import { formatBytes, getFileCategory } from '@/components/media/services';
 import type { MediaFile, UploadCategory, UploadSettings } from './types';
 
-interface ValidationResult {
+interface FileValidationPreparationResult {
   errors: string[];
   newFiles: MediaFile[];
 }
 
-export function validateAndPrepareFiles(filesToProcess: File[], uploadSettings: UploadSettings): ValidationResult {
+export function validateAndPrepareFiles(filesToProcess: File[], uploadSettings: UploadSettings): FileValidationPreparationResult {
   const errors: string[] = [];
 
   const validFiles = filesToProcess.filter(file => {

@@ -10,7 +10,7 @@ import {
 import { useNotifications } from "./hooks/useNotifications";
 import { useNavigate } from "react-router-dom";
 import { usePermission } from "@/core/permissions";
-import { PERMISSIONS } from "@/core/permissions/constants/permissions";
+import { PERMISSIONS } from "@/core/permissions/constants";
 import { cn } from "@/core/utils/cn";
 
 export function Notifications() {

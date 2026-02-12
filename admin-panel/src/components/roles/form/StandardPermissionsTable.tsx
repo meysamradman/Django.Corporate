@@ -11,35 +11,21 @@ import { Shield } from "lucide-react";
 import { getPermissionTranslation } from "@/core/messages/permissions";
 import { useMemo } from "react";
 import type { ReactElement } from "react";
-
-interface Permission {
-  id: number;
-  resource: string;
-  action: string;
-  display_name: string;
-  requires_superadmin?: boolean;
-  original_key?: string;
-}
-
-interface Resource {
-  resource: string;
-  display_name: string;
-  permissions: Permission[];
-}
+import type { RolePermission, RolePermissionResource } from "@/types/roles";
 
 interface StandardPermissionsTableProps {
-  resources: Resource[];
+  resources: RolePermissionResource[];
   selectedPermissions: number[];
   isSuperAdmin: boolean;
   logicalPermissionErrors: string[];
   onTogglePermission: (permissionId: number) => void;
-  onToggleAllResourcePermissions: (resourcePermissions: Permission[]) => void;
+  onToggleAllResourcePermissions: (resourcePermissions: RolePermission[]) => void;
   onToggleAllStandardPermissions: (checked: boolean, permissionIds: number[]) => void;
   isPermissionSelected: (permissionId: number | undefined) => boolean;
-  areAllResourcePermissionsSelected: (resourcePermissions: Permission[]) => boolean;
-  getActionPermission: (resourcePermissions: Permission[], action: string) => Permission | undefined;
+  areAllResourcePermissionsSelected: (resourcePermissions: RolePermission[]) => boolean;
+  getActionPermission: (resourcePermissions: RolePermission[], action: string) => RolePermission | undefined;
   getResourceIcon: (resourceKey: string) => ReactElement;
-  allPermissions?: Permission[];
+  allPermissions?: RolePermission[];
 }
 
 export function StandardPermissionsTable({

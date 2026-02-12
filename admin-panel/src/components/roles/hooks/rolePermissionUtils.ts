@@ -1,25 +1,8 @@
-export interface RolePermissionItem {
-  id: number;
-  resource: string;
-  action: string;
-  original_key?: string;
-}
-
-export interface RolePermissionGroup {
-  resource: string;
-  permissions: RolePermissionItem[];
-}
-
-export interface BasePermissionRef {
-  resource?: string;
-  action?: string;
-}
-
-export interface SpecificPermissionPayloadItem {
-  module: string;
-  action: string;
-  permission_key?: string;
-}
+import type {
+  BasePermissionRef,
+  RolePermissionGroup,
+  SpecificPermissionPayloadItem,
+} from "@/types/roles";
 
 export const getBasePermissionIds = (
   permissionGroups: RolePermissionGroup[],
@@ -56,6 +39,10 @@ export const buildSpecificPermissionsPayload = (
     permissionGroups.forEach((group) => {
       group.permissions.forEach((permission) => {
         if (selectedPermissionIds.includes(permission.id)) {
+          if (!permission.resource || !permission.action) {
+            return;
+          }
+
           if (permission.original_key) {
             selectedPermsData.push({
               module: permission.resource,

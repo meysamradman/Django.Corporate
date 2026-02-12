@@ -3,13 +3,8 @@ import type { Dispatch, SetStateAction } from "react";
 import { useDeleteRole, useBulkDeleteRoles } from "@/core/permissions";
 import type { Role } from "@/types/auth/permission";
 import { showWarning } from "@/core/toast";
+import type { RoleDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
-interface DeleteConfirmState {
-  open: boolean;
-  roleId?: number;
-  roleIds?: number[];
-  isBulk: boolean;
-}
 
 interface UseRolesListActionsParams {
   data: Role[];
@@ -17,7 +12,7 @@ interface UseRolesListActionsParams {
 }
 
 export function useRolesListActions({ data, setRowSelection }: UseRolesListActionsParams) {
-  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({
+  const [deleteConfirm, setDeleteConfirm] = useState<RoleDeleteConfirmState>({
     open: false,
     isBulk: false,
   });

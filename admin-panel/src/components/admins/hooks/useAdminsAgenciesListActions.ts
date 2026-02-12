@@ -2,18 +2,13 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate/properties";
 import { showSuccess, showError } from "@/core/toast";
+import type { AgencyDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
-interface DeleteConfirmState {
-  open: boolean;
-  agencyId?: number;
-  agencyIds?: number[];
-  isBulk: boolean;
-}
 
 export function useAdminsAgenciesListActions() {
   const queryClient = useQueryClient();
 
-  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({
+  const [deleteConfirm, setDeleteConfirm] = useState<AgencyDeleteConfirmState>({
     open: false,
     isBulk: false,
   });

@@ -1,5 +1,10 @@
 export type FeatureFlags = Record<string, boolean>;
 
+export interface FeatureFlagConfig {
+  key: string;
+  description: string;
+}
+
 export interface FeatureFlag {
   id?: number;
   public_id?: string;

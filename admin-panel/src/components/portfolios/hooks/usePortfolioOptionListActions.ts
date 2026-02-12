@@ -4,13 +4,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/portfolios";
 import { showError, showSuccess } from "@/core/toast";
 import { msg } from "@/core/messages";
+import type { PortfolioOptionDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
-interface DeleteConfirmState {
-  open: boolean;
-  optionId?: number;
-  optionIds?: number[];
-  isBulk: boolean;
-}
 
 interface UsePortfolioOptionListActionsParams {
   setRowSelection: Dispatch<SetStateAction<Record<string, boolean>>>;
@@ -18,7 +13,7 @@ interface UsePortfolioOptionListActionsParams {
 
 export function usePortfolioOptionListActions({ setRowSelection }: UsePortfolioOptionListActionsParams) {
   const queryClient = useQueryClient();
-  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({
+  const [deleteConfirm, setDeleteConfirm] = useState<PortfolioOptionDeleteConfirmState>({
     open: false,
     isBulk: false,
   });

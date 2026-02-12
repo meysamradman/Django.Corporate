@@ -5,18 +5,10 @@ import { Sparkles, Shield, Info } from "lucide-react";
 import { getPermissionTranslation, PERMISSION_TRANSLATIONS } from "@/core/messages/permissions";
 import { useMemo } from "react";
 import type { ReactElement } from "react";
-
-interface Permission {
-  id: number;
-  original_key?: string;
-  display_name: string;
-  action?: string;
-  is_standalone?: boolean;
-  requires_superadmin?: boolean;
-}
+import type { RolePermission } from "@/types/roles";
 
 interface AIPermissionsCardProps {
-  permissions: Permission[];
+  permissions: RolePermission[];
   selectedPermissions: number[];
   isSuperAdmin: boolean;
   aiUsedPermissions: readonly string[];

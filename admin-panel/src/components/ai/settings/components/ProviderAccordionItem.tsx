@@ -2,10 +2,10 @@ import { Card } from '@/components/elements/Card';
 import { AccordionItem, AccordionTrigger, AccordionContent } from '@/components/elements/Accordion';
 import { Badge } from '@/components/elements/Badge';
 import { ProviderCard } from './ProviderCard';
-import type { Provider } from '../hooks/useAISettings';
+import type { AISettingsProvider } from '@/types/ai/ai';
 
 interface ProviderAccordionItemProps {
-  provider: Provider;
+  provider: AISettingsProvider;
   isExpanded: boolean;
   apiKey: string;
   showApiKey: boolean;

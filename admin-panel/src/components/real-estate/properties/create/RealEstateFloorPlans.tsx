@@ -5,33 +5,16 @@ import { Home } from "lucide-react";
 import { showError, showSuccess } from "@/core/toast";
 import { realEstateApi } from "@/api/real-estate";
 import type { Media } from "@/types/shared/media";
+import type { EditableFloorPlan } from "@/types/real_estate/floorPlanForm";
 import { generateSlug } from "@/core/slug/generate";
 import { RealEstateFloorPlanList } from "./floor-plans/RealEstateFloorPlanList";
 import { RealEstateFloorPlanForm } from "./floor-plans/RealEstateFloorPlanForm";
 
-interface FloorPlan {
-  id?: number;
-  title: string;
-  slug: string;
-  description: string;
-  floor_size: number | null;
-  size_unit: "sqm" | "sqft";
-  bedrooms: number | null;
-  bathrooms: number | null;
-  price: number | null;
-  currency: string;
-  floor_number: number | null;
-  unit_type: string;
-  display_order: number;
-  is_available: boolean;
-  images: any[];
-}
-
 interface FloorPlansTabProps {
   propertyId?: number;
   editMode?: boolean;
-  tempFloorPlans?: FloorPlan[];
-  onTempFloorPlansChange?: (plans: FloorPlan[]) => void;
+  tempFloorPlans?: EditableFloorPlan[];
+  onTempFloorPlansChange?: (plans: EditableFloorPlan[]) => void;
 }
 
 export default function RealEstateFloorPlans({
@@ -40,11 +23,11 @@ export default function RealEstateFloorPlans({
   tempFloorPlans = [],
   onTempFloorPlansChange
 }: FloorPlansTabProps) {
-  const [floorPlans, setFloorPlans] = useState<FloorPlan[]>(tempFloorPlans);
+  const [floorPlans, setFloorPlans] = useState<EditableFloorPlan[]>(tempFloorPlans);
   const [isLoading, setIsLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [editingPlanId, setEditingPlanId] = useState<number | null>(null);
-  const [newFloorPlan, setNewFloorPlan] = useState<FloorPlan>({
+  const [newFloorPlan, setNewFloorPlan] = useState<EditableFloorPlan>({
     title: "",
     slug: "",
     description: "",
@@ -168,9 +151,9 @@ export default function RealEstateFloorPlans({
     }
   };
 
-  const handleEditFloorPlan = (plan: FloorPlan) => {
+  const handleEditFloorPlan = (plan: EditableFloorPlan) => {
     setEditingPlanId(plan.id || null);
-    const extractedImages = (plan.images || []).map(img => img.image && typeof img.image === 'object' ? img.image : img);
+    const extractedImages = (plan.images || []).map((img: any) => img.image && typeof img.image === 'object' ? img.image : img);
     setNewFloorPlan({ ...plan, images: extractedImages });
     setSelectedImages(extractedImages);
     setIsAdding(true);
@@ -195,9 +178,9 @@ export default function RealEstateFloorPlans({
     }
   };
 
-  const handleInputChange = (field: keyof FloorPlan) => (e: any) => {
+  const handleInputChange = (field: keyof EditableFloorPlan) => (e: any) => {
     const value = e.target.value;
-    if (["floor_size", "bedrooms", "bathrooms", "price", "floor_number"].includes(field)) {
+    if (["floor_size", "bedrooms", "bathrooms", "price", "floor_number"].includes(field as string)) {
       const numValue = value ? Number(value) : null;
       setNewFloorPlan(prev => ({ ...prev, [field]: (numValue !== null && numValue < 0 && field !== "floor_number") ? 0 : numValue }));
     } else if (field === "title") {

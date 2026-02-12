@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { getBasePermissionIds, type BasePermissionRef, type RolePermissionGroup } from "@/components/roles/hooks/rolePermissionUtils";
+import { getBasePermissionIds } from "@/components/roles/hooks/rolePermissionUtils";
+import type { BasePermissionRef, RolePermissionGroup } from "@/types/roles";
 
 const getAnalyticsPermissions = (permissions: any[]): string[] => {
   if (!permissions || !Array.isArray(permissions)) return [];

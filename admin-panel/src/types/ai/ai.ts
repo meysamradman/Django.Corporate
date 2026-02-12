@@ -218,6 +218,25 @@ export interface ChatMessage {
   timestamp?: number;
 }
 
+export interface AISettingsModel {
+  id: number;
+  name: string;
+  provider?: string;
+  price: string;
+  free: boolean;
+  selected: boolean;
+}
+
+export interface AISettingsProvider {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  apiKeyLabel: string;
+  models: AISettingsModel[];
+  backendProvider?: any;
+}
+
 export interface OpenRouterModel extends ModelCardModel {
   architecture?: {
     modality?: string;

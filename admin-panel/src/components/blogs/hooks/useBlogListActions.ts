@@ -11,13 +11,8 @@ import { msg } from '@/core/messages';
 import { useExcelExport } from '@/components/blogs/hooks/useExcelExport';
 import { usePdfExport } from '@/components/blogs/hooks/usePdfExport';
 import { usePrintView } from '@/components/blogs/hooks/usePrintView';
+import type { BlogDeleteConfirmState } from '@/types/shared/deleteConfirm';
 
-interface DeleteConfirmState {
-  open: boolean;
-  blogId?: number;
-  blogIds?: number[];
-  isBulk: boolean;
-}
 
 interface UseBlogListActionsParams {
   data: Blog[];
@@ -39,7 +34,7 @@ export function useBlogListActions({
   queryParams,
 }: UseBlogListActionsParams) {
   const queryClient = useQueryClient();
-  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({
+  const [deleteConfirm, setDeleteConfirm] = useState<BlogDeleteConfirmState>({
     open: false,
     isBulk: false,
   });

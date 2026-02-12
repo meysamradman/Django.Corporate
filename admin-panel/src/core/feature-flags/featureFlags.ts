@@ -1,7 +1,4 @@
-export interface FeatureFlagConfig {
-  key: string;
-  description: string;
-}
+import type { FeatureFlagConfig } from '@/types/shared/featureFlags';
 
 export const FEATURE_FLAGS_CONFIG: FeatureFlagConfig[] = [
   { 

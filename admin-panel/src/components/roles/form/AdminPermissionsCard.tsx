@@ -4,24 +4,10 @@ import { Shield, UserCog } from "lucide-react";
 import { getPermissionTranslation } from "@/core/messages/permissions";
 import { useMemo } from "react";
 import type { ReactElement } from "react";
-
-interface Permission {
-  id: number;
-  action?: string;
-  display_name?: string;
-  is_standalone?: boolean;
-  requires_superadmin?: boolean;
-  original_key?: string;
-}
-
-interface Resource {
-  resource: string;
-  display_name: string;
-  permissions: Permission[];
-}
+import type { RolePermissionResource } from "@/types/roles";
 
 interface AdminPermissionsCardProps {
-  resources: Resource[];
+  resources: RolePermissionResource[];
   selectedPermissions: number[];
   isSuperAdmin: boolean;
   onTogglePermission: (permissionId: number) => void;

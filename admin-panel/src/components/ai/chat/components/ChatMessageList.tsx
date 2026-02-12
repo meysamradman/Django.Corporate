@@ -2,12 +2,7 @@ import { type RefObject } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/elements/Avatar';
 import { Loader2, Sparkles, AlertCircle } from 'lucide-react';
 import { getAIUI } from '@/core/messages';
-
-interface ChatMessage {
-    role: 'user' | 'assistant';
-    content: string;
-    timestamp?: number;
-}
+import type { ChatMessage } from '@/types/ai/ai';
 
 interface ChatMessageListProps {
     messages: ChatMessage[];

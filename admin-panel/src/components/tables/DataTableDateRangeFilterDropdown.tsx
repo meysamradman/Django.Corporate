@@ -16,14 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/elements/Popover";
 import { cn } from "@/core/utils/cn";
-
-export interface DateRangeOption {
-  label: string;
-  value: string;
-  icon?: React.ComponentType<{ className?: string }>;
-  count?: number;
-  dateRange: { from?: string; to?: string };
-}
+import type { DateRangeOption } from "@/types/shared/table";
 
 interface DataTableDateRangeFilterDropdownProps {
   title?: string;

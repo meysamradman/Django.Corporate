@@ -3,22 +3,10 @@ import { Switch } from "@/components/elements/Switch";
 import { Settings, Shield } from "lucide-react";
 import { getPermissionTranslation, PERMISSION_TRANSLATIONS } from "@/core/messages/permissions";
 import type { ReactElement } from "react";
-
-interface Permission {
-  id: number;
-  action?: string;
-  is_standalone?: boolean;
-  requires_superadmin?: boolean;
-}
-
-interface Resource {
-  resource: string;
-  display_name: string;
-  permissions: Permission[];
-}
+import type { RolePermissionResource } from "@/types/roles";
 
 interface ManagementPermissionsCardProps {
-  resources: Resource[];
+  resources: RolePermissionResource[];
   selectedPermissions: number[];
   isSuperAdmin: boolean;
   onTogglePermission: (permissionId: number) => void;

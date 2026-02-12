@@ -3,13 +3,8 @@ import type { Dispatch, SetStateAction } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/api/admins/admins";
 import { showError, showSuccess } from "@/core/toast";
+import type { UserDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
-interface DeleteConfirmState {
-  open: boolean;
-  userId?: number;
-  userIds?: number[];
-  isBulk: boolean;
-}
 
 interface UseUsersListActionsParams {
   setRowSelection: Dispatch<SetStateAction<Record<string, boolean>>>;
@@ -18,7 +13,7 @@ interface UseUsersListActionsParams {
 export function useUsersListActions({ setRowSelection }: UseUsersListActionsParams) {
   const queryClient = useQueryClient();
 
-  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({
+  const [deleteConfirm, setDeleteConfirm] = useState<UserDeleteConfirmState>({
     open: false,
     isBulk: false,
   });

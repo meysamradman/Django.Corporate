@@ -6,7 +6,7 @@ import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { SummaryCards, SupportStats, QuickActionsWidget } from "@/components/dashboard/widgets";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { useUserPermissions } from "@/core/permissions/hooks/useUserPermissions";
-import { PERMISSIONS } from "@/core/permissions/constants/permissions";
+import { PERMISSIONS } from "@/core/permissions/constants";
 
 const VisitorPieChart = lazy(() =>
   import("@/components/dashboard/widgets").then(mod => ({ default: mod.VisitorPieChart }))

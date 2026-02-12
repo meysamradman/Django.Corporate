@@ -2,18 +2,13 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/api/admins/admins";
 import { showSuccess, showError } from "@/core/toast";
+import type { AdminDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
-interface DeleteConfirmState {
-  open: boolean;
-  adminId?: number;
-  adminIds?: number[];
-  isBulk: boolean;
-}
 
 export function useAdminsListActions() {
   const queryClient = useQueryClient();
 
-  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({
+  const [deleteConfirm, setDeleteConfirm] = useState<AdminDeleteConfirmState>({
     open: false,
     isBulk: false,
   });

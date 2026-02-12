@@ -11,13 +11,8 @@ import { msg, getStatus } from '@/core/messages';
 import { usePortfolioExcelExport } from '@/components/portfolios/hooks/usePortfolioExcelExport';
 import { usePortfolioPdfExport } from '@/components/portfolios/hooks/usePortfolioPdfExport';
 import { usePortfolioPrintView } from '@/components/portfolios/hooks/usePortfolioPrintView';
+import type { PortfolioDeleteConfirmState } from '@/types/shared/deleteConfirm';
 
-interface DeleteConfirmState {
-  open: boolean;
-  portfolioId?: number;
-  portfolioIds?: number[];
-  isBulk: boolean;
-}
 
 interface UsePortfolioListActionsParams {
   data: Portfolio[];
@@ -39,7 +34,7 @@ export function usePortfolioListActions({
   queryParams,
 }: UsePortfolioListActionsParams) {
   const queryClient = useQueryClient();
-  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({
+  const [deleteConfirm, setDeleteConfirm] = useState<PortfolioDeleteConfirmState>({
     open: false,
     isBulk: false,
   });

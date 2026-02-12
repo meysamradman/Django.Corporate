@@ -2,30 +2,13 @@
 import { Button } from "@/components/elements/Button";
 import { Maximize2, Trash2, Bed, Bath, DollarSign } from "lucide-react";
 import { mediaService } from "@/components/media/services";
-
-interface FloorPlan {
-    id?: number;
-    title: string;
-    slug: string;
-    description: string;
-    floor_size: number | null;
-    size_unit: "sqm" | "sqft";
-    bedrooms: number | null;
-    bathrooms: number | null;
-    price: number | null;
-    currency: string;
-    floor_number: number | null;
-    unit_type: string;
-    display_order: number;
-    is_available: boolean;
-    images: any[];
-}
+import type { EditableFloorPlan } from "@/types/real_estate/floorPlanForm";
 
 interface RealEstateFloorPlanItemProps {
-    plan: FloorPlan;
+    plan: EditableFloorPlan;
     index: number;
     editMode: boolean;
-    onEdit: (plan: FloorPlan) => void;
+    onEdit: (plan: EditableFloorPlan) => void;
     onDelete: (id: number) => void;
 }
 

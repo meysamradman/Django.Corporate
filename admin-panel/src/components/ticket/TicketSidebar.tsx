@@ -1,7 +1,7 @@
 import { Badge } from "@/components/elements/Badge";
 import { CircleDot, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@/core/utils/cn";
-import type { TicketStatusType, TicketStatusItem } from "./types";
+import type { TicketStatusType, TicketStatusItem } from "@/types/ticket/ticket";
 
 interface TicketSidebarProps {
   selectedStatus: TicketStatusType | 'all';

@@ -1,12 +1,7 @@
 import { useState, useRef, type RefObject, type KeyboardEvent, type ChangeEvent } from 'react';
 import { aiApi } from '@/api/ai/ai';
 import { showError, showSuccess, showInfo } from '@/core/toast';
-
-interface ChatMessage {
-    role: 'user' | 'assistant';
-    content: string;
-    timestamp?: number;
-}
+import type { ChatMessage } from '@/types/ai/ai';
 
 interface UseChatHandlersOptions {
     selectedProvider: string;
