@@ -17,6 +17,7 @@ from src.ai.providers.groq import GroqProvider
 from src.ai.providers.huggingface import HuggingFaceProvider
 from src.ai.models import AIProvider, AdminProviderSettings
 from src.ai.utils.destination_handler import ContentDestinationHandler
+from src.ai.utils.error_mapper import map_ai_exception
 
 class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     permission_classes = [ai_permission]
@@ -305,9 +306,24 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     
     @action(detail=False, methods=['post'], url_path='generate')
     def generate_content(self, request):
-        serializer = AIContentGenerationRequestSerializer(data=request.data)
+        """
+        Generate AI content with optional destination saving.
         
+        View Layer Responsibility:
+        - Validate request (Serializer)
+        - Call business logic (Service)
+        - Handle destination saving
+        - Handle exceptions
+        - Return formatted response (APIResponse)
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"[ContentView] generate_content called with data: {request.data}")
+        
+        # --- 1. Validation (Serializer Layer) ---
+        serializer = AIContentGenerationRequestSerializer(data=request.data)
         if not serializer.is_valid():
+            logger.warning(f"[ContentView] Validation failed: {serializer.errors}")
             return APIResponse.error(
                 message=AI_ERRORS["validation_error"],
                 errors=serializer.errors,
@@ -315,11 +331,13 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             )
         
         validated_data = serializer.validated_data
-        
         destination = validated_data.get('destination', 'direct')
         destination_data = validated_data.get('destination_data', {})
+        logger.info(f"[ContentView] Validated data: topic={validated_data.get('topic')}, provider={validated_data.get('provider_name')}, model={validated_data.get('model_id')}")
         
         try:
+            # --- 2. Business Logic (Service Layer) ---
+            logger.info(f"[ContentView] Calling service...")
             content_data = AIContentGenerationService.generate_content(
                 topic=validated_data['topic'],
                 provider_name=validated_data.get('provider_name'),
@@ -329,7 +347,9 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                 keywords=validated_data.get('keywords', []),
                 admin=request.user,
             )
+            logger.info(f"[ContentView] Service returned successfully")
             
+            # --- 3. Destination Handler (optional) ---
             try:
                 destination_result = ContentDestinationHandler.save_to_destination(
                     content_data=content_data,
@@ -343,6 +363,7 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
+            # --- 4. Success Response ---
             response_data = {
                 'content': content_data,
                 'destination': destination_result,
@@ -353,6 +374,7 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             else:
                 message = AI_SUCCESS['content_generated']
             
+            logger.info(f"[ContentView] Returning success response")
             return APIResponse.success(
                 message=message,
                 data=response_data,
@@ -360,32 +382,18 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             )
             
         except ValueError as e:
+            # Service raises ValueError for business logic errors
+            logger.error(f"[ContentView] ValueError: {str(e)}")
             return APIResponse.error(
-                message=AI_ERRORS["validation_error"],
+                message=str(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
-            error_message = str(e).lower()
-            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+            # Parse provider API errors
+            logger.error(f"[ContentView] Exception: {type(e).__name__}: {str(e)}", exc_info=True)
+            final_msg, status_code = map_ai_exception(e, AI_ERRORS["content_generation_failed"])
 
-            if 'quota' in error_message or 'billing' in error_message or 'credit' in error_message or '429' in error_message:
-                final_msg = AI_ERRORS["generic_quota_exceeded"]
-                status_code = status.HTTP_429_TOO_MANY_REQUESTS
-            elif 'api key' in error_message or 'unauthorized' in error_message or 'authentication' in error_message or '401' in error_message:
-                final_msg = AI_ERRORS["generic_api_key_invalid"]
-                status_code = status.HTTP_400_BAD_REQUEST
-            elif 'rate limit' in error_message or 'too many requests' in error_message:
-                final_msg = AI_ERRORS["generic_rate_limit"]
-                status_code = status.HTTP_429_TOO_MANY_REQUESTS
-            elif 'timeout' in error_message:
-                final_msg = AI_ERRORS["generic_timeout"]
-                status_code = status.HTTP_504_GATEWAY_TIMEOUT
-            elif 'model' in error_message and 'not found' in error_message:
-                final_msg = AI_ERRORS["generic_model_not_found"]
-                status_code = status.HTTP_404_NOT_FOUND
-            else:
-                final_msg = AI_ERRORS["content_generation_failed"]
-
+            logger.error(f"[ContentView] Returning error: {final_msg}")
             return APIResponse.error(
                 message=final_msg,
                 status_code=status_code

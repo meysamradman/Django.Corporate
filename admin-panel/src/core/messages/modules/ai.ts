@@ -117,3 +117,62 @@ export const AI_UI_MESSAGES = {
 
 export const getAI = createMessageGetter(AI_MESSAGES);
 export const getAIUI = createMessageGetter(AI_UI_MESSAGES);
+
+const GENERIC_UNKNOWN_PATTERNS = [
+  'خطای نامشخص',
+  'unknown error',
+  'an error occurred',
+  'request failed',
+  'network error',
+];
+
+const isGenericMessage = (message?: string): boolean => {
+  const value = (message || '').trim().toLowerCase();
+  if (!value) return true;
+  return GENERIC_UNKNOWN_PATTERNS.some((pattern) => value.includes(pattern));
+};
+
+export const resolveAIErrorMessage = (error: unknown): string => {
+  const get = getAI;
+
+  const asAny = error as any;
+  const statusCode: number | undefined = asAny?.response?.AppStatusCode;
+  const backendMessage: string | undefined = asAny?.response?.message || asAny?.message;
+  const normalized = (backendMessage || '').toLowerCase();
+
+  if (backendMessage && !isGenericMessage(backendMessage)) {
+    return backendMessage;
+  }
+
+  if (statusCode === 401) return get('invalidApiKey');
+  if (statusCode === 402) return get('modelNotAvailable');
+  if (statusCode === 403) return get('providerNotSupported');
+  if (statusCode === 404) return get('modelNotFound');
+  if (statusCode === 408 || statusCode === 504) return get('timeoutError');
+  if (statusCode === 429) return get('rateLimitExceeded');
+  if (statusCode === 503) return get('networkError');
+
+  if (normalized.includes('api key') || normalized.includes('unauthorized') || normalized.includes('401')) {
+    return get('invalidApiKey');
+  }
+  if (normalized.includes('not a valid model id') || (normalized.includes('model') && normalized.includes('not found')) || (normalized.includes('model') && normalized.includes('invalid'))) {
+    return get('modelNotFound');
+  }
+  if (normalized.includes('payment required') || normalized.includes('paid') || normalized.includes('pricing')) {
+    return get('modelNotAvailable');
+  }
+  if (normalized.includes('quota') || normalized.includes('credit') || normalized.includes('billing')) {
+    return get('quotaExceeded');
+  }
+  if (normalized.includes('rate limit') || normalized.includes('too many requests') || normalized.includes('429')) {
+    return get('rateLimitExceeded');
+  }
+  if (normalized.includes('timeout')) {
+    return get('timeoutError');
+  }
+  if (normalized.includes('network') || normalized.includes('connection') || normalized.includes('unreachable') || normalized.includes('503')) {
+    return get('networkError');
+  }
+
+  return get('unknownError');
+};

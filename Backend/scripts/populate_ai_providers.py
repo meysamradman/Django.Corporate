@@ -58,7 +58,7 @@ def populate_providers():
             'display_name': 'OpenRouter',
             'website': 'https://openrouter.ai',
             'api_base_url': 'https://openrouter.ai/api/v1',
-            'description': 'Hub: Claude 3.5/Opus, Grok 2/3, Llama 3/4',
+            'description': 'Free-only curated models (live-verified)',
             'provider_class': 'src.ai.providers.openrouter.OpenRouterProvider',
             'sort_order': 4,
         },
@@ -67,9 +67,18 @@ def populate_providers():
             'display_name': 'Hugging Face',
             'website': 'https://huggingface.co',
             'api_base_url': 'https://api-inference.huggingface.co',
-            'description': 'Open Source Inference API',
+            'description': 'Free-only router models (chat/content)',
             'provider_class': 'src.ai.providers.huggingface.HuggingFaceProvider',
             'sort_order': 5,
+        },
+        'groq': {
+            'name': 'Groq',
+            'display_name': 'Groq',
+            'website': 'https://groq.com',
+            'api_base_url': 'https://api.groq.com/openai/v1',
+            'description': 'Free-only policy enabled (currently no zero-priced public models)',
+            'provider_class': 'src.ai.providers.groq.GroqProvider',
+            'sort_order': 6,
         }
     }
 

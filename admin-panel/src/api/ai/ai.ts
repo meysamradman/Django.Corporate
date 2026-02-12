@@ -1,6 +1,7 @@
 import { api } from '@/core/config/api';
 import type { ApiResponse } from '@/types/api/apiResponse';
 import { showError } from '@/core/toast';
+import { resolveAIErrorMessage } from '@/core/messages/modules/ai';
 import type { Media } from '@/types/shared/media';
 import type {
     AIContentGenerationRequest,
@@ -13,6 +14,11 @@ import type {
     AdminProviderSettings,
     ActiveCapabilityModelsResponse,
 } from '@/types/ai/ai';
+
+const throwAIError = (error: unknown): never => {
+    const message = resolveAIErrorMessage(error);
+    throw new Error(message);
+};
 
 export const aiApi = {
     image: {
@@ -129,7 +135,11 @@ export const aiApi = {
             model?: string;
         }): Promise<ApiResponse<Media>> => {
             const endpoint = '/admin/ai-images/generate/';
-            return await api.post<Media>(endpoint, data as Record<string, unknown>);
+            try {
+                return await api.post<Media>(endpoint, data as Record<string, unknown>);
+            } catch (error) {
+                throwAIError(error);
+            }
         },
     },
 
@@ -184,8 +194,12 @@ export const aiApi = {
             data: AIContentGenerationRequest
         ): Promise<ApiResponse<AIContentGenerationResult>> => {
             const endpoint = '/admin/ai-content/generate/';
-            const response = await api.post<AIContentGenerationResult>(endpoint, data as unknown as Record<string, unknown>);
-            return response;
+            try {
+                const response = await api.post<AIContentGenerationResult>(endpoint, data as unknown as Record<string, unknown>);
+                return response;
+            } catch (error) {
+                throwAIError(error);
+            }
         },
     },
 
@@ -212,7 +226,11 @@ export const aiApi = {
             save_to_db?: boolean;
         }): Promise<ApiResponse<Media | { audio_data_url: string; saved: boolean }>> => {
             const endpoint = '/admin/ai-audio/generate/';
-            return await api.post<Media | { audio_data_url: string; saved: boolean }>(endpoint, data as Record<string, unknown>);
+            try {
+                return await api.post<Media | { audio_data_url: string; saved: boolean }>(endpoint, data as Record<string, unknown>);
+            } catch (error) {
+                throwAIError(error);
+            }
         },
     },
 
@@ -290,22 +308,30 @@ export const aiApi = {
                     formData.append('conversation_history', JSON.stringify(data.conversation_history));
                 }
 
+                try {
+                    return await api.post<{
+                        message: string;
+                        reply: string;
+                        provider_name: string;
+                        model_name?: string;
+                        generation_time_ms: number;
+                    }>(endpoint, formData as unknown as Record<string, unknown>);
+                } catch (error) {
+                    throwAIError(error);
+                }
+            }
+
+            try {
                 return await api.post<{
                     message: string;
                     reply: string;
                     provider_name: string;
                     model_name?: string;
                     generation_time_ms: number;
-                }>(endpoint, formData as unknown as Record<string, unknown>);
+                }>(endpoint, data as Record<string, unknown>);
+            } catch (error) {
+                throwAIError(error);
             }
-
-            return await api.post<{
-                message: string;
-                reply: string;
-                provider_name: string;
-                model_name?: string;
-                generation_time_ms: number;
-            }>(endpoint, data as Record<string, unknown>);
         },
     },
     personalSettings: {

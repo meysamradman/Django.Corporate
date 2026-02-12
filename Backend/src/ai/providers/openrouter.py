@@ -97,6 +97,45 @@ class OpenRouterProvider(BaseProvider):
             headers.update(extra_headers)
         
         return headers
+
+    @staticmethod
+    def _map_http_error_message(status_code: int, detail_message: str, fallback_key: str) -> str:
+        detail_lower = (detail_message or '').lower()
+
+        if status_code == 401:
+            return AI_ERRORS["generic_api_key_invalid"]
+
+        if status_code == 403:
+            return AI_ERRORS["provider_access_blocked"]
+
+        if status_code == 402 or 'payment required' in detail_lower or 'paid' in detail_lower or 'pricing' in detail_lower:
+            return AI_ERRORS["provider_model_paid_required"]
+
+        if status_code == 429:
+            if 'quota' in detail_lower or 'billing' in detail_lower or 'credit' in detail_lower or 'limit' in detail_lower:
+                return AI_ERRORS["provider_limit_exceeded"]
+            return AI_ERRORS["generic_rate_limit"]
+
+        if status_code == 400 and (
+            'not a valid model id' in detail_lower or
+            ('model' in detail_lower and 'not found' in detail_lower) or
+            ('model' in detail_lower and 'invalid' in detail_lower)
+        ):
+            return AI_ERRORS["generic_model_not_found"]
+
+        if status_code == 404:
+            if (
+                'not a valid model id' in detail_lower or
+                ('model' in detail_lower and 'not found' in detail_lower) or
+                ('model' in detail_lower and 'invalid' in detail_lower)
+            ):
+                return AI_ERRORS["generic_model_not_found"]
+            return AI_ERRORS["provider_not_available"]
+
+        if 'api is disabled' in detail_lower or 'api disabled' in detail_lower or 'service disabled' in detail_lower or 'not active' in detail_lower:
+            return AI_ERRORS["provider_api_inactive"]
+
+        return AI_ERRORS.get(fallback_key, AI_ERRORS["generic_provider_error"])
     
     def validate_api_key(self) -> bool:
         try:
@@ -113,7 +152,12 @@ class OpenRouterProvider(BaseProvider):
             return False
     
     @classmethod
-    def get_available_models(cls, api_key: Optional[str] = None, provider_filter: Optional[str] = None, use_cache: bool = True) -> List[Dict[str, Any]]:
+    def get_available_models(
+        cls,
+        api_key: Optional[str] = None,
+        provider_filter: Optional[str] = None,
+        use_cache: bool = True,
+    ) -> List[Dict[str, Any]]:
         cache_key = AICacheKeys.provider_models('openrouter', provider_filter)
         
         if use_cache:
@@ -313,17 +357,26 @@ class OpenRouterProvider(BaseProvider):
             
             raise Exception(CONTENT_ERRORS["content_generation_failed"])
             
+        except httpx.TimeoutException:
+            raise Exception(AI_ERRORS["generic_timeout"])
+        except httpx.RequestError:
+            raise Exception(AI_ERRORS["provider_server_unreachable"])
         except httpx.HTTPStatusError as e:
             error_msg = CONTENT_ERRORS["content_generation_failed"]
+            status_code = getattr(e.response, 'status_code', 0)
             try:
                 error_data = e.response.json()
                 if 'error' in error_data:
                     error_msg = error_data['error'].get('message', error_msg)
-            except:
+            except Exception:
                 pass
-            raise Exception(CONTENT_ERRORS["content_generation_failed"].format(error=f"{error_msg}: {str(e)}"))
+            mapped = self._map_http_error_message(status_code, error_msg, 'content_generation_failed')
+            raise Exception(mapped)
         except Exception as e:
-            raise Exception(CONTENT_ERRORS["content_generation_failed"].format(error=str(e)))
+            msg = str(e).strip()
+            if msg in AI_ERRORS.values() or msg in CONTENT_ERRORS.values():
+                raise Exception(msg)
+            raise Exception(CONTENT_ERRORS["content_generation_failed"])
     
     async def generate_seo_content(self, topic: str, **kwargs) -> Dict[str, Any]:
         word_count = kwargs.get('word_count', 500)
@@ -402,17 +455,28 @@ class OpenRouterProvider(BaseProvider):
             
         except json.JSONDecodeError as e:
             raise Exception(CONTENT_ERRORS["content_generation_failed"])
+        except httpx.TimeoutException:
+            raise Exception(AI_ERRORS["generic_timeout"])
+        except httpx.RequestError:
+            raise Exception(AI_ERRORS["provider_server_unreachable"])
         except httpx.HTTPStatusError as e:
             error_msg = CONTENT_ERRORS["content_generation_failed"]
+            status_code = getattr(e.response, 'status_code', 0)
+
             try:
                 error_data = e.response.json()
                 if 'error' in error_data:
                     error_msg = error_data['error'].get('message', error_msg)
-            except:
+            except Exception:
                 pass
-            raise Exception(CONTENT_ERRORS["content_generation_failed"].format(error=f"{error_msg}: {str(e)}"))
+
+            mapped = self._map_http_error_message(status_code, error_msg, 'content_generation_failed')
+            raise Exception(mapped)
         except Exception as e:
-            raise Exception(CONTENT_ERRORS["content_generation_failed"].format(error=str(e)))
+            msg = str(e).strip()
+            if msg in AI_ERRORS.values() or msg in CONTENT_ERRORS.values():
+                raise Exception(msg)
+            raise Exception(CONTENT_ERRORS["content_generation_failed"])
     
     async def chat(self, message: str, conversation_history: Optional[List[Dict[str, str]]] = None, **kwargs) -> str:
         url = f"{self.BASE_URL}/chat/completions"
@@ -479,6 +543,10 @@ class OpenRouterProvider(BaseProvider):
             
             raise Exception(CHAT_ERRORS["chat_failed"])
             
+        except httpx.TimeoutException:
+            raise Exception(AI_ERRORS["generic_timeout"])
+        except httpx.RequestError:
+            raise Exception(AI_ERRORS["provider_server_unreachable"])
         except httpx.HTTPStatusError as e:
             status_code = e.response.status_code
             error_msg = CHAT_ERRORS["chat_failed"]
@@ -490,26 +558,11 @@ class OpenRouterProvider(BaseProvider):
             except:
                 pass
             
-            if status_code == 401:
-                if 'User not found' in error_msg or 'Unauthorized' in str(e):
-                    raise Exception(
-                        CHAT_ERRORS["chat_failed"].format(error="Invalid API key")
-                    )
-                else:
-                    raise Exception(
-                        CHAT_ERRORS["chat_failed"].format(error=error_msg)
-                    )
-            elif status_code == 429:
-                if 'quota' in error_msg.lower() or 'billing' in error_msg.lower():
-                    raise Exception(
-                        CHAT_ERRORS["chat_quota_exceeded"]
-                    )
-                else:
-                    raise Exception(CHAT_ERRORS["chat_rate_limit"])
-            elif status_code == 403:
-                raise Exception(CHAT_ERRORS["chat_forbidden"])
-            
-            raise Exception(CHAT_ERRORS["chat_failed"].format(error=f"{error_msg}: {str(e)}"))
+            mapped = self._map_http_error_message(status_code, error_msg, 'chat_failed')
+            raise Exception(mapped)
         except Exception as e:
-            raise Exception(CHAT_ERRORS["chat_failed"].format(error=str(e)))
+            msg = str(e).strip()
+            if msg in AI_ERRORS.values() or msg in CHAT_ERRORS.values():
+                raise Exception(msg)
+            raise Exception(CHAT_ERRORS["chat_failed"])
 

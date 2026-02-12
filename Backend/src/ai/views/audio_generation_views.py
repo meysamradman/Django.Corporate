@@ -13,6 +13,7 @@ from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.core.responses.response import APIResponse
 from src.user.access_control import ai_permission, PermissionRequiredMixin
 from src.ai.providers.registry import AIProviderRegistry
+from src.ai.utils.error_mapper import map_ai_exception
 import base64
 import logging
 
@@ -112,8 +113,8 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
         if not provider_slug:
                 return APIResponse.error(
                     message=AI_ERRORS.get('no_active_providers'),
-                status_code=status.HTTP_400_BAD_REQUEST
-            )
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
 
         try:
             provider = AIProvider.objects.get(slug=provider_slug, is_active=True)
@@ -195,6 +196,7 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
                 message=AI_ERRORS.get('provider_tts_not_supported', AI_ERRORS.get("audio_generation_failed")),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
+
         except ValueError as e:
             error_message = str(e)
             final_message = AI_ERRORS["provider_not_available"] if 'provider' in error_message.lower() else AI_ERRORS["audio_generation_failed"]
@@ -202,6 +204,7 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
                 message=final_message,
                 status_code=status.HTTP_400_BAD_REQUEST
             )
+
         except Exception as e:
             logger.exception(
                 "AI audio generation failed",
@@ -211,26 +214,8 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
                     'save_to_db': save_to_db,
                 }
             )
-            error_message = str(e).lower()
-            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
-            if 'quota' in error_message or 'billing' in error_message or 'credit' in error_message or '429' in error_message:
-                final_msg = AI_ERRORS["generic_quota_exceeded"]
-                status_code = status.HTTP_429_TOO_MANY_REQUESTS
-            elif 'api key' in error_message or 'unauthorized' in error_message or 'authentication' in error_message or '401' in error_message:
-                final_msg = AI_ERRORS["generic_api_key_invalid"]
-                status_code = status.HTTP_400_BAD_REQUEST
-            elif 'rate limit' in error_message or 'too many requests' in error_message:
-                final_msg = AI_ERRORS["generic_rate_limit"]
-                status_code = status.HTTP_429_TOO_MANY_REQUESTS
-            elif 'timeout' in error_message:
-                final_msg = AI_ERRORS["generic_timeout"]
-                status_code = status.HTTP_504_GATEWAY_TIMEOUT
-            elif 'model' in error_message and 'not found' in error_message:
-                final_msg = AI_ERRORS["generic_model_not_found"]
-                status_code = status.HTTP_404_NOT_FOUND
-            else:
-                final_msg = AI_ERRORS["audio_generation_failed"]
+            final_msg, status_code = map_ai_exception(e, AI_ERRORS["audio_generation_failed"])
 
             return APIResponse.error(
                 message=final_msg,

@@ -71,18 +71,7 @@ class OpenAIProvider(BaseProvider):
             raise Exception(AI_ERRORS["image_generation_failed"])
             
         except httpx.HTTPStatusError as e:
-            error_msg = AI_ERRORS["image_generation_http_error"]
-            try:
-                error_data = e.response.json()
-                error_detail = error_data.get('error', {}).get('message', '')
-                
-                if 'billing' in error_detail.lower() or 'limit' in error_detail.lower() or 'hard limit' in error_detail.lower():
-                    error_msg = AI_ERRORS["image_quota_exceeded"]
-                else:
-                    error_msg = AI_ERRORS["image_generation_http_error"]
-            except:
-                error_msg = AI_ERRORS["image_generation_http_error"]
-            raise Exception(error_msg)
+            self.raise_mapped_http_error(e, "image_generation_http_error")
         except Exception as e:
             raise Exception(AI_ERRORS["image_generation_failed"])
     
@@ -129,12 +118,7 @@ class OpenAIProvider(BaseProvider):
             raise Exception(AI_ERRORS["content_generation_failed"])
             
         except httpx.HTTPStatusError as e:
-            try:
-                error_data = e.response.json()
-                error_msg = error_data.get('error', {}).get('message', '')
-                raise Exception(AI_ERRORS["content_generation_failed"])
-            except:
-                raise Exception(AI_ERRORS["content_generation_failed"])
+            self.raise_mapped_http_error(e, "content_generation_failed")
         except Exception as e:
             raise Exception(AI_ERRORS["content_generation_failed"])
     
@@ -192,26 +176,7 @@ class OpenAIProvider(BaseProvider):
             raise Exception(AI_ERRORS["content_generation_failed"])
             
         except httpx.HTTPStatusError as e:
-            status_code = e.response.status_code
-            try:
-                error_data = e.response.json()
-                error_msg = error_data.get('error', {}).get('message', '')
-                
-                if status_code == 429:
-                    if 'quota' in error_msg.lower() or 'billing' in error_msg.lower():
-                        raise Exception(AI_ERRORS["generic_quota_exceeded"])
-                    else:
-                        raise Exception(AI_ERRORS["generic_rate_limit"])
-                elif status_code == 401:
-                    raise Exception(AI_ERRORS["generic_api_key_invalid"])
-                elif status_code == 403:
-                    raise Exception(AI_ERRORS["provider_not_authorized"])
-                
-                raise Exception(AI_ERRORS["content_generation_failed"])
-            except Exception as ex:
-                if status_code == 429:
-                    raise Exception(AI_ERRORS["generic_rate_limit"])
-                raise Exception(AI_ERRORS["content_generation_failed"])
+            self.raise_mapped_http_error(e, "content_generation_failed")
         except json.JSONDecodeError as e:
             raise Exception(AI_ERRORS["invalid_json"])
         except Exception as e:
@@ -282,26 +247,7 @@ class OpenAIProvider(BaseProvider):
             raise Exception(AI_ERRORS["chat_failed"])
             
         except httpx.HTTPStatusError as e:
-            status_code = e.response.status_code
-            try:
-                error_data = e.response.json()
-                error_msg = error_data.get('error', {}).get('message', '')
-                
-                if status_code == 429:
-                    if 'quota' in error_msg.lower() or 'billing' in error_msg.lower():
-                        raise Exception(AI_ERRORS["generic_quota_exceeded"])
-                    else:
-                        raise Exception(AI_ERRORS["generic_rate_limit"])
-                elif status_code == 401:
-                    raise Exception(AI_ERRORS["generic_api_key_invalid"])
-                elif status_code == 403:
-                    raise Exception(AI_ERRORS["provider_not_authorized"])
-                
-                raise Exception(AI_ERRORS["chat_failed"])
-            except Exception as ex:
-                if status_code == 429:
-                    raise Exception(AI_ERRORS["generic_rate_limit"])
-                raise Exception(AI_ERRORS["chat_failed"])
+            self.raise_mapped_http_error(e, "chat_failed")
         except Exception as e:
             raise Exception(AI_ERRORS["chat_failed"])
     
@@ -333,26 +279,7 @@ class OpenAIProvider(BaseProvider):
             return BytesIO(response.content)
             
         except httpx.HTTPStatusError as e:
-            status_code = e.response.status_code
-            try:
-                error_data = e.response.json()
-                error_msg = error_data.get('error', {}).get('message', '')
-                
-                if status_code == 429:
-                    if 'quota' in error_msg.lower() or 'billing' in error_msg.lower():
-                        raise Exception(AI_ERRORS["generic_quota_exceeded"])
-                    else:
-                        raise Exception(AI_ERRORS["generic_rate_limit"])
-                elif status_code == 401:
-                    raise Exception(AI_ERRORS["generic_api_key_invalid"])
-                elif status_code == 403:
-                    raise Exception(AI_ERRORS["provider_not_authorized"])
-                
-                raise Exception(AI_ERRORS["audio_generation_failed"])
-            except Exception as ex:
-                if status_code == 429:
-                    raise Exception(AI_ERRORS["generic_rate_limit"])
-                raise Exception(AI_ERRORS["audio_generation_failed"])
+            self.raise_mapped_http_error(e, "audio_generation_failed")
         except Exception as e:
             raise Exception(AI_ERRORS["audio_generation_failed"])
     

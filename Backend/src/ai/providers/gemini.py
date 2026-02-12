@@ -69,43 +69,7 @@ class GeminiProvider(BaseProvider):
             raise Exception(AI_ERRORS["content_generation_failed"])
             
         except httpx.HTTPStatusError as e:
-            status_code = e.response.status_code
-            error_msg = ""
-            error_text = ""
-            
-            try:
-                error_data = e.response.json()
-                error_msg = error_data.get('error', {}).get('message', '')
-                if not error_msg:
-                    error_msg = error_data.get('message', '')
-            except (json.JSONDecodeError, ValueError, AttributeError):
-                try:
-                    error_text = e.response.text[:500] if hasattr(e.response, 'text') and e.response.text else ""
-                except:
-                    error_text = ""
-            
-            if status_code == 403:
-                error_detail = error_msg or error_text or "Access denied"
-                error_lower = error_detail.lower()
-                
-                if 'api key' in error_lower or 'permission' in error_lower or 'forbidden' in error_lower or 'api_key_not_valid' in error_lower or not error_detail or status_code == 403:
-                    error_detail_formatted = error_detail if error_detail != 'Access denied' else '403 Forbidden'
-                    raise Exception(AI_ERRORS["generic_api_key_invalid"])
-                else:
-                    raise Exception(AI_ERRORS["provider_not_authorized"])
-            elif status_code == 400:
-                raise Exception(AI_ERRORS["validation_error"])
-            elif status_code == 429:
-                raise Exception(AI_ERRORS["generic_rate_limit"])
-            elif status_code == 401:
-                raise Exception(AI_ERRORS["generic_api_key_invalid"])
-            
-            if error_msg:
-                raise Exception(AI_ERRORS["content_generation_failed"])
-            elif error_text:
-                raise Exception(AI_ERRORS["content_generation_failed"])
-            else:
-                raise Exception(AI_ERRORS["content_generation_failed"])
+            self.raise_mapped_http_error(e, "content_generation_failed")
         except Exception as e:
             raise Exception(AI_ERRORS["content_generation_failed"])
     
@@ -169,43 +133,7 @@ class GeminiProvider(BaseProvider):
             raise Exception(AI_ERRORS["content_generation_failed"])
             
         except httpx.HTTPStatusError as e:
-            status_code = e.response.status_code
-            error_msg = ""
-            error_text = ""
-            
-            try:
-                error_data = e.response.json()
-                error_msg = error_data.get('error', {}).get('message', '')
-                if not error_msg:
-                    error_msg = error_data.get('message', '')
-            except (json.JSONDecodeError, ValueError, AttributeError):
-                try:
-                    error_text = e.response.text[:500] if hasattr(e.response, 'text') and e.response.text else ""
-                except:
-                    error_text = ""
-            
-            if status_code == 403:
-                error_detail = error_msg or error_text or "Access denied"
-                error_lower = error_detail.lower()
-                
-                if 'api key' in error_lower or 'permission' in error_lower or 'forbidden' in error_lower or 'api_key_not_valid' in error_lower or not error_detail or status_code == 403:
-                    error_detail_formatted = error_detail if error_detail != 'Access denied' else '403 Forbidden'
-                    raise Exception(AI_ERRORS["generic_api_key_invalid"])
-                else:
-                    raise Exception(AI_ERRORS["provider_not_authorized"])
-            elif status_code == 400:
-                raise Exception(AI_ERRORS["validation_error"])
-            elif status_code == 429:
-                raise Exception(AI_ERRORS["generic_rate_limit"])
-            elif status_code == 401:
-                raise Exception(AI_ERRORS["generic_api_key_invalid"])
-            
-            if error_msg:
-                raise Exception(AI_ERRORS["content_generation_failed"])
-            elif error_text:
-                raise Exception(AI_ERRORS["content_generation_failed"])
-            else:
-                raise Exception(AI_ERRORS["content_generation_failed"])
+            self.raise_mapped_http_error(e, "content_generation_failed")
         except json.JSONDecodeError as e:
             raise Exception(AI_ERRORS["invalid_json"])
         except Exception as e:
@@ -297,29 +225,7 @@ class GeminiProvider(BaseProvider):
         except httpx.ReadTimeout:
             raise Exception(AI_ERRORS["generic_timeout"])
         except httpx.HTTPStatusError as e:
-            status_code = e.response.status_code
-            error_msg = ""
-            error_text = ""
-            
-            try:
-                error_data = e.response.json()
-                error_msg = error_data.get('error', {}).get('message', '')
-                if not error_msg:
-                    error_msg = error_data.get('message', '')
-            except (json.JSONDecodeError, ValueError, AttributeError):
-                try:
-                    error_text = e.response.text[:500] if hasattr(e.response, 'text') and e.response.text else ""
-                except:
-                    error_text = ""
-            
-            if status_code == 403:
-                raise Exception(AI_ERRORS["provider_not_authorized"])
-            elif status_code == 429:
-                raise Exception(AI_ERRORS["generic_rate_limit"])
-            elif status_code == 401:
-                raise Exception(AI_ERRORS["generic_api_key_invalid"])
-            else:
-                raise Exception(AI_ERRORS["chat_failed"])
+            self.raise_mapped_http_error(e, "chat_failed")
         except Exception as e:
             raise Exception(AI_ERRORS["chat_failed"])
     

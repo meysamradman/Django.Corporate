@@ -87,35 +87,35 @@ PROVIDER_CAPABILITIES = {
     'openrouter': {
         'supports_chat': True,
         'supports_content': True,
-        'supports_image': True,
+        'supports_image': False,
         'supports_audio': False,
         'has_dynamic_models': True,
         'models': {
             'chat': [
-                'anthropic/claude-3.7-sonnet',
-                'anthropic/claude-3.5-opus',
-                'xai/grok-2',
-                'xai/grok-3-beta',
-                'meta-llama/llama-4-70b-instruct',
-                'google/gemini-2.0-pro-exp:free',
+                'openai/gpt-oss-120b:free',
+                'openai/gpt-oss-20b:free',
+                'qwen/qwen3-coder:free',
+                'deepseek/deepseek-r1-0528:free',
+                'meta-llama/llama-3.3-70b-instruct:free',
                 'meta-llama/llama-3.2-3b-instruct:free',
+                'google/gemma-3-12b-it:free',
             ],
             'content': [
-                'anthropic/claude-3.7-sonnet',
-                'xai/grok-2',
-                'google/gemini-2.0-flash'
+                'openai/gpt-oss-120b:free',
+                'openai/gpt-oss-20b:free',
+                'qwen/qwen3-coder:free',
+                'deepseek/deepseek-r1-0528:free',
+                'meta-llama/llama-3.3-70b-instruct:free',
+                'meta-llama/llama-3.2-3b-instruct:free',
+                'google/gemma-3-12b-it:free',
             ],
-            'image': [
-                'black-forest-labs/flux-1-pro',
-                'stabilityai/stable-diffusion-3.5-large',
-                'openai/dall-e-3'
-            ],
+            'image': [],
             'audio': [],
         },
         'default_models': {
-            'chat': 'anthropic/claude-3.7-sonnet',
-            'content': 'anthropic/claude-3.7-sonnet',
-            'image': 'black-forest-labs/flux-1-pro',
+            'chat': 'openai/gpt-oss-120b:free',
+            'content': 'openai/gpt-oss-120b:free',
+            'image': None,
             'audio': None,
         },
         'provider_class': 'src.ai.providers.openrouter.OpenRouterProvider',
@@ -123,35 +123,48 @@ PROVIDER_CAPABILITIES = {
     'huggingface': {
         'supports_chat': True,
         'supports_content': True,
-        'supports_image': True,
+        'supports_image': False,
         'supports_audio': False,
         'has_dynamic_models': True,
         'models': {
             'chat': [
-                'Qwen/Qwen2.5-7B-Instruct',
-                'Qwen/Qwen2.5-3B-Instruct',
-                'mistralai/Mistral-7B-Instruct-v0.3',
-                'microsoft/Phi-3-mini-4k-instruct'
+                'deepseek-ai/DeepSeek-R1-0528',
+                'ServiceNow-AI/Apriel-1.6-15b-Thinker',
             ],
             'content': [
-                'Qwen/Qwen2.5-7B-Instruct',
-                'Qwen/Qwen2.5-3B-Instruct',
-                'mistralai/Mistral-7B-Instruct-v0.3'
+                'deepseek-ai/DeepSeek-R1-0528',
+                'ServiceNow-AI/Apriel-1.6-15b-Thinker',
             ],
-            'image': [
-                'black-forest-labs/FLUX.1-dev',
-                'stabilityai/stable-diffusion-3.5-large',
-                'stabilityai/stable-diffusion-xl-base-1.0'
-            ],
+            'image': [],
             'audio': [],
         },
         'default_models': {
-            'chat': 'Qwen/Qwen2.5-7B-Instruct',
-            'content': 'Qwen/Qwen2.5-7B-Instruct',
-            'image': 'black-forest-labs/FLUX.1-dev',
+            'chat': 'deepseek-ai/DeepSeek-R1-0528',
+            'content': 'deepseek-ai/DeepSeek-R1-0528',
+            'image': None,
             'audio': None,
         },
         'provider_class': 'src.ai.providers.huggingface.HuggingFaceProvider',
+    },
+    'groq': {
+        'supports_chat': True,
+        'supports_content': True,
+        'supports_image': False,
+        'supports_audio': False,
+        'has_dynamic_models': True,
+        'models': {
+            'chat': [],
+            'content': [],
+            'image': [],
+            'audio': [],
+        },
+        'default_models': {
+            'chat': None,
+            'content': None,
+            'image': None,
+            'audio': None,
+        },
+        'provider_class': 'src.ai.providers.groq.GroqProvider',
     }
 }
 

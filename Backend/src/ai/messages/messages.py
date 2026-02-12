@@ -24,7 +24,9 @@ AI_SUCCESS = {
     
     # Content Generation
     "content_generated": "محتوا تولید شد",
+    "content_generated_and_saved": "محتوا تولید و ذخیره شد",
     "content_saved": "محتوا ذخیره شد",
+    "destinations_retrieved": "لیست مقصدها دریافت شد",
     
     # Image Generation
     "image_generated": "تصویر تولید شد",
@@ -79,6 +81,11 @@ AI_ERRORS = {
     "provider_not_found_or_inactive": "سرویس‌دهنده یافت نشد یا غیرفعال است",
     "provider_not_authorized": "دسترسی به این سرویس‌دهنده ندارید",
     "provider_not_available": "سرویس‌دهنده در دسترس نیست",
+    "provider_access_blocked": "دسترسی به سرویس‌دهنده محدود یا قطع شده است",
+    "provider_api_inactive": "API سرویس‌دهنده فعال نیست",
+    "provider_server_unreachable": "ارتباط با سرور سرویس‌دهنده برقرار نشد",
+    "provider_model_paid_required": "این مدل نیازمند پلن یا اعتبار پولی است",
+    "provider_limit_exceeded": "محدودیت استفاده شما از سرویس‌دهنده به پایان رسیده است",
     "no_active_providers": "هیچ سرویس‌دهنده فعالی یافت نشد",
     "no_active_model_any_provider": "هیچ مدل فعالی برای قابلیت {capability} یافت نشد",
     "model_not_found": "مدل یافت نشد",

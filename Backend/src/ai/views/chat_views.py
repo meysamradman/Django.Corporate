@@ -13,6 +13,7 @@ from src.user.access_control import ai_permission, PermissionRequiredMixin
 from src.ai.providers.capabilities import get_provider_capabilities, supports_feature, PROVIDER_CAPABILITIES
 from src.ai.providers.registry import AIProviderRegistry
 from src.ai.models import AIProvider, AdminProviderSettings
+from src.ai.utils.error_mapper import map_ai_exception
 
 class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     permission_classes = [ai_permission]
@@ -25,8 +26,17 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     
     @action(detail=False, methods=['post'], url_path='send-message')
     def send_message(self, request):
-        serializer = AIChatRequestSerializer(data=request.data)
+        """
+        Send a message to AI chat.
         
+        View Layer Responsibility:
+        - Validate request (Serializer)
+        - Call business logic (Service)
+        - Handle exceptions
+        - Return formatted response (APIResponse)
+        """
+        # --- 1. Validation (Serializer Layer) ---
+        serializer = AIChatRequestSerializer(data=request.data)
         if not serializer.is_valid():
             return APIResponse.error(
                 message=AI_ERRORS["validation_error"],
@@ -37,6 +47,7 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
         validated_data = serializer.validated_data
         
         try:
+            # Prepare conversation history
             conversation_history = None
             if validated_data.get('conversation_history'):
                 conversation_history = [
@@ -45,12 +56,13 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                 ]
             
             provider_name = validated_data.get('provider_name')
-            model_id = validated_data.get('model_id')  # Explicit model override
+            model_id = validated_data.get('model_id')
             
+            # --- 2. Business Logic (Service Layer) ---
             chat_data = AIChatService.chat(
                 message=validated_data['message'],
                 provider_name=provider_name,
-                model_name=model_id, # Pass to service
+                model_name=model_id,
                 conversation_history=conversation_history,
                 system_message=validated_data.get('system_message'),
                 temperature=validated_data.get('temperature', 0.7),
@@ -59,8 +71,10 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                 admin=request.user,
             )
             
+            # --- 3. Response Serialization ---
             response_serializer = AIChatResponseSerializer(chat_data)
             
+            # --- 4. Success Response ---
             return APIResponse.success(
                 message=AI_SUCCESS["message_sent"],
                 data=response_serializer.data,
@@ -68,32 +82,13 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             )
             
         except ValueError as e:
+            # Service raises ValueError for business logic errors
             return APIResponse.error(
-                message=AI_ERRORS["validation_error"],
+                message=str(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
-            error_message = str(e).lower()
-            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-            
-            # --- Enhanced Error Categories ---
-            if 'quota' in error_message or 'billing' in error_message or 'credit' in error_message or '429' in error_message:
-                final_msg = AI_ERRORS["generic_quota_exceeded"]
-                status_code = status.HTTP_429_TOO_MANY_REQUESTS
-            elif 'api key' in error_message or 'unauthorized' in error_message or 'authentication' in error_message or '401' in error_message:
-                final_msg = AI_ERRORS["generic_api_key_invalid"]
-                status_code = status.HTTP_400_BAD_REQUEST
-            elif 'rate limit' in error_message or 'too many requests' in error_message:
-                final_msg = AI_ERRORS["generic_rate_limit"]
-                status_code = status.HTTP_429_TOO_MANY_REQUESTS
-            elif 'timeout' in error_message:
-                final_msg = AI_ERRORS["generic_timeout"]
-                status_code = status.HTTP_504_GATEWAY_TIMEOUT
-            elif 'model' in error_message and 'not found' in error_message:
-                final_msg = AI_ERRORS["generic_model_not_found"]
-                status_code = status.HTTP_404_NOT_FOUND
-            else:
-                final_msg = AI_ERRORS["chat_failed"]
+            final_msg, status_code = map_ai_exception(e, AI_ERRORS["chat_failed"])
 
             return APIResponse.error(
                 message=final_msg,

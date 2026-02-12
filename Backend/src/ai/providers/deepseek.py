@@ -73,23 +73,7 @@ class DeepSeekProvider(BaseProvider):
             raise Exception(AI_ERRORS["content_generation_failed"])
             
         except httpx.HTTPStatusError as e:
-            status_code = e.response.status_code
-            try:
-                error_data = e.response.json()
-                error_msg = error_data.get('error', {}).get('message', '')
-                
-                if status_code == 429:
-                    raise Exception(AI_ERRORS["generic_rate_limit"])
-                elif status_code == 401:
-                    raise Exception(AI_ERRORS["generic_api_key_invalid"])
-                elif status_code == 403:
-                    raise Exception(AI_ERRORS["provider_not_authorized"])
-                
-                raise Exception(AI_ERRORS["content_generation_failed"])
-            except Exception as ex:
-                if status_code == 429:
-                    raise Exception(AI_ERRORS["generic_rate_limit"])
-                raise Exception(AI_ERRORS["content_generation_failed"])
+            self.raise_mapped_http_error(e, "content_generation_failed")
         except Exception as e:
             raise Exception(AI_ERRORS["content_generation_failed"])
     
@@ -152,23 +136,7 @@ class DeepSeekProvider(BaseProvider):
             raise Exception(AI_ERRORS["content_generation_failed"])
             
         except httpx.HTTPStatusError as e:
-            status_code = e.response.status_code
-            try:
-                error_data = e.response.json()
-                error_msg = error_data.get('error', {}).get('message', '')
-                
-                if status_code == 429:
-                    raise Exception(AI_ERRORS["generic_rate_limit"])
-                elif status_code == 401:
-                    raise Exception(AI_ERRORS["generic_api_key_invalid"])
-                elif status_code == 403:
-                    raise Exception(AI_ERRORS["provider_not_authorized"])
-                
-                raise Exception(AI_ERRORS["content_generation_failed"])
-            except Exception as ex:
-                if status_code == 429:
-                    raise Exception(AI_ERRORS["generic_rate_limit"])
-                raise Exception(AI_ERRORS["content_generation_failed"])
+            self.raise_mapped_http_error(e, "content_generation_failed")
         except json.JSONDecodeError as e:
             raise Exception(AI_ERRORS["invalid_json"])
         except Exception as e:
@@ -240,23 +208,7 @@ class DeepSeekProvider(BaseProvider):
             raise Exception(AI_ERRORS["chat_failed"])
             
         except httpx.HTTPStatusError as e:
-            status_code = e.response.status_code
-            try:
-                error_data = e.response.json()
-                error_msg = error_data.get('error', {}).get('message', '')
-                
-                if status_code == 429:
-                    raise Exception(AI_ERRORS["generic_rate_limit"])
-                elif status_code == 401:
-                    raise Exception(AI_ERRORS["generic_api_key_invalid"])
-                elif status_code == 403:
-                    raise Exception(AI_ERRORS["provider_not_authorized"])
-                
-                raise Exception(AI_ERRORS["chat_failed"])
-            except Exception as ex:
-                if status_code == 429:
-                    raise Exception(AI_ERRORS["generic_rate_limit"])
-                raise Exception(AI_ERRORS["chat_failed"])
+            self.raise_mapped_http_error(e, "chat_failed")
         except Exception as e:
             raise Exception(AI_ERRORS["chat_failed"])
     

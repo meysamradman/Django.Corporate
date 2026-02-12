@@ -24,7 +24,7 @@ class HuggingFaceProvider(BaseProvider):
     def __init__(self, api_key: str, config: Optional[Dict[str, Any]] = None):
         super().__init__(api_key, config)
         self.image_model = config.get('image_model', 'stabilityai/stable-diffusion-xl-base-1.0') if config else 'stabilityai/stable-diffusion-xl-base-1.0'
-        self.content_model = config.get('content_model', 'gpt2') if config else 'gpt2'
+        self.content_model = config.get('content_model', 'deepseek-ai/DeepSeek-R1-0528') if config else 'deepseek-ai/DeepSeek-R1-0528'
         self.client = httpx.AsyncClient(
             timeout=180.0,  # timeout کلی برای HuggingFace (نیاز به timeout بیشتر)
             limits=httpx.Limits(max_keepalive_connections=5, max_connections=10)
@@ -59,9 +59,9 @@ class HuggingFaceProvider(BaseProvider):
                 return cached_models
         
         try:
-            # For chat, use Hugging Face Router OpenAI-compatible API.
-            # This avoids listing Hub models that are not runnable on the router.
-            if capability == 'chat':
+            # For dynamic capabilities, use Hugging Face Router metadata first.
+            # This avoids listing Hub models that are not runnable for the key/provider.
+            if capability in ('chat', 'content', 'image'):
                 url = f"{HuggingFaceProvider.ROUTER_V1_BASE_URL}/models"
                 headers = {}
                 if api_key:
@@ -86,18 +86,35 @@ class HuggingFaceProvider(BaseProvider):
                     model_id = model.get('id') or model.get('name')
                     if not model_id:
                         continue
+
+                    architecture = model.get('architecture') or {}
+                    input_modalities = [m.lower() for m in (architecture.get('input_modalities') or [])]
+                    output_modalities = [m.lower() for m in (architecture.get('output_modalities') or [])]
+
+                    if capability == 'chat' and 'text' not in output_modalities:
+                        continue
+                    if capability == 'content' and 'text' not in output_modalities:
+                        continue
+                    if capability == 'image' and 'image' not in output_modalities and 'image' not in input_modalities:
+                        continue
+
                     models.append({
                         'id': model_id,
                         'name': model.get('name', model_id),
                         'description': model.get('description', ''),
                         'pricing': model.get('pricing', {}),
                         'context_length': model.get('context_length') or model.get('context_window'),
+                        'architecture': architecture,
                     })
 
-                logger.info(f"[HuggingFace] Router returned {len(models)} chat models")
-                if use_cache:
-                    cache.set(cache_key, models, 6 * 60 * 60)
-                return models
+                if models:
+                    logger.info(f"[HuggingFace] Router returned {len(models)} {capability} models")
+                    if use_cache:
+                        cache.set(cache_key, models, 6 * 60 * 60)
+                    return models
+
+                # If router has no image models for this key/capability, fallback to Hub catalog below.
+                logger.info(f"[HuggingFace] Router returned 0 {capability} models; falling back to Hub API")
             
             url = "https://huggingface.co/api/models"
             
@@ -243,23 +260,10 @@ class HuggingFaceProvider(BaseProvider):
         except httpx.TimeoutException:
             raise Exception(AI_ERRORS["connection_timeout"])
         except httpx.HTTPStatusError as e:
-            try:
-                error_data = e.response.json()
-                error_detail = error_data.get('error', '')
-                
-                if 'loading' in str(error_detail).lower() or e.response.status_code == 503:
-                    error_msg = AI_ERRORS["huggingface_model_loading"]
-                else:
-                    error_msg = AI_ERRORS["image_generation_http_error"].format(
-                        status_code=e.response.status_code,
-                        detail=error_detail if error_detail else str(e)
-                    )
-            except:
-                error_msg = AI_ERRORS["image_generation_http_error"].format(
-                    status_code=e.response.status_code,
-                    detail=str(e)
-                )
-            raise Exception(error_msg)
+            error_detail = self._extract_http_error_detail(e)
+            if e.response.status_code == 503 or 'loading' in error_detail.lower():
+                raise Exception(AI_ERRORS["huggingface_model_loading"])
+            self.raise_mapped_http_error(e, "image_generation_http_error")
         except Exception as e:
             error_str = str(e)
             if 'ReadTimeout' in error_str or 'timeout' in error_str.lower():
@@ -267,83 +271,53 @@ class HuggingFaceProvider(BaseProvider):
             raise Exception(AI_ERRORS["image_generation_failed"].format(error=error_str))
     
     async def generate_content(self, prompt: str, **kwargs) -> str:
-        # Use model from config (set by service) or fall back to content_model
         model_to_use = self.config.get('model') or kwargs.get('model') or self.content_model
-        url = f"{self.BASE_URL}/models/{model_to_use}"
-        
+        url = f"{self.ROUTER_V1_BASE_URL}/chat/completions"
+
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
         }
-        
+
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
-        
-        # Use centralized content prompt from prompts module
+
         content_prompt_template = get_content_prompt(provider='huggingface')
         full_prompt = content_prompt_template.format(
             topic=prompt,
             word_count=word_count,
             tone=tone
         )
-        
+
         payload = {
-            "inputs": full_prompt,
-            "parameters": {
-                "max_new_tokens": word_count * 2,
-                "temperature": 0.7,
-                "top_p": 0.9,
-                "return_full_text": False,
-                "do_sample": True,
-            }
+            "model": model_to_use,
+            "messages": [
+                {"role": "system", "content": "You are an expert SEO content writer writing in Persian (Farsi)."},
+                {"role": "user", "content": full_prompt}
+            ],
+            "temperature": kwargs.get('temperature', 0.7),
+            "max_tokens": kwargs.get('max_tokens', word_count * 2),
         }
-        
+
         try:
             response = await self.client.post(url, json=payload, headers=headers)
             response.raise_for_status()
-            
+
             data = response.json()
-            
-            if isinstance(data, list) and len(data) > 0:
-                generated_text = data[0].get('generated_text', '')
-                if generated_text:
-                    if full_prompt in generated_text:
-                        generated_text = generated_text.replace(full_prompt, '').strip()
-                    return generated_text.strip()
-            elif isinstance(data, dict):
-                if 'generated_text' in data:
-                    generated_text = data['generated_text']
-                    if full_prompt in generated_text:
-                        generated_text = generated_text.replace(full_prompt, '').strip()
-                    return generated_text.strip()
-            
-            raise Exception(AI_ERRORS["content_generation_failed"].format(error="No content generated"))
+            if isinstance(data, dict) and 'choices' in data and len(data['choices']) > 0:
+                content = data['choices'][0].get('message', {}).get('content', '')
+                if content:
+                    return content.strip()
+
+            raise Exception(AI_ERRORS["content_generation_failed"])
             
         except httpx.ReadTimeout:
             raise Exception(AI_ERRORS["content_generation_timeout"])
         except httpx.HTTPStatusError as e:
-            status_code = e.response.status_code
-            error_msg = ""
-            error_text = ""
-            
-            try:
-                error_data = e.response.json()
-                error_msg = error_data.get('error', '')
-                if not error_msg:
-                    error_msg = error_data.get('message', '')
-            except (json.JSONDecodeError, ValueError, AttributeError):
-                try:
-                    error_text = e.response.text[:500] if hasattr(e.response, 'text') and e.response.text else ""
-                except:
-                    error_text = ""
-            
-            if status_code == 404:
-                raise Exception(AI_ERRORS["model_not_found"])
-            elif status_code == 503 or 'loading' in (error_msg or error_text).lower():
+            error_detail = self._extract_http_error_detail(e)
+            if e.response.status_code == 503 or 'loading' in error_detail.lower():
                 raise Exception(AI_ERRORS["huggingface_model_loading"])
-            else:
-                error_detail = error_msg or error_text or f"HTTP {status_code}"
-                raise Exception(AI_ERRORS["content_generation_failed"].format(error=error_detail))
+            self.raise_mapped_http_error(e, "content_generation_failed")
         except Exception as e:
             raise Exception(AI_ERRORS["content_generation_failed"].format(error=str(e)))
     
@@ -362,24 +336,22 @@ class HuggingFaceProvider(BaseProvider):
             word_count=word_count
         )
         
-        # Use model from config (set by service) or fall back to content_model
         model_to_use = self.config.get('model') or kwargs.get('model') or self.content_model
-        url = f"{self.BASE_URL}/models/{model_to_use}"
-        
+        url = f"{self.ROUTER_V1_BASE_URL}/chat/completions"
+
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
         }
-        
+
         payload = {
-            "inputs": seo_prompt,
-            "parameters": {
-                "max_new_tokens": word_count * 3,
-                "temperature": 0.7,
-                "top_p": 0.9,
-                "return_full_text": False,
-                "do_sample": True,
-            }
+            "model": model_to_use,
+            "messages": [
+                {"role": "system", "content": "You are an expert SEO content writer. Always respond with valid JSON only, no additional text."},
+                {"role": "user", "content": seo_prompt}
+            ],
+            "temperature": kwargs.get('temperature', 0.7),
+            "max_tokens": kwargs.get('max_tokens', max(1200, word_count * 4)),
         }
         
         try:
@@ -387,12 +359,10 @@ class HuggingFaceProvider(BaseProvider):
             response.raise_for_status()
             
             data = response.json()
-            
+
             generated_text = ""
-            if isinstance(data, list) and len(data) > 0:
-                generated_text = data[0].get('generated_text', '')
-            elif isinstance(data, dict):
-                generated_text = data.get('generated_text', '')
+            if isinstance(data, dict) and 'choices' in data and len(data['choices']) > 0:
+                generated_text = data['choices'][0].get('message', {}).get('content', '')
             
             if not generated_text:
                 raise Exception(AI_ERRORS["content_generation_failed"].format(error="No content generated"))
@@ -419,29 +389,13 @@ class HuggingFaceProvider(BaseProvider):
         except httpx.ReadTimeout:
             raise Exception(AI_ERRORS["content_generation_timeout"])
         except httpx.HTTPStatusError as e:
-            status_code = e.response.status_code
-            error_msg = ""
-            error_text = ""
-            
-            try:
-                error_data = e.response.json()
-                error_msg = error_data.get('error', '')
-                if not error_msg:
-                    error_msg = error_data.get('message', '')
-            except (json.JSONDecodeError, ValueError, AttributeError):
-                try:
-                    error_text = e.response.text[:500] if hasattr(e.response, 'text') and e.response.text else ""
-                except:
-                    error_text = ""
-            
-            if status_code == 404:
-                raise Exception(AI_ERRORS["model_not_found"])
-            elif status_code == 503 or 'loading' in (error_msg or error_text).lower():
+            error_detail = self._extract_http_error_detail(e)
+            if e.response.status_code == 503 or 'loading' in error_detail.lower():
                 raise Exception(AI_ERRORS["huggingface_model_loading"])
-            else:
-                error_detail = error_msg or error_text or f"HTTP {status_code}"
-                raise Exception(AI_ERRORS["content_generation_failed"].format(error=error_detail))
+            self.raise_mapped_http_error(e, "content_generation_failed")
         except Exception as e:
+            if str(e).strip() in (AI_ERRORS["json_parse_error"], AI_ERRORS["invalid_json"]):
+                raise Exception(AI_ERRORS["invalid_json"])
             raise Exception(AI_ERRORS["content_generation_failed"].format(error=str(e)))
     
     async def chat(self, message: str, conversation_history: Optional[List[Dict[str, str]]] = None, **kwargs) -> str:
@@ -551,41 +505,21 @@ class HuggingFaceProvider(BaseProvider):
         except httpx.ReadTimeout:
             raise Exception(AI_ERRORS["chat_timeout"])
         except httpx.HTTPStatusError as e:
-            status_code = e.response.status_code
-            error_msg = ""
-            error_text = ""
-            
-            try:
-                error_data = e.response.json()
-                error_msg = error_data.get('error', '')
-                if not error_msg:
-                    error_msg = error_data.get('message', '')
-            except (json.JSONDecodeError, ValueError, AttributeError):
-                try:
-                    error_text = e.response.text[:500] if hasattr(e.response, 'text') and e.response.text else ""
-                except:
-                    error_text = ""
-            
-            if status_code == 404:
-                raise Exception(AI_ERRORS["model_not_found"])
-            elif status_code == 503 or 'loading' in (error_msg or error_text).lower():
+            error_detail = self._extract_http_error_detail(e)
+            if e.response.status_code == 503 or 'loading' in error_detail.lower():
                 raise Exception(AI_ERRORS["huggingface_model_loading"])
-            else:
-                error_detail = error_msg or error_text or f"HTTP {status_code}"
-                raise Exception(AI_ERRORS["chat_failed"].format(error=error_detail))
+            self.raise_mapped_http_error(e, "chat_failed")
         except Exception as e:
             raise Exception(AI_ERRORS["chat_failed"].format(error=str(e)))
     
     def validate_api_key(self) -> bool:
         try:
-            url = f"{self.BASE_URL}/models/stabilityai/stable-diffusion-xl-base-1.0"
+            url = f"{self.ROUTER_V1_BASE_URL}/models"
             headers = {"Authorization": f"Bearer {self.api_key}"}
             
             with httpx.Client(timeout=5.0) as client:
-                response = client.head(url, headers=headers)
-                if response.status_code not in [401, 403]:
-                    return True
-                return False
+                response = client.get(url, headers=headers)
+                return response.status_code == 200
         except:
-            return True
+            return False
 

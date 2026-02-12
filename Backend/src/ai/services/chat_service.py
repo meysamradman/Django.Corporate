@@ -1,6 +1,7 @@
 import asyncio
 import time
 from typing import Dict, Any, Optional, List
+from django.core.exceptions import ValidationError
 from src.ai.models import AIProvider, AdminProviderSettings, AICapabilityModel
 from src.ai.providers.registry import AIProviderRegistry
 from src.ai.messages.messages import CHAT_ERRORS, AI_ERRORS
@@ -148,13 +149,12 @@ class AIChatService:
                 'generation_time_ms': generation_time_ms,
             }
             
+        except ValueError as e:
+            logger.error(f"[ChatService] ValueError: {str(e)}")
+            raise
         except Exception as e:
-            import traceback
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"[ChatService] Error: {type(e).__name__}: {str(e)}")
-            logger.debug(traceback.format_exc())
-            raise Exception(AI_ERRORS["chat_failed"].format(error=str(e)))
+            logger.error(f"[ChatService] Error: {type(e).__name__}: {str(e)}", exc_info=True)
+            raise
     
     @classmethod
     def get_available_providers(cls, admin=None) -> list:

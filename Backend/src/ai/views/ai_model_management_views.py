@@ -1,6 +1,8 @@
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from django.core.cache import cache
+import importlib
+import inspect
 
 from src.core.responses.response import APIResponse
 from src.ai.models import AIProvider, AICapabilityModel
@@ -69,40 +71,22 @@ class AIModelManagementViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
 
-        if provider_slug == 'openrouter':
-            from src.ai.providers.openrouter import OpenRouterProvider
+        if provider_slug:
             try:
-                provider_obj = AIProvider.objects.filter(slug='openrouter').first()
-                api_key = None
-                if provider_obj and provider_obj.api_key:
-                    api_key = provider_obj.api_key
+                provider = AIProvider.objects.get(slug=provider_slug, is_active=True)
+            except AIProvider.DoesNotExist:
+                return APIResponse.success(data=[])
 
-                client = OpenRouterProvider(api_key=api_key or None)
-                # Defer to provider implementation if available
-                if hasattr(client, 'list_models'):
-                    raw = client.list_models(capability=capability)
-                else:
-                    import httpx
-                    url = "https://openrouter.ai/api/v1/models"
-                    resp = httpx.get(url, timeout=10.0)
-                    raw = resp.json().get('data', []) if resp.status_code == 200 else []
-
-                filtered = []
-                for m in raw:
-                    model_id = m.get('id') if isinstance(m, dict) else str(m)
-                    name = m.get('name', model_id) if isinstance(m, dict) else model_id
-                    if provider_filter and provider_filter.lower() not in model_id.lower():
-                        continue
-                    filtered.append({
-                        "id": model_id,
-                        "name": name,
-                        "provider_slug": "openrouter",
-                        "is_active": True,
-                    })
-
-                return APIResponse.success(data=filtered)
-            except Exception:
-                pass
+            # Unified dynamic model browsing for all providers.
+            if provider.has_dynamic_models(capability):
+                dynamic = self._get_dynamic_models(
+                    provider=provider,
+                    capability=capability,
+                    task_filter=task_filter,
+                    provider_filter=provider_filter,
+                )
+                if dynamic is not None:
+                    return APIResponse.success(data=dynamic)
 
         # Fallback: Return static models if available for the provider
         if provider_slug:
@@ -121,6 +105,79 @@ class AIModelManagementViewSet(viewsets.ViewSet):
                 pass
 
         return APIResponse.success(data=[])
+
+    def _get_provider_api_key(self, provider: AIProvider) -> str | None:
+        try:
+            if provider.shared_api_key:
+                return provider.get_shared_api_key()
+        except Exception:
+            pass
+        return None
+
+    def _get_dynamic_models(self, provider: AIProvider, capability: str, task_filter: str | None, provider_filter: str | None):
+        if not provider.provider_class:
+            return None
+
+        try:
+            module_path, class_name = provider.provider_class.rsplit('.', 1)
+            module = importlib.import_module(module_path)
+            provider_cls = getattr(module, class_name)
+        except Exception:
+            return None
+
+        list_fn = getattr(provider_cls, 'get_available_models', None)
+        if not callable(list_fn):
+            return None
+
+        kwargs = {}
+        try:
+            sig = inspect.signature(list_fn)
+            params = sig.parameters
+        except Exception:
+            params = {}
+
+        api_key = self._get_provider_api_key(provider)
+        if 'api_key' in params and api_key:
+            kwargs['api_key'] = api_key
+        if 'capability' in params:
+            kwargs['capability'] = capability
+        if 'task_filter' in params and task_filter:
+            kwargs['task_filter'] = task_filter
+        if 'provider_filter' in params and provider_filter:
+            kwargs['provider_filter'] = provider_filter
+        if 'use_cache' in params:
+            kwargs['use_cache'] = True
+
+        try:
+            models = list_fn(**kwargs)
+        except Exception:
+            return None
+
+        if not isinstance(models, list):
+            return []
+
+        normalized = []
+        for item in models:
+            if isinstance(item, dict):
+                model_id = item.get('id')
+                if not model_id:
+                    continue
+                model_name = item.get('name', model_id)
+            else:
+                model_id = str(item)
+                model_name = model_id
+
+            if provider_filter and provider_filter.lower() not in model_id.lower():
+                continue
+
+            normalized.append({
+                "id": model_id,
+                "name": model_name,
+                "provider_slug": provider.slug,
+                "is_active": True,
+            })
+
+        return normalized
 
     def list(self, request):
         return self.active_capabilities(request)
@@ -168,6 +225,9 @@ class AIModelManagementViewSet(viewsets.ViewSet):
                         default_model_id = requested_model_id
                 except Exception:
                     pass
+
+        if not default_model_id and requested_model_id and provider.has_dynamic_models(capability):
+            default_model_id = requested_model_id
 
         if not default_model_id:
             default_model_id = get_default_model(provider_slug, capability)

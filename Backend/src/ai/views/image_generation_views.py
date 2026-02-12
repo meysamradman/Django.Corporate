@@ -6,6 +6,7 @@ import base64
 
 from src.ai.models import AIProvider, AdminProviderSettings, AICapabilityModel
 from src.ai.utils.state_machine import ModelAccessState
+from src.ai.utils.error_mapper import map_ai_exception
 from src.ai.services.image_generation_service import AIImageGenerationService
 from src.ai.serializers.image_generation_serializer import (
     AIProviderSerializer,
@@ -531,30 +532,11 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
-            error_message = str(e).lower()
-            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-
-            if 'quota' in error_message or 'billing' in error_message or 'credit' in error_message or '429' in error_message:
-                final_msg = AI_ERRORS["image_quota_exceeded"]
-                status_code = status.HTTP_429_TOO_MANY_REQUESTS
-            elif 'api key' in error_message or 'unauthorized' in error_message or 'authentication' in error_message or '401' in error_message:
-                final_msg = AI_ERRORS["api_key_invalid"]
-                status_code = status.HTTP_400_BAD_REQUEST
-            elif 'rate limit' in error_message or 'too many requests' in error_message:
-                final_msg = AI_ERRORS["image_rate_limit"]
-                status_code = status.HTTP_429_TOO_MANY_REQUESTS
-            elif 'timeout' in error_message:
-                final_msg = AI_ERRORS["image_timeout"]
-                status_code = status.HTTP_504_GATEWAY_TIMEOUT
-            elif (
-                ('model' in error_message and 'not found' in error_message) or
-                ('not a valid model id' in error_message) or
-                ('valid model id' in error_message)
-            ):
-                final_msg = AI_ERRORS["model_not_found"]
-                status_code = status.HTTP_404_NOT_FOUND
-            else:
-                final_msg = AI_ERRORS["image_generation_failed_simple"]
+            final_msg, status_code = map_ai_exception(
+                e,
+                AI_ERRORS["image_generation_failed_simple"],
+                domain="image"
+            )
 
             return APIResponse.error(
                 message=final_msg,

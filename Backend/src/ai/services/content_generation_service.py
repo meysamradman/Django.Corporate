@@ -1,18 +1,24 @@
 import asyncio
 import time
+import logging
 from typing import Dict, Any, Optional
 from django.utils.text import slugify
+from django.core.exceptions import ValidationError
 from src.ai.models import AIProvider, AdminProviderSettings, AICapabilityModel
 from src.ai.providers.registry import AIProviderRegistry
 from src.ai.messages.messages import AI_ERRORS
 from src.ai.providers.capabilities import ProviderAvailabilityManager
 from src.ai.providers.capabilities import get_default_model
 
+logger = logging.getLogger(__name__)
+
 class AIContentGenerationService:
     
     @classmethod
     def get_provider(cls, provider_name: Optional[str], admin=None, model_name: Optional[str] = None):
         """Returns tuple: (provider_instance, provider_model, model_name)"""
+        logger.info(f"[ContentService] get_provider called: provider_name={provider_name}, model_name={model_name}")
+        
         provider_name = (provider_name or '').strip().lower() or None
         
         explicit_model = bool(model_name and str(model_name).strip())
@@ -93,6 +99,8 @@ class AIContentGenerationService:
     
     @classmethod
     def generate_content(cls, topic: str, provider_name: Optional[str] = None, admin=None, model_name: Optional[str] = None, **kwargs) -> Dict[str, Any]:
+        logger.info(f"[ContentService] generate_content called: topic={topic}, provider={provider_name}, model={model_name}")
+        
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         keywords = kwargs.get('keywords', [])
@@ -101,11 +109,14 @@ class AIContentGenerationService:
         
         try:
             provider_name = (provider_name or '').strip().lower() or None
+            logger.info(f"[ContentService] Calling get_provider...")
             provider_instance, provider_model, resolved_model_name = cls.get_provider(provider_name, admin=admin, model_name=model_name)
+            logger.info(f"[ContentService] Provider obtained: {provider_model.display_name}, model={resolved_model_name}")
             
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
+                logger.info(f"[ContentService] Calling provider.generate_seo_content...")
                 seo_data = loop.run_until_complete(
                     provider_instance.generate_seo_content(
                         topic=topic,
@@ -114,6 +125,7 @@ class AIContentGenerationService:
                         keywords=keywords
                     )
                 )
+                logger.info(f"[ContentService] Content generated successfully")
             finally:
                 try:
                     loop.run_until_complete(provider_instance.close())
@@ -167,12 +179,15 @@ class AIContentGenerationService:
                 'provider_name': provider_name,
                 'generation_time_ms': generation_time_ms,
             }
+            logger.info(f"[ContentService] Returning response")
             return response
             
-        except ValueError:
+        except ValueError as e:
+            logger.error(f"[ContentService] ValueError: {str(e)}")
             raise
         except Exception as e:
-            raise Exception(AI_ERRORS["content_generation_failed"].format(error=str(e)))
+            logger.error(f"[ContentGenerationService] Error: {type(e).__name__}: {str(e)}", exc_info=True)
+            raise
     
     @classmethod
     def get_available_providers(cls, admin=None) -> list:
