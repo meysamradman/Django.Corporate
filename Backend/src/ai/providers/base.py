@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any
 import httpx
 import asyncio
+import json
+import re
 from io import BytesIO
 from src.ai.messages.messages import IMAGE_ERRORS, AI_ERRORS
 
@@ -41,6 +43,74 @@ class BaseProvider(ABC):
     
     async def text_to_speech(self, text: str, **kwargs) -> BytesIO:
         raise NotImplementedError("Text-to-speech not supported by this provider")
+
+    @staticmethod
+    def extract_json_payload(text: str) -> Optional[Dict[str, Any]]:
+        if not text:
+            return None
+
+        cleaned = text.strip()
+        cleaned = re.sub(r'<think>.*?</think>', '', cleaned, flags=re.DOTALL | re.IGNORECASE).strip()
+
+        if cleaned.startswith('```'):
+            cleaned = re.sub(r'^```json\s*', '', cleaned)
+            cleaned = re.sub(r'^```\s*', '', cleaned)
+            cleaned = re.sub(r'\s*```$', '', cleaned)
+            cleaned = cleaned.strip()
+
+        if '</think>' in cleaned:
+            cleaned = cleaned.split('</think>')[-1].strip()
+
+        try:
+            parsed = json.loads(cleaned)
+            if isinstance(parsed, dict):
+                return parsed
+        except Exception:
+            pass
+
+        start = cleaned.find('{')
+        if start == -1:
+            return None
+
+        depth = 0
+        end = -1
+        in_string = False
+        escape = False
+
+        for index, char in enumerate(cleaned[start:], start=start):
+            if in_string:
+                if escape:
+                    escape = False
+                elif char == '\\':
+                    escape = True
+                elif char == '"':
+                    in_string = False
+                continue
+
+            if char == '"':
+                in_string = True
+                continue
+
+            if char == '{':
+                depth += 1
+            elif char == '}':
+                depth -= 1
+                if depth == 0:
+                    end = index
+                    break
+
+        if end == -1:
+            return None
+
+        candidate = cleaned[start:end + 1]
+        try:
+            parsed = json.loads(candidate)
+            if isinstance(parsed, dict):
+                return parsed
+        except Exception:
+            return None
+
+        return None
 
     def _extract_http_error_detail(self, error: httpx.HTTPStatusError) -> str:
         try:

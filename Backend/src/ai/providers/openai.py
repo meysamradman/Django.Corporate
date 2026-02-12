@@ -3,9 +3,8 @@ from io import BytesIO
 import httpx
 import base64
 import os
-import json
-import re
 from .base import BaseProvider
+from .capabilities import get_default_model
 from src.ai.messages.messages import AI_ERRORS, AI_SYSTEM_MESSAGES
 from src.ai.prompts.content import get_content_prompt, get_seo_prompt
 from src.ai.prompts.chat import get_chat_system_message
@@ -18,8 +17,9 @@ class OpenAIProvider(BaseProvider):
     
     def __init__(self, api_key: str, config: Optional[Dict[str, Any]] = None):
         super().__init__(api_key, config)
-        self.image_model = config.get('image_model', 'dall-e-3') if config else 'dall-e-3'
-        self.content_model = config.get('content_model', 'gpt-4o-mini') if config else 'gpt-4o-mini'
+        cfg = config or {}
+        self.image_model = cfg.get('image_model') or cfg.get('model') or get_default_model('openai', 'image')
+        self.content_model = cfg.get('content_model') or cfg.get('model') or get_default_model('openai', 'content')
     
     def get_provider_name(self) -> str:
         return 'openai'
@@ -46,7 +46,7 @@ class OpenAIProvider(BaseProvider):
         payload = {
             "model": model_to_use,
             "prompt": enhanced_prompt,
-            "n": min(n, 1) if model_to_use == 'dall-e-3' else min(n, 10),
+            "n": min(n, 1) if model_to_use == get_default_model('openai', 'image') else min(n, 10),
             "size": size,
             "quality": quality,
             "response_format": "url"
@@ -162,24 +162,19 @@ class OpenAIProvider(BaseProvider):
             data = response.json()
             if 'choices' in data and len(data['choices']) > 0:
                 content_text = data['choices'][0]['message']['content']
-                
-                try:
-                    seo_data = json.loads(content_text)
+
+                seo_data = self.extract_json_payload(content_text)
+                if seo_data is not None:
                     return seo_data
-                except json.JSONDecodeError:
-                    json_match = re.search(r'\{.*\}', content_text, re.DOTALL)
-                    if json_match:
-                        seo_data = json.loads(json_match.group())
-                        return seo_data
-                    raise Exception(AI_ERRORS["invalid_json"])
+                raise Exception(AI_ERRORS["invalid_json"])
             
             raise Exception(AI_ERRORS["content_generation_failed"])
             
         except httpx.HTTPStatusError as e:
             self.raise_mapped_http_error(e, "content_generation_failed")
-        except json.JSONDecodeError as e:
-            raise Exception(AI_ERRORS["invalid_json"])
         except Exception as e:
+            if str(e).strip() == AI_ERRORS["invalid_json"]:
+                raise Exception(AI_ERRORS["invalid_json"])
             raise Exception(AI_ERRORS["content_generation_failed"])
     
     async def chat(self, message: str, conversation_history: Optional[list] = None, **kwargs) -> str:

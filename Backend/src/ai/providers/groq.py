@@ -1,10 +1,10 @@
 from typing import Optional, Dict, Any, List
 from io import BytesIO
 import httpx
-import json
 import os
 from django.core.cache import cache
 from .base import BaseProvider
+from .capabilities import get_default_model, get_available_models
 from src.ai.utils.cache import AICacheKeys
 from src.ai.messages.messages import AI_ERRORS, AI_SYSTEM_MESSAGES, DEEPSEEK_SYSTEM_MESSAGES
 from src.ai.prompts.content import get_content_prompt, get_seo_prompt
@@ -18,20 +18,21 @@ class GroqProvider(BaseProvider):
     
     def __init__(self, api_key: str, config: Optional[Dict[str, Any]] = None):
         super().__init__(api_key, config)
-        selected_model = (config or {}).get('model') if config else None
+        cfg = config or {}
+        selected_model = cfg.get('model')
 
         # Back-compat + service-driven behavior:
         # - New capability-based services pass the resolved model in `config['model']`.
         # - Existing configs may still provide capability-specific keys.
         self.chat_model = (
-            config.get('chat_model')
-            if config and config.get('chat_model')
-            else selected_model or 'llama-3.1-8b-instant'
+            cfg.get('chat_model')
+            or selected_model
+            or get_default_model('groq', 'chat')
         )
         self.content_model = (
-            config.get('content_model')
-            if config and config.get('content_model')
-            else selected_model or 'llama-3.1-8b-instant'
+            cfg.get('content_model')
+            or selected_model
+            or get_default_model('groq', 'content')
         )
     
     def get_provider_name(self) -> str:
@@ -114,31 +115,15 @@ class GroqProvider(BaseProvider):
     
     @staticmethod
     def _get_default_models() -> List[Dict[str, Any]]:
+        static_models = get_available_models('groq', 'chat') or get_available_models('groq', 'content') or []
         return [
             {
-                'id': 'llama-3.3-70b-versatile',
-                'name': 'Llama 3.3 70B Versatile',
-                'description': 'Fast and versatile model for general tasks (Latest)',
-                'context_length': 131072,
-            },
-            {
-                'id': 'llama-3.1-8b-instant',
-                'name': 'Llama 3.1 8B Instant',
-                'description': 'Ultra-fast model for quick responses',
-                'context_length': 131072,
-            },
-            {
-                'id': 'mixtral-8x7b-32768',
-                'name': 'Mixtral 8x7B',
-                'description': 'High-quality multilingual model',
-                'context_length': 32768,
-            },
-            {
-                'id': 'gemma2-9b-it',
-                'name': 'Gemma2 9B IT',
-                'description': 'Instruction-tuned model for chat (Latest)',
-                'context_length': 8192,
-            },
+                'id': model_id,
+                'name': model_id,
+                'description': '',
+                'context_length': 0,
+            }
+            for model_id in static_models
         ]
     
     async def generate_image(self, prompt: str, **kwargs) -> BytesIO:
@@ -198,13 +183,14 @@ class GroqProvider(BaseProvider):
         tone = kwargs.get('tone', 'professional')
         keywords = kwargs.get('keywords', [])
         
-        keywords_str = ', '.join(keywords) if keywords else ''
-        
-        prompt = self.SEO_PROMPT.format(
+        keywords_str = f", {', '.join(keywords)}" if keywords else ""
+
+        seo_prompt_template = get_seo_prompt(provider='groq')
+        prompt = seo_prompt_template.format(
             topic=topic,
+            keywords_str=keywords_str,
             word_count=word_count,
             tone=tone,
-            keywords_str=keywords_str
         )
         
         url = f"{self.BASE_URL}/chat/completions"
@@ -235,28 +221,19 @@ class GroqProvider(BaseProvider):
             data = response.json()
             if 'choices' in data and len(data['choices']) > 0:
                 content = data['choices'][0]['message']['content']
-                
-                try:
-                    seo_data = json.loads(content)
-                except json.JSONDecodeError:
-                    json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', content, re.DOTALL)
-                    if json_match:
-                        seo_data = json.loads(json_match.group(1))
-                    else:
-                        raise Exception(AI_ERRORS["invalid_json"])
-                
-                if 'slug' not in seo_data or not seo_data['slug']:
-                    seo_data['slug'] = slugify(seo_data.get('title', topic))
-                
-                return seo_data
+
+                seo_data = self.extract_json_payload(content)
+                if seo_data is not None:
+                    return seo_data
+                raise Exception(AI_ERRORS["invalid_json"])
             
             raise Exception(AI_ERRORS["content_generation_failed"])
             
         except httpx.HTTPStatusError as e:
                 self.raise_mapped_http_error(e, "content_generation_failed")
-        except json.JSONDecodeError as e:
-            raise Exception(AI_ERRORS["invalid_json"])
         except Exception as e:
+            if str(e).strip() == AI_ERRORS["invalid_json"]:
+                raise Exception(AI_ERRORS["invalid_json"])
             raise Exception(AI_ERRORS["content_generation_failed"])
     
     async def chat(self, message: str, conversation_history: Optional[List[Dict[str, str]]] = None, **kwargs) -> str:

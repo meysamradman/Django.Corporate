@@ -60,7 +60,12 @@ SEO_PROMPT = (
     "7. Return only valid JSON, without additional explanations\n"
     "8. ALL VALUES MUST BE IN PERSIAN (FARSI) LANGUAGE\n"
     "9. In content, use tags like <h2>heading</h2> and <h3>heading</h3>\n\n"
-    "IMPORTANT: Write all content in Persian (Farsi) language."
+    "IMPORTANT RULES (MUST FOLLOW):\n"
+    "- Output MUST start with '{' and end with '}'\n"
+    "- Do NOT use markdown code fences مثل ```json\n"
+    "- Do NOT include any reasoning or tags like <think>...</think>\n"
+    "- Do NOT include any text before or after JSON\n"
+    "- Write all content in Persian (Farsi) language."
 )
 
 

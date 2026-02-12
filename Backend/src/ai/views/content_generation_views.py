@@ -136,6 +136,24 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                     message=AI_ERRORS["openrouter_not_active"],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
+
+            # Product rule: content panel model options should follow hardcoded capabilities.py first.
+            static_models = provider.get_static_models('content') or []
+            if static_models:
+                data = [
+                    {
+                        'id': model_id,
+                        'name': model_id,
+                        'provider_slug': 'openrouter',
+                        'is_active': True,
+                    }
+                    for model_id in static_models
+                ]
+                return APIResponse.success(
+                    message=AI_SUCCESS["openrouter_models_retrieved"].format(from_cache=""),
+                    data=data,
+                    status_code=status.HTTP_200_OK
+                )
             
             settings = AdminProviderSettings.objects.filter(
                 admin=request.user,
@@ -189,6 +207,24 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                     message=AI_ERRORS["groq_not_active"],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
+
+            # Product rule: content panel model options should follow hardcoded capabilities.py first.
+            static_models = provider.get_static_models('content') or []
+            if static_models:
+                data = [
+                    {
+                        'id': model_id,
+                        'name': model_id,
+                        'provider_slug': 'groq',
+                        'is_active': True,
+                    }
+                    for model_id in static_models
+                ]
+                return APIResponse.success(
+                    message=AI_SUCCESS["groq_models_retrieved"].format(from_cache=""),
+                    data=data,
+                    status_code=status.HTTP_200_OK
+                )
             
             settings = AdminProviderSettings.objects.filter(
                 admin=request.user,
@@ -240,6 +276,24 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                     message=AI_ERRORS["huggingface_not_active"],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
+
+            # Product rule: content panel model options should follow hardcoded capabilities.py first.
+            static_models = provider.get_static_models('content') or []
+            if static_models:
+                data = [
+                    {
+                        'id': model_id,
+                        'name': model_id,
+                        'provider_slug': 'huggingface',
+                        'is_active': True,
+                    }
+                    for model_id in static_models
+                ]
+                return APIResponse.success(
+                    message=AI_SUCCESS["huggingface_models_retrieved"].format(from_cache=""),
+                    data=data,
+                    status_code=status.HTTP_200_OK
+                )
             
             settings = AdminProviderSettings.objects.filter(
                 admin=request.user,
@@ -272,6 +326,7 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             
             models = HuggingFaceProvider.get_available_models(
                 api_key=api_key if (api_key and api_key.strip()) else None,
+                capability='content',
                 task_filter=task_filter,
                 use_cache=use_cache
             )

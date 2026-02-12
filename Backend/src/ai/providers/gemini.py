@@ -2,9 +2,8 @@ from typing import Optional, Dict, Any
 from io import BytesIO
 import httpx
 import os
-import json
-import re
 from .base import BaseProvider
+from .capabilities import get_default_model
 from src.ai.messages.messages import AI_ERRORS
 from src.ai.prompts.content import get_content_prompt, get_seo_prompt
 from src.ai.prompts.chat import get_chat_system_message
@@ -17,7 +16,8 @@ class GeminiProvider(BaseProvider):
     
     def __init__(self, api_key: str, config: Optional[Dict[str, Any]] = None):
         super().__init__(api_key, config)
-        self.model = config.get('model', 'gemini-1.5-flash') if config else 'gemini-1.5-flash'
+        cfg = config or {}
+        self.model = cfg.get('model') or get_default_model('google', 'content')
     
     def get_provider_name(self) -> str:
         return 'gemini'
@@ -113,30 +113,19 @@ class GeminiProvider(BaseProvider):
             data = response.json()
             if 'candidates' in data and len(data['candidates']) > 0:
                 content_text = data['candidates'][0]['content']['parts'][0]['text']
-                
-                content_text = content_text.strip()
-                if content_text.startswith('```'):
-                    content_text = re.sub(r'^```json\s*', '', content_text)
-                    content_text = re.sub(r'^```\s*', '', content_text)
-                    content_text = re.sub(r'\s*```$', '', content_text)
-                
-                try:
-                    seo_data = json.loads(content_text)
+
+                seo_data = self.extract_json_payload(content_text)
+                if seo_data is not None:
                     return seo_data
-                except json.JSONDecodeError:
-                    json_match = re.search(r'\{.*\}', content_text, re.DOTALL)
-                    if json_match:
-                        seo_data = json.loads(json_match.group())
-                        return seo_data
-                    raise Exception(AI_ERRORS["invalid_json"])
+                raise Exception(AI_ERRORS["invalid_json"])
             
             raise Exception(AI_ERRORS["content_generation_failed"])
             
         except httpx.HTTPStatusError as e:
             self.raise_mapped_http_error(e, "content_generation_failed")
-        except json.JSONDecodeError as e:
-            raise Exception(AI_ERRORS["invalid_json"])
         except Exception as e:
+            if str(e).strip() == AI_ERRORS["invalid_json"]:
+                raise Exception(AI_ERRORS["invalid_json"])
             raise Exception(AI_ERRORS["content_generation_failed"])
     
     async def chat(self, message: str, conversation_history: Optional[list] = None, **kwargs) -> str:

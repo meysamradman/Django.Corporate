@@ -3,10 +3,9 @@ from io import BytesIO
 import httpx
 import base64
 import os
-import json
-import re
 from django.core.cache import cache
 from .base import BaseProvider
+from .capabilities import get_default_model
 from src.ai.messages.messages import AI_ERRORS
 from src.ai.utils.cache import AICacheKeys
 from src.ai.prompts.content import get_content_prompt, get_seo_prompt
@@ -23,8 +22,9 @@ class HuggingFaceProvider(BaseProvider):
     
     def __init__(self, api_key: str, config: Optional[Dict[str, Any]] = None):
         super().__init__(api_key, config)
-        self.image_model = config.get('image_model', 'stabilityai/stable-diffusion-xl-base-1.0') if config else 'stabilityai/stable-diffusion-xl-base-1.0'
-        self.content_model = config.get('content_model', 'deepseek-ai/DeepSeek-R1-0528') if config else 'deepseek-ai/DeepSeek-R1-0528'
+        cfg = config or {}
+        self.image_model = cfg.get('image_model') or cfg.get('model') or get_default_model('huggingface', 'image')
+        self.content_model = cfg.get('content_model') or cfg.get('model') or get_default_model('huggingface', 'content')
         self.client = httpx.AsyncClient(
             timeout=180.0,  # timeout کلی برای HuggingFace (نیاز به timeout بیشتر)
             limits=httpx.Limits(max_keepalive_connections=5, max_connections=10)
@@ -35,7 +35,7 @@ class HuggingFaceProvider(BaseProvider):
     
     def get_provider_name(self) -> str:
         return 'huggingface'
-    
+
     @staticmethod
     def get_available_models(
         api_key: Optional[str] = None,
@@ -370,21 +370,11 @@ class HuggingFaceProvider(BaseProvider):
             if seo_prompt in generated_text:
                 generated_text = generated_text.replace(seo_prompt, '').strip()
             
-            generated_text = generated_text.strip()
-            if generated_text.startswith('```'):
-                generated_text = re.sub(r'^```json\s*', '', generated_text)
-                generated_text = re.sub(r'^```\s*', '', generated_text)
-                generated_text = re.sub(r'\s*```$', '', generated_text)
-            
-            try:
-                seo_data = json.loads(generated_text)
-                return seo_data
-            except json.JSONDecodeError:
-                json_match = re.search(r'\{.*\}', generated_text, re.DOTALL)
-                if json_match:
-                    seo_data = json.loads(json_match.group())
-                    return seo_data
-                raise Exception(AI_ERRORS["json_parse_error"].format(error=""))
+            parsed = self.extract_json_payload(generated_text)
+            if parsed is not None:
+                return parsed
+
+            raise Exception(AI_ERRORS["invalid_json"])
             
         except httpx.ReadTimeout:
             raise Exception(AI_ERRORS["content_generation_timeout"])

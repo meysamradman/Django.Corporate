@@ -25,6 +25,7 @@ AI_SUCCESS = {
     # Content Generation
     "content_generated": "محتوا تولید شد",
     "content_generated_and_saved": "محتوا تولید و ذخیره شد",
+    "content_not_saved": "محتوا تولید شد اما ذخیره نشد",
     "content_saved": "محتوا ذخیره شد",
     "destinations_retrieved": "لیست مقصدها دریافت شد",
     
@@ -40,6 +41,7 @@ AI_SUCCESS = {
     # Audio
     "audio_generated": "فایل صوتی تولید شد",
     "audio_generated_and_saved": "فایل صوتی تولید و ذخیره شد",
+    "audio_generated_not_saved": "فایل صوتی تولید شد اما ذخیره نشد",
     
     # Settings
     "settings_updated": "تنظیمات به‌روزرسانی شد",

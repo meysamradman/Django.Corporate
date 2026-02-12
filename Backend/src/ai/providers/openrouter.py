@@ -2,12 +2,10 @@ from typing import Optional, Dict, Any, List
 from io import BytesIO
 import httpx
 import os
-import json
 import base64
-import re
-from unidecode import unidecode
 from django.core.cache import cache
 from .base import BaseProvider
+from .capabilities import get_default_model
 from src.ai.messages.messages import AI_ERRORS, IMAGE_ERRORS, CONTENT_ERRORS, CHAT_ERRORS
 from src.ai.utils.cache import AICacheKeys, AICacheManager
 from src.ai.prompts.content import get_content_prompt, get_seo_prompt
@@ -45,29 +43,30 @@ class OpenRouterProvider(BaseProvider):
     def __init__(self, api_key: str, config: Optional[Dict[str, Any]] = None):
         super().__init__(api_key, config)
 
-        selected_model = (config or {}).get('model') if config else None
+        cfg = config or {}
+        selected_model = cfg.get('model')
 
         # Back-compat + service-driven behavior:
         # - New capability-based services pass the resolved model in `config['model']`.
         # - Existing configs may still provide capability-specific keys.
         self.chat_model = (
-            config.get('chat_model')
-            if config and config.get('chat_model')
-            else selected_model or 'google/gemini-2.5-flash'
+            cfg.get('chat_model')
+            or selected_model
+            or get_default_model('openrouter', 'chat')
         )
         self.content_model = (
-            config.get('content_model')
-            if config and config.get('content_model')
-            else selected_model or 'google/gemini-2.5-flash'
+            cfg.get('content_model')
+            or selected_model
+            or get_default_model('openrouter', 'content')
         )
         self.image_model = (
-            config.get('image_model')
-            if config and config.get('image_model')
-            else selected_model or 'openai/dall-e-3'
+            cfg.get('image_model')
+            or selected_model
+            or get_default_model('openrouter', 'image')
         )
 
-        self.http_referer = config.get('http_referer', '') if config else ''
-        self.x_title = config.get('x_title', 'Corporate Admin Panel') if config else 'Corporate Admin Panel'
+        self.http_referer = cfg.get('http_referer', '')
+        self.x_title = cfg.get('x_title', 'Corporate Admin Panel')
     
     def get_provider_name(self) -> str:
         return 'openrouter'
@@ -424,37 +423,14 @@ class OpenRouterProvider(BaseProvider):
             
             if 'choices' in data and len(data['choices']) > 0:
                 content_str = data['choices'][0]['message']['content'].strip()
-                
-                try:
-                    if '```json' in content_str:
-                        json_start = content_str.find('```json') + 7
-                        json_end = content_str.find('```', json_start)
-                        content_str = content_str[json_start:json_end].strip()
-                    elif '```' in content_str:
-                        json_start = content_str.find('```') + 3
-                        json_end = content_str.find('```', json_start)
-                        content_str = content_str[json_start:json_end].strip()
-                    
-                    seo_data = json.loads(content_str)
+
+                seo_data = self.extract_json_payload(content_str)
+                if seo_data is not None:
                     return seo_data
-                except json.JSONDecodeError as e:
-                    slug = re.sub(r'[^a-z0-9]+', '-', unidecode(topic).lower()).strip('-')
-                    
-                    return {
-                        "title": topic,
-                        "meta_title": topic[:60],
-                        "meta_description": f"AI-generated content about {topic}"[:160],
-                        "h1": topic,
-                        "content": f"<p>{content_str[:500]}</p>",
-                        "keywords": [topic],
-                        "word_count": len(content_str.split()),
-                        "slug": slug
-                    }
+                raise Exception(AI_ERRORS["invalid_json"])
 
             raise Exception(CONTENT_ERRORS["content_generation_failed"])
             
-        except json.JSONDecodeError as e:
-            raise Exception(CONTENT_ERRORS["content_generation_failed"])
         except httpx.TimeoutException:
             raise Exception(AI_ERRORS["generic_timeout"])
         except httpx.RequestError:
@@ -474,6 +450,8 @@ class OpenRouterProvider(BaseProvider):
             raise Exception(mapped)
         except Exception as e:
             msg = str(e).strip()
+            if msg == AI_ERRORS["invalid_json"]:
+                raise Exception(AI_ERRORS["invalid_json"])
             if msg in AI_ERRORS.values() or msg in CONTENT_ERRORS.values():
                 raise Exception(msg)
             raise Exception(CONTENT_ERRORS["content_generation_failed"])

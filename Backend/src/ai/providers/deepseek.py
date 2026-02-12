@@ -1,11 +1,9 @@
 from typing import Optional, Dict, Any
 from io import BytesIO
 import httpx
-import json
 import os
-import re
-from django.utils.text import slugify
 from .base import BaseProvider
+from .capabilities import get_default_model
 from src.ai.messages.messages import AI_ERRORS, DEEPSEEK_SYSTEM_MESSAGES, AI_SYSTEM_MESSAGES
 from src.ai.prompts.content import get_content_prompt, get_seo_prompt
 from src.ai.prompts.chat import get_chat_system_message
@@ -18,11 +16,10 @@ class DeepSeekProvider(BaseProvider):
     
     def __init__(self, api_key: str, config: Optional[Dict[str, Any]] = None):
         super().__init__(api_key, config)
-        # Product rule: services set config['model'] based on capability defaults.
-        # Keep backward compatibility with older config keys.
-        model_override = (config or {}).get('model')
-        self.chat_model = (config or {}).get('chat_model') or model_override or 'deepseek-chat'
-        self.content_model = (config or {}).get('content_model') or model_override or 'deepseek-chat'
+        cfg = config or {}
+        model_override = cfg.get('model')
+        self.chat_model = cfg.get('chat_model') or model_override or get_default_model('deepseek', 'chat')
+        self.content_model = cfg.get('content_model') or model_override or get_default_model('deepseek', 'content')
     
     def get_provider_name(self) -> str:
         return 'deepseek'
@@ -82,13 +79,14 @@ class DeepSeekProvider(BaseProvider):
         tone = kwargs.get('tone', 'professional')
         keywords = kwargs.get('keywords', [])
         
-        keywords_str = ', '.join(keywords) if keywords else ''
-        
-        prompt = self.SEO_PROMPT.format(
+        keywords_str = f", {', '.join(keywords)}" if keywords else ""
+
+        seo_prompt_template = get_seo_prompt(provider='deepseek')
+        prompt = seo_prompt_template.format(
             topic=topic,
+            keywords_str=keywords_str,
             word_count=word_count,
             tone=tone,
-            keywords_str=f"\n- Keywords: {keywords_str}" if keywords_str else ""
         )
         
         url = f"{self.BASE_URL}/chat/completions"
@@ -118,28 +116,19 @@ class DeepSeekProvider(BaseProvider):
             data = response.json()
             if 'choices' in data and len(data['choices']) > 0:
                 content = data['choices'][0]['message']['content']
-                
-                try:
-                    seo_data = json.loads(content)
-                except json.JSONDecodeError:
-                    json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', content, re.DOTALL)
-                    if json_match:
-                        seo_data = json.loads(json_match.group(1))
-                    else:
-                        raise Exception(AI_ERRORS["invalid_json"])
-                
-                if 'slug' not in seo_data or not seo_data['slug']:
-                    seo_data['slug'] = slugify(seo_data.get('title', topic))
-                
-                return seo_data
+
+                seo_data = self.extract_json_payload(content)
+                if seo_data is not None:
+                    return seo_data
+                raise Exception(AI_ERRORS["invalid_json"])
             
             raise Exception(AI_ERRORS["content_generation_failed"])
             
         except httpx.HTTPStatusError as e:
             self.raise_mapped_http_error(e, "content_generation_failed")
-        except json.JSONDecodeError as e:
-            raise Exception(AI_ERRORS["invalid_json"])
         except Exception as e:
+            if str(e).strip() == AI_ERRORS["invalid_json"]:
+                raise Exception(AI_ERRORS["invalid_json"])
             raise Exception(AI_ERRORS["content_generation_failed"])
     
     async def chat(self, message: str, conversation_history: Optional[list] = None, **kwargs) -> str:

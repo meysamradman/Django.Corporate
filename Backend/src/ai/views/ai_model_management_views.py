@@ -77,6 +77,21 @@ class AIModelManagementViewSet(viewsets.ViewSet):
             except AIProvider.DoesNotExist:
                 return APIResponse.success(data=[])
 
+            # Product rule: capabilities.py is the primary source of selectable models.
+            static_models = provider.get_static_models(capability) or []
+            if static_models:
+                static_data = [
+                    {
+                        "id": model_id,
+                        "name": model_id,
+                        "provider_slug": provider.slug,
+                        "is_active": True,
+                    }
+                    for model_id in static_models
+                    if not provider_filter or provider_filter.lower() in model_id.lower()
+                ]
+                return APIResponse.success(data=static_data)
+
             # Unified dynamic model browsing for all providers.
             if provider.has_dynamic_models(capability):
                 dynamic = self._get_dynamic_models(
