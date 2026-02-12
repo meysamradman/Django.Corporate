@@ -29,7 +29,7 @@ export const ipManagementApi = {
   },
 
   getIPInfo: async (ip: string): Promise<IPInfo> => {
-    const response = await api.get<IPInfo>(`/admin/ip-management/attempts/?ip=${ip}`);
+    const response = await api.get<IPInfo>(`/admin/ip-management/attempts/?ip=${encodeURIComponent(ip)}`);
     return response.data!;
   },
 

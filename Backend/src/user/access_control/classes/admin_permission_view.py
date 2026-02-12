@@ -4,6 +4,7 @@ from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.core.cache import cache
+from django.db.models import Count, Q
 
 from src.core.responses.response import APIResponse
 from src.user.models import AdminRole, AdminUserRole, User
@@ -165,7 +166,9 @@ class AdminPermissionView(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def permission_matrix(self, request):
         try:
-            roles = AdminRole.objects.filter(is_active=True).order_by('level')
+            roles = AdminRole.objects.filter(is_active=True).annotate(
+                active_user_count=Count('admin_user_roles', filter=Q(admin_user_roles__is_active=True))
+            ).order_by('level')
             
             matrix = []
             for role in roles:
@@ -178,7 +181,7 @@ class AdminPermissionView(viewsets.ViewSet):
                     'level': role.level,
                     'is_system_role': role.is_system_role,
                     'permissions': permissions,
-                    'user_count': role.admin_user_roles.filter(is_active=True).count()
+                    'user_count': role.active_user_count
                 })
             
             return APIResponse.success(
@@ -242,14 +245,15 @@ class AdminPermissionView(viewsets.ViewSet):
             ).count()
             
             role_distribution = []
-            roles = AdminRole.objects.filter(is_active=True).order_by('level')
+            roles = AdminRole.objects.filter(is_active=True).annotate(
+                active_user_count=Count('admin_user_roles', filter=Q(admin_user_roles__is_active=True))
+            ).order_by('level')
             
             for role in roles:
-                user_count = role.admin_user_roles.filter(is_active=True).count()
                 role_distribution.append({
                     'role_name': role.name,
                     'role_display_name': role.display_name,
-                    'user_count': user_count,
+                    'user_count': role.active_user_count,
                     'level': role.level
                 })
             
