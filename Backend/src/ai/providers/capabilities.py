@@ -9,6 +9,7 @@ PROVIDER_CAPABILITIES = {
         'has_dynamic_models': False,
         'models': {
             'chat': [
+                'gpt-5.2',
                 # Latest 2026 Series
                 'gpt-5',
                 'gpt-5-mini',
@@ -20,6 +21,7 @@ PROVIDER_CAPABILITIES = {
                 'gpt-4o-mini'
             ],
             'content': [
+                'gpt-5.2',
                 'gpt-5',
                 'gpt-5-mini', 
                 'gpt-4o', 
@@ -29,8 +31,8 @@ PROVIDER_CAPABILITIES = {
             'audio': ['tts-1', 'tts-1-hd', 'tts-2-preview'],
         },
         'default_models': {
-            'chat': 'gpt-5',
-            'content': 'gpt-5-mini',
+            'chat': 'gpt-5.2',
+            'content': 'gpt-5.2',
             'image': 'dall-e-3',
             'audio': 'tts-1',
         },
@@ -44,22 +46,30 @@ PROVIDER_CAPABILITIES = {
         'has_dynamic_models': False,
         'models': {
             'chat': [
-                'gemini-2.0-pro',
-                'gemini-2.0-flash',
-                'gemini-1.5-pro',
-                'gemini-1.5-flash',
+                'gemini-3-pro-preview',
+                'gemini-3-flash-preview',
+                'gemini-2.5-pro',
+                'gemini-2.5-flash',
+                'gemini-2.5-flash-lite',
             ],
             'content': [
-                'gemini-2.0-pro',
-                'gemini-2.0-flash',
+                'gemini-3-pro-preview',
+                'gemini-3-flash-preview',
+                'gemini-2.5-pro',
+                'gemini-2.5-flash',
+                'gemini-2.5-flash-lite',
             ],
-            'image': ['imagen-3', 'imagen-3-fast'],
+            'image': [
+                'gemini-3-pro-image-preview',
+                'gemini-2.5-flash-image',
+                'imagen-4.0-generate-001',
+            ],
             'audio': [],
         },
         'default_models': {
-            'chat': 'gemini-2.0-pro',
-            'content': 'gemini-2.0-flash',
-            'image': 'imagen-3',
+            'chat': 'gemini-3-flash-preview',
+            'content': 'gemini-3-flash-preview',
+            'image': 'gemini-3-pro-image-preview',
             'audio': None,
         },
         'provider_class': 'src.ai.providers.gemini.GeminiProvider',
@@ -71,8 +81,14 @@ PROVIDER_CAPABILITIES = {
         'supports_audio': False,
         'has_dynamic_models': False,
         'models': {
-            'chat': ['deepseek-chat', 'deepseek-reasoner'],
-            'content': ['deepseek-chat', 'deepseek-reasoner'],
+            'chat': [
+                'deepseek-chat',
+                'deepseek-reasoner',
+            ],
+            'content': [
+                'deepseek-chat',
+                'deepseek-reasoner',
+            ],
             'image': [],
             'audio': [],
         },
@@ -153,14 +169,28 @@ PROVIDER_CAPABILITIES = {
         'supports_audio': False,
         'has_dynamic_models': True,
         'models': {
-            'chat': [],
-            'content': [],
+            'chat': [
+                'grok-4-1-fast-reasoning',
+                'grok-4-1-fast-non-reasoning',
+                'grok-4-fast-reasoning',
+                'grok-4-fast-non-reasoning',
+                'grok-code-fast-1',
+                'grok-4',
+            ],
+            'content': [
+                'grok-4-1-fast-reasoning',
+                'grok-4-1-fast-non-reasoning',
+                'grok-4-fast-reasoning',
+                'grok-4-fast-non-reasoning',
+                'grok-code-fast-1',
+                'grok-4',
+            ],
             'image': [],
             'audio': [],
         },
         'default_models': {
-            'chat': None,
-            'content': None,
+            'chat': 'grok-4-1-fast-reasoning',
+            'content': 'grok-4-1-fast-reasoning',
             'image': None,
             'audio': None,
         },

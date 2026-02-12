@@ -11,7 +11,7 @@ from src.ai.serializers.content_generation_serializer import (
 from src.ai.destinations.registry import ContentDestinationRegistry
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
 from src.user.access_control import ai_permission, PermissionRequiredMixin
-from src.ai.providers.capabilities import get_provider_capabilities, supports_feature, PROVIDER_CAPABILITIES
+from src.ai.providers.capabilities import get_provider_capabilities, supports_feature, PROVIDER_CAPABILITIES, get_available_models as get_capability_models
 from src.ai.providers.openrouter import OpenRouterProvider, OpenRouterModelCache
 from src.ai.providers.groq import GroqProvider
 from src.ai.providers.huggingface import HuggingFaceProvider
@@ -79,11 +79,12 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             
             result = []
             for provider in providers_qs:
-                # Check if provider supports content
-                if not provider.supports_capability('content'):
+                # Product rule: capabilities.py is source of truth for capability support
+                if not supports_feature(provider.slug, 'content'):
                     continue
                     
                 has_access = self._check_provider_access(request.user, provider, is_super)
+                provider_caps = get_provider_capabilities(provider.slug)
                 
                 provider_info = {
                     'id': provider.id,
@@ -92,7 +93,7 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                     'display_name': provider.display_name,
                     'description': provider.description,
                     'has_access': has_access,
-                    'capabilities': provider.capabilities,
+                    'capabilities': provider_caps,
                 }
                 result.append(provider_info)
             
@@ -138,7 +139,9 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                 )
 
             # Product rule: content panel model options should follow hardcoded capabilities.py first.
-            static_models = provider.get_static_models('content') or []
+            static_models = get_capability_models('openrouter', 'content') or []
+            if static_models == 'dynamic':
+                static_models = []
             if static_models:
                 data = [
                     {

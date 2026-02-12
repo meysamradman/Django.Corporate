@@ -8,7 +8,7 @@ from src.core.responses.response import APIResponse
 from src.ai.models import AIProvider, AICapabilityModel
 from src.ai.messages.messages import AI_ERRORS, AI_SUCCESS
 from src.user.access_control import ai_permission
-from src.ai.providers.capabilities import get_default_model
+from src.ai.providers.capabilities import get_default_model, get_available_models as get_capability_models, get_provider_capabilities, supports_feature
 
 
 class AIModelManagementViewSet(viewsets.ViewSet):
@@ -72,19 +72,19 @@ class AIModelManagementViewSet(viewsets.ViewSet):
             )
 
         if provider_slug:
-            try:
-                provider = AIProvider.objects.get(slug=provider_slug, is_active=True)
-            except AIProvider.DoesNotExist:
+            if not supports_feature(provider_slug, capability):
                 return APIResponse.success(data=[])
 
             # Product rule: capabilities.py is the primary source of selectable models.
-            static_models = provider.get_static_models(capability) or []
+            static_models = get_capability_models(provider_slug, capability) or []
+            if static_models == 'dynamic':
+                static_models = []
             if static_models:
                 static_data = [
                     {
                         "id": model_id,
                         "name": model_id,
-                        "provider_slug": provider.slug,
+                        "provider_slug": provider_slug,
                         "is_active": True,
                     }
                     for model_id in static_models
@@ -93,7 +93,13 @@ class AIModelManagementViewSet(viewsets.ViewSet):
                 return APIResponse.success(data=static_data)
 
             # Unified dynamic model browsing for all providers.
-            if provider.has_dynamic_models(capability):
+            try:
+                provider = AIProvider.objects.get(slug=provider_slug, is_active=True)
+            except AIProvider.DoesNotExist:
+                return APIResponse.success(data=[])
+
+            provider_caps = get_provider_capabilities(provider_slug)
+            if provider_caps.get('has_dynamic_models', False):
                 dynamic = self._get_dynamic_models(
                     provider=provider,
                     capability=capability,
@@ -106,8 +112,9 @@ class AIModelManagementViewSet(viewsets.ViewSet):
         # Fallback: Return static models if available for the provider
         if provider_slug:
             try:
-                pv = AIProvider.objects.get(slug=provider_slug)
-                static_models = pv.get_static_models(capability)
+                static_models = get_capability_models(provider_slug, capability) or []
+                if static_models == 'dynamic':
+                    static_models = []
                 if static_models:
                     data = [{
                         "id": m,

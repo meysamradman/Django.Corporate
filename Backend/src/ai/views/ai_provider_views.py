@@ -16,6 +16,7 @@ from src.ai.messages.messages import AI_ERRORS, AI_SUCCESS
 from src.user.access_control import ai_permission, PermissionRequiredMixin
 from src.user.access_control.definitions import PermissionValidator
 from src.core.responses.response import APIResponse
+from src.ai.providers.capabilities import supports_feature, get_provider_capabilities
 
 class AIProviderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [ai_permission]
@@ -111,16 +112,12 @@ class AIProviderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         available = []
         for provider_data in serializer.data:
             provider_slug = provider_data['slug']
-            
-            # Check capability support using the DB configuration (provider_data['capabilities'])
-            # independent of hardcoded files to ensure sync with populate_ai_providers.py
-            provider_caps = provider_data.get('capabilities', {})
-            
+
+            # Product rule: capabilities.py is source of truth for provider capabilities.
             if capability:
-                cap_config = provider_caps.get(capability)
-                # If capability not in config or explicitly marked not supported
-                if not cap_config or not cap_config.get('supported', False):
+                if not supports_feature(provider_slug, capability):
                     continue
+            provider_caps = get_provider_capabilities(provider_slug)
             
             has_access = self._check_provider_access(request.user, provider_slug, is_super)
             

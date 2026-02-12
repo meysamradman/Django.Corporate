@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { aiApi } from '@/api/ai/ai';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/elements/Select';
-import { Check, ChevronDown, Loader2     } from 'lucide-react';
 import type { AIModelList } from '@/types/ai/ai';
 import { cn } from '@/core/utils/cn';
 
@@ -24,18 +23,21 @@ export function ModelSelector({
 }: ModelSelectorProps) {
     const [models, setModels] = useState<AIModelList[]>([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(false);
-    const [fetchedProvider, setFetchedProvider] = useState<string | null>(null);
+    const [, setError] = useState(false);
+    const [fetchedKey, setFetchedKey] = useState<string | null>(null);
 
     // Providers that support dynamic model fetching
     // const DYNAMIC_PROVIDERS = ['openrouter', 'huggingface'];
     // const isDynamic = DYNAMIC_PROVIDERS.includes(providerSlug.toLowerCase());
 
     useEffect(() => {
-        if (providerSlug && providerSlug !== fetchedProvider) {
-            fetchModels();
-        } 
-    }, [providerSlug, capability]);
+        const provider = String(providerSlug || '').toLowerCase().trim();
+        const nextKey = provider && capability ? `${provider}:${capability}` : null;
+
+        if (nextKey && nextKey !== fetchedKey) {
+            fetchModels(provider, nextKey);
+        }
+    }, [providerSlug, capability, fetchedKey]);
 
     // Use a unified model type for display
     interface NormalizedModel {
@@ -68,30 +70,19 @@ export function ModelSelector({
         setNormalizedModels(norm);
     }, [models]);
 
-    const fetchModels = async () => {
+    const fetchModels = async (canonicalProvider: string, nextKey: string) => {
         setLoading(true);
         setError(false);
         try {
-            let response;
-            if (providerSlug.toLowerCase() === 'openrouter') {
-                response = await aiApi[capability].getOpenRouterModels('openrouter');
-            } else if (providerSlug.toLowerCase() === 'huggingface') {
-                // HuggingFace might accept task filter based on capability
-                response = await aiApi[capability].getHuggingFaceModels();
-            } else {
-                // Try fetching for standard providers using the general models endpoint
-                response = await aiApi.models.getModels(providerSlug, capability);
-            }
-
-            if (response && (response as any).data) { // Handle wrapped response safely
-                 const data = Array.isArray(response) ? response : (response as any).data;
-                 setModels(Array.isArray(data) ? data : []);
-            } else if (Array.isArray(response)) {
-                 setModels(response);
-            } else {
-                setModels([]);
-            }
-            setFetchedProvider(providerSlug);
+            const extractArray = (response: any): AIModelList[] => {
+                if (Array.isArray(response)) return response as AIModelList[];
+                if (Array.isArray(response?.data)) return response.data as AIModelList[];
+                if (Array.isArray(response?.data?.data)) return response.data.data as AIModelList[];
+                return [];
+            };
+            const data = extractArray(await aiApi.models.getModels(canonicalProvider, capability));
+            setModels(Array.isArray(data) ? data : []);
+            setFetchedKey(nextKey);
         } catch (e) {
             console.error('[ModelSelector] Error fetching:', e);
             // Silently fail for standard providers if they don't support listing
