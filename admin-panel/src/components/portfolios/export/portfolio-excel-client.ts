@@ -1,14 +1,16 @@
 /**
  * Client-Side Excel Export Utility for Portfolio
- * 
+ *
  * Handles Excel export for small datasets (< 5000 rows) using SheetJS (xlsx)
  */
 
 import * as XLSX from 'xlsx';
 import type { Portfolio } from '@/types/portfolio/portfolio';
 import { formatDate } from '@/core/utils/commonFormat';
-
-const MAX_CLIENT_SIDE_ROWS = 5000;
+import {
+    MAX_CLIENT_SIDE_ROWS,
+    shouldUseClientSideExport,
+} from '@/components/shared/export/excelExportConfig';
 
 interface ExcelExportData {
     'عنوان': string;
@@ -100,9 +102,4 @@ export async function exportPortfoliosToExcel(
     XLSX.writeFile(workbook, `${filename}.xlsx`);
 }
 
-/**
- * Check if dataset should use client-side export
- */
-export function shouldUseClientSideExport(rowCount: number): boolean {
-    return rowCount <= MAX_CLIENT_SIDE_ROWS;
-}
+export { shouldUseClientSideExport };

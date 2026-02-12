@@ -7,7 +7,7 @@
 
 import type { UseMutationResult } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { shouldUseClientSideExport } from '@/lib/export/excel-client';
+import { shouldUseClientSideExport } from '@/components/shared/export/excelExportConfig';
 
 interface HybridExportOptions<TData, TParams> {
     onClientExport: (data: TData[], filename: string) => Promise<void>;

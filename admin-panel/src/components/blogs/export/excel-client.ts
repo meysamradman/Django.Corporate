@@ -1,6 +1,6 @@
 /**
  * Client-Side Excel Export Utility
- * 
+ *
  * Handles Excel export for small datasets (< 5000 rows) using SheetJS (xlsx)
  * For large datasets, use backend API instead
  */
@@ -8,8 +8,10 @@
 import * as XLSX from 'xlsx';
 import type { Blog } from '@/types/blog/blog';
 import { formatDate } from '@/core/utils/commonFormat';
-
-const MAX_CLIENT_SIDE_ROWS = 5000;
+import {
+    MAX_CLIENT_SIDE_ROWS,
+    shouldUseClientSideExport,
+} from '@/components/shared/export/excelExportConfig';
 
 interface ExcelExportData {
     'عنوان': string;
@@ -52,7 +54,7 @@ function getStatusLabel(status: string): string {
 
 /**
  * Export blogs to Excel file (client-side)
- * 
+ *
  * @param blogs - Array of blog objects
  * @param filename - Output filename (without extension)
  * @throws Error if data exceeds MAX_CLIENT_SIDE_ROWS
@@ -106,9 +108,4 @@ export async function exportBlogsToExcel(
     });
 }
 
-/**
- * Check if dataset should use client-side export
- */
-export function shouldUseClientSideExport(rowCount: number): boolean {
-    return rowCount <= MAX_CLIENT_SIDE_ROWS;
-}
+export { shouldUseClientSideExport };

@@ -1,6 +1,6 @@
 /**
  * Client-Side Excel Export Utility for Real Estate
- * 
+ *
  * Handles Excel export for small datasets (< 5000 rows) using SheetJS (xlsx)
  */
 
@@ -8,8 +8,10 @@ import * as XLSX from 'xlsx';
 import type { Property } from '@/types/real_estate/realEstate';
 import { formatDate } from '@/core/utils/commonFormat';
 import { formatPriceToPersian } from '@/core/utils/realEstateFormat';
-
-const MAX_CLIENT_SIDE_ROWS = 5000;
+import {
+    MAX_CLIENT_SIDE_ROWS,
+    shouldUseClientSideExport,
+} from '@/components/shared/export/excelExportConfig';
 
 interface ExcelExportData {
     'عنوان': string;
@@ -98,9 +100,4 @@ export async function exportPropertiesToExcel(
     XLSX.writeFile(workbook, `${filename}.xlsx`);
 }
 
-/**
- * Check if dataset should use client-side export
- */
-export function shouldUseClientSideExport(rowCount: number): boolean {
-    return rowCount <= MAX_CLIENT_SIDE_ROWS;
-}
+export { shouldUseClientSideExport };

@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import type { Blog } from '@/types/blog/blog';
 import type { BlogExportParams } from '@/types/blog/blogListParams';
-import { exportBlogsToExcel } from '@/lib/export/excel-client';
+import { exportBlogsToExcel } from '@/components/blogs/export/excel-client';
 import { exportBlogs } from '@/api/blogs/export';
 import { useHybridExport } from '@/components/shared/useHybridExport';
 

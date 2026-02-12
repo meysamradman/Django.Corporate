@@ -12,87 +12,123 @@ import type { PaginatedResponse, ApiPagination } from "@/types/shared/pagination
 import { convertToLimitOffset } from '@/components/shared/paginations/pagination';
 import type { PropertyListParams } from "@/types/real_estate/realEstateListParams";
 
+type ListParams = Record<string, unknown> & { page?: number; size?: number };
+
+const PROPERTY_BOOLEAN_FILTERS = new Set(['is_published', 'is_featured', 'is_public', 'is_active']);
+const PROPERTY_RAW_STRING_FILTERS = new Set(['labels__in', 'tags__in', 'features__in']);
+
+const normalizeListParams = (params?: ListParams): Record<string, unknown> => {
+  if (!params) return {};
+
+  const normalized: Record<string, unknown> = { ...params };
+  if (params.page && params.size) {
+    const { limit, offset } = convertToLimitOffset(params.page, params.size);
+    normalized.limit = limit;
+    normalized.offset = offset;
+    delete normalized.page;
+    delete normalized.size;
+  }
+
+  return normalized;
+};
+
+const buildQueryString = (
+  params?: Record<string, unknown>,
+  options?: {
+    booleanKeys?: Set<string>;
+    rawStringKeys?: Set<string>;
+  }
+): string => {
+  if (!params) return '';
+
+  const queryParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+
+    if (options?.booleanKeys?.has(key)) {
+      if (typeof value === 'boolean') {
+        queryParams.append(key, value.toString());
+      } else if (typeof value === 'string') {
+        queryParams.append(key, value);
+      }
+      return;
+    }
+
+    if (options?.rawStringKeys?.has(key)) {
+      queryParams.append(key, String(value));
+      return;
+    }
+
+    queryParams.append(key, String(value));
+  });
+
+  return queryParams.toString();
+};
+
+const buildListUrl = (
+  baseUrl: string,
+  params?: ListParams,
+  options?: {
+    booleanKeys?: Set<string>;
+    rawStringKeys?: Set<string>;
+  }
+): string => {
+  const normalized = normalizeListParams(params);
+  const queryString = buildQueryString(normalized, options);
+  if (!queryString) return baseUrl;
+  return `${baseUrl}?${queryString}`;
+};
+
+const toPaginatedResponse = <T>(response: any, params?: ListParams): PaginatedResponse<T> => {
+  const responseData = Array.isArray(response?.data) ? response.data : [];
+  const responsePagination = response?.pagination;
+
+  const pageSize = responsePagination?.page_size || (params?.size || 10);
+  const totalCount = responsePagination?.count || responseData.length;
+  const totalPages = responsePagination?.total_pages || Math.ceil(totalCount / pageSize);
+  let currentPage = responsePagination?.current_page || (params?.page || 1);
+
+  if (currentPage < 1) currentPage = 1;
+  if (totalPages > 0 && currentPage > totalPages) currentPage = totalPages;
+
+  const pagination: ApiPagination = {
+    count: totalCount,
+    next: responsePagination?.next || null,
+    previous: responsePagination?.previous || null,
+    page_size: pageSize,
+    current_page: currentPage,
+    total_pages: totalPages,
+  };
+
+  return {
+    data: responseData,
+    pagination,
+  };
+};
+
+const extractData = <T>(response: any): T => {
+  return response?.data?.data || response?.data;
+};
+
+const fetchPaginated = async <T>(baseUrl: string, params?: ListParams): Promise<PaginatedResponse<T>> => {
+  const url = buildListUrl(baseUrl, params);
+  const response = await api.get<T[]>(url);
+  return toPaginatedResponse<T>(response, params);
+};
+
 export const realEstateApi = {
   getPropertyList: async (params?: PropertyListParams): Promise<PaginatedResponse<Property>> => {
-    let url = '/admin/property/';
-    if (params) {
-      const queryParams = new URLSearchParams();
-
-      const apiParams: Record<string, unknown> = { ...params };
-      if (params.page && params.size) {
-        const { limit, offset } = convertToLimitOffset(params.page, params.size);
-        apiParams.limit = limit;
-        apiParams.offset = offset;
-
-        delete apiParams.page;
-        delete apiParams.size;
-      }
-
-      Object.entries(apiParams).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (key === 'is_published' || key === 'is_featured' || key === 'is_public' || key === 'is_active') {
-            if (typeof value === 'boolean') {
-              queryParams.append(key, value.toString());
-            } else if (typeof value === 'string') {
-              queryParams.append(key, value);
-            }
-          } else if (key === 'labels__in' || key === 'tags__in' || key === 'features__in') {
-            queryParams.append(key, value as string);
-          } else {
-            queryParams.append(key, String(value));
-          }
-        }
-      });
-      const queryString = queryParams.toString();
-      if (queryString) {
-        url += '?' + queryString;
-      }
-    }
-
+    const url = buildListUrl('/admin/property/', params as unknown as ListParams, {
+      booleanKeys: PROPERTY_BOOLEAN_FILTERS,
+      rawStringKeys: PROPERTY_RAW_STRING_FILTERS,
+    });
     const response = await api.get<Property[]>(url);
-
-    if (!response) {
-      return {
-        data: [],
-        pagination: {
-          count: 0,
-          next: null,
-          previous: null,
-          page_size: params?.size || 10,
-          current_page: 1,
-          total_pages: 0
-        }
-      };
-    }
-
-    const responseData = Array.isArray(response.data) ? response.data : [];
-    const responsePagination = response.pagination;
-
-    const pagination: ApiPagination = {
-      count: responsePagination?.count || responseData.length,
-      next: responsePagination?.next || null,
-      previous: responsePagination?.previous || null,
-      page_size: responsePagination?.page_size || (params?.size || 10),
-      current_page: responsePagination?.current_page || (params?.page || 1),
-      total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
-    };
-
-    if (pagination.current_page < 1) {
-      pagination.current_page = 1;
-    }
-    if (pagination.current_page > pagination.total_pages) {
-      pagination.current_page = pagination.total_pages;
-    }
-
-    return {
-      data: responseData,
-      pagination: pagination
-    };
+    return toPaginatedResponse<Property>(response, params as unknown as ListParams);
   },
 
   getPropertyById: async (id: number): Promise<Property> => {
     const response = await api.get<any>('/admin/property/' + id + '/');
-    return response.data?.data || response.data;
+    return extractData<Property>(response);
   },
 
   getPropertiesByIds: async (ids: number[]): Promise<Property[]> => {
@@ -105,13 +141,11 @@ export const realEstateApi = {
   },
 
   createProperty: async (data: Partial<PropertyUpdateData>): Promise<Property> => {
-    console.log("🚀 [Frontend] Sending createProperty (JSON):", data);
     const response = await api.post<any>('/admin/property/', data);
-    return response.data?.data || response.data;
+    return extractData<Property>(response);
   },
 
   createPropertyWithMedia: async (data: Partial<PropertyUpdateData> & { media_ids?: number[] }, mediaFiles: File[]): Promise<Property> => {
-    console.log("🚀 [Frontend] Sending createPropertyDataWithMedia:", { data, mediaFilesCount: mediaFiles.length });
     const formData = new FormData();
 
     Object.entries(data).forEach(([key, value]) => {
@@ -134,22 +168,16 @@ export const realEstateApi = {
       formData.append('media_ids', data.media_ids.join(','));
     }
 
-    console.log("🛠️ [Frontend] FINAL FormData content for CREATE:");
-    formData.forEach((value, key) => {
-      console.log(`  👉 ${key}:`, value);
-    });
-
     const response = await api.post<any>('/admin/property/', formData);
-    return response.data?.data || response.data;
+    return extractData<Property>(response);
   },
 
   updateProperty: async (id: number, data: Partial<PropertyUpdateData>): Promise<Property> => {
     const response = await api.put<any>('/admin/property/' + id + '/', data);
-    return response.data?.data || response.data;
+    return extractData<Property>(response);
   },
 
   updatePropertyWithMedia: async (id: number, data: Partial<PropertyUpdateData> & { media_ids?: number[] }, mediaFiles: File[]): Promise<Property> => {
-    console.log(`🚀 [Frontend] Sending updatePropertyWithMedia for ID ${id}:`, { data, mediaFilesCount: mediaFiles.length });
     const formData = new FormData();
 
     Object.entries(data).forEach(([key, value]) => {
@@ -172,18 +200,13 @@ export const realEstateApi = {
       formData.append('media_ids', data.media_ids.join(','));
     }
 
-    console.log(`🛠️ [Frontend] FINAL FormData content for UPDATE (ID ${id}):`);
-    formData.forEach((value, key) => {
-      console.log(`  👉 ${key}:`, value);
-    });
-
     const response = await api.put<any>('/admin/property/' + id + '/', formData);
-    return response.data?.data || response.data;
+    return extractData<Property>(response);
   },
 
   partialUpdateProperty: async (id: number, data: Partial<PropertyUpdateData>): Promise<Property> => {
     const response = await api.patch<any>('/admin/property/' + id + '/', data);
-    return response.data?.data || response.data;
+    return extractData<Property>(response);
   },
 
   addMediaToProperty: async (propertyId: number, mediaFiles: File[], mediaIds?: number[]): Promise<Property> => {
@@ -197,7 +220,7 @@ export const realEstateApi = {
     }
 
     const response = await api.post<any>('/admin/property/' + propertyId + '/add_media/', formData);
-    return response.data?.data || response.data;
+    return extractData<Property>(response);
   },
 
   deleteProperty: async (id: number): Promise<void> => {
@@ -206,27 +229,27 @@ export const realEstateApi = {
 
   bulkDeleteProperties: async (ids: number[]): Promise<{ success: boolean }> => {
     const response = await api.post<any>('/admin/property/bulk-delete/', { ids });
-    return response.data?.data || response.data;
+    return extractData<{ success: boolean }>(response);
   },
 
   bulkUpdateStatus: async (ids: number[], status: { is_published?: boolean; is_featured?: boolean; is_public?: boolean; is_active?: boolean }): Promise<{ success: boolean }> => {
     const response = await api.post<any>('/admin/property/bulk-update-status/', { ids, ...status });
-    return response.data?.data || response.data;
+    return extractData<{ success: boolean }>(response);
   },
 
   publishProperty: async (id: number): Promise<Property> => {
     const response = await api.post<any>('/admin/property/' + id + '/publish/');
-    return response.data?.data || response.data;
+    return extractData<Property>(response);
   },
 
   unpublishProperty: async (id: number): Promise<Property> => {
     const response = await api.post<any>('/admin/property/' + id + '/unpublish/');
-    return response.data?.data || response.data;
+    return extractData<Property>(response);
   },
 
   toggleFeatured: async (id: number): Promise<Property> => {
     const response = await api.post<any>('/admin/property/' + id + '/toggle-featured/');
-    return response.data?.data || response.data;
+    return extractData<Property>(response);
   },
 
   setMainImage: async (id: number, mediaId: number): Promise<void> => {
@@ -235,17 +258,17 @@ export const realEstateApi = {
 
   getStatistics: async (): Promise<any> => {
     const response = await api.get<any>('/admin/property/statistics/');
-    return response.data?.data || response.data;
+    return extractData<any>(response);
   },
 
   getMonthlyStats: async (): Promise<{ monthly_stats: Array<{ month: string; published: number; draft: number; featured: number; verified: number }> }> => {
     const response = await api.get<any>('/admin/property/monthly-stats/');
-    return response.data?.data || response.data;
+    return extractData<{ monthly_stats: Array<{ month: string; published: number; draft: number; featured: number; verified: number }> }>(response);
   },
 
   getSeoReport: async (): Promise<any> => {
     const response = await api.get<any>('/admin/property/seo-report/');
-    return response.data?.data || response.data;
+    return extractData<any>(response);
   },
 
   bulkGenerateSeo: async (ids: number[]): Promise<{ generated_count: number; total_count: number }> => {
@@ -255,12 +278,12 @@ export const realEstateApi = {
 
   generateSeo: async (id: number): Promise<Property> => {
     const response = await api.post<any>('/admin/property/' + id + '/generate-seo/');
-    return response.data?.data || response.data;
+    return extractData<Property>(response);
   },
 
   validateSeo: async (id: number): Promise<any> => {
     const response = await api.post<any>('/admin/property/' + id + '/validate-seo/');
-    return response.data?.data || response.data;
+    return extractData<any>(response);
   },
 
   getFieldOptions: async (): Promise<{
@@ -317,47 +340,7 @@ export const realEstateApi = {
   },
 
   getTypes: async (params?: { page?: number; size?: number; is_active?: boolean }): Promise<PaginatedResponse<PropertyType>> => {
-    let url = '/admin/property-type/';
-    if (params) {
-      const queryParams = new URLSearchParams();
-
-      const apiParams: Record<string, unknown> = { ...params };
-      if (params.page && params.size) {
-        const { limit, offset } = convertToLimitOffset(params.page, params.size);
-        apiParams.limit = limit;
-        apiParams.offset = offset;
-        delete apiParams.page;
-        delete apiParams.size;
-      }
-
-      Object.entries(apiParams).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          queryParams.append(key, String(value));
-        }
-      });
-      const queryString = queryParams.toString();
-      if (queryString) {
-        url += '?' + queryString;
-      }
-    }
-
-    const response = await api.get<PropertyType[]>(url);
-    const responseData = Array.isArray(response.data) ? response.data : [];
-    const responsePagination = response.pagination;
-
-    const pagination: ApiPagination = {
-      count: responsePagination?.count || responseData.length,
-      next: responsePagination?.next || null,
-      previous: responsePagination?.previous || null,
-      page_size: responsePagination?.page_size || (params?.size || 10),
-      current_page: responsePagination?.current_page || (params?.page || 1),
-      total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
-    };
-
-    return {
-      data: responseData,
-      pagination: pagination
-    };
+    return fetchPaginated<PropertyType>('/admin/property-type/', params);
   },
 
   createType: async (data: Partial<PropertyType>): Promise<PropertyType> => {
@@ -385,47 +368,7 @@ export const realEstateApi = {
   },
 
   getStates: async (params?: { page?: number; size?: number; is_active?: boolean }): Promise<PaginatedResponse<PropertyState>> => {
-    let url = '/admin/property-state/';
-    if (params) {
-      const queryParams = new URLSearchParams();
-
-      const apiParams: Record<string, unknown> = { ...params };
-      if (params.page && params.size) {
-        const { limit, offset } = convertToLimitOffset(params.page, params.size);
-        apiParams.limit = limit;
-        apiParams.offset = offset;
-        delete apiParams.page;
-        delete apiParams.size;
-      }
-
-      Object.entries(apiParams).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          queryParams.append(key, String(value));
-        }
-      });
-      const queryString = queryParams.toString();
-      if (queryString) {
-        url += '?' + queryString;
-      }
-    }
-
-    const response = await api.get<PropertyState[]>(url);
-    const responseData = Array.isArray(response.data) ? response.data : [];
-    const responsePagination = response.pagination;
-
-    const pagination: ApiPagination = {
-      count: responsePagination?.count || responseData.length,
-      next: responsePagination?.next || null,
-      previous: responsePagination?.previous || null,
-      page_size: responsePagination?.page_size || (params?.size || 10),
-      current_page: responsePagination?.current_page || (params?.page || 1),
-      total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
-    };
-
-    return {
-      data: responseData,
-      pagination: pagination
-    };
+    return fetchPaginated<PropertyState>('/admin/property-state/', params);
   },
 
   createState: async (data: Partial<PropertyState>): Promise<PropertyState> => {
@@ -462,47 +405,7 @@ export const realEstateApi = {
   },
 
   getLabels: async (params?: { page?: number; size?: number; is_active?: boolean }): Promise<PaginatedResponse<PropertyLabel>> => {
-    let url = '/admin/property-label/';
-    if (params) {
-      const queryParams = new URLSearchParams();
-
-      const apiParams: Record<string, unknown> = { ...params };
-      if (params.page && params.size) {
-        const { limit, offset } = convertToLimitOffset(params.page, params.size);
-        apiParams.limit = limit;
-        apiParams.offset = offset;
-        delete apiParams.page;
-        delete apiParams.size;
-      }
-
-      Object.entries(apiParams).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          queryParams.append(key, String(value));
-        }
-      });
-      const queryString = queryParams.toString();
-      if (queryString) {
-        url += '?' + queryString;
-      }
-    }
-
-    const response = await api.get<PropertyLabel[]>(url);
-    const responseData = Array.isArray(response.data) ? response.data : [];
-    const responsePagination = response.pagination;
-
-    const pagination: ApiPagination = {
-      count: responsePagination?.count || responseData.length,
-      next: responsePagination?.next || null,
-      previous: responsePagination?.previous || null,
-      page_size: responsePagination?.page_size || (params?.size || 10),
-      current_page: responsePagination?.current_page || (params?.page || 1),
-      total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
-    };
-
-    return {
-      data: responseData,
-      pagination: pagination
-    };
+    return fetchPaginated<PropertyLabel>('/admin/property-label/', params);
   },
 
   createLabel: async (data: Partial<PropertyLabel>): Promise<PropertyLabel> => {
@@ -530,47 +433,7 @@ export const realEstateApi = {
   },
 
   getFeatures: async (params?: { page?: number; size?: number; is_active?: boolean; group?: string }): Promise<PaginatedResponse<PropertyFeature>> => {
-    let url = '/admin/property-feature/';
-    if (params) {
-      const queryParams = new URLSearchParams();
-
-      const apiParams: Record<string, unknown> = { ...params };
-      if (params.page && params.size) {
-        const { limit, offset } = convertToLimitOffset(params.page, params.size);
-        apiParams.limit = limit;
-        apiParams.offset = offset;
-        delete apiParams.page;
-        delete apiParams.size;
-      }
-
-      Object.entries(apiParams).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          queryParams.append(key, String(value));
-        }
-      });
-      const queryString = queryParams.toString();
-      if (queryString) {
-        url += '?' + queryString;
-      }
-    }
-
-    const response = await api.get<PropertyFeature[]>(url);
-    const responseData = Array.isArray(response.data) ? response.data : [];
-    const responsePagination = response.pagination;
-
-    const pagination: ApiPagination = {
-      count: responsePagination?.count || responseData.length,
-      next: responsePagination?.next || null,
-      previous: responsePagination?.previous || null,
-      page_size: responsePagination?.page_size || (params?.size || 10),
-      current_page: responsePagination?.current_page || (params?.page || 1),
-      total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
-    };
-
-    return {
-      data: responseData,
-      pagination: pagination
-    };
+    return fetchPaginated<PropertyFeature>('/admin/property-feature/', params);
   },
 
   createFeature: async (data: Partial<PropertyFeature>): Promise<PropertyFeature> => {
@@ -589,13 +452,13 @@ export const realEstateApi = {
       url += '?property_id=' + propertyId;
     }
     const response = await api.get<any>(url);
-    const data = response.data?.data || response.data;
+    const data = extractData<any>(response);
     return Array.isArray(data) ? data : [];
   },
 
   getFloorPlanById: async (id: number): Promise<any> => {
     const response = await api.get<any>('/admin/floor-plan/' + id + '/');
-    return response.data?.data || response.data;
+    return extractData<any>(response);
   },
 
   createFloorPlan: async (data: any): Promise<any> => {
@@ -622,7 +485,7 @@ export const realEstateApi = {
     }
 
     const response = await api.post<any>('/admin/floor-plan/', formData);
-    return response.data?.data || response.data;
+    return extractData<any>(response);
   },
 
   updateFloorPlan: async (id: number, data: any): Promise<any> => {
@@ -648,7 +511,7 @@ export const realEstateApi = {
     }
 
     const response = await api.patch<any>('/admin/floor-plan/' + id + '/', formData);
-    return response.data?.data || response.data;
+    return extractData<any>(response);
   },
 
   deleteFloorPlan: async (id: number): Promise<void> => {
@@ -667,17 +530,17 @@ export const realEstateApi = {
     }
 
     const response = await api.post<any>('/admin/floor-plan/' + floorPlanId + '/add-images/', formData);
-    return response.data?.data || response.data;
+    return extractData<any>(response);
   },
 
   removeFloorPlanImage: async (floorPlanId: number, imageId: number): Promise<any> => {
     const response = await api.post<any>('/admin/floor-plan/' + floorPlanId + '/remove-image/', { image_id: imageId });
-    return response.data?.data || response.data;
+    return extractData<any>(response);
   },
 
   setFloorPlanMainImage: async (floorPlanId: number, imageId: number): Promise<any> => {
     const response = await api.post<any>('/admin/floor-plan/' + floorPlanId + '/set-main-image/', { image_id: imageId });
-    return response.data?.data || response.data;
+    return extractData<any>(response);
   },
 
   syncFloorPlanImages: async (floorPlanId: number, imageIds: number[], mainImageId?: number): Promise<any> => {
@@ -685,7 +548,7 @@ export const realEstateApi = {
       image_ids: imageIds,
       main_image_id: mainImageId
     });
-    return response.data?.data || response.data;
+    return extractData<any>(response);
   },
 
   updateFeature: async (id: number, data: Partial<PropertyFeature>): Promise<PropertyFeature> => {
@@ -703,47 +566,7 @@ export const realEstateApi = {
   },
 
   getTags: async (params?: { page?: number; size?: number; is_active?: boolean; is_public?: boolean; search?: string }): Promise<PaginatedResponse<PropertyTag>> => {
-    let url = '/admin/property-tag/';
-    if (params) {
-      const queryParams = new URLSearchParams();
-
-      const apiParams: Record<string, unknown> = { ...params };
-      if (params.page && params.size) {
-        const { limit, offset } = convertToLimitOffset(params.page, params.size);
-        apiParams.limit = limit;
-        apiParams.offset = offset;
-        delete apiParams.page;
-        delete apiParams.size;
-      }
-
-      Object.entries(apiParams).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          queryParams.append(key, String(value));
-        }
-      });
-      const queryString = queryParams.toString();
-      if (queryString) {
-        url += '?' + queryString;
-      }
-    }
-
-    const response = await api.get<PropertyTag[]>(url);
-    const responseData = Array.isArray(response.data) ? response.data : [];
-    const responsePagination = response.pagination;
-
-    const pagination: ApiPagination = {
-      count: responsePagination?.count || responseData.length,
-      next: responsePagination?.next || null,
-      previous: responsePagination?.previous || null,
-      page_size: responsePagination?.page_size || (params?.size || 10),
-      current_page: responsePagination?.current_page || (params?.page || 1),
-      total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
-    };
-
-    return {
-      data: responseData,
-      pagination: pagination
-    };
+    return fetchPaginated<PropertyTag>('/admin/property-tag/', params);
   },
 
   createTag: async (data: Partial<PropertyTag>): Promise<PropertyTag> => {
@@ -758,12 +581,12 @@ export const realEstateApi = {
 
   updateTag: async (id: number, data: Partial<PropertyTag>): Promise<PropertyTag> => {
     const response = await api.put<any>('/admin/property-tag/' + id + '/', data);
-    return response.data?.data || response.data;
+    return extractData<PropertyTag>(response);
   },
 
   partialUpdateTag: async (id: number, data: Partial<PropertyTag>): Promise<PropertyTag> => {
     const response = await api.patch<any>('/admin/property-tag/' + id + '/', data);
-    return response.data?.data || response.data;
+    return extractData<PropertyTag>(response);
   },
 
   deleteTag: async (id: number): Promise<void> => {
@@ -771,47 +594,7 @@ export const realEstateApi = {
   },
 
   getAgents: async (params?: { page?: number; size?: number; is_active?: boolean; is_verified?: boolean; agency?: number; city?: number }): Promise<PaginatedResponse<PropertyAgent>> => {
-    let url = '/admin/property-agent/';
-    if (params) {
-      const queryParams = new URLSearchParams();
-
-      const apiParams: Record<string, unknown> = { ...params };
-      if (params.page && params.size) {
-        const { limit, offset } = convertToLimitOffset(params.page, params.size);
-        apiParams.limit = limit;
-        apiParams.offset = offset;
-        delete apiParams.page;
-        delete apiParams.size;
-      }
-
-      Object.entries(apiParams).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          queryParams.append(key, String(value));
-        }
-      });
-      const queryString = queryParams.toString();
-      if (queryString) {
-        url += '?' + queryString;
-      }
-    }
-
-    const response = await api.get<PropertyAgent[]>(url);
-    const responseData = Array.isArray(response.data) ? response.data : [];
-    const responsePagination = response.pagination;
-
-    const pagination: ApiPagination = {
-      count: responsePagination?.count || responseData.length,
-      next: responsePagination?.next || null,
-      previous: responsePagination?.previous || null,
-      page_size: responsePagination?.page_size || (params?.size || 10),
-      current_page: responsePagination?.current_page || (params?.page || 1),
-      total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
-    };
-
-    return {
-      data: responseData,
-      pagination: pagination
-    };
+    return fetchPaginated<PropertyAgent>('/admin/property-agent/', params);
   },
 
   createAgent: async (data: Partial<PropertyAgent>): Promise<PropertyAgent> => {
@@ -839,47 +622,7 @@ export const realEstateApi = {
   },
 
   getAgencies: async (params?: { page?: number; size?: number; is_active?: boolean; is_verified?: boolean; city?: number }): Promise<PaginatedResponse<RealEstateAgency>> => {
-    let url = '/admin/real-estate-agency/';
-    if (params) {
-      const queryParams = new URLSearchParams();
-
-      const apiParams: Record<string, unknown> = { ...params };
-      if (params.page && params.size) {
-        const { limit, offset } = convertToLimitOffset(params.page, params.size);
-        apiParams.limit = limit;
-        apiParams.offset = offset;
-        delete apiParams.page;
-        delete apiParams.size;
-      }
-
-      Object.entries(apiParams).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          queryParams.append(key, String(value));
-        }
-      });
-      const queryString = queryParams.toString();
-      if (queryString) {
-        url += '?' + queryString;
-      }
-    }
-
-    const response = await api.get<RealEstateAgency[]>(url);
-    const responseData = Array.isArray(response.data) ? response.data : [];
-    const responsePagination = response.pagination;
-
-    const pagination: ApiPagination = {
-      count: responsePagination?.count || responseData.length,
-      next: responsePagination?.next || null,
-      previous: responsePagination?.previous || null,
-      page_size: responsePagination?.page_size || (params?.size || 10),
-      current_page: responsePagination?.current_page || (params?.page || 1),
-      total_pages: responsePagination?.total_pages || Math.ceil((responsePagination?.count || responseData.length) / (params?.size || 10))
-    };
-
-    return {
-      data: responseData,
-      pagination: pagination
-    };
+    return fetchPaginated<RealEstateAgency>('/admin/real-estate-agency/', params);
   },
 
   createAgency: async (data: Partial<RealEstateAgency>): Promise<RealEstateAgency> => {

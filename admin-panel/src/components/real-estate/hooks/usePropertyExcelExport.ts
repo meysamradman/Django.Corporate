@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import type { Property } from '@/types/real_estate/realEstate';
 import type { PropertyExportParams } from '@/types/real_estate/realEstateListParams';
-import { exportPropertiesToExcel } from '@/lib/export/property-excel-client';
+import { exportPropertiesToExcel } from '@/components/real-estate/export/property-excel-client';
 import { exportProperties } from '@/api/real-estate/export';
 import { useHybridExport } from '@/components/shared/useHybridExport';
 

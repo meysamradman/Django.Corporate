@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import type { Portfolio } from '@/types/portfolio/portfolio';
 import type { PortfolioExportParams } from '@/types/portfolio/portfolioListParams';
-import { exportPortfoliosToExcel } from '@/lib/export/portfolio-excel-client';
+import { exportPortfoliosToExcel } from '@/components/portfolios/export/portfolio-excel-client';
 import { exportPortfolios } from '@/api/portfolios/export';
 import { useHybridExport } from '@/components/shared/useHybridExport';
 
