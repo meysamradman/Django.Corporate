@@ -228,10 +228,10 @@ class OpenRouterProvider(BaseProvider):
                 if image_url:
                     return await self.download_image(image_url)
 
-                raise Exception(AI_ERRORS.get("image_generation_failed").format(error="پاسخ نامعتبر از سرویس‌دهنده"))
+                raise Exception(AI_ERRORS["invalid_response"])
 
         except httpx.TimeoutException:
-            raise Exception(IMAGE_ERRORS["image_timeout"])
+            raise Exception(AI_ERRORS["generic_timeout"])
 
         except httpx.HTTPStatusError as e:
             status_code = getattr(e.response, 'status_code', None)

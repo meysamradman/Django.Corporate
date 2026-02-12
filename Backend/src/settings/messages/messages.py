@@ -26,6 +26,7 @@ SETTINGS_ERRORS = {
     'settings_table_not_found': 'جدول تنظیمات وجود ندارد. لطفاً migration‌ها را اجرا کنید.',
     'settings_database_error': 'خطای دیتابیس',
     'validation_error': 'خطا در اعتبارسنجی داده‌ها',
+    'shared_api_key_not_set': 'کلید API اشتراکی برای {provider_name} تنظیم نشده است',
     'phone_not_found': 'شماره تماس یافت نشد',
     'phone_create_failed': 'ایجاد شماره تماس ناموفق بود',
     'phone_update_failed': 'به‌روزرسانی شماره تماس ناموفق بود',

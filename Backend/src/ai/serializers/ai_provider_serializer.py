@@ -132,10 +132,10 @@ class AIProviderCreateUpdateSerializer(serializers.ModelSerializer):
         instance = self.instance
         if instance:
             if AIProvider.objects.exclude(pk=instance.pk).filter(name=value).exists():
-                raise serializers.ValidationError(IMAGE_ERRORS.get('provider_name_duplicate', 'این نام قبلاً استفاده شده'))
+                raise serializers.ValidationError(IMAGE_ERRORS['provider_name_duplicate'])
         else:
             if AIProvider.objects.filter(name=value).exists():
-                raise serializers.ValidationError(IMAGE_ERRORS.get('provider_name_duplicate', 'این نام قبلاً استفاده شده'))
+                raise serializers.ValidationError(IMAGE_ERRORS['provider_name_duplicate'])
         return value
 
 
@@ -250,7 +250,7 @@ class AdminProviderSettingsUpdateSerializer(serializers.ModelSerializer):
                 attrs['provider_id'] = provider.id
             except AIProvider.DoesNotExist:
                 raise serializers.ValidationError({
-                    'provider_name': IMAGE_ERRORS.get('provider_not_found_or_inactive', AI_ERRORS.get('provider_not_found_or_inactive'))
+                    'provider_name': AI_ERRORS['provider_not_found_or_inactive']
                 })
             attrs.pop('provider_name')
         
@@ -264,5 +264,5 @@ class AdminProviderSettingsUpdateSerializer(serializers.ModelSerializer):
             try:
                 AIProvider.objects.get(pk=value)
             except AIProvider.DoesNotExist:
-                raise serializers.ValidationError(IMAGE_ERRORS.get('provider_not_found_or_inactive', AI_ERRORS.get('provider_not_found_or_inactive')))
+                raise serializers.ValidationError(AI_ERRORS['provider_not_found_or_inactive'])
         return value

@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional
 from django.utils.text import slugify
 from src.ai.models import AIProvider, AdminProviderSettings, AICapabilityModel
 from src.ai.providers.registry import AIProviderRegistry
-from src.ai.messages.messages import AI_ERRORS, SETTINGS_ERRORS
+from src.ai.messages.messages import AI_ERRORS
 from src.ai.providers.capabilities import ProviderAvailabilityManager
 from src.ai.providers.capabilities import get_default_model
 
@@ -73,16 +73,16 @@ class AIContentGenerationService:
                 if not api_key or not api_key.strip():
                     api_key = provider_model.get_shared_api_key()
                     if not api_key or not api_key.strip():
-                        raise ValueError(SETTINGS_ERRORS.get("shared_api_key_not_set", "API Key not set").format(provider_name=provider_name))
+                        raise ValueError(AI_ERRORS["shared_api_key_not_set"].format(provider_name=provider_name))
                     
             except AdminProviderSettings.DoesNotExist:
                 api_key = provider_model.get_shared_api_key()
                 if not api_key or not api_key.strip():
-                    raise ValueError(SETTINGS_ERRORS.get("shared_api_key_not_set", "Shared API Key not set").format(provider_name=provider_name))
+                    raise ValueError(AI_ERRORS["shared_api_key_not_set"].format(provider_name=provider_name))
         else:
             api_key = provider_model.get_shared_api_key()
             if not api_key or not api_key.strip():
-                raise ValueError(SETTINGS_ERRORS.get("shared_api_key_not_set", "Shared API Key not set").format(provider_name=provider_name))
+                raise ValueError(AI_ERRORS["shared_api_key_not_set"].format(provider_name=provider_name))
         
         config = provider_model.config or {}
         config['model'] = model_name
