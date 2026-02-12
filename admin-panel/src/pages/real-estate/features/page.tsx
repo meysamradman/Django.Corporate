@@ -1,20 +1,15 @@
-import { useState, lazy, Suspense, useEffect } from "react";
-import { useTableFilters } from "@/components/tables/utils/useTableFilters";
+import { lazy, Suspense, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { usePropertyFeatureColumns } from "@/components/real-estate/features/FeatureTableColumns";
-import { usePropertyFeatureFilterOptions, getPropertyFeatureFilterConfig } from "@/components/real-estate/features/FeatureTableFilters";
-import type { OnChangeFn, SortingState } from "@tanstack/react-table";
-import type { TablePaginationState } from '@/types/shared/pagination';
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
-import { Plus } from "lucide-react";
+import { Plus, Edit, Trash2 } from "lucide-react";
 import { ProtectedButton } from "@/core/permissions";
-import { showError, showSuccess } from '@/core/toast';
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { showError } from "@/core/toast";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
 import type { ColumnDef } from "@tanstack/react-table";
-import { msg, getConfirm, getStatus } from '@/core/messages';
+import { getConfirm } from "@/core/messages";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,69 +21,22 @@ import {
   AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { Edit, Trash2 } from "lucide-react";
 import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
 import { DRAWER_IDS } from "@/components/shared/drawer/types";
+import { usePropertyFeatureListTableState } from "@/components/real-estate/hooks/usePropertyFeatureListTableState";
+import { usePropertyFeatureListActions } from "@/components/real-estate/hooks/usePropertyFeatureListActions";
 
-const DataTable = lazy(() => import("@/components/tables/DataTable").then(mod => ({ default: mod.DataTable })));
+const DataTable = lazy(() => import("@/components/tables/DataTable").then((mod) => ({ default: mod.DataTable })));
 
 export default function PropertyFeaturesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
-  const { booleanFilterOptions } = usePropertyFeatureFilterOptions();
-
   const open = useGlobalDrawerStore((state) => state.open);
-
-  const [pagination, setPagination] = useState<TablePaginationState>(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const page = parseInt(urlParams.get('page') || '1', 10);
-      const size = parseInt(urlParams.get('size') || '10', 10);
-      return {
-        pageIndex: Math.max(0, page - 1),
-        pageSize: size,
-      };
-    }
-    return {
-      pageIndex: 0,
-      pageSize: 10,
-    };
-  });
-  const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
-  const [rowSelection, setRowSelection] = useState({});
-  const [searchValue, setSearchValue] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('search') || '';
-    }
-    return '';
-  });
-  const [clientFilters, setClientFilters] = useState<Record<string, unknown>>(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const filters: Record<string, unknown> = {};
-      if (urlParams.get('is_active')) filters.is_active = urlParams.get('is_active') === 'true';
-      if (urlParams.get('date_from')) filters.date_from = urlParams.get('date_from');
-      if (urlParams.get('date_to')) filters.date_to = urlParams.get('date_to');
-      return filters;
-    }
-    return {};
-  });
-
-  const [deleteConfirm, setDeleteConfirm] = useState<{
-    open: boolean;
-    featureId?: number;
-    featureIds?: number[];
-    isBulk: boolean;
-  }>({
-    open: false,
-    isBulk: false,
-  });
 
   useEffect(() => {
     if (searchParams.get("action") === "create") {
       open(DRAWER_IDS.REAL_ESTATE_FEATURE_FORM, {
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['property-features'] })
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["property-features"] }),
       });
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("action");
@@ -96,13 +44,18 @@ export default function PropertyFeaturesPage() {
     }
   }, [searchParams, setSearchParams, open, queryClient]);
 
-  const { handleFilterChange } = useTableFilters(
-    setClientFilters,
-    setSearchValue,
-    setPagination
-  );
-
-  const featureFilterConfig = getPropertyFeatureFilterConfig(booleanFilterOptions);
+  const {
+    pagination,
+    sorting,
+    rowSelection,
+    setRowSelection,
+    searchValue,
+    clientFilters,
+    handleFilterChange,
+    featureFilterConfig,
+    handlePaginationChange,
+    handleSortingChange,
+  } = usePropertyFeatureListTableState();
 
   const queryParams = {
     search: searchValue,
@@ -116,7 +69,7 @@ export default function PropertyFeaturesPage() {
   };
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['property-features', queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.date_from, queryParams.date_to],
+    queryKey: ["property-features", queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.date_from, queryParams.date_to],
     queryFn: async () => {
       const response = await realEstateApi.getFeatures(queryParams);
       return response;
@@ -128,76 +81,14 @@ export default function PropertyFeaturesPage() {
   const dataList: PropertyFeature[] = data?.data || [];
   const pageCount = data?.pagination?.total_pages || 1;
 
-  const deleteFeatureMutation = useMutation({
-    mutationFn: (featureId: number) => realEstateApi.deleteFeature(featureId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['property-features'] });
-      showSuccess(msg.crud('deleted', { item: 'ویژگی ملک' }));
-    },
-    onError: (_error) => {
-      showError('خطای سرور رخ داد');
-    },
-  });
-
-  const bulkDeleteMutation = useMutation({
-    mutationFn: (featureIds: number[]) => Promise.all(featureIds.map(id => realEstateApi.deleteFeature(id))),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['property-features'] });
-      showSuccess(msg.crud('deleted', { item: 'ویژگی‌های ملک' }));
-      setRowSelection({});
-    },
-    onError: (_error) => {
-      showError('خطای سرور رخ داد');
-    },
-  });
-
-  const toggleActiveMutation = useMutation({
-    mutationFn: async ({ id, is_active }: { id: number; is_active: boolean }) => {
-      return await realEstateApi.partialUpdateFeature(id, { is_active });
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['property-features'] });
-      showSuccess(data.is_active ? getStatus('active') : getStatus('inactive'));
-    },
-    onError: (_error) => {
-      showError(getStatus('statusChangeError'));
-    },
-  });
-
-  const handleToggleActive = (feature: PropertyFeature) => {
-    toggleActiveMutation.mutate({
-      id: feature.id,
-      is_active: !feature.is_active,
-    });
-  };
-
-  const handleDeleteFeature = (featureId: number | string) => {
-    setDeleteConfirm({
-      open: true,
-      featureId: Number(featureId),
-      isBulk: false,
-    });
-  };
-
-  const handleDeleteSelected = (selectedIds: (string | number)[]) => {
-    setDeleteConfirm({
-      open: true,
-      featureIds: selectedIds.map(id => Number(id)),
-      isBulk: true,
-    });
-  };
-
-  const handleConfirmDelete = async () => {
-    try {
-      if (deleteConfirm.isBulk && deleteConfirm.featureIds) {
-        await bulkDeleteMutation.mutateAsync(deleteConfirm.featureIds);
-      } else if (!deleteConfirm.isBulk && deleteConfirm.featureId) {
-        await deleteFeatureMutation.mutateAsync(deleteConfirm.featureId);
-      }
-    } catch (error) {
-    }
-    setDeleteConfirm({ open: false, isBulk: false });
-  };
+  const {
+    deleteConfirm,
+    setDeleteConfirm,
+    handleDeleteFeature,
+    handleDeleteSelected,
+    handleConfirmDelete,
+    handleToggleActive,
+  } = usePropertyFeatureListActions({ setRowSelection });
 
   const rowActions: DataTableRowAction<PropertyFeature>[] = [
     {
@@ -206,7 +97,7 @@ export default function PropertyFeaturesPage() {
       onClick: (feature) => {
         open(DRAWER_IDS.REAL_ESTATE_FEATURE_FORM, {
           editId: feature.id,
-          onSuccess: () => queryClient.invalidateQueries({ queryKey: ['property-features'] })
+          onSuccess: () => queryClient.invalidateQueries({ queryKey: ["property-features"] }),
         });
       },
       permission: "real_estate.feature.update",
@@ -222,47 +113,11 @@ export default function PropertyFeaturesPage() {
 
   const columns = usePropertyFeatureColumns(rowActions, handleToggleActive) as ColumnDef<PropertyFeature>[];
 
-  const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
-    const newPagination = typeof updaterOrValue === 'function'
-      ? updaterOrValue(pagination)
-      : updaterOrValue;
-
-    setPagination(newPagination);
-
-    const url = new URL(window.location.href);
-    url.searchParams.set('page', String(newPagination.pageIndex + 1));
-    url.searchParams.set('size', String(newPagination.pageSize));
-    window.history.replaceState({}, '', url.toString());
-  };
-
-  const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function'
-      ? updaterOrValue(sorting)
-      : updaterOrValue;
-
-    setSorting(newSorting);
-
-    const url = new URL(window.location.href);
-    if (newSorting.length > 0) {
-      url.searchParams.set('order_by', newSorting[0].id);
-      url.searchParams.set('order_desc', String(newSorting[0].desc));
-    } else {
-      url.searchParams.delete('order_by');
-      url.searchParams.delete('order_desc');
-    }
-    window.history.replaceState({}, '', url.toString());
-  };
-
   if (error) {
+    showError("خطا در بارگذاری داده‌ها");
     return (
       <div className="space-y-6">
         <PageHeader title="مدیریت ویژگی‌های ملک" />
-        <div className="text-center py-8">
-          <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
-          <p className="text-sm text-font-s mb-4">
-            سرور با خطای 500 پاسخ داده است. لطفاً با مدیر سیستم تماس بگیرید.
-          </p>
-        </div>
       </div>
     );
   }
@@ -275,7 +130,7 @@ export default function PropertyFeaturesPage() {
           size="sm"
           onClick={() => {
             open(DRAWER_IDS.REAL_ESTATE_FEATURE_FORM, {
-              onSuccess: () => queryClient.invalidateQueries({ queryKey: ['property-features'] })
+              onSuccess: () => queryClient.invalidateQueries({ queryKey: ["property-features"] }),
             });
           }}
         >
@@ -295,11 +150,7 @@ export default function PropertyFeaturesPage() {
           onRowSelectionChange={setRowSelection}
           clientFilters={clientFilters}
           onFilterChange={handleFilterChange}
-          state={{
-            pagination,
-            sorting,
-            rowSelection,
-          }}
+          state={{ pagination, sorting, rowSelection }}
           searchValue={searchValue}
           pageSizeOptions={[10, 20, 50]}
           deleteConfig={{
@@ -311,28 +162,19 @@ export default function PropertyFeaturesPage() {
         />
       </Suspense>
 
-      <AlertDialog
-        open={deleteConfirm.open}
-        onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
-      >
+      <AlertDialog open={deleteConfirm.open} onOpenChange={(open) => setDeleteConfirm((prev) => ({ ...prev, open }))}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>تایید حذف</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteConfirm.isBulk
-                ? getConfirm('bulkDelete', { item: 'ویژگی ملک', count: deleteConfirm.featureIds?.length || 0 })
-                : getConfirm('delete', { item: 'ویژگی ملک' })
-              }
+                ? getConfirm("bulkDelete", { item: "ویژگی ملک", count: deleteConfirm.featureIds?.length || 0 })
+                : getConfirm("delete", { item: "ویژگی ملک" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>
-              لغو
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              className="bg-destructive text-static-w hover:bg-destructive/90"
-            >
+            <AlertDialogCancel>لغو</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-static-w hover:bg-destructive/90">
               حذف
             </AlertDialogAction>
           </AlertDialogFooter>
