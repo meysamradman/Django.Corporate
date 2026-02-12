@@ -1,41 +1,51 @@
-import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Card, CardContent } from "@/components/elements/Card";
 import { Input } from "@/components/elements/Input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
-import { PersianDatePicker } from '@/components/elements/PersianDatePicker';
+import { PersianDatePicker } from "@/components/elements/PersianDatePicker";
 import { PaginationControls } from "@/components/shared/paginations/PaginationControls";
-import { Plus, Search, Phone, Mail, Edit, Trash2, Eye, Loader2 } from "lucide-react";
+import { Plus, Search, Phone, Mail, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyAgent } from "@/types/real_estate/agent/realEstateAgent";
-import { mediaService } from "@/components/media/services";
 import { ProtectedButton } from "@/core/permissions";
-import { CardItem, type CardItemAction } from "@/components/elements/CardItem";
+import { CardItem } from "@/components/elements/CardItem";
+import { usePropertyAdvisorListState } from "@/components/real-estate/hooks/usePropertyAdvisorListState";
+import { usePropertyAdvisorCardHelpers } from "@/components/real-estate/hooks/usePropertyAdvisorCardHelpers";
 
 export default function AdvisorsListPage() {
   const navigate = useNavigate();
-  const [searchValue, setSearchValue] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [verifiedFilter, setVerifiedFilter] = useState<string>("all");
-  const [dateFrom, setDateFrom] = useState<string>("");
-  const [dateTo, setDateTo] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(6);
 
-  const queryParams = {
-    page: currentPage,
-    size: pageSize,
-    ...(searchValue && { search: searchValue }),
-    ...(statusFilter !== "all" && { is_active: statusFilter === "active" }),
-    ...(verifiedFilter !== "all" && { is_verified: verifiedFilter === "true" }),
-    ...(dateFrom && { date_from: dateFrom }),
-    ...(dateTo && { date_to: dateTo }),
-  };
+  const {
+    searchValue,
+    statusFilter,
+    verifiedFilter,
+    dateFrom,
+    dateTo,
+    currentPage,
+    pageSize,
+    queryParams,
+    handleSearchChange,
+    handleStatusChange,
+    handleVerifiedChange,
+    handleDateFromChange,
+    handleDateToChange,
+    handlePageChange,
+    handlePageSizeChange,
+  } = usePropertyAdvisorListState();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['property-agents', queryParams.page, queryParams.size, queryParams.search, queryParams.is_active, queryParams.is_verified, queryParams.date_from, queryParams.date_to],
+    queryKey: [
+      "property-agents",
+      queryParams.page,
+      queryParams.size,
+      queryParams.search,
+      queryParams.is_active,
+      queryParams.is_verified,
+      queryParams.date_from,
+      queryParams.date_to,
+    ],
     queryFn: async () => {
       return await realEstateApi.getAgents(queryParams);
     },
@@ -47,66 +57,12 @@ export default function AdvisorsListPage() {
   const totalPages = data?.pagination?.total_pages || 1;
   const totalCount = data?.pagination?.count || 0;
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const handlePageSizeChange = (size: number) => {
-    setPageSize(size);
-    setCurrentPage(1);
-  };
-
-  const getInitial = (agent: PropertyAgent) => {
-    if (agent.full_name) {
-      const parts = agent.full_name.split(" ");
-      if (parts.length >= 2) {
-        return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
-      }
-      return agent.full_name.charAt(0).toUpperCase();
-    }
-    if (agent.first_name && agent.last_name) {
-      return `${agent.first_name.charAt(0)}${agent.last_name.charAt(0)}`.toUpperCase();
-    }
-    if (agent.first_name) {
-      return agent.first_name.charAt(0).toUpperCase();
-    }
-    return "؟";
-  };
-
-  const getImageUrl = (agent: PropertyAgent) => {
-    if (agent.profile_image?.file_url) {
-      return mediaService.getMediaUrlFromObject({ file_url: agent.profile_image.file_url } as any);
-    }
-    return null;
-  };
-
-  const actions: CardItemAction<PropertyAgent>[] = useMemo(() => [
-    {
-      label: "مشاهده",
-      icon: <Eye className="h-4 w-4" />,
-      onClick: (agent) => navigate(`/real-estate/agents/${agent.id}/view`),
-    },
-    {
-      label: "ویرایش",
-      icon: <Edit className="h-4 w-4" />,
-      onClick: (agent) => navigate(`/real-estate/agents/${agent.id}/edit`),
-    },
-    {
-      label: "حذف",
-      icon: <Trash2 className="h-4 w-4" />,
-      onClick: (agent) => { },
-      isDestructive: true,
-    },
-  ], [navigate]);
+  const { getInitial, getImageUrl, actions } = usePropertyAdvisorCardHelpers({ navigate });
 
   return (
     <div className="space-y-6">
       <PageHeader title="مدیریت مشاورین املاک">
-        <ProtectedButton
-          permission="real_estate.agent.create"
-          size="sm"
-          onClick={() => navigate("/real-estate/agents/create")}
-        >
+        <ProtectedButton permission="real_estate.agent.create" size="sm" onClick={() => navigate("/real-estate/agents/create")}>
           <Plus className="h-4 w-4" />
           افزودن مشاور
         </ProtectedButton>
@@ -121,19 +77,13 @@ export default function AdvisorsListPage() {
                 <Input
                   placeholder="جستجو در نام، شماره تماس، ایمیل..."
                   value={searchValue}
-                  onChange={(e) => {
-                    setSearchValue(e.target.value);
-                    setCurrentPage(1);
-                  }}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="pr-10"
                 />
               </div>
             </div>
             <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={(value) => {
-                setStatusFilter(value);
-                setCurrentPage(1);
-              }}>
+              <Select value={statusFilter} onValueChange={handleStatusChange}>
                 <SelectTrigger className="w-37.5">
                   <SelectValue placeholder="وضعیت" />
                 </SelectTrigger>
@@ -143,10 +93,7 @@ export default function AdvisorsListPage() {
                   <SelectItem value="inactive">غیرفعال</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={verifiedFilter} onValueChange={(value) => {
-                setVerifiedFilter(value);
-                setCurrentPage(1);
-              }}>
+              <Select value={verifiedFilter} onValueChange={handleVerifiedChange}>
                 <SelectTrigger className="w-37.5">
                   <SelectValue placeholder="تایید شده" />
                 </SelectTrigger>
@@ -157,25 +104,9 @@ export default function AdvisorsListPage() {
                 </SelectContent>
               </Select>
               <div className="flex items-center gap-2">
-                <PersianDatePicker
-                  value={dateFrom}
-                  onChange={(date) => {
-                    setDateFrom(date);
-                    setCurrentPage(1);
-                  }}
-                  placeholder="از تاریخ"
-                  className="h-9 w-36"
-                />
+                <PersianDatePicker value={dateFrom} onChange={handleDateFromChange} placeholder="از تاریخ" className="h-9 w-36" />
                 <span className="text-xs text-font-s">تا</span>
-                <PersianDatePicker
-                  value={dateTo}
-                  onChange={(date) => {
-                    setDateTo(date);
-                    setCurrentPage(1);
-                  }}
-                  placeholder="تا تاریخ"
-                  className="h-9 w-36"
-                />
+                <PersianDatePicker value={dateTo} onChange={handleDateToChange} placeholder="تا تاریخ" className="h-9 w-36" />
               </div>
             </div>
           </div>
@@ -257,7 +188,9 @@ export default function AdvisorsListPage() {
                       {advisor.email ? (
                         <div className="flex items-center gap-2 text-sm text-font-s">
                           <Mail className="size-4 shrink-0" />
-                          <span className="truncate" dir="ltr">{advisor.email}</span>
+                          <span className="truncate" dir="ltr">
+                            {advisor.email}
+                          </span>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2 text-sm text-font-s">
@@ -286,7 +219,7 @@ export default function AdvisorsListPage() {
                   showPageSize={true}
                   showInfo={true}
                   totalCount={totalCount}
-                  infoText={`${((currentPage - 1) * pageSize) + 1} - ${Math.min(currentPage * pageSize, totalCount)} از ${totalCount}`}
+                  infoText={`${(currentPage - 1) * pageSize + 1} - ${Math.min(currentPage * pageSize, totalCount)} از ${totalCount}`}
                   showFirstLast={true}
                   showPageNumbers={true}
                   siblingCount={1}
@@ -299,4 +232,3 @@ export default function AdvisorsListPage() {
     </div>
   );
 }
-
