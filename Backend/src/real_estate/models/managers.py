@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Prefetch, Count, Q
+from django.contrib.postgres.search import SearchQuery, SearchRank
 
 class PropertyQuerySet(models.QuerySet):
 
@@ -163,6 +164,8 @@ class PropertyQuerySet(models.QuerySet):
     def for_detail(self):
         from django.db.models import Prefetch
         from src.real_estate.models.media import PropertyImage, PropertyVideo, PropertyAudio, PropertyDocument
+        from src.real_estate.models.floor_plan import RealEstateFloorPlan
+        from src.real_estate.models.floor_plan_media import FloorPlanImage
         
         return self.select_related(
             'property_type',
@@ -170,10 +173,14 @@ class PropertyQuerySet(models.QuerySet):
             'agent',
             'agent__agency',
             'agent__user',
+            'agent__user__admin_profile',
             'agency',
             'region',
             'city',
-            'province'
+            'province',
+            'og_image',
+            'created_by',
+            'created_by__admin_profile'
         ).prefetch_related(
             'labels',
             'tags',
@@ -183,35 +190,46 @@ class PropertyQuerySet(models.QuerySet):
                 queryset=PropertyImage.objects.select_related('image').order_by('is_main', 'order', 'created_at'),
                 to_attr='all_images'
             ),
-            'images__image',
             Prefetch(
                 'videos',
                 queryset=PropertyVideo.objects.select_related('video', 'video__cover_image', 'cover_image').order_by('order', 'created_at')
             ),
-            'videos__video',
-            'videos__video__cover_image',
             Prefetch(
                 'audios',
                 queryset=PropertyAudio.objects.select_related('audio', 'audio__cover_image', 'cover_image').order_by('order', 'created_at')
             ),
-            'audios__audio',
-            'audios__audio__cover_image',
             Prefetch(
                 'documents',
                 queryset=PropertyDocument.objects.select_related('document', 'document__cover_image', 'cover_image').order_by('order', 'created_at')
             ),
-            'documents__document',
-            'documents__document__cover_image'
+            Prefetch(
+                'floor_plans',
+                queryset=RealEstateFloorPlan.objects.filter(is_active=True)
+                    .order_by('display_order', 'floor_number')
+                    .prefetch_related(
+                        Prefetch(
+                            'images',
+                            queryset=FloorPlanImage.objects.select_related('image').order_by('order', 'created_at')
+                        )
+                    )
+            )
         )
     
     def search(self, query):
-        return self.filter(
-            Q(title__icontains=query) |
-            Q(description__icontains=query) |
-            Q(address__icontains=query) |
+        if not query:
+            return self
+
+        search_query = SearchQuery(query, search_type='websearch', config='english')
+
+        return self.annotate(
+            search_rank=SearchRank(models.F('search_vector'), search_query)
+        ).filter(
+            Q(search_vector=search_query) |
             Q(city__name__icontains=query) |
-            Q(region__name__icontains=query)
-        ).distinct()
+            Q(region__name__icontains=query) |
+            Q(neighborhood__icontains=query) |
+            Q(slug__icontains=query)
+        ).distinct().order_by('-search_rank', '-created_at')
     
     def featured(self):
         return self.filter(is_featured=True)

@@ -28,17 +28,23 @@ class FloorPlanAdminListSerializer(serializers.ModelSerializer):
             'images', 'main_image', 'image_count',
             'created_at', 'updated_at'
         ]
+
+    @staticmethod
+    def _get_images_cached(obj):
+        prefetched = getattr(obj, '_prefetched_objects_cache', {})
+        if 'images' in prefetched:
+            return prefetched['images']
+        return list(obj.images.all())
     
     def get_main_image(self, obj):
-        
-        main_img = obj.images.filter(is_main=True).select_related('image').first()
+        images = self._get_images_cached(obj)
+        main_img = next((image for image in images if image.is_main), None)
         if main_img and main_img.image:
             return ImageMediaSerializer(main_img.image).data
         return None
     
     def get_image_count(self, obj):
-        
-        return obj.images.count()
+        return len(self._get_images_cached(obj))
 
 class FloorPlanAdminDetailSerializer(serializers.ModelSerializer):
     

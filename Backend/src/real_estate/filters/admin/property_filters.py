@@ -4,6 +4,9 @@ from src.real_estate.models.property import Property
 from src.real_estate.models.constants import PROPERTY_STATUS_CHOICES
 
 class PropertyAdminFilter(django_filters.FilterSet):
+    _SALE_USAGE_TYPES = ('sale', 'presale', 'exchange', 'mortgage')
+    _RENT_USAGE_TYPES = ('rent',)
+
     status = django_filters.CharFilter(
         method='filter_status',
         help_text="Filter by listing lifecycle status (single or comma-separated)"
@@ -142,6 +145,26 @@ class PropertyAdminFilter(django_filters.FilterSet):
         method='filter_max_price',
         help_text="Maximum price"
     )
+
+    min_sale_price = django_filters.NumberFilter(
+        method='filter_min_sale_price',
+        help_text="Minimum sale-related price (price/sale_price/pre_sale_price)"
+    )
+
+    max_sale_price = django_filters.NumberFilter(
+        method='filter_max_sale_price',
+        help_text="Maximum sale-related price (price/sale_price/pre_sale_price)"
+    )
+
+    min_rent_price = django_filters.NumberFilter(
+        method='filter_min_rent_price',
+        help_text="Minimum rent-related price (monthly_rent/rent_amount)"
+    )
+
+    max_rent_price = django_filters.NumberFilter(
+        method='filter_max_rent_price',
+        help_text="Maximum rent-related price (monthly_rent/rent_amount)"
+    )
     
     min_area = django_filters.NumberFilter(
         field_name='built_area',
@@ -258,7 +281,9 @@ class PropertyAdminFilter(django_filters.FilterSet):
             'created_after', 'created_before', 'published_after', 'published_before',
             'property_type', 'state', 'agent', 'agency', 'created_by',
             'city', 'province', 'region', 'region_code', 'neighborhood',
-            'min_price', 'max_price', 'min_area', 'max_area',
+            'min_price', 'max_price',
+            'min_sale_price', 'max_sale_price', 'min_rent_price', 'max_rent_price',
+            'min_area', 'max_area',
             'bedrooms', 'bathrooms',
             'label', 'tag', 'feature',
             'labels__in', 'tags__in', 'features__in',
@@ -306,21 +331,14 @@ class PropertyAdminFilter(django_filters.FilterSet):
     def filter_search(self, queryset, name, value):
         if not value:
             return queryset
-        
-        return queryset.filter(
-            Q(title__icontains=value) |
-            Q(short_description__icontains=value) |
-            Q(description__icontains=value) |
-            Q(address__icontains=value) |
-            Q(neighborhood__icontains=value) |
-            Q(city__name__icontains=value) |
-            Q(region__name__icontains=value) |
-            Q(meta_title__icontains=value) |
-            Q(meta_description__icontains=value) |
-            Q(slug__icontains=value) |
+
+        base_queryset = queryset.search(value)
+        taxonomy_queryset = queryset.filter(
             Q(labels__title__icontains=value) |
             Q(tags__title__icontains=value)
-        ).distinct()
+        )
+
+        return (base_queryset | taxonomy_queryset).distinct()
     
     def filter_has_main_image(self, queryset, name, value):
         if value:
@@ -376,25 +394,74 @@ class PropertyAdminFilter(django_filters.FilterSet):
     
     def filter_min_price(self, queryset, name, value):
         if value is not None:
-            return queryset.filter(
-                Q(price__gte=value) |
-                Q(sale_price__gte=value) |
-                Q(pre_sale_price__gte=value) |
-                Q(monthly_rent__gte=value) |
-                Q(rent_amount__gte=value)
-            )
+            return queryset.filter(self._build_price_q('gte', value))
         return queryset
     
     def filter_max_price(self, queryset, name, value):
         if value is not None:
+            return queryset.filter(self._build_price_q('lte', value))
+        return queryset
+
+    def filter_min_sale_price(self, queryset, name, value):
+        if value is not None:
+            sale_q = self._build_sale_price_q('gte', value)
             return queryset.filter(
-                Q(price__lte=value) |
-                Q(sale_price__lte=value) |
-                Q(pre_sale_price__lte=value) |
-                Q(monthly_rent__lte=value) |
-                Q(rent_amount__lte=value)
+                (Q(state__usage_type__in=self._SALE_USAGE_TYPES) & sale_q) |
+                (Q(state__isnull=True) & sale_q)
             )
         return queryset
+
+    def filter_max_sale_price(self, queryset, name, value):
+        if value is not None:
+            sale_q = self._build_sale_price_q('lte', value)
+            return queryset.filter(
+                (Q(state__usage_type__in=self._SALE_USAGE_TYPES) & sale_q) |
+                (Q(state__isnull=True) & sale_q)
+            )
+        return queryset
+
+    def filter_min_rent_price(self, queryset, name, value):
+        if value is not None:
+            rent_q = self._build_rent_price_q('gte', value)
+            return queryset.filter(
+                (Q(state__usage_type__in=self._RENT_USAGE_TYPES) & rent_q) |
+                (Q(state__isnull=True) & rent_q)
+            )
+        return queryset
+
+    def filter_max_rent_price(self, queryset, name, value):
+        if value is not None:
+            rent_q = self._build_rent_price_q('lte', value)
+            return queryset.filter(
+                (Q(state__usage_type__in=self._RENT_USAGE_TYPES) & rent_q) |
+                (Q(state__isnull=True) & rent_q)
+            )
+        return queryset
+
+    def _build_sale_price_q(self, lookup, value):
+        return (
+            Q(**{f'price__{lookup}': value}) |
+            Q(**{f'sale_price__{lookup}': value}) |
+            Q(**{f'pre_sale_price__{lookup}': value})
+        )
+
+    def _build_rent_price_q(self, lookup, value):
+        return (
+            Q(**{f'monthly_rent__{lookup}': value}) |
+            Q(**{f'rent_amount__{lookup}': value})
+        )
+
+    def _build_price_q(self, lookup, value):
+        sale_q = self._build_sale_price_q(lookup, value)
+        rent_q = self._build_rent_price_q(lookup, value)
+        legacy_q = sale_q | rent_q
+
+        return (
+            (Q(state__usage_type__in=self._SALE_USAGE_TYPES) & sale_q) |
+            (Q(state__usage_type__in=self._RENT_USAGE_TYPES) & rent_q) |
+            (Q(state__usage_type='other') & legacy_q) |
+            (Q(state__isnull=True) & legacy_q)
+        )
 
     def filter_property_type(self, queryset, name, value):
         if value:

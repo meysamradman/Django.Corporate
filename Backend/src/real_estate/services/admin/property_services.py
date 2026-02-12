@@ -150,12 +150,9 @@ class PropertyAdminService:
     @staticmethod
     def get_property_detail(property_id):
         try:
-            return Property.objects.select_related(
-                'property_type', 'state', 'agent', 'agency', 'province', 'city', 'region', 'og_image'
-            ).prefetch_related(
-                'labels', 'tags', 'features',
-                'images__image', 'videos__video', 'audios__audio', 'documents__document',
-                'images__image__created_by', 'videos__video__created_by'
+            return Property.objects.for_detail().select_related(
+                'region__city__province__country',
+                'created_by__admin_profile'
             ).get(id=property_id)
         except Property.DoesNotExist:
             return None

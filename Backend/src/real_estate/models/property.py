@@ -2,7 +2,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.contrib.postgres.indexes import GinIndex, BrinIndex
-from django.contrib.postgres.search import SearchVectorField
+from django.contrib.postgres.search import SearchVectorField, SearchVector
 from django.db.models import Q
 from src.core.models import BaseModel, Province, City
 from src.real_estate.models.seo import SEOMixin
@@ -717,8 +717,17 @@ class Property(BaseModel, SEOMixin):
         if structured_data is None:
             main_image = self.get_main_image()
             
-            tags = list(self.tags.values_list('title', flat=True)[:5])
-            features = list(self.features.values_list('title', flat=True)[:5])
+            prefetched = getattr(self, '_prefetched_objects_cache', {})
+
+            if 'tags' in prefetched:
+                tags = [tag.title for tag in prefetched['tags'][:5]]
+            else:
+                tags = list(self.tags.values_list('title', flat=True)[:5])
+
+            if 'features' in prefetched:
+                features = [feature.title for feature in prefetched['features'][:5]]
+            else:
+                features = list(self.features.values_list('title', flat=True)[:5])
             
             address_parts = []
             if self.neighborhood:
@@ -828,15 +837,13 @@ class Property(BaseModel, SEOMixin):
         is_new = self.pk is None
         super().save(*args, **kwargs)
 
-        if is_new:
-            from django.contrib.postgres.search import SearchVector
-            Property.objects.filter(pk=self.pk).update(
-                search_vector=(
-                    SearchVector('title', weight='A', config='english') +
-                    SearchVector('description', weight='B', config='english') +
-                    SearchVector('address', weight='C', config='english')
-                )
+        Property.objects.filter(pk=self.pk).update(
+            search_vector=(
+                SearchVector('title', weight='A', config='english') +
+                SearchVector('description', weight='B', config='english') +
+                SearchVector('address', weight='C', config='english')
             )
+        )
 
         if self.pk:
             PropertyCacheManager.invalidate_property(self.pk)

@@ -458,11 +458,15 @@ class PropertyAdminDetailSerializer(MediaAggregationMixin, serializers.ModelSeri
     
     def get_floor_plans(self, obj):
         from src.real_estate.serializers.admin.floor_plan_serializer import FloorPlanAdminListSerializer
-        
-        floor_plans = obj.floor_plans.prefetch_related(
-            'images__image'
-        ).filter(is_active=True).order_by('display_order', 'floor_number')
-        
+
+        prefetched = getattr(obj, '_prefetched_objects_cache', {})
+        if 'floor_plans' in prefetched:
+            floor_plans = prefetched['floor_plans']
+        else:
+            floor_plans = obj.floor_plans.filter(is_active=True).order_by('display_order', 'floor_number').prefetch_related(
+                'images__image'
+            )
+
         return FloorPlanAdminListSerializer(floor_plans, many=True, context=self.context).data
 
 class PropertyAdminCreateSerializer(serializers.ModelSerializer):
