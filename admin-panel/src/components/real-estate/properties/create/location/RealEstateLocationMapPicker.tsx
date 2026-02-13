@@ -69,6 +69,7 @@ export function RealEstateLocationMapPicker({
 
     const suppressRegionToMapSyncRef = useRef(false);
     const lastProgrammaticRegionIdRef = useRef<number | null>(null);
+    const resolveLocationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const canPickLocation = editMode;
     const canApplyManualCoordinates = editMode;
@@ -245,6 +246,24 @@ export function RealEstateLocationMapPicker({
         }
     }, [buildAddressFromReverseData, normalizeCoordinateText, normalizeLocationName, provinces, setFieldValue]);
 
+    const scheduleResolveLocationFieldsFromCoordinates = useCallback((lat: number, lng: number) => {
+        if (resolveLocationTimeoutRef.current) {
+            clearTimeout(resolveLocationTimeoutRef.current);
+        }
+
+        resolveLocationTimeoutRef.current = setTimeout(() => {
+            resolveLocationFieldsFromCoordinates(lat, lng);
+        }, 350);
+    }, [resolveLocationFieldsFromCoordinates]);
+
+    useEffect(() => {
+        return () => {
+            if (resolveLocationTimeoutRef.current) {
+                clearTimeout(resolveLocationTimeoutRef.current);
+            }
+        };
+    }, []);
+
     const applyManualCoordinates = useCallback(async () => {
         if (!canApplyManualCoordinates || !onLocationChange) return;
 
@@ -332,9 +351,9 @@ export function RealEstateLocationMapPicker({
                 onLocationChange={useCallback((lat, lng) => {
                     onLocationChange?.(lat, lng);
                     if (typeof lat === "number" && typeof lng === "number") {
-                        resolveLocationFieldsFromCoordinates(lat, lng);
+                        scheduleResolveLocationFieldsFromCoordinates(lat, lng);
                     }
-                }, [onLocationChange])}
+                }, [onLocationChange, scheduleResolveLocationFieldsFromCoordinates])}
                 onAddressUpdate={useCallback((address: string) => {
                     if (isFormApproach && setValue) {
                         setValue("address", address, { shouldValidate: false });
