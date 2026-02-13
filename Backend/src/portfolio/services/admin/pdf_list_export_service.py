@@ -5,7 +5,6 @@ from datetime import datetime
 from django.http import HttpResponse
 from src.core.utils.date_utils import format_jalali_medium, format_jalali_short
 from src.core.utils.pdf_base_service import PDFBaseExportService, REPORTLAB_AVAILABLE
-from src.portfolio.messages.messages import PDF_LABELS
 
 logger = logging.getLogger(__name__)
 

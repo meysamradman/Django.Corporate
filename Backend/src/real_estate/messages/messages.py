@@ -38,7 +38,6 @@ PROPERTY_ERRORS = {
     "property_export_failed": "خروجی گیری املاک ناموفق بود.",
     "property_export_limit_exceeded": "حد مجاز خروجی گیری تجاوز شده است. لطفاً بعداً تلاش کنید.",
     "property_export_too_large": "حجم خروجی بسیار بزرگ است. لطفاً فیلترهای بیشتری اعمال کنید.",
-    "property_update_failed": "به‌روزرسانی ملک ناموفق بود.",
 }
 
 PDF_LABELS = {
@@ -123,6 +122,9 @@ TYPE_SUCCESS = {
     "type_updated": "نوع ملک با موفقیت به‌روزرسانی شد.",
     "type_deleted": "نوع ملک با موفقیت حذف شد.",
     "type_retrieved": "نوع ملک با موفقیت دریافت شد.",
+    "type_moved": "نوع ملک با موفقیت منتقل شد.",
+    "type_bulk_deleted": "انواع ملک با موفقیت حذف شدند.",
+    "type_statistics_retrieved": "آمار انواع ملک با موفقیت دریافت شد.",
 }
 
 TYPE_ERRORS = {
@@ -132,6 +134,12 @@ TYPE_ERRORS = {
     "type_update_failed": "به‌روزرسانی نوع ملک ناموفق بود.",
     "type_delete_failed": "حذف نوع ملک ناموفق بود.",
     "type_has_properties": "این نوع ملک در {count} ملک استفاده شده و قابل حذف نیست.",
+    "type_has_children": "این نوع ملک دارای {count} زیرنوع است و قابل حذف نیست.",
+    "type_ids_required": "شناسه انواع ملک مورد نیاز است.",
+    "types_not_found": "انواع ملک انتخاب‌شده یافت نشدند.",
+    "type_move_to_descendant": "نمی‌توانید نوع ملک را به فرزند خودش منتقل کنید.",
+    "type_move_to_self": "نمی‌توانید نوع ملک را به خودش منتقل کنید.",
+    "type_move_failed": "خطا در انتقال نوع ملک: {error}",
 }
 
 STATE_SUCCESS = {
@@ -184,20 +192,21 @@ FEATURE_ERRORS = {
 }
 
 TAG_SUCCESS = {
-    "tag_list_success": "لیست تگ‌های ملک با موفقیت دریافت شد.",
-    "tag_created": "تگ ملک با موفقیت ایجاد شد.",
-    "tag_updated": "تگ ملک با موفقیت به‌روزرسانی شد.",
-    "tag_deleted": "تگ ملک با موفقیت حذف شد.",
-    "tag_retrieved": "تگ ملک با موفقیت دریافت شد.",
+    "tag_list_success": "لیست تگ‌ها با موفقیت دریافت شد.",
+    "tag_created": "تگ با موفقیت ایجاد شد.",
+    "tag_updated": "تگ با موفقیت به‌روزرسانی شد.",
+    "tag_deleted": "تگ با موفقیت حذف شد.",
+    "tag_retrieved": "تگ با موفقیت دریافت شد.",
 }
 
 TAG_ERRORS = {
-    "tag_not_found": "تگ ملک یافت نشد.",
-    "tag_not_authorized": "شما اجازه دسترسی به تگ‌های ملک را ندارید.",
-    "tag_create_failed": "ایجاد تگ ملک ناموفق بود.",
-    "tag_update_failed": "به‌روزرسانی تگ ملک ناموفق بود.",
-    "tag_delete_failed": "حذف تگ ملک ناموفق بود.",
-    "tag_has_properties": "این تگ در {count} ملک استفاده شده و قابل حذف نیست.",
+    "tag_not_found": "تگ یافت نشد.",
+    "tag_not_authorized": "شما اجازه دسترسی به تگ‌ها را ندارید.",
+    "tag_create_failed": "ایجاد تگ ناموفق بود.",
+    "tag_update_failed": "به‌روزرسانی تگ ناموفق بود.",
+    "tag_delete_failed": "حذف تگ ناموفق بود.",
+    "tag_has_properties": "این تگ در {count} مورد استفاده شده و قابل حذف نیست.",
+    "tag_ids_required": "شناسه تگ‌ها مورد نیاز است.",
 }
 
 FLOOR_PLAN_SUCCESS = {

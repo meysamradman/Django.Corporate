@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from datetime import datetime
 from src.portfolio.models.tag import PortfolioTag
-from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.utils.cache import TagCacheKeys, TagCacheManager
 from src.portfolio.messages import TAG_ERRORS
 

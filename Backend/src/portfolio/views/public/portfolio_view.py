@@ -56,7 +56,7 @@ class PortfolioPublicViewSet(viewsets.ReadOnlyModelViewSet):
         
         serializer = self.get_serializer(queryset, many=True)
         return APIResponse.success(
-            message=PORTFOLIO_SUCCESS['portfolios_list_retrieved'],
+            message=PORTFOLIO_SUCCESS['portfolio_list_success'],
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )

@@ -83,7 +83,6 @@ BLOG_ERRORS = {
     "category_not_found": "دسته‌بندی یافت نشد.",
     "tag_ids_required": "شناسه تگ‌ها مورد نیاز است.",
     "media_upload_limit_exceeded": "حداکثر {max_items} رسانه برای آپلود مجاز است. شما {total_items} رسانه ارسال کرده‌اید.",
-    "blog_ids_required": "شناسه مقالات مورد نیاز است.",
     "blogs_not_found": "مقالات انتخاب‌شده یافت نشدند.",
     "only_one_main_image": "فقط یک تصویر اصلی برای هر مقاله مجاز است.",
 }
@@ -101,12 +100,12 @@ CATEGORY_SUCCESS = {
 
 CATEGORY_ERRORS = {
     "category_not_found": "دسته‌بندی یافت نشد.",
-    "category_not_authorized": "شما اجازه دسترسی به دسته‌بندی‌های بلاگ را ندارید.",
+    "category_not_authorized": "شما اجازه دسترسی به دسته‌بندی‌ها را ندارید.",
     "category_create_failed": "ایجاد دسته‌بندی ناموفق بود.",
     "category_update_failed": "به‌روزرسانی دسته‌بندی ناموفق بود.",
     "category_delete_failed": "حذف دسته‌بندی ناموفق بود.",
     "category_ids_required": "شناسه دسته‌بندی‌ها مورد نیاز است.",
-    "category_has_blogs": "این دسته‌بندی دارای {count} مقاله است و قابل حذف نیست.",
+    "category_has_blogs": "این دسته‌بندی در {count} مورد استفاده شده و قابل حذف نیست.",
     "category_has_children": "این دسته‌بندی دارای {count} زیردسته است و قابل حذف نیست.",
     "category_move_to_descendant": "نمی‌توانید دسته‌بندی را به فرزند خودش منتقل کنید.",
     "category_move_to_self": "نمی‌توانید دسته‌بندی را به خودش منتقل کنید.",
@@ -116,9 +115,6 @@ CATEGORY_ERRORS = {
     "category_slug_exists": "این نامک قبلاً استفاده شده است.",
     "category_max_depth": "حداکثر عمق درخت 5 سطح است.",
     "category_cannot_be_own_parent": "دسته‌بندی نمی‌تواند والد خودش باشد.",
-    "category_move_to_descendant": "نمی‌توانید دسته‌بندی را به فرزند خودش منتقل کنید.",
-    "category_move_to_self": "نمی‌توانید دسته‌بندی را به خودش منتقل کنید.",
-    "categories_not_found": "دسته‌بندی‌های انتخاب‌شده یافت نشدند.",
 }
 
 TAG_SUCCESS = {
@@ -134,14 +130,14 @@ TAG_SUCCESS = {
 
 TAG_ERRORS = {
     "tag_not_found": "تگ یافت نشد.",
-    "tag_not_authorized": "شما اجازه دسترسی به تگ‌های بلاگ را ندارید.",
+    "tag_not_authorized": "شما اجازه دسترسی به تگ‌ها را ندارید.",
     "tag_create_failed": "ایجاد تگ ناموفق بود.",
     "tag_update_failed": "به‌روزرسانی تگ ناموفق بود.",
     "tag_delete_failed": "حذف تگ ناموفق بود.",
     "tag_ids_required": "شناسه تگ‌ها مورد نیاز است.",
     "target_tag_id_required": "شناسه تگ مقصد مورد نیاز است.",
     "tag_cannot_merge_with_self": "نمی‌توانید تگ را با خودش ادغام کنید.",
-    "tag_has_blogs": "این تگ در {count} مقاله استفاده شده و قابل حذف نیست.",
+    "tag_has_blogs": "این تگ در {count} مورد استفاده شده و قابل حذف نیست.",
     "tags_not_found": "تگ‌های انتخاب‌شده یافت نشدند.",
     "tag_name_exists": "این نام قبلاً استفاده شده است.",
     "tag_slug_exists": "این نامک قبلاً استفاده شده است.",

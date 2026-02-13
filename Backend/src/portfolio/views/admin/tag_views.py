@@ -1,10 +1,7 @@
-import re
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.exceptions import ValidationError
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
 from src.portfolio.models.tag import PortfolioTag
 from src.portfolio.serializers.admin.tag_serializer import (
@@ -16,8 +13,9 @@ from src.portfolio.serializers.admin.tag_serializer import (
 from src.portfolio.services.admin.tag_services import PortfolioTagAdminService
 from src.portfolio.filters.admin.tag_filters import PortfolioTagAdminFilter
 from src.core.pagination import StandardLimitPagination
-from src.user.access_control import portfolio_permission, SimpleAdminPermission, PermissionRequiredMixin
+from src.user.access_control import portfolio_permission, PermissionRequiredMixin
 from src.core.responses.response import APIResponse
+from src.core.utils.validation_helpers import extract_validation_message
 from src.portfolio.messages.messages import TAG_SUCCESS, TAG_ERRORS
 
 class PortfolioTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
@@ -81,7 +79,6 @@ class PortfolioTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         else:
             return PortfolioTagAdminDetailSerializer
     
-    @method_decorator(csrf_exempt)
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -154,15 +151,8 @@ class PortfolioTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except ValidationError as e:
-            error_msg = str(e)
-            if "portfolios" in error_msg:
-                count_match = re.search(r'\d+', error_msg)
-                count = count_match.group() if count_match else "0"
-                message = TAG_ERRORS["tag_has_portfolios"].format(count=count)
-            else:
-                message = TAG_ERRORS["tag_delete_failed"]
             return APIResponse.error(
-                message=message,
+                message=extract_validation_message(e, TAG_ERRORS["tag_delete_failed"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -198,13 +188,8 @@ class PortfolioTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            error_msg = str(e)
-            if "not found" in error_msg.lower():
-                message = TAG_ERRORS["tags_not_found"]
-            else:
-                message = TAG_ERRORS["tag_delete_failed"]
             return APIResponse.error(
-                message=message,
+                message=extract_validation_message(e, TAG_ERRORS["tag_delete_failed"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     

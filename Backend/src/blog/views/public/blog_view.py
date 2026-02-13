@@ -56,7 +56,7 @@ class BlogPublicViewSet(viewsets.ReadOnlyModelViewSet):
         
         serializer = self.get_serializer(queryset, many=True)
         return APIResponse.success(
-            message=BLOG_SUCCESS['blogs_list_retrieved'],
+            message=BLOG_SUCCESS['blog_list_success'],
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )

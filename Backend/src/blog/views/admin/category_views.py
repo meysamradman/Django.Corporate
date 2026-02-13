@@ -1,4 +1,3 @@
-import re
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
@@ -17,6 +16,7 @@ from src.blog.filters.admin.category_filters import BlogCategoryAdminFilter
 from src.core.pagination import StandardLimitPagination
 from src.user.access_control import blog_permission, PermissionRequiredMixin
 from src.core.responses.response import APIResponse
+from src.core.utils.validation_helpers import extract_validation_message
 from src.blog.messages.messages import CATEGORY_SUCCESS, CATEGORY_ERRORS
 
 class BlogCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
@@ -158,19 +158,8 @@ class BlogCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except ValidationError as e:
-            error_msg = str(e)
-            if "blogs" in error_msg:
-                count_match = re.search(r'\d+', error_msg)
-                count = count_match.group() if count_match else "0"
-                message = CATEGORY_ERRORS["category_has_blogs"].format(count=count)
-            elif "children" in error_msg:
-                count_match = re.search(r'\d+', error_msg)
-                count = count_match.group() if count_match else "0"
-                message = CATEGORY_ERRORS["category_has_children"].format(count=count)
-            else:
-                message = CATEGORY_ERRORS["category_delete_failed"]
             return APIResponse.error(
-                message=message,
+                message=extract_validation_message(e, CATEGORY_ERRORS["category_delete_failed"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -254,13 +243,7 @@ class BlogCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except ValidationError as e:
-            error_msg = str(e)
-            if "descendant" in error_msg.lower():
-                message = CATEGORY_ERRORS["category_move_to_descendant"]
-            elif "itself" in error_msg.lower():
-                message = CATEGORY_ERRORS["category_move_to_self"]
-            else:
-                message = CATEGORY_ERRORS["category_move_failed"].format(error=error_msg)
+            message = extract_validation_message(e, CATEGORY_ERRORS["category_move_failed"].format(error="unknown"))
             return APIResponse.error(
                 message=message,
                 status_code=status.HTTP_400_BAD_REQUEST
@@ -296,13 +279,8 @@ class BlogCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            error_msg = str(e)
-            if "not found" in error_msg.lower():
-                message = CATEGORY_ERRORS["categories_not_found"]
-            else:
-                message = CATEGORY_ERRORS["category_delete_failed"]
             return APIResponse.error(
-                message=message,
+                message=extract_validation_message(e, CATEGORY_ERRORS["category_delete_failed"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     

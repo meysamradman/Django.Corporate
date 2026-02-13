@@ -1,4 +1,3 @@
-import re
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
@@ -18,6 +17,12 @@ from src.core.pagination import StandardLimitPagination
 from src.user.access_control import real_estate_permission, PermissionRequiredMixin
 from src.core.responses.response import APIResponse
 from src.real_estate.messages import TYPE_SUCCESS, TYPE_ERRORS
+
+
+def _extract_validation_message(error: ValidationError, fallback: str) -> str:
+    if hasattr(error, 'messages') and error.messages:
+        return str(error.messages[0])
+    return str(error) if str(error) else fallback
 
 class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
@@ -163,19 +168,8 @@ class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except ValidationError as e:
-            error_msg = str(e)
-            if "properties" in error_msg:
-                count_match = re.search(r'\d+', error_msg)
-                count = count_match.group() if count_match else "0"
-                message = TYPE_ERRORS["type_has_properties"].format(count=count)
-            elif "children" in error_msg:
-                count_match = re.search(r'\d+', error_msg)
-                count = count_match.group() if count_match else "0"
-                message = TYPE_ERRORS["type_has_children"].format(count=count)
-            else:
-                message = TYPE_ERRORS["type_delete_failed"]
             return APIResponse.error(
-                message=message,
+                message=_extract_validation_message(e, TYPE_ERRORS["type_delete_failed"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -303,13 +297,8 @@ class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            error_msg = str(e)
-            if "not found" in error_msg.lower():
-                message = TYPE_ERRORS["types_not_found"]
-            else:
-                message = TYPE_ERRORS["type_delete_failed"]
             return APIResponse.error(
-                message=message,
+                message=_extract_validation_message(e, TYPE_ERRORS["type_delete_failed"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
