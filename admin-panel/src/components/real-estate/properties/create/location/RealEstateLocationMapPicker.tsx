@@ -70,7 +70,7 @@ export function RealEstateLocationMapPicker({
     const suppressRegionToMapSyncRef = useRef(false);
     const lastProgrammaticRegionIdRef = useRef<number | null>(null);
 
-    const canPickLocation = !!selectedCityId && editMode;
+    const canPickLocation = editMode;
     const canApplyManualCoordinates = editMode;
 
     useEffect(() => {
@@ -319,7 +319,7 @@ export function RealEstateLocationMapPicker({
             <div className="mb-4 rounded-lg border border-br bg-bg/30 px-3 py-2 text-xs text-font-s">
                 {canPickLocation
                     ? "برای ثبت دقیق، روی نقشه کلیک کنید یا نشانگر را جابه‌جا کنید."
-                    : "برای فعال شدن انتخاب موقعیت، ابتدا استان و شهر را مشخص کنید."}
+                    : "برای فعال شدن انتخاب موقعیت، حالت ویرایش باید فعال باشد."}
             </div>
 
             <LocationMap
@@ -331,6 +331,9 @@ export function RealEstateLocationMapPicker({
                 viewLongitude={viewLongitude}
                 onLocationChange={useCallback((lat, lng) => {
                     onLocationChange?.(lat, lng);
+                    if (typeof lat === "number" && typeof lng === "number") {
+                        resolveLocationFieldsFromCoordinates(lat, lng);
+                    }
                 }, [onLocationChange])}
                 onAddressUpdate={useCallback((address: string) => {
                     if (isFormApproach && setValue) {

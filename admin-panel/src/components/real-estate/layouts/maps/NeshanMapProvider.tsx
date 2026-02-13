@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MapComponent, MapTypes } from "@neshan-maps-platform/mapbox-gl-react";
 import nmp_mapboxgl from "@neshan-maps-platform/mapbox-gl";
 import "@neshan-maps-platform/mapbox-gl/dist/NeshanMapboxGl.css";
@@ -16,6 +16,7 @@ export default function NeshanMapProvider({
 }: MapProviderProps) {
     const mapRef = useRef<any>(null);
     const markerRef = useRef<any>(null);
+    const [mapReadyVersion, setMapReadyVersion] = useState(0);
 
     const hasApiKey = !!apiKey && apiKey.trim().length > 0;
 
@@ -28,6 +29,29 @@ export default function NeshanMapProvider({
         traffic: false,
     }), [apiKey, mapCenter, mapZoom]);
 
+    const syncMarker = useCallback((lat: number, lng: number) => {
+        const map = mapRef.current;
+        if (!map) return;
+
+        const lngLat: [number, number] = [lng, lat];
+
+        if (!markerRef.current) {
+            markerRef.current = new nmp_mapboxgl.Marker({ draggable: !disabled })
+                .setLngLat(lngLat)
+                .addTo(map);
+
+            markerRef.current.on("dragend", () => {
+                const pos = markerRef.current?.getLngLat?.();
+                if (pos && typeof pos.lat === "number" && typeof pos.lng === "number") {
+                    onLocationChange(pos.lat, pos.lng);
+                }
+            });
+        } else {
+            markerRef.current.setLngLat(lngLat);
+            markerRef.current.setDraggable(!disabled);
+        }
+    }, [disabled, onLocationChange]);
+
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !hasApiKey) return;
@@ -37,6 +61,7 @@ export default function NeshanMapProvider({
             const lng = event?.lngLat?.lng;
             const lat = event?.lngLat?.lat;
             if (typeof lat === "number" && typeof lng === "number") {
+                syncMarker(lat, lng);
                 onLocationChange(lat, lng);
             }
         };
@@ -46,7 +71,37 @@ export default function NeshanMapProvider({
         return () => {
             map.off("click", handleClick);
         };
-    }, [disabled, onLocationChange, hasApiKey]);
+    }, [disabled, onLocationChange, hasApiKey, syncMarker, mapReadyVersion]);
+
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !hasApiKey) return;
+
+        const canvas = map.getCanvas?.();
+        if (canvas) {
+            canvas.style.cursor = disabled ? "not-allowed" : "grab";
+        }
+
+        const interactionHandlers = [
+            "dragPan",
+            "scrollZoom",
+            "boxZoom",
+            "doubleClickZoom",
+            "keyboard",
+            "touchZoomRotate",
+        ];
+
+        interactionHandlers.forEach((handlerName) => {
+            const handler = (map as any)?.[handlerName];
+            if (handler?.enable && handler?.disable) {
+                if (disabled) {
+                    handler.disable();
+                } else {
+                    handler.enable();
+                }
+            }
+        });
+    }, [disabled, hasApiKey, mapReadyVersion]);
 
     useEffect(() => {
         const map = mapRef.current;
@@ -55,28 +110,14 @@ export default function NeshanMapProvider({
         if (typeof latitude === "number" && typeof longitude === "number") {
             const lngLat: [number, number] = [longitude, latitude];
 
-            if (!markerRef.current) {
-                markerRef.current = new nmp_mapboxgl.Marker({ draggable: !disabled })
-                    .setLngLat(lngLat)
-                    .addTo(map);
-
-                markerRef.current.on("dragend", () => {
-                    const pos = markerRef.current?.getLngLat?.();
-                    if (pos && typeof pos.lat === "number" && typeof pos.lng === "number") {
-                        onLocationChange(pos.lat, pos.lng);
-                    }
-                });
-            } else {
-                markerRef.current.setLngLat(lngLat);
-                markerRef.current.setDraggable(!disabled);
-            }
+            syncMarker(latitude, longitude);
 
             map.flyTo({ center: lngLat, zoom: Math.max(mapZoom, 14), essential: false });
         } else if (markerRef.current) {
             markerRef.current.remove();
             markerRef.current = null;
         }
-    }, [latitude, longitude, disabled, hasApiKey, onLocationChange, mapZoom]);
+    }, [latitude, longitude, hasApiKey, mapZoom, syncMarker, mapReadyVersion]);
 
     useEffect(() => {
         const map = mapRef.current;
@@ -112,6 +153,7 @@ export default function NeshanMapProvider({
             options={mapOptions}
             mapSetter={(map: any) => {
                 mapRef.current = map;
+                setMapReadyVersion((value) => value + 1);
                 setIsMapReady(true);
             }}
             className="h-full w-full"

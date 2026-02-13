@@ -18,7 +18,7 @@
       "command": "npm",
       "args": ["run", "dev"],
       "options": {
-        "cwd": "${workspaceFolder}/admin"
+        "cwd": "${workspaceFolder}/admin-panel"
       },
       "isBackground": true,
       "problemMatcher": []
