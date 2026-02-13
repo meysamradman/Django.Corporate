@@ -4,7 +4,6 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/elements/Dialog";
-import { Button } from "@/components/elements/Button";
 import { Progress } from "@/components/elements/Progress";
 import { Loader2, AlertCircle } from "lucide-react";
 import { showError, showWarning } from "@/core/toast";
@@ -24,7 +23,7 @@ interface MediaUploadModalProps {
   onClose: () => void;
   onUploadComplete: () => void;
   onMediaSelect?: (_media: Media | Media[]) => void;
-  context?: 'media_library' | 'portfolio' | 'blog';
+  context?: 'media_library' | 'portfolio' | 'blog' | 'real_estate';
   contextId?: number | string;
 }
 

@@ -8,9 +8,10 @@ interface ModelSelectorProps {
     providerSlug: string;
     selectedModel: string | null;
     onSelectModel?: (modelId: string) => void;
-    capability: 'chat' | 'image' | 'content';
+    capability: 'chat' | 'image' | 'content' | 'audio';
     className?: string;
     compact?: boolean;
+    triggerClassName?: string;
 }
 
 export function ModelSelector({
@@ -19,7 +20,8 @@ export function ModelSelector({
     onSelectModel,
     capability,
     className,
-    compact = false
+    compact = false,
+    triggerClassName,
 }: ModelSelectorProps) {
     const [models, setModels] = useState<AIModelList[]>([]);
     const [loading, setLoading] = useState(false);
@@ -116,7 +118,7 @@ export function ModelSelector({
                 }}
                 disabled={disabled}
             >
-                <SelectTrigger className={cn("w-full bg-background/50", compact ? "h-8 text-xs" : "h-10")}>
+                <SelectTrigger className={cn("w-full bg-background/50", compact ? "h-8 text-xs" : "h-10", triggerClassName)}>
                     <SelectValue placeholder={
                         loading ? "در حال دریافت..." : 
                         (normalizedModels.length === 0 ? "مدلی یافت نشد (پیش‌فرض)" : "انتخاب مدل (هوش مصنوعی)")

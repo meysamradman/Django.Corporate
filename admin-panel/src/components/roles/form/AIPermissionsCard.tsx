@@ -51,6 +51,7 @@ export function AIPermissionsCard({
   const aiManagePermission = filteredPermissions.find(
     (p) => p.original_key === "ai.manage"
   );
+  const aiManageLabel = aiManagePermission?.display_name || aiManagePermission?.original_key || "AI Permission";
   
   const isAiManageSelected = useMemo(() => {
     if (!aiManagePermission?.id) return false;
@@ -236,12 +237,12 @@ export function AIPermissionsCard({
                     <h3 className={`text-sm font-medium leading-tight ${
                       isAiManageSelected ? "text-yellow-1" : "text-font-p"
                     }`}>
-                      {getPermissionTranslation(aiManagePermission.display_name, "description")}
+                      {getPermissionTranslation(aiManageLabel, "description")}
                     </h3>
                     {(() => {
-                      const descriptionKey = aiManagePermission.display_name as keyof typeof PERMISSION_TRANSLATIONS.descriptions;
+                      const descriptionKey = aiManageLabel as keyof typeof PERMISSION_TRANSLATIONS.descriptions;
                       const description = PERMISSION_TRANSLATIONS.descriptions[descriptionKey];
-                      return description && description !== getPermissionTranslation(aiManagePermission.display_name, "description") ? (
+                      return description && description !== getPermissionTranslation(aiManageLabel, "description") ? (
                         <p className="text-xs text-font-s mt-1">
                           {description}
                         </p>
@@ -262,7 +263,7 @@ export function AIPermissionsCard({
                         onTogglePermission(aiManagePermission.id);
                       }}
                       disabled={!(isSuperAdmin || !aiManagePermission.requires_superadmin)}
-                      aria-label={getPermissionTranslation(aiManagePermission.display_name, "description")}
+                      aria-label={getPermissionTranslation(aiManageLabel, "description")}
                     />
                   </div>
                 </div>
@@ -283,6 +284,8 @@ export function AIPermissionsCard({
                 .map((perm) => {
                   const isSelected = isPermissionSelected(perm.id);
                   const canToggle = !(perm.requires_superadmin && !isSuperAdmin);
+
+                  const permissionLabel = perm.display_name || perm.original_key || "AI Permission";
 
                   return (
                     <div
@@ -311,12 +314,12 @@ export function AIPermissionsCard({
                         <h3 className={`text-sm font-medium leading-tight ${
                           isSelected ? "text-yellow-1" : "text-font-p"
                         }`}>
-                          {getPermissionTranslation(perm.display_name, "description")}
+                          {getPermissionTranslation(permissionLabel, "description")}
                         </h3>
                         {(() => {
-                          const descriptionKey = perm.display_name as keyof typeof PERMISSION_TRANSLATIONS.descriptions;
+                          const descriptionKey = permissionLabel as keyof typeof PERMISSION_TRANSLATIONS.descriptions;
                           const description = PERMISSION_TRANSLATIONS.descriptions[descriptionKey];
-                          return description && description !== getPermissionTranslation(perm.display_name, "description") ? (
+                          return description && description !== getPermissionTranslation(permissionLabel, "description") ? (
                             <p className="text-xs text-font-s mt-1">
                               {description}
                             </p>
@@ -337,7 +340,7 @@ export function AIPermissionsCard({
                             onTogglePermission(perm.id);
                           }}
                           disabled={!canToggle}
-                          aria-label={getPermissionTranslation(perm.display_name, "description")}
+                          aria-label={getPermissionTranslation(permissionLabel, "description")}
                         />
                       </div>
                     </div>

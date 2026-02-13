@@ -72,8 +72,8 @@ export const PropertyTypeSide: React.FC<PropertyTypeSideProps> = ({
                     selectedMedia={selectedMedia}
                     onMediaSelect={handleImageSelect}
                     size="sm"
-                    context="real-estate"
-                    placeholderColor="blue"
+                    context="real_estate"
+                    placeholderColor="primary"
                     alt="تصویر نوع ملک"
                     className="mx-auto"
                 />
@@ -103,7 +103,10 @@ export const PropertyTypeSide: React.FC<PropertyTypeSideProps> = ({
                         error={errors.parent_id?.message as string}
                     >
                         <TreeSelect
-                            data={types?.data || []}
+                            data={(types?.data || []).map((type: any) => ({
+                                ...type,
+                                name: type.name || type.title || "",
+                            }))}
                             value={watch("parent_id")?.toString() || null}
                             onChange={(value) => setValue("parent_id", value ? parseInt(value) : null, { shouldValidate: true })}
                             placeholder="انتخاب نوع والد (اختیاری)"

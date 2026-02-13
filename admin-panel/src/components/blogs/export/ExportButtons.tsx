@@ -6,9 +6,9 @@
 
 import { Button } from '@/components/elements/Button';
 import { Download, FileText, Printer } from 'lucide-react';
-import { useExcelExport } from '@/hooks/blogs/useExcelExport';
-import { usePdfExport } from '@/hooks/blogs/usePdfExport';
-import { usePrintView } from '@/hooks/blogs/usePrintView';
+import { useExcelExport } from '@/components/blogs/hooks/useExcelExport';
+import { usePdfExport } from '@/components/blogs/hooks/usePdfExport';
+import { usePrintView } from '@/components/blogs/hooks/usePrintView';
 import type { Blog } from '@/types/blog/blog';
 import type { BlogExportParams } from '@/types/blog/blogListParams';
 

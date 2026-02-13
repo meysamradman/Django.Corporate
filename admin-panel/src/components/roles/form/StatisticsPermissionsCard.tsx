@@ -49,6 +49,7 @@ export function StatisticsPermissionsCard({
   const analyticsManagePermission = filteredPermissions.find(
     (p) => p.original_key === "analytics.manage" || p.original_key === "analytics.stats.manage"
   );
+  const analyticsManageLabel = analyticsManagePermission?.display_name || analyticsManagePermission?.original_key || "Analytics Permission";
   const isAnalyticsManageSelected = useMemo(() => {
     if (!analyticsManagePermission) return false;
     return isPermissionSelected(analyticsManagePermission.id);
@@ -110,7 +111,7 @@ export function StatisticsPermissionsCard({
                     <h3 className={`text-sm font-medium leading-tight ${
                       isAnalyticsManageSelected ? "text-blue-1" : "text-font-p"
                     }`}>
-                      {getPermissionTranslation(analyticsManagePermission.display_name, "description")}
+                      {getPermissionTranslation(analyticsManageLabel, "description")}
                     </h3>
                   </div>
                   
@@ -127,7 +128,7 @@ export function StatisticsPermissionsCard({
                         onTogglePermission(analyticsManagePermission.id);
                       }}
                       disabled={!(isSuperAdmin || !analyticsManagePermission.requires_superadmin)}
-                      aria-label={getPermissionTranslation(analyticsManagePermission.display_name, "description")}
+                      aria-label={getPermissionTranslation(analyticsManageLabel, "description")}
                     />
                   </div>
                 </div>
@@ -148,6 +149,8 @@ export function StatisticsPermissionsCard({
                 .map((perm) => {
                   const isSelected = isPermissionSelected(perm.id);
                   const canToggle = !(perm.requires_superadmin && !isSuperAdmin);
+
+                  const permissionLabel = perm.display_name || perm.original_key || "Analytics Permission";
 
                   return (
                     <div
@@ -176,12 +179,12 @@ export function StatisticsPermissionsCard({
                         <h3 className={`text-sm font-medium leading-tight ${
                           isSelected ? "text-blue-1" : "text-font-p"
                         }`}>
-                          {getPermissionTranslation(perm.display_name, "description")}
+                          {getPermissionTranslation(permissionLabel, "description")}
                         </h3>
                         {(() => {
-                          const descriptionKey = perm.display_name as keyof typeof PERMISSION_TRANSLATIONS.descriptions;
+                          const descriptionKey = permissionLabel as keyof typeof PERMISSION_TRANSLATIONS.descriptions;
                           const description = PERMISSION_TRANSLATIONS.descriptions[descriptionKey];
-                          return description && description !== getPermissionTranslation(perm.display_name, "description") ? (
+                          return description && description !== getPermissionTranslation(permissionLabel, "description") ? (
                             <p className="text-xs text-font-s mt-1">
                               {description}
                             </p>
@@ -202,7 +205,7 @@ export function StatisticsPermissionsCard({
                             onTogglePermission(perm.id);
                           }}
                           disabled={!canToggle}
-                          aria-label={getPermissionTranslation(perm.display_name, "description")}
+                          aria-label={getPermissionTranslation(permissionLabel, "description")}
                         />
                       </div>
                     </div>

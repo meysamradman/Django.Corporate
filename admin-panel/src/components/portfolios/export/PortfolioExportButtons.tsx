@@ -4,9 +4,9 @@
 
 import { Button } from '@/components/elements/Button';
 import { Download, FileText, Printer } from 'lucide-react';
-import { usePortfolioExcelExport } from '@/hooks/portfolios/usePortfolioExcelExport';
-import { usePortfolioPdfExport } from '@/hooks/portfolios/usePortfolioPdfExport';
-import { usePortfolioPrintView } from '@/hooks/portfolios/usePortfolioPrintView';
+import { usePortfolioExcelExport } from '@/components/portfolios/hooks/usePortfolioExcelExport';
+import { usePortfolioPdfExport } from '@/components/portfolios/hooks/usePortfolioPdfExport';
+import { usePortfolioPrintView } from '@/components/portfolios/hooks/usePortfolioPrintView';
 import type { Portfolio } from '@/types/portfolio/portfolio';
 import type { PortfolioExportParams } from '@/types/portfolio/portfolioListParams';
 

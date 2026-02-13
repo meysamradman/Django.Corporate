@@ -2,7 +2,7 @@ export interface RolePermission {
   id: number;
   resource?: string;
   action?: string;
-  display_name: string;
+  display_name?: string;
   requires_superadmin?: boolean;
   original_key?: string;
   is_standalone?: boolean;

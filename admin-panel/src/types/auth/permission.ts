@@ -2,8 +2,11 @@ export interface Permission {
   id: number;
   resource: string;
   action: string;
+  display_name?: string;
   description?: string;
+  original_key?: string;
   is_standalone?: boolean;
+  permission_category?: string;
   requires_superadmin?: boolean;  // ✅ Added for filtering
 }
 

@@ -96,7 +96,7 @@ export function useAISettings() {
       return result;
     }
 
-    const fallbackProviders: Provider[] = [];
+    const fallbackProviders: AISettingsProvider[] = [];
 
     if (modelsData && Array.isArray(modelsData)) {
       const modelsByProvider: Record<string, any[]> = {};
@@ -114,7 +114,7 @@ export function useAISettings() {
         const metadata = getProviderMetadata(frontendId);
 
         if (metadata) {
-          const providerModels: Model[] = models.map((model: any, index: number) => ({
+          const providerModels: AISettingsModel[] = models.map((model: any, index: number) => ({
             id: model.id || index + 1,
             name: model.model_name || model.name,
             provider: backendName,

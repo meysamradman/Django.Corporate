@@ -66,8 +66,8 @@ export const PropertyFeatureSide: React.FC<PropertyFeatureSideProps> = ({
                     selectedMedia={selectedMedia}
                     onMediaSelect={handleImageSelect}
                     size="sm"
-                    context="real-estate"
-                    placeholderColor="indigo"
+                    context="real_estate"
+                    placeholderColor="purple"
                     alt="آیکون ویژگی"
                     className="mx-auto"
                 />

@@ -14,7 +14,7 @@ interface ProviderSelectorProps {
     providers: AvailableProvider[];
     selectedProvider: string;
     onSelectProvider: (providerName: string) => void;
-    type?: 'content' | 'image' | 'chat';
+    type?: 'content' | 'image' | 'chat' | 'audio';
     loading?: boolean;
     compact?: boolean;
 }

@@ -1,2 +1,2 @@
-export { PERMISSIONS, getAllPermissions, isValidPermission } from './permissions';
-export type { PermissionId } from './permissions';
+export { PERMISSIONS, getAllPermissions, isValidPermission } from '../constants';
+export type { PermissionId } from '../constants';

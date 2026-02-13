@@ -8,7 +8,7 @@ interface UseChatProvidersOptions {
     userAuthenticated?: boolean;
 }
 
-export function useChatProviders({ compact = false, hasAIPermission = false, userAuthenticated = false }: UseChatProvidersOptions) {
+export function useChatProviders({ hasAIPermission = false, userAuthenticated = false }: UseChatProvidersOptions) {
     const [availableProviders, setAvailableProviders] = useState<AvailableProvider[]>([]);
     const [loadingProviders, setLoadingProviders] = useState(true);
     const [selectedProvider, setSelectedProvider] = useState<string>(() => {

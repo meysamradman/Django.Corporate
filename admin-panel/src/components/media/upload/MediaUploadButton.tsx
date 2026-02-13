@@ -14,7 +14,7 @@ interface MediaUploadButtonProps {
     children?: ReactNode;
     className?: string;
     showIcon?: boolean;
-    context?: 'media_library' | 'portfolio' | 'blog';
+    context?: 'media_library' | 'portfolio' | 'blog' | 'real_estate';
     contextId?: number | string;
 }
 
@@ -81,7 +81,7 @@ export function QuickMediaUploadButton({
     onMediaSelect?: (media: Media | Media[]) => void;
     size?: "default" | "sm" | "lg";
     className?: string;
-    context?: 'media_library' | 'portfolio' | 'blog';
+    context?: 'media_library' | 'portfolio' | 'blog' | 'real_estate';
     contextId?: number | string;
 }) {
     const { context, contextId } = useMediaContext(overrideContext, overrideContextId);

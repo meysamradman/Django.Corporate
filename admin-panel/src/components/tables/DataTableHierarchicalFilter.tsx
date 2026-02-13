@@ -24,8 +24,8 @@ interface DataTableHierarchicalFilterProps<TValue> {
   title?: string
   items: CategoryItem[]
   placeholder?: string
-  value?: TValue
-  onChange: (value: TValue | undefined) => void
+  value?: TValue | TValue[]
+  onChange: (value: TValue | TValue[] | undefined) => void
 }
 
 export function DataTableHierarchicalFilter<TValue extends string | number>({

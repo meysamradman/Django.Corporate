@@ -26,7 +26,7 @@ export const getProviderDisplayName = (provider: AvailableProvider): string => {
     return fallback;
 };
 
-export const getProviderDescription = (provider: AvailableProvider, _type: 'content' | 'image' | 'chat' = 'content'): string => {
+export const getProviderDescription = (provider: AvailableProvider, _type: 'content' | 'image' | 'chat' | 'audio' = 'content'): string => {
 
     const providerId = resolveProviderId(provider);
     if (!providerId) {

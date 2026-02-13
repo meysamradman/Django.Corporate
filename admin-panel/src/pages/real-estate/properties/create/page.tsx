@@ -145,7 +145,6 @@ export default function PropertyCreatePage() {
             longitude={formData.longitude}
             onLocationChange={handleLocationChange}
             editMode={true}
-            regionName={""}
             districtName={null}
           />
         </Suspense>
