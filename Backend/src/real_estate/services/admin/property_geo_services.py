@@ -15,6 +15,7 @@ class PropertyGeoService:
 
     _postgis_available: Optional[bool] = None
     _postgis_warning_emitted: bool = False
+    _location_point_available: Optional[bool] = None
 
     @classmethod
     def _geo_engine_mode(cls) -> str:
@@ -56,6 +57,39 @@ class PropertyGeoService:
         return postgis_available
 
     @classmethod
+    def _location_point_expr_sql(cls) -> str:
+        if cls._has_location_point_column():
+            return 'location_point'
+        return 'ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)'
+
+    @classmethod
+    def _has_location_point_column(cls) -> bool:
+        if cls._location_point_available is not None:
+            return cls._location_point_available
+
+        table_name = Property._meta.db_table
+
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT EXISTS (
+                        SELECT 1
+                        FROM information_schema.columns
+                        WHERE table_name = %s
+                          AND column_name = 'location_point'
+                    )
+                    """,
+                    [table_name],
+                )
+                row = cursor.fetchone()
+                cls._location_point_available = bool(row and row[0])
+        except Exception:
+            cls._location_point_available = False
+
+        return cls._location_point_available
+
+    @classmethod
     def _search_nearby_basic(
         cls,
         latitude: float,
@@ -87,20 +121,32 @@ class PropertyGeoService:
         radius_m = float(radius_km) * 1000.0
         reference_lng = float(longitude)
         reference_lat = float(latitude)
+        point_expr = cls._location_point_expr_sql()
 
         queryset = queryset.filter(latitude__isnull=False, longitude__isnull=False)
 
+        dwithin_sql = RawSQL(
+            f"""
+            ST_DWithin(
+                ({point_expr})::geography,
+                ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography,
+                %s
+            )
+            """,
+            (reference_lng, reference_lat, radius_m),
+        )
+
         distance_sql = RawSQL(
-            """
+            f"""
             ST_DistanceSphere(
-                ST_SetSRID(ST_MakePoint(longitude, latitude), 4326),
+                ({point_expr}),
                 ST_SetSRID(ST_MakePoint(%s, %s), 4326)
             )
             """,
             (reference_lng, reference_lat),
         )
 
-        return queryset.annotate(_distance_m=distance_sql).filter(_distance_m__lte=radius_m).order_by('_distance_m')[:limit]
+        return queryset.annotate(_within=dwithin_sql, _distance_m=distance_sql).filter(_within=True).order_by('_distance_m')[:limit]
 
     @classmethod
     def _search_in_polygon_basic(
@@ -131,12 +177,13 @@ class PropertyGeoService:
             ring.append(ring[0])
 
         polygon_wkt = "POLYGON((" + ", ".join(f"{float(lon)} {float(lat)}" for lat, lon in ring) + "))"
+        point_expr = cls._location_point_expr_sql()
 
         inside_sql = RawSQL(
-            """
+            f"""
             ST_Intersects(
                 ST_GeomFromText(%s, 4326),
-                ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)
+                ({point_expr})
             )
             """,
             (polygon_wkt,),
@@ -145,15 +192,41 @@ class PropertyGeoService:
         return queryset.filter(latitude__isnull=False, longitude__isnull=False).annotate(_inside=inside_sql).filter(_inside=True)[:limit]
 
     @classmethod
+    def _search_in_bbox_postgis(
+        cls,
+        min_lat: float,
+        max_lat: float,
+        min_lon: float,
+        max_lon: float,
+        limit: int,
+        queryset: QuerySet,
+    ) -> QuerySet:
+        point_expr = cls._location_point_expr_sql()
+
+        bbox_sql = RawSQL(
+            f"""
+            ST_Intersects(
+                ({point_expr}),
+                ST_MakeEnvelope(%s, %s, %s, %s, 4326)
+            )
+            """,
+            (float(min_lon), float(min_lat), float(max_lon), float(max_lat)),
+        )
+
+        return queryset.filter(latitude__isnull=False, longitude__isnull=False).annotate(_in_bbox=bbox_sql).filter(_in_bbox=True)[:limit]
+
+    @classmethod
     def engine_status(cls) -> Dict[str, Any]:
         mode = cls._geo_engine_mode()
         postgis_available = cls._is_postgis_available()
         effective = 'postgis' if cls._use_postgis() else 'basic'
+        location_point_available = cls._has_location_point_column() if postgis_available else False
 
         return {
             'configured_mode': mode,
             'postgis_available': postgis_available,
             'effective_engine': effective,
+            'location_point_available': location_point_available,
         }
 
     @classmethod
@@ -227,6 +300,19 @@ class PropertyGeoService:
         
         if queryset is None:
             queryset = Property.objects.published()
+
+        if cls._use_postgis():
+            try:
+                return cls._search_in_bbox_postgis(
+                    min_lat=float(min_lat),
+                    max_lat=float(max_lat),
+                    min_lon=float(min_lon),
+                    max_lon=float(max_lon),
+                    limit=limit,
+                    queryset=queryset,
+                )
+            except Exception:
+                logger.exception("PostGIS bbox query failed. Falling back to basic geo engine.")
         
         return queryset.filter(
             latitude__gte=min_lat,

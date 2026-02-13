@@ -23,6 +23,26 @@ import type { MapSettings } from "@/types/real_estate/map";
 class SettingsApi {
     private baseUrl = '/settings/';
 
+    async geocodeMap(query: string, city?: string, province?: string): Promise<{ latitude: number; longitude: number; display_name?: string; source?: string }> {
+        const response = await api.get<{ latitude: number; longitude: number; display_name?: string; source?: string }>(
+            `${this.baseUrl}map/geocode/`,
+            {
+                params: { query, city, province },
+            }
+        );
+        return response.data;
+    }
+
+    async reverseGeocodeMap(lat: number, lng: number): Promise<any> {
+        const response = await api.get<any>(
+            `${this.baseUrl}map/reverse-geocode/`,
+            {
+                params: { lat, lng },
+            }
+        );
+        return response.data;
+    }
+
     async getMapSettings(): Promise<MapSettings> {
         const response = await api.get<MapSettings>(
             `${this.baseUrl}map/`

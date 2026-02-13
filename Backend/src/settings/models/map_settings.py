@@ -6,6 +6,7 @@ class MapSettings(BaseModel):
     PROVIDER_CHOICES = [
         ('leaflet', _('Leaflet / OpenStreetMap')),
         ('google_maps', _('Google Maps')),
+        ('neshan', _('Neshan (Iranian)')),
     ]
 
     provider = models.CharField(

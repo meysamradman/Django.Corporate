@@ -15,6 +15,7 @@ export const MapSettingsSide = () => {
     const isOpen = useGlobalDrawerStore(state => state.activeDrawer === DRAWER_IDS.SETTINGS_MAP_FORM);
     const close = useGlobalDrawerStore(state => state.close);
     const queryClient = useQueryClient();
+    const neshanEnvMapKey = import.meta.env.VITE_NESHAN_MAP_KEY || "";
 
     const {
         register,
@@ -29,6 +30,7 @@ export const MapSettingsSide = () => {
             provider: 'leaflet',
             configs: {
                 google_maps: { api_key: "", map_id: "" },
+                neshan: { map_key: neshanEnvMapKey },
             }
         },
     });
@@ -49,6 +51,9 @@ export const MapSettingsSide = () => {
                     google_maps: {
                         api_key: settingsData.configs?.google_maps?.api_key || "",
                         map_id: settingsData.configs?.google_maps?.map_id || "",
+                    },
+                    neshan: {
+                        map_key: settingsData.configs?.neshan?.map_key || neshanEnvMapKey,
                     },
                 }
             });
@@ -95,6 +100,7 @@ export const MapSettingsSide = () => {
                             options={[
                                 { label: "Leaflet / OpenStreetMap (رایگان)", value: "leaflet" },
                                 { label: "Google Maps", value: "google_maps" },
+                                { label: "Neshan (Iranian)", value: "neshan" },
                             ]}
                         />
                     )}
@@ -118,6 +124,21 @@ export const MapSettingsSide = () => {
                                 {...register("configs.google_maps.map_id")}
                             />
                         </>
+                    )}
+
+                    {selectedProvider === 'neshan' && (
+                        <div className="space-y-2">
+                            <FormFieldInput
+                                label="Neshan Web Map Key"
+                                id="neshan_map_key"
+                                error={(errors.configs?.neshan as any)?.map_key?.message}
+                                placeholder="web.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                                {...register("configs.neshan.map_key")}
+                            />
+                            <p className="text-[11px] text-font-s">
+                                اگر این فیلد خالی باشد یا وارد نکنید، مقدار `VITE_NESHAN_MAP_KEY` از env استفاده می‌شود.
+                            </p>
+                        </div>
                     )}
 
                 </div>

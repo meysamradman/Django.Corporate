@@ -1,4 +1,4 @@
-export type MapProviderType = 'leaflet' | 'google_maps';
+export type MapProviderType = 'leaflet' | 'google_maps' | 'neshan';
 
 export interface MapSettings {
     id: number;
@@ -8,6 +8,9 @@ export interface MapSettings {
         google_maps?: {
             api_key?: string | null;
             map_id?: string | null;
+        };
+        neshan?: {
+            map_key?: string | null;
         };
         [key: string]: any;
     };

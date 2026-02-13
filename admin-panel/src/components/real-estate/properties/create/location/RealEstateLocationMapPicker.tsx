@@ -7,6 +7,7 @@ import { Button } from "@/components/elements/Button";
 import { MapPin, Loader2, LocateFixed, ChevronDown, ChevronUp } from "lucide-react";
 import LocationMap from "@/components/real-estate/layouts/LocationMap.tsx";
 import { realEstateApi } from "@/api/real-estate";
+import { settingsApi } from "@/api/settings/settings";
 import type { PropertyFormValues } from "@/components/real-estate/validations/propertySchema";
 import {
     buildAddressFromReverseData,
@@ -96,17 +97,10 @@ export function RealEstateLocationMapPicker({
                 const regionQuery = String(selectedRegion?.name || '').trim() || `منطقه ${selectedRegion?.code ?? ''}`.trim();
                 const cityQuery = String(selectedCity?.name || '').trim();
                 const provinceQuery = String(selectedProvince?.name || '').trim();
-                const query = [regionQuery, cityQuery, provinceQuery, 'Iran'].filter(Boolean).join(', ');
+                const geocodeResult = await settingsApi.geocodeMap(regionQuery, cityQuery, provinceQuery);
 
-                const response = await fetch(
-                    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&accept-language=fa,en`
-                );
-
-                const data = await response.json();
-                if (!Array.isArray(data) || data.length === 0) return;
-
-                const lat = parseFloat(data[0].lat);
-                const lng = parseFloat(data[0].lon);
+                const lat = Number(geocodeResult?.latitude);
+                const lng = Number(geocodeResult?.longitude);
                 if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
 
                 setPreviewCoordinates({ lat, lng });
@@ -166,10 +160,7 @@ export function RealEstateLocationMapPicker({
 
     const resolveLocationFieldsFromCoordinates = useCallback(async (lat: number, lng: number) => {
         try {
-            const response = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=fa,en`
-            );
-            const data: ReverseGeocodeResult = await response.json();
+            const data: ReverseGeocodeResult = await settingsApi.reverseGeocodeMap(lat, lng);
             const addr = data?.address || {};
 
             const provinceName = String(addr.state || addr.province || "").trim();

@@ -7,6 +7,7 @@ import type { MapSettings } from "@/types/real_estate/map";
 
 const LeafletMapProvider = lazy(() => import("./maps/LeafletMapProvider"));
 const GoogleMapProvider = lazy(() => import("./maps/GoogleMapProvider"));
+const NeshanMapProvider = lazy(() => import("./maps/NeshanMapProvider"));
 
 interface PropertyLocationMapProps {
   latitude: number | null;
@@ -84,11 +85,9 @@ export default function LocationMap({
       const fetchCityCoords = async () => {
         try {
           setIsGeocoding(true);
-          const query = `${normalizedCityName}, ${provinceName || ''}, Iran`;
-          const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&accept-language=fa`);
-          const data = await response.json();
-          if (data && data.length > 0) {
-            setMapCenter([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
+          const data = await settingsApi.geocodeMap(normalizedCityName, cityName || undefined, provinceName || undefined);
+          if (data && Number.isFinite(data.latitude) && Number.isFinite(data.longitude)) {
+            setMapCenter([Number(data.latitude), Number(data.longitude)]);
             setMapZoom(13);
           }
         } catch (e) {
@@ -191,10 +190,7 @@ export default function LocationMap({
 
     setIsGeocoding(true);
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=fa,en`
-      );
-      const data = await response.json();
+      const data = await settingsApi.reverseGeocodeMap(lat, lng);
 
       const address = formatAddress(data);
       if (address) {
@@ -256,7 +252,7 @@ export default function LocationMap({
         <div className="flex items-center justify-between">
           <Label className="flex items-center gap-2">
             <MapPin className="w-4 h-4" />
-            موقعیت روی نقشه ({provider === 'leaflet' ? 'OSM' : provider === 'google_maps' ? 'Google' : 'بومی'})
+            موقعیت روی نقشه ({provider === 'leaflet' ? 'OSM' : provider === 'google_maps' ? 'Google' : provider === 'neshan' ? 'Neshan' : 'بومی'})
           </Label>
           {latitude && longitude && !disabled && (
             <button
@@ -306,6 +302,21 @@ export default function LocationMap({
               setIsMapReady={setIsMapReady}
               apiKey={mapSettings.configs?.google_maps?.api_key}
               google_maps_map_id={mapSettings.configs?.google_maps?.map_id}
+              cityName={cityName}
+              provinceName={provinceName}
+            />
+          )}
+
+          {provider === 'neshan' && (
+            <NeshanMapProvider
+              latitude={latitude}
+              longitude={longitude}
+              mapCenter={mapCenter}
+              mapZoom={mapZoom}
+              onLocationChange={handlePositionChange}
+              disabled={disabled}
+              setIsMapReady={setIsMapReady}
+              apiKey={mapSettings.configs?.neshan?.map_key || import.meta.env.VITE_NESHAN_MAP_KEY || null}
               cityName={cityName}
               provinceName={provinceName}
             />

@@ -15,15 +15,21 @@ export function MapSettingsSection() {
         queryFn: () => settingsApi.getMapSettings(),
     });
 
+    const neshanMapKey = settings?.configs?.neshan?.map_key || import.meta.env.VITE_NESHAN_MAP_KEY || null;
+
     if (isLoading) {
         return (
             <div className="space-y-6">
-                <Skeleton className="h-[400px] w-full rounded-2xl" />
+                <Skeleton className="h-100 w-full rounded-2xl" />
             </div>
         );
     }
 
-    const providerDisplay = (settings?.provider === 'google_maps') ? 'Google Maps' : 'Leaflet / OpenStreetMap';
+    const providerDisplay = settings?.provider === 'google_maps'
+        ? 'Google Maps'
+        : settings?.provider === 'neshan'
+            ? 'Neshan (Iranian)'
+            : 'Leaflet / OpenStreetMap';
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -71,6 +77,16 @@ export function MapSettingsSection() {
                                 <p className="text-xs text-font-s leading-relaxed">
                                     سرویس Leaflet به صورت رایگان و بدون نیاز به کلید API عمل می‌کند.
                                 </p>
+                            </div>
+                        )}
+                        {settings?.provider === 'neshan' && (
+                            <div className="grid gap-4">
+                                <DetailItem
+                                    icon={<Key className="h-5 w-5" />}
+                                    label="Neshan Web Map Key"
+                                    value={neshanMapKey}
+                                    isSecret
+                                />
                             </div>
                         )}
                     </div>
