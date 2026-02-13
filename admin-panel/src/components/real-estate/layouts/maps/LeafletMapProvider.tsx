@@ -61,8 +61,10 @@ function LocationMarker({ position, onPositionChange, disabled }: { position: [n
     const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(position);
     useEffect(() => { setMarkerPosition(position); }, [position]);
     if (!markerPosition) return null;
+    const markerKey = `${markerPosition[0]}:${markerPosition[1]}`;
     return (
         <Marker
+            key={markerKey}
             position={markerPosition}
             icon={createCustomIcon(true)}
             draggable={!disabled}
@@ -105,7 +107,7 @@ export default function LeafletMapProvider({
             <ChangeView center={mapCenter} zoom={mapZoom} />
             <MapClickHandler onMapClick={onLocationChange} disabled={disabled} />
             <LocationMarker
-                position={latitude && longitude ? [latitude, longitude] : null}
+                position={latitude !== null && longitude !== null ? [latitude, longitude] : null}
                 onPositionChange={onLocationChange}
                 disabled={disabled}
             />

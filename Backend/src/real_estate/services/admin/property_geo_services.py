@@ -1,10 +1,160 @@
 from typing import List, Tuple, Optional, Dict, Any
 from decimal import Decimal
+import os
+import logging
+from django.conf import settings
+from django.db import connection
 from django.db.models import QuerySet
+from django.db.models.expressions import RawSQL
 from src.real_estate.models.property import Property
 import math
 
+logger = logging.getLogger(__name__)
+
 class PropertyGeoService:
+
+    _postgis_available: Optional[bool] = None
+    _postgis_warning_emitted: bool = False
+
+    @classmethod
+    def _geo_engine_mode(cls) -> str:
+        mode = getattr(settings, 'REAL_ESTATE_GEO_ENGINE', None) or os.getenv('REAL_ESTATE_GEO_ENGINE') or os.getenv('GEO_ENGINE') or 'auto'
+        return str(mode).strip().lower()
+
+    @classmethod
+    def _is_postgis_available(cls) -> bool:
+        if cls._postgis_available is not None:
+            return cls._postgis_available
+
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'postgis')")
+                row = cursor.fetchone()
+                cls._postgis_available = bool(row and row[0])
+        except Exception:
+            cls._postgis_available = False
+
+        return cls._postgis_available
+
+    @classmethod
+    def _use_postgis(cls) -> bool:
+        mode = cls._geo_engine_mode()
+        postgis_available = cls._is_postgis_available()
+
+        if mode == 'basic':
+            return False
+
+        if mode == 'postgis' and not postgis_available:
+            if not cls._postgis_warning_emitted:
+                logger.warning("REAL_ESTATE_GEO_ENGINE=postgis but PostGIS extension is unavailable. Falling back to basic geo engine.")
+                cls._postgis_warning_emitted = True
+            return False
+
+        if mode == 'postgis':
+            return True
+
+        return postgis_available
+
+    @classmethod
+    def _search_nearby_basic(
+        cls,
+        latitude: float,
+        longitude: float,
+        radius_km: float,
+        limit: int,
+        queryset: QuerySet,
+    ) -> QuerySet:
+        lat_delta = radius_km / 111.0
+        cos_lat = abs(math.cos(math.radians(latitude)))
+        lon_delta = radius_km / (111.0 * max(cos_lat, 1e-6))
+
+        return queryset.filter(
+            latitude__gte=latitude - lat_delta,
+            latitude__lte=latitude + lat_delta,
+            longitude__gte=longitude - lon_delta,
+            longitude__lte=longitude + lon_delta
+        )[:limit]
+
+    @classmethod
+    def _search_nearby_postgis(
+        cls,
+        latitude: float,
+        longitude: float,
+        radius_km: float,
+        limit: int,
+        queryset: QuerySet,
+    ) -> QuerySet:
+        radius_m = float(radius_km) * 1000.0
+        reference_lng = float(longitude)
+        reference_lat = float(latitude)
+
+        queryset = queryset.filter(latitude__isnull=False, longitude__isnull=False)
+
+        distance_sql = RawSQL(
+            """
+            ST_DistanceSphere(
+                ST_SetSRID(ST_MakePoint(longitude, latitude), 4326),
+                ST_SetSRID(ST_MakePoint(%s, %s), 4326)
+            )
+            """,
+            (reference_lng, reference_lat),
+        )
+
+        return queryset.annotate(_distance_m=distance_sql).filter(_distance_m__lte=radius_m).order_by('_distance_m')[:limit]
+
+    @classmethod
+    def _search_in_polygon_basic(
+        cls,
+        polygon: List[Tuple[float, float]],
+        limit: int,
+        queryset: QuerySet,
+    ) -> QuerySet:
+        lats = [coord[0] for coord in polygon]
+        lons = [coord[1] for coord in polygon]
+
+        return queryset.filter(
+            latitude__gte=min(lats),
+            latitude__lte=max(lats),
+            longitude__gte=min(lons),
+            longitude__lte=max(lons)
+        )[:limit]
+
+    @classmethod
+    def _search_in_polygon_postgis(
+        cls,
+        polygon: List[Tuple[float, float]],
+        limit: int,
+        queryset: QuerySet,
+    ) -> QuerySet:
+        ring = list(polygon)
+        if ring and ring[0] != ring[-1]:
+            ring.append(ring[0])
+
+        polygon_wkt = "POLYGON((" + ", ".join(f"{float(lon)} {float(lat)}" for lat, lon in ring) + "))"
+
+        inside_sql = RawSQL(
+            """
+            ST_Intersects(
+                ST_GeomFromText(%s, 4326),
+                ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)
+            )
+            """,
+            (polygon_wkt,),
+        )
+
+        return queryset.filter(latitude__isnull=False, longitude__isnull=False).annotate(_inside=inside_sql).filter(_inside=True)[:limit]
+
+    @classmethod
+    def engine_status(cls) -> Dict[str, Any]:
+        mode = cls._geo_engine_mode()
+        postgis_available = cls._is_postgis_available()
+        effective = 'postgis' if cls._use_postgis() else 'basic'
+
+        return {
+            'configured_mode': mode,
+            'postgis_available': postgis_available,
+            'effective_engine': effective,
+        }
 
     @classmethod
     def search_nearby(
@@ -18,16 +168,26 @@ class PropertyGeoService:
         
         if queryset is None:
             queryset = Property.objects.published()
-        
-        lat_delta = radius_km / 111.0
-        lon_delta = radius_km / (111.0 * abs(math.cos(math.radians(latitude))))
-        
-        return queryset.filter(
-            latitude__gte=latitude - lat_delta,
-            latitude__lte=latitude + lat_delta,
-            longitude__gte=longitude - lon_delta,
-            longitude__lte=longitude + lon_delta
-        )[:limit]
+
+        if cls._use_postgis():
+            try:
+                return cls._search_nearby_postgis(
+                    latitude=float(latitude),
+                    longitude=float(longitude),
+                    radius_km=float(radius_km),
+                    limit=limit,
+                    queryset=queryset,
+                )
+            except Exception:
+                logger.exception("PostGIS nearby query failed. Falling back to basic geo engine.")
+
+        return cls._search_nearby_basic(
+            latitude=float(latitude),
+            longitude=float(longitude),
+            radius_km=float(radius_km),
+            limit=limit,
+            queryset=queryset,
+        )
     @classmethod
     def search_in_polygon(
         cls,
@@ -38,16 +198,22 @@ class PropertyGeoService:
         
         if queryset is None:
             queryset = Property.objects.published()
-        
-        lats = [coord[0] for coord in polygon]
-        lons = [coord[1] for coord in polygon]
-        
-        return queryset.filter(
-            latitude__gte=min(lats),
-            latitude__lte=max(lats),
-            longitude__gte=min(lons),
-            longitude__lte=max(lons)
-        )[:limit]
+
+        if cls._use_postgis():
+            try:
+                return cls._search_in_polygon_postgis(
+                    polygon=polygon,
+                    limit=limit,
+                    queryset=queryset,
+                )
+            except Exception:
+                logger.exception("PostGIS polygon query failed. Falling back to basic geo engine.")
+
+        return cls._search_in_polygon_basic(
+            polygon=polygon,
+            limit=limit,
+            queryset=queryset,
+        )
     @classmethod
     def search_in_bbox(
         cls,

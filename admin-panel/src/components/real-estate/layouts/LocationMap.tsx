@@ -65,6 +65,10 @@ export default function LocationMap({
   }, [latitude, longitude]);
 
   useEffect(() => {
+    if (latitude !== null && longitude !== null) {
+      return;
+    }
+
     if (viewLatitude !== null && viewLongitude !== null && viewLatitude !== undefined && viewLongitude !== undefined) {
       const lat = Number(viewLatitude);
       const lng = Number(viewLongitude);
@@ -95,7 +99,7 @@ export default function LocationMap({
       };
       fetchCityCoords();
     }
-  }, [viewLatitude, viewLongitude, cityName, provinceName]);
+  }, [viewLatitude, viewLongitude, cityName, provinceName, latitude, longitude]);
 
   const formatAddress = (data: any): string => {
     if (!data) return `${latitude?.toFixed(6) || '0'}, ${longitude?.toFixed(6) || '0'}`;
@@ -188,8 +192,7 @@ export default function LocationMap({
     setIsGeocoding(true);
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=fa,en`,
-        { headers: { 'User-Agent': 'RealEstateApp/1.0' } }
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=fa,en`
       );
       const data = await response.json();
 

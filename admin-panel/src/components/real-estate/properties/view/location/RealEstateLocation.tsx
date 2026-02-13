@@ -17,7 +17,7 @@ export function RealEstateLocation({ property }: RealEstateLocationProps) {
 
     return (
         <>
-            <div className="h-[380px] w-full relative bg-bg/50 z-0 overflow-hidden shrink-0 border-b border-br/40">
+            <div className="h-95 w-full relative bg-bg/50 z-0 overflow-hidden shrink-0 border-b border-br/40">
                 <LocationMap
                     latitude={property.latitude ? Number(property.latitude) : null}
                     longitude={property.longitude ? Number(property.longitude) : null}
@@ -53,7 +53,7 @@ export function RealEstateLocation({ property }: RealEstateLocationProps) {
                         </div>
                     </div>
 
-                    <div className="space-y-4 mb-8 w-full max-w-[240px]">
+                    <div className="space-y-4 mb-8 w-full max-w-60">
                         <h3 className="font-black text-font-p text-lg tracking-tight">موقعیت مکانی ملک</h3>
                         <p className="text-[11px] font-bold text-font-s leading-relaxed opacity-70">
                             <ValueFallback
@@ -62,6 +62,11 @@ export function RealEstateLocation({ property }: RealEstateLocationProps) {
                                 className="bg-transparent border-none p-0 text-font-s opacity-70"
                             />
                         </p>
+                        {property.postal_code && (
+                            <p className="text-[11px] font-bold text-font-s leading-relaxed opacity-80">
+                                کد پستی: <span className="text-font-p">{property.postal_code}</span>
+                            </p>
+                        )}
                     </div>
 
                     {hasLocation && (

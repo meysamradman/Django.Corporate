@@ -18,6 +18,7 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
         'in_bbox': 'real_estate.property.read',
         'in_polygon': 'real_estate.property.read',
         'map_data': 'real_estate.property.read',
+        'engine_status': 'real_estate.property.read',
     }
     permission_denied_message = PROPERTY_ERRORS["property_not_authorized"]
     
@@ -203,6 +204,22 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                 status_code=status.HTTP_200_OK
             )
             
+        except Exception as e:
+            return APIResponse.error(
+                message=str(e),
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['get'], url_path='engine-status')
+    def engine_status(self, request):
+
+        try:
+            data = PropertyGeoService.engine_status()
+            return APIResponse.success(
+                message="وضعیت موتور جستجوی مکانی با موفقیت دریافت شد.",
+                data=data,
+                status_code=status.HTTP_200_OK
+            )
         except Exception as e:
             return APIResponse.error(
                 message=str(e),

@@ -4,7 +4,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Input } from "@/components/elements/Input";
 import { Button } from "@/components/elements/Button";
-import { MapPin, Loader2, LocateFixed } from "lucide-react";
+import { MapPin, Loader2, LocateFixed, ChevronDown, ChevronUp } from "lucide-react";
 import LocationMap from "@/components/real-estate/layouts/LocationMap.tsx";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyFormValues } from "@/components/real-estate/validations/propertySchema";
@@ -49,6 +49,7 @@ export function RealEstateLocationMapPicker({
     );
     const [manualCoordError, setManualCoordError] = useState<string>("");
     const [previewCoordinates, setPreviewCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+    const [showAdvancedCoordinateInputs, setShowAdvancedCoordinateInputs] = useState(false);
 
     const selectedProvinceId = isFormApproach ? watch?.("province") : formData?.province;
     const selectedCityId = isFormApproach ? watch?.("city") : formData?.city;
@@ -66,12 +67,21 @@ export function RealEstateLocationMapPicker({
     } = useLocationOptions(selectedProvinceId, selectedCityId);
 
     const suppressRegionToMapSyncRef = useRef(false);
+    const lastProgrammaticRegionIdRef = useRef<number | null>(null);
 
     const canPickLocation = !!selectedCityId && editMode;
     const canApplyManualCoordinates = editMode;
 
     useEffect(() => {
         if (!canPickLocation || !selectedRegionId || !selectedCity?.name) return;
+
+        const regionIdNumber = Number(selectedRegionId);
+        if (Number.isFinite(regionIdNumber) && lastProgrammaticRegionIdRef.current !== null) {
+            if (regionIdNumber === lastProgrammaticRegionIdRef.current) {
+                return;
+            }
+            lastProgrammaticRegionIdRef.current = null;
+        }
 
         if (suppressRegionToMapSyncRef.current) {
             suppressRegionToMapSyncRef.current = false;
@@ -89,8 +99,7 @@ export function RealEstateLocationMapPicker({
                 const query = [regionQuery, cityQuery, provinceQuery, 'Iran'].filter(Boolean).join(', ');
 
                 const response = await fetch(
-                    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&accept-language=fa,en`,
-                    { headers: { 'User-Agent': 'RealEstateApp/1.0' } }
+                    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&accept-language=fa,en`
                 );
 
                 const data = await response.json();
@@ -158,8 +167,7 @@ export function RealEstateLocationMapPicker({
     const resolveLocationFieldsFromCoordinates = useCallback(async (lat: number, lng: number) => {
         try {
             const response = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=fa,en`,
-                { headers: { "User-Agent": "RealEstateApp/1.0" } }
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=fa,en`
             );
             const data: ReverseGeocodeResult = await response.json();
             const addr = data?.address || {};
@@ -235,6 +243,7 @@ export function RealEstateLocationMapPicker({
                         if (matchedRegion?.id) {
                             matchedRegionId = Number(matchedRegion.id);
                             suppressRegionToMapSyncRef.current = true;
+                            lastProgrammaticRegionIdRef.current = matchedRegionId;
                             setFieldValue("region", matchedRegionId, true);
                         }
                     }
@@ -357,6 +366,7 @@ export function RealEstateLocationMapPicker({
                     if (!matchedRegion?.id) return;
 
                     suppressRegionToMapSyncRef.current = true;
+                    lastProgrammaticRegionIdRef.current = Number(matchedRegion.id);
 
                     if (isFormApproach && setValue) {
                         setValue("region", Number(matchedRegion.id) as any, { shouldValidate: true });
@@ -367,68 +377,81 @@ export function RealEstateLocationMapPicker({
                 disabled={!canPickLocation}
             />
 
-            <div className="mt-3 rounded-lg border border-br bg-card px-3 py-2 text-xs">
-                <div className="flex items-center gap-2 text-font-s mb-1">
-                    <LocateFixed className="w-3.5 h-3.5 text-blue-2" />
-                    مختصات انتخاب‌شده
-                </div>
-                {hasExactLocation ? (
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <span className="font-semibold text-font-p">Lat: {Number(mapLatitude).toFixed(6)}</span>
-                        <span className="font-semibold text-font-p">Lng: {Number(mapLongitude).toFixed(6)}</span>
+            <div className="mt-3 rounded-lg border border-br bg-card px-3 py-3 space-y-3">
+                <div className="flex items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center gap-2 text-font-s">
+                        <LocateFixed className="w-3.5 h-3.5 text-blue-2" />
+                        مختصات انتخاب‌شده
                     </div>
-                ) : (
-                    <div className="text-font-s">هنوز نقطه‌ای روی نقشه ثبت نشده است.</div>
-                )}
-            </div>
-
-            <div className="mt-3 rounded-lg border border-br bg-card px-3 py-3 space-y-2">
-                <div className="text-xs text-font-s">ورود دستی مختصات (برای ادمین حرفه‌ای)</div>
-                <Input
-                    value={manualLatLng}
-                    onChange={(event) => {
-                        const value = event.target.value;
-                        setManualLatLng(value);
-                        if (manualCoordError) setManualCoordError("");
-
-                        const parsed = parseCombinedCoordinates(value);
-                        if (parsed) {
-                            setManualLat(parsed.lat.toFixed(6));
-                            setManualLng(parsed.lng.toFixed(6));
-                        }
-                    }}
-                    placeholder="کپی مستقیم از گوگل: 35.74093893688781, 51.30191441426698"
-                    disabled={!canApplyManualCoordinates}
-                    className="h-10"
-                />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <Input
-                        value={manualLat}
-                        onChange={(event) => {
-                            setManualLat(event.target.value);
-                            if (manualCoordError) setManualCoordError("");
-                        }}
-                        placeholder="Latitude (مثال: 35.701220)"
-                        disabled={!canApplyManualCoordinates}
-                        className="h-10"
-                    />
-                    <Input
-                        value={manualLng}
-                        onChange={(event) => {
-                            setManualLng(event.target.value);
-                            if (manualCoordError) setManualCoordError("");
-                        }}
-                        placeholder="Longitude (مثال: 51.432370)"
-                        disabled={!canApplyManualCoordinates}
-                        className="h-10"
-                    />
+                    {hasExactLocation ? (
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px]">
+                            <span className="font-semibold text-font-p">Lat: {Number(mapLatitude).toFixed(6)}</span>
+                            <span className="font-semibold text-font-p">Lng: {Number(mapLongitude).toFixed(6)}</span>
+                        </div>
+                    ) : (
+                        <span className="text-[11px] text-font-s">ثبت نشده</span>
+                    )}
                 </div>
-                <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] text-font-s">با اعمال، پین به مختصات واردشده منتقل می‌شود.</span>
-                    <Button type="button" size="sm" onClick={applyManualCoordinates} disabled={!canApplyManualCoordinates}>
+
+                <div className="text-[11px] text-font-s">کپی مستقیم از گوگل: `lat, lng` و سپس اعمال.</div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2 items-center">
+                    <Input
+                        value={manualLatLng}
+                        onChange={(event) => {
+                            const value = event.target.value;
+                            setManualLatLng(value);
+                            if (manualCoordError) setManualCoordError("");
+
+                            const parsed = parseCombinedCoordinates(value);
+                            if (parsed) {
+                                setManualLat(parsed.lat.toFixed(6));
+                                setManualLng(parsed.lng.toFixed(6));
+                            }
+                        }}
+                        placeholder="35.74093893688781, 51.30191441426698"
+                        disabled={!canApplyManualCoordinates}
+                        className="h-10"
+                    />
+                    <Button type="button" size="sm" className="h-10 px-4" onClick={applyManualCoordinates} disabled={!canApplyManualCoordinates}>
                         اعمال مختصات
                     </Button>
                 </div>
+
+                <button
+                    type="button"
+                    onClick={() => setShowAdvancedCoordinateInputs((previous) => !previous)}
+                    className="w-full flex items-center justify-center gap-1 text-[11px] text-blue-2 hover:text-blue-1 transition-colors"
+                >
+                    {showAdvancedCoordinateInputs ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    {showAdvancedCoordinateInputs ? "بستن ورود دقیق Lat/Lng" : "ورود دقیق Lat/Lng"}
+                </button>
+
+                {showAdvancedCoordinateInputs && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <Input
+                            value={manualLat}
+                            onChange={(event) => {
+                                setManualLat(event.target.value);
+                                if (manualCoordError) setManualCoordError("");
+                            }}
+                            placeholder="Latitude (مثال: 35.701220)"
+                            disabled={!canApplyManualCoordinates}
+                            className="h-10"
+                        />
+                        <Input
+                            value={manualLng}
+                            onChange={(event) => {
+                                setManualLng(event.target.value);
+                                if (manualCoordError) setManualCoordError("");
+                            }}
+                            placeholder="Longitude (مثال: 51.432370)"
+                            disabled={!canApplyManualCoordinates}
+                            className="h-10"
+                        />
+                    </div>
+                )}
+
                 {manualCoordError && <div className="text-[11px] text-red-2">{manualCoordError}</div>}
             </div>
 

@@ -14,7 +14,7 @@ export default function GoogleMapProvider({
             <p className="text-sm text-muted-foreground max-w-sm">
                 سرویس نقشه گوگل آماده پیاده‌سازی است. کلید API فعلی: {apiKey ? 'معتبر' : 'یافت نشد'}
             </p>
-            {latitude && longitude && (
+            {latitude !== null && longitude !== null && (
                 <div className="mt-4 p-2 bg-bg rounded border text-xs">
                     موقعیت انتخاب شده: {latitude.toFixed(6)}, {longitude.toFixed(6)}
                 </div>

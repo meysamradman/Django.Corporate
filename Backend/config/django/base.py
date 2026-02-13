@@ -153,6 +153,8 @@ DATABASES = {
         },
     }
 }
+
+REAL_ESTATE_GEO_ENGINE = os.getenv('REAL_ESTATE_GEO_ENGINE', 'auto').strip().lower()
 AUTH_PASSWORD_VALIDATORS = [
      {
           'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
