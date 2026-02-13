@@ -154,6 +154,15 @@ export default function LocationMap({
     if (addr.house_number) parts.push(`پلاک ${addr.house_number}`);
 
     if (parts.length > 0) {
+      if (parts.length === 1 && /^منطقه\s*\d+/i.test(parts[0])) {
+        if (cityName && !parts.includes(cityName)) {
+          parts.unshift(cityName);
+        }
+        if (provinceName && !parts.some((part) => part.includes(provinceName))) {
+          parts.unshift(`استان ${provinceName}`);
+        }
+      }
+
       let finalAddress = parts.join(', ');
       const tehranMatches = finalAddress.match(/تهران/g);
       if (tehranMatches && tehranMatches.length > 1) {
@@ -224,8 +233,6 @@ export default function LocationMap({
           if (regionMatch) {
             const detectedRegion = parseInt(regionMatch[1]);
             if (detectedRegion >= 1 && detectedRegion <= 22) onRegionUpdate(detectedRegion);
-          } else if (cityName === 'تهران') {
-            onRegionUpdate(11);
           }
         }
       }
@@ -236,7 +243,7 @@ export default function LocationMap({
     }
   };
 
-  if (!mapSettings) return <div className="h-[400px] flex items-center justify-center bg-muted/10"><Loader2 className="animate-spin" /></div>;
+  if (!mapSettings) return <div className="h-100 flex items-center justify-center bg-muted/10"><Loader2 className="animate-spin" /></div>;
 
   const provider = mapSettings.provider;
 

@@ -1,11 +1,21 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { MapPin, Loader2 } from "lucide-react";
+import { Input } from "@/components/elements/Input";
+import { Button } from "@/components/elements/Button";
+import { MapPin, Loader2, LocateFixed } from "lucide-react";
 import LocationMap from "@/components/real-estate/layouts/LocationMap.tsx";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyFormValues } from "@/components/real-estate/validations/propertySchema";
+import {
+    buildAddressFromReverseData,
+    normalizeCoordinateText,
+    normalizeLocationName,
+    parseCombinedCoordinates,
+    type ReverseGeocodeResult,
+} from "./locationCoordinate.utils";
+import { useLocationOptions } from "./useLocationOptions";
 
 interface RealEstateLocationMapPickerProps {
     form?: UseFormReturn<PropertyFormValues>;
@@ -32,37 +42,256 @@ export function RealEstateLocationMapPicker({
         ? form!
         : { watch: null, setValue: null };
 
-    const [provinces, setProvinces] = useState<any[]>([]);
-    const [cities, setCities] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [manualLatLng, setManualLatLng] = useState<string>("");
+    const [manualLat, setManualLat] = useState<string>(""
+    );
+    const [manualLng, setManualLng] = useState<string>(""
+    );
+    const [manualCoordError, setManualCoordError] = useState<string>("");
+    const [previewCoordinates, setPreviewCoordinates] = useState<{ lat: number; lng: number } | null>(null);
 
     const selectedProvinceId = isFormApproach ? watch?.("province") : formData?.province;
     const selectedCityId = isFormApproach ? watch?.("city") : formData?.city;
+    const selectedRegionId = isFormApproach ? watch?.("region") : formData?.region;
+
+    const {
+        provinces,
+        setProvinces,
+        setCities,
+        cityRegions,
+        setCityRegions,
+        loading,
+        selectedCity,
+        selectedProvince,
+    } = useLocationOptions(selectedProvinceId, selectedCityId);
+
+    const suppressRegionToMapSyncRef = useRef(false);
+
+    const canPickLocation = !!selectedCityId && editMode;
+    const canApplyManualCoordinates = editMode;
 
     useEffect(() => {
-        const loadInitial = async () => {
+        if (!canPickLocation || !selectedRegionId || !selectedCity?.name) return;
+
+        if (suppressRegionToMapSyncRef.current) {
+            suppressRegionToMapSyncRef.current = false;
+            return;
+        }
+
+        const selectedRegion = cityRegions.find((region) => Number(region?.id) === Number(selectedRegionId));
+        if (!selectedRegion) return;
+
+        const geocodeRegionCenter = async () => {
             try {
-                setLoading(true);
-                const pData = await realEstateApi.getProvinces();
-                setProvinces(pData || []);
-                if (selectedProvinceId) {
-                    const cData = await realEstateApi.getProvinceCities(Number(selectedProvinceId));
-                    setCities(cData || []);
-                }
+                const regionQuery = String(selectedRegion?.name || '').trim() || `منطقه ${selectedRegion?.code ?? ''}`.trim();
+                const cityQuery = String(selectedCity?.name || '').trim();
+                const provinceQuery = String(selectedProvince?.name || '').trim();
+                const query = [regionQuery, cityQuery, provinceQuery, 'Iran'].filter(Boolean).join(', ');
+
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&accept-language=fa,en`,
+                    { headers: { 'User-Agent': 'RealEstateApp/1.0' } }
+                );
+
+                const data = await response.json();
+                if (!Array.isArray(data) || data.length === 0) return;
+
+                const lat = parseFloat(data[0].lat);
+                const lng = parseFloat(data[0].lon);
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+                setPreviewCoordinates({ lat, lng });
+                onLocationChange?.(lat, lng);
             } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
+                console.error('Region geocoding failed', error);
             }
         };
-        loadInitial();
-    }, [selectedProvinceId]);
 
-    const selectedCity = selectedCityId ? cities.find(c => c.id === Number(selectedCityId)) : null;
-    const selectedProvince = selectedProvinceId ? provinces.find(p => p.id === Number(selectedProvinceId)) : null;
+        geocodeRegionCenter();
+    }, [
+        canPickLocation,
+        selectedRegionId,
+        selectedCityId,
+        selectedCity?.name,
+        selectedProvince?.name,
+        cityRegions,
+        onLocationChange,
+    ]);
 
     const viewLatitude = selectedCity?.latitude || selectedProvince?.latitude;
     const viewLongitude = selectedCity?.longitude || selectedProvince?.longitude;
+    const mapLatitude = previewCoordinates?.lat ?? (typeof latitude === "number" ? latitude : null);
+    const mapLongitude = previewCoordinates?.lng ?? (typeof longitude === "number" ? longitude : null);
+    const hasExactLocation = typeof mapLatitude === "number" && typeof mapLongitude === "number";
+
+    useEffect(() => {
+        if (!previewCoordinates) return;
+        if (typeof latitude !== "number" || typeof longitude !== "number") return;
+
+        const latDelta = Math.abs(previewCoordinates.lat - latitude);
+        const lngDelta = Math.abs(previewCoordinates.lng - longitude);
+        if (latDelta < 0.000001 && lngDelta < 0.000001) {
+            setPreviewCoordinates(null);
+        }
+    }, [previewCoordinates, latitude, longitude]);
+
+    useEffect(() => {
+        if (typeof latitude === "number" && Number.isFinite(latitude)) {
+            setManualLat(latitude.toFixed(6));
+        }
+        if (typeof longitude === "number" && Number.isFinite(longitude)) {
+            setManualLng(longitude.toFixed(6));
+        }
+        if (typeof latitude === "number" && typeof longitude === "number" && Number.isFinite(latitude) && Number.isFinite(longitude)) {
+            setManualLatLng(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+        }
+    }, [latitude, longitude]);
+
+    const setFieldValue = useCallback((field: "province" | "city" | "region" | "address" | "neighborhood", value: any, validate = false) => {
+        if (isFormApproach && setValue) {
+            setValue(field as any, value as any, { shouldValidate: validate });
+            return;
+        }
+        handleInputChange?.(field, value);
+    }, [isFormApproach, setValue, handleInputChange]);
+
+    const resolveLocationFieldsFromCoordinates = useCallback(async (lat: number, lng: number) => {
+        try {
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=fa,en`,
+                { headers: { "User-Agent": "RealEstateApp/1.0" } }
+            );
+            const data: ReverseGeocodeResult = await response.json();
+            const addr = data?.address || {};
+
+            const provinceName = String(addr.state || addr.province || "").trim();
+            const cityName = String(addr.city || addr.town || addr.village || addr.hamlet || addr.county || "").trim();
+            const displayAddress = String(data?.display_name || "").trim();
+            const { address: formattedAddress, neighborhood } = buildAddressFromReverseData(data);
+
+            if (formattedAddress) {
+                setFieldValue("address", formattedAddress, false);
+            }
+            if (neighborhood) {
+                setFieldValue("neighborhood", neighborhood, false);
+            }
+
+            let provinceSource = provinces;
+            if ((!provinceSource || provinceSource.length === 0) && provinceName) {
+                try {
+                    const provincesData = await realEstateApi.getProvinces();
+                    provinceSource = provincesData || [];
+                    setProvinces(provinceSource);
+                } catch (error) {
+                    provinceSource = [];
+                }
+            }
+
+            let matchedProvince: any | undefined;
+            if (provinceName && provinceSource.length > 0) {
+                const normalizedProvince = normalizeLocationName(provinceName);
+                matchedProvince = provinceSource.find((province) => {
+                    const candidate = normalizeLocationName(province?.name);
+                    return candidate === normalizedProvince || candidate.includes(normalizedProvince) || normalizedProvince.includes(candidate);
+                });
+            }
+
+            let matchedCity: any | undefined;
+            let provinceCities: any[] = [];
+
+            if (matchedProvince?.id) {
+                const provinceId = Number(matchedProvince.id);
+                setFieldValue("province", provinceId, true);
+
+                provinceCities = await realEstateApi.getProvinceCities(provinceId);
+
+                setCities(provinceCities || []);
+            }
+
+            if (cityName && provinceCities.length > 0) {
+                const normalizedCity = normalizeLocationName(cityName);
+                matchedCity = provinceCities.find((city) => {
+                    const candidate = normalizeLocationName(city?.name);
+                    return candidate === normalizedCity || candidate.includes(normalizedCity) || normalizedCity.includes(candidate);
+                });
+
+                if (matchedCity?.id) {
+                    setFieldValue("city", Number(matchedCity.id), true);
+                }
+            }
+
+            let matchedRegionId: number | undefined;
+            const regionText = `${displayAddress} ${String(addr.city_district || "")}`;
+            const normalizedRegionText = normalizeCoordinateText(regionText);
+            const regionMatch = normalizedRegionText.match(/منطقه\s*(\d+)/i) || normalizedRegionText.match(/District\s*(\d+)/i);
+
+            if (matchedCity?.id && regionMatch) {
+                const regionCode = Number(regionMatch[1]);
+                if (Number.isFinite(regionCode)) {
+                    const regions = await realEstateApi.getCityRegionsByCity(Number(matchedCity.id));
+                    if (Array.isArray(regions) && regions.length > 0) {
+                        setCityRegions(regions);
+                        const matchedRegion = regions.find((region) => Number(region?.code) === regionCode);
+                        if (matchedRegion?.id) {
+                            matchedRegionId = Number(matchedRegion.id);
+                            suppressRegionToMapSyncRef.current = true;
+                            setFieldValue("region", matchedRegionId, true);
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Coordinate reverse resolve failed", error);
+        }
+    }, [buildAddressFromReverseData, normalizeCoordinateText, normalizeLocationName, provinces, setFieldValue]);
+
+    const applyManualCoordinates = useCallback(async () => {
+        if (!canApplyManualCoordinates || !onLocationChange) return;
+
+        let lat = parseFloat(manualLat.trim());
+        let lng = parseFloat(manualLng.trim());
+
+        if (manualLatLng.trim()) {
+            const combined = parseCombinedCoordinates(manualLatLng);
+            if (!combined) {
+                setManualCoordError("فرمت ترکیبی معتبر نیست. مثال: 35.740938, 51.301914");
+                return;
+            }
+            lat = combined.lat;
+            lng = combined.lng;
+            setManualLat(lat.toFixed(6));
+            setManualLng(lng.toFixed(6));
+            setManualLatLng(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+        }
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+            setManualCoordError("مختصات معتبر نیست. مقدار عددی وارد کنید.");
+            return;
+        }
+
+        if (lat < -90 || lat > 90) {
+            setManualCoordError("Latitude باید بین -90 تا 90 باشد.");
+            return;
+        }
+
+        if (lng < -180 || lng > 180) {
+            setManualCoordError("Longitude باید بین -180 تا 180 باشد.");
+            return;
+        }
+
+        setManualCoordError("");
+        setPreviewCoordinates({ lat, lng });
+        onLocationChange(lat, lng);
+        await resolveLocationFieldsFromCoordinates(lat, lng);
+    }, [
+        canApplyManualCoordinates,
+        manualLat,
+        manualLng,
+        manualLatLng,
+        onLocationChange,
+        parseCombinedCoordinates,
+        resolveLocationFieldsFromCoordinates,
+    ]);
 
     return (
         <CardWithIcon
@@ -72,9 +301,30 @@ export function RealEstateLocationMapPicker({
             iconColor="stroke-blue-2"
             cardBorderColor="border-b-blue-1"
         >
+            <div className="mb-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div className="rounded-lg border border-br bg-card px-3 py-2 flex items-center justify-between">
+                    <span className="text-font-s">استان/شهر فعال</span>
+                    <span className={selectedProvince && selectedCity ? "text-green-2 font-semibold" : "text-amber-1 font-semibold"}>
+                        {selectedProvince && selectedCity ? `${selectedProvince.name} / ${selectedCity.name}` : "تعیین نشده"}
+                    </span>
+                </div>
+                <div className="rounded-lg border border-br bg-card px-3 py-2 flex items-center justify-between">
+                    <span className="text-font-s">موقعیت دقیق</span>
+                    <span className={hasExactLocation ? "text-green-2 font-semibold" : "text-amber-1 font-semibold"}>
+                        {hasExactLocation ? "ثبت شده" : "ثبت نشده"}
+                    </span>
+                </div>
+            </div>
+
+            <div className="mb-4 rounded-lg border border-br bg-bg/30 px-3 py-2 text-xs text-font-s">
+                {canPickLocation
+                    ? "برای ثبت دقیق، روی نقشه کلیک کنید یا نشانگر را جابه‌جا کنید."
+                    : "برای فعال شدن انتخاب موقعیت، ابتدا استان و شهر را مشخص کنید."}
+            </div>
+
             <LocationMap
-                latitude={latitude ?? null}
-                longitude={longitude ?? null}
+                latitude={mapLatitude}
+                longitude={mapLongitude}
                 cityName={selectedCity?.name || ""}
                 provinceName={selectedProvince?.name || ""}
                 viewLatitude={viewLatitude}
@@ -96,8 +346,91 @@ export function RealEstateLocationMapPicker({
                         handleInputChange?.("neighborhood", neighborhood);
                     }
                 }, [isFormApproach, setValue, handleInputChange])}
-                disabled={!editMode || !selectedCityId}
+                onRegionUpdate={useCallback((regionCode: number) => {
+                    if (!regionCode || cityRegions.length === 0) return;
+
+                    const matchedRegion = cityRegions.find((region) => {
+                        const code = Number(region?.code);
+                        return Number.isFinite(code) && code === Number(regionCode);
+                    });
+
+                    if (!matchedRegion?.id) return;
+
+                    suppressRegionToMapSyncRef.current = true;
+
+                    if (isFormApproach && setValue) {
+                        setValue("region", Number(matchedRegion.id) as any, { shouldValidate: true });
+                    } else {
+                        handleInputChange?.("region", Number(matchedRegion.id));
+                    }
+                }, [cityRegions, isFormApproach, setValue, handleInputChange])}
+                disabled={!canPickLocation}
             />
+
+            <div className="mt-3 rounded-lg border border-br bg-card px-3 py-2 text-xs">
+                <div className="flex items-center gap-2 text-font-s mb-1">
+                    <LocateFixed className="w-3.5 h-3.5 text-blue-2" />
+                    مختصات انتخاب‌شده
+                </div>
+                {hasExactLocation ? (
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <span className="font-semibold text-font-p">Lat: {Number(mapLatitude).toFixed(6)}</span>
+                        <span className="font-semibold text-font-p">Lng: {Number(mapLongitude).toFixed(6)}</span>
+                    </div>
+                ) : (
+                    <div className="text-font-s">هنوز نقطه‌ای روی نقشه ثبت نشده است.</div>
+                )}
+            </div>
+
+            <div className="mt-3 rounded-lg border border-br bg-card px-3 py-3 space-y-2">
+                <div className="text-xs text-font-s">ورود دستی مختصات (برای ادمین حرفه‌ای)</div>
+                <Input
+                    value={manualLatLng}
+                    onChange={(event) => {
+                        const value = event.target.value;
+                        setManualLatLng(value);
+                        if (manualCoordError) setManualCoordError("");
+
+                        const parsed = parseCombinedCoordinates(value);
+                        if (parsed) {
+                            setManualLat(parsed.lat.toFixed(6));
+                            setManualLng(parsed.lng.toFixed(6));
+                        }
+                    }}
+                    placeholder="کپی مستقیم از گوگل: 35.74093893688781, 51.30191441426698"
+                    disabled={!canApplyManualCoordinates}
+                    className="h-10"
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <Input
+                        value={manualLat}
+                        onChange={(event) => {
+                            setManualLat(event.target.value);
+                            if (manualCoordError) setManualCoordError("");
+                        }}
+                        placeholder="Latitude (مثال: 35.701220)"
+                        disabled={!canApplyManualCoordinates}
+                        className="h-10"
+                    />
+                    <Input
+                        value={manualLng}
+                        onChange={(event) => {
+                            setManualLng(event.target.value);
+                            if (manualCoordError) setManualCoordError("");
+                        }}
+                        placeholder="Longitude (مثال: 51.432370)"
+                        disabled={!canApplyManualCoordinates}
+                        className="h-10"
+                    />
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] text-font-s">با اعمال، پین به مختصات واردشده منتقل می‌شود.</span>
+                    <Button type="button" size="sm" onClick={applyManualCoordinates} disabled={!canApplyManualCoordinates}>
+                        اعمال مختصات
+                    </Button>
+                </div>
+                {manualCoordError && <div className="text-[11px] text-red-2">{manualCoordError}</div>}
+            </div>
 
             {loading && (
                 <div className="flex items-center justify-center p-4">

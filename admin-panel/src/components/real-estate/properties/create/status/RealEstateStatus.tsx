@@ -27,7 +27,7 @@ export function RealEstateStatus({ form, formData, handleInputChange, editMode, 
 
     return (
         <div className="">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
                 <Item className="p-2.5 h-16 rounded-xl border-blue-1/20 bg-blue-0/10 flex-row items-center gap-3">
                     <ItemMedia className="p-2 bg-blue/20 rounded-lg shrink-0">
                         <Eye className="w-4 h-4 stroke-blue-2" />

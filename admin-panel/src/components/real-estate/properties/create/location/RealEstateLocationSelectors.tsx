@@ -4,7 +4,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { FormField } from "@/components/shared/FormField";
 import { realEstateApi } from "@/api/real-estate";
-import { MapPin, Navigation, Landmark } from "lucide-react";
+import { MapPin, Navigation, Landmark, CheckCircle2 } from "lucide-react";
 import { cn } from "@/core/utils/cn";
 import type { PropertyFormValues } from "@/components/real-estate/validations/propertySchema";
 
@@ -127,9 +127,32 @@ export function RealEstateLocationSelectors({
 
     const cityError = isFormApproach ? (errorsObj.city as any)?.message : errorsObj?.city;
     const provinceError = isFormApproach ? (errorsObj.province as any)?.message : errorsObj?.province;
+    const isProvinceSelected = Boolean(selectedProvinceId);
+    const isCitySelected = Boolean(selectedCityId);
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="space-y-4">
+            <div className="rounded-lg border border-br bg-bg/30 px-3 py-2 text-xs text-font-s">
+                انتخاب صحیح استان/شهر باعث نمایش دقیق‌تر نقشه و منطقه‌بندی می‌شود.
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="rounded-lg border border-br bg-card px-3 py-2 flex items-center justify-between">
+                    <span className="text-xs text-font-s">گام ۱: استان</span>
+                    {isProvinceSelected ? <CheckCircle2 className="w-4 h-4 text-green-2" /> : <span className="text-[11px] text-amber-1">در انتظار</span>}
+                </div>
+                <div className="rounded-lg border border-br bg-card px-3 py-2 flex items-center justify-between">
+                    <span className="text-xs text-font-s">گام ۲: شهر</span>
+                    {isCitySelected ? <CheckCircle2 className="w-4 h-4 text-green-2" /> : <span className="text-[11px] text-amber-1">در انتظار</span>}
+                </div>
+                <div className="rounded-lg border border-br bg-card px-3 py-2 flex items-center justify-between">
+                    <span className="text-xs text-font-s">گام ۳: منطقه</span>
+                    {Boolean(isFormApproach ? watch?.("region") : formData?.region) ? <CheckCircle2 className="w-4 h-4 text-green-2" /> : <span className="text-[11px] text-font-s">اختیاری</span>}
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="rounded-xl border border-br bg-card/70 p-3">
             <FormField label="استان" required error={provinceError}>
                 <Select
                     value={selectedProvinceId ? String(selectedProvinceId) : ""}
@@ -149,7 +172,9 @@ export function RealEstateLocationSelectors({
                     </SelectContent>
                 </Select>
             </FormField>
+            </div>
 
+            <div className="rounded-xl border border-br bg-card/70 p-3">
             <FormField label="شهر" required error={cityError}>
                 <Select
                     value={selectedCityId ? String(selectedCityId) : ""}
@@ -169,7 +194,9 @@ export function RealEstateLocationSelectors({
                     </SelectContent>
                 </Select>
             </FormField>
+            </div>
 
+            <div className="rounded-xl border border-br bg-card/70 p-3">
             <FormField label="منطقه (اختیاری)">
                 <Select
                     value={formData?.region ? String(formData.region) : (isFormApproach ? watch?.("region")?.toString() : "")}
@@ -191,6 +218,8 @@ export function RealEstateLocationSelectors({
                     </SelectContent>
                 </Select>
             </FormField>
+            </div>
+            </div>
         </div>
     );
 }
