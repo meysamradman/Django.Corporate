@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTableFilters } from '@/components/tables/utils/useTableFilters';
-import { useURLStateSync, parseBooleanParam, parseStringParam, parseDateRange } from '@/hooks/useURLStateSync';
+import { useURLStateSync, parseBooleanParam, parseStringParam, parseDateRange } from '@/core/hooks/useURLStateSync';
 import { usePortfolioFilterOptions, getPortfolioFilterConfig } from '@/components/portfolios/projects/list/PortfolioTableFilters';
 import { initSortingFromURL } from '@/components/tables/utils/tableSorting';
 import { portfolioApi } from '@/api/portfolios/portfolios';

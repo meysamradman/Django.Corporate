@@ -1,4 +1,5 @@
 import type { RouteRule } from "../types";
+import { PERMISSIONS } from "../../constants";
 
 const ID_SEGMENT = "[0-9a-zA-Z-]+";
 const createRule = (config: RouteRule): RouteRule => config;
@@ -9,6 +10,7 @@ export const aiRoutes: RouteRule[] = [
     pattern: /^\/ai\/chat\/?$/,
     module: 'ai',
     action: "manage",
+    requiredAnyPermissions: [PERMISSIONS.AI.CHAT_MANAGE, PERMISSIONS.AI.MANAGE],
     description: "چت هوشمند",
   }),
   createRule({
@@ -16,6 +18,7 @@ export const aiRoutes: RouteRule[] = [
     pattern: /^\/ai\/content\/?$/,
     module: 'ai',
     action: "manage",
+    requiredAnyPermissions: [PERMISSIONS.AI.CONTENT_MANAGE, PERMISSIONS.AI.MANAGE],
     description: "تولید محتوا",
   }),
   createRule({
@@ -23,6 +26,7 @@ export const aiRoutes: RouteRule[] = [
     pattern: /^\/ai\/image\/?$/,
     module: 'ai',
     action: "manage",
+    requiredAnyPermissions: [PERMISSIONS.AI.IMAGE_MANAGE, PERMISSIONS.AI.MANAGE],
     description: "تولید تصویر",
   }),
   createRule({
@@ -30,14 +34,60 @@ export const aiRoutes: RouteRule[] = [
     pattern: /^\/ai\/audio\/?$/,
     module: 'ai',
     action: "manage",
+    requiredAnyPermissions: [PERMISSIONS.AI.AUDIO_MANAGE, PERMISSIONS.AI.MANAGE],
     description: "تولید پادکست",
+  }),
+  createRule({
+    id: "ai-settings",
+    pattern: /^\/ai\/settings\/?$/,
+    module: 'ai',
+    action: "manage",
+    requiredAnyPermissions: [
+      PERMISSIONS.AI.SETTINGS_PERSONAL_MANAGE,
+      PERMISSIONS.AI.SETTINGS_SHARED_MANAGE,
+      PERMISSIONS.AI.MANAGE,
+    ],
+    description: "تنظیمات Providerها و API Key",
+    requireSuperAdmin: true,
   }),
   createRule({
     id: "ai-models",
     pattern: /^\/ai\/models\/?$/,
     module: 'ai',
     action: "manage",
+    requiredAnyPermissions: [PERMISSIONS.AI.MODELS_MANAGE],
     description: "انتخاب مدل‌های AI (فقط سوپر ادمین)",
+    requireSuperAdmin: true,
+  }),
+  createRule({
+    id: "settings-ai-shared",
+    pattern: /^\/settings\/ai\/?$/,
+    module: 'ai',
+    action: "manage",
+    requiredAnyPermissions: [
+      PERMISSIONS.AI.SETTINGS_SHARED_MANAGE,
+      PERMISSIONS.AI.MANAGE,
+      PERMISSIONS.AI.CHAT_MANAGE,
+      PERMISSIONS.AI.CONTENT_MANAGE,
+      PERMISSIONS.AI.IMAGE_MANAGE,
+      PERMISSIONS.AI.AUDIO_MANAGE,
+    ],
+    description: "تنظیمات AI در بخش تنظیمات",
+    requireSuperAdmin: true,
+  }),
+  createRule({
+    id: "settings-ai-personal",
+    pattern: /^\/settings\/my-ai\/?$/,
+    module: 'ai',
+    action: "manage",
+    requiredAnyPermissions: [
+      PERMISSIONS.AI.SETTINGS_PERSONAL_MANAGE,
+      PERMISSIONS.AI.CHAT_MANAGE,
+      PERMISSIONS.AI.CONTENT_MANAGE,
+      PERMISSIONS.AI.IMAGE_MANAGE,
+      PERMISSIONS.AI.MANAGE,
+    ],
+    description: "تنظیمات شخصی AI",
     requireSuperAdmin: true,
   }),
 ];

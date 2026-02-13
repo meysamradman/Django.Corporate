@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
-import { useURLStateSync, parseBooleanParam, parseDateRange } from "@/hooks/useURLStateSync";
+import { useURLStateSync, parseBooleanParam, parseDateRange } from "@/core/hooks/useURLStateSync";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 import type { SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from "@/types/shared/pagination";

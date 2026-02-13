@@ -6,7 +6,6 @@ import { useUserPermissions } from "../hooks/useUserPermissions";
 import { usePermission } from "../context/PermissionContext";
 import { findRouteRule } from "../config/accessControl";
 import { AccessDenied } from "./AccessDenied";
-import { PERMISSIONS } from "../constants";
 
 interface RoutePermissionGuardProps {
     children: ReactNode;
@@ -47,10 +46,6 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
         return <>{children}</>;
     }
 
-    if (pathname === '/portfolios/create' || pathname === '/blogs/create') {
-        return <>{children}</>;
-    }
-
     if (rule.requireSuperAdmin && !isSuperAdmin) {
         return (
             <AccessDenied 
@@ -69,50 +64,18 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
             isSelfEditRoute;
 
         const permissionString = `${rule.module}.${action}`;
+        const routeSpecificPermissions = rule.requiredAnyPermissions || [];
         let hasAccess =
             bypassOwnProfile ||
             hasPermission(permissionString) ||
             (rule.module === "admin" && isOwnAdminProfile);
 
-        if (!hasAccess && rule.module === "media" && action === "read") {
-            hasAccess = hasPermission("media.read") || hasPermission("media.manage");
+        if (!hasAccess && routeSpecificPermissions.length > 0) {
+            hasAccess = routeSpecificPermissions.some((permission) => hasPermission(permission));
         }
 
-        if (!hasAccess && rule.module === "ai" && action === "manage") {
-            const aiPermissionMap: Record<string, string[]> = {
-                "/ai/chat": [PERMISSIONS.AI.CHAT_MANAGE, PERMISSIONS.AI.MANAGE],
-                "/ai/content": [PERMISSIONS.AI.CONTENT_MANAGE, PERMISSIONS.AI.MANAGE],
-                "/ai/image": [PERMISSIONS.AI.IMAGE_MANAGE, PERMISSIONS.AI.MANAGE],
-                "/ai/audio": [PERMISSIONS.AI.AUDIO_MANAGE, PERMISSIONS.AI.MANAGE],
-                "/ai/models": [PERMISSIONS.AI.MODELS_MANAGE],
-                "/ai/settings": [
-                    PERMISSIONS.AI.SETTINGS_PERSONAL_MANAGE,
-                    PERMISSIONS.AI.SETTINGS_SHARED_MANAGE,
-                    PERMISSIONS.AI.MANAGE
-                ],
-                "/settings/my-ai": [
-                    PERMISSIONS.AI.SETTINGS_PERSONAL_MANAGE,
-                    PERMISSIONS.AI.CHAT_MANAGE,
-                    PERMISSIONS.AI.CONTENT_MANAGE,
-                    PERMISSIONS.AI.IMAGE_MANAGE,
-                    PERMISSIONS.AI.MANAGE
-                ],
-                "/settings/ai": [
-                    PERMISSIONS.AI.SETTINGS_SHARED_MANAGE,
-                    PERMISSIONS.AI.MANAGE,
-                    PERMISSIONS.AI.CHAT_MANAGE,
-                    PERMISSIONS.AI.CONTENT_MANAGE,
-                    PERMISSIONS.AI.IMAGE_MANAGE,
-                    PERMISSIONS.AI.AUDIO_MANAGE
-                ],
-            };
-            
-            for (const [pathPrefix, perms] of Object.entries(aiPermissionMap)) {
-                if (pathname?.startsWith(pathPrefix)) {
-                    hasAccess = perms.some(perm => hasPermission(perm));
-                    break;
-                }
-            }
+        if (!hasAccess && rule.module === "media" && action === "read") {
+            hasAccess = hasPermission("media.read") || hasPermission("media.manage");
         }
 
         if (!hasAccess) {

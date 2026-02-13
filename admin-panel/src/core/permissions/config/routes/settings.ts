@@ -50,20 +50,6 @@ export const miscRoutes: RouteRule[] = [
 
 export const corporateSettingsRoutes: RouteRule[] = [
   createRule({
-    id: "settings-ai",
-    pattern: /^\/ai\/settings\/?$/,
-    module: 'ai',
-    action: "manage",
-    description: "تنظیمات هوش مصنوعی (API مشترک و شخصی)",
-  }),
-  createRule({
-    id: "ai-models",
-    pattern: /^\/ai\/models\/?$/,
-    module: 'ai',
-    action: "manage",
-    description: "انتخاب مدل‌های AI",
-  }),
-  createRule({
     id: "settings-form",
     pattern: /^\/form-builder\/?$/,
     module: 'forms',

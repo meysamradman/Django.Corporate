@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTableFilters } from '@/components/tables/utils/useTableFilters';
-import { useURLStateSync, parseBooleanParam, parseStringParam, parseDateRange } from '@/hooks/useURLStateSync';
+import { useURLStateSync, parseBooleanParam, parseStringParam, parseDateRange } from '@/core/hooks/useURLStateSync';
 import { useBlogFilterOptions, getBlogFilterConfig } from '@/components/blogs/posts/list/BlogTableFilters';
 import { initSortingFromURL } from '@/components/tables/utils/tableSorting';
 import { blogApi } from '@/api/blogs/blogs';

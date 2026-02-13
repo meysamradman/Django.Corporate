@@ -7,7 +7,7 @@ import type { PropertyState } from '@/types/real_estate/state/realEstateState';
 import type { CategoryItem } from '@/types/shared/table';
 import { initSortingFromURL } from '@/components/tables/utils/tableSorting';
 import { useTableFilters } from '@/components/tables/utils/useTableFilters';
-import { useURLStateSync, parseBooleanParam, parseStringParam, parseDateRange } from '@/hooks/useURLStateSync';
+import { useURLStateSync, parseBooleanParam, parseStringParam, parseDateRange } from '@/core/hooks/useURLStateSync';
 import { usePropertyFilterOptions, getPropertyFilterConfig } from '@/components/real-estate/properties/list/RealEstateTableFilters';
 import { realEstateApi } from '@/api/real-estate';
 

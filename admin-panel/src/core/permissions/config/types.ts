@@ -5,6 +5,7 @@ export interface RouteRule {
   pattern: RegExp;
   module?: string;
   action?: ModuleAction;
+  requiredAnyPermissions?: string[];
   description?: string;
   requireSuperAdmin?: boolean;
 }
