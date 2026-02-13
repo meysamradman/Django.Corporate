@@ -14,6 +14,7 @@ MANAGEMENT_PERMISSIONS = {
         'description': 'Allow full access to website general settings (view and update)',
         'is_standalone': True,
         'permission_category': 'management',
+        'requires_superadmin': True,
     },
     'chatbot.manage': {
         'module': 'chatbot',
@@ -30,6 +31,7 @@ MANAGEMENT_PERMISSIONS = {
         'description': 'Allow full access to static pages (view, update)',
         'is_standalone': True,
         'permission_category': 'management',
+        'requires_superadmin': True,
     },
     'panel.manage': {
         'module': 'panel',
@@ -38,6 +40,7 @@ MANAGEMENT_PERMISSIONS = {
         'description': 'Allow full access to panel settings (view, update, logo upload)',
         'is_standalone': True,
         'permission_category': 'management',
+        'requires_superadmin': True,
     },
     
     'blog.manage': {

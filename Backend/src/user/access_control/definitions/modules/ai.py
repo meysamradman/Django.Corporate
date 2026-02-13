@@ -42,5 +42,13 @@ AI_PERMISSIONS = {
         'action': 'manage',
         'display_name': 'Manage Personal API Key',
         'description': 'Manage personal API Key for exclusive use',
+        'requires_superadmin': True,
+    },
+    'ai.models.manage': {
+        'module': 'ai',
+        'action': 'manage',
+        'display_name': 'Manage AI Capability Models',
+        'description': 'Manage provider and model selection for AI capabilities (Super Admin only)',
+        'requires_superadmin': True,
     },
 }

@@ -60,6 +60,7 @@ class AIAnyPermission(AdminRolePermission):
             'ai.image.manage',
             'ai.audio.manage',
             'ai.settings.personal.manage',
+            'ai.models.manage',
         ]
         
         return PermissionValidator.has_any_permission(request.user, ai_permissions)

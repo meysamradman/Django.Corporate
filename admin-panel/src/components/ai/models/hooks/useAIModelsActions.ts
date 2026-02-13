@@ -3,6 +3,7 @@ import type { NavigateFunction } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { aiApi } from "@/api/ai/ai";
 import { useUserPermissions } from "@/core/permissions";
+import { PERMISSIONS } from "@/core/permissions/constants";
 import { useAuth } from "@/core/auth/AuthContext";
 import { showError, showSuccess } from "@/core/toast";
 import type { AICapability } from "@/types/ai/ai";
@@ -16,7 +17,7 @@ export function useAIModelsActions({ navigate }: UseAIModelsActionsParams) {
   const { isLoading: isAuthLoading } = useAuth();
   const { isSuperAdmin, hasPermission } = useUserPermissions();
 
-  const hasAccess = isSuperAdmin || hasPermission("ai.manage");
+  const hasAccess = isSuperAdmin || hasPermission(PERMISSIONS.AI.MODELS_MANAGE);
 
   useEffect(() => {
     if (!isAuthLoading && !hasAccess) {

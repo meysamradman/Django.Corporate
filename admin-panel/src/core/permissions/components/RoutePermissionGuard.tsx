@@ -84,7 +84,7 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
                 "/ai/content": [PERMISSIONS.AI.CONTENT_MANAGE, PERMISSIONS.AI.MANAGE],
                 "/ai/image": [PERMISSIONS.AI.IMAGE_MANAGE, PERMISSIONS.AI.MANAGE],
                 "/ai/audio": [PERMISSIONS.AI.AUDIO_MANAGE, PERMISSIONS.AI.MANAGE],
-                "/ai/models": [PERMISSIONS.AI.MANAGE],
+                "/ai/models": [PERMISSIONS.AI.MODELS_MANAGE],
                 "/ai/settings": [
                     PERMISSIONS.AI.SETTINGS_PERSONAL_MANAGE,
                     PERMISSIONS.AI.SETTINGS_SHARED_MANAGE,
@@ -109,11 +109,7 @@ export function RoutePermissionGuard({ children }: RoutePermissionGuardProps) {
             
             for (const [pathPrefix, perms] of Object.entries(aiPermissionMap)) {
                 if (pathname?.startsWith(pathPrefix)) {
-                    if (pathPrefix === "/ai/models") {
-                        hasAccess = isSuperAdmin;
-                    } else {
-                        hasAccess = perms.some(perm => hasPermission(perm));
-                    }
+                    hasAccess = perms.some(perm => hasPermission(perm));
                     break;
                 }
             }

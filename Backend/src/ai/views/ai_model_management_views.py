@@ -7,11 +7,11 @@ import inspect
 from src.core.responses.response import APIResponse
 from src.ai.models import AIProvider, AICapabilityModel
 from src.ai.messages.messages import AI_ERRORS, AI_SUCCESS
-from src.user.access_control import ai_permission
+from src.user.access_control import ai_permission, PermissionRequiredMixin
 from src.ai.providers.capabilities import get_default_model, get_available_models as get_capability_models, get_provider_capabilities, supports_feature
 
 
-class AIModelManagementViewSet(viewsets.ViewSet):
+class AIModelManagementViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     """Capability-based AI configuration.
 
     Product rule (2026-02): Admin selects PROVIDER per capability.
@@ -22,6 +22,14 @@ class AIModelManagementViewSet(viewsets.ViewSet):
     """
 
     permission_classes = [ai_permission]
+    permission_map = {
+        'list': 'ai.models.manage',
+        'active_capabilities': 'ai.models.manage',
+        'browse_models': 'ai.models.manage',
+        'select_model': 'ai.models.manage',
+        'select_provider': 'ai.models.manage',
+    }
+    permission_denied_message = AI_ERRORS.get('settings_not_authorized')
 
     @action(detail=False, methods=['get'], url_path='active-capabilities')
     def active_capabilities(self, request):

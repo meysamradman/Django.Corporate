@@ -1,6 +1,7 @@
 export const PERMISSIONS = {
   AI: {
     MANAGE: 'ai.manage',
+    MODELS_MANAGE: 'ai.models.manage',
     CHAT_MANAGE: 'ai.chat.manage',
     CONTENT_MANAGE: 'ai.content.manage',
     IMAGE_MANAGE: 'ai.image.manage',
