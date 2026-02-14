@@ -48,7 +48,6 @@ export const aiRoutes: RouteRule[] = [
       PERMISSIONS.AI.MANAGE,
     ],
     description: "تنظیمات Providerها و API Key",
-    requireSuperAdmin: true,
   }),
   createRule({
     id: "ai-models",
@@ -88,7 +87,6 @@ export const aiRoutes: RouteRule[] = [
       PERMISSIONS.AI.MANAGE,
     ],
     description: "تنظیمات شخصی AI",
-    requireSuperAdmin: true,
   }),
 ];
 

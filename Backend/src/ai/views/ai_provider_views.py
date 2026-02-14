@@ -22,15 +22,15 @@ class AIProviderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [ai_permission]
     
     permission_map = {
-        'list': 'ai.manage',
-        'retrieve': 'ai.manage',
+        'list': ['ai.manage', 'ai.settings.personal.manage'],
+        'retrieve': ['ai.manage', 'ai.settings.personal.manage'],
         'create': 'ai.manage',
         'update': 'ai.manage',
         'partial_update': 'ai.manage',
         'destroy': 'ai.manage',
         'activate': 'ai.manage',
         'deactivate': 'ai.manage',
-        'available_providers': ['ai.view', 'ai.manage'],  # Check if user has ai.view OR ai.manage
+        'available_providers': ['ai.view', 'ai.manage', 'ai.settings.personal.manage'],
         'stats': 'ai.manage',
     }
     permission_denied_message = AI_ERRORS['settings_not_authorized']

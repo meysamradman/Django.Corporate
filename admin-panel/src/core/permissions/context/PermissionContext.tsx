@@ -238,7 +238,13 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       canManageAllStats: check(PERMISSIONS.ANALYTICS.STATS_MANAGE),
       canViewEmail: check(PERMISSIONS.EMAIL.READ) || check(PERMISSIONS.EMAIL.VIEW),
       canManageEmail: check(PERMISSIONS.EMAIL.MANAGE),
-      canViewAI: check(PERMISSIONS.AI.MANAGE),
+      canViewAI:
+        check(PERMISSIONS.AI.MANAGE) ||
+        check(PERMISSIONS.AI.CHAT_MANAGE) ||
+        check(PERMISSIONS.AI.CONTENT_MANAGE) ||
+        check(PERMISSIONS.AI.IMAGE_MANAGE) ||
+        check(PERMISSIONS.AI.AUDIO_MANAGE) ||
+        check(PERMISSIONS.AI.SETTINGS_PERSONAL_MANAGE),
       canManageTicket: check(PERMISSIONS.TICKET.MANAGE),
 
       canReadRealEstateProperty: check(PERMISSIONS.REAL_ESTATE.PROPERTY_READ),

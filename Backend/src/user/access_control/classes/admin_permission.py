@@ -8,7 +8,7 @@ from src.user.access_control.definitions.config import BASE_ADMIN_PERMISSIONS
 from src.user.access_control.definitions.module_mappings import MODULE_MAPPINGS
 from src.user.utils.cache import UserCacheKeys, UserCacheManager
 from src.user.models import AdminUserRole
-from src.user.access_control.definitions import PermissionValidator
+from src.user.access_control.definitions import PermissionValidator, PermissionRegistry
 from src.user.access_control.core.cache_strategy import PermissionCacheStrategy
 
 class AdminRolePermission(permissions.BasePermission):
@@ -264,9 +264,17 @@ class RequireModuleAccess(AdminRolePermission):
             for perm in specific_perms:
                 if not isinstance(perm, dict):
                     continue
-                
-                perm_module = perm.get('module')
-                perm_action = perm.get('action')
+
+                permission_key = perm.get('permission_key')
+                if permission_key:
+                    perm_obj = PermissionRegistry.get(permission_key)
+                    if not perm_obj:
+                        continue
+                    perm_module = perm_obj.module
+                    perm_action = perm_obj.action
+                else:
+                    perm_module = perm.get('module')
+                    perm_action = perm.get('action')
                 
                 if not perm_module or not perm_action:
                     continue
@@ -282,7 +290,12 @@ class RequireModuleAccess(AdminRolePermission):
                 else:
                     has_module = True
                 
-                has_action = perm_action == action or (perm_action == 'read' and action == 'view') or (perm_action == 'view' and action == 'read')
+                has_action = (
+                    perm_action in ['all', 'manage', 'admin'] or
+                    perm_action == action or
+                    (perm_action == 'read' and action == 'view') or
+                    (perm_action == 'view' and action == 'read')
+                )
                 
                 if has_module and has_action:
                     return True

@@ -230,6 +230,7 @@ class PermissionValidator:
     def _get_user_module_permissions(user) -> Dict[str, Set[str]]:
         user_type = getattr(user, "user_type", None)
         is_staff = getattr(user, "is_staff", False)
+        is_superadmin = getattr(user, "is_superuser", False) or getattr(user, "is_admin_full", False)
         if user_type != 'admin' and not is_staff:
             return {}
         
@@ -259,8 +260,18 @@ class PermissionValidator:
                     if isinstance(specific_perms, list):
                         for perm in specific_perms:
                             if isinstance(perm, dict):
-                                perm_module = perm.get('module')
-                                perm_action = perm.get('action')
+                                permission_key = perm.get('permission_key')
+                                if permission_key:
+                                    perm_obj = PermissionRegistry.get(permission_key)
+                                    if not perm_obj:
+                                        continue
+                                    if perm_obj.requires_superadmin and not is_superadmin:
+                                        continue
+                                    perm_module = perm_obj.module
+                                    perm_action = perm_obj.action
+                                else:
+                                    perm_module = perm.get('module')
+                                    perm_action = perm.get('action')
                                 if not perm_module: continue
                                 
                                 target_modules = {perm_module}

@@ -42,7 +42,7 @@ AI_PERMISSIONS = {
         'action': 'manage',
         'display_name': 'Manage Personal API Key',
         'description': 'Manage personal API Key for exclusive use',
-        'requires_superadmin': True,
+        'requires_superadmin': False,
     },
     'ai.models.manage': {
         'module': 'ai',

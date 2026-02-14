@@ -299,6 +299,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
           { title: "تولید محتوا با AI", url: "/ai/content", icon: FileText, access: { module: "ai", allowReadOnly: true } },
           { title: "تولید تصویر با AI", url: "/ai/image", icon: ImageIcon, access: { module: "ai", allowReadOnly: true } },
           { title: "تولید پادکست با AI", url: "/ai/audio", icon: Music, access: { module: "ai", allowReadOnly: true } },
+          { title: "تنظیمات Providerها", url: "/ai/settings", icon: Cpu, access: { module: "ai.settings.personal", actions: ["manage"], allowReadOnly: false } },
         ],
       },
     ]
@@ -406,7 +407,6 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
           { title: "پنل ادمین", url: "/panel", icon: LayoutDashboard },
           { title: "ویژگی‌های سیستم", url: "/panel?tab=feature-flags", icon: Flag },
           { title: "مدل‌های فعال AI", url: "/ai/models", icon: Cpu },
-          { title: "تنظیمات Providerها", url: "/ai/settings", icon: Cpu },
         ]
       },
     ]
