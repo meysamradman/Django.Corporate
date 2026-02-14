@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
 import { FileText, Search, Edit2 } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { realEstateApi } from "@/api/real-estate/properties";
+import { realEstateApi } from "@/api/real-estate";
 import { AgencySidebar } from "@/components/real-estate/agencies/view/AgencySidebar";
 import { AgencyOverview } from "@/components/real-estate/agencies/view/AgencyOverview";
 import { AgencySEO } from "@/components/real-estate/agencies/view/AgencySEO.tsx";

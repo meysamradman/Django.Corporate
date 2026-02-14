@@ -6,7 +6,7 @@ import { CheckCircle2, XCircle, Phone, Clock, Building2, Award } from "lucide-re
 import { showSuccess, showError } from '@/core/toast';
 import { useState } from "react";
 import { useQueryClient } from '@tanstack/react-query';
-import { realEstateApi } from "@/api/real-estate/properties";
+import { realEstateApi } from "@/api/real-estate";
 
 interface AgencyProfileHeaderProps {
     agency: RealEstateAgency;

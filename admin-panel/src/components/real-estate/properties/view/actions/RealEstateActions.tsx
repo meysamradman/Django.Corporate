@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Edit2, Printer, FileText, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/elements/Button";
+import { usePermission } from "@/core/permissions";
 import type { Property } from "@/types/real_estate/realEstate";
 import { FinalizeDealDialog } from "./FinalizeDealDialog";
 
@@ -24,8 +25,10 @@ export function RealEstateActions({
     onFinalized,
 }: RealEstateActionsProps) {
     const navigate = useNavigate();
+    const { hasPermission } = usePermission();
     const [openFinalizeDialog, setOpenFinalizeDialog] = useState(false);
     const isClosed = property.status === "sold" || property.status === "rented";
+    const canFinalizeDeal = hasPermission("real_estate.property.finalize");
 
     return (
         <>
@@ -40,16 +43,18 @@ export function RealEstateActions({
                     ویرایش
                 </Button>
 
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2 text-[11px] font-black border-amber-300 text-amber-700 hover:bg-amber-50"
-                    onClick={() => setOpenFinalizeDialog(true)}
-                    disabled={isClosed}
-                >
-                    <BadgeCheck className="w-3.5 h-3.5" />
-                    {isClosed ? "معامله نهایی شده" : "نهایی‌سازی معامله"}
-                </Button>
+                {canFinalizeDeal ? (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2 text-[11px] font-black border-amber-300 text-amber-700 hover:bg-amber-50"
+                        onClick={() => setOpenFinalizeDialog(true)}
+                        disabled={isClosed}
+                    >
+                        <BadgeCheck className="w-3.5 h-3.5" />
+                        {isClosed ? "معامله نهایی شده" : "نهایی‌سازی معامله"}
+                    </Button>
+                ) : null}
 
                 <div className="flex items-center gap-1.5 bg-bg/40 p-1 rounded-xl border border-br/40">
                     <Button

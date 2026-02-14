@@ -94,7 +94,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         'publish': 'real_estate.property.update',
         'unpublish': 'real_estate.property.update',
         'toggle_featured': 'real_estate.property.update',
-        'finalize_deal': 'real_estate.property.update',
+        'finalize_deal': 'real_estate.property.finalize',
         'set_main_image': 'real_estate.property.update',
         'add_media': 'real_estate.property.update',
         'remove_media': 'real_estate.property.update',

@@ -4,7 +4,7 @@ import { showSuccess, showError } from '@/core/toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Building2, FileText, Globe, Settings2 } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { realEstateApi } from "@/api/real-estate/properties";
+import { realEstateApi } from "@/api/real-estate";
 import { msg } from '@/core/messages';
 import { ApiError } from "@/types/api/apiError";
 import { Button } from "@/components/elements/Button";

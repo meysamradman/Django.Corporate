@@ -134,7 +134,7 @@ export default function PropertyPage() {
       icon: <BadgeCheck className="h-4 w-4" />,
       onClick: (property) => setFinalizeProperty(property),
       isDisabled: (property) => property.status === "sold" || property.status === "rented",
-      permission: "real_estate.property.update",
+      permission: "real_estate.property.finalize",
     },
     {
       label: "حذف",

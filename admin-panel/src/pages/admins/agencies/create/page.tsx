@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { realEstateApi } from "@/api/real-estate/properties";
+import { realEstateApi } from "@/api/real-estate";
 import { showSuccess, showError, extractFieldErrors, hasFieldErrors } from '@/core/toast';
 import { msg } from '@/core/messages';
 import { Building2, UserCircle, Search } from "lucide-react";

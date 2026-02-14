@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { realEstateApi } from "@/api/real-estate/properties";
+import { realEstateApi } from "@/api/real-estate";
 import { Loader } from "@/components/elements/Loader";
 import { PersianDatePicker } from "@/components/elements/PersianDatePicker";
 import { Switch } from "@/components/elements/Switch";

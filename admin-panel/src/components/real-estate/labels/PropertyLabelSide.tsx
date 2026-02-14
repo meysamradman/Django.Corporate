@@ -1,5 +1,5 @@
 import React from "react";
-import { realEstateApi } from "@/api/real-estate/properties";
+import { realEstateApi } from "@/api/real-estate";
 import { TaxonomyDrawer } from "@/components/templates/TaxonomyDrawer";
 import { useRealEstateTaxonomyForm } from "@/components/real-estate/hooks/useRealEstateTaxonomyForm";
 import { propertyLabelFormSchema, propertyLabelFormDefaults, type PropertyLabelFormValues } from "@/components/real-estate/validations/labelSchema";

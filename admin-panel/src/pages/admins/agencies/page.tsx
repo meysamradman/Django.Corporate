@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAdminFilterOptions } from "@/components/admins/AdminTableFilters";
 import { DataTableDateRangeFilter } from "@/components/tables/DataTableDateRangeFilter";
-import { realEstateApi } from "@/api/real-estate/properties";
+import { realEstateApi } from "@/api/real-estate";
 import { useQuery } from "@tanstack/react-query";
 import { Edit, Trash2, Plus, Search, Building2, Phone } from "lucide-react";
 import { Button } from "@/components/elements/Button";

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { realEstateApi } from '@/api/real-estate/properties';
+import { realEstateApi } from '@/api/real-estate';
 import { Card } from '@/components/elements/Card';
 import { Button } from '@/components/elements/Button';
 import { Badge } from '@/components/elements/Badge';

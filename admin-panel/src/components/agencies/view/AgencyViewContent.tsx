@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { realEstateApi } from '@/api/real-estate/properties';
+import { realEstateApi } from '@/api/real-estate';
 import { Skeleton } from '@/components/elements/Skeleton';
 import { ApiError } from '@/types/api/apiError';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/elements/Tabs';

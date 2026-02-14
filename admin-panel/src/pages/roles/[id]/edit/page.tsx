@@ -94,6 +94,7 @@ export default function EditRolePage() {
     analyticsUsedPermissions,
     aiUsedPermissions,
     standaloneResources,
+    managementTopResources,
     analyticsResources,
     aiResources,
     standardResources,
@@ -192,6 +193,14 @@ export default function EditRolePage() {
     handleSubmit(onSubmit)();
   };
 
+  const managementResources = [...standaloneResources, ...managementTopResources];
+  const realEstateStandardResources = standardResources.filter((resource: any) =>
+    (resource.resource || "").toLowerCase().startsWith("real_estate")
+  );
+  const nonRealEstateStandardResources = standardResources.filter((resource: any) =>
+    !(resource.resource || "").toLowerCase().startsWith("real_estate")
+  );
+
   return (
     <div className="space-y-6 pb-28 relative">
 
@@ -276,7 +285,8 @@ export default function EditRolePage() {
                     })()}
 
                     <StandardPermissionsTable
-                      resources={standardResources}
+                      resources={nonRealEstateStandardResources}
+                      enableFinalizeColumn={false}
                       selectedPermissions={selectedPermissions}
                       isSuperAdmin={isSuperAdmin}
                       logicalPermissionErrors={[]}
@@ -295,6 +305,33 @@ export default function EditRolePage() {
                       getActionPermission={getActionPermission}
                       getResourceIcon={getResourceIcon}
                     />
+
+                    {realEstateStandardResources.length > 0 && (
+                      <div className="pt-4 border-t border-dashed border-green-500/20">
+                        <div className="text-sm font-semibold text-font-p mb-3">جدول کامل دسترسی‌های املاک</div>
+                        <StandardPermissionsTable
+                          resources={realEstateStandardResources}
+                          enableFinalizeColumn={true}
+                          selectedPermissions={selectedPermissions}
+                          isSuperAdmin={isSuperAdmin}
+                          logicalPermissionErrors={[]}
+                          onTogglePermission={togglePermission}
+                          onToggleAllResourcePermissions={toggleAllResourcePermissions}
+                          allPermissions={allPermissions}
+                          onToggleAllStandardPermissions={(checked, permissionIds) => {
+                            const newSelected = checked
+                              ? [...selectedPermissions, ...permissionIds.filter(id => !selectedPermissions.includes(id))]
+                              : selectedPermissions.filter(id => !permissionIds.includes(id));
+                            setSelectedPermissions(newSelected);
+                            setValue("permission_ids", newSelected, { shouldValidate: true });
+                          }}
+                          isPermissionSelected={isPermissionSelected}
+                          areAllResourcePermissionsSelected={areAllResourcePermissionsSelected}
+                          getActionPermission={getActionPermission}
+                          getResourceIcon={getResourceIcon}
+                        />
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )}
@@ -338,9 +375,9 @@ export default function EditRolePage() {
                 />
               )}
 
-              {standaloneResources.length > 0 && (
+              {managementResources.length > 0 && (
                 <ManagementPermissionsCard
-                  resources={standaloneResources}
+                  resources={managementResources}
                   selectedPermissions={selectedPermissions}
                   isSuperAdmin={isSuperAdmin}
                   onTogglePermission={togglePermission}

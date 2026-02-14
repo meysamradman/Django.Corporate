@@ -59,6 +59,15 @@ const isAdminOnlyResource = (resource: any) => {
   return perms.every((perm: any) => perm.requires_superadmin === true);
 };
 
+const hasInlineManageToggle = (resource: any) => {
+  const perms = resource.permissions || [];
+  return perms.some(
+    (perm: any) =>
+      perm.action?.toLowerCase() === "manage" &&
+      perm.is_standalone !== true
+  );
+};
+
 export function useRolePermissionBuckets({
   permissions,
   basePermissions,
@@ -155,16 +164,43 @@ export function useRolePermissionBuckets({
     return filtered;
   }, [organizedPermissions]);
 
-  const standardResources = useMemo(() => {
+  const managementTopResources = useMemo(() => {
     return organizedPermissions.filter((resource: any) => {
+      if (resource.resource === "analytics" || resource.resource?.startsWith("analytics.")) return false;
+      if (resource.resource === "ai" || resource.resource?.startsWith("ai.")) return false;
+      if (hasContentMasterToggle(resource)) return false;
+      if (isAdminOnlyResource(resource)) return false;
+      return hasInlineManageToggle(resource);
+    });
+  }, [organizedPermissions]);
+
+  const standardResources = useMemo(() => {
+    const managementResourceKeys = new Set(
+      managementTopResources.map((resource: any) => resource.resource)
+    );
+
+    return organizedPermissions
+      .filter((resource: any) => {
       if (resource.resource === "analytics" || resource.resource?.startsWith("analytics.")) return false;
       if (resource.resource === "ai" || resource.resource?.startsWith("ai.")) return false;
       if (hasContentMasterToggle(resource)) return false;
       if (isStandaloneResource(resource)) return false;
       if (isAdminOnlyResource(resource)) return false;
       return true;
-    });
-  }, [organizedPermissions]);
+      })
+      .map((resource: any) => {
+        if (!managementResourceKeys.has(resource.resource)) {
+          return resource;
+        }
+
+        return {
+          ...resource,
+          permissions: (resource.permissions || []).filter(
+            (perm: any) => perm.action?.toLowerCase() !== "manage"
+          ),
+        };
+      });
+  }, [organizedPermissions, managementTopResources]);
 
   const moduleMasterPermissions = useMemo(() => {
     return allPermissions.filter(
@@ -181,6 +217,7 @@ export function useRolePermissionBuckets({
     analyticsUsedPermissions,
     aiUsedPermissions,
     standaloneResources,
+    managementTopResources,
     analyticsResources,
     aiResources,
     standardResources,

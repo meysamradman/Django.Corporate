@@ -7,7 +7,7 @@ import { Label } from "@/components/elements/Label";
 import { Switch } from "@/components/elements/Switch";
 import { Button } from "@/components/elements/Button";
 import { useQuery } from "@tanstack/react-query";
-import { realEstateApi } from "@/api/real-estate/properties";
+import { realEstateApi } from "@/api/real-estate";
 import { Loader } from "@/components/elements/Loader";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { FormField } from "@/components/shared/FormField";

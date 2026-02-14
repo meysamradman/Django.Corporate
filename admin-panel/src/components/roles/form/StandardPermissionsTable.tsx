@@ -17,6 +17,7 @@ interface StandardPermissionsTableProps {
   resources: RolePermissionResource[];
   selectedPermissions: number[];
   isSuperAdmin: boolean;
+  enableFinalizeColumn?: boolean;
   logicalPermissionErrors: string[];
   onTogglePermission: (permissionId: number) => void;
   onToggleAllResourcePermissions: (resourcePermissions: RolePermission[]) => void;
@@ -32,6 +33,7 @@ export function StandardPermissionsTable({
   resources,
   selectedPermissions,
   isSuperAdmin,
+  enableFinalizeColumn = true,
   logicalPermissionErrors,
   onTogglePermission,
   onToggleAllResourcePermissions,
@@ -49,6 +51,15 @@ export function StandardPermissionsTable({
     });
     return adminManagePerm ? isPermissionSelected(adminManagePerm.id) : false;
   }, [allPermissions, isPermissionSelected, selectedPermissions]);
+
+  const hasAnyManagePermission = useMemo(() => {
+    return resources.some((resource) => !!getActionPermission(resource.permissions, "manage"));
+  }, [resources, getActionPermission]);
+
+  const hasAnyFinalizePermission = useMemo(() => {
+    return enableFinalizeColumn && resources.some((resource) => !!getActionPermission(resource.permissions, "finalize"));
+  }, [resources, getActionPermission, enableFinalizeColumn]);
+
   if (resources.length === 0) {
     return null;
   }
@@ -72,8 +83,9 @@ export function StandardPermissionsTable({
             <TableHead className="text-center">مشاهده</TableHead>
             <TableHead className="text-center">ایجاد</TableHead>
             <TableHead className="text-center">ویرایش</TableHead>
+            {hasAnyFinalizePermission ? <TableHead className="text-center">نهایی‌سازی</TableHead> : null}
             <TableHead className="text-center">حذف</TableHead>
-            <TableHead className="text-center">مدیریت</TableHead>
+            {hasAnyManagePermission ? <TableHead className="text-center">مدیریت</TableHead> : null}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -81,6 +93,7 @@ export function StandardPermissionsTable({
             const viewPerm = getActionPermission(resource.permissions, "view");
             const createPerm = getActionPermission(resource.permissions, "create");
             const editPerm = getActionPermission(resource.permissions, "edit");
+            const finalizePerm = getActionPermission(resource.permissions, "finalize");
             const deletePerm = getActionPermission(resource.permissions, "delete");
             const managePerm = getActionPermission(resource.permissions, "manage");
 
@@ -229,6 +242,43 @@ export function StandardPermissionsTable({
                     )}
                   </div>
                 </TableCell>
+                {hasAnyFinalizePermission ? (
+                  <TableCell className="text-center">
+                    <div className="flex justify-center relative group">
+                      {finalizePerm ? (
+                        <>
+                          <Checkbox
+                            checked={isManageSelected || isPermissionSelected(finalizePerm.id)}
+                            disabled={
+                              isManageSelected ||
+                              (!isSuperAdmin && finalizePerm.requires_superadmin) ||
+                              (resource.resource === 'admin' && isAdminManageSelected)
+                            }
+                            onCheckedChange={() => {
+                              if (
+                                (isSuperAdmin || !finalizePerm.requires_superadmin) &&
+                                !(resource.resource === 'admin' && isAdminManageSelected) &&
+                                !isManageSelected
+                              ) {
+                                onTogglePermission(finalizePerm.id);
+                              }
+                            }}
+                          />
+                          {finalizePerm.requires_superadmin && (
+                            <div
+                              className="absolute -top-2 -right-3 text-amber-1"
+                              title="نیازمند دسترسی سوپر ادمین"
+                            >
+                              <Shield className="h-3 w-3" />
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-sm text-font-s">-</span>
+                      )}
+                    </div>
+                  </TableCell>
+                ) : null}
                 <TableCell className="text-center">
                   <div className="flex justify-center relative group">
                     <Checkbox
@@ -259,30 +309,32 @@ export function StandardPermissionsTable({
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="text-center">
-                  <div className="flex justify-center relative group">
-                    {managePerm ? (
-                      <Checkbox
-                        checked={isManageSelected}
-                        disabled={
-                          (!isSuperAdmin && managePerm.requires_superadmin) ||
-                          (resource.resource === 'admin' && isAdminManageSelected)
-                        }
-                        onCheckedChange={() => {
-                          if (
-                            (isSuperAdmin || !managePerm.requires_superadmin) &&
-                            !(resource.resource === 'admin' && isAdminManageSelected)
-                          ) {
-                            onTogglePermission(managePerm.id);
+                {hasAnyManagePermission ? (
+                  <TableCell className="text-center">
+                    <div className="flex justify-center relative group">
+                      {managePerm ? (
+                        <Checkbox
+                          checked={isManageSelected}
+                          disabled={
+                            (!isSuperAdmin && managePerm.requires_superadmin) ||
+                            (resource.resource === 'admin' && isAdminManageSelected)
                           }
-                        }}
-                        className="border-primary data-[state=checked]:bg-primary"
-                      />
-                    ) : (
-                      <span className="text-sm text-font-s">-</span>
-                    )}
-                  </div>
-                </TableCell>
+                          onCheckedChange={() => {
+                            if (
+                              (isSuperAdmin || !managePerm.requires_superadmin) &&
+                              !(resource.resource === 'admin' && isAdminManageSelected)
+                            ) {
+                              onTogglePermission(managePerm.id);
+                            }
+                          }}
+                          className="border-primary data-[state=checked]:bg-primary"
+                        />
+                      ) : (
+                        <span className="text-sm text-font-s">-</span>
+                      )}
+                    </div>
+                  </TableCell>
+                ) : null}
               </TableRow>
             );
           })}

@@ -17,6 +17,12 @@ REAL_ESTATE_PERMISSIONS = {
         'display_name': 'Update Property',
         'description': 'Allow updating properties',
     },
+    'real_estate.property.finalize': {
+        'module': 'real_estate_properties',
+        'action': 'finalize',
+        'display_name': 'Finalize Property Deal',
+        'description': 'Allow finalizing sold/rented deals for properties',
+    },
     'real_estate.property.delete': {
         'module': 'real_estate_properties',
         'action': 'delete',

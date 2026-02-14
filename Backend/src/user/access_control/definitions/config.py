@@ -410,6 +410,11 @@ AVAILABLE_ACTIONS = {
         'display_name': 'Update',
         'description': 'Edit and update records.'
     },
+    'finalize': {
+        'name': 'finalize',
+        'display_name': 'Finalize',
+        'description': 'Finalize domain transactions such as property deals.'
+    },
     'delete': {
         'name': 'delete',
         'display_name': 'Delete',

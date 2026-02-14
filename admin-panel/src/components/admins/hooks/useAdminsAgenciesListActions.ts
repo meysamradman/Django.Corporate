@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { realEstateApi } from "@/api/real-estate/properties";
+import { realEstateApi } from "@/api/real-estate";
 import { showSuccess, showError } from "@/core/toast";
 import type { AgencyDeleteConfirmState } from "@/types/shared/deleteConfirm";
 

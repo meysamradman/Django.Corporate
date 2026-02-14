@@ -36,7 +36,7 @@ export function useRolePermissionSelection({ permissions, setValue }: UseRolePer
         newPermissions = isCurrentlySelected ? prev.filter((id) => id !== permissionId) : [...prev, permissionId];
       }
 
-      const isOpAction = ["create", "edit", "delete", "update", "post", "patch", "destroy", "remove"].includes(
+      const isOpAction = ["create", "edit", "delete", "update", "finalize", "post", "patch", "destroy", "remove"].includes(
         action.toLowerCase()
       );
       const isViewAction = ["view", "read", "get", "list"].includes(action.toLowerCase());
@@ -53,7 +53,7 @@ export function useRolePermissionSelection({ permissions, setValue }: UseRolePer
           .filter(
             (permission: any) =>
               permission.resource === resource &&
-              ["create", "edit", "delete", "update", "post", "put", "patch", "destroy", "remove"].includes(
+              ["create", "edit", "delete", "update", "finalize", "post", "put", "patch", "destroy", "remove"].includes(
                 permission.action.toLowerCase()
               )
           )
@@ -105,6 +105,7 @@ export function useRolePermissionSelection({ permissions, setValue }: UseRolePer
       view: ["view", "list", "read", "get"],
       create: ["create", "post", "write", "add"],
       edit: ["edit", "update", "put", "patch", "modify"],
+      finalize: ["finalize"],
       delete: ["delete", "remove", "destroy"],
       manage: ["manage", "admin"],
     };

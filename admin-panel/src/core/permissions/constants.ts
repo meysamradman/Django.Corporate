@@ -166,6 +166,7 @@ export const PERMISSIONS = {
     PROPERTY_READ: 'real_estate.property.read',
     PROPERTY_CREATE: 'real_estate.property.create',
     PROPERTY_UPDATE: 'real_estate.property.update',
+    PROPERTY_FINALIZE: 'real_estate.property.finalize',
     PROPERTY_DELETE: 'real_estate.property.delete',
     AGENT_READ: 'real_estate.agent.read',
     AGENT_CREATE: 'real_estate.agent.create',

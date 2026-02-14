@@ -53,7 +53,7 @@ class AdminRoleSerializer(serializers.ModelSerializer):
             if not isinstance(specific_perms, list):
                 raise serializers.ValidationError(ROLE_ERRORS["specific_permissions_must_be_list"])
             allowed_modules = {'all', *AVAILABLE_MODULES.keys()}
-            allowed_actions = {'create', 'read', 'update', 'delete', 'export', 'manage', 'all', 'import'}
+            allowed_actions = {'create', 'read', 'update', 'finalize', 'delete', 'export', 'manage', 'all', 'import'}
             for perm in specific_perms:
                 if not isinstance(perm, dict):
                     raise serializers.ValidationError(ROLE_ERRORS["permission_must_be_dict"])
@@ -92,7 +92,7 @@ class AdminRoleSerializer(serializers.ModelSerializer):
             if not isinstance(actions, list):
                 raise serializers.ValidationError(ROLE_ERRORS["actions_must_be_list"])
             
-            allowed_actions = {'create', 'read', 'update', 'delete', 'export', 'all'}
+            allowed_actions = {'create', 'read', 'update', 'finalize', 'delete', 'export', 'all'}
             invalid_actions = set(actions) - allowed_actions
             if invalid_actions:
                 raise serializers.ValidationError(

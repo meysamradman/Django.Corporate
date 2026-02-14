@@ -7,7 +7,7 @@ import { TruncatedText } from "@/components/elements/TruncatedText";
 import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
 import { Switch } from "@/components/elements/Switch";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { realEstateApi } from "@/api/real-estate/properties";
+import { realEstateApi } from "@/api/real-estate";
 import { showSuccess, showError } from '@/core/toast';
 import {
   CheckCircle2,

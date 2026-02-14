@@ -4,7 +4,7 @@ import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import type { Media } from "@/types/shared/media";
 import { useQueryClient } from '@tanstack/react-query';
 import { showSuccess, showError } from '@/core/toast';
-import { realEstateApi } from '@/api/real-estate/properties';
+import { realEstateApi } from '@/api/real-estate';
 
 interface AgencyProfileHeaderProps {
     agency: any;
