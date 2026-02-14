@@ -46,13 +46,6 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       return;
     }
     
-    if (!sessionManager.hasSession()) {
-      setUser(null);
-      setIsLoading(false);
-      handleSessionExpired();
-      return;
-    }
-    
     if (hasCheckedRef.current) {
       setIsLoading(false);
       return;
@@ -70,7 +63,6 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         handleSessionExpired();
       } else {
         setUser(null);
-        handleSessionExpired();
       }
     } finally {
       setIsLoading(false);
@@ -162,11 +154,6 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   };
 
   const refreshUser = async () => {
-    if (!sessionManager.hasSession()) {
-      handleSessionExpired();
-      return;
-    }
-    
     try {
       const currentUser = await authApi.getCurrentUser();
       setUser(currentUser);

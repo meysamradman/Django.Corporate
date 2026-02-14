@@ -34,7 +34,7 @@ export const mediaService = {
     getMediaCoverUrl: GetMediaCoverUrl,
     getUserProfileImageUrl: GetUserProfileImageUrl,
 
-    config: getUploadConfig()
+    config: getUploadSettings()
 };
 
 export {

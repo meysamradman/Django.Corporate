@@ -1,41 +1,12 @@
 const SESSION_COOKIE = 'sessionid';
 const CSRF_COOKIE = 'csrftoken';
-const CSRF_STORAGE_KEY = '__csrf_token__';
-
-interface CSRFTokenStore {
-  token: string | null;
-  sessionKey: string | null;
-  isValid: () => boolean;
-}
 
 class CSRFTokenManager {
   private static instance: CSRFTokenManager;
-  private store: CSRFTokenStore = {
-    token: null,
-    sessionKey: null,
-    isValid: function() {
-      if (!this.token) return false;
-      
-      if (typeof window !== 'undefined') {
-        const currentSession = CSRFTokenManager.getSessionFromCookie();
-        if (this.sessionKey && currentSession !== this.sessionKey) {
-          return false;
-        }
-      }
-      
-      return true;
-    }
-  };
 
   private constructor() {
-    this.cleanupOldStorage();
-    this.loadFromStorage();
-    this.syncWithSession();
-  }
-
-  private cleanupOldStorage(): void {
     if (typeof window === 'undefined') return;
-    
+
     try {
       const oldKey = 'admin_csrf_token';
       if (sessionStorage.getItem(oldKey)) {
@@ -55,40 +26,6 @@ class CSRFTokenManager {
     return CSRFTokenManager.instance;
   }
 
-  private static getSessionFromCookie(): string | null {
-    if (typeof document === 'undefined') return null;
-
-    try {
-      const cookies = document.cookie.split(';');
-      for (const cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === SESSION_COOKIE) {
-          return decodeURIComponent(value);
-        }
-      }
-    } catch (error) {
-    }
-    return null;
-  }
-
-  private syncWithSession(): void {
-    if (typeof window === 'undefined') return;
-
-    const currentSession = CSRFTokenManager.getSessionFromCookie();
-    
-    if (!currentSession) {
-      this.clear();
-      return;
-    }
-
-    if (this.store.sessionKey && this.store.sessionKey !== currentSession) {
-      this.clear();
-    }
-
-    this.store.sessionKey = currentSession;
-    this.saveToStorage();
-  }
-
   private getCookieToken(): string | null {
     if (typeof document === 'undefined') return null;
 
@@ -105,86 +42,15 @@ class CSRFTokenManager {
     return null;
   }
 
-  private loadFromStorage(): void {
-    if (typeof window === 'undefined') return;
-
-    try {
-      const stored = sessionStorage.getItem(CSRF_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.token && parsed.sessionKey) {
-          this.store.token = parsed.token;
-          this.store.sessionKey = parsed.sessionKey;
-          
-          if (!this.store.isValid()) {
-            this.clear();
-          }
-        }
-      }
-    } catch (error) {
-      this.clear();
-    }
-  }
-
-  private saveToStorage(): void {
-    if (typeof window === 'undefined') return;
-
-    try {
-      if (this.store.token && this.store.sessionKey) {
-        sessionStorage.setItem(
-          CSRF_STORAGE_KEY,
-          JSON.stringify({
-            token: this.store.token,
-            sessionKey: this.store.sessionKey
-          })
-        );
-      } else {
-        sessionStorage.removeItem(CSRF_STORAGE_KEY);
-      }
-    } catch (error) {
-    }
-  }
-
   public getToken(): string | null {
-    this.syncWithSession();
-
-    if (this.store.isValid()) {
-      return this.store.token;
-    }
-
-    this.loadFromStorage();
-    if (this.store.isValid()) {
-      return this.store.token;
-    }
-
-    const cookieToken = this.getCookieToken();
-    const sessionId = CSRFTokenManager.getSessionFromCookie();
-    
-    if (cookieToken && sessionId) {
-      this.store.token = cookieToken;
-      this.store.sessionKey = sessionId;
-      this.saveToStorage();
-      return cookieToken;
-    }
-
-    return null;
+    return this.getCookieToken();
   }
 
   public setToken(token: string | null): void {
-    if (token) {
-      this.store.token = token;
-      this.saveToStorage();
-    } else {
-      this.clear();
-    }
+    if (!token) this.clear();
   }
 
   public clear(): void {
-    this.store.token = null;
-    this.store.sessionKey = null;
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem(CSRF_STORAGE_KEY);
-    }
   }
 
   public async refresh(): Promise<string | null> {
@@ -204,6 +70,7 @@ class CSRFTokenManager {
 
 class SessionManager {
   private static instance: SessionManager;
+  private redirecting = false;
 
   private constructor() {}
 
@@ -216,13 +83,14 @@ class SessionManager {
 
   public hasSession(): boolean {
     if (typeof document === 'undefined') return false;
-    
+
+    const sessionId = this.getCookie(SESSION_COOKIE);
     const csrfToken = this.getCookie(CSRF_COOKIE);
-    if (!csrfToken || csrfToken.length === 0) {
-      return false;
-    }
-    
-    return true;
+
+    return Boolean(
+      (sessionId && sessionId.length > 0) ||
+      (csrfToken && csrfToken.length > 0)
+    );
   }
 
   public getCurrentSessionId(): string | null {
@@ -251,13 +119,6 @@ class SessionManager {
     this.deleteCookie(SESSION_COOKIE);
     this.deleteCookie(CSRF_COOKIE);
     csrfManager.clear();
-
-    if (typeof window !== 'undefined') {
-      try {
-        sessionStorage.clear();
-      } catch (error) {
-      }
-    }
   }
 
   private deleteCookie(name: string): void {
@@ -286,6 +147,12 @@ class SessionManager {
 
   public handleExpiredSession(): void {
     if (typeof window === 'undefined') return;
+
+    if (this.redirecting) {
+      return;
+    }
+
+    this.redirecting = true;
     
     this.clearSession();
     
@@ -296,7 +163,10 @@ class SessionManager {
         : '';
       
       window.location.replace(`/login${returnTo}`);
+      return;
     }
+
+    this.redirecting = false;
   }
 }
 

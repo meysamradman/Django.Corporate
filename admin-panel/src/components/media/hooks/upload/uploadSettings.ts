@@ -1,26 +1,28 @@
 import { formatBytes } from '@/components/media/services';
-import { MEDIA_CONFIG } from '@/core/config/environment';
+import { getUploadSettings } from '@/components/media/services/config';
 import type { UploadSettings } from './types';
 
 export function createUploadSettings(): UploadSettings {
+  const settings = getUploadSettings();
+
   return {
     sizeLimit: {
-      image: MEDIA_CONFIG.IMAGE_SIZE_LIMIT,
-      video: MEDIA_CONFIG.VIDEO_SIZE_LIMIT,
-      audio: MEDIA_CONFIG.AUDIO_SIZE_LIMIT,
-      document: MEDIA_CONFIG.PDF_SIZE_LIMIT,
+      image: settings.MEDIA_IMAGE_SIZE_LIMIT,
+      video: settings.MEDIA_VIDEO_SIZE_LIMIT,
+      audio: settings.MEDIA_AUDIO_SIZE_LIMIT,
+      document: settings.MEDIA_DOCUMENT_SIZE_LIMIT,
     },
     allowedTypes: {
-      image: MEDIA_CONFIG.IMAGE_EXTENSIONS as unknown as string[],
-      video: MEDIA_CONFIG.VIDEO_EXTENSIONS as unknown as string[],
-      audio: MEDIA_CONFIG.AUDIO_EXTENSIONS as unknown as string[],
-      document: MEDIA_CONFIG.PDF_EXTENSIONS as unknown as string[],
+      image: [...settings.MEDIA_ALLOWED_IMAGE_EXTENSIONS],
+      video: [...settings.MEDIA_ALLOWED_VIDEO_EXTENSIONS],
+      audio: [...settings.MEDIA_ALLOWED_AUDIO_EXTENSIONS],
+      document: [...settings.MEDIA_ALLOWED_PDF_EXTENSIONS],
     },
     sizeLimitFormatted: {
-      image: formatBytes(MEDIA_CONFIG.IMAGE_SIZE_LIMIT),
-      video: formatBytes(MEDIA_CONFIG.VIDEO_SIZE_LIMIT),
-      audio: formatBytes(MEDIA_CONFIG.AUDIO_SIZE_LIMIT),
-      document: formatBytes(MEDIA_CONFIG.PDF_SIZE_LIMIT),
+      image: formatBytes(settings.MEDIA_IMAGE_SIZE_LIMIT),
+      video: formatBytes(settings.MEDIA_VIDEO_SIZE_LIMIT),
+      audio: formatBytes(settings.MEDIA_AUDIO_SIZE_LIMIT),
+      document: formatBytes(settings.MEDIA_DOCUMENT_SIZE_LIMIT),
     }
   };
 }

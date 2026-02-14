@@ -80,9 +80,10 @@ export const GetMediaUrlFromObject = (media: Media | null): string => {
         return buildMediaUrl(media.file_url);
     }
     
-    if (media.media_type === 'image' && (media.title || media.file_name)) {
+    if (media.media_type && (media.file_name || media.title)) {
         const fileName = media.file_name || media.title || "";
-        return buildMediaUrl(GetImageUrl(fileName));
+        const mediaUrl = GetMediaUrl(media.media_type, fileName);
+        return buildMediaUrl(mediaUrl);
     }
     
     return '';

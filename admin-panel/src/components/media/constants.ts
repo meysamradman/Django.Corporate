@@ -1,4 +1,6 @@
-import { MEDIA_CONFIG } from "@/core/config/environment";
+import { getUploadSettings } from "@/components/media/services/config";
+
+const uploadSettings = getUploadSettings();
 
 /**
  * All supported media contexts in the application.
@@ -26,15 +28,15 @@ export const MODULE_MEDIA_CONFIGS: Record<MediaContextType, {
     },
     [MEDIA_MODULES.PORTFOLIO]: {
         pathSegment: 'portfolios',
-        maxUploadLimit: MEDIA_CONFIG.PORTFOLIO_UPLOAD_MAX,
+        maxUploadLimit: uploadSettings.PORTFOLIO_MEDIA_UPLOAD_MAX,
     },
     [MEDIA_MODULES.BLOG]: {
         pathSegment: 'blogs',
-        maxUploadLimit: MEDIA_CONFIG.BLOG_UPLOAD_MAX,
+        maxUploadLimit: uploadSettings.BLOG_MEDIA_UPLOAD_MAX,
     },
     [MEDIA_MODULES.REAL_ESTATE]: {
         pathSegment: 'real-estate',
-        maxUploadLimit: MEDIA_CONFIG.REAL_ESTATE_UPLOAD_MAX,
+        maxUploadLimit: uploadSettings.REAL_ESTATE_MEDIA_UPLOAD_MAX,
     },
 };
 

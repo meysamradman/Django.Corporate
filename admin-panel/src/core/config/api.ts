@@ -2,12 +2,17 @@ import axios from 'axios';
 import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { ApiResponse } from '@/types/api/apiResponse';
 import { ApiError } from '@/types/api/apiError';
-import { sessionManager } from '../auth/session';
+import { csrfManager, sessionManager } from '../auth/session';
 import { env } from './environment';
 import { handleRateLimitError } from '../utils/rateLimitHandler';
 
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY_BASE = 1000; // 1 second
+
+interface ApiRequestConfig extends AxiosRequestConfig {
+  skipAuthRedirect?: boolean;
+  _retryCount?: number;
+}
 
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: env.API_URL,
@@ -21,12 +26,11 @@ const axiosInstance: AxiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const csrfToken = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('csrftoken='))
-      ?.split('=')[1];
+    const csrfToken = csrfManager.getToken();
+    const method = config.method?.toLowerCase();
+    const isUnsafeMethod = !!method && !['get', 'head', 'options', 'trace'].includes(method);
 
-    if (csrfToken && config.method !== 'get') {
+    if (csrfToken && isUnsafeMethod) {
       config.headers['X-CSRFToken'] = csrfToken;
     }
 
@@ -59,28 +63,30 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   async (error: AxiosError<ApiResponse<any>>) => {
-    const originalRequest = error.config as AxiosRequestConfig & { _retry?: number };
+    const originalRequest = error.config as ApiRequestConfig;
     const endpoint = originalRequest?.url || 'unknown';
+    const method = originalRequest?.method?.toLowerCase();
+    const canRetry = method === 'get' || method === 'head';
 
-    if (error.response?.status === 429 && originalRequest && !originalRequest._retry) {
+    if (error.response?.status === 429 && originalRequest && canRetry) {
       const retryAfterHeader = error.response.headers['retry-after'];
       const retryAfter = retryAfterHeader ? parseInt(retryAfterHeader, 10) : 60;
 
       handleRateLimitError(endpoint, retryAfter);
 
-      originalRequest._retry = originalRequest._retry || 0;
+      originalRequest._retryCount = originalRequest._retryCount || 0;
 
-      if (originalRequest._retry < MAX_RETRY_ATTEMPTS) {
-        originalRequest._retry++;
+      if (originalRequest._retryCount < MAX_RETRY_ATTEMPTS) {
+        originalRequest._retryCount++;
 
-        const delay = RETRY_DELAY_BASE * Math.pow(2, originalRequest._retry - 1);
+        const delay = RETRY_DELAY_BASE * Math.pow(2, originalRequest._retryCount - 1);
 
         await new Promise(resolve => setTimeout(resolve, delay));
         return axiosInstance(originalRequest);
       }
     }
 
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !originalRequest?.skipAuthRedirect) {
       sessionManager.handleExpiredSession();
     }
 
@@ -125,10 +131,13 @@ export const api = {
   },
 
   getPublic: async <T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
-    const response = await axiosInstance.get<ApiResponse<T>>(url, {
+    const publicConfig: ApiRequestConfig = {
       ...config,
       withCredentials: false,
-    });
+      skipAuthRedirect: true,
+    };
+
+    const response: AxiosResponse<ApiResponse<T>> = await axiosInstance.get<ApiResponse<T>>(url, publicConfig);
     return response.data;
   },
 

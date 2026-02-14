@@ -7,11 +7,7 @@ interface RateLimitInfo {
 
 class RateLimitHandler {
   private rateLimitInfo: Map<string, RateLimitInfo> = new Map();
-  private readonly STORAGE_KEY = 'rate_limit_info';
-
-  constructor() {
-    this.loadFromStorage();
-  }
+  constructor() {}
 
   isEndpointLimited(endpoint: string): boolean {
     const info = this.rateLimitInfo.get(endpoint);
@@ -42,17 +38,14 @@ class RateLimitHandler {
     };
 
     this.rateLimitInfo.set(endpoint, info);
-    this.saveToStorage();
   }
 
   clearLimit(endpoint: string) {
     this.rateLimitInfo.delete(endpoint);
-    this.saveToStorage();
   }
 
   clearAllLimits() {
     this.rateLimitInfo.clear();
-    this.saveToStorage();
   }
 
   getLimitInfo(endpoint: string): RateLimitInfo | undefined {
@@ -76,47 +69,6 @@ class RateLimitHandler {
     const remainingMs = retryAfterMs - elapsedMs;
 
     return remainingMs > 0 ? Math.ceil(remainingMs / 1000) : 0;
-  }
-
-  private saveToStorage() {
-    try {
-      const data = Array.from(this.rateLimitInfo.entries()).map(([endpoint, info]) => ({
-        endpoint,
-        info: {
-          ...info,
-          lastError: info.lastError?.toISOString(),
-        },
-      }));
-
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
-    } catch (error) {
-    }
-  }
-
-  private loadFromStorage() {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (!stored) return;
-
-      const data = JSON.parse(stored);
-      this.rateLimitInfo = new Map(
-        data.map((item: any) => [
-          item.endpoint,
-          {
-            ...item.info,
-            lastError: item.info.lastError ? new Date(item.info.lastError) : undefined,
-          },
-        ])
-      );
-
-      this.rateLimitInfo.forEach((_info, endpoint) => {
-        if (!this.isEndpointLimited(endpoint)) {
-          this.rateLimitInfo.delete(endpoint);
-        }
-      });
-    } catch (error) {
-      this.rateLimitInfo.clear();
-    }
   }
 
   getUserFriendlyMessage(endpoint: string): string {

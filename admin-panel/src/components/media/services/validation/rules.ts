@@ -1,18 +1,20 @@
-import { MEDIA_CONFIG } from '@/core/config/environment';
+import { getUploadSettings } from '@/components/media/services/config';
 import type { MediaType } from './types';
 
+const uploadSettings = getUploadSettings();
+
 export const ALLOWED_EXTENSIONS: Record<MediaType, readonly string[]> = {
-  image: MEDIA_CONFIG.IMAGE_EXTENSIONS as readonly string[],
-  video: MEDIA_CONFIG.VIDEO_EXTENSIONS as readonly string[],
-  audio: MEDIA_CONFIG.AUDIO_EXTENSIONS as readonly string[],
-  document: MEDIA_CONFIG.PDF_EXTENSIONS as readonly string[],
+  image: uploadSettings.MEDIA_ALLOWED_IMAGE_EXTENSIONS as readonly string[],
+  video: uploadSettings.MEDIA_ALLOWED_VIDEO_EXTENSIONS as readonly string[],
+  audio: uploadSettings.MEDIA_ALLOWED_AUDIO_EXTENSIONS as readonly string[],
+  document: uploadSettings.MEDIA_ALLOWED_PDF_EXTENSIONS as readonly string[],
 };
 
 export const MAX_SIZE_BY_CATEGORY: Record<MediaType, number> = {
-  image: MEDIA_CONFIG.IMAGE_SIZE_LIMIT,
-  video: MEDIA_CONFIG.VIDEO_SIZE_LIMIT,
-  audio: MEDIA_CONFIG.AUDIO_SIZE_LIMIT,
-  document: MEDIA_CONFIG.PDF_SIZE_LIMIT,
+  image: uploadSettings.MEDIA_IMAGE_SIZE_LIMIT,
+  video: uploadSettings.MEDIA_VIDEO_SIZE_LIMIT,
+  audio: uploadSettings.MEDIA_AUDIO_SIZE_LIMIT,
+  document: uploadSettings.MEDIA_DOCUMENT_SIZE_LIMIT,
 };
 
 export const ALLOWED_MIME_TYPES: Record<MediaType, readonly string[]> = {

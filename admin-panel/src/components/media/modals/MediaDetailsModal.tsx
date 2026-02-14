@@ -6,7 +6,7 @@ import {
   DialogDescription,
 } from "@/components/elements/Dialog";
 import { Button } from "@/components/elements/Button";
-import { Download, FileText, Play, FileAudio, ImageOff } from 'lucide-react';
+import { Download, FileText, Play, FileAudio, ImageOff, Music } from 'lucide-react';
 import type { Media } from '@/types/shared/media';
 import { MediaPlayer } from '@/components/media/videos/MediaPlayer';
 import { AudioPlayer } from '@/components/media/audios/AudioPlayer';
@@ -57,6 +57,38 @@ export function MediaDetailsModal({
     if (!value) return '';
     return value.length > maxLength ? `${value.slice(0, maxLength)}…` : value;
   }, []);
+
+  const getEffectiveCoverUrl = useCallback((): string => {
+    if (isEditing) {
+      if (!newCoverImage) return '';
+
+      if (typeof newCoverImage === 'object' && newCoverImage !== null && 'id' in newCoverImage) {
+        return mediaService.getMediaUrlFromObject(newCoverImage);
+      }
+
+      if (
+        typeof newCoverImage === 'number' &&
+        resolvedCoverMedia &&
+        resolvedCoverMedia.id === newCoverImage
+      ) {
+        return mediaService.getMediaUrlFromObject(resolvedCoverMedia);
+      }
+    }
+
+    const directCoverUrl = mediaService.getMediaCoverUrl(media);
+    if (directCoverUrl) return directCoverUrl;
+
+    if (
+      media &&
+      typeof media.cover_image === 'number' &&
+      resolvedCoverMedia &&
+      resolvedCoverMedia.id === media.cover_image
+    ) {
+      return mediaService.getMediaUrlFromObject(resolvedCoverMedia);
+    }
+
+    return '';
+  }, [isEditing, newCoverImage, resolvedCoverMedia, media]);
 
   const getUpdatePermission = useCallback(() => {
     if (!media) return 'media.update';
@@ -120,13 +152,18 @@ export function MediaDetailsModal({
 
   const handleDownload = () => {
     setIsDownloading(true);
-    const link = document.createElement('a');
-    link.href = mediaService.getMediaUrlFromObject(media);
-    link.download = media.original_file_name || media.file_name || 'download';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setIsDownloading(false);
+    try {
+      const mediaUrl = mediaService.getMediaUrlFromObject(media);
+
+      if (!mediaUrl) {
+        showError('لینک دانلود این رسانه در دسترس نیست');
+        return;
+      }
+
+      window.open(mediaUrl, '_blank', 'noopener,noreferrer');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleStartEdit = () => {
@@ -211,12 +248,33 @@ export function MediaDetailsModal({
     }
 
     if (media.media_type === 'audio') {
+      const audioCoverUrl = getEffectiveCoverUrl();
+
       return (
-        <div className="w-full h-full flex items-center justify-center p-4 bg-card">
-          <div className="w-full max-w-xl overflow-hidden">
+        <div className="w-full h-full flex flex-col p-4 bg-card">
+          <div className="relative w-full flex-1 min-h-44 rounded-lg overflow-hidden border border-br bg-bg">
+            {audioCoverUrl ? (
+              <MediaImage
+                src={audioCoverUrl}
+                alt={media.alt_text || media.title || 'کاور صوت'}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center text-font-s gap-2">
+                <Music className="h-10 w-10" />
+                <span className="text-sm">کاور صوتی تنظیم نشده</span>
+              </div>
+            )}
+
+            <div className="absolute inset-0 bg-linear-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+          </div>
+
+          <div className="mt-4 w-full overflow-hidden">
             <AudioPlayer
               src={mediaService.getMediaUrlFromObject(media)}
               title={getShortTitle(media.title || media.original_file_name || media.file_name || 'فایل صوتی')}
+              className="w-full"
             />
           </div>
         </div>
@@ -237,32 +295,8 @@ export function MediaDetailsModal({
 
   const renderCoverImageSection = () => {
     const getCoverImageUrl = (): string | null => {
-      if (isEditing) {
-        if (!newCoverImage) return null;
-
-        if (typeof newCoverImage === 'object' && newCoverImage !== null && 'id' in newCoverImage) {
-          return mediaService.getMediaUrlFromObject(newCoverImage);
-        }
-
-        if (
-          typeof newCoverImage === 'number' &&
-          resolvedCoverMedia &&
-          resolvedCoverMedia.id === newCoverImage
-        ) {
-          return mediaService.getMediaUrlFromObject(resolvedCoverMedia);
-        }
-
-        return null;
-      }
-
-      const directCoverUrl = mediaService.getMediaCoverUrl(media);
-      if (directCoverUrl) return directCoverUrl;
-
-      if (resolvedCoverMedia) {
-        return mediaService.getMediaUrlFromObject(resolvedCoverMedia);
-      }
-
-      return null;
+      const effectiveCoverUrl = getEffectiveCoverUrl();
+      return effectiveCoverUrl || null;
     };
 
     const coverImageUrl = getCoverImageUrl();

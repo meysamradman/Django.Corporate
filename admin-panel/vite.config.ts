@@ -11,6 +11,7 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
+    strictPort: true,
     host: true,
     open: true,
     proxy: {
@@ -87,8 +88,9 @@ export default defineConfig({
       },
     },
     minify: 'esbuild',
-    target: 'esnext',
+    target: 'baseline-widely-available',
     sourcemap: false,
+    reportCompressedSize: false,
     // Increase chunk size warning limit
     chunkSizeWarningLimit: 1000,
     // Optimize asset inlining
