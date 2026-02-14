@@ -17,7 +17,7 @@ interface CoverImageManagerProps {
 export function CoverImageManager({ 
   currentCoverImage, 
   onCoverImageChange,
-  mediaType
+  mediaType: _mediaType
 }: CoverImageManagerProps) {
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"select" | "upload">("select");
@@ -66,9 +66,6 @@ export function CoverImageManager({
     <div className="space-y-4">
       <div>
         <Label>کاور رسانه</Label>
-        <p className="text-sm text-font-s mb-2">
-          برای رسانه‌های {mediaType === 'video' ? 'ویدیو' : mediaType === 'audio' ? 'صوتی' : 'سند'} یک تصویر کاور انتخاب کنید
-        </p>
       </div>
       
       {coverImageUrl ? (
@@ -95,15 +92,26 @@ export function CoverImageManager({
         </div>
       )}
       
-      <div>
-        <Button 
-          variant="outline" 
-          className="w-full"
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          className="flex-1"
           onClick={() => setIsLibraryOpen(true)}
         >
           <ImageIcon className="h-4 w-4" />
-          انتخاب از کتابخانه
+          انتخاب کاور
         </Button>
+
+        {coverImageUrl && (
+          <Button
+            variant="outline"
+            className="text-red-1 border-red-1/30 hover:bg-red-0/50"
+            onClick={handleRemoveCoverImage}
+          >
+            <X className="h-4 w-4" />
+            حذف
+          </Button>
+        )}
         
         <MediaLibraryModal
           isOpen={isLibraryOpen}
@@ -118,10 +126,6 @@ export function CoverImageManager({
           context="media_library"
         />
       </div>
-      
-      <p className="text-xs text-font-s">
-        تصاویر باید JPG, PNG, WebP باشند و حجم آن‌ها نباید بیشتر از 5 مگابایت باشد.
-      </p>
     </div>
   );
 }

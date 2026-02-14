@@ -44,9 +44,6 @@ export function MediaDetailsInfoPanel({
                         placeholder="متن جایگزین"
                         className="mt-1"
                     />
-                    <p className="text-xs text-font-s mt-1">
-                        این متن در صورت عدم نمایش تصویر نمایش داده می‌شود.
-                    </p>
                 </div>
 
                 {media.media_type !== 'image' && coverSection}
@@ -62,7 +59,7 @@ export function MediaDetailsInfoPanel({
                         <span className="font-medium text-font-s shrink-0">نام فایل:</span>
                         <TruncatedText
                             text={media.title || media.original_file_name || media.file_name || ''}
-                            maxLength={80}
+                            maxLength={44}
                             className="flex-1"
                             showTooltip={true}
                         />

@@ -9,6 +9,7 @@ import { Button } from "@/components/elements/Button";
 import { Download, FileText, Play, FileAudio, ImageOff } from 'lucide-react';
 import type { Media } from '@/types/shared/media';
 import { MediaPlayer } from '@/components/media/videos/MediaPlayer';
+import { AudioPlayer } from '@/components/media/audios/AudioPlayer';
 import { MediaThumbnail } from '@/components/media/base/MediaThumbnail';
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from '@/components/media/services';
@@ -42,7 +43,20 @@ export function MediaDetailsModal({
   const [editedMedia, setEditedMedia] = useState<Media | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [newCoverImage, setNewCoverImage] = useState<Media | number | null>(null);
+  const [resolvedCoverMedia, setResolvedCoverMedia] = useState<Media | null>(null);
   const { hasPermission } = usePermission();
+
+  const getCoverId = useCallback((cover: Media | number | null | undefined): number | null => {
+    if (!cover) return null;
+    if (typeof cover === 'number') return cover;
+    if (typeof cover === 'object' && 'id' in cover && typeof cover.id === 'number') return cover.id;
+    return null;
+  }, []);
+
+  const getShortTitle = useCallback((value: string, maxLength = 48) => {
+    if (!value) return '';
+    return value.length > maxLength ? `${value.slice(0, maxLength)}…` : value;
+  }, []);
 
   const getUpdatePermission = useCallback(() => {
     if (!media) return 'media.update';
@@ -65,6 +79,42 @@ export function MediaDetailsModal({
       setNewCoverImage(media.cover_image || null);
     }
   }, [media]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const resolveCoverMedia = async () => {
+      if (!media || typeof media.cover_image !== 'number') {
+        setResolvedCoverMedia(null);
+        return;
+      }
+
+      const response = await mediaApi.getMediaDetails(media.cover_image);
+      if (!isMounted) return;
+
+      if (response.metaData.status === 'success' && response.data) {
+        setResolvedCoverMedia(response.data);
+      } else {
+        setResolvedCoverMedia(null);
+      }
+    };
+
+    void resolveCoverMedia();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [media]);
+
+  useEffect(() => {
+    if (
+      resolvedCoverMedia &&
+      typeof newCoverImage === 'number' &&
+      newCoverImage === resolvedCoverMedia.id
+    ) {
+      setNewCoverImage(resolvedCoverMedia);
+    }
+  }, [resolvedCoverMedia, newCoverImage]);
 
   if (!media) return null;
 
@@ -94,13 +144,6 @@ export function MediaDetailsModal({
   const handleSaveEdit = async () => {
     if (!editedMedia) return;
 
-    console.log('[MediaDetailsModal][Save] Starting save operation', {
-      mediaId: media.id,
-      mediaType: media.media_type,
-      editedMedia,
-      timestamp: new Date().toISOString()
-    });
-
     setIsSaving(true);
 
     try {
@@ -109,91 +152,45 @@ export function MediaDetailsModal({
         alt_text: editedMedia.alt_text || '',
       };
 
-      console.log('[MediaDetailsModal][Save] Prepared update data', {
-        updateData,
-        mediaId: media.id,
-        mediaType: media.media_type
-      });
-
       let updatedMediaData = { ...editedMedia };
 
-      if (newCoverImage !== media.cover_image) {
-        console.log('[MediaDetailsModal][Save] Cover image changed', {
-          oldCover: media.cover_image,
-          newCover: newCoverImage,
-          newCoverType: typeof newCoverImage
-        });
+      const previousCoverId = getCoverId(media.cover_image);
+      const nextCoverId = getCoverId(newCoverImage);
 
-        if (newCoverImage === null) {
-          console.log('[MediaDetailsModal][Save] Removing cover image');
+      if (nextCoverId !== previousCoverId) {
+        if (nextCoverId === null) {
           const response = await mediaApi.updateCoverImage(media.id, null);
-          console.log('[MediaDetailsModal][Save] Cover removal response', response);
           if (response.metaData.status === 'success' && response.data) {
             updatedMediaData = { ...updatedMediaData, ...response.data };
           }
-        } else if (typeof newCoverImage === 'object' && 'id' in newCoverImage) {
-          console.log('[MediaDetailsModal][Save] Setting cover image from object', newCoverImage.id);
-          const response = await mediaApi.updateCoverImage(media.id, newCoverImage.id);
-          console.log('[MediaDetailsModal][Save] Cover update response', response);
-          if (response.metaData.status === 'success' && response.data) {
-            updatedMediaData = { ...updatedMediaData, ...response.data };
-          }
-        } else if (typeof newCoverImage === 'number') {
-          console.log('[MediaDetailsModal][Save] Setting cover image from ID', newCoverImage);
-          const response = await mediaApi.updateCoverImage(media.id, newCoverImage);
-          console.log('[MediaDetailsModal][Save] Cover update response', response);
+        } else {
+          const response = await mediaApi.updateCoverImage(media.id, nextCoverId);
           if (response.metaData.status === 'success' && response.data) {
             updatedMediaData = { ...updatedMediaData, ...response.data };
           }
         }
       }
 
-      console.log('[MediaDetailsModal][Save] Calling updateMedia API', {
-        mediaId: media.id,
-        updateData
-      });
-
       const response = await mediaApi.updateMedia(media.id, updateData);
 
-      console.log('[MediaDetailsModal][Save] Update response received', {
-        status: response.metaData.status,
-        message: response.metaData.message,
-        hasData: !!response.data,
-        data: response.data
-      });
-
       if (response.metaData.status === 'success' && response.data) {
-        console.log('[MediaDetailsModal][Save] Update successful, finalizing');
         showSuccess('تغییرات با موفقیت ذخیره شد');
         setIsEditing(false);
         setNewCoverImage(null);
 
         const finalUpdatedMedia = { ...updatedMediaData, ...response.data };
-        console.log('[MediaDetailsModal][Save] Final updated media', finalUpdatedMedia);
         setEditedMedia(finalUpdatedMedia);
 
         if (onMediaUpdated) {
-          console.log('[MediaDetailsModal][Save] Calling onMediaUpdated callback');
           onMediaUpdated(finalUpdatedMedia);
         }
       } else {
-        console.error('[MediaDetailsModal][Save] Update failed', {
-          status: response.metaData.status,
-          message: response.metaData.message
-        });
         showError(response.metaData.message || 'خطا در ذخیره تغییرات');
       }
     } catch (error) {
-      console.error('[MediaDetailsModal][Save] Exception occurred', {
-        error,
-        errorType: error?.constructor?.name,
-        mediaId: media.id,
-        timestamp: new Date().toISOString()
-      });
       showError('خطا در ذخیره تغییرات');
     } finally {
       setIsSaving(false);
-      console.log('[MediaDetailsModal][Save] Save operation completed');
     }
   };
 
@@ -202,7 +199,7 @@ export function MediaDetailsModal({
   };
 
   const renderMediaContent = () => {
-    if (media.media_type === 'video' || media.media_type === 'audio') {
+    if (media.media_type === 'video') {
       return (
         <MediaPlayer
           media={media}
@@ -210,6 +207,19 @@ export function MediaDetailsModal({
           controls={true}
           showControls={true}
         />
+      );
+    }
+
+    if (media.media_type === 'audio') {
+      return (
+        <div className="w-full h-full flex items-center justify-center p-4 bg-card">
+          <div className="w-full max-w-xl overflow-hidden">
+            <AudioPlayer
+              src={mediaService.getMediaUrlFromObject(media)}
+              title={getShortTitle(media.title || media.original_file_name || media.file_name || 'فایل صوتی')}
+            />
+          </div>
+        </div>
       );
     }
 
@@ -234,10 +244,25 @@ export function MediaDetailsModal({
           return mediaService.getMediaUrlFromObject(newCoverImage);
         }
 
+        if (
+          typeof newCoverImage === 'number' &&
+          resolvedCoverMedia &&
+          resolvedCoverMedia.id === newCoverImage
+        ) {
+          return mediaService.getMediaUrlFromObject(resolvedCoverMedia);
+        }
+
         return null;
       }
 
-      return mediaService.getMediaCoverUrl(media);
+      const directCoverUrl = mediaService.getMediaCoverUrl(media);
+      if (directCoverUrl) return directCoverUrl;
+
+      if (resolvedCoverMedia) {
+        return mediaService.getMediaUrlFromObject(resolvedCoverMedia);
+      }
+
+      return null;
     };
 
     const coverImageUrl = getCoverImageUrl();
@@ -249,7 +274,11 @@ export function MediaDetailsModal({
 
         {isEditing ? (
           <CoverImageManager
-            currentCoverImage={newCoverImage}
+            currentCoverImage={
+              typeof newCoverImage === 'number' && resolvedCoverMedia?.id === newCoverImage
+                ? resolvedCoverMedia
+                : newCoverImage
+            }
             onCoverImageChange={handleCoverImageChange}
             mediaType={media.media_type || ""}
           />
@@ -269,6 +298,14 @@ export function MediaDetailsModal({
               {media.media_type === 'video' ? 'بدون کاور ویدیو' :
                 media.media_type === 'audio' ? 'بدون کاور صوتی' : 'بدون کاور'}
             </span>
+          </div>
+        )}
+
+        {!isEditing && canUpdateMedia && media.media_type !== 'image' && (
+          <div className="mt-3">
+            <Button variant="outline" size="sm" onClick={handleStartEdit}>
+              تغییر کاور
+            </Button>
           </div>
         )}
       </div>
@@ -291,7 +328,7 @@ export function MediaDetailsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[80vw] lg:max-w-5xl xl:max-w-6xl max-h-[90vh] overflow-y-auto p-0" showCloseButton={false} aria-describedby="media-details-description">
+      <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[80vw] lg:max-w-5xl xl:max-w-6xl max-h-[90vh] overflow-hidden p-0" showCloseButton={false} aria-describedby="media-details-description">
         <DialogTitle className="sr-only">جزئیات رسانه</DialogTitle>
         <DialogDescription id="media-details-description" className="sr-only">
           جزئیات رسانه شامل اطلاعات فایل، نوع رسانه، اندازه و کاور رسانه می‌باشد.
@@ -303,10 +340,10 @@ export function MediaDetailsModal({
           onClose={onClose}
         />
 
-        <div className="flex flex-col lg:flex-row">
-          <div className="w-full lg:w-1/2 p-4 lg:p-6 border-b lg:border-b-0 lg:border-l">
+        <div className="flex flex-col lg:flex-row max-h-[calc(90vh-10.5rem)] overflow-hidden">
+          <div className="w-full lg:w-1/2 p-4 lg:p-6 border-b lg:border-b-0 lg:border-l min-w-0 overflow-y-auto">
             <div className="space-y-4">
-              <div className="relative w-full aspect-square lg:aspect-video min-h-100 lg:min-h-125 bg-bg rounded-lg overflow-hidden border">
+              <div className="relative w-full aspect-square lg:aspect-video min-h-80 lg:min-h-100 bg-bg rounded-lg overflow-hidden border">
                 {renderMediaContent()}
               </div>
 
@@ -325,7 +362,7 @@ export function MediaDetailsModal({
             </div>
           </div>
 
-          <div className="w-full lg:w-1/2 p-4 lg:p-6 space-y-6">
+          <div className="w-full lg:w-1/2 p-4 lg:p-6 space-y-6 min-w-0 overflow-y-auto">
             <MediaDetailsInfoPanel
               media={media}
               isEditing={isEditing}

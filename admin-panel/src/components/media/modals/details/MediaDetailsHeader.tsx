@@ -1,4 +1,5 @@
 import { Button } from '@/components/elements/Button';
+import { TruncatedText } from '@/components/elements/TruncatedText';
 import { X } from 'lucide-react';
 
 interface MediaDetailsHeaderProps {
@@ -11,10 +12,15 @@ export function MediaDetailsHeader({ title, icon, onClose }: MediaDetailsHeaderP
     return (
         <div className="bg-bg/50 border-b px-6 py-4">
             <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                    {icon}
-                    {title}
-                </h3>
+                <div className="min-w-0 flex-1 flex items-center gap-2">
+                    <span className="shrink-0">{icon}</span>
+                    <TruncatedText
+                        text={title}
+                        maxLength={70}
+                        className="text-lg font-semibold"
+                        showTooltip={true}
+                    />
+                </div>
                 <Button
                     variant="outline"
                     size="sm"
