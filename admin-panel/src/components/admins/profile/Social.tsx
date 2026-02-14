@@ -8,17 +8,16 @@ import { filterNumericOnly } from "@/core/utils/numeric";
 
 interface SocialTabProps {
     formData: any;
-    editMode: boolean;
     handleInputChange: (field: string, value: string) => void;
     handleSaveProfile: () => void;
 }
 
 export function Social({
     formData,
-    editMode,
     handleInputChange,
     handleSaveProfile,
 }: SocialTabProps) {
+    const isSocialEditable = true;
     return (
         <TabsContent value="social">
             <CardWithIcon
@@ -38,7 +37,7 @@ export function Social({
                                 id="linkedin"
                                 value={formData.linkedin}
                                 onChange={(e) => handleInputChange("linkedin", e.target.value)}
-                                disabled={!editMode}
+                                disabled={!isSocialEditable}
                                 placeholder="https://linkedin.com/in/..."
                                 className="ps-10"
                             />
@@ -52,7 +51,7 @@ export function Social({
                                 id="twitter"
                                 value={formData.twitter}
                                 onChange={(e) => handleInputChange("twitter", e.target.value)}
-                                disabled={!editMode}
+                                disabled={!isSocialEditable}
                                 placeholder="https://x.com/..."
                                 className="ps-10"
                             />
@@ -66,7 +65,7 @@ export function Social({
                                 id="instagram"
                                 value={formData.instagram}
                                 onChange={(e) => handleInputChange("instagram", e.target.value)}
-                                disabled={!editMode}
+                                disabled={!isSocialEditable}
                                 placeholder="https://instagram.com/..."
                                 className="ps-10"
                             />
@@ -83,7 +82,7 @@ export function Social({
                                     const filteredValue = filterNumericOnly(e.target.value);
                                     handleInputChange("whatsapp", filteredValue);
                                 }}
-                                disabled={!editMode}
+                                disabled={!isSocialEditable}
                                 placeholder="شماره واتساپ..."
                                 className="ps-10"
                                 inputMode="tel"
@@ -98,7 +97,7 @@ export function Social({
                                 id="telegram"
                                 value={formData.telegram}
                                 onChange={(e) => handleInputChange("telegram", e.target.value)}
-                                disabled={!editMode}
+                                disabled={!isSocialEditable}
                                 placeholder="آیدی تلگرام..."
                                 className="ps-10"
                             />
@@ -112,15 +111,14 @@ export function Social({
                                 id="youtube"
                                 value={formData.youtube}
                                 onChange={(e) => handleInputChange("youtube", e.target.value)}
-                                disabled={!editMode}
+                                disabled={!isSocialEditable}
                                 placeholder="https://youtube.com/c/..."
                                 className="ps-10"
                             />
                         </div>
                     </div>
-                    {editMode && (
+                    {isSocialEditable && (
                         <div className="flex justify-end gap-2 pt-4">
-                            <Button variant="outline" onClick={() => (handleInputChange as any)("cancel", "")}>لغو</Button>
                             <Button onClick={handleSaveProfile}>
                                 ذخیره تغییرات
                             </Button>

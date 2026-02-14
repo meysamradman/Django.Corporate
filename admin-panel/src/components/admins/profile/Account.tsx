@@ -39,8 +39,6 @@ interface FormData {
 interface AccountTabProps {
     admin: AdminWithProfile;
     formData: FormData;
-    editMode: boolean;
-    setEditMode: (value: boolean) => void;
     handleInputChange: (field: string, value: string) => void;
     handleSaveProfile: () => void;
     isSaving?: boolean;
@@ -53,8 +51,6 @@ interface AccountTabProps {
 export function Account({
     admin,
     formData,
-    editMode,
-    setEditMode,
     handleInputChange,
     handleSaveProfile,
     isSaving = false,
@@ -63,6 +59,7 @@ export function Account({
     onCityChange,
     adminId,
 }: AccountTabProps) {
+    const isAccountEditable = true;
     const [provinces, setProvinces] = useState<ProvinceCompact[]>([]);
     const [cities, setCities] = useState<CityCompact[]>([]);
     const [loadingProvinces, setLoadingProvinces] = useState(false);
@@ -350,17 +347,9 @@ export function Account({
                         cardBorderColor="border-b-primary"
                         className="hover:shadow-lg transition-all duration-300"
                         titleExtra={
-                            <div className="flex gap-2">
-                                <Button variant="outline" size="sm" onClick={() => setEditMode(!editMode)}>
-                                    <Edit2 className="w-4 h-4" />
-                                    {editMode ? "لغو" : "ویرایش"}
-                                </Button>
-                                {editMode && (
-                                    <Button size="sm" onClick={handleSaveProfile} disabled={isSaving}>
-                                        {isSaving ? "در حال ذخیره..." : "ذخیره"}
-                                    </Button>
-                                )}
-                            </div>
+                            <Button size="sm" onClick={handleSaveProfile} disabled={isSaving}>
+                                {isSaving ? "در حال ذخیره..." : "ذخیره"}
+                            </Button>
                         }
                         contentClassName="space-y-6"
                     >
@@ -374,7 +363,7 @@ export function Account({
                                     id="firstName"
                                     value={formData.firstName || ""}
                                     onChange={(e) => handleInputChange("firstName", e.target.value)}
-                                    disabled={!editMode}
+                                    disabled={!isAccountEditable}
                                     placeholder="نام خود را وارد کنید"
                                 />
                             </FormField>
@@ -387,7 +376,7 @@ export function Account({
                                     id="lastName"
                                     value={formData.lastName || ""}
                                     onChange={(e) => handleInputChange("lastName", e.target.value)}
-                                    disabled={!editMode}
+                                    disabled={!isAccountEditable}
                                     placeholder="نام خانوادگی خود را وارد کنید"
                                 />
                             </FormField>
@@ -402,7 +391,7 @@ export function Account({
                                     value={formData.birthDate || ""}
                                     onChange={handleBirthDateChange}
                                     placeholder="تاریخ تولد را انتخاب کنید"
-                                    disabled={!editMode}
+                                    disabled={!isAccountEditable}
                                 />
                             </FormField>
                             <FormField
@@ -416,7 +405,7 @@ export function Account({
                                         const filteredValue = filterNumericOnly(e.target.value);
                                         handleInputChange("nationalId", filteredValue);
                                     }}
-                                    disabled={!editMode}
+                                    disabled={!isAccountEditable}
                                     placeholder="کد ملی خود را وارد کنید"
                                     inputMode="numeric"
                                 />
@@ -433,7 +422,7 @@ export function Account({
                                         const filteredValue = filterNumericOnly(e.target.value);
                                         handleInputChange("phone", filteredValue);
                                     }}
-                                    disabled={!editMode}
+                                    disabled={!isAccountEditable}
                                     placeholder="تلفن ثابت را وارد کنید"
                                     inputMode="tel"
                                 />
@@ -454,7 +443,7 @@ export function Account({
                                         const filteredValue = filterNumericOnly(e.target.value);
                                         handleInputChange("mobile", filteredValue);
                                     }}
-                                    disabled={!editMode}
+                                    disabled={!isAccountEditable}
                                     placeholder="شماره موبایل خود را وارد کنید"
                                     inputMode="tel"
                                 />
@@ -468,7 +457,7 @@ export function Account({
                                     type="email"
                                     value={formData.email || ""}
                                     onChange={(e) => handleInputChange("email", e.target.value)}
-                                    disabled={!editMode}
+                                    disabled={!isAccountEditable}
                                     placeholder="آدرس ایمیل خود را وارد کنید"
                                 />
                             </FormField>
@@ -482,7 +471,7 @@ export function Account({
                                 <Select
                                     value={formData.province || ""}
                                     onValueChange={handleProvinceChange}
-                                    disabled={!editMode || loadingProvinces}
+                                    disabled={!isAccountEditable || loadingProvinces}
                                 >
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder={loadingProvinces ? "در حال بارگذاری..." : "استان خود را انتخاب کنید"} />
@@ -503,7 +492,7 @@ export function Account({
                                 <Select
                                     value={formData.city || ""}
                                     onValueChange={handleCityChange}
-                                    disabled={!editMode || loadingCities}
+                                    disabled={!isAccountEditable || loadingCities}
                                 >
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder={
@@ -533,7 +522,7 @@ export function Account({
                                     id="address"
                                     value={formData.address || ""}
                                     onChange={(e) => handleInputChange("address", e.target.value)}
-                                    disabled={!editMode}
+                                    disabled={!isAccountEditable}
                                     placeholder="آدرس خود را وارد کنید"
                                     className="w-full"
                                 />
@@ -548,7 +537,7 @@ export function Account({
                                 id="bio"
                                 value={formData.bio || ""}
                                 onChange={(e) => handleInputChange("bio", e.target.value)}
-                                disabled={!editMode}
+                                disabled={!isAccountEditable}
                                 placeholder="درباره خود بنویسید..."
                                 rows={4}
                             />

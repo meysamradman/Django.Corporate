@@ -22,6 +22,14 @@ export interface PropertyAgentProfile {
     rating: number;
     total_sales: number;
     total_reviews: number;
+    total_sales_value?: number;
+    total_commissions?: number;
+    properties_sold?: number;
+    properties_rented?: number;
+    conversion_rate?: number;
+    avg_deal_time?: number;
+    lead_to_contract_rate?: number;
+    failure_rate?: number;
     bio: string;
     is_verified: boolean;
     is_active: boolean;

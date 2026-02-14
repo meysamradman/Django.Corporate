@@ -413,8 +413,6 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                         <AccountTab
                             admin={adminData}
                             formData={formData}
-                            editMode={editMode}
-                            setEditMode={setEditMode}
                             handleInputChange={handleInputChange}
                             handleSaveProfile={handleSaveProfile}
                             isSaving={isSaving}
@@ -432,7 +430,6 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                             <ConsultantTab
                                 admin={adminData}
                                 formData={formData}
-                                editMode={editMode}
                                 handleInputChange={handleInputChange}
                                 handleSaveProfile={handleSaveProfile}
                                 isSaving={isSaving}
@@ -466,7 +463,6 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                     <Suspense fallback={<TabContentSkeleton />}>
                         <SocialTab
                             formData={formData}
-                            editMode={editMode}
                             handleInputChange={handleInputChange}
                             handleSaveProfile={handleSaveProfile}
                         />

@@ -184,7 +184,7 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
             'bedrooms', 'bathrooms', 'kitchens', 'living_rooms',
             'year_built', 'build_years', 'floors_in_building', 'floor_number',
             'parking_spaces', 'storage_rooms', 'document_type', 'has_document',
-            'views_count', 'favorites_count', 'inquiries_count',
+            'views_count', 'web_views_count', 'app_views_count', 'favorites_count', 'inquiries_count',
             'meta_title', 'meta_description',
             'published_at', 'created_at', 'updated_at', # ✅ همیشه در انتها
         ]
@@ -326,7 +326,7 @@ class PropertyAdminDetailSerializer(MediaAggregationMixin, serializers.ModelSeri
             'bedrooms', 'bathrooms', 'kitchens', 'living_rooms',
             'year_built', 'build_years', 'floors_in_building', 'floor_number',
             'parking_spaces', 'storage_rooms', 'document_type', 'has_document',
-            'views_count', 'favorites_count', 'inquiries_count',
+            'views_count', 'web_views_count', 'app_views_count', 'favorites_count', 'inquiries_count',
             'published_at', 'created_at', 'updated_at',
             'region', 'city', 'neighborhood', 'address', 'postal_code', 
             'latitude', 'longitude', 'extra_attributes', 'floor_plans',

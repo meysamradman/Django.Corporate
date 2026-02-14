@@ -110,6 +110,20 @@ const extractData = <T>(response: any): T => {
   return response?.data?.data || response?.data;
 };
 
+export interface FinalizeDealPayload {
+  deal_type?: string;
+  final_amount?: number | null;
+  sale_price?: number | null;
+  pre_sale_price?: number | null;
+  monthly_rent?: number | null;
+  rent_amount?: number | null;
+  security_deposit?: number | null;
+  mortgage_amount?: number | null;
+  contract_date?: string | null;
+  responsible_agent?: number | null;
+  commission?: number | null;
+}
+
 const fetchPaginated = async <T>(baseUrl: string, params?: ListParams): Promise<PaginatedResponse<T>> => {
   const url = buildListUrl(baseUrl, params);
   const response = await api.get<T[]>(url);
@@ -252,6 +266,11 @@ export const realEstateApi = {
     return extractData<Property>(response);
   },
 
+  finalizeDeal: async (id: number, payload: FinalizeDealPayload): Promise<Property> => {
+    const response = await api.post<any>(`/admin/property/${id}/finalize-deal/`, payload);
+    return extractData<Property>(response);
+  },
+
   setMainImage: async (id: number, mediaId: number): Promise<void> => {
     await api.post('/admin/property/' + id + '/set-main-image/', { media_id: mediaId });
   },
@@ -310,6 +329,7 @@ export const realEstateApi = {
       unit_type?: [string, string][];
     };
     status?: [string, string][];
+    listing_type?: [string, string][];
   }> => {
     const response = await api.get<{
       bedrooms: [number, string][];
@@ -335,6 +355,7 @@ export const realEstateApi = {
         unit_type?: [string, string][];
       };
       status?: [string, string][];
+      listing_type?: [string, string][];
     }>('/admin/property/field-options/');
     return response.data;
   },

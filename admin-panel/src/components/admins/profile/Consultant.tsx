@@ -10,7 +10,10 @@ import {
     CheckCircle2,
     BadgeCheck,
     UploadCloud,
-    X
+    X,
+    TrendingUp,
+    Star,
+    MessageSquare,
 } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -27,7 +30,6 @@ import { Label } from "@/components/elements/Label";
 interface ConsultantTabProps {
     admin: AdminWithProfile;
     formData: any;
-    editMode: boolean;
     handleInputChange: (field: string, value: any) => void;
     handleSaveProfile: () => void;
     isSaving?: boolean;
@@ -37,13 +39,13 @@ interface ConsultantTabProps {
 export function Consultant({
     admin,
     formData,
-    editMode,
     handleInputChange,
     handleSaveProfile,
     isSaving = false,
     fieldErrors = {},
 }: ConsultantTabProps) {
     const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
+    const isConsultantEditable = true;
 
     const { data: agenciesResponse, isLoading: agenciesLoading } = useQuery({
         queryKey: ['agencies-all'],
@@ -61,6 +63,17 @@ export function Consultant({
 
     const ogImage = formData.og_image || agentProfile?.og_image;
     const ogImageUrl = ogImage ? mediaService.getMediaUrlFromObject(ogImage) : "";
+    const totalSales = Number(agentProfile?.total_sales ?? 0);
+    const rating = Number(agentProfile?.rating ?? 0);
+    const totalReviews = Number(agentProfile?.total_reviews ?? 0);
+    const totalSalesValue = Number(agentProfile?.total_sales_value ?? 0);
+    const totalCommissions = Number(agentProfile?.total_commissions ?? 0);
+    const propertiesSold = Number(agentProfile?.properties_sold ?? 0);
+    const propertiesRented = Number(agentProfile?.properties_rented ?? 0);
+    const conversionRate = Number(agentProfile?.conversion_rate ?? 0);
+    const avgDealTime = Number(agentProfile?.avg_deal_time ?? 0);
+    const leadToContractRate = Number(agentProfile?.lead_to_contract_rate ?? 0);
+    const failureRate = Number(agentProfile?.failure_rate ?? 0);
 
     const handleOgImageSelect = (media: Media | Media[] | null) => {
         const selected = Array.isArray(media) ? media[0] || null : media;
@@ -77,6 +90,77 @@ export function Consultant({
     return (
         <TabsContent value="consultant">
             <div className="space-y-8">
+                <CardWithIcon
+                    icon={TrendingUp}
+                    title="آمار مشاور"
+                    iconBgColor="bg-teal-1"
+                    iconColor="text-white"
+                    cardBorderColor="border-b-teal-1"
+                    className="bg-teal-0/10 shadow-sm border-teal-1/20"
+                >
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="rounded-xl border border-br p-4 bg-card">
+                            <p className="text-font-s mb-2">تعداد فروش</p>
+                            <div className="flex items-center gap-2">
+                                <TrendingUp className="w-4 h-4 text-teal-1" />
+                                <p className="text-2xl font-black text-font-p">{totalSales.toLocaleString('fa-IR')}</p>
+                            </div>
+                        </div>
+
+                        <div className="rounded-xl border border-br p-4 bg-card">
+                            <p className="text-font-s mb-2">امتیاز</p>
+                            <div className="flex items-center gap-2">
+                                <Star className="w-4 h-4 text-amber-1" />
+                                <p className="text-2xl font-black text-font-p">{rating.toFixed(1)}</p>
+                                <span className="text-font-s text-font-m">از ۵</span>
+                            </div>
+                        </div>
+
+                        <div className="rounded-xl border border-br p-4 bg-card">
+                            <p className="text-font-s mb-2">تعداد نظرات</p>
+                            <div className="flex items-center gap-2">
+                                <MessageSquare className="w-4 h-4 text-blue-1" />
+                                <p className="text-2xl font-black text-font-p">{totalReviews.toLocaleString('fa-IR')}</p>
+                            </div>
+                        </div>
+
+                        <div className="rounded-xl border border-br p-4 bg-card">
+                            <p className="text-font-s mb-2">ارزش کل معاملات</p>
+                            <p className="text-xl font-black text-font-p">{totalSalesValue.toLocaleString('fa-IR')}</p>
+                        </div>
+
+                        <div className="rounded-xl border border-br p-4 bg-card">
+                            <p className="text-font-s mb-2">کمیسیون کل</p>
+                            <p className="text-xl font-black text-font-p">{totalCommissions.toLocaleString('fa-IR')}</p>
+                        </div>
+
+                        <div className="rounded-xl border border-br p-4 bg-card">
+                            <p className="text-font-s mb-2">تعداد فروش/اجاره</p>
+                            <p className="text-xl font-black text-font-p">{propertiesSold.toLocaleString('fa-IR')} / {propertiesRented.toLocaleString('fa-IR')}</p>
+                        </div>
+
+                        <div className="rounded-xl border border-br p-4 bg-card">
+                            <p className="text-font-s mb-2">نرخ تبدیل</p>
+                            <p className="text-xl font-black text-font-p">{conversionRate.toLocaleString('fa-IR')}٪</p>
+                        </div>
+
+                        <div className="rounded-xl border border-br p-4 bg-card">
+                            <p className="text-font-s mb-2">میانگین زمان معامله</p>
+                            <p className="text-xl font-black text-font-p">{avgDealTime.toLocaleString('fa-IR')} روز</p>
+                        </div>
+
+                        <div className="rounded-xl border border-br p-4 bg-card">
+                            <p className="text-font-s mb-2">نرخ لید به قرارداد</p>
+                            <p className="text-xl font-black text-font-p">{leadToContractRate.toLocaleString('fa-IR')}٪</p>
+                        </div>
+
+                        <div className="rounded-xl border border-br p-4 bg-card">
+                            <p className="text-font-s mb-2">نرخ شکست</p>
+                            <p className="text-xl font-black text-font-p">{failureRate.toLocaleString('fa-IR')}٪</p>
+                        </div>
+                    </div>
+                </CardWithIcon>
+
                 <CardWithIcon
                     icon={BadgeCheck}
                     title="اطلاعات حرفه‌ای مشاور"
@@ -96,7 +180,7 @@ export function Consultant({
                                 id="license_number"
                                 value={formData.license_number || ""}
                                 onChange={(e) => handleInputChange("license_number", e.target.value)}
-                                disabled={!editMode}
+                                disabled={!isConsultantEditable}
                                 placeholder="مثال: ۱۲۳۴۵"
                             />
                         </FormField>
@@ -109,7 +193,7 @@ export function Consultant({
                             <PersianDatePicker
                                 value={formData.license_expire_date || ""}
                                 onChange={(date) => handleInputChange("license_expire_date", date)}
-                                disabled={!editMode}
+                                disabled={!isConsultantEditable}
                                 placeholder="تاریخ انقضا را انتخاب کنید"
                             />
                         </FormField>
@@ -129,7 +213,7 @@ export function Consultant({
                                     onValueChange={(value) => {
                                         handleInputChange("agency_id", value === "none" ? null : parseInt(value));
                                     }}
-                                    disabled={!editMode}
+                                    disabled={!isConsultantEditable}
                                 >
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="انتخاب آژانس (اختیاری)" />
@@ -155,7 +239,7 @@ export function Consultant({
                                 id="specialization"
                                 value={formData.specialization || ""}
                                 onChange={(e) => handleInputChange("specialization", e.target.value)}
-                                disabled={!editMode}
+                                disabled={!isConsultantEditable}
                                 placeholder="مثال: مسکونی، اداری، مشارکت در ساخت"
                             />
                         </FormField>
@@ -170,7 +254,7 @@ export function Consultant({
                                     id="agent_bio"
                                     value={formData.agent_bio || ""}
                                     onChange={(e) => handleInputChange("agent_bio", e.target.value)}
-                                    disabled={!editMode}
+                                    disabled={!isConsultantEditable}
                                     placeholder="توضیحات کوتاهی درباره تجربه و سوابق کاری مشاور..."
                                     rows={4}
                                 />
@@ -191,7 +275,7 @@ export function Consultant({
                                 <Switch
                                     checked={formData.is_verified || false}
                                     onCheckedChange={(checked) => handleInputChange("is_verified", checked)}
-                                    disabled={!editMode}
+                                        disabled={!isConsultantEditable}
                                 />
                             </div>
                         </div>
@@ -217,7 +301,7 @@ export function Consultant({
                                     id="meta_title"
                                     value={formData.meta_title || ""}
                                     onChange={(e) => handleInputChange("meta_title", e.target.value)}
-                                    disabled={!editMode}
+                                    disabled={!isConsultantEditable}
                                     placeholder="عنوان صفحه در گوگل (مثلاً: مشاور املاک - نام مشاور)"
                                     maxLength={70}
                                 />
@@ -232,7 +316,7 @@ export function Consultant({
                                     id="meta_keywords"
                                     value={formData.meta_keywords || ""}
                                     onChange={(e) => handleInputChange("meta_keywords", e.target.value)}
-                                    disabled={!editMode}
+                                    disabled={!isConsultantEditable}
                                     placeholder="کلمات کلیدی با کاما (,) جدا شوند"
                                     maxLength={200}
                                 />
@@ -247,7 +331,7 @@ export function Consultant({
                                     id="meta_description"
                                     value={formData.meta_description || ""}
                                     onChange={(e) => handleInputChange("meta_description", e.target.value)}
-                                    disabled={!editMode}
+                                    disabled={!isConsultantEditable}
                                     placeholder="توضیحات کوتاه برای نمایش در نتایج جستجوی گوگل..."
                                     rows={3}
                                 />
@@ -264,7 +348,7 @@ export function Consultant({
                                             alt="OG Image"
                                             className="object-cover w-full h-full"
                                         />
-                                        {editMode && (
+                                        {isConsultantEditable && (
                                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <Button
                                                     type="button"
@@ -290,8 +374,8 @@ export function Consultant({
                                     </div>
                                 ) : (
                                     <div
-                                        onClick={() => editMode && setIsMediaModalOpen(true)}
-                                        className={`relative flex flex-col items-center justify-center w-full aspect-video p-6 border-2 border-dashed border-amber-1/30 rounded-xl transition-all group ${editMode ? 'cursor-pointer hover:bg-amber-1/5 hover:border-amber-1/50' : 'bg-muted'}`}
+                                        onClick={() => isConsultantEditable && setIsMediaModalOpen(true)}
+                                        className={`relative flex flex-col items-center justify-center w-full aspect-video p-6 border-2 border-dashed border-amber-1/30 rounded-xl transition-all group ${isConsultantEditable ? 'cursor-pointer hover:bg-amber-1/5 hover:border-amber-1/50' : 'bg-muted'}`}
                                     >
                                         <div className="p-4 rounded-full bg-amber-1/10 text-amber-1 group-hover:scale-110 transition-transform">
                                             <UploadCloud className="w-8 h-8" />
@@ -316,7 +400,7 @@ export function Consultant({
                                         id="og_title"
                                         value={formData.og_title || ""}
                                         onChange={(e) => handleInputChange("og_title", e.target.value)}
-                                        disabled={!editMode}
+                                        disabled={!isConsultantEditable}
                                         placeholder="عنوان در زمان اشتراک در تلگرام، واتس‌اپ و..."
                                     />
                                 </FormField>
@@ -330,7 +414,7 @@ export function Consultant({
                                         id="og_description"
                                         value={formData.og_description || ""}
                                         onChange={(e) => handleInputChange("og_description", e.target.value)}
-                                        disabled={!editMode}
+                                        disabled={!isConsultantEditable}
                                         placeholder="توضیحات کوتاه برای اشتراک گذاری در شبکه‌های اجتماعی..."
                                         rows={3}
                                     />
@@ -340,9 +424,8 @@ export function Consultant({
                     </div>
                 </CardWithIcon>
 
-                {editMode && (
+                {isConsultantEditable && (
                     <div className="flex justify-end gap-2 pt-4">
-                        <Button variant="outline" onClick={() => (handleInputChange as any)("cancel", "")}>لغو</Button>
                         <Button onClick={handleSaveProfile} disabled={isSaving}>
                             {isSaving ? "در حال ذخیره..." : "ذخیره تغییرات"}
                         </Button>

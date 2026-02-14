@@ -1,9 +1,9 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { usePropertyColumns } from "@/components/real-estate/properties/list/RealEstateTableColumns";
 import type { PropertyFilters } from "@/types/real_estate/realEstateListParams";
-import { Edit, Trash2, Plus, Eye, FileText } from "lucide-react";
+import { Edit, Trash2, Plus, Eye, FileText, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -25,12 +25,14 @@ import { realEstateApi } from "@/api/real-estate";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { usePropertyListTableState } from "@/components/real-estate/hooks/usePropertyListTableState";
 import { usePropertyListActions } from "@/components/real-estate/hooks/usePropertyListActions";
+import { FinalizeDealDialog } from "@/components/real-estate/properties/view/actions/FinalizeDealDialog";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then((mod) => ({ default: mod.DataTable })));
 
 export default function PropertyPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [finalizeProperty, setFinalizeProperty] = useState<Property | null>(null);
 
   const {
     pagination,
@@ -125,6 +127,13 @@ export default function PropertyPage() {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (property) => navigate(`/real-estate/properties/${property.id}/edit`),
+      permission: "real_estate.property.update",
+    },
+    {
+      label: "نهایی‌سازی معامله",
+      icon: <BadgeCheck className="h-4 w-4" />,
+      onClick: (property) => setFinalizeProperty(property),
+      isDisabled: (property) => property.status === "sold" || property.status === "rented",
       permission: "real_estate.property.update",
     },
     {
@@ -262,6 +271,21 @@ export default function PropertyPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {finalizeProperty ? (
+        <FinalizeDealDialog
+          open={!!finalizeProperty}
+          onOpenChange={(open) => {
+            if (!open) setFinalizeProperty(null);
+          }}
+          property={finalizeProperty}
+          onSuccess={async () => {
+            setFinalizeProperty(null);
+            await queryClient.invalidateQueries({ queryKey: ["properties"] });
+            await queryClient.invalidateQueries({ queryKey: ["property-statistics"] });
+          }}
+        />
+      ) : null}
     </div>
   );
 }

@@ -12,6 +12,7 @@ from src.real_estate.models.property import Property
 from src.real_estate.models.media import PropertyImage, PropertyVideo, PropertyAudio, PropertyDocument
 from src.real_estate.utils.cache import PropertyCacheManager, PropertyCacheKeys
 from src.real_estate.messages.messages import PROPERTY_ERRORS
+from src.real_estate.services.analytics.deals_service import DealsService
 
 logger = logging.getLogger(__name__)
 
@@ -296,6 +297,10 @@ class PropertyAdminService:
             if not validated_data.get('og_description'):
                 validated_data['og_description'] = validated_data.get('meta_description') or property_obj.meta_description
 
+        requested_status = validated_data.get('status')
+        if requested_status in ('sold', 'rented'):
+            raise ValidationError("برای ثبت وضعیت فروخته/اجاره‌رفته باید از عملیات «نهایی‌سازی معامله» استفاده شود.")
+
         with transaction.atomic():
             if province: property_obj.province = province
             if city: property_obj.city = city
@@ -500,6 +505,9 @@ class PropertyAdminService:
         return report_data
 
 class PropertyAdminStatusService:
+
+    _SALE_USAGE_TYPES = {'sale', 'presale', 'exchange', 'mortgage'}
+    _RENT_USAGE_TYPES = {'rent'}
     
     @staticmethod
     def publish_property(property_id):
@@ -556,5 +564,66 @@ class PropertyAdminStatusService:
         PropertyCacheManager.invalidate_property(property_id)
         PropertyCacheManager.invalidate_list()
         
+        return property_obj
+
+    @staticmethod
+    def finalize_deal(
+        property_id,
+        *,
+        deal_type=None,
+        final_amount=None,
+        sale_price=None,
+        pre_sale_price=None,
+        monthly_rent=None,
+        rent_amount=None,
+        security_deposit=None,
+        mortgage_amount=None,
+        contract_date=None,
+        responsible_agent=None,
+        commission=None,
+    ):
+        try:
+            property_obj = Property.objects.select_related('state').get(id=property_id)
+        except Property.DoesNotExist:
+            raise Property.DoesNotExist(PROPERTY_ERRORS["property_not_found"])
+
+        if property_obj.status in ('sold', 'rented') or property_obj.closed_at:
+            raise ValidationError("این ملک قبلاً نهایی شده است.")
+
+        if property_obj.status not in ('active', 'pending'):
+            raise ValidationError("فقط املاک active یا pending قابل نهایی‌سازی هستند.")
+
+        resolved_deal_type = deal_type
+        if not resolved_deal_type:
+            usage_type = getattr(property_obj.state, 'usage_type', None)
+            if usage_type in PropertyAdminStatusService._RENT_USAGE_TYPES:
+                resolved_deal_type = 'rent'
+            elif usage_type in PropertyAdminStatusService._SALE_USAGE_TYPES:
+                resolved_deal_type = 'sale'
+            else:
+                resolved_deal_type = 'sale'
+
+        final_status = 'rented' if resolved_deal_type == 'rent' else 'sold'
+
+        with transaction.atomic():
+            DealsService.process_deal_closure(
+                property_obj,
+                deal_type=resolved_deal_type,
+                closed_status=final_status,
+                contract_date=contract_date,
+                final_amount=final_amount,
+                sale_price=sale_price,
+                pre_sale_price=pre_sale_price,
+                monthly_rent=monthly_rent,
+                rent_amount=rent_amount,
+                security_deposit=security_deposit,
+                mortgage_amount=mortgage_amount,
+                commission=commission,
+                responsible_agent=responsible_agent,
+            )
+
+        property_obj.refresh_from_db()
+        PropertyCacheManager.invalidate_property(property_obj.id)
+        PropertyCacheManager.invalidate_list()
         return property_obj
 

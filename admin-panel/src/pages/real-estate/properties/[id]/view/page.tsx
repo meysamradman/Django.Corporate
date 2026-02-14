@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { RealEstateViewSkeleton } from "@/components/real-estate/properties/view/RealEstateViewSkeleton";
 import { Button } from "@/components/elements/Button";
@@ -30,8 +30,9 @@ export default function PropertyViewPage() {
   const params = useParams();
   const propertyId = params?.id as string;
   const [activeSection, setActiveSection] = useState("gallery");
+  const queryClient = useQueryClient();
 
-  const { data: propertyData, isLoading, error } = useQuery({
+  const { data: propertyData, isLoading, error, refetch } = useQuery({
     queryKey: ["property", propertyId],
     queryFn: () => realEstateApi.getPropertyById(Number(propertyId)),
     staleTime: 0,
@@ -79,6 +80,11 @@ export default function PropertyViewPage() {
         onPrint={() => openPrintWindow([Number(propertyId)], 'detail')}
         onPdf={() => exportSinglePropertyPdf(Number(propertyId))}
         isExportingPdf={isExportingPdf}
+        onFinalized={async () => {
+          await refetch();
+          await queryClient.invalidateQueries({ queryKey: ["properties"] });
+          await queryClient.invalidateQueries({ queryKey: ["property-statistics"] });
+        }}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">

@@ -1,6 +1,8 @@
 from rest_framework import serializers
+from django.db.models import Sum, Avg
 from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.models.agency import RealEstateAgency
+from src.real_estate.models.statistics import AgentStatistics
 from src.core.models import Province, City
 from src.real_estate.messages.messages import AGENT_ERRORS
 from src.media.serializers.media_serializer import MediaAdminSerializer
@@ -59,6 +61,14 @@ class PropertyAgentAdminDetailSerializer(serializers.ModelSerializer):
     province_name = serializers.CharField(source='user.admin_profile.province.name', read_only=True)
     property_count = serializers.IntegerField(read_only=True)
     og_image = MediaAdminSerializer(read_only=True)
+    total_sales_value = serializers.SerializerMethodField()
+    total_commissions = serializers.SerializerMethodField()
+    properties_sold = serializers.SerializerMethodField()
+    properties_rented = serializers.SerializerMethodField()
+    conversion_rate = serializers.SerializerMethodField()
+    avg_deal_time = serializers.SerializerMethodField()
+    lead_to_contract_rate = serializers.SerializerMethodField()
+    failure_rate = serializers.SerializerMethodField()
     
     class Meta:
         model = PropertyAgent
@@ -69,6 +79,8 @@ class PropertyAgentAdminDetailSerializer(serializers.ModelSerializer):
             'province', 'province_name',
             'profile_picture', 'property_count',
             'is_verified', 'rating', 'total_sales', 'total_reviews',
+            'total_sales_value', 'total_commissions', 'properties_sold', 'properties_rented',
+            'conversion_rate', 'avg_deal_time', 'lead_to_contract_rate', 'failure_rate',
             'specialization', 'bio',
             'is_active', 'created_at', 'updated_at',
             'meta_title', 'meta_description', 'og_title', 'og_description',
@@ -89,6 +101,57 @@ class PropertyAgentAdminDetailSerializer(serializers.ModelSerializer):
         except Exception:
             pass
         return None
+
+    def _get_kpi_aggregate(self, obj):
+        cache_key = f"_agent_kpi_{obj.id}"
+        if not hasattr(self, cache_key):
+            setattr(
+                self,
+                cache_key,
+                AgentStatistics.objects.filter(agent=obj).aggregate(
+                    total_sales_value=Sum('total_sales_value'),
+                    total_commissions=Sum('total_commissions'),
+                    properties_sold=Sum('properties_sold'),
+                    properties_rented=Sum('properties_rented'),
+                    conversion_rate=Avg('conversion_rate'),
+                    avg_deal_time=Avg('avg_deal_time'),
+                    lead_to_contract_rate=Avg('lead_to_contract_rate'),
+                    failure_rate=Avg('failure_rate'),
+                )
+            )
+        return getattr(self, cache_key)
+
+    def get_total_sales_value(self, obj):
+        value = self._get_kpi_aggregate(obj).get('total_sales_value')
+        return int(value or 0)
+
+    def get_total_commissions(self, obj):
+        value = self._get_kpi_aggregate(obj).get('total_commissions')
+        return int(value or 0)
+
+    def get_properties_sold(self, obj):
+        value = self._get_kpi_aggregate(obj).get('properties_sold')
+        return int(value or 0)
+
+    def get_properties_rented(self, obj):
+        value = self._get_kpi_aggregate(obj).get('properties_rented')
+        return int(value or 0)
+
+    def get_conversion_rate(self, obj):
+        value = self._get_kpi_aggregate(obj).get('conversion_rate')
+        return round(float(value or 0), 2)
+
+    def get_avg_deal_time(self, obj):
+        value = self._get_kpi_aggregate(obj).get('avg_deal_time')
+        return int(round(float(value or 0)))
+
+    def get_lead_to_contract_rate(self, obj):
+        value = self._get_kpi_aggregate(obj).get('lead_to_contract_rate')
+        return round(float(value or 0), 2)
+
+    def get_failure_rate(self, obj):
+        value = self._get_kpi_aggregate(obj).get('failure_rate')
+        return round(float(value or 0), 2)
 
 class PropertyAgentAdminCreateSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(write_only=True)

@@ -1,4 +1,5 @@
 from rest_framework import viewsets, status, filters
+from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from django.core.exceptions import ValidationError
@@ -12,6 +13,7 @@ from src.core.pagination import StandardLimitPagination
 from src.user.access_control import real_estate_permission, PermissionRequiredMixin
 
 from src.real_estate.models.property import Property
+from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.serializers.admin import (
     PropertyAdminListSerializer,
     PropertyAdminDetailSerializer,
@@ -36,6 +38,31 @@ from src.real_estate.services.admin import (
 )
 from src.real_estate.utils.cache import PropertyCacheManager
 from src.real_estate.messages.messages import PROPERTY_SUCCESS, PROPERTY_ERRORS
+from src.real_estate.models.constants import LISTING_TYPE_CHOICES
+
+
+class PropertyFinalizeDealSerializer(serializers.Serializer):
+    _DEAL_TYPE_CHOICES = tuple(
+        (code, label)
+        for code, label in LISTING_TYPE_CHOICES.items()
+        if code != 'other'
+    )
+
+    deal_type = serializers.ChoiceField(choices=_DEAL_TYPE_CHOICES, required=False)
+    final_amount = serializers.IntegerField(required=False, allow_null=True, min_value=0)
+    sale_price = serializers.IntegerField(required=False, allow_null=True, min_value=0)
+    pre_sale_price = serializers.IntegerField(required=False, allow_null=True, min_value=0)
+    monthly_rent = serializers.IntegerField(required=False, allow_null=True, min_value=0)
+    rent_amount = serializers.IntegerField(required=False, allow_null=True, min_value=0)
+    security_deposit = serializers.IntegerField(required=False, allow_null=True, min_value=0)
+    mortgage_amount = serializers.IntegerField(required=False, allow_null=True, min_value=0)
+    contract_date = serializers.DateField(required=False, allow_null=True)
+    responsible_agent = serializers.PrimaryKeyRelatedField(
+        required=False,
+        allow_null=True,
+        queryset=PropertyAgent.objects.all(),
+    )
+    commission = serializers.IntegerField(required=False, allow_null=True, min_value=0)
 
 class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
@@ -67,6 +94,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         'publish': 'real_estate.property.update',
         'unpublish': 'real_estate.property.update',
         'toggle_featured': 'real_estate.property.update',
+        'finalize_deal': 'real_estate.property.update',
         'set_main_image': 'real_estate.property.update',
         'add_media': 'real_estate.property.update',
         'remove_media': 'real_estate.property.update',
@@ -464,6 +492,44 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
 
+    @action(detail=True, methods=['post'], url_path='finalize-deal')
+    def finalize_deal(self, request, pk=None):
+        serializer = PropertyFinalizeDealSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            property_obj = PropertyAdminStatusService.finalize_deal(
+                pk,
+                deal_type=serializer.validated_data.get('deal_type'),
+                final_amount=serializer.validated_data.get('final_amount'),
+                sale_price=serializer.validated_data.get('sale_price'),
+                pre_sale_price=serializer.validated_data.get('pre_sale_price'),
+                monthly_rent=serializer.validated_data.get('monthly_rent'),
+                rent_amount=serializer.validated_data.get('rent_amount'),
+                security_deposit=serializer.validated_data.get('security_deposit'),
+                mortgage_amount=serializer.validated_data.get('mortgage_amount'),
+                contract_date=serializer.validated_data.get('contract_date'),
+                responsible_agent=serializer.validated_data.get('responsible_agent'),
+                commission=serializer.validated_data.get('commission'),
+            )
+            detail_serializer = PropertyAdminDetailSerializer(property_obj, context={'request': request})
+
+            return APIResponse.success(
+                message="معامله ملک با موفقیت نهایی شد.",
+                data=detail_serializer.data,
+                status_code=status.HTTP_200_OK,
+            )
+        except Property.DoesNotExist:
+            return APIResponse.error(
+                message=PROPERTY_ERRORS["property_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+        except ValidationError as exc:
+            return APIResponse.error(
+                message=str(exc),
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+
     @action(detail=True, methods=['post'])
     def set_main_image(self, request, pk=None):
         media_id = request.data.get('media_id')
@@ -722,6 +788,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         
         from src.real_estate.models.property import Property
         from src.real_estate.models.constants import (
+            get_listing_type_choices_list,
             get_document_type_choices_list,
             get_space_type_choices_list,
             get_construction_status_choices_list,
@@ -741,6 +808,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             'kitchens': Property.KITCHEN_CHOICES,
             'living_rooms': Property.LIVING_ROOM_CHOICES,
             'status': get_property_status_choices_list(),
+            'listing_type': get_listing_type_choices_list(),
             
             'document_type': get_document_type_choices_list(),
             
