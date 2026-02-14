@@ -74,17 +74,20 @@ class AIContentGenerationService:
                     provider=provider_model,
                     is_active=True
                 )
-                
-                api_key = settings.get_personal_api_key()
-                if not api_key or not api_key.strip():
-                    api_key = provider_model.get_shared_api_key()
-                    if not api_key or not api_key.strip():
-                        raise ValueError(AI_ERRORS["shared_api_key_not_set"].format(provider_name=provider_name))
+
+                # Scenario: source is selected by admin (personal/shared) via use_shared_api.
+                api_key = settings.get_api_key()
                     
             except AdminProviderSettings.DoesNotExist:
+                is_super = getattr(admin, 'is_superuser', False) or getattr(admin, 'is_admin_full', False)
+                if not is_super and not provider_model.allow_shared_for_normal_admins:
+                    raise ValueError(AI_ERRORS["api_key_required"])
+
                 api_key = provider_model.get_shared_api_key()
                 if not api_key or not api_key.strip():
                     raise ValueError(AI_ERRORS["shared_api_key_not_set"].format(provider_name=provider_name))
+            except ValidationError as exc:
+                raise ValueError(str(exc))
         else:
             api_key = provider_model.get_shared_api_key()
             if not api_key or not api_key.strip():

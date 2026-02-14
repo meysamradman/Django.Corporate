@@ -11,6 +11,7 @@ import hashlib
 
 from src.core.models.base import BaseModel
 from src.ai.utils.cache import AICacheKeys, AICacheManager
+from src.ai.messages.messages import AI_ERRORS
 
 class EncryptedAPIKeyMixin:
 
@@ -709,26 +710,25 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
         return self.decrypt_key(self.personal_api_key)
     
     def get_api_key(self) -> str:
-        
+        # Scenario: switch decides source. shared key value is managed by super admin only.
+        is_super = getattr(self.admin, 'is_superuser', False) or getattr(self.admin, 'is_admin_full', False)
+
+        if self.use_shared_api:
+            if not is_super and not self.provider.allow_shared_for_normal_admins:
+                raise ValidationError(AI_ERRORS['settings_not_authorized'])
+
+            shared_key = self.provider.get_shared_api_key()
+            if not shared_key or not shared_key.strip():
+                raise ValidationError(
+                    AI_ERRORS['shared_api_key_not_set'].format(provider_name=self.provider.display_name)
+                )
+            return shared_key
+
         personal_key = self.get_personal_api_key()
         if personal_key and personal_key.strip():
             return personal_key
-        
-        is_super = getattr(self.admin, 'is_superuser', False) or getattr(self.admin, 'is_admin_full', False)
-        
-        if not is_super:
-            if not self.provider.allow_shared_for_normal_admins:
-                raise ValidationError(
-                    f"Shared API is not allowed for {self.provider.display_name}."
-                )
-        
-        shared_key = self.provider.get_shared_api_key()
-        if not shared_key or not shared_key.strip():
-            raise ValidationError(
-                f"API key is not set for {self.provider.display_name}. Please set either personal or shared API key."
-            )
-        
-        return shared_key
+
+        raise ValidationError(AI_ERRORS['api_key_required'])
     
     def increment_usage(self):
         self.total_requests += 1

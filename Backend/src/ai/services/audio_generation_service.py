@@ -2,6 +2,7 @@ import asyncio
 import time
 from typing import Optional, Dict, Any
 from io import BytesIO
+from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 import tempfile
@@ -49,11 +50,14 @@ class AIAudioGenerationService:
                     provider=provider,
                     is_active=True
                 )
-                
-                if not settings.use_shared_api and settings.personal_api_key:
-                    return settings.get_personal_api_key(), provider.config or {}
+                # Scenario: use_shared_api switch controls source for admin user.
+                return settings.get_api_key(), provider.config or {}
             except AdminProviderSettings.DoesNotExist:
-                pass
+                is_super = getattr(admin, 'is_superuser', False) or getattr(admin, 'is_admin_full', False)
+                if not is_super and not provider.allow_shared_for_normal_admins:
+                    raise ValueError(AI_ERRORS["api_key_required"])
+            except ValidationError as exc:
+                raise ValueError(str(exc))
 
         if not provider.shared_api_key:
             raise ValueError(AI_ERRORS["api_key_required"])

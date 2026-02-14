@@ -76,7 +76,7 @@ export default function AISettingsPage() {
           }}
           className="space-y-4"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4">
             {filteredProviders.map((provider) => {
               const isExpanded = expandedProviders.includes(provider.id);
               const setting = personalSettingsMap[provider.id];

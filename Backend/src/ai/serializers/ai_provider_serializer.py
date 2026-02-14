@@ -230,15 +230,6 @@ class AdminProviderSettingsUpdateSerializer(serializers.ModelSerializer):
     
     def get_fields(self):
         fields = super().get_fields()
-        request = self.context.get('request')
-        
-        if request and request.user:
-            is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
-            
-            if not is_super:
-                if 'use_shared_api' in fields:
-                    fields['use_shared_api'].read_only = True
-        
         return fields
     
     def validate(self, attrs):
@@ -253,10 +244,40 @@ class AdminProviderSettingsUpdateSerializer(serializers.ModelSerializer):
                     'provider_name': AI_ERRORS['provider_not_found_or_inactive']
                 })
             attrs.pop('provider_name')
-        
+
         if 'api_key' in attrs and 'personal_api_key' not in attrs:
             attrs['personal_api_key'] = attrs.pop('api_key')
-        
+
+        request = self.context.get('request')
+        if not request or not getattr(request, 'user', None):
+            return attrs
+
+        user = request.user
+        is_super = getattr(user, 'is_superuser', False) or getattr(user, 'is_admin_full', False)
+
+        provider = None
+        provider_id = attrs.get('provider_id')
+        if provider_id:
+            try:
+                provider = AIProvider.objects.get(pk=provider_id)
+            except AIProvider.DoesNotExist:
+                raise serializers.ValidationError({'provider_id': AI_ERRORS['provider_not_found_or_inactive']})
+        elif self.instance is not None:
+            provider = self.instance.provider
+
+        if provider is None:
+            return attrs
+
+        use_shared_api = attrs.get('use_shared_api')
+        if use_shared_api is None and self.instance is not None:
+            use_shared_api = self.instance.use_shared_api
+
+        if not is_super and bool(use_shared_api):
+            if not provider.allow_shared_for_normal_admins:
+                raise serializers.ValidationError({'use_shared_api': AI_ERRORS['settings_not_authorized']})
+            if not provider.shared_api_key:
+                raise serializers.ValidationError({'use_shared_api': AI_ERRORS['provider_not_found_or_inactive']})
+
         return attrs
     
     def validate_provider_id(self, value):
@@ -266,3 +287,4 @@ class AdminProviderSettingsUpdateSerializer(serializers.ModelSerializer):
             except AIProvider.DoesNotExist:
                 raise serializers.ValidationError(AI_ERRORS['provider_not_found_or_inactive'])
         return value
+

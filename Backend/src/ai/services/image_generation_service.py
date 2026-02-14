@@ -2,6 +2,7 @@ import asyncio
 import time
 from typing import Optional, Dict, Any
 from io import BytesIO
+from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 import tempfile
@@ -110,23 +111,26 @@ class AIImageGenerationService:
                     provider=provider,
                     is_active=True
                 ).first()
-                
-                admin_id = getattr(admin, 'id', 'unknown')
+
                 if settings:
-                    api_key = settings.get_personal_api_key()
-                    if not api_key or not api_key.strip():
-                        api_key = provider.get_shared_api_key()
-                        if not api_key or not api_key.strip():
-                            raise ValueError(AI_ERRORS["api_key_not_set"].format(provider_name=provider_name))
-                    api_type = 'PERSONAL' if (settings.get_personal_api_key() and settings.get_personal_api_key().strip()) else 'SHARED'
+                    # Scenario: admin-selected source is enforced by settings.get_api_key().
+                    api_key = settings.get_api_key()
                 else:
+                    is_super = getattr(admin, 'is_superuser', False) or getattr(admin, 'is_admin_full', False)
+                    if not is_super and not provider.allow_shared_for_normal_admins:
+                        raise ValueError(AI_ERRORS["api_key_required"])
+
                     api_key = provider.get_shared_api_key()
-                
+                    if not api_key or not api_key.strip():
+                        raise ValueError(AI_ERRORS["shared_api_key_not_set"].format(provider_name=provider.display_name))
+
                 config = provider.config or {}
                 if model_name:
                     config['model'] = model_name
             except AIProvider.DoesNotExist:
                 raise ValueError(AI_ERRORS["provider_not_found_or_inactive"].format(provider_name=provider_name))
+            except ValidationError as exc:
+                raise ValueError(str(exc))
         else:
             try:
                 provider = AIProvider.objects.get(slug=provider_name, is_active=True)
@@ -190,9 +194,17 @@ class AIImageGenerationService:
             ).first()
             
             if settings:
-                api_key = settings.get_api_key()
+                try:
+                    api_key = settings.get_api_key()
+                except ValidationError as exc:
+                    raise ValueError(str(exc))
             else:
+                is_super = getattr(admin, 'is_superuser', False) or getattr(admin, 'is_admin_full', False)
+                if not is_super and not provider.allow_shared_for_normal_admins:
+                    raise ValueError(AI_ERRORS["api_key_required"])
                 api_key = provider.get_shared_api_key()
+                if not api_key or not api_key.strip():
+                    raise ValueError(AI_ERRORS["shared_api_key_not_set"].format(provider_name=provider.display_name))
         else:
             api_key = provider.get_shared_api_key()
         

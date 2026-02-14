@@ -152,7 +152,7 @@ export function useAISettings() {
         frontendIds.forEach((frontendId) => {
           map[frontendId] = {
             id: setting.id,
-            use_shared_api: setting.use_shared_api ?? true,
+            use_shared_api: setting.use_shared_api ?? false,
             api_key: setting.personal_api_key_value || '',
             backend_name: backendProviderSlug,
             is_active: setting.is_active ?? false,
@@ -209,9 +209,9 @@ export function useAISettings() {
   const getUseSharedApi = (providerId: string): boolean => {
     const setting = personalSettingsMap[providerId];
     if (!setting) {
-      return true;
+      return false;
     }
-    return setting.use_shared_api ?? true;
+    return setting.use_shared_api ?? false;
   };
 
   return {

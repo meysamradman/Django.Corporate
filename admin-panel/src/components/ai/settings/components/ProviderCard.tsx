@@ -213,7 +213,7 @@ export function ProviderCard({
     };
 
     return (
-      <div className="p-4 bg-gradient-to-br from-bg/50 to-bg/30 rounded-lg border border-br hover:border-primary/30 transition-all">
+      <div className="p-4 bg-linear-to-br from-bg/50 to-bg/30 rounded-lg border border-br hover:border-primary/30 transition-all">
         <div className="flex items-center gap-2 mb-3">
           <div className={`p-1.5 rounded-lg ${iconColor}`}>
             <Icon className="h-4 w-4" />
@@ -223,7 +223,7 @@ export function ProviderCard({
             <p className="text-xs text-font-s mt-0.5 truncate">{description}</p>
           </div>
           {hasStoredApiKey && (
-            <Badge variant="green" className="text-xs h-5 px-2 flex-shrink-0">
+            <Badge variant="green" className="text-xs h-5 px-2 shrink-0">
               <CheckCircle2 className="h-3 w-3 mr-1" />
               ذخیره شده
             </Badge>
@@ -406,7 +406,7 @@ export function ProviderCard({
       {!hasModels && (
         <div className="p-3 bg-amber/10 border border-amber/20 rounded-lg">
           <div className="flex items-start gap-2">
-            <Sparkles className="h-4 w-4 text-amber-1 mt-0.5 flex-shrink-0" />
+            <Sparkles className="h-4 w-4 text-amber-1 mt-0.5 shrink-0" />
             <div className="flex-1">
               <p className="text-xs font-semibold text-amber-1 mb-1">
                 این Provider هنوز مدل فعالی ندارد
@@ -419,9 +419,9 @@ export function ProviderCard({
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
         {onToggleActive && (
-          <div className="p-3 bg-gradient-to-r from-bg/80 to-bg/40 rounded-lg border border-br">
+          <div className="p-3 bg-linear-to-r from-bg/80 to-bg/40 rounded-lg border border-br">
             <div className="flex items-center justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <Label className="text-sm font-semibold block text-font-p truncate">وضعیت</Label>
@@ -429,14 +429,14 @@ export function ProviderCard({
                   {isActive ? '✅ فعال' : '❌ غیرفعال'}
                 </p>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 <Switch
                   checked={isActive}
                   onCheckedChange={onToggleActive}
                   disabled={isSaving}
                   className="scale-90"
                 />
-                <Badge variant={isActive ? "green" : "gray"} className="text-xs min-w-[50px] text-center">
+                <Badge variant={isActive ? "green" : "gray"} className="text-xs text-center whitespace-nowrap">
                   {isActive ? 'فعال' : 'غیرفعال'}
                 </Badge>
               </div>
@@ -445,7 +445,7 @@ export function ProviderCard({
         )}
 
         {canUseSharedApi && (
-          <div className="p-3 bg-gradient-to-r from-bg/80 to-bg/40 rounded-lg border border-br">
+          <div className="p-3 bg-linear-to-r from-bg/80 to-bg/40 rounded-lg border border-br">
             <div className="flex items-center justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <Label className="text-sm font-semibold block text-font-p truncate">نوع API Key</Label>
@@ -453,7 +453,7 @@ export function ProviderCard({
                   {useSharedApi ? 'API مشترک' : 'API شخصی'}
                 </p>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 <Switch
                   checked={useSharedApi}
                   onCheckedChange={onToggleUseSharedApi}
@@ -465,7 +465,7 @@ export function ProviderCard({
                 />
                 <Badge
                   variant={useSharedApi ? "default" : "outline"}
-                  className={`text-xs min-w-[50px] text-center ${useSharedApi ? 'bg-blue/10 text-blue-1 border-blue/20' : 'bg-purple/10 text-purple-1 border-purple/20'}`}
+                  className={`text-xs text-center whitespace-nowrap ${useSharedApi ? 'bg-blue/10 text-blue-1 border-blue/20' : 'bg-purple/10 text-purple-1 border-purple/20'}`}
                 >
                   {useSharedApi ? 'مشترک' : 'شخصی'}
                 </Badge>
@@ -478,19 +478,19 @@ export function ProviderCard({
       <div className="space-y-3">
         {isSuperAdmin && canUseSharedApi ? (
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'shared' | 'personal')} className="w-full">
-            <TabsList className="w-full justify-start gap-4">
-              <TabsTrigger value="shared" className="gap-2">
+            <TabsList className="w-full grid grid-cols-2 gap-2 h-auto">
+              <TabsTrigger value="shared" className="gap-2 w-full whitespace-nowrap">
                 <Users className="h-4 w-4" />
                 API مشترک
                 {currentHasStoredSharedApiKey && (
-                  <Badge variant="green" className="text-xs h-4 px-1.5">ذخیره شده</Badge>
+                  <Badge variant="green" className="text-xs h-4 px-1.5 hidden sm:inline-flex">ذخیره شده</Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="personal" className="gap-2">
+              <TabsTrigger value="personal" className="gap-2 w-full whitespace-nowrap">
                 <User className="h-4 w-4" />
                 API شخصی
                 {currentHasStoredPersonalApiKey && (
-                  <Badge variant="green" className="text-xs h-4 px-1.5">ذخیره شده</Badge>
+                  <Badge variant="green" className="text-xs h-4 px-1.5 hidden sm:inline-flex">ذخیره شده</Badge>
                 )}
               </TabsTrigger>
             </TabsList>
@@ -561,7 +561,7 @@ export function ProviderCard({
             {!isSuperAdmin && useSharedApi && !currentHasStoredPersonalApiKey && (
               <div className="p-3 bg-blue/10 border border-blue/20 rounded-lg mt-3">
                 <div className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-blue-1 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 text-blue-1 mt-0.5 shrink-0" />
                   <p className="text-xs text-font-s">
                     ✅ از API مشترک استفاده می‌شود. نیازی به وارد کردن API key شخصی نیست.
                   </p>
