@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Loader } from "@/components/elements/Loader";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/elements/Card";
 import { cn } from "@/core/utils/cn";
 
 export interface CardListLayoutProps {
@@ -47,38 +48,49 @@ export function CardListLayout({
                 {headerActions}
             </PageHeader>
 
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-2">
-                <div className="flex items-center gap-3 flex-wrap flex-1 justify-start">
-                    {filters}
-                </div>
+            <Card className="gap-0 shadow-sm border">
+                <CardHeader className="border-b py-4 px-5">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 flex-wrap flex-1 justify-start">
+                            {filters}
+                        </div>
 
-                {stats && (
-                    <div className="text-sm font-medium text-font-p whitespace-nowrap">
-                        {stats}
-                    </div>
-                )}
-            </div>
-
-            <div className={cn("min-h-[400px] relative", contentClassName)}>
-                {isLoading ? (
-                    <div className="flex items-center justify-center py-24">
-                        <Loader />
-                    </div>
-                ) : isEmpty ? (
-                    <div className="text-center py-24 bg-card rounded-xl border border-dashed border-br">
-                        <p className="text-font-s">{emptyMessage}</p>
-                    </div>
-                ) : (
-                    <>
-                        {children}
-                        {pagination && (
-                            <div className="mt-8">
-                                {pagination}
+                        {stats && (
+                            <div className="text-sm font-semibold text-font-p whitespace-nowrap">
+                                {stats}
                             </div>
                         )}
-                    </>
+                    </div>
+                </CardHeader>
+
+                <CardContent className={cn("py-4 px-4 bg-bg", contentClassName)}>
+                    <div className="relative rounded-lg bg-bg p-2 sm:p-3">
+                        <div className="relative">
+                        {isLoading ? (
+                            <div className="flex items-center justify-center py-24">
+                                <Loader />
+                            </div>
+                        ) : isEmpty ? (
+                            <div className="text-center py-24 bg-card rounded-xl border border-dashed border-br">
+                                <p className="text-font-s">{emptyMessage}</p>
+                            </div>
+                        ) : (
+                            <>
+                                {children}
+                            </>
+                        )}
+                        </div>
+                    </div>
+                </CardContent>
+
+                {pagination && !isLoading && !isEmpty && (
+                    <CardFooter className="border-t py-3 px-4">
+                        <div className="w-full">
+                            {pagination}
+                        </div>
+                    </CardFooter>
                 )}
-            </div>
+            </Card>
         </div>
     );
 }

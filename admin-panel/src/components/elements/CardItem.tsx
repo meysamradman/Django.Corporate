@@ -84,7 +84,7 @@ function CardItemComponent<T = any>({
   return (
     <Card
       className={cn(
-        "bg-wt rounded-lg shadow-sm border-0",
+        "bg-wt rounded-lg shadow-sm border border-br",
         onClick && "cursor-pointer hover:shadow-md transition-shadow",
         className
       )}
@@ -117,7 +117,7 @@ function CardItemComponent<T = any>({
                   <MoreVertical className="size-4 text-font-s" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[160px]">
+              <DropdownMenuContent align="end" className="w-40">
                 {availableActions.map((action, index) => {
                   const labelText =
                     typeof action.label === "function"
@@ -169,7 +169,7 @@ function CardItemComponent<T = any>({
         <h3 className="text-lg font-bold text-font-p mb-4">{titleText}</h3>
 
         {(content || footer) && (
-          <div className="bg-bg rounded-lg w-full p-4 flex flex-col justify-between min-h-[140px]">
+          <div className="bg-bg rounded-lg w-full p-4 flex flex-col justify-between min-h-35">
             {content && (
               <div>
                 {typeof content === "function" ? content(item) : content}
