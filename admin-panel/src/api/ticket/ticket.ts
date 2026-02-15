@@ -1,4 +1,5 @@
 import { api } from '@/core/config/api';
+import { ApiError } from '@/types/api/apiError';
 import type { PaginatedResponse, ApiPagination } from "@/types/shared/pagination";
 import { convertToLimitOffset } from '@/components/shared/paginations/pagination';
 import type {
@@ -13,6 +14,22 @@ import type {
 class TicketApi {
   private baseUrl = '/admin/tickets/';
   private messageBaseUrl = '/admin/ticket-messages/';
+
+  private ensureSuccess<T>(response: { metaData?: { status?: string; message?: string; AppStatusCode?: number }; errors?: Record<string, string[]> | null; data: T }): T {
+    if (response.metaData?.status === 'success') {
+      return response.data;
+    }
+
+    throw new ApiError({
+      response: {
+        AppStatusCode: response.metaData?.AppStatusCode || 400,
+        _data: response,
+        ok: false,
+        message: response.metaData?.message || 'Operation failed',
+        errors: response.errors || null,
+      },
+    });
+  }
 
   async getList(params: TicketListParams = {}): Promise<PaginatedResponse<Ticket>> {
     const { limit, offset } = convertToLimitOffset(params.page || 1, params.size || 10);
@@ -34,10 +51,7 @@ class TicketApi {
       : `${this.baseUrl}/?${queryParams.toString()}`;
 
     const response = await api.get<Ticket[]>(baseUrlWithQuery);
-
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'Error fetching tickets');
-    }
+    const data = this.ensureSuccess(response);
 
     const pagination: ApiPagination = {
       count: response.pagination?.count || (Array.isArray(response.data) ? response.data.length : 0),
@@ -49,7 +63,7 @@ class TicketApi {
     };
 
     return {
-      data: Array.isArray(response.data) ? response.data : [],
+      data: Array.isArray(data) ? data : [],
       pagination,
     };
   }
@@ -58,12 +72,7 @@ class TicketApi {
     const response = await api.get<Ticket>(
       `${this.baseUrl}${id}/`
     );
-
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'Error fetching ticket');
-    }
-
-    return response.data;
+    return this.ensureSuccess(response);
   }
 
   async create(data: TicketCreate): Promise<Ticket> {
@@ -71,12 +80,7 @@ class TicketApi {
       `${this.baseUrl}`,
       data as unknown as Record<string, unknown>
     );
-
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'Error creating ticket');
-    }
-
-    return response.data;
+    return this.ensureSuccess(response);
   }
 
   async update(id: number | string, data: TicketUpdate): Promise<Ticket> {
@@ -84,22 +88,14 @@ class TicketApi {
       `${this.baseUrl}${id}/`,
       data as unknown as Record<string, unknown>
     );
-
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'Error updating ticket');
-    }
-
-    return response.data;
+    return this.ensureSuccess(response);
   }
 
   async delete(id: number | string): Promise<void> {
     const response = await api.delete<void>(
       `${this.baseUrl}${id}/`
     );
-
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'Error deleting ticket');
-    }
+    this.ensureSuccess(response);
   }
 
   async assign(id: number | string, adminId: number | null): Promise<Ticket> {
@@ -107,12 +103,7 @@ class TicketApi {
       `${this.baseUrl}${id}/assign/`,
       { admin_id: adminId } as unknown as Record<string, unknown>
     );
-
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'Error assigning ticket');
-    }
-
-    return response.data;
+    return this.ensureSuccess(response);
   }
 
   async updateStatus(id: number | string, status: Ticket['status']): Promise<Ticket> {
@@ -120,24 +111,15 @@ class TicketApi {
       `${this.baseUrl}${id}/update_status/`,
       { status } as unknown as Record<string, unknown>
     );
-
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'Error updating ticket status');
-    }
-
-    return response.data;
+    return this.ensureSuccess(response);
   }
 
   async getMessages(ticketId: number | string): Promise<TicketMessage[]> {
     const response = await api.get<TicketMessage[]>(
       `${this.messageBaseUrl}?ticket_id=${ticketId}`
     );
-
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'Error fetching messages');
-    }
-
-    return Array.isArray(response.data) ? response.data : [];
+    const data = this.ensureSuccess(response);
+    return Array.isArray(data) ? data : [];
   }
 
   async createMessage(data: TicketMessageCreate): Promise<TicketMessage> {
@@ -145,36 +127,21 @@ class TicketApi {
       `${this.messageBaseUrl}`,
       data as unknown as Record<string, unknown>
     );
-
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'Error creating message');
-    }
-
-    return response.data;
+    return this.ensureSuccess(response);
   }
 
   async markMessageRead(messageId: number | string): Promise<TicketMessage> {
     const response = await api.post<TicketMessage>(
       `${this.messageBaseUrl}${messageId}/mark_read/`
     );
-
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'Error marking message as read');
-    }
-
-    return response.data;
+    return this.ensureSuccess(response);
   }
 
   async markTicketAsRead(ticketId: number | string): Promise<Ticket> {
     const response = await api.post<Ticket>(
       `${this.baseUrl}${ticketId}/mark_as_read/`
     );
-
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'Error marking ticket as read');
-    }
-
-    return response.data;
+    return this.ensureSuccess(response);
   }
 }
 

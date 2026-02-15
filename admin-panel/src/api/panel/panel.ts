@@ -1,21 +1,23 @@
 import { api } from '@/core/config/api';
 import type { ApiResponse } from '@/types/api/apiResponse';
+import { ApiError } from '@/types/api/apiError';
 import type { PanelSettings } from '@/types/settings/panelSettings';
 import { showSuccess, showError } from '@/core/toast';
 import { env } from '@/core/config/environment';
 
 const BASE_URL = '/admin/panel-settings';
 
-export const getPanelSettings = async (options?: Record<string, unknown>): Promise<PanelSettings> => {
-    try {
-        const response = await api.get<PanelSettings>(`${BASE_URL}/`, options);
-        if (!response || !response.data) {
-            throw new Error("API response missing panel settings data.");
-        }
+const requireResponseData = <T>(response: { data?: T }, message: string): T => {
+    if (response && response.data !== undefined && response.data !== null) {
         return response.data;
-    } catch {
-        throw new Error("Failed to fetch panel settings");
     }
+
+    throw ApiError.fromMessage(message, 500, response);
+};
+
+export const getPanelSettings = async (options?: Record<string, unknown>): Promise<PanelSettings> => {
+    const response = await api.get<PanelSettings>(`${BASE_URL}/`, options);
+    return requireResponseData(response, 'API response missing panel settings data.');
 };
 
 export const updatePanelSettings = async (data: FormData | PanelSettings): Promise<ApiResponse<PanelSettings>> => {
@@ -92,13 +94,6 @@ export const downloadDatabaseExport = async (): Promise<void> => {
 };
 
 export const getDatabaseExportInfo = async (): Promise<{ size: string; table_count: number; top_tables: { name: string; size: string }[] }> => {
-    try {
-        const response = await api.get<{ size: string; table_count: number; top_tables: { name: string; size: string }[] }>(`${BASE_URL}/database-export/info/`);
-        if (!response || !response.data) {
-            throw new Error("API response missing database info.");
-        }
-        return response.data;
-    } catch {
-        throw new Error("Failed to fetch database export info");
-    }
+    const response = await api.get<{ size: string; table_count: number; top_tables: { name: string; size: string }[] }>(`${BASE_URL}/database-export/info/`);
+    return requireResponseData(response, 'API response missing database info.');
 };

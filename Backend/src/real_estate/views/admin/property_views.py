@@ -375,6 +375,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         if not property_ids:
             return APIResponse.error(
                 message=PROPERTY_ERRORS["property_ids_required"],
+                errors={'ids': [PROPERTY_ERRORS["property_ids_required"]]},
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
@@ -386,15 +387,9 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            error_msg = extract_validation_message(e, "")
-            if "not found" in error_msg.lower():
-                message = PROPERTY_ERRORS["properties_not_found"]
-            elif "required" in error_msg.lower():
-                message = PROPERTY_ERRORS["property_ids_required"]
-            else:
-                message = PROPERTY_ERRORS["property_delete_failed"]
             return APIResponse.error(
-                message=message,
+                message=extract_validation_message(e, PROPERTY_ERRORS["property_delete_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -494,9 +489,10 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='finalize-deal')
     def finalize_deal(self, request, pk=None):
         serializer = PropertyFinalizeDealSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
 
         try:
+            serializer.is_valid(raise_exception=True)
+
             property_obj = PropertyAdminStatusService.finalize_deal(
                 pk,
                 deal_type=serializer.validated_data.get('deal_type'),
@@ -514,7 +510,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             detail_serializer = PropertyAdminDetailSerializer(property_obj, context={'request': request})
 
             return APIResponse.success(
-                message="معامله ملک با موفقیت نهایی شد.",
+                message=PROPERTY_SUCCESS["property_deal_finalized"],
                 data=detail_serializer.data,
                 status_code=status.HTTP_200_OK,
             )
@@ -523,9 +519,10 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=PROPERTY_ERRORS["property_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND,
             )
-        except ValidationError as exc:
+        except (DRFValidationError, ValidationError) as exc:
             return APIResponse.error(
                 message=extract_validation_message(exc, PROPERTY_ERRORS["property_update_failed"]),
+                errors=normalize_validation_error(exc),
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -536,6 +533,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         if not media_id:
             return APIResponse.error(
                 message=PROPERTY_ERRORS["media_id_required"],
+                errors={'media_id': [PROPERTY_ERRORS["media_id_required"]]},
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
@@ -555,9 +553,10 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=PROPERTY_ERRORS["property_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except Exception as e:
+        except ValidationError as e:
             return APIResponse.error(
                 message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -569,34 +568,42 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         
         media_files = request.FILES.getlist('media_files')
         serializer = PropertyMediaSerializer(data=request.data.copy())
-        serializer.is_valid(raise_exception=True)
-        
-        media_ids = serializer.validated_data.get('media_ids', [])
-        if not media_ids and not media_files:
-            raise DRFValidationError({
-                'non_field_errors': ['At least one of media_ids or media_files must be provided.']
-            })
-        
-        upload_max = settings.PROPERTY_MEDIA_UPLOAD_MAX if hasattr(settings, 'PROPERTY_MEDIA_UPLOAD_MAX') else 20
-        total_media = len(media_ids) + len(media_files)
-        if total_media > upload_max:
-            raise DRFValidationError({
-                'non_field_errors': [
-                    PROPERTY_ERRORS["media_upload_limit_exceeded"].format(max_items=upload_max, total_items=total_media)
-                ]
-            })
-        
-        result = PropertyAdminMediaService.add_media_bulk(
-            property_id=pk,
-            media_files=media_files,
-            media_ids=media_ids,
-            created_by=request.user
-        )
-        return APIResponse.success(
-            message=PROPERTY_SUCCESS["property_media_added"],
-            data=result,
-            status_code=status.HTTP_200_OK
-        )
+
+        try:
+            serializer.is_valid(raise_exception=True)
+
+            media_ids = serializer.validated_data.get('media_ids', [])
+            if not media_ids and not media_files:
+                raise DRFValidationError({
+                    'non_field_errors': [PROPERTY_ERRORS["media_ids_or_files_required"]]
+                })
+
+            upload_max = settings.PROPERTY_MEDIA_UPLOAD_MAX if hasattr(settings, 'PROPERTY_MEDIA_UPLOAD_MAX') else 20
+            total_media = len(media_ids) + len(media_files)
+            if total_media > upload_max:
+                raise DRFValidationError({
+                    'non_field_errors': [
+                        PROPERTY_ERRORS["media_upload_limit_exceeded"].format(max_items=upload_max, total_items=total_media)
+                    ]
+                })
+
+            result = PropertyAdminMediaService.add_media_bulk(
+                property_id=pk,
+                media_files=media_files,
+                media_ids=media_ids,
+                created_by=request.user
+            )
+            return APIResponse.success(
+                message=PROPERTY_SUCCESS["property_media_added"],
+                data=result,
+                status_code=status.HTTP_200_OK
+            )
+        except (DRFValidationError, ValidationError) as exc:
+            return APIResponse.error(
+                message=extract_validation_message(exc, PROPERTY_ERRORS["property_update_failed"]),
+                errors=normalize_validation_error(exc),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
     
     @action(detail=False, methods=['get'])
     def seo_report(self, request):
@@ -635,6 +642,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         if not property_ids:
             return APIResponse.error(
                 message=PROPERTY_ERRORS["property_ids_required"],
+                errors={'ids': [PROPERTY_ERRORS["property_ids_required"]]},
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
@@ -687,24 +695,25 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     def add_media(self, request, pk=None):
         media_files = request.FILES.getlist('media_files')
         serializer = PropertyMediaSerializer(data=request.data.copy())
-        serializer.is_valid(raise_exception=True)
-        
-        media_ids = serializer.validated_data.get('media_ids', [])
-        if not media_ids and not media_files:
-            raise DRFValidationError({
-                'non_field_errors': ['At least one of media_ids or media_files must be provided.']
-            })
-            
-        upload_max = getattr(settings, 'REAL_ESTATE_MEDIA_UPLOAD_MAX', 10)
-        total_media = len(media_ids) + len(media_files)
-        if total_media > upload_max:
-            raise DRFValidationError({
-                'non_field_errors': [
-                    PROPERTY_ERRORS["media_upload_limit_exceeded"].format(max_items=upload_max, total_items=total_media)
-                ]
-            })
-        
+
         try:
+            serializer.is_valid(raise_exception=True)
+
+            media_ids = serializer.validated_data.get('media_ids', [])
+            if not media_ids and not media_files:
+                raise DRFValidationError({
+                    'non_field_errors': [PROPERTY_ERRORS["media_ids_or_files_required"]]
+                })
+
+            upload_max = getattr(settings, 'REAL_ESTATE_MEDIA_UPLOAD_MAX', 10)
+            total_media = len(media_ids) + len(media_files)
+            if total_media > upload_max:
+                raise DRFValidationError({
+                    'non_field_errors': [
+                        PROPERTY_ERRORS["media_upload_limit_exceeded"].format(max_items=upload_max, total_items=total_media)
+                    ]
+                })
+
             result = PropertyAdminMediaService.add_media_bulk(
                 property_id=pk,
                 media_files=media_files,
@@ -725,9 +734,10 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=PROPERTY_ERRORS["property_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except Exception as e:
+        except (DRFValidationError, ValidationError) as e:
             return APIResponse.error(
                 message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -741,6 +751,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         if not media_id:
             return APIResponse.error(
                 message=PROPERTY_ERRORS["media_id_required"],
+                errors={'media_id': [PROPERTY_ERRORS["media_id_required"]]},
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
@@ -776,9 +787,10 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                     message=PROPERTY_ERRORS["property_media_not_found"],
                     status_code=status.HTTP_404_NOT_FOUND
                 )
-        except Exception as e:
+        except ValidationError as e:
             return APIResponse.error(
                 message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     

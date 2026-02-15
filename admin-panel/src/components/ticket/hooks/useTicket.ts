@@ -7,7 +7,7 @@ import type {
   TicketMessageCreate,
   TicketListParams,
 } from "@/types/ticket/ticket";
-import { showError, showSuccess } from "@/core/toast";
+import { notifyApiError, showSuccess } from "@/core/toast";
 
 export function useTicketStats() {
   return useQuery({
@@ -65,7 +65,9 @@ export function useCreateTicket() {
       showSuccess("تیکت با موفقیت ایجاد شد");
     },
     onError: (error: any) => {
-      showError(error?.message || "خطا در ایجاد تیکت");
+      notifyApiError(error, {
+        fallbackMessage: "خطا در ایجاد تیکت",
+      });
     },
   });
 }
@@ -82,7 +84,9 @@ export function useUpdateTicket() {
       showSuccess("تیکت با موفقیت به‌روزرسانی شد");
     },
     onError: (error: any) => {
-      showError(error?.message || "خطا در به‌روزرسانی تیکت");
+      notifyApiError(error, {
+        fallbackMessage: "خطا در به‌روزرسانی تیکت",
+      });
     },
   });
 }
@@ -97,7 +101,9 @@ export function useDeleteTicket() {
       showSuccess("تیکت با موفقیت حذف شد");
     },
     onError: (error: any) => {
-      showError(error?.message || "خطا در حذف تیکت");
+      notifyApiError(error, {
+        fallbackMessage: "خطا در حذف تیکت",
+      });
     },
   });
 }
@@ -114,7 +120,9 @@ export function useAssignTicket() {
       showSuccess("تیکت با موفقیت اختصاص داده شد");
     },
     onError: (error: any) => {
-      showError(error?.message || "خطا در اختصاص تیکت");
+      notifyApiError(error, {
+        fallbackMessage: "خطا در اختصاص تیکت",
+      });
     },
   });
 }
@@ -133,7 +141,9 @@ export function useUpdateTicketStatus() {
       showSuccess("وضعیت تیکت با موفقیت به‌روزرسانی شد");
     },
     onError: (error: any) => {
-      showError(error?.message || "خطا در به‌روزرسانی وضعیت تیکت");
+      notifyApiError(error, {
+        fallbackMessage: "خطا در به‌روزرسانی وضعیت تیکت",
+      });
     },
   });
 }
@@ -152,7 +162,9 @@ export function useCreateTicketMessage() {
       showSuccess("پیام با موفقیت ارسال شد");
     },
     onError: (error: any) => {
-      showError(error?.message || "خطا در ارسال پیام");
+      notifyApiError(error, {
+        fallbackMessage: "خطا در ارسال پیام",
+      });
     },
   });
 }

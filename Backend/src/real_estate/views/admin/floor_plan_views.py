@@ -18,7 +18,7 @@ from src.real_estate.serializers.admin import (
 from src.real_estate.services.admin import FloorPlanMediaService
 from src.real_estate.messages import FLOOR_PLAN_SUCCESS, FLOOR_PLAN_ERRORS
 from src.user.access_control import real_estate_permission, PermissionRequiredMixin
-from src.core.utils.validation_helpers import extract_validation_message
+from src.core.utils.validation_helpers import extract_validation_message, normalize_validation_error
 
 class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
@@ -103,67 +103,81 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         )
     
     def create(self, request, *args, **kwargs):
-        image_ids = self._extract_image_ids(request)
-        image_files = request.FILES.getlist('image_files')
-        
-        upload_max = getattr(settings, 'FLOOR_PLAN_IMAGE_UPLOAD_MAX', 10)
-        total_images = len(image_ids) + len(image_files)
-        if total_images > upload_max:
-            raise DRFValidationError({
-                'non_field_errors': [
-                    FLOOR_PLAN_ERRORS["media_upload_limit_exceeded"].format(
-                        max_items=upload_max,
-                        total_items=total_images
-                    )
-                ]
-            })
-        
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        floor_plan = serializer.save()
-        
-        if image_files or image_ids:
-            FloorPlanMediaService.add_images_bulk(
-                floor_plan_id=floor_plan.id,
-                image_files=image_files,
-                image_ids=image_ids
+        try:
+            image_ids = self._extract_image_ids(request)
+            image_files = request.FILES.getlist('image_files')
+
+            upload_max = getattr(settings, 'FLOOR_PLAN_IMAGE_UPLOAD_MAX', 10)
+            total_images = len(image_ids) + len(image_files)
+            if total_images > upload_max:
+                raise DRFValidationError({
+                    'non_field_errors': [
+                        FLOOR_PLAN_ERRORS["media_upload_limit_exceeded"].format(
+                            max_items=upload_max,
+                            total_items=total_images
+                        )
+                    ]
+                })
+
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            floor_plan = serializer.save()
+
+            if image_files or image_ids:
+                FloorPlanMediaService.add_images_bulk(
+                    floor_plan_id=floor_plan.id,
+                    image_files=image_files,
+                    image_ids=image_ids
+                )
+                floor_plan.refresh_from_db()
+
+            floor_plan = RealEstateFloorPlan.objects.prefetch_related('images__image').get(id=floor_plan.id)
+            detail_serializer = FloorPlanAdminDetailSerializer(floor_plan)
+
+            return APIResponse.success(
+                message=FLOOR_PLAN_SUCCESS["floor_plan_created"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_201_CREATED
             )
-            floor_plan.refresh_from_db()
-        
-        floor_plan = RealEstateFloorPlan.objects.prefetch_related('images__image').get(id=floor_plan.id)
-        detail_serializer = FloorPlanAdminDetailSerializer(floor_plan)
-        
-        return APIResponse.success(
-            message=FLOOR_PLAN_SUCCESS["floor_plan_created"],
-            data=detail_serializer.data,
-            status_code=status.HTTP_201_CREATED
-        )
+        except (DRFValidationError, ValidationError) as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, FLOOR_PLAN_ERRORS["floor_plan_create_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
     
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        floor_plan = serializer.save()
-        
-        image_ids = self._extract_image_ids(request)
-        if image_ids is not None:
-            FloorPlanMediaService.sync_images(
-                floor_plan_id=floor_plan.id,
-                image_ids=image_ids
+
+        try:
+            serializer = self.get_serializer(instance, data=request.data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+            floor_plan = serializer.save()
+
+            image_ids = self._extract_image_ids(request)
+            if image_ids is not None:
+                FloorPlanMediaService.sync_images(
+                    floor_plan_id=floor_plan.id,
+                    image_ids=image_ids
+                )
+                floor_plan.refresh_from_db()
+
+            floor_plan = RealEstateFloorPlan.objects.prefetch_related('images__image').get(pk=floor_plan.pk)
+            detail_serializer = FloorPlanAdminDetailSerializer(floor_plan)
+
+            return APIResponse.success(
+                message=FLOOR_PLAN_SUCCESS["floor_plan_updated"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_200_OK
             )
-            floor_plan.refresh_from_db()
-            
-        floor_plan = RealEstateFloorPlan.objects.prefetch_related('images__image').get(pk=floor_plan.pk)
-        detail_serializer = FloorPlanAdminDetailSerializer(floor_plan)
-        
-        return APIResponse.success(
-            message=FLOOR_PLAN_SUCCESS["floor_plan_updated"],
-            data=detail_serializer.data,
-            status_code=status.HTTP_200_OK
-        )
+        except (DRFValidationError, ValidationError) as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, FLOOR_PLAN_ERRORS["floor_plan_update_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
     
     def destroy(self, request, *args, **kwargs):
         
@@ -186,6 +200,7 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         if not image_files and not image_ids:
             return APIResponse.error(
                 message=FLOOR_PLAN_ERRORS["image_id_required"],
+                errors={'image_ids': [FLOOR_PLAN_ERRORS["image_id_required"]]},
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
@@ -212,6 +227,7 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         except Exception as e:
             return APIResponse.error(
                 message=extract_validation_message(e, FLOOR_PLAN_ERRORS["floor_plan_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -224,6 +240,7 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         if not image_id:
             return APIResponse.error(
                 message=FLOOR_PLAN_ERRORS["image_id_required"],
+                errors={'image_id': [FLOOR_PLAN_ERRORS["image_id_required"]]},
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
@@ -250,6 +267,7 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         except Exception as e:
             return APIResponse.error(
                 message=extract_validation_message(e, FLOOR_PLAN_ERRORS["floor_plan_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -262,6 +280,7 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         if not image_id:
             return APIResponse.error(
                 message=FLOOR_PLAN_ERRORS["image_id_required"],
+                errors={'image_id': [FLOOR_PLAN_ERRORS["image_id_required"]]},
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
@@ -281,8 +300,9 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=FLOOR_PLAN_ERRORS["image_not_found_in_floor_plan"],
-                status_code=status.HTTP_404_NOT_FOUND
+                message=extract_validation_message(e, FLOOR_PLAN_ERRORS["floor_plan_update_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
             )
     
     @action(detail=True, methods=['post'], url_path='sync-images')
@@ -315,6 +335,7 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         except Exception as e:
             return APIResponse.error(
                 message=extract_validation_message(e, FLOOR_PLAN_ERRORS["floor_plan_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     

@@ -1,7 +1,7 @@
 import { api } from '@/core/config/api';
 import type { Blog } from '@/types/blog/blog';
 import type { BlogListParams } from '@/types/blog/blogListParams';
-import { buildListUrl, toPaginatedResponse } from './shared';
+import { buildListUrl, extractData, toPaginatedResponse } from './shared';
 
 const BLOG_BOOLEAN_FILTERS = new Set(['is_featured', 'is_public', 'is_active']);
 const BLOG_RAW_STRING_FILTERS = new Set(['categories__in']);
@@ -30,18 +30,19 @@ export const blogCoreApi = {
 
   getBlogById: async (id: number): Promise<Blog> => {
     const response = await api.get<Blog>('/admin/blog/' + id + '/');
-    return response.data;
+    return extractData<Blog>(response);
   },
 
   getBlogsByIds: async (ids: number[]): Promise<Blog[]> => {
     if (ids.length === 0) return [];
     const response = await api.get<Blog[]>(`/admin/blog/?ids=${ids.join(',')}`);
-    return Array.isArray(response.data) ? response.data : [];
+    const data = extractData<Blog[]>(response);
+    return Array.isArray(data) ? data : [];
   },
 
   createBlog: async (data: Partial<Blog>): Promise<Blog> => {
     const response = await api.post<Blog>('/admin/blog/', data);
-    return response.data;
+    return extractData<Blog>(response);
   },
 
   createBlogWithMedia: async (data: Partial<Blog> & { media_ids?: number[] }, mediaFiles: File[]): Promise<Blog> => {
@@ -57,17 +58,17 @@ export const blogCoreApi = {
     }
 
     const response = await api.post<Blog>('/admin/blog/', formData);
-    return response.data;
+    return extractData<Blog>(response);
   },
 
   updateBlog: async (id: number, data: Partial<Blog>): Promise<Blog> => {
     const response = await api.put<Blog>('/admin/blog/' + id + '/', data);
-    return response.data;
+    return extractData<Blog>(response);
   },
 
   partialUpdateBlog: async (id: number, data: Partial<Blog>): Promise<Blog> => {
     const response = await api.patch<Blog>('/admin/blog/' + id + '/', data);
-    return response.data;
+    return extractData<Blog>(response);
   },
 
   addMediaToBlog: async (blogId: number, mediaFiles: File[], mediaIds?: number[]): Promise<Blog> => {
@@ -81,7 +82,7 @@ export const blogCoreApi = {
     }
 
     const response = await api.post<Blog>('/admin/blog/' + blogId + '/add_media/', formData);
-    return response.data;
+    return extractData<Blog>(response);
   },
 
   deleteBlog: async (id: number): Promise<void> => {
@@ -90,7 +91,7 @@ export const blogCoreApi = {
 
   bulkDeleteBlogs: async (ids: number[]): Promise<{ success: boolean }> => {
     const response = await api.post<{ success: boolean }>('/admin/blog/bulk-delete/', { ids });
-    return response.data;
+    return extractData<{ success: boolean }>(response);
   },
 
   exportBlogPdf: async (blogId: number): Promise<void> => {

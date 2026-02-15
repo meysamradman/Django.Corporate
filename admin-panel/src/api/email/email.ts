@@ -31,10 +31,6 @@ class EmailApi {
 
     const response = await api.get<EmailMessage[]>(baseUrlWithQuery);
 
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'خطا در دریافت لیست پیام‌ها');
-    }
-
     const pagination: ApiPagination = {
       count: response.pagination?.count || (Array.isArray(response.data) ? response.data.length : 0),
       next: response.pagination?.next || null,
@@ -55,10 +51,6 @@ class EmailApi {
       `${this.baseUrl}${id}/`
     );
 
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'خطا در دریافت پیام');
-    }
-
     return response.data;
   }
 
@@ -67,10 +59,6 @@ class EmailApi {
       this.baseUrl,
       data as unknown as Record<string, unknown>
     );
-
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'خطا در ایجاد پیام');
-    }
 
     return response.data;
   }
@@ -81,31 +69,19 @@ class EmailApi {
       data as unknown as Record<string, unknown>
     );
 
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'خطا در به‌روزرسانی پیام');
-    }
-
     return response.data;
   }
 
   async delete(id: number | string): Promise<void> {
-    const response = await api.delete<void>(
+    await api.delete<void>(
       `${this.baseUrl}${id}/`
     );
-
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'خطا در حذف پیام');
-    }
   }
 
   async markAsRead(id: number | string): Promise<EmailMessage> {
     const response = await api.post<EmailMessage>(
       `${this.baseUrl}${id}/mark_as_read/`
     );
-
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'خطا در علامت‌گذاری پیام');
-    }
 
     return response.data;
   }
@@ -116,10 +92,6 @@ class EmailApi {
       { reply_message: replyMessage }
     );
 
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'خطا در علامت‌گذاری پیام');
-    }
-
     return response.data;
   }
 
@@ -128,10 +100,6 @@ class EmailApi {
       `${this.baseUrl}${id}/toggle_star/`
     );
 
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'خطا در ستاره‌دار کردن پیام');
-    }
-
     return response.data;
   }
 
@@ -139,10 +107,6 @@ class EmailApi {
     const response = await api.get<EmailStats>(
       `${this.baseUrl}/stats/`
     );
-
-    if (response.metaData.status !== 'success') {
-      throw new Error(response.metaData.message || 'خطا در دریافت آمار');
-    }
 
     return response.data;
   }

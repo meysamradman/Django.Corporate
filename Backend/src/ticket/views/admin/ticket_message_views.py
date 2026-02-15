@@ -1,5 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError as DRFValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
 from src.core.responses.response import APIResponse
 from src.ticket.models.ticket_message import TicketMessage
 from src.ticket.serializers.ticket_message_serializer import TicketMessageSerializer, TicketMessageCreateSerializer
@@ -8,6 +10,7 @@ from src.ticket.messages.messages import TICKET_SUCCESS, TICKET_ERRORS
 from src.ticket.utils.cache import TicketCacheManager
 from src.analytics.utils.cache import AnalyticsCacheManager
 from src.user.access_control import ticket_permission, PermissionRequiredMixin
+from src.core.utils.validation_helpers import extract_validation_message, normalize_validation_error
 
 class AdminTicketMessageViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [ticket_permission]
@@ -42,42 +45,49 @@ class AdminTicketMessageViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        
-        ticket = serializer.validated_data.get('ticket')
-        if ticket.status == 'closed':
+        try:
+            serializer.is_valid(raise_exception=True)
+
+            ticket = serializer.validated_data.get('ticket')
+            if ticket.status == 'closed':
+                return APIResponse.error(
+                    message=TICKET_ERRORS['ticket_closed'],
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
+
+            attachment_ids = serializer.validated_data.pop('attachment_ids', [])
+            sender_type = serializer.validated_data.get('sender_type')
+
+            sender_user = None
+            sender_admin = None
+
+            if sender_type == 'user' and request.user.is_authenticated:
+                sender_user = request.user
+            elif sender_type == 'admin' and request.user.is_authenticated:
+                if hasattr(request.user, 'admin_profile'):
+                    sender_admin = request.user.admin_profile
+
+            message = TicketMessageService.create_message_with_attachments(
+                validated_data=serializer.validated_data,
+                attachment_ids=attachment_ids,
+                sender_user=sender_user,
+                sender_admin=sender_admin
+            )
+
+            TicketCacheManager.invalidate_ticket(ticket.id)
+            AnalyticsCacheManager.invalidate_tickets()
+
+            return APIResponse.success(
+                message=TICKET_SUCCESS['message_sent'],
+                data=TicketMessageSerializer(message).data,
+                status_code=status.HTTP_201_CREATED
+            )
+        except (DRFValidationError, DjangoValidationError) as e:
             return APIResponse.error(
-                message=TICKET_ERRORS['ticket_closed'],
+                message=extract_validation_message(e, TICKET_ERRORS['error_occurred']),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
-        
-        attachment_ids = serializer.validated_data.pop('attachment_ids', [])
-        sender_type = serializer.validated_data.get('sender_type')
-        
-        sender_user = None
-        sender_admin = None
-        
-        if sender_type == 'user' and request.user.is_authenticated:
-            sender_user = request.user
-        elif sender_type == 'admin' and request.user.is_authenticated:
-            if hasattr(request.user, 'admin_profile'):
-                sender_admin = request.user.admin_profile
-        
-        message = TicketMessageService.create_message_with_attachments(
-            validated_data=serializer.validated_data,
-            attachment_ids=attachment_ids,
-            sender_user=sender_user,
-            sender_admin=sender_admin
-        )
-        
-        TicketCacheManager.invalidate_ticket(ticket.id)
-        AnalyticsCacheManager.invalidate_tickets()
-        
-        return APIResponse.success(
-            message=TICKET_SUCCESS['message_sent'],
-            data=TicketMessageSerializer(message).data,
-            status_code=status.HTTP_201_CREATED
-        )
     
     def update(self, request, *args, **kwargs):
         response = super().update(request, *args, **kwargs)

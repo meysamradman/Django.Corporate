@@ -1,7 +1,7 @@
 import { api } from '@/core/config/api';
 import type { Portfolio } from '@/types/portfolio/portfolio';
 import type { PortfolioListParams } from '@/types/portfolio/portfolioListParams';
-import { buildListUrl, toPaginatedResponse } from './shared';
+import { buildListUrl, extractData, toPaginatedResponse } from './shared';
 
 const PORTFOLIO_BOOLEAN_FILTERS = new Set(['is_featured', 'is_public', 'is_active']);
 const PORTFOLIO_RAW_STRING_FILTERS = new Set(['categories__in']);
@@ -30,18 +30,19 @@ export const portfolioCoreApi = {
 
   getPortfolioById: async (id: number): Promise<Portfolio> => {
     const response = await api.get<Portfolio>('/admin/portfolio/' + id + '/');
-    return response.data;
+    return extractData<Portfolio>(response);
   },
 
   getPortfoliosByIds: async (ids: number[]): Promise<Portfolio[]> => {
     if (ids.length === 0) return [];
     const response = await api.get<Portfolio[]>(`/admin/portfolio/?ids=${ids.join(',')}`);
-    return Array.isArray(response.data) ? response.data : [];
+    const data = extractData<Portfolio[]>(response);
+    return Array.isArray(data) ? data : [];
   },
 
   createPortfolio: async (data: Partial<Portfolio>): Promise<Portfolio> => {
     const response = await api.post<Portfolio>('/admin/portfolio/', data);
-    return response.data;
+    return extractData<Portfolio>(response);
   },
 
   createPortfolioWithMedia: async (data: Partial<Portfolio> & { media_ids?: number[] }, mediaFiles: File[]): Promise<Portfolio> => {
@@ -57,17 +58,17 @@ export const portfolioCoreApi = {
     }
 
     const response = await api.post<Portfolio>('/admin/portfolio/', formData);
-    return response.data;
+    return extractData<Portfolio>(response);
   },
 
   updatePortfolio: async (id: number, data: Partial<Portfolio>): Promise<Portfolio> => {
     const response = await api.put<Portfolio>('/admin/portfolio/' + id + '/', data);
-    return response.data;
+    return extractData<Portfolio>(response);
   },
 
   partialUpdatePortfolio: async (id: number, data: Partial<Portfolio>): Promise<Portfolio> => {
     const response = await api.patch<Portfolio>('/admin/portfolio/' + id + '/', data);
-    return response.data;
+    return extractData<Portfolio>(response);
   },
 
   addMediaToPortfolio: async (portfolioId: number, mediaFiles: File[], mediaIds?: number[]): Promise<Portfolio> => {
@@ -81,7 +82,7 @@ export const portfolioCoreApi = {
     }
 
     const response = await api.post<Portfolio>('/admin/portfolio/' + portfolioId + '/add_media/', formData);
-    return response.data;
+    return extractData<Portfolio>(response);
   },
 
   deletePortfolio: async (id: number): Promise<void> => {
@@ -90,7 +91,7 @@ export const portfolioCoreApi = {
 
   bulkDeletePortfolios: async (ids: number[]): Promise<{ success: boolean }> => {
     const response = await api.post<{ success: boolean }>('/admin/portfolio/bulk-delete/', { ids });
-    return response.data;
+    return extractData<{ success: boolean }>(response);
   },
 
   exportPortfolioPdf: async (portfolioId: number): Promise<void> => {

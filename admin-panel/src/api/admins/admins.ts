@@ -1,4 +1,5 @@
 import { api } from '@/core/config/api';
+import { ApiError } from '@/types/api/apiError';
 import { adminEndpoints } from '@/core/config/adminEndpoints';
 import { convertToLimitOffset, normalizePaginationParams } from '@/components/shared/paginations/pagination';
 import type { Pagination } from '@/types/api/apiResponse';
@@ -47,7 +48,7 @@ export const adminApi = {
   getProfile: async (): Promise<AdminWithProfile> => {
     const response = await api.get<AdminWithProfile>(adminEndpoints.profile());
     if (!response.data) {
-      throw new Error("API returned success but no admin profile data found.");
+      throw ApiError.fromMessage('API returned success but no admin profile data found.', 500, response);
     }
     return response.data;
   },
@@ -65,7 +66,7 @@ export const adminApi = {
   }): Promise<AdminWithProfile> => {
     const response = await api.put<AdminWithProfile>(adminEndpoints.profile(), profileData);
     if (!response.data) {
-      throw new Error("API returned success but no updated profile data found.");
+      throw ApiError.fromMessage('API returned success but no updated profile data found.', 500, response);
     }
     return response.data;
   },
@@ -235,7 +236,7 @@ export const adminApi = {
     if (response && response.data) {
       return response.data;
     } else {
-      throw new Error("Invalid response structure during user update.");
+      throw ApiError.fromMessage('Invalid response structure during user update.', 500, response);
     }
   },
 
@@ -262,7 +263,7 @@ export const adminApi = {
     if (response && response.data) {
       return response.data;
     } else {
-      throw new Error(`Invalid response structure received when updating status for ${userType} ID ${userId}`);
+      throw ApiError.fromMessage(`Invalid response structure received when updating status for ${userType} ID ${userId}`, 500, response);
     }
   },
 

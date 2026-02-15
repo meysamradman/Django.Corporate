@@ -3,7 +3,7 @@ import type { BlogCategory } from '@/types/blog/category/blogCategory';
 import type { BlogTag } from '@/types/blog/tags/blogTag';
 import type { CategoryListParams, TagListParams } from '@/types/blog/blogListParams';
 import type { BlogCategoryListParams } from '@/types/blog/category/blogCategoryFilter';
-import { fetchPaginated } from './shared';
+import { extractData, fetchPaginated } from './shared';
 
 export const blogTaxonomyApi = {
   getCategories: async (params?: CategoryListParams | BlogCategoryListParams | Record<string, unknown>) => {
@@ -12,22 +12,22 @@ export const blogTaxonomyApi = {
 
   createCategory: async (data: Partial<BlogCategory>): Promise<BlogCategory> => {
     const response = await api.post<BlogCategory>('/admin/blog-category/', data);
-    return response.data;
+    return extractData<BlogCategory>(response);
   },
 
   getCategoryById: async (id: number): Promise<BlogCategory> => {
     const response = await api.get<BlogCategory>('/admin/blog-category/' + id + '/');
-    return response.data;
+    return extractData<BlogCategory>(response);
   },
 
   updateCategory: async (id: number, data: Partial<BlogCategory>): Promise<BlogCategory> => {
     const response = await api.put<BlogCategory>('/admin/blog-category/' + id + '/', data);
-    return response.data;
+    return extractData<BlogCategory>(response);
   },
 
   partialUpdateCategory: async (id: number, data: Partial<BlogCategory>): Promise<BlogCategory> => {
     const response = await api.patch<BlogCategory>('/admin/blog-category/' + id + '/', data);
-    return response.data;
+    return extractData<BlogCategory>(response);
   },
 
   deleteCategory: async (id: number): Promise<void> => {
@@ -36,7 +36,7 @@ export const blogTaxonomyApi = {
 
   bulkDeleteCategories: async (ids: number[]): Promise<{ success: boolean }> => {
     const response = await api.post<{ success: boolean }>('/admin/blog-category/bulk-delete/', { ids });
-    return response.data;
+    return extractData<{ success: boolean }>(response);
   },
 
   getTags: async (params?: TagListParams) => {
@@ -45,22 +45,22 @@ export const blogTaxonomyApi = {
 
   createTag: async (data: Partial<BlogTag>): Promise<BlogTag> => {
     const response = await api.post<BlogTag>('/admin/blog-tag/', data);
-    return response.data;
+    return extractData<BlogTag>(response);
   },
 
   getTagById: async (id: number): Promise<BlogTag> => {
     const response = await api.get<BlogTag>('/admin/blog-tag/' + id + '/');
-    return response.data;
+    return extractData<BlogTag>(response);
   },
 
   updateTag: async (id: number, data: Partial<BlogTag>): Promise<BlogTag> => {
     const response = await api.put<BlogTag>('/admin/blog-tag/' + id + '/', data);
-    return response.data;
+    return extractData<BlogTag>(response);
   },
 
   partialUpdateTag: async (id: number, data: Partial<BlogTag>): Promise<BlogTag> => {
     const response = await api.patch<BlogTag>('/admin/blog-tag/' + id + '/', data);
-    return response.data;
+    return extractData<BlogTag>(response);
   },
 
   deleteTag: async (id: number): Promise<void> => {
@@ -69,6 +69,6 @@ export const blogTaxonomyApi = {
 
   bulkDeleteTags: async (ids: number[]): Promise<{ success: boolean }> => {
     const response = await api.post<{ success: boolean }>('/admin/blog-tag/bulk-delete/', { ids });
-    return response.data;
+    return extractData<{ success: boolean }>(response);
   },
 };

@@ -1,4 +1,5 @@
 import { api } from '@/core/config/api';
+import { ApiError } from '@/types/api/apiError';
 import type { MediaUploadSettings } from '@/types/shared/media';
 
 export async function getUploadSettings(clearCache: boolean = false): Promise<MediaUploadSettings> {
@@ -9,7 +10,7 @@ export async function getUploadSettings(clearCache: boolean = false): Promise<Me
     const response = await api.get<MediaUploadSettings>(url);
 
     if (!response.data) {
-        throw new Error('API returned success but no upload settings data found.');
+        throw ApiError.fromMessage('API returned success but no upload settings data found.', 500, response);
     }
 
     return response.data;

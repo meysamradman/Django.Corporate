@@ -60,6 +60,18 @@ axiosInstance.interceptors.response.use(
       return { ...response, data: wrappedResponse };
     }
 
+    if (response.data.metaData?.status === 'error') {
+      throw new ApiError({
+        response: {
+          AppStatusCode: response.data.metaData?.AppStatusCode || response.status || 400,
+          _data: response.data,
+          ok: false,
+          message: response.data.metaData?.message || 'Request failed',
+          errors: response.data.errors || null,
+        },
+      });
+    }
+
     return response;
   },
   async (error: AxiosError<ApiResponse<any>>) => {

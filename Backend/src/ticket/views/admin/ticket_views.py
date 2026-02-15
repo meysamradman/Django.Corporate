@@ -11,6 +11,7 @@ from src.ticket.utils.cache import TicketCacheManager
 from src.analytics.utils.cache import AnalyticsCacheManager
 from src.user.access_control import ticket_permission, PermissionRequiredMixin
 from src.core.utils.validation_helpers import extract_validation_message
+from src.core.utils.validation_helpers import normalize_validation_error
 
 class AdminTicketViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [ticket_permission]
@@ -88,6 +89,7 @@ class AdminTicketViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         except Exception as e:
             return APIResponse.error(
                 message=TICKET_ERRORS['mark_read_failed'].format(error=extract_validation_message(e, TICKET_ERRORS['error_occurred'])),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -101,6 +103,7 @@ class AdminTicketViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             if not new_status:
                 return APIResponse.error(
                     message=TICKET_ERRORS['status_required'],
+                    errors={'status': [TICKET_ERRORS['status_required']]},
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
 
@@ -115,11 +118,13 @@ class AdminTicketViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         except ValidationError as e:
              return APIResponse.error(
                 message=extract_validation_message(e, TICKET_ERRORS['error_occurred']),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
             return APIResponse.error(
                 message=TICKET_ERRORS['update_status_failed'].format(error=extract_validation_message(e, TICKET_ERRORS['error_occurred'])),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -136,5 +141,6 @@ class AdminTicketViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         except Exception as e:
             return APIResponse.error(
                 message=TICKET_ERRORS["statistics_retrieve_failed"].format(error=extract_validation_message(e, TICKET_ERRORS['error_occurred'])),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

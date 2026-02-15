@@ -38,7 +38,8 @@ export const propertyApi = {
   getPropertiesByIds: async (ids: number[]): Promise<Property[]> => {
     if (ids.length === 0) return [];
     const response = await api.get<Property[]>(`/admin/property/?ids=${ids.join(',')}`);
-    return Array.isArray(response.data) ? response.data : [];
+    const data = extractData<Property[]>(response);
+    return Array.isArray(data) ? data : [];
   },
 
   createProperty: async (data: Partial<PropertyUpdateData>): Promise<Property> => {
@@ -176,7 +177,7 @@ export const propertyApi = {
 
   bulkGenerateSeo: async (ids: number[]): Promise<{ generated_count: number; total_count: number }> => {
     const response = await api.post<{ generated_count: number; total_count: number }>('/admin/property/bulk-generate-seo/', { ids });
-    return response.data;
+    return extractData<{ generated_count: number; total_count: number }>(response);
   },
 
   generateSeo: async (id: number): Promise<Property> => {
@@ -211,7 +212,7 @@ export const propertyApi = {
     listing_type?: [string, string][];
   }> => {
     const response = await api.get<any>('/admin/property/field-options/');
-    return response.data;
+    return extractData<any>(response);
   },
 
   exportPropertyPdf: async (propertyId: number): Promise<void> => {

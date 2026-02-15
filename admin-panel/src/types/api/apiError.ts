@@ -24,4 +24,21 @@ export class ApiError extends Error {
             message: safeMessage
         };
     }
+
+    static fromMessage(
+        message: string,
+        AppStatusCode: number = 400,
+        data: unknown = null,
+        errors: Record<string, string[]> | null = null
+    ): ApiError {
+        return new ApiError({
+            response: {
+                AppStatusCode,
+                _data: data,
+                ok: false,
+                message,
+                errors,
+            },
+        });
+    }
 }

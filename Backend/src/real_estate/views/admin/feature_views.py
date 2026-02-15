@@ -1,5 +1,7 @@
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError as DRFValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 
 from src.core.responses.response import APIResponse
@@ -16,6 +18,7 @@ from src.real_estate.serializers.admin.feature_serializer import (
 )
 from src.real_estate.services.admin.feature_services import PropertyFeatureAdminService
 from src.real_estate.messages.messages import FEATURE_SUCCESS, FEATURE_ERRORS
+from src.core.utils.validation_helpers import extract_validation_message, normalize_validation_error
 
 class PropertyFeatureAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
@@ -80,19 +83,26 @@ class PropertyFeatureAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        feature_obj = PropertyFeatureAdminService.create_feature(
-            serializer.validated_data,
-            created_by=request.user
-        )
-        
-        detail_serializer = PropertyFeatureAdminDetailSerializer(feature_obj)
-        return APIResponse.success(
-            message=FEATURE_SUCCESS["feature_created"],
-            data=detail_serializer.data,
-            status_code=status.HTTP_201_CREATED
-        )
+        try:
+            serializer.is_valid(raise_exception=True)
+
+            feature_obj = PropertyFeatureAdminService.create_feature(
+                serializer.validated_data,
+                created_by=request.user
+            )
+
+            detail_serializer = PropertyFeatureAdminDetailSerializer(feature_obj)
+            return APIResponse.success(
+                message=FEATURE_SUCCESS["feature_created"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_201_CREATED
+            )
+        except (DRFValidationError, DjangoValidationError) as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, FEATURE_ERRORS["feature_create_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
     
     def retrieve(self, request, *args, **kwargs):
         feature_obj = PropertyFeatureAdminService.get_feature_by_id(kwargs.get('pk'))
@@ -113,11 +123,12 @@ class PropertyFeatureAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         feature_id = kwargs.get('pk')
-        
+
         serializer = self.get_serializer(data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        
+
         try:
+            serializer.is_valid(raise_exception=True)
+
             updated_feature = PropertyFeatureAdminService.update_feature_by_id(
                 feature_id,
                 serializer.validated_data
@@ -134,9 +145,10 @@ class PropertyFeatureAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
                 message=FEATURE_ERRORS["feature_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except Exception as e:
+        except (DRFValidationError, DjangoValidationError) as e:
             return APIResponse.error(
-                message=FEATURE_ERRORS["feature_update_failed"],
+                message=extract_validation_message(e, FEATURE_ERRORS["feature_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     

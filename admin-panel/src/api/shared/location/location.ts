@@ -1,49 +1,41 @@
 import { api } from "@/core/config/api";
 import type { Province, City, ProvinceCompact, CityCompact } from "@/types/shared/location";
 
+const extractArrayData = <T>(response: { data?: unknown }): T[] => {
+  if (Array.isArray(response.data)) {
+    return response.data as T[];
+  }
+
+  if (response.data && typeof response.data === 'object' && Array.isArray((response.data as { data?: unknown }).data)) {
+    return (response.data as { data: T[] }).data;
+  }
+
+  return [];
+};
+
 export const locationApi = {
   async getProvinces(): Promise<Province[]> {
-    try {
-      const response = await api.get<any>("/provinces/all_for_dropdown/");
-      return response.data || [];
-    } catch {
-      throw new Error("Failed to fetch location data");
-    }
+    const response = await api.get<Province[]>("/provinces/all_for_dropdown/");
+    return extractArrayData<Province>(response);
   },
 
   async getCitiesByProvince(provinceId: number): Promise<City[]> {
-    try {
-      const response = await api.get<any>(`/cities/for_province_dropdown/?province_id=${provinceId}`);
-      return response.data || [];
-    } catch {
-      throw new Error("Failed to fetch location data");
-    }
+    const response = await api.get<City[]>(`/cities/for_province_dropdown/?province_id=${provinceId}`);
+    return extractArrayData<City>(response);
   },
 
   async getAllCities(): Promise<City[]> {
-    try {
-      const response = await api.get<{data: City[]}>("/cities/");
-      return response.data?.data || [];
-    } catch {
-      throw new Error("Failed to fetch location data");
-    }
+    const response = await api.get<City[] | { data: City[] }>("/cities/");
+    return extractArrayData<City>(response);
   },
 
   async getCitiesCompactByProvince(provinceId: number): Promise<CityCompact[]> {
-    try {
-      const response = await api.get<any>(`/cities/for_province_dropdown/?province_id=${provinceId}`);
-      return response.data || [];
-    } catch {
-      throw new Error("Failed to fetch location data");
-    }
+    const response = await api.get<CityCompact[]>(`/cities/for_province_dropdown/?province_id=${provinceId}`);
+    return extractArrayData<CityCompact>(response);
   },
 
   async getProvincesCompact(): Promise<ProvinceCompact[]> {
-    try {
-      const response = await api.get<any>("/provinces/all_for_dropdown/");
-      return response.data || [];
-    } catch {
-      throw new Error("Failed to fetch location data");
-    }
+    const response = await api.get<ProvinceCompact[]>("/provinces/all_for_dropdown/");
+    return extractArrayData<ProvinceCompact>(response);
   }
 };

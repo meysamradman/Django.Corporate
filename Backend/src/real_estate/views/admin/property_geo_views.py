@@ -8,7 +8,7 @@ from src.user.access_control import real_estate_permission, PermissionRequiredMi
 from src.real_estate.services.admin import PropertyGeoService
 from src.real_estate.serializers.admin import PropertyAdminListSerializer
 from src.real_estate.messages.messages import PROPERTY_SUCCESS, PROPERTY_ERRORS
-from src.core.utils.validation_helpers import extract_validation_message
+from src.core.utils.validation_helpers import extract_validation_message, normalize_validation_error
 
 class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     
@@ -32,7 +32,8 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             
             if not latitude or not longitude:
                 return APIResponse.error(
-                    message="مختصات جغرافیایی الزامی است.",
+                    message=PROPERTY_ERRORS["geo_coordinates_required"],
+                    errors={'coordinates': [PROPERTY_ERRORS["geo_coordinates_required"]]},
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -41,7 +42,8 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                 longitude = Decimal(str(longitude))
             except:
                 return APIResponse.error(
-                    message="مختصات جغرافیایی معتبر نیست.",
+                    message=PROPERTY_ERRORS["geo_coordinates_invalid"],
+                    errors={'coordinates': [PROPERTY_ERRORS["geo_coordinates_invalid"]]},
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -58,7 +60,7 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             serializer = PropertyAdminListSerializer(properties, many=True)
             
             return APIResponse.success(
-                message=f"{len(properties)} ملک در شعاع {radius_km} کیلومتری یافت شد.",
+                message=PROPERTY_SUCCESS["property_geo_results_retrieved"],
                 data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
@@ -66,6 +68,7 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
         except Exception as e:
             return APIResponse.error(
                 message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -80,7 +83,8 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             
             if not all([min_lat, max_lat, min_lon, max_lon]):
                 return APIResponse.error(
-                    message="مختصات محدوده الزامی است.",
+                    message=PROPERTY_ERRORS["geo_bbox_coordinates_required"],
+                    errors={'bbox': [PROPERTY_ERRORS["geo_bbox_coordinates_required"]]},
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -91,7 +95,8 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                 max_lon = Decimal(str(max_lon))
             except:
                 return APIResponse.error(
-                    message="مختصات جغرافیایی معتبر نیست.",
+                    message=PROPERTY_ERRORS["geo_coordinates_invalid"],
+                    errors={'bbox': [PROPERTY_ERRORS["geo_coordinates_invalid"]]},
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -108,7 +113,7 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             serializer = PropertyAdminListSerializer(properties, many=True)
             
             return APIResponse.success(
-                message=f"{len(properties)} ملک در محدوده یافت شد.",
+                message=PROPERTY_SUCCESS["property_geo_results_retrieved"],
                 data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
@@ -116,6 +121,7 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
         except Exception as e:
             return APIResponse.error(
                 message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -127,7 +133,8 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             
             if not polygon_coords or len(polygon_coords) < 3:
                 return APIResponse.error(
-                    message="چندضلعی باید حداقل 3 نقطه داشته باشد.",
+                    message=PROPERTY_ERRORS["geo_polygon_min_points"],
+                    errors={'polygon': [PROPERTY_ERRORS["geo_polygon_min_points"]]},
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -138,7 +145,8 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                 ]
             except:
                 return APIResponse.error(
-                    message="مختصات چندضلعی معتبر نیست.",
+                    message=PROPERTY_ERRORS["geo_polygon_invalid"],
+                    errors={'polygon': [PROPERTY_ERRORS["geo_polygon_invalid"]]},
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -152,7 +160,7 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             serializer = PropertyAdminListSerializer(properties, many=True)
             
             return APIResponse.success(
-                message=f"{len(properties)} ملک در محدوده یافت شد.",
+                message=PROPERTY_SUCCESS["property_geo_results_retrieved"],
                 data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
@@ -160,6 +168,7 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
         except Exception as e:
             return APIResponse.error(
                 message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -174,7 +183,8 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             
             if not all([min_lat, max_lat, min_lon, max_lon]):
                 return APIResponse.error(
-                    message="مختصات محدوده الزامی است.",
+                    message=PROPERTY_ERRORS["geo_bbox_coordinates_required"],
+                    errors={'bbox': [PROPERTY_ERRORS["geo_bbox_coordinates_required"]]},
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -185,7 +195,8 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                 max_lon = Decimal(str(max_lon))
             except:
                 return APIResponse.error(
-                    message="مختصات جغرافیایی معتبر نیست.",
+                    message=PROPERTY_ERRORS["geo_coordinates_invalid"],
+                    errors={'bbox': [PROPERTY_ERRORS["geo_coordinates_invalid"]]},
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -200,7 +211,7 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             )
             
             return APIResponse.success(
-                message=f"{len(map_properties)} ملک برای نقشه یافت شد.",
+                message=PROPERTY_SUCCESS["property_map_data_retrieved"],
                 data=map_properties,
                 status_code=status.HTTP_200_OK
             )
@@ -208,6 +219,7 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
         except Exception as e:
             return APIResponse.error(
                 message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -217,12 +229,13 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
         try:
             data = PropertyGeoService.engine_status()
             return APIResponse.success(
-                message="وضعیت موتور جستجوی مکانی با موفقیت دریافت شد.",
+                message=PROPERTY_SUCCESS["property_geo_engine_status_retrieved"],
                 data=data,
                 status_code=status.HTTP_200_OK
             )
         except Exception as e:
             return APIResponse.error(
                 message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

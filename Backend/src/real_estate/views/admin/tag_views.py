@@ -1,7 +1,8 @@
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from django_filters.rest_framework import DjangoFilterBackend
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 from src.core.responses.response import APIResponse
 from src.core.pagination import StandardLimitPagination
@@ -17,7 +18,7 @@ from src.real_estate.serializers.admin.tag_serializer import (
 )
 from src.real_estate.services.admin.tag_services import PropertyTagAdminService
 from src.real_estate.messages.messages import TAG_SUCCESS, TAG_ERRORS
-from src.core.utils.validation_helpers import extract_validation_message
+from src.core.utils.validation_helpers import extract_validation_message, normalize_validation_error
 
 class PropertyTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
@@ -83,19 +84,26 @@ class PropertyTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        tag = PropertyTagAdminService.create_tag(
-            serializer.validated_data,
-            created_by=request.user
-        )
-        
-        detail_serializer = PropertyTagAdminDetailSerializer(tag)
-        return APIResponse.success(
-            message=TAG_SUCCESS["tag_created"],
-            data=detail_serializer.data,
-            status_code=status.HTTP_201_CREATED
-        )
+        try:
+            serializer.is_valid(raise_exception=True)
+
+            tag = PropertyTagAdminService.create_tag(
+                serializer.validated_data,
+                created_by=request.user
+            )
+
+            detail_serializer = PropertyTagAdminDetailSerializer(tag)
+            return APIResponse.success(
+                message=TAG_SUCCESS["tag_created"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_201_CREATED
+            )
+        except (DRFValidationError, DjangoValidationError) as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, TAG_ERRORS["tag_create_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
     
     def retrieve(self, request, *args, **kwargs):
         tag = PropertyTagAdminService.get_tag_by_id(kwargs.get('pk'))
@@ -116,11 +124,12 @@ class PropertyTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         tag_id = kwargs.get('pk')
-        
+
         serializer = self.get_serializer(data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        
+
         try:
+            serializer.is_valid(raise_exception=True)
+
             updated_tag = PropertyTagAdminService.update_tag_by_id(
                 tag_id,
                 serializer.validated_data
@@ -137,9 +146,10 @@ class PropertyTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=TAG_ERRORS["tag_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except Exception as e:
+        except (DRFValidationError, DjangoValidationError) as e:
             return APIResponse.error(
-                message=TAG_ERRORS["tag_update_failed"],
+                message=extract_validation_message(e, TAG_ERRORS["tag_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -157,9 +167,10 @@ class PropertyTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=TAG_ERRORS["tag_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except ValidationError as e:
+        except DjangoValidationError as e:
             return APIResponse.error(
                 message=extract_validation_message(e, TAG_ERRORS["tag_delete_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -184,9 +195,10 @@ class PropertyTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 data={'deleted_count': deleted_count},
                 status_code=status.HTTP_200_OK
             )
-        except ValidationError as e:
+        except DjangoValidationError as e:
             return APIResponse.error(
                 message=extract_validation_message(e, TAG_ERRORS["tag_delete_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     

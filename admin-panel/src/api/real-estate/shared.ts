@@ -1,4 +1,5 @@
 import { api } from '@/core/config/api';
+import { ApiError } from '@/types/api/apiError';
 import { convertToLimitOffset } from '@/components/shared/paginations/pagination';
 import type { PaginatedResponse, ApiPagination } from '@/types/shared/pagination';
 
@@ -66,9 +67,26 @@ export const buildListUrl = (
   return `${baseUrl}?${queryString}`;
 };
 
+const ensureApiSuccess = <T>(response: any): { data: T; pagination?: ApiPagination; metaData?: { message?: string; AppStatusCode?: number }; errors?: Record<string, string[]> | null } => {
+  if (!response?.metaData || response.metaData.status === 'success') {
+    return response;
+  }
+
+  throw new ApiError({
+    response: {
+      AppStatusCode: response.metaData?.AppStatusCode || 400,
+      _data: response,
+      ok: false,
+      message: response.metaData?.message || 'Operation failed',
+      errors: response.errors || null,
+    },
+  });
+};
+
 export const toPaginatedResponse = <T>(response: any, params?: ListParams): PaginatedResponse<T> => {
-  const responseData = Array.isArray(response?.data) ? response.data : [];
-  const responsePagination = response?.pagination;
+  const safeResponse = ensureApiSuccess<T[]>(response);
+  const responseData = Array.isArray(safeResponse?.data) ? safeResponse.data : [];
+  const responsePagination = safeResponse?.pagination;
 
   const pageSize = responsePagination?.page_size || (params?.size || 10);
   const totalCount = responsePagination?.count || responseData.length;
@@ -94,7 +112,8 @@ export const toPaginatedResponse = <T>(response: any, params?: ListParams): Pagi
 };
 
 export const extractData = <T>(response: any): T => {
-  return response?.data?.data || response?.data;
+  const safeResponse = ensureApiSuccess<T>(response);
+  return safeResponse?.data;
 };
 
 export const fetchPaginated = async <T>(baseUrl: string, params?: ListParams): Promise<PaginatedResponse<T>> => {

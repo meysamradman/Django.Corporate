@@ -1,5 +1,7 @@
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError as DRFValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 
 from src.core.responses.response import APIResponse
@@ -16,6 +18,7 @@ from src.real_estate.serializers.admin.label_serializer import (
 )
 from src.real_estate.services.admin.label_services import PropertyLabelAdminService
 from src.real_estate.messages.messages import LABEL_SUCCESS, LABEL_ERRORS
+from src.core.utils.validation_helpers import extract_validation_message, normalize_validation_error
 
 class PropertyLabelAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
@@ -79,19 +82,26 @@ class PropertyLabelAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        label_obj = PropertyLabelAdminService.create_label(
-            serializer.validated_data,
-            created_by=request.user
-        )
-        
-        detail_serializer = PropertyLabelAdminDetailSerializer(label_obj)
-        return APIResponse.success(
-            message=LABEL_SUCCESS["label_created"],
-            data=detail_serializer.data,
-            status_code=status.HTTP_201_CREATED
-        )
+        try:
+            serializer.is_valid(raise_exception=True)
+
+            label_obj = PropertyLabelAdminService.create_label(
+                serializer.validated_data,
+                created_by=request.user
+            )
+
+            detail_serializer = PropertyLabelAdminDetailSerializer(label_obj)
+            return APIResponse.success(
+                message=LABEL_SUCCESS["label_created"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_201_CREATED
+            )
+        except (DRFValidationError, DjangoValidationError) as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, LABEL_ERRORS["label_create_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
     
     def retrieve(self, request, *args, **kwargs):
         label_obj = PropertyLabelAdminService.get_label_by_id(kwargs.get('pk'))
@@ -112,11 +122,12 @@ class PropertyLabelAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         label_id = kwargs.get('pk')
-        
+
         serializer = self.get_serializer(data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        
+
         try:
+            serializer.is_valid(raise_exception=True)
+
             updated_label = PropertyLabelAdminService.update_label_by_id(
                 label_id,
                 serializer.validated_data
@@ -133,9 +144,10 @@ class PropertyLabelAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=LABEL_ERRORS["label_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except Exception as e:
+        except (DRFValidationError, DjangoValidationError) as e:
             return APIResponse.error(
-                message=LABEL_ERRORS["label_update_failed"],
+                message=extract_validation_message(e, LABEL_ERRORS["label_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     

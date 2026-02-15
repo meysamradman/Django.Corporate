@@ -17,6 +17,10 @@ PROPERTY_SUCCESS = {
     "property_bulk_seo_generated": "SEO املاک با موفقیت تولید شد.",
     "property_media_removed": "رسانه با موفقیت حذف شد.",
     "property_field_options_retrieved": "گزینه‌های فیلد با موفقیت دریافت شدند.",
+    "property_deal_finalized": "معامله ملک با موفقیت نهایی شد.",
+    "property_geo_results_retrieved": "نتایج جستجوی مکانی با موفقیت دریافت شد.",
+    "property_map_data_retrieved": "داده‌های نقشه با موفقیت دریافت شد.",
+    "property_geo_engine_status_retrieved": "وضعیت موتور جستجوی مکانی با موفقیت دریافت شد.",
 }
 
 PROPERTY_ERRORS = {
@@ -47,6 +51,12 @@ PROPERTY_ERRORS = {
     "invalid_finalize_status": "فقط املاک active یا pending قابل نهایی‌سازی هستند.",
     "invalid_media_type": "نوع رسانه نامعتبر است.",
     "property_media_not_found": "رسانه یافت نشد.",
+    "media_ids_or_files_required": "حداقل یکی از media_ids یا media_files باید ارسال شود.",
+    "geo_coordinates_required": "مختصات جغرافیایی الزامی است.",
+    "geo_coordinates_invalid": "مختصات جغرافیایی معتبر نیست.",
+    "geo_bbox_coordinates_required": "مختصات محدوده الزامی است.",
+    "geo_polygon_min_points": "چندضلعی باید حداقل 3 نقطه داشته باشد.",
+    "geo_polygon_invalid": "مختصات چندضلعی معتبر نیست.",
 }
 
 AGENT_DEFAULTS = {
@@ -159,6 +169,10 @@ TYPE_ERRORS = {
     "type_move_to_descendant": "نمی‌توانید نوع ملک را به فرزند خودش منتقل کنید.",
     "type_move_to_self": "نمی‌توانید نوع ملک را به خودش منتقل کنید.",
     "type_move_failed": "خطا در انتقال نوع ملک: {error}",
+    "type_title_exists": "این عنوان قبلاً ثبت شده است.",
+    "type_slug_exists": "این نامک قبلاً استفاده شده است.",
+    "type_max_depth": "حداکثر عمق مجاز برای نوع ملک رعایت نشده است.",
+    "type_cannot_be_own_parent": "نوع ملک نمی‌تواند والد خودش باشد.",
 }
 
 STATE_SUCCESS = {

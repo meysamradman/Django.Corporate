@@ -1,7 +1,8 @@
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from django_filters.rest_framework import DjangoFilterBackend
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 from src.real_estate.models.type import PropertyType
 from src.real_estate.filters.admin.type_filters import PropertyTypeAdminFilter
@@ -17,7 +18,7 @@ from src.core.pagination import StandardLimitPagination
 from src.user.access_control import real_estate_permission, PermissionRequiredMixin
 from src.core.responses.response import APIResponse
 from src.real_estate.messages import TYPE_SUCCESS, TYPE_ERRORS
-from src.core.utils.validation_helpers import extract_validation_message
+from src.core.utils.validation_helpers import extract_validation_message, normalize_validation_error
 
 class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
@@ -93,19 +94,26 @@ class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        property_type = PropertyTypeAdminService.create_type(
-            serializer.validated_data,
-            created_by=request.user
-        )
-        
-        detail_serializer = PropertyTypeAdminDetailSerializer(property_type)
-        return APIResponse.success(
-            message=TYPE_SUCCESS["type_created"],
-            data=detail_serializer.data,
-            status_code=status.HTTP_201_CREATED
-        )
+        try:
+            serializer.is_valid(raise_exception=True)
+
+            property_type = PropertyTypeAdminService.create_type(
+                serializer.validated_data,
+                created_by=request.user
+            )
+
+            detail_serializer = PropertyTypeAdminDetailSerializer(property_type)
+            return APIResponse.success(
+                message=TYPE_SUCCESS["type_created"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_201_CREATED
+            )
+        except (DRFValidationError, DjangoValidationError) as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, TYPE_ERRORS["type_create_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
     
     def retrieve(self, request, *args, **kwargs):
         property_type = PropertyTypeAdminService.get_type_by_id(kwargs.get('pk'))
@@ -126,11 +134,12 @@ class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         type_id = kwargs.get('pk')
-        
+
         serializer = self.get_serializer(data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        
+
         try:
+            serializer.is_valid(raise_exception=True)
+
             updated_type = PropertyTypeAdminService.update_type_by_id(
                 type_id, 
                 serializer.validated_data
@@ -142,9 +151,15 @@ class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 data=detail_serializer.data,
                 status_code=status.HTTP_200_OK
             )
-        except Exception as e:
+        except PropertyType.DoesNotExist:
             return APIResponse.error(
-                message=TYPE_ERRORS["type_update_failed"],
+                message=TYPE_ERRORS["type_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        except (DRFValidationError, DjangoValidationError) as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, TYPE_ERRORS["type_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
@@ -162,9 +177,10 @@ class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=TYPE_ERRORS["type_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except ValidationError as e:
+        except DjangoValidationError as e:
             return APIResponse.error(
                 message=extract_validation_message(e, TYPE_ERRORS["type_delete_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -233,6 +249,7 @@ class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         if not target_id:
             return APIResponse.error(
                 message=TYPE_ERRORS["type_ids_required"],
+                errors={'target_id': [TYPE_ERRORS["type_ids_required"]]},
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
@@ -247,16 +264,14 @@ class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=TYPE_ERRORS["type_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except ValidationError as e:
-            error_msg = extract_validation_message(e, "")
-            if "descendant" in error_msg.lower():
-                message = TYPE_ERRORS["type_move_to_descendant"]
-            elif "itself" in error_msg.lower():
-                message = TYPE_ERRORS["type_move_to_self"]
-            else:
-                message = TYPE_ERRORS["type_move_failed"].format(error=error_msg)
+        except DjangoValidationError as e:
+            message = extract_validation_message(
+                e,
+                TYPE_ERRORS["type_move_failed"].format(error=TYPE_ERRORS["type_update_failed"])
+            )
             return APIResponse.error(
                 message=message,
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -278,6 +293,7 @@ class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         if not type_ids:
             return APIResponse.error(
                 message=TYPE_ERRORS["type_ids_required"],
+                errors={'ids': [TYPE_ERRORS["type_ids_required"]]},
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
@@ -291,9 +307,10 @@ class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 data={'deleted_count': deleted_count},
                 status_code=status.HTTP_200_OK
             )
-        except ValidationError as e:
+        except DjangoValidationError as e:
             return APIResponse.error(
                 message=extract_validation_message(e, TYPE_ERRORS["type_delete_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     

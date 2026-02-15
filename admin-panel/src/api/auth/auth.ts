@@ -1,5 +1,6 @@
 import { api } from '@/core/config/api';
 import { endpoints } from '@/core/config/endpoints';
+import { ApiError } from '@/types/api/apiError';
 import type { LoginRequest, LoginResponse, AdminUser } from '@/types/auth/auth';
 
 export const authApi = {
@@ -28,7 +29,7 @@ export const authApi = {
   getCaptchaChallenge: async (): Promise<{ captcha_id: string; digits: string }> => {
     const response = await api.getPublic<{ captcha_id: string; digits: string }>(endpoints.auth.captchaGenerate());
     if (!response.data) {
-      throw new Error('Captcha response data is null');
+      throw ApiError.fromMessage('Captcha response data is null', 500, response);
     }
     return response.data;
   },
@@ -51,7 +52,7 @@ export const authApi = {
     );
 
     if (!response.data) {
-      throw new Error('Reset token response data is null');
+      throw ApiError.fromMessage('Reset token response data is null', 500, response);
     }
 
     return response.data;
@@ -69,7 +70,7 @@ export const authApi = {
   getCurrentUser: async (): Promise<AdminUser> => {
     const response = await api.get<AdminUser>(endpoints.auth.getCurrentUser());
     if (!response.data) {
-      throw new Error('User data is null');
+      throw ApiError.fromMessage('User data is null', 500, response);
     }
     return response.data;
   },
