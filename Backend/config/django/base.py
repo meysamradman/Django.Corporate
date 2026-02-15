@@ -376,6 +376,9 @@ MELIPAYAMAK_API_URL = os.getenv('MELIPAYAMAK_API_URL')
 MELIPAYAMAK_BODY_ID = int(os.getenv('MELIPAYAMAK_BODY_ID'))
 MELIPAYAMAK_API_KEY = os.getenv('MELIPAYAMAK_API_KEY')
 
+USE_OTP_SIMULATOR = os.getenv('USE_OTP_SIMULATOR', 'False').lower() == 'true'
+OTP_SIMULATOR_CODE = os.getenv('OTP_SIMULATOR_CODE', '').strip()
+
 MEDIA_FILE_SIZE_LIMITS = {
     'image': int(os.getenv('MEDIA_IMAGE_SIZE_LIMIT', 10 * 1024 * 1024)),
     'video': int(os.getenv('MEDIA_VIDEO_SIZE_LIMIT', 150 * 1024 * 1024)),

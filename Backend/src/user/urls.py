@@ -5,7 +5,10 @@ from src.user.auth.user_jwt_refresh import UserJWTRefreshView
 from src.user.views.admin import (
     AdminLoginView, AdminRegisterView, AdminLogoutView, 
     AdminManagementView, AdminProfileView, UserManagementView,
-    FakeAdminLoginView
+    FakeAdminLoginView,
+    AdminPasswordResetRequestOTPView,
+    AdminPasswordResetVerifyOTPView,
+    AdminPasswordResetConfirmView,
 )
 from src.user.access_control import AdminRoleView, AdminPermissionView
 from src.user.views.otp_views import SendOTPView, VerifyOTPView, OTPSettingsView
@@ -26,6 +29,9 @@ urlpatterns = [
 
     path(f'admin/{ADMIN_SECRET}/auth/login/', AdminLoginView.as_view(), name='admin-login'),
     path(f'admin/{ADMIN_SECRET}/auth/captcha/', include('src.core.security.captcha.urls', namespace='captcha-secret')),
+    path(f'admin/{ADMIN_SECRET}/auth/password-reset/request-otp/', AdminPasswordResetRequestOTPView.as_view(), name='admin-password-reset-request-otp'),
+    path(f'admin/{ADMIN_SECRET}/auth/password-reset/verify-otp/', AdminPasswordResetVerifyOTPView.as_view(), name='admin-password-reset-verify-otp'),
+    path(f'admin/{ADMIN_SECRET}/auth/password-reset/confirm/', AdminPasswordResetConfirmView.as_view(), name='admin-password-reset-confirm'),
 
     path('admin/auth/logout/', AdminLogoutView.as_view(), name='admin-logout'),
     path('admin/auth/register/', AdminRegisterView.as_view(), name='admin-register'),

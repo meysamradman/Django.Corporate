@@ -5,6 +5,7 @@ from django.contrib.sessions.models import Session
 from django.utils import timezone
 from django.core.cache import cache
 from src.core.cache import CacheService
+from src.user.messages import AUTH_ERRORS
 
 class AdminSessionExpiryMiddleware(MiddlewareMixin):
  
@@ -25,6 +26,8 @@ class AdminSessionExpiryMiddleware(MiddlewareMixin):
             if f'/api/admin/{admin_secret}/auth/logout/' in request.path:
                 return True
             if f'/api/admin/{admin_secret}/auth/captcha/' in request.path:
+                return True
+            if f'/api/admin/{admin_secret}/auth/password-reset/' in request.path:
                 return True
         
         return False
@@ -113,7 +116,7 @@ class AdminSessionExpiryMiddleware(MiddlewareMixin):
         response = JsonResponse(
             {
                 'metaData': {
-                    'message': 'Session expired. Please login again.',
+                    'message': AUTH_ERRORS.get('auth_token_expired', 'نشست شما منقضی شده است. لطفاً دوباره وارد شوید.'),
                     'AppStatusCode': 401,
                     'success': False
                 },

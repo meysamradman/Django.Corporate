@@ -17,6 +17,7 @@ interface PasswordLoginFormProps {
   mobile: string;
   onLogin: (mobile: string, password: string) => Promise<void>;
   onSwitchToOTP?: () => void;
+  onForgotPassword?: () => void;
   onCaptchaInvalid?: () => void;
   loading?: boolean;
 }
@@ -25,6 +26,7 @@ function PasswordLoginForm({
   mobile,
   onLogin,
   onSwitchToOTP,
+  onForgotPassword,
   onCaptchaInvalid,
   loading = false,
 }: PasswordLoginFormProps) {
@@ -171,6 +173,16 @@ function PasswordLoginForm({
         >
           <ChevronLeft className="h-4 w-4" />
           ورود با کد یکبار مصرف
+        </button>
+      )}
+
+      {onForgotPassword && (
+        <button
+          type="button"
+          onClick={onForgotPassword}
+          className="w-full text-sm text-font-s hover:text-font-p transition-colors"
+        >
+          فراموشی رمز عبور
         </button>
       )}
 

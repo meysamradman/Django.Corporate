@@ -64,3 +64,19 @@ class AdminSessionService:
             session_manager.refresh_admin_session(session_key, session_timeout)
         except Exception:
             pass
+
+    @staticmethod
+    def destroy_user_sessions(user_id):
+        try:
+            sessions = Session.objects.filter(expire_date__gt=timezone.now())
+            for session in sessions:
+                try:
+                    data = session.get_decoded()
+                    session_user_id = str(data.get('_auth_user_id', ''))
+                    session_user_type = data.get('user_type')
+                    if session_user_id == str(user_id) and session_user_type == 'admin':
+                        AdminSessionService.destroy_session(session.session_key)
+                except Exception:
+                    continue
+        except Exception:
+            pass

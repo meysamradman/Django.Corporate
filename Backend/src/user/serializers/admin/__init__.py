@@ -15,6 +15,11 @@ from .admin_register_serializer import (
     AdminCreateRegularUserSerializer
 )
 from .admin_login_serializer import AdminLoginSerializer
+from .admin_password_reset_serializer import (
+    AdminPasswordResetRequestSerializer,
+    AdminPasswordResetVerifySerializer,
+    AdminPasswordResetConfirmSerializer,
+)
 
 __all__ = [
     "AdminListSerializer",
@@ -27,5 +32,8 @@ __all__ = [
     "AdminCompleteProfileSerializer",
     "AdminRegisterSerializer",
     "AdminCreateRegularUserSerializer",
-    "AdminLoginSerializer"
+    "AdminLoginSerializer",
+    "AdminPasswordResetRequestSerializer",
+    "AdminPasswordResetVerifySerializer",
+    "AdminPasswordResetConfirmSerializer",
 ]

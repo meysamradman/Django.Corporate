@@ -7,6 +7,9 @@ export const endpoints = {
     csrfToken: () => adminEndpoints.csrfToken(),
     captchaGenerate: () => adminEndpoints.captchaGenerate(),
     getCurrentUser: () => adminEndpoints.profileMe(),
+    passwordResetRequestOtp: () => adminEndpoints.passwordResetRequestOtp(),
+    passwordResetVerifyOtp: () => adminEndpoints.passwordResetVerifyOtp(),
+    passwordResetConfirm: () => adminEndpoints.passwordResetConfirm(),
   },
 };
 

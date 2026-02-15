@@ -15,6 +15,18 @@ class OTPService:
         self.otp_expiry = getattr(settings, 'OTP_EXPIRY_SECONDS', 120)
         self.max_requests = getattr(settings, 'OTP_MAX_REQUESTS', 10)
         self.request_window = getattr(settings, 'OTP_REQUEST_WINDOW', 3600)
+        self.use_simulator = getattr(settings, 'USE_OTP_SIMULATOR', False)
+        self.simulator_code = getattr(settings, 'OTP_SIMULATOR_CODE', '')
+
+    def _get_otp_value(self):
+        expected_length = len(generate_otp())
+
+        if self.use_simulator:
+            code = (self.simulator_code or '11111').strip()
+            if code.isdigit() and len(code) == expected_length:
+                return code
+            return '1' * expected_length
+        return generate_otp()
 
     def _get_request_key(self, mobile):
         return f"otp_requests:{mobile}"
@@ -42,6 +54,9 @@ class OTPService:
         CacheService.set(request_key, current + 1, self.request_window)
 
     def _send_sms(self, mobile, otp):
+        if self.use_simulator:
+            return
+
         sms_data = {
             'bodyId': settings.MELIPAYAMAK_BODY_ID,
             'to': mobile,
@@ -70,7 +85,7 @@ class OTPService:
 
             self._check_request_limit(mobile)
 
-            otp = generate_otp()
+            otp = self._get_otp_value()
             expiry_time = get_otp_expiry_time(minutes=2)
             self._store_otp_data(mobile, otp, expiry_time)
 

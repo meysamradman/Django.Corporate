@@ -35,9 +35,12 @@ class CaptchaService:
             
             if correct_answer is None:
                 return False
-            
-            CaptchaCacheManager.delete_captcha(captcha_id)
-            return user_answer.strip() == correct_answer
+
+            is_valid = user_answer.strip() == correct_answer
+            if is_valid:
+                CaptchaCacheManager.delete_captcha(captcha_id)
+
+            return is_valid
 
         except Exception:
             return False

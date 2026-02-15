@@ -33,6 +33,39 @@ export const authApi = {
     return response.data;
   },
 
+  requestAdminPasswordResetOtp: async (data: {
+    mobile: string;
+    captcha_id: string;
+    captcha_answer: string;
+  }): Promise<void> => {
+    await api.post(endpoints.auth.passwordResetRequestOtp(), data as unknown as Record<string, unknown>);
+  },
+
+  verifyAdminPasswordResetOtp: async (data: {
+    mobile: string;
+    otp_code: string;
+  }): Promise<{ reset_token: string }> => {
+    const response = await api.post<{ reset_token: string }>(
+      endpoints.auth.passwordResetVerifyOtp(),
+      data as unknown as Record<string, unknown>
+    );
+
+    if (!response.data) {
+      throw new Error('Reset token response data is null');
+    }
+
+    return response.data;
+  },
+
+  confirmAdminPasswordReset: async (data: {
+    mobile: string;
+    reset_token: string;
+    new_password: string;
+    confirm_password: string;
+  }): Promise<void> => {
+    await api.post(endpoints.auth.passwordResetConfirm(), data as unknown as Record<string, unknown>);
+  },
+
   getCurrentUser: async (): Promise<AdminUser> => {
     const response = await api.get<AdminUser>(endpoints.auth.getCurrentUser());
     if (!response.data) {

@@ -52,6 +52,8 @@ export const AUTH_MESSAGES = {
   invalidCredentials: 'ورود اعتبارنامه‌های ارائه شده نادرست است',
   invalidPassword: 'رمز عبور اشتباه است',
   invalidOTP: 'کد تأیید نامعتبر است',
+  resetOtpSent: 'کد بازیابی رمز عبور ارسال شد',
+  passwordResetSuccess: 'رمز عبور با موفقیت تغییر کرد',
   sessionExpired: 'جلسه کاری منقضی شده است',
   accessDenied: 'دسترسی غیر مجاز',
   otpSent: 'کد یکبار مصرف ارسال شد',

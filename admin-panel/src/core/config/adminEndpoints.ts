@@ -5,7 +5,11 @@ function getAdminEndpoint(path: string): string {
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   const finalPath = cleanPath.endsWith('/') ? cleanPath : `${cleanPath}/`;
 
-  if (cleanPath.startsWith('auth/login') || cleanPath.startsWith('auth/captcha')) {
+  if (
+    cleanPath.startsWith('auth/login') ||
+    cleanPath.startsWith('auth/captcha') ||
+    cleanPath.startsWith('auth/password-reset')
+  ) {
     return `/admin/${secret}/${finalPath}`;
   }
 
@@ -21,6 +25,9 @@ export const adminEndpoints = {
     const secret = env.ADMIN_URL_SECRET;
     return `/admin/${secret}/auth/captcha/generate/`;
   },
+  passwordResetRequestOtp: () => getAdminEndpoint('auth/password-reset/request-otp'),
+  passwordResetVerifyOtp: () => getAdminEndpoint('auth/password-reset/verify-otp'),
+  passwordResetConfirm: () => getAdminEndpoint('auth/password-reset/confirm'),
 
   profile: () => getAdminEndpoint('profile'),
   profileMe: () => getAdminEndpoint('management/me'),

@@ -9,6 +9,7 @@ import { ChevronLeft } from 'lucide-react';
 
 const PasswordLoginForm = lazy(() => import('./PasswordLoginForm'));
 const OTPLoginForm = lazy(() => import('./OTPLoginForm'));
+const AdminPasswordResetForm = lazy(() => import('./AdminPasswordResetForm'));
 
 const FormSkeleton = () => (
   <div className="space-y-5">
@@ -32,7 +33,7 @@ const FormSkeleton = () => (
   </div>
 );
 
-type LoginStep = 'mobile' | 'otp' | 'password';
+type LoginStep = 'mobile' | 'otp' | 'password' | 'forgot-password';
 
 export function LoginForm() {
   const { login, loginWithOTP, isLoading: authLoading } = useAuth();
@@ -129,6 +130,20 @@ export function LoginForm() {
     setStep('otp');
   };
 
+  const handleOpenForgotPassword = () => {
+    setStep('forgot-password');
+    if (!captchaId) {
+      void fetchCaptchaChallenge();
+    }
+  };
+
+  const handlePasswordResetCompleted = (mobileNumber: string) => {
+    setMobile(mobileNumber);
+    setCaptchaAnswer('');
+    setStep('password');
+    void fetchCaptchaChallenge();
+  };
+
   if (step === 'mobile') {
     return (
       <MobileInputForm 
@@ -144,7 +159,7 @@ export function LoginForm() {
 
   return (
     <>
-      {step === 'otp' && (
+      {(step === 'otp' || step === 'forgot-password') && (
         <button
           type="button"
           onClick={handleBackToMobile}
@@ -165,11 +180,23 @@ export function LoginForm() {
             loading={authLoading}
             otpLength={otpLength}
           />
+        ) : step === 'forgot-password' ? (
+          <AdminPasswordResetForm
+            mobile={mobile}
+            initialCaptchaId={captchaId}
+            initialCaptchaDigits={captchaDigits}
+            initialCaptchaAnswer={captchaAnswer}
+            otpLength={otpLength}
+            loading={authLoading}
+            onBack={() => setStep('password')}
+            onCompleted={handlePasswordResetCompleted}
+          />
         ) : (
           <PasswordLoginForm
             mobile={mobile}
             onLogin={handlePasswordLogin}
             onSwitchToOTP={handleBackToOTP}
+            onForgotPassword={handleOpenForgotPassword}
             onCaptchaInvalid={handleCaptchaInvalid}
             loading={authLoading}
           />
