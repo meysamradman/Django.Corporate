@@ -30,6 +30,7 @@ from src.user.access_control import (
     PermissionRequiredMixin
 )
 from src.core.pagination.pagination import StandardLimitPagination
+from src.core.utils.validation_helpers import normalize_validation_error
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class UserManagementView(PermissionRequiredMixin, AdminAuthMixin, APIView):
@@ -44,25 +45,6 @@ class UserManagementView(PermissionRequiredMixin, AdminAuthMixin, APIView):
         'delete': 'users.delete',
     }
     permission_denied_message = AUTH_ERRORS["auth_not_authorized"]
-
-    @staticmethod
-    def _normalize_validation_error(error):
-        if isinstance(error, DRFValidationError):
-            detail = error.detail
-            if isinstance(detail, dict):
-                return detail
-            if isinstance(detail, list):
-                return {'non_field_errors': detail}
-            return {'non_field_errors': [str(detail)]}
-
-        if isinstance(error, DjangoValidationError):
-            if hasattr(error, 'message_dict'):
-                return error.message_dict
-            if hasattr(error, 'messages'):
-                return {'non_field_errors': error.messages}
-            return {'non_field_errors': [str(error)]}
-
-        return {'non_field_errors': [str(error)]}
 
     def get_permissions(self):
         return [user_permission()]  # ✅ instantiate می‌کند
@@ -184,7 +166,7 @@ class UserManagementView(PermissionRequiredMixin, AdminAuthMixin, APIView):
         except (DjangoValidationError, DRFValidationError) as e:
             return APIResponse.error(
                 message=AUTH_ERRORS["auth_validation_error"],
-                errors=self._normalize_validation_error(e),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:

@@ -20,7 +20,7 @@ class PropertyExcelExportService:
     def export_properties(queryset):
         
         if not XLSXWRITER_AVAILABLE:
-            raise ImportError(PROPERTY_ERRORS.get("property_export_failed", "XlsxWriter not installed"))
+            raise ImportError(PROPERTY_ERRORS["property_export_failed"])
         
         output = BytesIO()
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})

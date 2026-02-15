@@ -1,4 +1,3 @@
-import re
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
@@ -18,6 +17,7 @@ from src.real_estate.serializers.admin.state_serializer import (
 )
 from src.real_estate.services.admin.state_services import PropertyStateAdminService
 from src.real_estate.messages.messages import STATE_SUCCESS, STATE_ERRORS
+from src.core.utils.validation_helpers import normalize_validation_error
 
 class PropertyStateAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
@@ -39,7 +39,7 @@ class PropertyStateAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'title']
     ordering = ['-created_at']
     pagination_class = StandardLimitPagination
-    
+
     def get_queryset(self):
         if self.action == 'list':
             return PropertyStateAdminService.get_state_queryset()
@@ -139,7 +139,8 @@ class PropertyStateAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=f"{STATE_ERRORS['state_update_failed']}: {str(e)}",
+                message=STATE_ERRORS["state_update_failed"],
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -169,15 +170,9 @@ class PropertyStateAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except ValidationError as e:
-            error_msg = str(e)
-            if "properties" in error_msg:
-                count_match = re.search(r'\d+', error_msg)
-                count = count_match.group() if count_match else "0"
-                message = STATE_ERRORS["state_has_properties"].format(count=count)
-            else:
-                message = STATE_ERRORS["state_delete_failed"]
             return APIResponse.error(
-                message=message,
+                message=STATE_ERRORS["state_delete_failed"],
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -187,7 +182,8 @@ class PropertyStateAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         
         if not state_ids:
             return APIResponse.error(
-                message=STATE_ERRORS.get("state_not_found", "State IDs required"),
+                message=STATE_ERRORS["state_ids_required"],
+                errors={'ids': [STATE_ERRORS["state_ids_required"]]},
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
@@ -197,20 +193,14 @@ class PropertyStateAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         try:
             deleted_count = PropertyStateAdminService.bulk_delete_states(state_ids)
             return APIResponse.success(
-                message=STATE_SUCCESS.get("state_deleted", "States deleted successfully"),
+                message=STATE_SUCCESS["state_bulk_deleted"],
                 data={'deleted_count': deleted_count},
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            error_msg = str(e)
-            if "properties" in error_msg:
-                count_match = re.search(r'\d+', error_msg)
-                count = count_match.group() if count_match else "0"
-                message = STATE_ERRORS["state_has_properties"].format(count=count)
-            else:
-                message = STATE_ERRORS["state_delete_failed"]
             return APIResponse.error(
-                message=message,
+                message=STATE_ERRORS["state_delete_failed"],
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 

@@ -172,9 +172,9 @@ class PropertyAgentAdminCreateSerializer(serializers.ModelSerializer):
     def validate_slug(self, value):
         
         if not value:
-            raise serializers.ValidationError("نامک (Slug) الزامی است.")
+            raise serializers.ValidationError(AGENT_ERRORS["slug_required"])
         if PropertyAgent.objects.filter(slug=value).exists():
-            raise serializers.ValidationError("این نامک قبلاً استفاده شده است.")
+            raise serializers.ValidationError(AGENT_ERRORS["slug_exists"])
         return value
     
     def validate_user_id(self, value):
@@ -185,7 +185,7 @@ class PropertyAgentAdminCreateSerializer(serializers.ModelSerializer):
         try:
             user = User.objects.get(id=value)
         except User.DoesNotExist:
-            raise serializers.ValidationError("کاربر یافت نشد.")
+            raise serializers.ValidationError(AGENT_ERRORS["user_not_found"])
         
         user_type = getattr(user, 'user_type', None)
         is_staff = getattr(user, 'is_staff', False)
@@ -220,9 +220,9 @@ class PropertyAgentAdminUpdateSerializer(serializers.ModelSerializer):
     def validate_slug(self, value):
         
         if not value:
-            raise serializers.ValidationError("نامک (Slug) الزامی است.")
+            raise serializers.ValidationError(AGENT_ERRORS["slug_required"])
         if PropertyAgent.objects.exclude(id=self.instance.id).filter(slug=value).exists():
-            raise serializers.ValidationError("این نامک قبلاً استفاده شده است.")
+            raise serializers.ValidationError(AGENT_ERRORS["slug_exists"])
         return value
     
     def validate_user_id(self, value):
@@ -233,7 +233,7 @@ class PropertyAgentAdminUpdateSerializer(serializers.ModelSerializer):
         try:
             user = User.objects.get(id=value)
         except User.DoesNotExist:
-            raise serializers.ValidationError("کاربر یافت نشد.")
+            raise serializers.ValidationError(AGENT_ERRORS["user_not_found"])
         
         user_type = getattr(user, 'user_type', None)
         is_staff = getattr(user, 'is_staff', False)

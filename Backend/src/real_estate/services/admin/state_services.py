@@ -82,14 +82,18 @@ class PropertyStateAdminService:
         states = PropertyState.objects.filter(id__in=state_ids)
         
         if not states.exists():
-            raise ValidationError(STATE_ERRORS["state_not_found"])
+            raise ValidationError({'ids': [STATE_ERRORS["states_not_found"]]})
         
         with transaction.atomic():
             state_list = list(states)
             for state_obj in state_list:
                 property_count = state_obj.properties.count()
                 if property_count > 0:
-                    raise ValidationError(STATE_ERRORS["state_has_properties"].format(count=property_count))
+                    raise ValidationError({
+                        'non_field_errors': [
+                            STATE_ERRORS["state_has_properties"].format(count=property_count)
+                        ]
+                    })
             
             deleted_count = states.count()
             states.delete()

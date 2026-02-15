@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from src.real_estate.models.floor_plan import RealEstateFloorPlan
 from src.real_estate.models.floor_plan_media import FloorPlanImage
+from src.real_estate.messages.messages import FLOOR_PLAN_ERRORS
 from src.media.serializers.media_serializer import ImageMediaSerializer, MediaAdminSerializer
 
 class FloorPlanImageSerializer(serializers.ModelSerializer):
@@ -85,7 +86,7 @@ class FloorPlanAdminCreateSerializer(serializers.ModelSerializer):
     def validate_slug(self, value):
         
         if RealEstateFloorPlan.objects.filter(slug=value).exists():
-            raise serializers.ValidationError("این نامک قبلاً استفاده شده است.")
+            raise serializers.ValidationError(FLOOR_PLAN_ERRORS["slug_exists"])
         return value
 
 class FloorPlanAdminUpdateSerializer(serializers.ModelSerializer):
@@ -106,5 +107,5 @@ class FloorPlanAdminUpdateSerializer(serializers.ModelSerializer):
         
         instance = self.instance
         if instance and RealEstateFloorPlan.objects.filter(slug=value).exclude(pk=instance.pk).exists():
-            raise serializers.ValidationError("این نامک قبلاً استفاده شده است.")
+            raise serializers.ValidationError(FLOOR_PLAN_ERRORS["slug_exists"])
         return value

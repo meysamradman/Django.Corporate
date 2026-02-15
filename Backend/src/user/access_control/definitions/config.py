@@ -1,7 +1,8 @@
 from typing import Dict, List, Tuple, Any, Optional
 from dataclasses import dataclass
 
-from src.user.messages import ROLE_TEXT
+from src.user.messages import ROLE_TEXT, ROLE_ERRORS
+from src.user.messages.permission import PERMISSION_ERRORS
 
 from .modules.base import BASE_PERMISSIONS
 from .modules.media import MEDIA_PERMISSIONS
@@ -268,7 +269,7 @@ def is_role_forbidden_for_consultant(role) -> Tuple[bool, str]:
     role_name = role.name if hasattr(role, 'name') else str(role)
     if role_name in forbidden_roles:
         display_name = getattr(role, 'display_name', role_name)
-        return True, f"نقش '{display_name}' برای مشاورین املاک مجاز نیست"
+        return True, ROLE_ERRORS["consultant_role_forbidden"].format(role=display_name)
 
     if hasattr(role, 'permissions') and role.permissions:
         role_modules = role.permissions.get('modules', [])
@@ -278,11 +279,11 @@ def is_role_forbidden_for_consultant(role) -> Tuple[bool, str]:
         role_modules = []
     
     if 'all' in role_modules:
-        return True, "نقش‌های با دسترسی کامل برای مشاورین املاک مجاز نیست"
+        return True, ROLE_ERRORS["consultant_full_access_forbidden"]
     
     for forbidden_module in forbidden_modules:
         if forbidden_module in role_modules:
-            return True, f"نقش‌های با دسترسی به '{forbidden_module}' برای مشاورین املاک مجاز نیست"
+            return True, ROLE_ERRORS["consultant_module_forbidden"].format(module=forbidden_module)
     
     return False, ""
 
@@ -482,7 +483,7 @@ def get_available_roles(current_user_level: int = 10) -> List[RoleConfig]:
 
 def get_user_role_display_text(user) -> str:
     if not user:
-        return 'No role assigned'
+        return ROLE_ERRORS["no_role_assigned"]
     
     if getattr(user, 'is_superuser', False):
         return get_role_display_name('super_admin', short=True)
@@ -496,7 +497,7 @@ def get_user_role_display_text(user) -> str:
         pass
     
     if not roles:
-        return 'No role assigned'
+        return ROLE_ERRORS["no_role_assigned"]
     
     main_role = roles[0]
     return get_role_display_name(main_role, short=True)
@@ -513,25 +514,33 @@ def validate_role_permissions(permissions: Dict[str, Any]) -> tuple[bool, List[s
     errors = []
     
     if not isinstance(permissions, dict):
-        return False, ["Permissions must be a dictionary"]
+        return False, [PERMISSION_ERRORS["permissions_dict_required"]]
     
     if 'modules' in permissions:
         modules = permissions['modules']
         if not isinstance(modules, list):
-            errors.append("modules must be a list")
+            errors.append(PERMISSION_ERRORS["modules_must_be_list"])
         else:
             invalid_modules = set(modules) - PERMISSION_VALIDATION_RULES['allowed_modules']
             if invalid_modules and 'all' not in modules:
-                errors.append(f"Invalid modules: {', '.join(invalid_modules)}")
+                errors.append(
+                    PERMISSION_ERRORS["invalid_modules_list"].format(
+                        modules=', '.join(invalid_modules)
+                    )
+                )
     
     if 'actions' in permissions:
         actions = permissions['actions']
         if not isinstance(actions, list):
-            errors.append("actions must be a list")
+            errors.append(PERMISSION_ERRORS["actions_must_be_list"])
         else:
             invalid_actions = set(actions) - PERMISSION_VALIDATION_RULES['allowed_actions']
             if invalid_actions and 'all' not in actions:
-                errors.append(f"Invalid actions: {', '.join(invalid_actions)}")
+                errors.append(
+                    PERMISSION_ERRORS["invalid_actions_list"].format(
+                        actions=', '.join(invalid_actions)
+                    )
+                )
     
     return len(errors) == 0, errors
 

@@ -14,6 +14,9 @@ PROPERTY_SUCCESS = {
     "property_seo_generated": "اطلاعات SEO با موفقیت تولید شد.",
     "property_seo_validated": "اطلاعات SEO با موفقیت بررسی شد.",
     "property_seo_report_retrieved": "گزارش SEO با موفقیت دریافت شد.",
+    "property_bulk_seo_generated": "SEO املاک با موفقیت تولید شد.",
+    "property_media_removed": "رسانه با موفقیت حذف شد.",
+    "property_field_options_retrieved": "گزینه‌های فیلد با موفقیت دریافت شدند.",
 }
 
 PROPERTY_ERRORS = {
@@ -27,6 +30,7 @@ PROPERTY_ERRORS = {
     "property_ids_required": "شناسه املاک مورد نیاز است.",
     "properties_not_found": "املاک انتخاب شده یافت نشدند.",
     "media_id_required": "شناسه رسانه مورد نیاز است.",
+    "media_image_not_found": "تصویر رسانه یافت نشد.",
     "agent_id_required": "شناسه مشاور مورد نیاز است.",
     "agency_id_required": "شناسه آژانس مورد نیاز است.",
     "property_type_id_required": "شناسه نوع ملک مورد نیاز است.",
@@ -38,6 +42,15 @@ PROPERTY_ERRORS = {
     "property_export_failed": "خروجی گیری املاک ناموفق بود.",
     "property_export_limit_exceeded": "حد مجاز خروجی گیری تجاوز شده است. لطفاً بعداً تلاش کنید.",
     "property_export_too_large": "حجم خروجی بسیار بزرگ است. لطفاً فیلترهای بیشتری اعمال کنید.",
+    "status_finalize_required": "برای ثبت وضعیت فروخته/اجاره‌رفته باید از عملیات «نهایی‌سازی معامله» استفاده شود.",
+    "already_finalized": "این ملک قبلاً نهایی شده است.",
+    "invalid_finalize_status": "فقط املاک active یا pending قابل نهایی‌سازی هستند.",
+    "invalid_media_type": "نوع رسانه نامعتبر است.",
+    "property_media_not_found": "رسانه یافت نشد.",
+}
+
+AGENT_DEFAULTS = {
+    "meta_title_suffix": " - مشاور املاک",
 }
 
 PDF_LABELS = {
@@ -90,7 +103,11 @@ AGENT_ERRORS = {
     "agent_has_properties": "این مشاور دارای {count} ملک است و قابل حذف نیست.",
     "user_already_has_agent": "این کاربر قبلاً یک پروفایل مشاور دارد.",
     "user_must_be_admin": "فقط کاربران ادمین می‌توانند مشاور املاک باشند.",
+    "user_not_found": "کاربر یافت نشد.",
+    "user_id_required": "شناسه کاربر مورد نیاز است.",
     "license_number_exists": "شماره پروانه قبلاً استفاده شده است.",
+    "slug_required": "نامک (Slug) الزامی است.",
+    "slug_exists": "این نامک قبلاً استفاده شده است.",
 }
 
 AGENCY_SUCCESS = {
@@ -114,6 +131,8 @@ AGENCY_ERRORS = {
     "agency_has_properties": "این آژانس دارای {count} ملک است و قابل حذف نیست.",
     "agency_has_agents": "این آژانس دارای {count} مشاور است و قابل حذف نیست.",
     "license_number_exists": "شماره پروانه قبلاً استفاده شده است.",
+    "slug_required": "نامک (Slug) الزامی است.",
+    "slug_exists": "این نامک قبلاً استفاده شده است.",
 }
 
 TYPE_SUCCESS = {
@@ -148,6 +167,7 @@ STATE_SUCCESS = {
     "state_updated": "وضعیت ملک با موفقیت به‌روزرسانی شد.",
     "state_deleted": "وضعیت ملک با موفقیت حذف شد.",
     "state_retrieved": "وضعیت ملک با موفقیت دریافت شد.",
+    "state_bulk_deleted": "وضعیت‌های ملک با موفقیت حذف شدند.",
 }
 
 STATE_ERRORS = {
@@ -157,6 +177,10 @@ STATE_ERRORS = {
     "state_update_failed": "به‌روزرسانی وضعیت ملک ناموفق بود.",
     "state_delete_failed": "حذف وضعیت ملک ناموفق بود.",
     "state_has_properties": "این وضعیت در {count} ملک استفاده شده و قابل حذف نیست.",
+    "state_ids_required": "شناسه وضعیت‌های ملک مورد نیاز است.",
+    "states_not_found": "وضعیت‌های انتخاب شده یافت نشدند.",
+    "state_exists": "این وضعیت قبلاً ثبت شده است.",
+    "state_slug_exists": "این نامک قبلاً استفاده شده است.",
 }
 
 LABEL_SUCCESS = {
@@ -173,6 +197,7 @@ LABEL_ERRORS = {
     "label_create_failed": "ایجاد برچسب ملک ناموفق بود.",
     "label_update_failed": "به‌روزرسانی برچسب ملک ناموفق بود.",
     "label_delete_failed": "حذف برچسب ملک ناموفق بود.",
+    "label_exists": "این برچسب قبلاً ثبت شده است.",
 }
 
 FEATURE_SUCCESS = {
@@ -189,6 +214,7 @@ FEATURE_ERRORS = {
     "feature_create_failed": "ایجاد ویژگی ملک ناموفق بود.",
     "feature_update_failed": "به‌روزرسانی ویژگی ملک ناموفق بود.",
     "feature_delete_failed": "حذف ویژگی ملک ناموفق بود.",
+    "feature_exists": "این ویژگی قبلاً ثبت شده است.",
 }
 
 TAG_SUCCESS = {
@@ -197,6 +223,7 @@ TAG_SUCCESS = {
     "tag_updated": "تگ با موفقیت به‌روزرسانی شد.",
     "tag_deleted": "تگ با موفقیت حذف شد.",
     "tag_retrieved": "تگ با موفقیت دریافت شد.",
+    "tag_bulk_deleted": "تگ‌ها با موفقیت حذف شدند.",
 }
 
 TAG_ERRORS = {
@@ -207,6 +234,9 @@ TAG_ERRORS = {
     "tag_delete_failed": "حذف تگ ناموفق بود.",
     "tag_has_properties": "این تگ در {count} مورد استفاده شده و قابل حذف نیست.",
     "tag_ids_required": "شناسه تگ‌ها مورد نیاز است.",
+    "tags_not_found": "تگ‌های انتخاب شده یافت نشدند.",
+    "tag_slug_exists": "این نامک قبلاً استفاده شده است.",
+    "tag_exists": "این تگ قبلاً ثبت شده است.",
 }
 
 FLOOR_PLAN_SUCCESS = {
@@ -232,5 +262,6 @@ FLOOR_PLAN_ERRORS = {
     "image_not_found_in_floor_plan": "تصویر در این پلان یافت نشد.",
     "media_upload_limit_exceeded": "حداکثر {max_items} تصویر برای آپلود مجاز است. شما {total_items} تصویر ارسال کرده‌اید.",
     "only_one_main_image": "فقط یک تصویر اصلی برای هر پلان مجاز است.",
+    "slug_exists": "این نامک قبلاً استفاده شده است.",
 }
 

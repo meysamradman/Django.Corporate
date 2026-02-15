@@ -1,8 +1,8 @@
-import re
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from django_filters.rest_framework import DjangoFilterBackend
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 from src.core.responses.response import APIResponse
 from src.core.pagination import StandardLimitPagination
@@ -18,6 +18,7 @@ from src.real_estate.serializers.admin.agent_serializer import (
 )
 from src.real_estate.services.admin.agent_services import PropertyAgentAdminService
 from src.real_estate.messages.messages import AGENT_SUCCESS, AGENT_ERRORS
+from src.core.utils.validation_helpers import normalize_validation_error
 
 class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
@@ -38,7 +39,7 @@ class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'updated_at', 'rating', 'total_sales', 'user__admin_profile__last_name']
     ordering = ['-rating', '-total_sales', 'user__admin_profile__last_name']
     pagination_class = StandardLimitPagination
-    
+
     def get_queryset(self):
         if self.action == 'list':
             return PropertyAgentAdminService.get_agent_queryset()
@@ -82,9 +83,10 @@ class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
+
         try:
+            serializer.is_valid(raise_exception=True)
+
             agent = PropertyAgentAdminService.create_agent(
                 serializer.validated_data,
                 created_by=request.user
@@ -96,14 +98,10 @@ class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 data=detail_serializer.data,
                 status_code=status.HTTP_201_CREATED
             )
-        except ValidationError as e:
-            error_msg = str(e)
-            if "already has" in error_msg.lower():
-                message = AGENT_ERRORS["user_already_has_agent"]
-            else:
-                message = AGENT_ERRORS["agent_create_failed"]
+        except (DRFValidationError, DjangoValidationError) as e:
             return APIResponse.error(
-                message=message,
+                message=AGENT_ERRORS["agent_create_failed"],
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -137,9 +135,10 @@ class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         data = request.data.copy()
 
         serializer = self.get_serializer(agent, data=data, partial=partial)
-        serializer.is_valid(raise_exception=True)
 
         try:
+            serializer.is_valid(raise_exception=True)
+
             updated_agent = PropertyAgentAdminService.update_agent_by_id(
                 agent_id,
                 serializer.validated_data
@@ -156,10 +155,16 @@ class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=AGENT_ERRORS["agent_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
+        except (DRFValidationError, DjangoValidationError) as e:
+            return APIResponse.error(
+                message=AGENT_ERRORS["agent_update_failed"],
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
         except Exception:
             return APIResponse.error(
                 message=AGENT_ERRORS["agent_update_failed"],
-                status_code=status.HTTP_400_BAD_REQUEST
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
     def destroy(self, request, *args, **kwargs):
@@ -176,16 +181,10 @@ class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=AGENT_ERRORS["agent_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except ValidationError as e:
-            error_msg = str(e)
-            if "properties" in error_msg.lower():
-                count_match = re.search(r'\d+', error_msg)
-                count = count_match.group() if count_match else "0"
-                message = AGENT_ERRORS["agent_has_properties"].format(count=count)
-            else:
-                message = AGENT_ERRORS["agent_delete_failed"]
+        except DjangoValidationError as e:
             return APIResponse.error(
-                message=message,
+                message=AGENT_ERRORS["agent_delete_failed"],
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -195,7 +194,8 @@ class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         
         if not agent_ids:
             return APIResponse.error(
-                message=AGENT_ERRORS.get("agent_not_found", "Agent IDs required"),
+                message=AGENT_ERRORS["agent_ids_required"],
+                errors={'ids': [AGENT_ERRORS["agent_ids_required"]]},
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
@@ -205,20 +205,14 @@ class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         try:
             deleted_count = PropertyAgentAdminService.bulk_delete_agents(agent_ids)
             return APIResponse.success(
-                message=AGENT_SUCCESS.get("agent_deleted", "Agents deleted successfully"),
+                message=AGENT_SUCCESS["agent_bulk_deleted"],
                 data={'deleted_count': deleted_count},
                 status_code=status.HTTP_200_OK
             )
-        except ValidationError as e:
-            error_msg = str(e)
-            if "properties" in error_msg.lower():
-                count_match = re.search(r'\d+', error_msg)
-                count = count_match.group() if count_match else "0"
-                message = AGENT_ERRORS["agent_has_properties"].format(count=count)
-            else:
-                message = AGENT_ERRORS["agent_delete_failed"]
+        except DjangoValidationError as e:
             return APIResponse.error(
-                message=message,
+                message=AGENT_ERRORS["agent_delete_failed"],
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 

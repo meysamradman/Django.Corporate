@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/api/admins/admins";
-import { showSuccess, notifyApiError, extractFieldErrors } from '@/core/toast';
+import { showSuccess, notifyApiError, extractFieldErrors, handleFormApiError } from '@/core/toast';
 import { msg } from '@/core/messages';
 import { userFormSchema, userFormDefaults, type UserFormValues } from "@/components/users/validations/userSchema";
 import { ApiError } from "@/types/api/apiError";
@@ -84,62 +84,40 @@ export default function CreateUserPage() {
             };
 
             const fieldErrors = extractFieldErrors(error);
-            const nonFieldMessage = fieldErrors.non_field_errors;
-            const { non_field_errors, ...fieldOnlyErrors } = fieldErrors;
+            if (Object.keys(fieldErrors).length > 0) {
+                handleFormApiError(error, {
+                    setFieldError: (field, message) => {
+                        if (field === 'non_field_errors') {
+                            setFormAlert(message);
+                            return;
+                        }
 
-            if (Object.keys(fieldOnlyErrors).length > 0) {
-                Object.entries(fieldOnlyErrors).forEach(([field, message]) => {
-                    const formField = fieldMap[field] || (field as keyof UserFormValues);
-                    form.setError(formField, {
-                        type: 'server',
-                        message,
-                    });
+                        const formField = fieldMap[field] || (field as keyof UserFormValues);
+                        form.setError(formField, {
+                            type: 'server',
+                            message,
+                        });
+                    },
+                    checkFormMessage: msg.error('checkForm'),
+                    showToastForFieldErrors: false,
+                    preferBackendMessage: false,
+                    dedupeKey: 'users-create-validation-error',
                 });
-
-                if (nonFieldMessage) {
-                    setFormAlert(nonFieldMessage);
-                }
-                return;
-            }
-
-            if (nonFieldMessage) {
-                if (nonFieldMessage.includes('موبایل') || nonFieldMessage.includes('شماره')) {
-                    form.setError('mobile', {
-                        type: 'server',
-                        message: nonFieldMessage,
-                    });
-                    return;
-                }
-
-                if (nonFieldMessage.includes('ایمیل')) {
-                    form.setError('email', {
-                        type: 'server',
-                        message: nonFieldMessage,
-                    });
-                    return;
-                }
-
-                setFormAlert(nonFieldMessage);
                 return;
             }
 
             if (error instanceof ApiError) {
                 const statusCode = error.response.AppStatusCode;
 
-                const nonFieldErrors = error.response.errors?.non_field_errors;
-                if (nonFieldErrors && nonFieldErrors.length > 0 && statusCode < 500) {
-                    setFormAlert(nonFieldErrors[0]);
-                    return;
-                }
-
                 if (statusCode < 500) {
-                    setFormAlert(error.response.message || 'خطا در ایجاد کاربر');
+                    setFormAlert(error.response.message || msg.error('validation'));
                     return;
                 }
             }
 
             notifyApiError(error, {
-                fallbackMessage: 'خطای سیستمی در ایجاد کاربر',
+                fallbackMessage: msg.error('serverError'),
+                preferBackendMessage: false,
                 dedupeKey: 'users-create-system-error',
             });
         },
@@ -147,6 +125,7 @@ export default function CreateUserPage() {
 
     const handleSubmit = async () => {
         setFormAlert(null);
+        form.clearErrors();
         const isValid = await form.trigger();
         if (!isValid) return;
 

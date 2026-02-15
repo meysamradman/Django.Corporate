@@ -105,7 +105,7 @@ class AdminLoginView(APIView):
                         admin.is_staff and 
                         getattr(admin, 'is_admin_active', False)):
                     return APIResponse.error(
-                        message="دسترسی رد شد. فقط مدیران فعال می‌توانند وارد شوند.",
+                        message=AUTH_ERRORS["admin_active_required"],
                         status_code=403
                     )
                 

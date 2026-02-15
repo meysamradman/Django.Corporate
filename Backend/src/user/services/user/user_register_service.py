@@ -1,12 +1,16 @@
+from django.db import transaction
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from rest_framework.exceptions import AuthenticationFailed
 from src.user.messages import AUTH_ERRORS
 from src.user.utils.validate_identifier import validate_identifier
+from src.user.utils.national_id_validator import validate_national_id
+from src.user.utils.phone_validator import validate_phone_number_with_uniqueness
 from src.user.utils.jwt_tokens import generate_jwt_tokens
 from src.user.utils.password_validator import validate_register_password
 from src.user.models import User, UserProfile
 from src.core.models import Province, City
+from src.core.utils.validation_helpers import extract_validation_message
 from src.media.models import ImageMedia
 from src.media.services.media_services import MediaAdminService as MediaService
 
@@ -83,63 +87,73 @@ class UserRegisterService:
             
             if mobile and User.objects.filter(mobile=mobile).exists():
                 raise ValidationError({'identifier': AUTH_ERRORS["auth_mobile_exists"]})
-            
-            user = User.objects.create(
-                email=email,
-                mobile=mobile,
-                user_type='user',
-                is_staff=False,
-                is_superuser=False,
-                is_admin_active=False,
-                is_active=validated_data.get('is_active', True)
-            )
-            
+
             national_id = profile_fields.get('national_id')
-            if national_id and national_id.strip():
-                existing_user_profile = UserProfile.objects.filter(
-                    national_id=national_id
-                ).first()
-                
-                if existing_user_profile:
-                    profile_fields['national_id'] = None
-            
-            profile_data = {k: v for k, v in profile_fields.items() if v is not None}
-            
-            profile_picture_media_id = None
-            if profile_picture_file:
-                profile_picture_media_id = cls._handle_profile_picture_upload(profile_picture_file, user.id)
-            elif profile_picture_id:
-                profile_picture_media_id = profile_picture_id
-            
-            if profile_picture_media_id:
+            if national_id and str(national_id).strip():
                 try:
-                    profile_picture = ImageMedia.objects.get(id=profile_picture_media_id)
-                    profile_data['profile_picture'] = profile_picture
-                except ImageMedia.DoesNotExist:
-                    pass
-            
-            if province_id:
+                    profile_fields['national_id'] = validate_national_id(national_id, None, 'user')
+                except Exception as e:
+                    raise ValidationError({
+                        'national_id': extract_validation_message(e, AUTH_ERRORS["national_id_invalid_format"])
+                    })
+
+            phone = profile_fields.get('phone')
+            if phone and str(phone).strip():
                 try:
-                    province = Province.objects.get(id=province_id, is_active=True)
-                    profile_data['province'] = province
-                except Province.DoesNotExist:
-                    pass
-            if city_id:
-                try:
-                    city = City.objects.get(id=city_id, is_active=True)
-                    profile_data['city'] = city
-                except City.DoesNotExist:
-                    pass
+                    profile_fields['phone'] = validate_phone_number_with_uniqueness(phone, None, 'user')
+                except Exception as e:
+                    raise ValidationError({
+                        'phone': extract_validation_message(e, AUTH_ERRORS["auth_validation_error"])
+                    })
+
+            with transaction.atomic():
+                user = User.objects.create(
+                    email=email,
+                    mobile=mobile,
+                    user_type='user',
+                    is_staff=False,
+                    is_superuser=False,
+                    is_admin_active=False,
+                    is_active=validated_data.get('is_active', True)
+                )
             
-            user_profile, created = UserProfile.objects.get_or_create(
-                user=user,
-                defaults=profile_data
-            )
-            
-            if not created:
-                for key, value in profile_data.items():
-                    setattr(user_profile, key, value)
-                user_profile.save()
+                profile_data = {k: v for k, v in profile_fields.items() if v is not None}
+
+                profile_picture_media_id = None
+                if profile_picture_file:
+                    profile_picture_media_id = cls._handle_profile_picture_upload(profile_picture_file, user.id)
+                elif profile_picture_id:
+                    profile_picture_media_id = profile_picture_id
+
+                if profile_picture_media_id:
+                    try:
+                        profile_picture = ImageMedia.objects.get(id=profile_picture_media_id)
+                        profile_data['profile_picture'] = profile_picture
+                    except ImageMedia.DoesNotExist:
+                        pass
+
+                if province_id:
+                    try:
+                        province = Province.objects.get(id=province_id, is_active=True)
+                        profile_data['province'] = province
+                    except Province.DoesNotExist:
+                        pass
+                if city_id:
+                    try:
+                        city = City.objects.get(id=city_id, is_active=True)
+                        profile_data['city'] = city
+                    except City.DoesNotExist:
+                        pass
+
+                user_profile, created = UserProfile.objects.get_or_create(
+                    user=user,
+                    defaults=profile_data
+                )
+
+                if not created:
+                    for key, value in profile_data.items():
+                        setattr(user_profile, key, value)
+                    user_profile.save()
             
         else:
             raise ValidationError({'identifier': AUTH_ERRORS.get("auth_identifier_cannot_empty")})

@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
 from src.core.responses.response import APIResponse
 from src.core.security.ip_management import IPBanService
+from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
 from django.middleware.csrf import get_token
 import time
 
@@ -25,7 +26,7 @@ class FakeAdminLoginView(APIView):
         
         if IPBanService.is_banned(ip):
             return APIResponse.error(
-                message="دسترسی شما مسدود شده است",
+                message=AUTH_ERRORS["honeypot_access_blocked"],
                 status_code=403
             )
         
@@ -34,7 +35,7 @@ class FakeAdminLoginView(APIView):
         csrf_token = get_token(request)
         
         return APIResponse.success(
-            message="CSRF token retrieved",
+            message=AUTH_SUCCESS["honeypot_csrf_retrieved"],
             data={'csrf_token': csrf_token}
         )
     
@@ -43,7 +44,7 @@ class FakeAdminLoginView(APIView):
         
         if IPBanService.is_banned(ip):
             return APIResponse.error(
-                message="دسترسی شما مسدود شده است",
+                message=AUTH_ERRORS["honeypot_access_blocked"],
                 status_code=403
             )
         
@@ -55,7 +56,7 @@ class FakeAdminLoginView(APIView):
         time.sleep(2)
         
         return APIResponse.error(
-            message="نام کاربری یا رمز عبور اشتباه است",
+            message=AUTH_ERRORS["honeypot_invalid_credentials"],
             status_code=401
         )
     

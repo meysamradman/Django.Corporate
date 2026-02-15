@@ -74,6 +74,10 @@ ROLE_ERRORS = {
     "modules_must_be_list": "modules باید یک لیست باشد",
     "actions_must_be_list": "actions باید یک لیست باشد",
     "level_invalid_range": "سطح باید بین 1 (بالاترین) و 10 (پایین‌ترین) باشد",
+    "consultant_role_forbidden": "نقش '{role}' برای مشاورین املاک مجاز نیست",
+    "consultant_full_access_forbidden": "نقش‌های با دسترسی کامل برای مشاورین املاک مجاز نیست",
+    "consultant_module_forbidden": "نقش‌های با دسترسی به '{module}' برای مشاورین املاک مجاز نیست",
+    "no_role_assigned": "هیچ نقشی اختصاص داده نشده است",
 }
 
 ROLE_TEXT = {

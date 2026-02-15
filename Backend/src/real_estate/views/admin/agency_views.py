@@ -1,8 +1,8 @@
-import re
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from django_filters.rest_framework import DjangoFilterBackend
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 from src.core.responses.response import APIResponse
 from src.core.pagination import StandardLimitPagination
@@ -18,6 +18,7 @@ from src.real_estate.serializers.admin.agency_serializer import (
 )
 from src.real_estate.services.admin.agency_services import RealEstateAgencyAdminService
 from src.real_estate.messages.messages import AGENCY_SUCCESS, AGENCY_ERRORS
+from src.core.utils.validation_helpers import normalize_validation_error
 
 class RealEstateAgencyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
@@ -38,7 +39,7 @@ class RealEstateAgencyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSe
     ordering_fields = ['created_at', 'updated_at', 'rating', 'name']
     ordering = ['-rating', 'name']
     pagination_class = StandardLimitPagination
-    
+
     def get_queryset(self):
         user = self.request.user
         
@@ -94,19 +95,27 @@ class RealEstateAgencyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSe
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
         
-        agency = RealEstateAgencyAdminService.create_agency(
-            serializer.validated_data,
-            created_by=request.user
-        )
-        
-        detail_serializer = RealEstateAgencyAdminDetailSerializer(agency)
-        return APIResponse.success(
-            message=AGENCY_SUCCESS["agency_created"],
-            data=detail_serializer.data,
-            status_code=status.HTTP_201_CREATED
-        )
+        try:
+            serializer.is_valid(raise_exception=True)
+
+            agency = RealEstateAgencyAdminService.create_agency(
+                serializer.validated_data,
+                created_by=request.user
+            )
+            
+            detail_serializer = RealEstateAgencyAdminDetailSerializer(agency)
+            return APIResponse.success(
+                message=AGENCY_SUCCESS["agency_created"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_201_CREATED
+            )
+        except (DRFValidationError, DjangoValidationError) as e:
+            return APIResponse.error(
+                message=AGENCY_ERRORS["agency_create_failed"],
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
     
     def retrieve(self, request, *args, **kwargs):
         agency = RealEstateAgencyAdminService.get_agency_by_id(kwargs.get('pk'))
@@ -129,9 +138,10 @@ class RealEstateAgencyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSe
         agency_id = kwargs.get('pk')
         
         serializer = self.get_serializer(data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        
+
         try:
+            serializer.is_valid(raise_exception=True)
+
             updated_agency = RealEstateAgencyAdminService.update_agency_by_id(
                 agency_id,
                 serializer.validated_data
@@ -148,10 +158,16 @@ class RealEstateAgencyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSe
                 message=AGENCY_ERRORS["agency_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
+        except (DRFValidationError, DjangoValidationError) as e:
+            return APIResponse.error(
+                message=AGENCY_ERRORS["agency_update_failed"],
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
         except Exception as e:
             return APIResponse.error(
                 message=AGENCY_ERRORS["agency_update_failed"],
-                status_code=status.HTTP_400_BAD_REQUEST
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
     def destroy(self, request, *args, **kwargs):
@@ -168,20 +184,10 @@ class RealEstateAgencyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSe
                 message=AGENCY_ERRORS["agency_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except ValidationError as e:
-            error_msg = str(e)
-            if "properties" in error_msg.lower():
-                count_match = re.search(r'\d+', error_msg)
-                count = count_match.group() if count_match else "0"
-                message = AGENCY_ERRORS["agency_has_properties"].format(count=count)
-            elif "agents" in error_msg.lower():
-                count_match = re.search(r'\d+', error_msg)
-                count = count_match.group() if count_match else "0"
-                message = AGENCY_ERRORS["agency_has_agents"].format(count=count)
-            else:
-                message = AGENCY_ERRORS["agency_delete_failed"]
+        except DjangoValidationError as e:
             return APIResponse.error(
-                message=message,
+                message=AGENCY_ERRORS["agency_delete_failed"],
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -191,7 +197,8 @@ class RealEstateAgencyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSe
         
         if not agency_ids:
             return APIResponse.error(
-                message=AGENCY_ERRORS.get("agency_not_found", "Agency IDs required"),
+                message=AGENCY_ERRORS["agency_ids_required"],
+                errors={'ids': [AGENCY_ERRORS["agency_ids_required"]]},
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
@@ -201,24 +208,14 @@ class RealEstateAgencyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSe
         try:
             deleted_count = RealEstateAgencyAdminService.bulk_delete_agencies(agency_ids)
             return APIResponse.success(
-                message=AGENCY_SUCCESS.get("agency_deleted", "Agencies deleted successfully"),
+                message=AGENCY_SUCCESS["agency_bulk_deleted"],
                 data={'deleted_count': deleted_count},
                 status_code=status.HTTP_200_OK
             )
-        except ValidationError as e:
-            error_msg = str(e)
-            if "properties" in error_msg.lower():
-                count_match = re.search(r'\d+', error_msg)
-                count = count_match.group() if count_match else "0"
-                message = AGENCY_ERRORS["agency_has_properties"].format(count=count)
-            elif "agents" in error_msg.lower():
-                count_match = re.search(r'\d+', error_msg)
-                count = count_match.group() if count_match else "0"
-                message = AGENCY_ERRORS["agency_has_agents"].format(count=count)
-            else:
-                message = AGENCY_ERRORS["agency_delete_failed"]
+        except DjangoValidationError as e:
             return APIResponse.error(
-                message=message,
+                message=AGENCY_ERRORS["agency_delete_failed"],
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 

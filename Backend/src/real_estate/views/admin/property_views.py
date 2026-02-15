@@ -624,7 +624,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         report = PropertyAdminService.get_seo_report()
         
         return APIResponse.success(
-            message=PROPERTY_SUCCESS.get("property_seo_report_retrieved", "SEO report retrieved successfully"),
+            message=PROPERTY_SUCCESS["property_seo_report_retrieved"],
             data=report,
             status_code=status.HTTP_200_OK
         )
@@ -648,7 +648,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 continue
         
         return APIResponse.success(
-            message=PROPERTY_SUCCESS.get("property_bulk_seo_generated", "SEO generated successfully"),
+            message=PROPERTY_SUCCESS["property_bulk_seo_generated"],
             data={'generated_count': updated_count, 'total_count': len(property_ids)},
             status_code=status.HTTP_200_OK
         )
@@ -659,7 +659,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             property_obj = PropertyAdminSEOService.auto_generate_seo(pk)
             serializer = PropertyAdminDetailSerializer(property_obj)
             return APIResponse.success(
-                message=PROPERTY_SUCCESS.get("property_seo_generated", "SEO generated successfully"),
+                message=PROPERTY_SUCCESS["property_seo_generated"],
                 data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
@@ -674,7 +674,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         try:
             validation_result = PropertyAdminSEOService.validate_seo_data(pk)
             return APIResponse.success(
-                message=PROPERTY_SUCCESS.get("property_seo_validated", "SEO validated successfully"),
+                message=PROPERTY_SUCCESS["property_seo_validated"],
                 data=validation_result,
                 status_code=status.HTTP_200_OK
             )
@@ -758,7 +758,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 deleted = PropertyDocument.objects.filter(property_id=pk, document_id=media_id).delete()[0]
             else:
                 return APIResponse.error(
-                    message="Invalid media type",
+                    message=PROPERTY_ERRORS["invalid_media_type"],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -768,13 +768,13 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 serializer = PropertyAdminDetailSerializer(property_obj)
                 
                 return APIResponse.success(
-                    message="رسانه با موفقیت حذف شد.",
+                    message=PROPERTY_SUCCESS["property_media_removed"],
                     data=serializer.data,
                     status_code=status.HTTP_200_OK
                 )
             else:
                 return APIResponse.error(
-                    message="رسانه یافت نشد.",
+                    message=PROPERTY_ERRORS["property_media_not_found"],
                     status_code=status.HTTP_404_NOT_FOUND
                 )
         except Exception as e:
@@ -830,7 +830,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         }
         
         return APIResponse.success(
-            message="Field options retrieved successfully",
+            message=PROPERTY_SUCCESS["property_field_options_retrieved"],
             data=options,
             status_code=status.HTTP_200_OK
         )
@@ -860,7 +860,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             import traceback
             logger.error(traceback.format_exc())
             return APIResponse.error(
-                message=PROPERTY_ERRORS.get("property_export_failed", "Export failed"),
+                message=PROPERTY_ERRORS["property_export_failed"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -883,7 +883,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except Exception:
             return APIResponse.error(
-                message=PROPERTY_ERRORS.get("property_export_failed", "Export failed"),
+                message=PROPERTY_ERRORS["property_export_failed"],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 

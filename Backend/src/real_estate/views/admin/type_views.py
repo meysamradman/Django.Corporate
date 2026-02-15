@@ -17,12 +17,7 @@ from src.core.pagination import StandardLimitPagination
 from src.user.access_control import real_estate_permission, PermissionRequiredMixin
 from src.core.responses.response import APIResponse
 from src.real_estate.messages import TYPE_SUCCESS, TYPE_ERRORS
-
-
-def _extract_validation_message(error: ValidationError, fallback: str) -> str:
-    if hasattr(error, 'messages') and error.messages:
-        return str(error.messages[0])
-    return str(error) if str(error) else fallback
+from src.core.utils.validation_helpers import extract_validation_message
 
 class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
@@ -169,7 +164,7 @@ class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except ValidationError as e:
             return APIResponse.error(
-                message=_extract_validation_message(e, TYPE_ERRORS["type_delete_failed"]),
+                message=extract_validation_message(e, TYPE_ERRORS["type_delete_failed"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -298,7 +293,7 @@ class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except ValidationError as e:
             return APIResponse.error(
-                message=_extract_validation_message(e, TYPE_ERRORS["type_delete_failed"]),
+                message=extract_validation_message(e, TYPE_ERRORS["type_delete_failed"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     

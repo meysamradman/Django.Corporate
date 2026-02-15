@@ -81,9 +81,9 @@ class AdminRoleSerializer(serializers.ModelSerializer):
             invalid_modules = set(modules) - allowed_modules
             if invalid_modules:
                 raise serializers.ValidationError(
-                    "Invalid modules: {}. Allowed: {}".format(
-                        ', '.join(invalid_modules), 
-                        ', '.join(allowed_modules)
+                    PERMISSION_ERRORS["invalid_modules_with_allowed"].format(
+                        invalid=', '.join(invalid_modules),
+                        allowed=', '.join(allowed_modules)
                     )
                 )
         
@@ -96,9 +96,9 @@ class AdminRoleSerializer(serializers.ModelSerializer):
             invalid_actions = set(actions) - allowed_actions
             if invalid_actions:
                 raise serializers.ValidationError(
-                    "Invalid actions: {}. Allowed: {}".format(
-                        ', '.join(invalid_actions),
-                        ', '.join(allowed_actions)
+                    PERMISSION_ERRORS["invalid_actions_with_allowed"].format(
+                        invalid=', '.join(invalid_actions),
+                        allowed=', '.join(allowed_actions)
                     )
                 )
         

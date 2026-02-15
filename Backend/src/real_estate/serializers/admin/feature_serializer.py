@@ -49,7 +49,7 @@ class PropertyFeatureAdminCreateSerializer(serializers.ModelSerializer):
     
     def validate_title(self, value):
         if PropertyFeature.objects.filter(title=value).exists():
-            raise serializers.ValidationError(FEATURE_ERRORS.get("feature_not_found", "This feature already exists"))
+            raise serializers.ValidationError(FEATURE_ERRORS["feature_exists"])
         return value
 
 class PropertyFeatureAdminUpdateSerializer(serializers.ModelSerializer):
@@ -67,10 +67,10 @@ class PropertyFeatureAdminUpdateSerializer(serializers.ModelSerializer):
     def validate_title(self, value):
         if self.instance and hasattr(self.instance, 'id'):
             if PropertyFeature.objects.exclude(id=self.instance.id).filter(title=value).exists():
-                raise serializers.ValidationError(FEATURE_ERRORS.get("feature_not_found", "This feature already exists"))
+                raise serializers.ValidationError(FEATURE_ERRORS["feature_exists"])
         else:
             if PropertyFeature.objects.filter(title=value).exists():
-                raise serializers.ValidationError(FEATURE_ERRORS.get("feature_not_found", "This feature already exists"))
+                raise serializers.ValidationError(FEATURE_ERRORS["feature_exists"])
         return value
 
 class PropertyFeatureAdminSerializer(PropertyFeatureAdminDetailSerializer):

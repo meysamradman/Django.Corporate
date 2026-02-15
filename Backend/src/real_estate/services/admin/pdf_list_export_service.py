@@ -34,7 +34,7 @@ class PropertyPDFListExportService:
     def export_properties_pdf(queryset):
         
         if not REPORTLAB_AVAILABLE:
-            raise ImportError(PROPERTY_ERRORS.get("property_export_failed", "Export failed - ReportLab not found"))
+            raise ImportError(PROPERTY_ERRORS["property_export_failed"])
             
         buffer = BytesIO()
         font_name = PDFBaseExportService.register_persian_font()
@@ -118,7 +118,7 @@ class PropertyPDFListExportService:
         except Exception as e:
             logger.error(f"Property PDF build failed: {str(e)}")
             logger.error(traceback.format_exc())
-            raise ValueError(PROPERTY_ERRORS.get("property_export_failed", "PDF generation error"))
+            raise ValueError(PROPERTY_ERRORS["property_export_failed"])
             
         buffer.seek(0)
         pdf_content = buffer.getvalue()

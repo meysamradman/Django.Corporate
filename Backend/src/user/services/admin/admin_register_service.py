@@ -210,7 +210,7 @@ class AdminRegisterService:
         
         agent_data = {
             'user': user,
-            'slug': slug,  # اضافه کردن slug
+            'slug': slug,
             'license_number': validated_data.get('license_number'),
             'license_expire_date': validated_data.get('license_expire_date'),
             'specialization': validated_data.get('specialization', ''),
@@ -229,14 +229,14 @@ class AdminRegisterService:
             try:
                 agent_data['agency'] = RealEstateAgency.objects.get(id=agency_id, is_active=True)
             except RealEstateAgency.DoesNotExist:
-                pass
+                raise ValidationError({'agency_id': AUTH_ERRORS.get("agency_not_found")})
         
         og_image_id = validated_data.get('og_image_id')
         if og_image_id:
             try:
                 agent_data['og_image'] = ImageMedia.objects.get(id=og_image_id)
             except ImageMedia.DoesNotExist:
-                pass
+                raise ValidationError({'og_image_id': AUTH_ERRORS.get("image_not_found")})
         
         agent_data = {k: v for k, v in agent_data.items() if v is not None}
         
@@ -245,7 +245,9 @@ class AdminRegisterService:
             return agent
         except Exception as e:
             user.delete()
-            raise ValidationError({'non_field_errors': f"خطا در ایجاد PropertyAgent: {str(e)}"})
+            raise ValidationError({
+                'non_field_errors': AUTH_ERRORS.get("property_agent_create_failed").format(error=str(e))
+            })
 
     @classmethod
     def _handle_profile_picture_upload(cls, uploaded_file, admin_id):

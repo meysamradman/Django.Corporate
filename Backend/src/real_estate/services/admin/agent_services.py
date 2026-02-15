@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.models.property import Property
-from src.real_estate.messages.messages import AGENT_ERRORS
+from src.real_estate.messages.messages import AGENT_ERRORS, AGENT_DEFAULTS
 
 class PropertyAgentAdminService:
     
@@ -79,22 +79,22 @@ class PropertyAgentAdminService:
         user_id = validated_data.pop('user_id', None)
         
         if not user_id:
-            raise ValidationError(AGENT_ERRORS["agent_create_failed"])
+            raise ValidationError({'user_id': AGENT_ERRORS["user_id_required"]})
         
         try:
             user = User.objects.get(id=user_id)
         except User.DoesNotExist:
-            raise ValidationError("کاربر یافت نشد.")
+            raise ValidationError({'user_id': AGENT_ERRORS["user_not_found"]})
         
         user_type = getattr(user, 'user_type', None)
         is_staff = getattr(user, 'is_staff', False)
         is_admin_active = getattr(user, 'is_admin_active', False)
         
         if user_type != 'admin' or not is_staff or not is_admin_active:
-            raise ValidationError(AGENT_ERRORS["user_must_be_admin"])
+            raise ValidationError({'user_id': AGENT_ERRORS["user_must_be_admin"]})
         
         if PropertyAgent.objects.filter(user_id=user_id).exists():
-            raise ValidationError(AGENT_ERRORS["user_already_has_agent"])
+            raise ValidationError({'user_id': AGENT_ERRORS["user_already_has_agent"]})
         
         if not validated_data.get('slug'):
             try:
@@ -115,7 +115,7 @@ class PropertyAgentAdminService:
                 admin_profile = user.admin_profile
                 if admin_profile.first_name and admin_profile.last_name:
                     full_name = f"{admin_profile.first_name} {admin_profile.last_name}"
-                    validated_data['meta_title'] = f"{full_name} - Real Estate Agent"[:70]
+                    validated_data['meta_title'] = f"{full_name}{AGENT_DEFAULTS['meta_title_suffix']}"[:70]
             except Exception:
                 pass
         
@@ -150,14 +150,14 @@ class PropertyAgentAdminService:
             try:
                 user = User.objects.get(id=user_id)
             except User.DoesNotExist:
-                raise ValidationError("کاربر یافت نشد.")
+                raise ValidationError({'user_id': AGENT_ERRORS["user_not_found"]})
             
             user_type = getattr(user, 'user_type', None)
             is_staff = getattr(user, 'is_staff', False)
             is_admin_active = getattr(user, 'is_admin_active', False)
             
             if user_type != 'admin' or not is_staff or not is_admin_active:
-                raise ValidationError(AGENT_ERRORS["user_must_be_admin"])
+                raise ValidationError({'user_id': AGENT_ERRORS["user_must_be_admin"]})
         
         if not validated_data.get('slug'):
             try:
@@ -188,7 +188,7 @@ class PropertyAgentAdminService:
                 admin_profile = user.admin_profile
                 if admin_profile.first_name and admin_profile.last_name:
                     full_name = f"{admin_profile.first_name} {admin_profile.last_name}"
-                    validated_data['meta_title'] = f"{full_name} - Real Estate Agent"[:70]
+                    validated_data['meta_title'] = f"{full_name}{AGENT_DEFAULTS['meta_title_suffix']}"[:70]
                     if not validated_data.get('og_title'):
                         validated_data['og_title'] = validated_data['meta_title']
             except Exception:
@@ -218,7 +218,11 @@ class PropertyAgentAdminService:
         
         property_count = agent.properties.count()
         if property_count > 0:
-            raise ValidationError(AGENT_ERRORS["agent_has_properties"].format(count=property_count))
+            raise ValidationError({
+                'non_field_errors': [
+                    AGENT_ERRORS["agent_has_properties"].format(count=property_count)
+                ]
+            })
         
         with transaction.atomic():
             agent.delete()
@@ -228,14 +232,18 @@ class PropertyAgentAdminService:
         agents = PropertyAgent.objects.filter(id__in=agent_ids)
         
         if not agents.exists():
-            raise ValidationError(AGENT_ERRORS["agents_not_found"])
+            raise ValidationError({'ids': [AGENT_ERRORS["agents_not_found"]]})
         
         with transaction.atomic():
             agent_list = list(agents)
             for agent in agent_list:
                 property_count = agent.properties.count()
                 if property_count > 0:
-                    raise ValidationError(AGENT_ERRORS["agent_has_properties"].format(count=property_count))
+                    raise ValidationError({
+                        'non_field_errors': [
+                            AGENT_ERRORS["agent_has_properties"].format(count=property_count)
+                        ]
+                    })
             
             deleted_count = agents.count()
             agents.delete()

@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 from src.real_estate.models.property import Property
 from src.real_estate.models.media import PropertyImage, PropertyVideo, PropertyAudio, PropertyDocument
 from src.real_estate.utils.cache import PropertyCacheManager
+from src.real_estate.messages.messages import PROPERTY_ERRORS
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia, detect_media_type_from_extension
 from src.media.services.media_services import MediaAdminService
 
@@ -121,7 +122,7 @@ class PropertyAdminMediaService:
             logger.info(f"✅ [PropertyMedia][AddBulk] Found property: {property_obj.title}")
         except Property.DoesNotExist:
             logger.error(f"❌ [PropertyMedia][AddBulk] ERROR: Property not found with ID {property_id}")
-            raise Property.DoesNotExist("Property not found")
+            raise Property.DoesNotExist(PROPERTY_ERRORS["property_not_found"])
             
         media_files = media_files or []
         media_ids = media_ids or []
@@ -390,7 +391,7 @@ class PropertyAdminMediaService:
                 property_obj = Property.objects.get(id=property_id)
             except Property.DoesNotExist:
                 logger.error(f"❌ [PropertyMedia][Sync] Error: Property {property_id} not found")
-                raise Property.DoesNotExist("Property not found")
+                raise Property.DoesNotExist(PROPERTY_ERRORS["property_not_found"])
             
             has_segmented = any(x is not None for x in [image_ids, video_ids, audio_ids, document_ids])
             
@@ -526,7 +527,7 @@ class PropertyAdminMediaService:
         try:
             property_obj = Property.objects.get(id=property_id)
         except Property.DoesNotExist:
-            raise Property.DoesNotExist("Property not found")
+            raise Property.DoesNotExist(PROPERTY_ERRORS["property_not_found"])
 
         with transaction.atomic():
             PropertyImage.objects.filter(property_id=property_id, is_main=True).update(is_main=False)
@@ -554,7 +555,7 @@ class PropertyAdminMediaService:
                         property_obj.og_image = media_image
                         property_obj.save(update_fields=['og_image'])
                 except ImageMedia.DoesNotExist:
-                    raise ValidationError("Media image not found")
+                    raise ValidationError({'image_id': [PROPERTY_ERRORS["media_image_not_found"]]})
 
             PropertyCacheManager.invalidate_property(property_id)
             return True

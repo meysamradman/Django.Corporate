@@ -31,7 +31,7 @@ class PropertyLabelAdminCreateSerializer(serializers.ModelSerializer):
     
     def validate_title(self, value):
         if PropertyLabel.objects.filter(title=value).exists():
-            raise serializers.ValidationError(LABEL_ERRORS.get("label_not_found", "This label already exists"))
+            raise serializers.ValidationError(LABEL_ERRORS["label_exists"])
         return value
 
     def validate(self, data):
@@ -48,10 +48,10 @@ class PropertyLabelAdminUpdateSerializer(serializers.ModelSerializer):
     def validate_title(self, value):
         if self.instance and hasattr(self.instance, 'id'):
             if PropertyLabel.objects.exclude(id=self.instance.id).filter(title=value).exists():
-                raise serializers.ValidationError(LABEL_ERRORS.get("label_not_found", "This label already exists"))
+                raise serializers.ValidationError(LABEL_ERRORS["label_exists"])
         else:
             if PropertyLabel.objects.filter(title=value).exists():
-                raise serializers.ValidationError(LABEL_ERRORS.get("label_not_found", "This label already exists"))
+                raise serializers.ValidationError(LABEL_ERRORS["label_exists"])
         return value
         
     def validate(self, data):

@@ -28,6 +28,7 @@ AUTH_SUCCESS = {
     "location_city_retrieved": "شهر با موفقیت دریافت شد",
     "csrf_token_retrieved": "توکن CSRF با موفقیت دریافت شد",
     "auth_created_successfully": "پروفایل با موفقیت ایجاد شد",
+    "honeypot_csrf_retrieved": "توکن CSRF با موفقیت دریافت شد",
 }
 
 AUTH_ERRORS = {
@@ -100,4 +101,17 @@ AUTH_ERRORS = {
     "phone_max_length": "شماره تلفن نباید از 15 رقم بیشتر باشد",
     "phone_already_used_user": "این شماره تلفن قبلاً توسط کاربر دیگری استفاده شده است",
     "phone_already_used_admin": "این شماره تلفن قبلاً توسط مدیر دیگری استفاده شده است",
+    "consultant_superuser_forbidden": "مشاورین املاک نمی‌توانند دسترسی سوپرادمین داشته باشند",
+    "consultant_license_required": "شماره پروانه برای مشاورین املاک الزامی است",
+    "consultant_first_name_required": "نام برای مشاورین املاک الزامی است",
+    "consultant_last_name_required": "نام خانوادگی برای مشاورین املاک الزامی است",
+    "license_number_exists": "شماره پروانه تکراری است",
+    "license_expire_date_past": "تاریخ انقضای پروانه نمی‌تواند در گذشته باشد",
+    "agency_not_found": "آژانس یافت نشد",
+    "image_not_found": "تصویر یافت نشد",
+    "property_agent_create_failed": "خطا در ایجاد PropertyAgent: {error}",
+    "admin_permission_required": "دسترسی رد شد. مجوز ادمین لازم است",
+    "admin_active_required": "دسترسی رد شد. فقط مدیران فعال می‌توانند وارد شوند.",
+    "honeypot_access_blocked": "دسترسی شما مسدود شده است",
+    "honeypot_invalid_credentials": "نام کاربری یا رمز عبور اشتباه است",
 }

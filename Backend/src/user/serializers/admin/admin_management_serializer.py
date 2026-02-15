@@ -418,7 +418,7 @@ class AdminUpdateSerializer(serializers.Serializer):
                 if is_consultant:
                     if data.get('is_superuser') is True:
                         raise serializers.ValidationError({
-                            'is_superuser': "مشاورین املاک نمی‌توانند دسترسی سوپرادمین داشته باشند"
+                            'is_superuser': AUTH_ERRORS["consultant_superuser_forbidden"]
                         })
                     
                     role_id = data.get('role_id')

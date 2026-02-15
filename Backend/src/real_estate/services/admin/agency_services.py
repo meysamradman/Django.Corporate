@@ -139,11 +139,19 @@ class RealEstateAgencyAdminService:
         
         property_count = agency.properties.count()
         if property_count > 0:
-            raise ValidationError(AGENCY_ERRORS["agency_has_properties"].format(count=property_count))
+            raise ValidationError({
+                'non_field_errors': [
+                    AGENCY_ERRORS["agency_has_properties"].format(count=property_count)
+                ]
+            })
         
         agent_count = agency.agents.count()
         if agent_count > 0:
-            raise ValidationError(AGENCY_ERRORS["agency_has_agents"].format(count=agent_count))
+            raise ValidationError({
+                'non_field_errors': [
+                    AGENCY_ERRORS["agency_has_agents"].format(count=agent_count)
+                ]
+            })
         
         with transaction.atomic():
             agency.delete()
@@ -153,17 +161,25 @@ class RealEstateAgencyAdminService:
         agencies = RealEstateAgency.objects.filter(id__in=agency_ids)
         
         if not agencies.exists():
-            raise ValidationError(AGENCY_ERRORS["agencies_not_found"])
+            raise ValidationError({'ids': [AGENCY_ERRORS["agencies_not_found"]]})
         
         with transaction.atomic():
             agency_list = list(agencies)
             for agency in agency_list:
                 property_count = agency.properties.count()
                 if property_count > 0:
-                    raise ValidationError(AGENCY_ERRORS["agency_has_properties"].format(count=property_count))
+                    raise ValidationError({
+                        'non_field_errors': [
+                            AGENCY_ERRORS["agency_has_properties"].format(count=property_count)
+                        ]
+                    })
                 agent_count = agency.agents.count()
                 if agent_count > 0:
-                    raise ValidationError(AGENCY_ERRORS["agency_has_agents"].format(count=agent_count))
+                    raise ValidationError({
+                        'non_field_errors': [
+                            AGENCY_ERRORS["agency_has_agents"].format(count=agent_count)
+                        ]
+                    })
             
             deleted_count = agencies.count()
             agencies.delete()

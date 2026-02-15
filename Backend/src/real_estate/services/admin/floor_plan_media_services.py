@@ -2,6 +2,7 @@ from django.db import transaction
 from django.db.models import Max
 from src.real_estate.models.floor_plan import RealEstateFloorPlan
 from src.real_estate.models.floor_plan_media import FloorPlanImage
+from src.real_estate.messages.messages import FLOOR_PLAN_ERRORS
 from src.media.models.media import ImageMedia
 from src.media.services.media_services import MediaAdminService
 
@@ -35,7 +36,7 @@ class FloorPlanMediaService:
         try:
             floor_plan = RealEstateFloorPlan.objects.get(id=floor_plan_id)
         except RealEstateFloorPlan.DoesNotExist:
-            raise RealEstateFloorPlan.DoesNotExist("Floor plan not found")
+            raise RealEstateFloorPlan.DoesNotExist(FLOOR_PLAN_ERRORS["floor_plan_not_found"])
         
         image_files = image_files or []
         image_ids = image_ids or []
@@ -165,7 +166,7 @@ class FloorPlanMediaService:
         try:
             floor_plan = RealEstateFloorPlan.objects.get(id=floor_plan_id)
         except RealEstateFloorPlan.DoesNotExist:
-            raise RealEstateFloorPlan.DoesNotExist("Floor plan not found")
+            raise RealEstateFloorPlan.DoesNotExist(FLOOR_PLAN_ERRORS["floor_plan_not_found"])
         
         if image_ids is None:
             return {
@@ -255,7 +256,7 @@ class FloorPlanMediaService:
         try:
             floor_plan = RealEstateFloorPlan.objects.get(id=floor_plan_id)
         except RealEstateFloorPlan.DoesNotExist:
-            raise RealEstateFloorPlan.DoesNotExist("Floor plan not found")
+            raise RealEstateFloorPlan.DoesNotExist(FLOOR_PLAN_ERRORS["floor_plan_not_found"])
         
         FloorPlanImage.objects.filter(
             floor_plan=floor_plan,
@@ -268,7 +269,7 @@ class FloorPlanMediaService:
         ).first()
         
         if not floor_plan_image:
-            raise FloorPlanImage.DoesNotExist("Image not found in this floor plan")
+            raise FloorPlanImage.DoesNotExist(FLOOR_PLAN_ERRORS["image_not_found_in_floor_plan"])
         
         floor_plan_image.is_main = True
         floor_plan_image.save(update_fields=['is_main'])

@@ -140,7 +140,7 @@ class PropertyTagAdminService:
         tags = PropertyTag.objects.filter(id__in=tag_ids)
         
         if not tags.exists():
-            raise ValidationError(TAG_ERRORS["tag_not_found"])
+            raise ValidationError({'ids': [TAG_ERRORS["tags_not_found"]]})
         
         with transaction.atomic():
             tag_list = list(tags)

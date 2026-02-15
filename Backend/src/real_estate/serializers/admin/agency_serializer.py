@@ -68,9 +68,9 @@ class RealEstateAgencyAdminCreateSerializer(serializers.ModelSerializer):
     def validate_slug(self, value):
         
         if not value:
-            raise serializers.ValidationError("نامک (Slug) الزامی است.")
+            raise serializers.ValidationError(AGENCY_ERRORS["slug_required"])
         if RealEstateAgency.objects.filter(slug=value).exists():
-            raise serializers.ValidationError("این نامک قبلاً استفاده شده است.")
+            raise serializers.ValidationError(AGENCY_ERRORS["slug_exists"])
         return value
     
     def validate_license_number(self, value):
@@ -95,9 +95,9 @@ class RealEstateAgencyAdminUpdateSerializer(serializers.ModelSerializer):
     def validate_slug(self, value):
         
         if not value:
-            raise serializers.ValidationError("نامک (Slug) الزامی است.")
+            raise serializers.ValidationError(AGENCY_ERRORS["slug_required"])
         if RealEstateAgency.objects.exclude(id=self.instance.id).filter(slug=value).exists():
-            raise serializers.ValidationError("این نامک قبلاً استفاده شده است.")
+            raise serializers.ValidationError(AGENCY_ERRORS["slug_exists"])
         return value
     
     def validate_license_number(self, value):

@@ -17,12 +17,7 @@ from src.real_estate.serializers.admin.tag_serializer import (
 )
 from src.real_estate.services.admin.tag_services import PropertyTagAdminService
 from src.real_estate.messages.messages import TAG_SUCCESS, TAG_ERRORS
-
-
-def _extract_validation_message(error: ValidationError, fallback: str) -> str:
-    if hasattr(error, 'messages') and error.messages:
-        return str(error.messages[0])
-    return str(error) if str(error) else fallback
+from src.core.utils.validation_helpers import extract_validation_message
 
 class PropertyTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
@@ -164,7 +159,7 @@ class PropertyTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except ValidationError as e:
             return APIResponse.error(
-                message=_extract_validation_message(e, TAG_ERRORS["tag_delete_failed"]),
+                message=extract_validation_message(e, TAG_ERRORS["tag_delete_failed"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -174,7 +169,8 @@ class PropertyTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         
         if not tag_ids:
             return APIResponse.error(
-                message=TAG_ERRORS.get("tag_ids_required", "Tag IDs required"),
+                message=TAG_ERRORS["tag_ids_required"],
+                errors={'ids': [TAG_ERRORS["tag_ids_required"]]},
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
@@ -184,13 +180,13 @@ class PropertyTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         try:
             deleted_count = PropertyTagAdminService.bulk_delete_tags(tag_ids)
             return APIResponse.success(
-                message=TAG_SUCCESS.get("tag_bulk_deleted", TAG_SUCCESS["tag_deleted"]),
+                message=TAG_SUCCESS["tag_bulk_deleted"],
                 data={'deleted_count': deleted_count},
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
             return APIResponse.error(
-                message=_extract_validation_message(e, TAG_ERRORS["tag_delete_failed"]),
+                message=extract_validation_message(e, TAG_ERRORS["tag_delete_failed"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     

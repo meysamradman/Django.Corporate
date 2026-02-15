@@ -32,12 +32,12 @@ class PropertyStateAdminCreateSerializer(serializers.ModelSerializer):
     
     def validate_title(self, value):
         if PropertyState.objects.filter(title=value).exists():
-            raise serializers.ValidationError(STATE_ERRORS.get("state_not_found", "This state already exists"))
+            raise serializers.ValidationError(STATE_ERRORS["state_exists"])
         return value
     
     def validate_slug(self, value):
         if value and PropertyState.objects.filter(slug=value).exists():
-            raise serializers.ValidationError(STATE_ERRORS.get("state_slug_exists", "This slug already exists"))
+            raise serializers.ValidationError(STATE_ERRORS["state_slug_exists"])
         return value
     
     def validate(self, data):
@@ -53,16 +53,16 @@ class PropertyStateAdminUpdateSerializer(serializers.ModelSerializer):
     def validate_title(self, value):
         if self.instance and hasattr(self.instance, 'id'):
             if PropertyState.objects.exclude(id=self.instance.id).filter(title=value).exists():
-                raise serializers.ValidationError(STATE_ERRORS.get("state_not_found", "This state already exists"))
+                raise serializers.ValidationError(STATE_ERRORS["state_exists"])
         else:
             if PropertyState.objects.filter(title=value).exists():
-                raise serializers.ValidationError(STATE_ERRORS.get("state_not_found", "This state already exists"))
+                raise serializers.ValidationError(STATE_ERRORS["state_exists"])
         return value
     
     def validate_slug(self, value):
         if value and self.instance:
             if PropertyState.objects.exclude(id=self.instance.id).filter(slug=value).exists():
-                raise serializers.ValidationError(STATE_ERRORS.get("state_slug_exists", "This slug already exists"))
+                raise serializers.ValidationError(STATE_ERRORS["state_slug_exists"])
         return value
     
     def validate(self, data):

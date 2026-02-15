@@ -39,12 +39,12 @@ class PropertyTagAdminCreateSerializer(serializers.ModelSerializer):
     
     def validate_slug(self, value):
         if value and PropertyTag.objects.filter(slug=value).exists():
-            raise serializers.ValidationError(TAG_ERRORS.get("tag_not_found", "This slug already exists"))
+            raise serializers.ValidationError(TAG_ERRORS["tag_slug_exists"])
         return value
     
     def validate_title(self, value):
         if PropertyTag.objects.filter(title=value).exists():
-            raise serializers.ValidationError(TAG_ERRORS.get("tag_not_found", "This tag already exists"))
+            raise serializers.ValidationError(TAG_ERRORS["tag_exists"])
         return value
 
 class PropertyTagAdminUpdateSerializer(serializers.ModelSerializer):
@@ -60,19 +60,19 @@ class PropertyTagAdminUpdateSerializer(serializers.ModelSerializer):
         if value:
             if self.instance and hasattr(self.instance, 'id'):
                 if PropertyTag.objects.exclude(id=self.instance.id).filter(slug=value).exists():
-                    raise serializers.ValidationError(TAG_ERRORS.get("tag_not_found", "This slug already exists"))
+                    raise serializers.ValidationError(TAG_ERRORS["tag_slug_exists"])
             else:
                 if PropertyTag.objects.filter(slug=value).exists():
-                    raise serializers.ValidationError(TAG_ERRORS.get("tag_not_found", "This slug already exists"))
+                    raise serializers.ValidationError(TAG_ERRORS["tag_slug_exists"])
         return value
 
     def validate_title(self, value):
         if self.instance and hasattr(self.instance, 'id'):
             if PropertyTag.objects.exclude(id=self.instance.id).filter(title=value).exists():
-                raise serializers.ValidationError(TAG_ERRORS.get("tag_not_found", "This tag already exists"))
+                raise serializers.ValidationError(TAG_ERRORS["tag_exists"])
         else:
             if PropertyTag.objects.filter(title=value).exists():
-                raise serializers.ValidationError(TAG_ERRORS.get("tag_not_found", "This tag already exists"))
+                raise serializers.ValidationError(TAG_ERRORS["tag_exists"])
         return value
 
 class PropertyTagAdminSerializer(PropertyTagAdminDetailSerializer):

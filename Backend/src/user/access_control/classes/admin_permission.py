@@ -12,7 +12,7 @@ from src.user.access_control.definitions import PermissionValidator, PermissionR
 from src.user.access_control.core.cache_strategy import PermissionCacheStrategy
 
 class AdminRolePermission(permissions.BasePermission):
-    message = "Access denied. Admin permission required."
+    message = AUTH_ERRORS["admin_permission_required"]
     cache_timeout = 300
     
     def has_permission(self, request, view):

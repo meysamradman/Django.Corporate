@@ -191,13 +191,13 @@ class AdminRegisterSerializer(serializers.Serializer):
             return None
         from src.real_estate.models import PropertyAgent
         if PropertyAgent.objects.filter(license_number=value).exists():
-            raise serializers.ValidationError("شماره پروانه تکراری است")
+            raise serializers.ValidationError(AUTH_ERRORS.get("license_number_exists"))
         return value.strip()
     
     def validate_license_expire_date(self, value):
         
         if value and value < datetime.now().date():
-            raise serializers.ValidationError("تاریخ انقضای پروانه نمی‌تواند در گذشته باشد")
+            raise serializers.ValidationError(AUTH_ERRORS.get("license_expire_date_past"))
         return value
     
     def validate_agency_id(self, value):
@@ -209,7 +209,7 @@ class AdminRegisterSerializer(serializers.Serializer):
             RealEstateAgency.objects.get(id=value, is_active=True)
             return value
         except Exception:
-            raise serializers.ValidationError("آژانس یافت نشد")
+            raise serializers.ValidationError(AUTH_ERRORS.get("agency_not_found"))
     
     def validate_og_image_id(self, value):
         
@@ -219,7 +219,7 @@ class AdminRegisterSerializer(serializers.Serializer):
             ImageMedia.objects.get(id=value)
             return value
         except ImageMedia.DoesNotExist:
-            raise serializers.ValidationError("تصویر یافت نشد")
+            raise serializers.ValidationError(AUTH_ERRORS.get("image_not_found"))
 
     def validate(self, data):
         admin_user = self.context.get('admin_user')
@@ -253,7 +253,7 @@ class AdminRegisterSerializer(serializers.Serializer):
         if admin_role_type == 'consultant':
             if data.get('is_superuser') is True:
                 raise serializers.ValidationError({
-                    'is_superuser': "مشاورین املاک نمی‌توانند دسترسی سوپرادمین داشته باشند"
+                    'is_superuser': AUTH_ERRORS.get("consultant_superuser_forbidden")
                 })
             
             role_id = data.get('role_id')
@@ -270,14 +270,14 @@ class AdminRegisterSerializer(serializers.Serializer):
 
             if not data.get('license_number'):
                 raise serializers.ValidationError({
-                    'license_number': 'شماره پروانه برای مشاورین املاک الزامی است'
+                    'license_number': AUTH_ERRORS.get("consultant_license_required")
                 })
             if not data.get('first_name') or not data.get('last_name'):
                 error_map = {}
                 if not data.get('first_name'):
-                    error_map['first_name'] = 'نام برای مشاورین املاک الزامی است'
+                    error_map['first_name'] = AUTH_ERRORS.get("consultant_first_name_required")
                 if not data.get('last_name'):
-                    error_map['last_name'] = 'نام خانوادگی برای مشاورین املاک الزامی است'
+                    error_map['last_name'] = AUTH_ERRORS.get("consultant_last_name_required")
                 raise serializers.ValidationError(error_map)
         
         return data

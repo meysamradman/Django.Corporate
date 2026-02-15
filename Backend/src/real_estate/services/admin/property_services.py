@@ -299,7 +299,7 @@ class PropertyAdminService:
 
         requested_status = validated_data.get('status')
         if requested_status in ('sold', 'rented'):
-            raise ValidationError("برای ثبت وضعیت فروخته/اجاره‌رفته باید از عملیات «نهایی‌سازی معامله» استفاده شود.")
+            raise ValidationError(PROPERTY_ERRORS["status_finalize_required"])
 
         with transaction.atomic():
             if province: property_obj.province = province
@@ -588,10 +588,10 @@ class PropertyAdminStatusService:
             raise Property.DoesNotExist(PROPERTY_ERRORS["property_not_found"])
 
         if property_obj.status in ('sold', 'rented') or property_obj.closed_at:
-            raise ValidationError("این ملک قبلاً نهایی شده است.")
+            raise ValidationError(PROPERTY_ERRORS["already_finalized"])
 
         if property_obj.status not in ('active', 'pending'):
-            raise ValidationError("فقط املاک active یا pending قابل نهایی‌سازی هستند.")
+            raise ValidationError(PROPERTY_ERRORS["invalid_finalize_status"])
 
         resolved_deal_type = deal_type
         if not resolved_deal_type:
