@@ -75,6 +75,8 @@ export default function EditPortfolioPage() {
     form,
     activeTab,
     setActiveTab,
+    formAlert,
+    clearFormAlert,
     portfolioMedia,
     setPortfolioMedia,
     handleSubmit,
@@ -83,15 +85,21 @@ export default function EditPortfolioPage() {
     item: portfolio,
   } = usePortfolioForm({ id, isEditMode: true });
 
+  const handleTabChange = (nextTab: string) => {
+    clearFormAlert();
+    setActiveTab(nextTab);
+  };
+
   if (isLoading) {
     return (
       <PortfolioFormLayout
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         onSubmit={() => { }}
         isPending={false}
         isSubmitting={false}
         isEditMode={true}
+        formAlert={formAlert}
       >
         <TabSkeleton />
       </PortfolioFormLayout>
@@ -109,12 +117,13 @@ export default function EditPortfolioPage() {
   return (
     <PortfolioFormLayout
       activeTab={activeTab}
-      onTabChange={setActiveTab}
+      onTabChange={handleTabChange}
       onSubmit={() => handleSubmit("published")()}
       onSaveDraft={() => handleSubmit("draft")()}
       isPending={isPending}
       isSubmitting={form.formState.isSubmitting}
       isEditMode={true}
+      formAlert={formAlert}
     >
       {activeTab === "account" && (
         <Suspense fallback={<TabSkeleton />}>

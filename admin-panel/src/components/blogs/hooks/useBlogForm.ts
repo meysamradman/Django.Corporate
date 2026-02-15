@@ -6,7 +6,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { blogApi } from "@/api/blogs/blogs";
 import { blogFormSchema, blogFormDefaults, type BlogFormValues } from "@/components/blogs/validations/blogSchema";
 import { collectModuleMediaIds as collectMediaIds, collectModuleMediaCovers as collectMediaCovers, parseModuleMedia as parseBlogMedia } from "@/components/media/utils/genericMediaUtils";
-import { notifyApiError, showSuccess } from "@/core/toast";
+import { notifyApiError, showError, showSuccess } from "@/core/toast";
 import { msg } from "@/core/messages";
 import { MEDIA_CONFIG } from "@/core/config/environment";
 import { useMediaConfig } from "@/components/media/hooks/useMediaConfig";
@@ -238,6 +238,7 @@ export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
                 if (nonFieldError) {
                     setFormAlert(nonFieldError);
                 }
+                showError(error, { customMessage: msg.error("checkForm") });
                 console.groupEnd();
                 return;
             }
@@ -273,14 +274,13 @@ export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
                 mutation.mutate({ data, status });
             },
             (errors) => {
-                setFormAlert(null);
                 const errorFields = Object.keys(errors);
                 if (errorFields.length > 0) {
                     const tabWithError = resolveBlogErrorTab(errorFields);
                     if (tabWithError) {
                         setActiveTab(tabWithError);
                     }
-                    setFormAlert(msg.error("checkForm"));
+                    showError(null, { customMessage: msg.error("checkForm") });
                 }
             }
         );

@@ -127,6 +127,10 @@ export const showInfo = (message: string, options?: ExternalToast) => {
   toast.info(message, { ...DEFAULT_OPTIONS, ...options });
 };
 
+export const showNeutral = (message: string, options?: ExternalToast) => {
+  toast(message, { ...DEFAULT_OPTIONS, ...options });
+};
+
 export const showWarning = (message: string, options?: ExternalToast) => {
   toast.warning(message, { ...DEFAULT_OPTIONS, ...options });
 };

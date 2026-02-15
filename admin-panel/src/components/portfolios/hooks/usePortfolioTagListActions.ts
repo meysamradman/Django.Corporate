@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/portfolios";
-import { showSuccess, showError } from "@/core/toast";
+import { notifyApiError, showSuccess } from "@/core/toast";
 import { msg } from "@/core/messages";
 import type { PortfolioTagDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
@@ -26,8 +26,12 @@ export function usePortfolioTagListActions({ setRowSelection }: UsePortfolioTagL
       queryClient.invalidateQueries({ queryKey: ["portfolio-tags"] });
       showSuccess(msg.crud("deleted", { item: "تگ نمونه‌کار" }));
     },
-    onError: () => {
-      showError("خطای سرور");
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        dedupeKey: "portfolio-tag-delete-error",
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -40,8 +44,12 @@ export function usePortfolioTagListActions({ setRowSelection }: UsePortfolioTagL
       showSuccess(msg.crud("deleted", { item: "تگ نمونه‌کار" }));
       setRowSelection({});
     },
-    onError: () => {
-      showError("خطای سرور");
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        dedupeKey: "portfolio-tag-bulk-delete-error",
+        preferBackendMessage: false,
+      });
     },
   });
 

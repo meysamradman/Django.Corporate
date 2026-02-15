@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/portfolios";
-import { showError, showSuccess } from "@/core/toast";
+import { notifyApiError, showSuccess } from "@/core/toast";
 import { msg } from "@/core/messages";
 import type { PortfolioCategoryDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
@@ -26,8 +26,12 @@ export function usePortfolioCategoryListActions({ setRowSelection }: UsePortfoli
       queryClient.invalidateQueries();
       showSuccess(msg.crud("deleted", { item: "دسته‌بندی نمونه‌کار" }));
     },
-    onError: () => {
-      showError("خطای سرور");
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        dedupeKey: "portfolio-category-delete-error",
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -40,8 +44,12 @@ export function usePortfolioCategoryListActions({ setRowSelection }: UsePortfoli
       showSuccess(msg.crud("deleted", { item: "دسته‌بندی نمونه‌کار" }));
       setRowSelection({});
     },
-    onError: () => {
-      showError("خطای سرور");
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        dedupeKey: "portfolio-category-bulk-delete-error",
+        preferBackendMessage: false,
+      });
     },
   });
 

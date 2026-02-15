@@ -77,21 +77,29 @@ export default function CreatePortfolioPage() {
     form,
     activeTab,
     setActiveTab,
+    formAlert,
+    clearFormAlert,
     portfolioMedia,
     setPortfolioMedia,
     handleSubmit,
     isPending,
   } = usePortfolioForm({ isEditMode: false });
 
+  const handleTabChange = (nextTab: string) => {
+    clearFormAlert();
+    setActiveTab(nextTab);
+  };
+
   return (
     <PortfolioFormLayout
       activeTab={activeTab}
-      onTabChange={setActiveTab}
+      onTabChange={handleTabChange}
       onSubmit={() => handleSubmit("published")()}
       onSaveDraft={() => handleSubmit("draft")()}
       isPending={isPending}
       isSubmitting={form.formState.isSubmitting}
       isEditMode={false}
+      formAlert={formAlert}
     >
       {activeTab === "account" && (
         <Suspense fallback={<TabSkeleton />}>

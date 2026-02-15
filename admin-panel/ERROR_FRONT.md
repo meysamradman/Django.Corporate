@@ -56,6 +56,26 @@
   - `notifyApiError`
   - `showSuccess/showError`
 
+### قرارداد رسمی Sonner (خیلی مهم)
+
+برای جلوگیری از ناهماهنگی رنگ/UX، این قرارداد باید ثابت بماند:
+
+1) **Toaster فقط از Element لایه UI**
+- فقط از `components/elements/Sonner.tsx` استفاده شود.
+- در کل اپ فقط یک‌بار mount شود (در `App.tsx`).
+
+2) **ارسال پیام فقط از Core Toast**
+- در ماژول‌ها و page/componentها فقط از `core/toast/index.ts` استفاده شود.
+- import مستقیم از پکیج `sonner` در feature/module ممنوع است.
+
+3) **اگر API خام toast لازم شد**
+- فقط از `toast` که از `core/toast` export شده استفاده شود، نه از `sonner` مستقیم.
+- هدف: همه پیام‌ها زیر کانفیگ یکسان `Toaster` بمانند.
+
+4) **هماهنگی رنگ‌ها**
+- رنگ/variant از طریق کانفیگ `components/elements/Sonner.tsx` کنترل می‌شود.
+- فرم‌ها نباید رنگ toast را با استایل محلی override کنند، مگر نیاز دامنه‌ای واقعی.
+
 ### Tab Error Navigation (فرم‌های تب‌دار)
 - منطق navigation تب خطا باید داخل همان فرم/ماژول پیاده‌سازی شود (local per form).
 - هر فرم تب‌دار باید `field -> tab` map مخصوص خودش را داشته باشد.
@@ -241,7 +261,18 @@
 - Create/Edit blog: مطابق قرارداد (field inline، non-field alert، system toast)
 - Server error mapping blog form: یکپارچه در `components/blogs/validations/blogApiError.ts`
 - Tab auto-switch on field errors: local per form در `blogs/create` و `blogs/[id]/edit`
+- پیام `checkForm` در Blog Create/Edit اکنون هم‌الگوی نمونه‌کار است (از `showError` در `core/toast`)
+- پیام `checkForm` در Blog Create/Edit برای سناریوهای تب‌دار (مثل نامشخص بودن دسته/تگ در تب دیگر) باید حفظ شود و حذف نشود.
 - Category/Tag sidebar: مطابق قرارداد (field inline، non-field alert، system toast)
 - Backend create/update blog: خطاهای validation به‌صورت ساختاری در `errors` برمی‌گردد (نه فقط `message`)
+
+## وضعیت فعلی portfolio (مرجع)
+
+- Create/Edit portfolio: مطابق قرارداد (field inline، non-field alert، system toast)
+- Server error mapping portfolio form: یکپارچه در `components/portfolios/validations/portfolioApiError.ts`
+- Tab auto-switch on field errors: local per form در `portfolios/create` و `portfolios/[id]/edit`
+- در Portfolio Create/Edit، فیلدهای دسته‌بندی/تگ/گزینه داخل سایدبار تب `account` هستند؛ در خطاهای این فیلدها باید همان تب فعال شود.
+- پیام `checkForm` در Portfolio Create/Edit برای سناریوهای تب‌دار/سایدبار (مثل نامشخص بودن دسته‌بندی، تگ یا گزینه) باید حفظ شود و حذف نشود.
+- Category/Tag/Option sidebar actions: خطاهای سیستمی فقط از مسیر `notifyApiError` با `dedupeKey` پایدار نمایش داده شوند.
 
 از این به بعد همین الگو باید برای admins / agencies / auth / سایر فرم‌ها اجرا شود.

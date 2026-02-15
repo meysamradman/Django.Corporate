@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { portfolioApi } from "@/api/portfolios/portfolios";
-import { showError, showSuccess } from "@/core/toast";
+import { notifyApiError, showSuccess } from "@/core/toast";
 import { msg } from "@/core/messages";
 import type { PortfolioOptionDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
@@ -26,8 +26,12 @@ export function usePortfolioOptionListActions({ setRowSelection }: UsePortfolioO
       queryClient.invalidateQueries({ queryKey: ["portfolio-options"] });
       showSuccess(msg.crud("deleted", { item: "گزینه نمونه‌کار" }));
     },
-    onError: () => {
-      showError("خطای سرور");
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        dedupeKey: "portfolio-option-delete-error",
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -40,8 +44,12 @@ export function usePortfolioOptionListActions({ setRowSelection }: UsePortfolioO
       showSuccess(msg.crud("deleted", { item: "گزینه نمونه‌کار" }));
       setRowSelection({});
     },
-    onError: () => {
-      showError("خطای سرور");
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        dedupeKey: "portfolio-option-bulk-delete-error",
+        preferBackendMessage: false,
+      });
     },
   });
 

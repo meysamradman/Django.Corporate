@@ -11,12 +11,14 @@ import {
     collectSegmentedMediaIds,
     collectSegmentedMediaCovers
 } from "@/components/media/utils/genericMediaUtils";
-import { showError, showSuccess, hasFieldErrors, extractFieldErrors } from "@/core/toast";
+import { notifyApiError, showError, showSuccess } from "@/core/toast";
 import { msg } from "@/core/messages";
 import { MEDIA_CONFIG } from "@/core/config/environment";
 import { useMediaConfig } from "@/components/media/hooks/useMediaConfig";
 import { formatSlug } from '@/core/slug/generate';
 import type { PortfolioMedia } from "@/types/portfolio/portfolioMedia";
+import { ApiError } from "@/types/api/apiError";
+import { extractMappedPortfolioFieldErrors, PORTFOLIO_FORM_FIELD_MAP } from "@/components/portfolios/validations/portfolioApiError";
 
 interface UsePortfolioFormProps {
     id?: string;
@@ -28,6 +30,7 @@ export function usePortfolioForm({ id, isEditMode }: UsePortfolioFormProps) {
     const queryClient = useQueryClient();
     const { data: mediaConfig } = useMediaConfig();
     const [activeTab, setActiveTab] = useState<string>("account");
+    const [formAlert, setFormAlert] = useState<string | null>(null);
     const [portfolioMedia, setPortfolioMedia] = useState<PortfolioMedia>({
         featuredImage: null,
         imageGallery: [],
@@ -43,6 +46,38 @@ export function usePortfolioForm({ id, isEditMode }: UsePortfolioFormProps) {
     });
 
     const { reset, setError } = form;
+
+    const PORTFOLIO_TAB_BY_FIELD: Record<string, string> = {
+        name: 'account',
+        slug: 'account',
+        short_description: 'account',
+        description: 'account',
+        selectedCategories: 'account',
+        selectedTags: 'account',
+        selectedOptions: 'account',
+        is_featured: 'account',
+        is_public: 'account',
+        is_active: 'account',
+        featuredImage: 'media',
+        media_ids: 'media',
+        main_image_id: 'media',
+        meta_title: 'seo',
+        meta_description: 'seo',
+        og_title: 'seo',
+        og_description: 'seo',
+        og_image: 'seo',
+        canonical_url: 'seo',
+        robots_meta: 'seo',
+        extra_attributes: 'extra',
+    };
+
+    const resolvePortfolioErrorTab = (fieldKeys: Iterable<string>): string | null => {
+        for (const key of fieldKeys) {
+            const tab = PORTFOLIO_TAB_BY_FIELD[key];
+            if (tab) return tab;
+        }
+        return null;
+    };
 
     const { data: portfolio, isLoading } = useQuery({
         queryKey: ['portfolio', Number(id)],
@@ -185,6 +220,7 @@ export function usePortfolioForm({ id, isEditMode }: UsePortfolioFormProps) {
             }
         },
         onSuccess: (_data, variables) => {
+            setFormAlert(null);
             console.log("✅ [Portfolio][Submit] Success:", _data);
             queryClient.invalidateQueries({ queryKey: ['portfolios'] });
             if (isEditMode) {
@@ -198,47 +234,69 @@ export function usePortfolioForm({ id, isEditMode }: UsePortfolioFormProps) {
             showSuccess(successMessage);
             navigate("/portfolios");
         },
-        onError: (error: any) => {
-            if (hasFieldErrors(error)) {
-                const fieldErrors = extractFieldErrors(error);
-                Object.entries(fieldErrors).forEach(([field, message]) => {
-                    const fieldMap: Record<string, string> = {
-                        'title': 'name',
-                        'categories_ids': 'selectedCategories',
-                        'tags_ids': 'selectedTags',
-                        'options_ids': 'selectedOptions',
-                    };
+        onError: (error: unknown) => {
+            setFormAlert(null);
 
-                    const formField = fieldMap[field] || field;
-                    setError(formField as any, {
+            const { fieldErrors, nonFieldError } = extractMappedPortfolioFieldErrors(
+                error,
+                PORTFOLIO_FORM_FIELD_MAP as unknown as Record<string, string>
+            );
+
+            const mappedFieldKeys = Object.keys(fieldErrors);
+            if (mappedFieldKeys.length > 0) {
+                mappedFieldKeys.forEach((field) => {
+                    setError(field as any, {
                         type: 'server',
-                        message: message as string
+                        message: fieldErrors[field],
                     });
                 });
+
+                const tabWithError = resolvePortfolioErrorTab(mappedFieldKeys);
+                if (tabWithError) {
+                    setActiveTab(tabWithError);
+                }
+
+                if (nonFieldError) {
+                    setFormAlert(nonFieldError);
+                }
+
                 showError(error, { customMessage: msg.error("checkForm") });
-            } else {
-                showError(error);
+                return;
             }
+
+            if (nonFieldError) {
+                setFormAlert(nonFieldError);
+                return;
+            }
+
+            if (error instanceof ApiError) {
+                const statusCode = error.response.AppStatusCode;
+                if (statusCode < 500) {
+                    setFormAlert(error.response.message || msg.error('validation'));
+                    return;
+                }
+            }
+
+            notifyApiError(error, {
+                fallbackMessage: msg.error('serverError'),
+                dedupeKey: 'portfolio-form-system-error',
+                preferBackendMessage: false,
+            });
         },
     });
 
     const handleSubmit = (status: "draft" | "published") =>
         form.handleSubmit(
-            (data) => mutation.mutate({ data, status }),
+            (data) => {
+                setFormAlert(null);
+                mutation.mutate({ data, status });
+            },
             (errors) => {
                 const errorFields = Object.keys(errors);
                 if (errorFields.length > 0) {
-                    if (errorFields.some(field => ['featuredImage', 'images', 'videos', 'audios', 'documents'].includes(field))) {
-                        setActiveTab('media');
-                    }
-                    else if (errorFields.some(field => ['meta_title', 'meta_description', 'og_title', 'og_description', 'og_image', 'canonical_url', 'robots_meta'].includes(field))) {
-                        setActiveTab('seo');
-                    }
-                    else if (errorFields.some(field => ['selectedOptions', 'extra_attributes'].includes(field))) {
-                        setActiveTab('extra');
-                    }
-                    else {
-                        setActiveTab('account');
+                    const tabWithError = resolvePortfolioErrorTab(errorFields);
+                    if (tabWithError) {
+                        setActiveTab(tabWithError);
                     }
                     showError(null, { customMessage: msg.error("checkForm") });
                 }
@@ -249,6 +307,8 @@ export function usePortfolioForm({ id, isEditMode }: UsePortfolioFormProps) {
         form,
         activeTab,
         setActiveTab,
+        formAlert,
+        clearFormAlert: () => setFormAlert(null),
         portfolioMedia,
         setPortfolioMedia,
         handleSubmit,

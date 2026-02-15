@@ -3,7 +3,7 @@
  */
 
 import { useMutation } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { toast } from '@/core/toast';
 import type { PropertyExportParams } from '@/types/real_estate/realEstateListParams';
 import { exportProperties, exportPropertyPdf } from '@/api/real-estate/export';
 
