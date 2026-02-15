@@ -153,126 +153,42 @@
 
 ---
 
-## معماری پیشنهادی هر فرم (الزامی)
+## قرارداد خطا برای ماژول املاک (Real Estate)
 
-هر فرم باید 3 لایه داشته باشد:
+### فرانت‌اند:
+- تمام فرم‌های املاک (ایجاد/ویرایش ملک، دسته‌بندی، تگ، ویژگی و ...) باید از `extractMappedPropertyFieldErrors` برای map و نمایش خطاهای فیلدی استفاده کنند.
+- خطاهای غیر فیلدی (non_field_errors) باید در Form Alert بالای فرم نمایش داده شوند.
+- منطق فعال‌سازی تب بر اساس فیلد خطادار باید دقیقاً مثل بلاگ/نمونه‌کار پیاده‌سازی شود.
+- هیچ خطای غیرضروری از سرور نباید نمایش داده شود؛ اعتبارسنجی‌های ساده فقط در فرانت انجام شود (Zod).
 
-1) **Schema دامنه‌ای** در `components/<domain>/validations/*Schema.ts`
-2) **Mapper خطای سرور دامنه‌ای** در `components/<domain>/validations/*ApiError.ts`
-3) **Page/Form** که فقط orchestration انجام دهد (submit, setError, alert, toast)
+### بک‌اند:
+- خروجی create/update در property_views.py باید همیشه خطاهای فیلدی را با کلید `errors` و ساختار استاندارد (dict فیلد به لیست پیام) برگرداند (با استفاده از `normalize_validation_error`).
+- پیام خطا در کلید `message` و خطاهای فیلدی در کلید `errors` قرار می‌گیرد.
+- اگر خطا فقط non_field باشد، فقط همان در `errors` بیاید.
+- پیام‌های خطا باید از PROPERTY_ERRORS باشد و قابل map به فرانت.
 
-نمونه users:
-- `components/users/validations/userSchema.ts`
-- `components/users/validations/userEditSchema.ts`
-- `components/users/validations/userApiError.ts`
-
----
-
-## قرارداد دقیق submit فرم
-
-1) `schema.safeParse` یا `react-hook-form + zodResolver`
-2) اگر invalid بود → فقط inline errors
-3) submit API
-4) اگر `errors.field_name` داشتیم:
-   - map با فایل `*ApiError.ts`
-   - `setError(...)`
-  - `resolve<Field>ErrorTab(...)` (local) و `setActiveTab(...)`
-   - بدون Toast
-5) اگر `errors.non_field_errors` داشتیم:
-   - Form Alert
-   - بدون Toast
-6) اگر system/network/5xx:
-   - `notifyApiError(...)` با `fallbackMessage`
-   - `dedupeKey` پایدار
-
----
-
-## Performance Guidelines (خیلی مهم)
-
-### چیزی که سرعت را کم نمی‌کند (عملاً ناچیز)
-- داشتن فایل Schema جدا
-- داشتن فایل `*ApiError.ts` جدا
-- import از `core/validation/index.ts`
-- استفاده از `msg` به‌جای hardcode
-
-### چیزی که واقعاً سرعت را کم می‌کند
-- درخواست‌های اضافی شبکه
-- rerender زیاد و state سنگین
-- toastهای تکراری و بدون dedupe
-- query invalidation بی‌هدف
-- پردازش سنگین در هر keypress بدون debounce
-
-نتیجه: جدا کردن فایل‌های validation/mapping نه‌تنها مشکل سرعت ایجاد نمی‌کند، بلکه خطاهای تکراری را کم و نگهداری را سریع‌تر می‌کند.
+### مثال خروجی استاندارد:
+```json
+{
+  "metaData": {
+    "status": false,
+    "message": "خطا در اعتبارسنجی داده‌های ملک. لطفاً فیلدهای الزامی را بررسی کنید.",
+    "AppStatusCode": 400
+  },
+  "errors": {
+    "title": ["عنوان الزامی است"],
+    "property_type": ["نوع ملک الزامی است"],
+    "non_field_errors": ["خطای کلی"]
+  },
+  "data": null
+}
+```
 
 ---
 
-## Anti-pattern ها (ممنوع)
-
-1) validate دستی پراکنده داخل page/form بدون schema
-2) hardcode پیام فارسی داخل validator/page
-3) Toast برای field errors
-4) تکرار field map در چند فایل (باید در `*ApiError.ts` باشد)
-5) mix کردن پیام‌های سیستمی و فیلدی در یک مسیر
-6) نادیده گرفتن `non_field_errors`
-7) شکستن قرارداد Backend response در endpointها
-8) باقی ماندن روی تب اشتباه وقتی خطا در تب دیگر است
+## تست سناریویی (End-to-End)
+- ایجاد/ویرایش ملک با خطاهای فیلدی و غیر فیلدی باید دقیقاً مثل بلاگ/نمونه‌کار رفتار کند.
+- خطاهای غیرضروری از سرور نباید نمایش داده شود.
+- تست با خطاهای ۴۰۰ و ۵۰۰ و خطاهای دسته‌بندی/تگ/ویژگی نیز انجام شود.
 
 ---
-
-## Checklist برای PR
-
-- [ ] schema فرم در `components/<domain>/validations`
-- [ ] استفاده از validator مشترک از `core/validation`
-- [ ] استفاده از `msg.validation` به‌جای hardcode
-- [ ] mapper خطای سرور (`*ApiError.ts`) دارد
-- [ ] field errors فقط inline هستند
-- [ ] non-field فقط Form Alert
-- [ ] system errors فقط `notifyApiError`
-- [ ] همه error toastها `dedupeKey` دارند
-- [ ] با قرارداد بک‌اند (`metaData/data/errors`) سازگار است
-
----
-
-## وضعیت فعلی users (مرجع)
-
-- Create user: مطابق قرارداد
-- Edit user: مطابق قرارداد
-- Validation shared: یکپارچه از `core/validation/index.ts`
-- Server error mapping: یکپارچه از `userApiError.ts`
-- Tab auto-switch on field errors: local per form در `users/create` و `users/edit`
-
-## وضعیت فعلی admins (مرجع)
-
-- Create admin: مطابق قرارداد (field inline، non-field alert، system toast)
-- Edit admin: مطابق قرارداد (field inline، non-field alert، system toast)
-- Server error mapping: یکپارچه در `components/admins/validations/adminApiError.ts`
-- Tab auto-switch on field errors: local per form در `admins/create` و `admins/[id]/edit`
-
-## وضعیت فعلی agencies / consultant (مرجع)
-
-- Create agency: مطابق قرارداد (field inline، non-field alert، system toast)
-- Edit agency: مطابق قرارداد (field inline، non-field alert، system toast)
-- Consultant fields (داخل admin create/edit): مطابق قرارداد و map‌شده از `adminApiError.ts`
-- Server error mapping agencies: یکپارچه در `components/real-estate/validations/agencyApiError.ts`
-- Tab auto-switch on field errors: local per form در `admins/agencies/create` و `agencies/edit/EditForm`
-
-## وضعیت فعلی blog (مرجع)
-
-- Create/Edit blog: مطابق قرارداد (field inline، non-field alert، system toast)
-- Server error mapping blog form: یکپارچه در `components/blogs/validations/blogApiError.ts`
-- Tab auto-switch on field errors: local per form در `blogs/create` و `blogs/[id]/edit`
-- پیام `checkForm` در Blog Create/Edit اکنون هم‌الگوی نمونه‌کار است (از `showError` در `core/toast`)
-- پیام `checkForm` در Blog Create/Edit برای سناریوهای تب‌دار (مثل نامشخص بودن دسته/تگ در تب دیگر) باید حفظ شود و حذف نشود.
-- Category/Tag sidebar: مطابق قرارداد (field inline، non-field alert، system toast)
-- Backend create/update blog: خطاهای validation به‌صورت ساختاری در `errors` برمی‌گردد (نه فقط `message`)
-
-## وضعیت فعلی portfolio (مرجع)
-
-- Create/Edit portfolio: مطابق قرارداد (field inline، non-field alert، system toast)
-- Server error mapping portfolio form: یکپارچه در `components/portfolios/validations/portfolioApiError.ts`
-- Tab auto-switch on field errors: local per form در `portfolios/create` و `portfolios/[id]/edit`
-- در Portfolio Create/Edit، فیلدهای دسته‌بندی/تگ/گزینه داخل سایدبار تب `account` هستند؛ در خطاهای این فیلدها باید همان تب فعال شود.
-- پیام `checkForm` در Portfolio Create/Edit برای سناریوهای تب‌دار/سایدبار (مثل نامشخص بودن دسته‌بندی، تگ یا گزینه) باید حفظ شود و حذف نشود.
-- Category/Tag/Option sidebar actions: خطاهای سیستمی فقط از مسیر `notifyApiError` با `dedupeKey` پایدار نمایش داده شوند.
-
-از این به بعد همین الگو باید برای admins / agencies / auth / سایر فرم‌ها اجرا شود.

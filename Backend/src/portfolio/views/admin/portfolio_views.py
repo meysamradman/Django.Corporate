@@ -35,7 +35,7 @@ from src.core.pagination import StandardLimitPagination
 from src.user.access_control import portfolio_permission, PermissionRequiredMixin
 from src.portfolio.messages.messages import PORTFOLIO_SUCCESS, PORTFOLIO_ERRORS
 from src.portfolio.utils.cache import PortfolioCacheManager
-from src.core.utils.validation_helpers import extract_validation_message
+from src.core.utils.validation_helpers import extract_validation_message, normalize_validation_error
 
 class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [portfolio_permission]
@@ -238,8 +238,10 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_201_CREATED
             )
         except ValidationError as e:
+            validation_errors = normalize_validation_error(e)
             return APIResponse.error(
-                message=str(e.message if hasattr(e, 'message') else e),
+                message=extract_validation_message(e, PORTFOLIO_ERRORS["portfolio_create_failed"]),
+                errors=validation_errors,
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
@@ -270,8 +272,10 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
+            validation_errors = normalize_validation_error(e)
             return APIResponse.error(
-                message=str(e.message if hasattr(e, 'message') else e),
+                message=extract_validation_message(e, PORTFOLIO_ERRORS["portfolio_update_failed"]),
+                errors=validation_errors,
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     

@@ -26,6 +26,7 @@ PORTFOLIO_ERRORS = {
     "portfolio_not_found": "نمونه کار یافت نشد.",
     "portfolio_not_authorized": "شما اجازه افزودن رسانه به نمونه‌کار را ندارید.",
     "portfolio_invalid_status": "وضعیت نامعتبر است.",
+    "portfolio_create_failed": "ایجاد نمونه کار ناموفق بود.",
     "portfolio_update_failed": "به‌روزرسانی نمونه کار ناموفق بود.",
     "portfolio_delete_failed": "حذف نمونه کار ناموفق بود.",
     "portfolio_export_failed": "خروجی گیری نمونه کارها ناموفق بود.",

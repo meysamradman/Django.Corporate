@@ -5,7 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { showError, showSuccess, extractFieldErrors, hasFieldErrors } from '@/core/toast';
+import { showError, showSuccess, hasFieldErrors } from '@/core/toast';
+import { extractMappedPropertyFieldErrors } from '@/components/real-estate/validations/propertyApiError';
 import { msg } from '@/core/messages';
 import { MEDIA_CONFIG } from '@/core/config/environment';
 import { useMediaConfig } from "@/components/media/hooks/useMediaConfig";
@@ -215,10 +216,9 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
         },
         onError: (error: any) => {
             if (hasFieldErrors(error)) {
-                const fieldErrors = extractFieldErrors(error);
+                const { fieldErrors, nonFieldError } = extractMappedPropertyFieldErrors(error);
                 Object.entries(fieldErrors).forEach(([field, message]) => {
                     form.setError(field as keyof PropertyFormValues, { type: "server", message: message as string });
-
                     if (["title", "slug", "property_type", "state", "status", "agent", "agency", "short_description", "description"].includes(field))
                         setActiveTab("account");
                     else if (["province", "city", "region", "address", "postal_code", "neighborhood", "latitude", "longitude"].includes(field))
@@ -232,7 +232,7 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                     else if (["meta_title", "meta_description", "og_title", "og_description", "og_image_id", "canonical_url", "robots_meta", "is_public", "is_active", "is_published", "is_featured"].includes(field))
                         setActiveTab("seo");
                 });
-                showError(null, { customMessage: msg.error("checkForm") });
+                showError(nonFieldError || null, { customMessage: msg.error("checkForm") });
             } else {
                 showError(error);
             }

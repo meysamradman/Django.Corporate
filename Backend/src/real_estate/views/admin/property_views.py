@@ -248,25 +248,24 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         for m_key, m_val in segmented_media.items():
             if m_val: data[m_key] = m_val
         serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        
         try:
+            serializer.is_valid(raise_exception=True)
             property_obj = PropertyAdminService.create_property(
                 validated_data=serializer.validated_data,
                 created_by=request.user
             )
-            
             instance = PropertyAdminService.get_property_detail(property_obj.id)
             detail_serializer = PropertyAdminDetailSerializer(instance, context={'request': request})
-            
             return APIResponse.success(
                 message=PROPERTY_SUCCESS["property_created"],
                 data=detail_serializer.data,
                 status_code=status.HTTP_201_CREATED
             )
         except ValidationError as e:
+            from src.core.utils.validation_helpers import normalize_validation_error
             return APIResponse.error(
                 message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
@@ -319,9 +318,8 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         if main_image_id: data['main_image_id'] = main_image_id
             
         serializer = self.get_serializer(instance, data=data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        
         try:
+            serializer.is_valid(raise_exception=True)
             updated_instance = PropertyAdminService.update_property(
                 property_id=instance.id,
                 validated_data=serializer.validated_data,
@@ -339,18 +337,18 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 document_covers=serializer.validated_data.get('document_covers'),
                 updated_by=request.user
             )
-            
             fresh_instance = PropertyAdminService.get_property_detail(updated_instance.id)
             detail_serializer = PropertyAdminDetailSerializer(fresh_instance, context={'request': request})
-            
             return APIResponse.success(
                 message=PROPERTY_SUCCESS["property_updated"],
                 data=detail_serializer.data,
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
+            from src.core.utils.validation_helpers import normalize_validation_error
             return APIResponse.error(
-                message=str(e.message if hasattr(e, 'message') else e),
+                message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     

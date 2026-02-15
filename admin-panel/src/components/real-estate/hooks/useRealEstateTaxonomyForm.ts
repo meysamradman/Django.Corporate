@@ -4,7 +4,8 @@ import { useForm, type FieldValues, type DefaultValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { showError, showSuccess, hasFieldErrors, extractFieldErrors } from "@/core/toast";
+import { showError, showSuccess, hasFieldErrors } from "@/core/toast";
+import { extractMappedPropertyFieldErrors } from "@/components/real-estate/validations/propertyApiError";
 import { msg } from "@/core/messages";
 import { generateSlug } from '@/core/slug/generate';
 import type { Media } from "@/types/shared/media";
@@ -114,30 +115,21 @@ export function useRealEstateTaxonomyForm<T extends FieldValues>({
         onError: (error: any) => {
             onValidationMessage?.(null);
             if (hasFieldErrors(error)) {
-                const fieldErrors = extractFieldErrors(error);
-                const nonFieldError = fieldErrors.non_field_errors;
+                const { fieldErrors, nonFieldError } = extractMappedPropertyFieldErrors(error, {});
                 let hasMappedFieldErrors = false;
-
                 Object.entries(fieldErrors).forEach(([field, message]) => {
-                    if (field === 'non_field_errors') {
-                        return;
-                    }
-
-                    const mappedField = mapFieldErrorKey ? mapFieldErrorKey(field) : field;
                     hasMappedFieldErrors = true;
-
+                    const mappedField = mapFieldErrorKey ? mapFieldErrorKey(field) : field;
                     setError(mappedField as any, {
                         type: 'server',
                         message: message as string
                     });
                 });
-
                 if (nonFieldError) {
                     onValidationMessage?.(nonFieldError);
                 }
-
                 if (hasMappedFieldErrors && showFieldErrorToast) {
-                    showError(error, { customMessage: msg.error("checkForm") });
+                    showError(nonFieldError || null, { customMessage: msg.error("checkForm") });
                 }
             } else {
                 showError(error);
