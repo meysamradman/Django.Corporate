@@ -6,7 +6,7 @@ import { usePropertyFilterOptions, getPropertyFilterConfig } from "@/components/
 import type { PropertyFilters } from "@/types/real_estate/realEstateListParams";
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/elements/Button";
-import { showError, showSuccess } from '@/core/toast';
+import { notifyApiError, showError, showSuccess } from '@/core/toast';
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from '@/types/shared/pagination';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -226,8 +226,12 @@ export function AgentProperties({ admin }: AgentPropertiesTabProps) {
       queryClient.invalidateQueries({ queryKey: ['properties', 'agent', agentId] });
       showSuccess(getCrud('deleted', { item: 'ملک' }));
     },
-    onError: (_error) => {
-      showError('خطای سرور رخ داد');
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: 'خطای سرور رخ داد',
+        dedupeKey: 'agent-profile-property-delete-error',
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -238,8 +242,12 @@ export function AgentProperties({ admin }: AgentPropertiesTabProps) {
       showSuccess(getCrud('deleted', { item: 'ملک‌ها' }));
       setRowSelection({});
     },
-    onError: (_error) => {
-      showError('خطای سرور رخ داد');
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: 'خطای سرور رخ داد',
+        dedupeKey: 'agent-profile-property-bulk-delete-error',
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -251,8 +259,12 @@ export function AgentProperties({ admin }: AgentPropertiesTabProps) {
       queryClient.invalidateQueries({ queryKey: ['properties', 'agent', agentId] });
       showSuccess(data.is_active ? getStatus('active') : getStatus('inactive'));
     },
-    onError: (_error) => {
-      showError(getStatus('statusChangeError'));
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: getStatus('statusChangeError'),
+        dedupeKey: 'agent-profile-property-toggle-active-error',
+        preferBackendMessage: false,
+      });
     },
   });
 

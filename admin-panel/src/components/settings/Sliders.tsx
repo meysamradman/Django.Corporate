@@ -13,7 +13,7 @@ import {
     AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
 import { settingsApi } from "@/api/settings/settings";
-import { showError, showSuccess } from "@/core/toast";
+import { notifyApiError, showSuccess } from "@/core/toast";
 import { Plus, Edit, Trash2, Layout, ExternalLink, CheckCircle2, XCircle } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
@@ -42,8 +42,12 @@ export function Sliders() {
             setDeleteDialogOpen(false);
             setItemToDelete(null);
         },
-        onError: () => {
-            showError("خطا در حذف اسلایدر");
+        onError: (error) => {
+            notifyApiError(error, {
+                fallbackMessage: "خطا در حذف اسلایدر",
+                dedupeKey: "settings-slider-delete-error",
+                preferBackendMessage: false,
+            });
         },
     });
 

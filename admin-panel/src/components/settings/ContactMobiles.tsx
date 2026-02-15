@@ -13,7 +13,7 @@ import {
     AlertDialogTitle,
 } from "@/components/elements/AlertDialog";
 import { settingsApi } from "@/api/settings/settings";
-import { showError, showSuccess } from "@/core/toast";
+import { notifyApiError, showSuccess } from "@/core/toast";
 import { Plus, Edit, Trash2, Smartphone } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
@@ -40,8 +40,12 @@ export function ContactMobiles() {
             setDeleteDialogOpen(false);
             setMobileToDelete(null);
         },
-        onError: () => {
-            showError("خطا در حذف شماره موبایل");
+        onError: (error) => {
+            notifyApiError(error, {
+                fallbackMessage: "خطا در حذف شماره موبایل",
+                dedupeKey: "settings-contact-mobile-delete-error",
+                preferBackendMessage: false,
+            });
         },
     });
 
