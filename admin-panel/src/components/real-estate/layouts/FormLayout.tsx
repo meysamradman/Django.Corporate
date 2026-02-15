@@ -1,9 +1,10 @@
 import React from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
+import { Alert, AlertDescription } from "@/components/elements/Alert";
 import {
     FileText, MapPin, Home, Image, Search, FileJson,
-    Save, Loader2
+    Save, Loader2, AlertCircle
 } from "lucide-react";
 
 interface PropertyFormLayoutProps {
@@ -14,6 +15,7 @@ interface PropertyFormLayoutProps {
     isPending: boolean;
     isSubmitting: boolean;
     isEditMode: boolean;
+    formAlert?: string | null;
     tempFloorPlansCount?: number;
     children: React.ReactNode;
 }
@@ -26,11 +28,19 @@ export const FormLayout: React.FC<PropertyFormLayoutProps> = ({
     isPending,
     isSubmitting,
     isEditMode,
+    formAlert,
     tempFloorPlansCount = 0,
     children
 }) => {
     return (
         <div className="space-y-6 pb-28 relative">
+            {formAlert ? (
+                <Alert variant="destructive" className="border-red-1/50">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{formAlert}</AlertDescription>
+                </Alert>
+            ) : null}
+
             <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
                 <TabsList>
                     <TabsTrigger value="account">

@@ -7,7 +7,7 @@ import type { PropertyFilters } from '@/types/real_estate/realEstateListParams';
 import type { Property } from '@/types/real_estate/realEstate';
 import { realEstateApi } from '@/api/real-estate';
 import { msg, getStatus } from '@/core/messages';
-import { showError, showSuccess, showWarning } from '@/core/toast';
+import { notifyApiError, showError, showSuccess, showWarning } from '@/core/toast';
 import { usePropertyExcelExport } from '@/components/real-estate/hooks/usePropertyExcelExport';
 import { usePropertyPdfExport } from '@/components/real-estate/hooks/usePropertyPdfExport';
 import { usePropertyPrintView } from '@/components/real-estate/hooks/usePropertyPrintView';
@@ -45,8 +45,12 @@ export function usePropertyListActions({
       queryClient.invalidateQueries({ queryKey: ['properties'] });
       showSuccess(msg.crud('deleted', { item: 'ملک' }));
     },
-    onError: () => {
-      showError('خطای سرور رخ داد');
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error('serverError'),
+        dedupeKey: 'property-delete-error',
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -57,8 +61,12 @@ export function usePropertyListActions({
       showSuccess(msg.crud('deleted', { item: 'ملک‌ها' }));
       setRowSelection({});
     },
-    onError: () => {
-      showError('خطای سرور رخ داد');
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error('serverError'),
+        dedupeKey: 'property-bulk-delete-error',
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -70,8 +78,12 @@ export function usePropertyListActions({
       queryClient.invalidateQueries({ queryKey: ['properties'] });
       showSuccess(updated.is_active ? getStatus('active') : getStatus('inactive'));
     },
-    onError: () => {
-      showError(getStatus('statusChangeError'));
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: getStatus('statusChangeError'),
+        dedupeKey: 'property-toggle-active-error',
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -191,8 +203,12 @@ export function usePropertyListActions({
       } else {
         showError('داده‌ای برای پرینت یافت نشد');
       }
-    } catch {
-      showError('خطا در بارگذاری داده‌ها برای پرینت');
+    } catch (error) {
+      notifyApiError(error, {
+        fallbackMessage: 'خطا در بارگذاری داده‌ها برای پرینت',
+        dedupeKey: 'property-print-load-error',
+        preferBackendMessage: false,
+      });
     }
   };
 

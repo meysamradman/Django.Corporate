@@ -6,7 +6,7 @@ import type { TablePaginationState } from '@/types/shared/pagination';
 import type { PortfolioFilters } from '@/types/portfolio/portfolioListParams';
 import type { Portfolio } from '@/types/portfolio/portfolio';
 import { portfolioApi } from '@/api/portfolios/portfolios';
-import { showError, showSuccess, showWarning } from '@/core/toast';
+import { notifyApiError, showError, showSuccess, showWarning } from '@/core/toast';
 import { msg, getStatus } from '@/core/messages';
 import { usePortfolioExcelExport } from '@/components/portfolios/hooks/usePortfolioExcelExport';
 import { usePortfolioPdfExport } from '@/components/portfolios/hooks/usePortfolioPdfExport';
@@ -45,8 +45,12 @@ export function usePortfolioListActions({
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
       showSuccess(msg.crud('deleted', { item: 'نمونه‌کار' }));
     },
-    onError: () => {
-      showError('خطای سرور رخ داد');
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error('serverError'),
+        dedupeKey: 'portfolio-delete-error',
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -57,8 +61,12 @@ export function usePortfolioListActions({
       showSuccess(msg.crud('deleted', { item: 'نمونه‌کارها' }));
       setRowSelection({});
     },
-    onError: () => {
-      showError('خطای سرور رخ داد');
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error('serverError'),
+        dedupeKey: 'portfolio-bulk-delete-error',
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -70,8 +78,12 @@ export function usePortfolioListActions({
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
       showSuccess(updated.is_active ? getStatus('active') : getStatus('inactive'));
     },
-    onError: () => {
-      showError(getStatus('statusChangeError'));
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: getStatus('statusChangeError'),
+        dedupeKey: 'portfolio-toggle-active-error',
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -188,8 +200,12 @@ export function usePortfolioListActions({
       } else {
         showError('داده‌ای برای پرینت یافت نشد');
       }
-    } catch {
-      showError('خطا در بارگذاری داده‌ها برای پرینت');
+    } catch (error) {
+      notifyApiError(error, {
+        fallbackMessage: 'خطا در بارگذاری داده‌ها برای پرینت',
+        dedupeKey: 'portfolio-print-load-error',
+        preferBackendMessage: false,
+      });
     }
   };
 

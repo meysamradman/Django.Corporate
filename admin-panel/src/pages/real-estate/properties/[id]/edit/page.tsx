@@ -81,8 +81,10 @@ export default function EditPropertyPage() {
   const { id } = useParams<{ id: string }>();
   const {
     form,
+    formAlert,
     activeTab,
     setActiveTab,
+    setFormAlert,
     tempFloorPlans,
     setTempFloorPlans,
     selectedLabels,
@@ -112,6 +114,12 @@ export default function EditPropertyPage() {
 
   const formData = form.watch();
 
+  const handleTabChange = (nextTab: string) => {
+    if (nextTab === activeTab) return;
+    setFormAlert(null);
+    setActiveTab(nextTab);
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6 pb-28 relative">
@@ -131,12 +139,13 @@ export default function EditPropertyPage() {
   return (
     <FormLayout
       activeTab={activeTab}
-      onTabChange={setActiveTab}
+      onTabChange={handleTabChange}
       onSubmit={handleSubmit}
       onSaveDraft={handleSaveDraft}
       isPending={isPending}
       isSubmitting={form.formState.isSubmitting}
       isEditMode={true}
+      formAlert={formAlert}
       tempFloorPlansCount={tempFloorPlans.length}
     >
       <TabsContent value="account">

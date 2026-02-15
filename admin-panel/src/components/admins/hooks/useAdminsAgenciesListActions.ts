@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
-import { showSuccess, showError } from "@/core/toast";
+import { notifyApiError, showSuccess } from "@/core/toast";
+import { msg } from "@/core/messages";
 import type { AgencyDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
 
@@ -19,8 +20,12 @@ export function useAdminsAgenciesListActions() {
       queryClient.invalidateQueries({ queryKey: ["agencies"] });
       showSuccess("با موفقیت حذف شد");
     },
-    onError: () => {
-      showError("خطای سرور");
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        dedupeKey: "agencies-delete-error",
+        preferBackendMessage: false,
+      });
     },
   });
 

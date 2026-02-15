@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { showError, showSuccess } from "@/core/toast";
+import { notifyApiError, showSuccess } from "@/core/toast";
 import { getStatus, msg } from "@/core/messages";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
@@ -25,8 +25,12 @@ export function usePropertyLabelListActions({ setRowSelection }: UsePropertyLabe
       queryClient.invalidateQueries({ queryKey: ["property-labels"] });
       showSuccess(msg.crud("deleted", { item: "برچسب ملک" }));
     },
-    onError: () => {
-      showError("خطای سرور رخ داد");
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        dedupeKey: "property-label-delete-error",
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -37,8 +41,12 @@ export function usePropertyLabelListActions({ setRowSelection }: UsePropertyLabe
       showSuccess(msg.crud("deleted", { item: "برچسب‌های ملک" }));
       setRowSelection({});
     },
-    onError: () => {
-      showError("خطای سرور رخ داد");
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        dedupeKey: "property-label-bulk-delete-error",
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -50,8 +58,12 @@ export function usePropertyLabelListActions({ setRowSelection }: UsePropertyLabe
       queryClient.invalidateQueries({ queryKey: ["property-labels"] });
       showSuccess(data.is_active ? getStatus("active") : getStatus("inactive"));
     },
-    onError: () => {
-      showError(getStatus("statusChangeError"));
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: getStatus("statusChangeError"),
+        dedupeKey: "property-label-toggle-active-error",
+        preferBackendMessage: false,
+      });
     },
   });
 

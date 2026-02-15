@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { showError, showSuccess } from "@/core/toast";
+import { notifyApiError, showSuccess } from "@/core/toast";
 import { getStatus, msg } from "@/core/messages";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyType } from "@/types/real_estate/type/propertyType";
@@ -25,8 +25,12 @@ export function usePropertyTypeListActions({ setRowSelection }: UsePropertyTypeL
       queryClient.invalidateQueries({ queryKey: ["property-types"] });
       showSuccess(msg.crud("deleted", { item: "نوع ملک" }));
     },
-    onError: () => {
-      showError("خطای سرور رخ داد");
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        dedupeKey: "property-type-delete-error",
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -37,8 +41,12 @@ export function usePropertyTypeListActions({ setRowSelection }: UsePropertyTypeL
       showSuccess(msg.crud("deleted", { item: "نوع‌های ملک" }));
       setRowSelection({});
     },
-    onError: () => {
-      showError("خطای سرور رخ داد");
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        dedupeKey: "property-type-bulk-delete-error",
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -50,8 +58,12 @@ export function usePropertyTypeListActions({ setRowSelection }: UsePropertyTypeL
       queryClient.invalidateQueries({ queryKey: ["property-types"] });
       showSuccess(data.is_active ? getStatus("active") : getStatus("inactive"));
     },
-    onError: () => {
-      showError(getStatus("statusChangeError"));
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: getStatus("statusChangeError"),
+        dedupeKey: "property-type-toggle-active-error",
+        preferBackendMessage: false,
+      });
     },
   });
 

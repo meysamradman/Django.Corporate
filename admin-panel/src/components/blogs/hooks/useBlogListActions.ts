@@ -6,7 +6,7 @@ import type { TablePaginationState } from '@/types/shared/pagination';
 import type { BlogFilters } from '@/types/blog/blogListParams';
 import type { Blog } from '@/types/blog/blog';
 import { blogApi } from '@/api/blogs/blogs';
-import { showError, showSuccess, showWarning } from '@/core/toast';
+import { notifyApiError, showError, showSuccess, showWarning } from '@/core/toast';
 import { msg } from '@/core/messages';
 import { useExcelExport } from '@/components/blogs/hooks/useExcelExport';
 import { usePdfExport } from '@/components/blogs/hooks/usePdfExport';
@@ -45,8 +45,12 @@ export function useBlogListActions({
       queryClient.invalidateQueries({ queryKey: ['blogs'] });
       showSuccess(msg.crud('deleted', { item: 'بلاگ' }));
     },
-    onError: () => {
-      showError('خطای سرور');
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error('serverError'),
+        dedupeKey: 'blog-delete-error',
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -57,8 +61,12 @@ export function useBlogListActions({
       showSuccess(msg.crud('deleted', { item: 'بلاگ' }));
       setRowSelection({});
     },
-    onError: () => {
-      showError('خطای سرور');
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error('serverError'),
+        dedupeKey: 'blog-bulk-delete-error',
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -70,8 +78,12 @@ export function useBlogListActions({
       queryClient.invalidateQueries({ queryKey: ['blogs'] });
       showSuccess(`بلاگ با موفقیت ${updated.is_active ? 'فعال' : 'غیرفعال'} شد`);
     },
-    onError: () => {
-      showError('خطا در تغییر وضعیت');
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: 'خطا در تغییر وضعیت',
+        dedupeKey: 'blog-toggle-active-error',
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -188,8 +200,12 @@ export function useBlogListActions({
       } else {
         showError('داده‌ای برای پرینت یافت نشد');
       }
-    } catch {
-      showError('خطا در بارگذاری داده‌ها برای پرینت');
+    } catch (error) {
+      notifyApiError(error, {
+        fallbackMessage: 'خطا در بارگذاری داده‌ها برای پرینت',
+        dedupeKey: 'blog-print-load-error',
+        preferBackendMessage: false,
+      });
     }
   };
 

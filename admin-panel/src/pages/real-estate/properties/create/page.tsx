@@ -79,8 +79,10 @@ const ExtraAttributesTab = lazy(() => import("@/components/real-estate/propertie
 export default function PropertyCreatePage() {
   const {
     form,
+    formAlert,
     activeTab,
     setActiveTab,
+    setFormAlert,
     tempFloorPlans,
     setTempFloorPlans,
     selectedLabels,
@@ -108,15 +110,22 @@ export default function PropertyCreatePage() {
 
   const formData = form.watch();
 
+  const handleTabChange = (nextTab: string) => {
+    if (nextTab === activeTab) return;
+    setFormAlert(null);
+    setActiveTab(nextTab);
+  };
+
   return (
     <FormLayout
       activeTab={activeTab}
-      onTabChange={setActiveTab}
+      onTabChange={handleTabChange}
       onSubmit={handleSubmit}
       onSaveDraft={handleSaveDraft}
       isPending={isPending}
       isSubmitting={form.formState.isSubmitting}
       isEditMode={false}
+      formAlert={formAlert}
       tempFloorPlansCount={tempFloorPlans.length}
     >
       <TabsContent value="account">

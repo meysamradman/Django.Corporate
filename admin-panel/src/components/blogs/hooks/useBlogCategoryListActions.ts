@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { blogApi } from "@/api/blogs/blogs";
-import { showSuccess, showError } from "@/core/toast";
+import { notifyApiError, showSuccess } from "@/core/toast";
 import { msg } from "@/core/messages";
 import type { BlogCategoryDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
@@ -27,8 +27,12 @@ export function useBlogCategoryListActions({ setRowSelection }: UseBlogCategoryL
       showSuccess(msg.crud("deleted", { item: "دسته‌بندی" }));
       setRowSelection({});
     },
-    onError: () => {
-      showError("خطای سرور");
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        dedupeKey: "blog-category-delete-error",
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -40,8 +44,12 @@ export function useBlogCategoryListActions({ setRowSelection }: UseBlogCategoryL
       queryClient.invalidateQueries();
       showSuccess(msg.crud("deleted", { item: "دسته‌بندی" }));
     },
-    onError: () => {
-      showError("خطای سرور");
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        dedupeKey: "blog-category-bulk-delete-error",
+        preferBackendMessage: false,
+      });
     },
   });
 

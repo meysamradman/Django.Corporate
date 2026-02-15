@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { showError, showSuccess } from "@/core/toast";
+import { msg } from "@/core/messages";
 import type { RoleWithPermissions } from "@/types/auth/permission";
 
 interface UsePermissionsManagementActionsParams {
@@ -26,7 +27,7 @@ export function usePermissionsManagementActions({
       setModifiedPermissions(new Set());
       setSaveDialogOpen(false);
     } catch {
-      showError("خطا در ذخیره تغییرات");
+      showError(msg.error("serverError"));
     } finally {
       setIsSaving(false);
     }

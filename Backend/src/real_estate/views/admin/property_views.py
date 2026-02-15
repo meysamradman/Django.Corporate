@@ -39,7 +39,7 @@ from src.real_estate.services.admin import (
 from src.real_estate.utils.cache import PropertyCacheManager
 from src.real_estate.messages.messages import PROPERTY_SUCCESS, PROPERTY_ERRORS
 from src.real_estate.models.constants import LISTING_TYPE_CHOICES
-from src.core.utils.validation_helpers import extract_validation_message
+from src.core.utils.validation_helpers import extract_validation_message, normalize_validation_error
 
 
 class PropertyFinalizeDealSerializer(serializers.Serializer):
@@ -248,8 +248,9 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         for m_key, m_val in segmented_media.items():
             if m_val: data[m_key] = m_val
         serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+
         try:
-            serializer.is_valid(raise_exception=True)
             property_obj = PropertyAdminService.create_property(
                 validated_data=serializer.validated_data,
                 created_by=request.user
@@ -262,9 +263,8 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_201_CREATED
             )
         except ValidationError as e:
-            from src.core.utils.validation_helpers import normalize_validation_error
             return APIResponse.error(
-                message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
+                message=extract_validation_message(e, PROPERTY_ERRORS["property_create_failed"]),
                 errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
@@ -318,8 +318,9 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         if main_image_id: data['main_image_id'] = main_image_id
             
         serializer = self.get_serializer(instance, data=data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+
         try:
-            serializer.is_valid(raise_exception=True)
             updated_instance = PropertyAdminService.update_property(
                 property_id=instance.id,
                 validated_data=serializer.validated_data,
@@ -345,7 +346,6 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            from src.core.utils.validation_helpers import normalize_validation_error
             return APIResponse.error(
                 message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
                 errors=normalize_validation_error(e),

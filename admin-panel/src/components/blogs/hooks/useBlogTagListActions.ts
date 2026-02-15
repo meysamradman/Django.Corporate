@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { blogApi } from "@/api/blogs/blogs";
-import { showError, showSuccess } from "@/core/toast";
+import { notifyApiError, showSuccess } from "@/core/toast";
 import { msg } from "@/core/messages";
 import type { BlogTagDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
@@ -26,8 +26,12 @@ export function useBlogTagListActions({ setRowSelection }: UseBlogTagListActions
       queryClient.invalidateQueries({ queryKey: ["blog-tags"] });
       showSuccess(msg.crud("deleted", { item: "تگ" }));
     },
-    onError: () => {
-      showError("خطای سرور");
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        dedupeKey: "blog-tag-delete-error",
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -40,8 +44,12 @@ export function useBlogTagListActions({ setRowSelection }: UseBlogTagListActions
       showSuccess(msg.crud("deleted", { item: "تگ" }));
       setRowSelection({});
     },
-    onError: () => {
-      showError("خطای سرور");
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        dedupeKey: "blog-tag-bulk-delete-error",
+        preferBackendMessage: false,
+      });
     },
   });
 

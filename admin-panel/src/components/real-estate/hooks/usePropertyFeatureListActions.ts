@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { showError, showSuccess } from "@/core/toast";
+import { notifyApiError, showSuccess } from "@/core/toast";
 import { getStatus, msg } from "@/core/messages";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyFeature } from "@/types/real_estate/feature/realEstateFeature";
@@ -25,8 +25,12 @@ export function usePropertyFeatureListActions({ setRowSelection }: UsePropertyFe
       queryClient.invalidateQueries({ queryKey: ["property-features"] });
       showSuccess(msg.crud("deleted", { item: "ویژگی ملک" }));
     },
-    onError: () => {
-      showError("خطای سرور رخ داد");
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        dedupeKey: "property-feature-delete-error",
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -37,8 +41,12 @@ export function usePropertyFeatureListActions({ setRowSelection }: UsePropertyFe
       showSuccess(msg.crud("deleted", { item: "ویژگی‌های ملک" }));
       setRowSelection({});
     },
-    onError: () => {
-      showError("خطای سرور رخ داد");
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        dedupeKey: "property-feature-bulk-delete-error",
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -50,8 +58,12 @@ export function usePropertyFeatureListActions({ setRowSelection }: UsePropertyFe
       queryClient.invalidateQueries({ queryKey: ["property-features"] });
       showSuccess(data.is_active ? getStatus("active") : getStatus("inactive"));
     },
-    onError: () => {
-      showError(getStatus("statusChangeError"));
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: getStatus("statusChangeError"),
+        dedupeKey: "property-feature-toggle-active-error",
+        preferBackendMessage: false,
+      });
     },
   });
 

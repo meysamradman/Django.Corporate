@@ -2,7 +2,8 @@ import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/api/admins/admins";
-import { showError, showSuccess } from "@/core/toast";
+import { notifyApiError, showSuccess } from "@/core/toast";
+import { msg } from "@/core/messages";
 import type { UserDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
 
@@ -24,8 +25,12 @@ export function useUsersListActions({ setRowSelection }: UseUsersListActionsPara
       queryClient.invalidateQueries({ queryKey: ["users"] });
       showSuccess("با موفقیت حذف شد");
     },
-    onError: () => {
-      showError("خطای سرور");
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        dedupeKey: "users-delete-error",
+        preferBackendMessage: false,
+      });
     },
   });
 
@@ -36,8 +41,12 @@ export function useUsersListActions({ setRowSelection }: UseUsersListActionsPara
       showSuccess("با موفقیت حذف شد");
       setRowSelection({});
     },
-    onError: () => {
-      showError("خطای سرور");
+    onError: (error) => {
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        dedupeKey: "users-bulk-delete-error",
+        preferBackendMessage: false,
+      });
     },
   });
 

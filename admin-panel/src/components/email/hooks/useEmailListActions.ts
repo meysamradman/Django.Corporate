@@ -5,7 +5,7 @@ import { emailApi } from "@/api/email/email";
 import type { EmailMessage } from "@/types/email/emailMessage";
 import type { MailboxType } from "@/components/email/types";
 import type { ComposeEmailData } from "@/components/email";
-import { showSuccess, showError } from "@/core/toast";
+import { notifyApiError, showSuccess, showError } from "@/core/toast";
 
 interface UseEmailListActionsParams {
   selectedMailbox: MailboxType;
@@ -53,8 +53,12 @@ export function useEmailListActions({
         status: statusMap[selectedMailbox],
       });
       setEmails(response.data);
-    } catch {
-      showError("خطا در دریافت ایمیل‌ها");
+    } catch (error) {
+      notifyApiError(error, {
+        fallbackMessage: "خطا در دریافت ایمیل‌ها",
+        dedupeKey: "email-fetch-list-error",
+        preferBackendMessage: false,
+      });
     } finally {
       setLoading(false);
     }
@@ -86,8 +90,12 @@ export function useEmailListActions({
         setEmails((prev) => prev.filter((item) => item.id !== email.id));
         setSelectedEmail(null);
         showSuccess("ایمیل با موفقیت حذف شد");
-      } catch {
-        showError("خطا در حذف ایمیل");
+      } catch (error) {
+        notifyApiError(error, {
+          fallbackMessage: "خطا در حذف ایمیل",
+          dedupeKey: "email-delete-error",
+          preferBackendMessage: false,
+        });
       }
     },
     [setEmails, setSelectedEmail]
@@ -102,8 +110,12 @@ export function useEmailListActions({
       showSuccess("ایمیل‌ها به عنوان خوانده شده علامت‌گذاری شدند");
       await fetchEmails();
       setSelectedEmails(new Set());
-    } catch {
-      showError("خطا در علامت‌گذاری ایمیل‌ها");
+    } catch (error) {
+      notifyApiError(error, {
+        fallbackMessage: "خطا در علامت‌گذاری ایمیل‌ها",
+        dedupeKey: "email-mark-read-error",
+        preferBackendMessage: false,
+      });
     }
   }, [selectedEmails.size, fetchEmails, setSelectedEmails]);
 
@@ -116,8 +128,12 @@ export function useEmailListActions({
       showSuccess("ایمیل‌ها به عنوان نخوانده علامت‌گذاری شدند");
       await fetchEmails();
       setSelectedEmails(new Set());
-    } catch {
-      showError("خطا در علامت‌گذاری ایمیل‌ها");
+    } catch (error) {
+      notifyApiError(error, {
+        fallbackMessage: "خطا در علامت‌گذاری ایمیل‌ها",
+        dedupeKey: "email-mark-unread-error",
+        preferBackendMessage: false,
+      });
     }
   }, [selectedEmails.size, fetchEmails, setSelectedEmails]);
 
@@ -140,9 +156,12 @@ export function useEmailListActions({
         }
         setReplyToEmail(null);
         await fetchEmails();
-      } catch (error: any) {
-        const errorMessage = error.message || "خطا در ارسال ایمیل";
-        showError(errorMessage);
+      } catch (error) {
+        notifyApiError(error, {
+          fallbackMessage: "خطا در ارسال ایمیل",
+          dedupeKey: "email-send-error",
+          preferBackendMessage: true,
+        });
       }
     },
     [fetchEmails, replyToEmail, setReplyToEmail]
@@ -160,8 +179,12 @@ export function useEmailListActions({
         });
         showSuccess("پیش‌نویس با موفقیت ذخیره شد");
         await fetchEmails();
-      } catch {
-        showError("خطا در ذخیره پیش‌نویس");
+      } catch (error) {
+        notifyApiError(error, {
+          fallbackMessage: "خطا در ذخیره پیش‌نویس",
+          dedupeKey: "email-save-draft-error",
+          preferBackendMessage: false,
+        });
       }
     },
     [fetchEmails]
@@ -176,8 +199,12 @@ export function useEmailListActions({
         showSuccess("پیش‌نویس با موفقیت منتشر شد");
         setSelectedEmail(null);
         await fetchEmails();
-      } catch {
-        showError("خطا در انتشار پیش‌نویس");
+      } catch (error) {
+        notifyApiError(error, {
+          fallbackMessage: "خطا در انتشار پیش‌نویس",
+          dedupeKey: "email-publish-draft-error",
+          preferBackendMessage: false,
+        });
       }
     },
     [fetchEmails, setSelectedEmail]
@@ -193,8 +220,12 @@ export function useEmailListActions({
           setSelectedEmail(updatedEmail);
         }
         showSuccess(email.is_starred ? "ستاره حذف شد" : "ستاره اضافه شد");
-      } catch {
-        showError("خطا در تغییر وضعیت ستاره");
+      } catch (error) {
+        notifyApiError(error, {
+          fallbackMessage: "خطا در تغییر وضعیت ستاره",
+          dedupeKey: "email-toggle-star-error",
+          preferBackendMessage: false,
+        });
       }
     },
     [selectedEmail, setEmails, setSelectedEmail]

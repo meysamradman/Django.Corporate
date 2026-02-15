@@ -5,8 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { showError, showSuccess, hasFieldErrors } from '@/core/toast';
-import { extractMappedPropertyFieldErrors } from '@/components/real-estate/validations/propertyApiError';
+import { notifyApiError, showError, showSuccess, hasFieldErrors } from '@/core/toast';
+import { ApiError } from "@/types/api/apiError";
+import { extractMappedPropertyFieldErrors, PROPERTY_FORM_FIELD_MAP } from '@/components/real-estate/validations/propertyApiError';
 import { msg } from '@/core/messages';
 import { MEDIA_CONFIG } from '@/core/config/environment';
 import { useMediaConfig } from "@/components/media/hooks/useMediaConfig";
@@ -31,6 +32,7 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
     const queryClient = useQueryClient();
     const { data: mediaConfig } = useMediaConfig();
     const [activeTab, setActiveTab] = useState<string>("account");
+    const [formAlert, setFormAlert] = useState<string | null>(null);
     const [tempFloorPlans, setTempFloorPlans] = useState<any[]>([]);
 
     const form = useForm<PropertyFormValues>({
@@ -199,6 +201,7 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
             }
         },
         onSuccess: (property, variables) => {
+            setFormAlert(null);
             queryClient.invalidateQueries({ queryKey: ["properties"] });
             if (isEditMode) queryClient.invalidateQueries({ queryKey: ["property", id] });
 
@@ -215,8 +218,9 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
             }
         },
         onError: (error: any) => {
+            setFormAlert(null);
             if (hasFieldErrors(error)) {
-                const { fieldErrors, nonFieldError } = extractMappedPropertyFieldErrors(error);
+                const { fieldErrors, nonFieldError } = extractMappedPropertyFieldErrors(error, PROPERTY_FORM_FIELD_MAP);
                 Object.entries(fieldErrors).forEach(([field, message]) => {
                     form.setError(field as keyof PropertyFormValues, { type: "server", message: message as string });
                     if (["title", "slug", "property_type", "state", "status", "agent", "agency", "short_description", "description"].includes(field))
@@ -232,7 +236,25 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                     else if (["meta_title", "meta_description", "og_title", "og_description", "og_image_id", "canonical_url", "robots_meta", "is_public", "is_active", "is_published", "is_featured"].includes(field))
                         setActiveTab("seo");
                 });
-                showError(nonFieldError || null, { customMessage: msg.error("checkForm") });
+                if (nonFieldError) {
+                    setFormAlert(nonFieldError);
+                }
+                showError(error, { customMessage: msg.error("checkForm") });
+                return;
+            }
+
+            if (error instanceof ApiError) {
+                const statusCode = error.response.AppStatusCode;
+                if (statusCode < 500) {
+                    setFormAlert(error.response.message || msg.error('validation'));
+                    return;
+                }
+                notifyApiError(error, {
+                    fallbackMessage: msg.error("serverError"),
+                    dedupeKey: "real-estate-form-system-error",
+                    preferBackendMessage: false,
+                });
+                return;
             } else {
                 showError(error);
             }
@@ -265,8 +287,10 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
 
     return {
         form,
+        formAlert,
         activeTab,
         setActiveTab,
+        setFormAlert,
         tempFloorPlans,
         setTempFloorPlans,
         ...taxonomyManager,
