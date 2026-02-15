@@ -7,7 +7,7 @@ import { TabsContent } from "@/components/elements/Tabs";
 import { FormField } from "@/components/shared/FormField";
 import { Eye, EyeOff, AlertCircle, Lock } from "lucide-react";
 import { showError, showSuccess } from '@/core/toast';
-import { validatePassword } from '@/core/validation/password';
+import { validatePassword } from '@/core/validation';
 
 export function UserSecurity() {
     const [showNewPassword, setShowNewPassword] = useState(false);

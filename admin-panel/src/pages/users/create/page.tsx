@@ -7,6 +7,7 @@ import { adminApi } from "@/api/admins/admins";
 import { showSuccess, notifyApiError, extractFieldErrors, handleFormApiError } from '@/core/toast';
 import { msg } from '@/core/messages';
 import { userFormSchema, userFormDefaults, type UserFormValues } from "@/components/users/validations/userSchema";
+import { USER_CREATE_FIELD_MAP, mapUserFieldErrorKey } from "@/components/users/validations/userApiError";
 import { ApiError } from "@/types/api/apiError";
 import { AlertCircle, User, UserCircle } from "lucide-react";
 import type { Media } from "@/types/shared/media";
@@ -15,6 +16,31 @@ import { Alert, AlertDescription } from "@/components/elements/Alert";
 
 const BaseInfoTab = lazy(() => import("@/components/users/create/UserInfo"));
 const ProfileTab = lazy(() => import("@/components/users/create/UserProfile"));
+
+const USER_CREATE_TAB_BY_FIELD: Record<string, string> = {
+    mobile: "base-info",
+    email: "base-info",
+    password: "base-info",
+    full_name: "base-info",
+    profile_first_name: "profile",
+    profile_last_name: "profile",
+    profile_birth_date: "profile",
+    profile_national_id: "profile",
+    profile_phone: "profile",
+    profile_province_id: "profile",
+    profile_city_id: "profile",
+    profile_address: "profile",
+    profile_bio: "profile",
+    profile_picture: "profile",
+};
+
+function resolveCreateUserErrorTab(fieldKeys: Iterable<string>): string | null {
+    for (const key of fieldKeys) {
+        const tab = USER_CREATE_TAB_BY_FIELD[key];
+        if (tab) return tab;
+    }
+    return null;
+}
 
 export default function CreateUserPage() {
     const navigate = useNavigate();
@@ -69,22 +95,9 @@ export default function CreateUserPage() {
         onError: (error: unknown) => {
             setFormAlert(null);
 
-            const fieldMap: Record<string, keyof UserFormValues> = {
-                identifier: 'mobile',
-                mobile: 'mobile',
-                email: 'email',
-                password: 'password',
-                full_name: 'full_name',
-                first_name: 'profile_first_name',
-                last_name: 'profile_last_name',
-                national_id: 'profile_national_id',
-                phone: 'profile_phone',
-                province_id: 'profile_province_id',
-                city_id: 'profile_city_id',
-            };
-
             const fieldErrors = extractFieldErrors(error);
             if (Object.keys(fieldErrors).length > 0) {
+                const mappedFieldKeys: string[] = [];
                 handleFormApiError(error, {
                     setFieldError: (field, message) => {
                         if (field === 'non_field_errors') {
@@ -92,7 +105,8 @@ export default function CreateUserPage() {
                             return;
                         }
 
-                        const formField = fieldMap[field] || (field as keyof UserFormValues);
+                        const formField = mapUserFieldErrorKey(field, USER_CREATE_FIELD_MAP as unknown as Record<string, string>) as keyof UserFormValues;
+                        mappedFieldKeys.push(String(formField));
                         form.setError(formField, {
                             type: 'server',
                             message,
@@ -103,6 +117,11 @@ export default function CreateUserPage() {
                     preferBackendMessage: false,
                     dedupeKey: 'users-create-validation-error',
                 });
+
+                const tabWithError = resolveCreateUserErrorTab(mappedFieldKeys);
+                if (tabWithError) {
+                    setActiveTab(tabWithError);
+                }
                 return;
             }
 
@@ -127,7 +146,13 @@ export default function CreateUserPage() {
         setFormAlert(null);
         form.clearErrors();
         const isValid = await form.trigger();
-        if (!isValid) return;
+        if (!isValid) {
+            const tabWithError = resolveCreateUserErrorTab(Object.keys(form.formState.errors));
+            if (tabWithError) {
+                setActiveTab(tabWithError);
+            }
+            return;
+        }
 
         const data = form.getValues();
         createUserMutation.mutate(data);

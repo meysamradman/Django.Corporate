@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import { extractFieldErrors, notifyApiError, showSuccess } from "@/core/toast";
+import { notifyApiError, showSuccess } from "@/core/toast";
 import type { UserWithProfile } from "@/types/auth/user";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { User, KeyRound, AlertCircle } from "lucide-react";
@@ -9,6 +9,8 @@ import { adminApi } from "@/api/admins/admins";
 import { msg } from '@/core/messages';
 import { ApiError } from "@/types/api/apiError";
 import { Alert, AlertDescription } from "@/components/elements/Alert";
+import { userEditSchema } from "@/components/users/validations/userEditSchema";
+import { extractMappedUserFieldErrors, USER_EDIT_FIELD_MAP } from "@/components/users/validations/userApiError";
 
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
@@ -27,6 +29,28 @@ const TabContentSkeleton = () => (
 
 const AccountTab = lazy(() => import("@/components/users/profile/UserAccount.tsx").then((mod) => ({ default: mod.UserAccount })));
 const SecurityTab = lazy(() => import("@/components/users/profile/UserSecurity.tsx").then((mod) => ({ default: mod.UserSecurity })));
+
+const USER_EDIT_TAB_BY_FIELD: Record<string, string> = {
+    firstName: "account",
+    lastName: "account",
+    email: "account",
+    mobile: "account",
+    phone: "account",
+    nationalId: "account",
+    address: "account",
+    province: "account",
+    city: "account",
+    bio: "account",
+    birthDate: "account",
+};
+
+function resolveEditUserErrorTab(fieldKeys: Iterable<string>): string | null {
+    for (const key of fieldKeys) {
+        const tab = USER_EDIT_TAB_BY_FIELD[key];
+        if (tab) return tab;
+    }
+    return null;
+}
 
 interface EditUserFormProps {
     userData: UserWithProfile;
@@ -125,6 +149,25 @@ export function EditUserForm({ userData }: EditUserFormProps) {
         setIsSaving(true);
         setFieldErrors({});
         setFormAlert(null);
+
+        const schemaResult = userEditSchema.safeParse(formData);
+        if (!schemaResult.success) {
+            const nextFieldErrors: Record<string, string> = {};
+            schemaResult.error.issues.forEach((issue) => {
+                const fieldKey = issue.path[0];
+                if (typeof fieldKey === 'string' && !nextFieldErrors[fieldKey]) {
+                    nextFieldErrors[fieldKey] = issue.message;
+                }
+            });
+            setFieldErrors(nextFieldErrors);
+            const tabWithError = resolveEditUserErrorTab(Object.keys(nextFieldErrors));
+            if (tabWithError) {
+                setActiveTab(tabWithError);
+            }
+            setFormAlert(msg.error('checkForm'));
+            setIsSaving(false);
+            return;
+        }
         
         try {
             const updateData: Record<string, any> = {
@@ -151,33 +194,17 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                         showSuccess(msg.crud('updated', { item: 'پروفایل کاربر' }));
             setEditMode(false);
         } catch (error: unknown) {
-            const extractedFieldErrors = extractFieldErrors(error);
-            const nonFieldMessage = extractedFieldErrors.non_field_errors;
-            const { non_field_errors, ...fieldOnlyErrors } = extractedFieldErrors;
-
-            const fieldMap: Record<string, string> = {
-                mobile: 'mobile',
-                email: 'email',
-                first_name: 'firstName',
-                last_name: 'lastName',
-                national_id: 'nationalId',
-                phone: 'phone',
-                province_id: 'province',
-                city_id: 'city',
-                address: 'address',
-                bio: 'bio',
-                birth_date: 'birthDate',
-            };
-
-            const newFieldErrors: Record<string, string> = {};
-            Object.entries(fieldOnlyErrors).forEach(([key, message]) => {
-                const normalizedKey = key.startsWith('profile.') ? key.replace('profile.', '') : key;
-                const mappedKey = fieldMap[normalizedKey] || normalizedKey;
-                newFieldErrors[mappedKey] = message;
-            });
+                                    const { fieldErrors: newFieldErrors, nonFieldError: nonFieldMessage } = extractMappedUserFieldErrors(
+                                        error,
+                                        USER_EDIT_FIELD_MAP as unknown as Record<string, string>
+                                    );
 
             if (Object.keys(newFieldErrors).length > 0) {
                 setFieldErrors(newFieldErrors);
+                const tabWithError = resolveEditUserErrorTab(Object.keys(newFieldErrors));
+                if (tabWithError) {
+                    setActiveTab(tabWithError);
+                }
 
                 if (nonFieldMessage) {
                     setFormAlert(nonFieldMessage);
@@ -200,13 +227,13 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                 }
 
                 if (statusCode < 500) {
-                    setFormAlert(error.response.message || 'خطا در به‌روزرسانی پروفایل');
+                    setFormAlert(error.response.message || msg.error('validation'));
                     return;
                 }
             }
 
             notifyApiError(error, {
-                fallbackMessage: 'خطای سیستمی در به‌روزرسانی پروفایل',
+                fallbackMessage: msg.error('serverError'),
                 dedupeKey: 'users-edit-system-error',
             });
         } finally {

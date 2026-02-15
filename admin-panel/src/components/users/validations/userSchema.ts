@@ -1,10 +1,12 @@
 import { z } from "zod";
 import { msg } from "@/core/messages";
-import { validateMobile } from "@/core/validation/mobile";
-import { validateEmail } from "@/core/validation/email";
-import { validatePassword } from "@/core/validation/password";
-import { validateNationalId } from "@/core/validation/nationalId";
-import { validatePhone } from "@/core/validation/phone";
+import {
+  validateMobile,
+  validateEmail,
+  validatePassword,
+  validateNationalId,
+  validatePhone,
+} from "@/core/validation";
 
 export const userFormSchema = z.object({
   mobile: z
