@@ -430,15 +430,31 @@ function AdminPasswordResetForm({
     }
   });
 
+  const handleBack = () => {
+    if (step === 'confirm') {
+      setFormAlert(null);
+      setStep('verify');
+      return;
+    }
+
+    if (step === 'verify') {
+      setFormAlert(null);
+      setStep('request');
+      return;
+    }
+
+    onBack();
+  };
+
   return (
     <div className="space-y-4">
       <button
         type="button"
-        onClick={onBack}
-        className="inline-flex items-center gap-2 text-sm text-font-s hover:text-font-p transition-colors cursor-pointer"
+        onClick={handleBack}
+        className="inline-flex items-center gap-2 rounded-md px-1 py-1 text-sm text-font-s hover:text-font-p transition-colors cursor-pointer"
       >
         <ChevronLeft className="h-4 w-4" />
-        بازگشت به ورود
+        {step === 'request' ? 'بازگشت به ورود' : 'بازگشت'}
       </button>
 
       {formAlert ? (

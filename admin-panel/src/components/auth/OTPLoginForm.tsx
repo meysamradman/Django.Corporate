@@ -173,15 +173,15 @@ function OTPLoginForm({
   const isLoading = loading || isSubmitting || isSendingOTP;
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-5">
+    <form onSubmit={handleSubmit} noValidate className="space-y-6">
       {formAlert ? (
         <Alert variant="destructive" className="border-red-1/50">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{formAlert}</AlertDescription>
         </Alert>
       ) : null}
-      <div className="mb-4">
-        <p className="text-sm text-font-s">
+      <div className="rounded-lg border border-border/60 bg-bg px-3 py-2.5">
+        <p className="text-sm text-font-s leading-6">
           کد تایید برای شماره <span className="font-medium text-font-p">{mobile}</span> پیامک شد
         </p>
       </div>
@@ -218,7 +218,7 @@ function OTPLoginForm({
           <button
             type="button"
             onClick={onSwitchToPassword}
-            className="w-full flex items-center justify-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+            className="w-full h-10 flex items-center justify-center gap-2 rounded-md border border-border bg-bg text-sm font-medium text-font-p hover:bg-white transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
             ورود با رمز عبور
