@@ -6,6 +6,8 @@ from src.user.utils import validate_identifier, validate_otp, generate_otp, get_
 from src.user.models import User
 from src.user.utils.jwt_tokens import generate_jwt_tokens
 from src.core.cache import CacheService
+from src.core.utils.validation_helpers import extract_validation_message
+from django.core.exceptions import ValidationError
 
 class OTPService:
 
@@ -105,8 +107,10 @@ class OTPService:
             
             return user
 
+        except ValidationError as e:
+            raise Exception(extract_validation_message(e, AUTH_ERRORS.get("otp_invalid")))
         except Exception:
-            raise Exception(AUTH_ERRORS["otp_verification_failed"])
+            raise Exception(AUTH_ERRORS.get("otp_invalid"))
             
     def get_tokens(self, user):
         return generate_jwt_tokens(user)

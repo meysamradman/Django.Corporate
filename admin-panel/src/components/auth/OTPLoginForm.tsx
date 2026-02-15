@@ -3,15 +3,17 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/elements/Button';
 import { FormField } from "@/components/shared/FormField";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/elements/InputOtp';
-import { otpLoginSchema } from './validations/loginSchema';
+import { otpLoginSchema, type OtpLoginForm } from './validations/loginSchema';
 import { filterNumericOnly } from '@/core/utils/numeric';
 import { msg } from '@/core/messages';
 import { z } from 'zod';
-import { showError } from '@/core/toast';
-import { Loader2, ChevronLeft } from 'lucide-react';
+import { Loader2, ChevronLeft, AlertCircle } from 'lucide-react';
 import { ApiError } from '@/types/api/apiError';
 import { useState, useEffect } from 'react';
+import { notifyApiError } from '@/core/toast';
+import { Alert, AlertDescription } from '@/components/elements/Alert';
 import { authApi } from '@/api/auth/auth';
+import { extractMappedLoginFieldErrors, LOGIN_OTP_FIELD_MAP } from './validations/loginApiError';
 
 interface OTPLoginFormProps {
   mobile: string;
@@ -19,12 +21,14 @@ interface OTPLoginFormProps {
   onSwitchToPassword?: () => void;
   loading?: boolean;
   otpLength?: number;
+  onCaptchaInvalid?: () => void;
 }
 
 function OTPLoginForm({
   mobile,
   onLogin,
   onSwitchToPassword,
+  onCaptchaInvalid,
   loading = false,
   otpLength = 5,
 }: OTPLoginFormProps) {
@@ -32,6 +36,7 @@ function OTPLoginForm({
   const [resendTimer, setResendTimer] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingOTP, setIsSendingOTP] = useState(false);
+  const [formAlert, setFormAlert] = useState<string | null>(null);
 
   const otpSchemaWithoutCaptcha = otpLoginSchema.extend({
     captcha_id: z.string().optional(),
@@ -74,7 +79,7 @@ function OTPLoginForm({
       setOtpSent(true);
       setResendTimer(60);
     } catch (error) {
-      showError(error, { customMessage: msg.auth("otpSendFailed") });
+      notifyApiError(error, { customMessage: msg.auth("otpSendFailed") });
     } finally {
       setIsSendingOTP(false);
     }
@@ -88,8 +93,9 @@ function OTPLoginForm({
   }, [mobile]);
 
   const handleSubmit = form.handleSubmit(async (data) => {
+    setFormAlert(null);
     if (!otpSent) {
-      showError(new Error(msg.validation("otpRequired")));
+      setFormAlert(msg.validation("otpRequired"));
       return;
     }
 
@@ -103,13 +109,53 @@ function OTPLoginForm({
     try {
       await onLogin(data.mobile, data.otp);
     } catch (error) {
+      const { fieldErrors, nonFieldError } = extractMappedLoginFieldErrors(
+        error,
+        LOGIN_OTP_FIELD_MAP as unknown as Record<string, string>
+      );
+
+      if (Object.keys(fieldErrors).length > 0) {
+        Object.entries(fieldErrors).forEach(([field, message]) => {
+          form.setError(field as keyof OtpLoginForm, {
+            type: 'server',
+            message,
+          });
+        });
+
+        if (fieldErrors.captcha_answer || fieldErrors.captcha_id) {
+          setFormAlert(fieldErrors.captcha_answer || fieldErrors.captcha_id);
+          onCaptchaInvalid?.();
+        }
+
+        return;
+      }
+
+      if (nonFieldError) {
+        setFormAlert(nonFieldError);
+        return;
+      }
+
       if (error instanceof ApiError) {
-        const backendMessage = error.response?.message || '';
-        if (backendMessage.toLowerCase().includes('captcha') || backendMessage.toLowerCase().includes('کپتچا')) {
-          form.setValue('captcha_answer', '');
+        const statusCode = error.response?.AppStatusCode;
+        const backendMessage = (error.response?.message || '').toLowerCase();
+
+        if (backendMessage.includes('captcha') || backendMessage.includes('کپتچا')) {
+          onCaptchaInvalid?.();
+          setFormAlert(error.response?.message || msg.validation('captchaRequired'));
+          return;
+        }
+
+        if (statusCode && statusCode < 500) {
+          setFormAlert(error.response?.message || msg.auth('invalidOTP'));
+          return;
         }
       }
-      showError(error, { customMessage: msg.auth("invalidCredentials") });
+
+      notifyApiError(error, {
+        fallbackMessage: msg.error('serverError'),
+        preferBackendMessage: false,
+        dedupeKey: 'auth-otp-system-error',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -125,6 +171,12 @@ function OTPLoginForm({
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-5">
+      {formAlert ? (
+        <Alert variant="destructive" className="border-red-1/50">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{formAlert}</AlertDescription>
+        </Alert>
+      ) : null}
       <div className="mb-4">
         <p className="text-sm text-font-s">
           کد تایید برای شماره <span className="font-medium text-font-p">{mobile}</span> پیامک شد

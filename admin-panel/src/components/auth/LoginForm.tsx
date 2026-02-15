@@ -6,7 +6,6 @@ import { msg } from '@/core/messages';
 import { authApi } from '@/api/auth/auth';
 import { MobileInputForm } from './MobileInputForm';
 import { ChevronLeft } from 'lucide-react';
-import { ApiError } from '@/types/api/apiError';
 
 const PasswordLoginForm = lazy(() => import('./PasswordLoginForm'));
 const OTPLoginForm = lazy(() => import('./OTPLoginForm'));
@@ -95,18 +94,8 @@ export function LoginForm() {
       return;
     }
 
-    try {
-      await login(mobile, password, captchaId, captchaAnswer);
-      showSuccess(msg.auth("loginSuccess"));
-    } catch (error) {
-      if (error instanceof ApiError) {
-        const backendMessage = error.response?.message || '';
-        if (backendMessage.toLowerCase().includes('captcha') || backendMessage.toLowerCase().includes('کپتچا')) {
-          await fetchCaptchaChallenge();
-        }
-      }
-      throw error;
-    }
+    await login(mobile, password, captchaId, captchaAnswer);
+    showSuccess(msg.auth("loginSuccess"));
   };
 
   const handleOTPLogin = async (mobile: string, otp: string) => {
@@ -116,18 +105,14 @@ export function LoginForm() {
       return;
     }
 
-    try {
-      await loginWithOTP(mobile, otp, captchaId, captchaAnswer);
-      showSuccess(msg.auth("loginSuccess"));
-    } catch (error) {
-      if (error instanceof ApiError) {
-        const backendMessage = error.response?.message || '';
-        if (backendMessage.toLowerCase().includes('captcha') || backendMessage.toLowerCase().includes('کپتچا')) {
-          await fetchCaptchaChallenge();
-        }
-      }
-      throw error;
-    }
+    await loginWithOTP(mobile, otp, captchaId, captchaAnswer);
+    showSuccess(msg.auth("loginSuccess"));
+  };
+
+  const handleCaptchaInvalid = () => {
+    setCaptchaAnswer('');
+    setStep('mobile');
+    void fetchCaptchaChallenge();
   };
 
   const handleBackToMobile = () => {
@@ -176,6 +161,7 @@ export function LoginForm() {
             mobile={mobile}
             onLogin={handleOTPLogin}
             onSwitchToPassword={handleSwitchToPassword}
+            onCaptchaInvalid={handleCaptchaInvalid}
             loading={authLoading}
             otpLength={otpLength}
           />
@@ -184,6 +170,7 @@ export function LoginForm() {
             mobile={mobile}
             onLogin={handlePasswordLogin}
             onSwitchToOTP={handleBackToOTP}
+            onCaptchaInvalid={handleCaptchaInvalid}
             loading={authLoading}
           />
         )}

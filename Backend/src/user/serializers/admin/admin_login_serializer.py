@@ -5,14 +5,14 @@ from src.core.utils.validation_helpers import extract_validation_message
 
 class AdminLoginSerializer(serializers.Serializer):
     mobile = serializers.CharField(required=True)
-    password = serializers.CharField(required=True, write_only=True)
+    password = serializers.CharField(required=False, allow_blank=True, allow_null=True, write_only=True)
     captcha_id = serializers.CharField(required=True)
     captcha_answer = serializers.CharField(required=True)
     otp_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     def validate_mobile(self, value):
         if not value:
-            raise serializers.ValidationError(AUTH_ERRORS.get("auth_mobile_required"))
+            raise serializers.ValidationError(AUTH_ERRORS.get("auth_invalid_mobile"))
         
         try:
             validated_mobile = validate_mobile_number(value)
@@ -27,15 +27,16 @@ class AdminLoginSerializer(serializers.Serializer):
         password = data.get('password')
         captcha_id = data.get('captcha_id')
         captcha_answer = data.get('captcha_answer')
+        otp_code = data.get('otp_code')
         
         if not mobile:
             raise serializers.ValidationError({
-                'mobile': AUTH_ERRORS.get("auth_mobile_required")
+                'mobile': AUTH_ERRORS.get("auth_invalid_mobile")
             })
         
-        if not password:
+        if not password and not otp_code:
             raise serializers.ValidationError({
-                'password': AUTH_ERRORS.get("auth_password_required")
+                'non_field_errors': AUTH_ERRORS.get("auth_validation_error")
             })
             
         if not captcha_id:

@@ -3,11 +3,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/elements/Button';
 import { Input } from '@/components/elements/Input';
 import { FormField } from '@/components/shared/FormField';
+import { Alert, AlertDescription } from '@/components/elements/Alert';
 import { passwordLoginSchema, type PasswordLoginForm } from './validations/loginSchema';
+import { extractMappedLoginFieldErrors, LOGIN_PASSWORD_FIELD_MAP } from './validations/loginApiError';
 import { z } from 'zod';
 import { msg } from '@/core/messages';
-import { showError } from '@/core/toast';
-import { Eye, EyeOff, Loader2, ChevronLeft } from 'lucide-react';
+import { notifyApiError } from '@/core/toast';
+import { Eye, EyeOff, Loader2, ChevronLeft, AlertCircle } from 'lucide-react';
 import { ApiError } from '@/types/api/apiError';
 import { useState, useEffect } from 'react';
 
@@ -15,6 +17,7 @@ interface PasswordLoginFormProps {
   mobile: string;
   onLogin: (mobile: string, password: string) => Promise<void>;
   onSwitchToOTP?: () => void;
+  onCaptchaInvalid?: () => void;
   loading?: boolean;
 }
 
@@ -22,10 +25,12 @@ function PasswordLoginForm({
   mobile,
   onLogin,
   onSwitchToOTP,
+  onCaptchaInvalid,
   loading = false,
 }: PasswordLoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formAlert, setFormAlert] = useState<string | null>(null);
 
   const passwordSchemaWithoutCaptcha = passwordLoginSchema.extend({
     captcha_id: z.string().optional(),
@@ -47,6 +52,7 @@ function PasswordLoginForm({
   }, [mobile, form]);
 
   const handleSubmit = form.handleSubmit(async (data) => {
+    setFormAlert(null);
     const isValid = await form.trigger();
     if (!isValid) {
       return;
@@ -57,13 +63,53 @@ function PasswordLoginForm({
     try {
       await onLogin(data.mobile, data.password);
     } catch (error) {
+      const { fieldErrors, nonFieldError } = extractMappedLoginFieldErrors(
+        error,
+        LOGIN_PASSWORD_FIELD_MAP as unknown as Record<string, string>
+      );
+
+      if (Object.keys(fieldErrors).length > 0) {
+        Object.entries(fieldErrors).forEach(([field, message]) => {
+          form.setError(field as keyof PasswordLoginForm, {
+            type: 'server',
+            message,
+          });
+        });
+
+        if (fieldErrors.captcha_answer || fieldErrors.captcha_id) {
+          setFormAlert(fieldErrors.captcha_answer || fieldErrors.captcha_id);
+          onCaptchaInvalid?.();
+        }
+
+        return;
+      }
+
+      if (nonFieldError) {
+        setFormAlert(nonFieldError);
+        return;
+      }
+
       if (error instanceof ApiError) {
-        const backendMessage = error.response?.message || '';
-        if (backendMessage.toLowerCase().includes('captcha') || backendMessage.toLowerCase().includes('کپتچا')) {
-          form.setValue('captcha_answer', '');
+        const statusCode = error.response?.AppStatusCode;
+        const backendMessage = (error.response?.message || '').toLowerCase();
+
+        if (backendMessage.includes('captcha') || backendMessage.includes('کپتچا')) {
+          onCaptchaInvalid?.();
+          setFormAlert(error.response?.message || msg.validation('captchaRequired'));
+          return;
+        }
+
+        if (statusCode && statusCode < 500) {
+          setFormAlert(error.response?.message || msg.auth('invalidPassword'));
+          return;
         }
       }
-      showError(error, { customMessage: msg.auth("invalidCredentials") });
+
+      notifyApiError(error, {
+        fallbackMessage: msg.error('serverError'),
+        preferBackendMessage: false,
+        dedupeKey: 'auth-password-system-error',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -73,6 +119,13 @@ function PasswordLoginForm({
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-5">
+      {formAlert ? (
+        <Alert variant="destructive" className="border-red-1/50">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{formAlert}</AlertDescription>
+        </Alert>
+      ) : null}
+
       <div className="mb-4">
         <p className="text-sm text-font-s">
           ورود با رمز عبور برای شماره <span className="font-medium text-font-p">{mobile}</span>
@@ -92,7 +145,7 @@ function PasswordLoginForm({
             placeholder="رمز عبور خود را وارد کنید"
             {...form.register("password")}
             disabled={isLoading}
-            className={`h-11 ${form.watch("password") ? "pr-10" : "pr-3"} [&::placeholder]:pr-0 [&::placeholder]:text-right ${form.formState.errors.password ? "border-red-1 focus-visible:ring-red-1" : ""}`}
+            className={`h-11 ${form.watch("password") ? "pr-10" : "pr-3"} placeholder:pr-0 placeholder:text-right ${form.formState.errors.password ? "border-red-1 focus-visible:ring-red-1" : ""}`}
           />
           <button
             type="button"
