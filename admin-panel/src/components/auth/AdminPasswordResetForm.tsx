@@ -83,6 +83,7 @@ interface AdminPasswordResetFormProps {
   initialCaptchaDigits?: string;
   initialCaptchaAnswer?: string;
   otpLength?: number;
+  resendSeconds?: number;
   loading?: boolean;
   onBack: () => void;
   onCompleted: (mobile: string) => void;
@@ -94,6 +95,7 @@ function AdminPasswordResetForm({
   initialCaptchaDigits,
   initialCaptchaAnswer,
   otpLength = AUTH_UI_CONFIG.defaultOtpLength,
+  resendSeconds = AUTH_UI_CONFIG.otpResendSeconds,
   loading = false,
   onBack,
   onCompleted,
@@ -107,6 +109,7 @@ function AdminPasswordResetForm({
   const [captchaId, setCaptchaId] = useState(initialCaptchaId || '');
   const [captchaDigits, setCaptchaDigits] = useState(initialCaptchaDigits || '');
   const [captchaLoading, setCaptchaLoading] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
   const autoRequestTriedRef = useRef(false);
 
   const requestForm = useForm<RequestForm>({
@@ -167,6 +170,20 @@ function AdminPasswordResetForm({
     }
   }, [resetToken, confirmForm]);
 
+  useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval>;
+
+    if (resendTimer > 0) {
+      intervalId = setInterval(() => {
+        setResendTimer((prevTimer) => prevTimer - 1);
+      }, 1000);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [resendTimer]);
+
   const isLoading = loading || isSubmitting;
 
   const requestOtp = async (data: RequestForm) => {
@@ -178,6 +195,13 @@ function AdminPasswordResetForm({
 
     showSuccess(msg.auth('resetOtpSent'));
     setStep('verify');
+    setResendTimer(resendSeconds);
+  };
+
+  const formatResendTimer = () => {
+    const minutes = Math.floor(resendTimer / 60);
+    const seconds = resendTimer % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
   useEffect(() => {
@@ -333,6 +357,44 @@ function AdminPasswordResetForm({
     }
   });
 
+  const handleResendFromVerify = async () => {
+    if (resendTimer > 0 || isLoading) {
+      return;
+    }
+
+    setFormAlert(null);
+    setIsSubmitting(true);
+
+    try {
+      await requestOtp({
+        mobile: verifyForm.getValues('mobile'),
+        captcha_id: '',
+        captcha_answer: '',
+      });
+      verifyForm.setValue('otp_code', '', { shouldValidate: false });
+      setStep('verify');
+    } catch (error) {
+      if (error instanceof ApiError && error.response?.AppStatusCode && error.response.AppStatusCode < 500) {
+        const backendMessage = (error.response?.message || '').toLowerCase();
+        if (backendMessage.includes('captcha') || backendMessage.includes('کپتچا')) {
+          requestForm.setValue('captcha_answer', '', { shouldValidate: false });
+          await fetchCaptchaChallenge();
+          setStep('request');
+        }
+        setFormAlert(error.response?.message || msg.auth('otpSendFailed'));
+        return;
+      }
+
+      notifyApiError(error, {
+        fallbackMessage: msg.error('serverError'),
+        preferBackendMessage: false,
+        dedupeKey: 'auth-reset-resend-system-error',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleConfirmSubmit = confirmForm.handleSubmit(async (data) => {
     setFormAlert(null);
     setIsSubmitting(true);
@@ -467,11 +529,11 @@ function AdminPasswordResetForm({
             <Button
               type="button"
               variant="outline"
-              onClick={() => setStep('request')}
-              disabled={isLoading}
+              onClick={handleResendFromVerify}
+              disabled={isLoading || resendTimer > 0}
               className="flex-1 h-12 rounded-lg"
             >
-              ارسال مجدد کد
+              {resendTimer > 0 ? `ارسال مجدد (${formatResendTimer()})` : 'ارسال مجدد کد'}
             </Button>
             <Button type="submit" className="flex-1 h-12 rounded-lg" disabled={isLoading}>
               {isLoading ? (
@@ -484,6 +546,12 @@ function AdminPasswordResetForm({
               )}
             </Button>
           </div>
+
+          {resendTimer > 0 && (
+            <p className="text-xs text-center text-font-s">
+              {formatResendTimer()} مانده تا ارسال مجدد کد
+            </p>
+          )}
         </form>
       )}
 

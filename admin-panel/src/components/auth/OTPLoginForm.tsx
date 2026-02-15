@@ -22,6 +22,7 @@ interface OTPLoginFormProps {
   onSwitchToPassword?: () => void;
   loading?: boolean;
   otpLength?: number;
+  resendSeconds?: number;
   onCaptchaInvalid?: () => void;
 }
 
@@ -32,6 +33,7 @@ function OTPLoginForm({
   onCaptchaInvalid,
   loading = false,
   otpLength = AUTH_UI_CONFIG.defaultOtpLength,
+  resendSeconds = AUTH_UI_CONFIG.otpResendSeconds,
 }: OTPLoginFormProps) {
   const [otpSent, setOtpSent] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
@@ -78,7 +80,7 @@ function OTPLoginForm({
     try {
       await authApi.sendOTP(mobile);
       setOtpSent(true);
-      setResendTimer(AUTH_UI_CONFIG.otpResendSeconds);
+      setResendTimer(resendSeconds);
     } catch (error) {
       notifyApiError(error, { customMessage: msg.auth("otpSendFailed") });
     } finally {
@@ -89,9 +91,9 @@ function OTPLoginForm({
   useEffect(() => {
     if (mobile) {
       setOtpSent(true);
-      setResendTimer(AUTH_UI_CONFIG.otpResendSeconds);
+      setResendTimer(resendSeconds);
     }
-  }, [mobile]);
+  }, [mobile, resendSeconds]);
 
   const handleSubmit = form.handleSubmit(async (data) => {
     setFormAlert(null);

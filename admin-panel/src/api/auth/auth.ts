@@ -16,12 +16,12 @@ export const authApi = {
     await api.post('/mobile/send-otp/', { identifier: mobile });
   },
 
-  getOTPSettings: async (): Promise<{ otp_length: number }> => {
+  getOTPSettings: async (): Promise<{ otp_length: number; otp_resend_seconds: number }> => {
     try {
-      const response = await api.getPublic<{ otp_length: number }>('/mobile/otp-settings/');
-      return response.data || { otp_length: 5 };
+      const response = await api.getPublic<{ otp_length: number; otp_resend_seconds: number }>('/mobile/otp-settings/');
+      return response.data || { otp_length: 5, otp_resend_seconds: 60 };
     } catch {
-      return { otp_length: 5 };
+      return { otp_length: 5, otp_resend_seconds: 60 };
     }
   },
 

@@ -42,6 +42,7 @@ export function LoginForm() {
   const [step, setStep] = useState<LoginStep>('mobile');
   const [mobile, setMobile] = useState<string>('');
   const [otpLength, setOtpLength] = useState<number>(AUTH_UI_CONFIG.defaultOtpLength);
+  const [otpResendSeconds, setOtpResendSeconds] = useState<number>(AUTH_UI_CONFIG.otpResendSeconds);
   const [captchaId, setCaptchaId] = useState<string>('');
   const [captchaDigits, setCaptchaDigits] = useState<string>('');
   const [captchaLoading, setCaptchaLoading] = useState<boolean>(false);
@@ -63,12 +64,16 @@ export function LoginForm() {
   useEffect(() => {
     const fetchData = async () => {
       const [otpSettingsResult, captchaResult] = await Promise.allSettled([
-        authApi.getOTPSettings().catch(() => ({ otp_length: AUTH_UI_CONFIG.defaultOtpLength })),
+        authApi.getOTPSettings().catch(() => ({
+          otp_length: AUTH_UI_CONFIG.defaultOtpLength,
+          otp_resend_seconds: AUTH_UI_CONFIG.otpResendSeconds,
+        })),
         authApi.getCaptchaChallenge().catch(() => null),
       ]);
 
       if (otpSettingsResult.status === 'fulfilled' && otpSettingsResult.value?.otp_length) {
         setOtpLength(otpSettingsResult.value.otp_length);
+        setOtpResendSeconds(otpSettingsResult.value.otp_resend_seconds || AUTH_UI_CONFIG.otpResendSeconds);
       }
 
       if (captchaResult.status === 'fulfilled' && captchaResult.value) {
@@ -180,6 +185,7 @@ export function LoginForm() {
             onCaptchaInvalid={handleCaptchaInvalid}
             loading={authLoading}
             otpLength={otpLength}
+            resendSeconds={otpResendSeconds}
           />
         ) : step === 'forgot-password' ? (
           <AdminPasswordResetForm
@@ -188,6 +194,7 @@ export function LoginForm() {
             initialCaptchaDigits={captchaDigits}
             initialCaptchaAnswer={captchaAnswer}
             otpLength={otpLength}
+            resendSeconds={otpResendSeconds}
             loading={authLoading}
             onBack={() => setStep('password')}
             onCompleted={handlePasswordResetCompleted}

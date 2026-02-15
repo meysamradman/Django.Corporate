@@ -10,8 +10,8 @@ from src.core.utils.validation_helpers import extract_validation_message
 
 class AdminPasswordResetRequestSerializer(serializers.Serializer):
     mobile = serializers.CharField(required=True)
-    captcha_id = serializers.CharField(required=True)
-    captcha_answer = serializers.CharField(required=True)
+    captcha_id = serializers.CharField(required=False, allow_blank=True)
+    captcha_answer = serializers.CharField(required=False, allow_blank=True)
 
     def validate_mobile(self, value):
         value = value.strip() if isinstance(value, str) else value

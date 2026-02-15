@@ -1,5 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
+from django.conf import settings
 from src.core.responses.response import APIResponse
 from src.user.auth import UserCookie
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
@@ -83,7 +84,8 @@ class OTPSettingsView(APIView):
     def get(self, request):
 
         otp_settings = {
-            "otp_length": get_otp_length()
+            "otp_length": get_otp_length(),
+            "otp_resend_seconds": int(getattr(settings, 'OTP_RESEND_SECONDS', 60)),
         }
         return APIResponse.success(
             message=AUTH_SUCCESS["otp_settings_retrieved_successfully"],

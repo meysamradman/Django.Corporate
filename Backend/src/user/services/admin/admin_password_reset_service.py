@@ -12,10 +12,15 @@ from src.user.services.otp_service import OTPService
 
 class AdminPasswordResetService:
     TOKEN_TTL_SECONDS = getattr(settings, 'ADMIN_PASSWORD_RESET_TOKEN_TTL', 600)
+    CAPTCHA_VERIFIED_TTL_SECONDS = getattr(settings, 'ADMIN_PASSWORD_RESET_CAPTCHA_VERIFIED_TTL', 600)
 
     @staticmethod
     def _token_key(mobile: str) -> str:
         return f"admin_password_reset_token:{mobile}"
+
+    @staticmethod
+    def _captcha_verified_key(mobile: str) -> str:
+        return f"admin_password_reset_captcha_verified:{mobile}"
 
     @staticmethod
     def _get_admin_by_mobile(mobile: str):
@@ -35,6 +40,14 @@ class AdminPasswordResetService:
 
         OTPService().send_otp(mobile)
         return True
+
+    @classmethod
+    def has_verified_captcha(cls, mobile: str) -> bool:
+        return bool(CacheService.get(cls._captcha_verified_key(mobile)))
+
+    @classmethod
+    def mark_captcha_verified(cls, mobile: str):
+        CacheService.set(cls._captcha_verified_key(mobile), '1', cls.CAPTCHA_VERIFIED_TTL_SECONDS)
 
     @classmethod
     def verify_reset_otp(cls, mobile: str, otp_code: str) -> str:
@@ -65,6 +78,7 @@ class AdminPasswordResetService:
         admin.save(update_fields=['password'])
 
         CacheService.delete(cls._token_key(mobile))
+        CacheService.delete(cls._captcha_verified_key(mobile))
         AdminSessionService.destroy_user_sessions(admin.id)
 
         return admin

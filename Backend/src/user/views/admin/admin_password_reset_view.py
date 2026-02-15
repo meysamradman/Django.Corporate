@@ -40,11 +40,20 @@ class AdminPasswordResetRequestOTPView(APIView):
         captcha_id = serializer.validated_data.get('captcha_id')
         captcha_answer = serializer.validated_data.get('captcha_answer')
 
-        if not CaptchaService.verify_captcha(captcha_id, captcha_answer):
-            return APIResponse.error(
-                message=CAPTCHA_ERRORS["captcha_invalid"],
-                status_code=400,
-            )
+        if not AdminPasswordResetService.has_verified_captcha(mobile):
+            if not captcha_id or not captcha_answer:
+                return APIResponse.error(
+                    message=CAPTCHA_ERRORS["captcha_invalid"],
+                    status_code=400,
+                )
+
+            if not CaptchaService.verify_captcha(captcha_id, captcha_answer):
+                return APIResponse.error(
+                    message=CAPTCHA_ERRORS["captcha_invalid"],
+                    status_code=400,
+                )
+
+            AdminPasswordResetService.mark_captcha_verified(mobile)
 
         try:
             AdminPasswordResetService.request_reset_otp(mobile)
