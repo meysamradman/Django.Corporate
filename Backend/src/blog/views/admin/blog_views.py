@@ -175,10 +175,10 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                     data[field] = extracted
         
         data = self._merge_media_data(data, media_ids, media_files)
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        
         try:
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+
             blog = BlogAdminService.create_blog(
                 validated_data=serializer.validated_data,
                 created_by=request.user
@@ -191,6 +191,13 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=BLOG_SUCCESS["blog_created"],
                 data=detail_serializer.data,
                 status_code=status.HTTP_201_CREATED
+            )
+        except DRFValidationError as e:
+            validation_errors = normalize_validation_error(e)
+            return APIResponse.error(
+                message=extract_validation_message(e, BLOG_ERRORS["blog_create_failed"]),
+                errors=validation_errors,
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         except ValidationError as e:
             validation_errors = normalize_validation_error(e)
@@ -233,11 +240,11 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         data = self._merge_media_data(data, media_ids, media_files)
         if media_covers: data['media_covers'] = media_covers
         if main_image_id: data['main_image_id'] = main_image_id
-            
-        serializer = self.get_serializer(instance, data=data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        
+
         try:
+            serializer = self.get_serializer(instance, data=data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+
             updated_instance = BlogAdminService.update_blog(
                 blog_id=instance.id,
                 validated_data=serializer.validated_data,
@@ -255,6 +262,13 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=BLOG_SUCCESS["blog_updated"],
                 data=detail_serializer.data,
                 status_code=status.HTTP_200_OK
+            )
+        except DRFValidationError as e:
+            validation_errors = normalize_validation_error(e)
+            return APIResponse.error(
+                message=extract_validation_message(e, BLOG_ERRORS["blog_update_failed"]),
+                errors=validation_errors,
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         except ValidationError as e:
             validation_errors = normalize_validation_error(e)
@@ -352,15 +366,8 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            error_msg = extract_validation_message(e, "")
-            if "not found" in error_msg.lower():
-                message = BLOG_ERRORS["blog_not_found"]
-            elif "required" in error_msg.lower():
-                message = BLOG_ERRORS["blog_ids_required"]
-            else:
-                message = BLOG_ERRORS["blog_delete_failed"]
             return APIResponse.error(
-                message=message,
+                message=extract_validation_message(e, BLOG_ERRORS["blog_delete_failed"]),
                 errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
@@ -437,36 +444,49 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def add_media(self, request, pk=None):
-        media_files = request.FILES.getlist('media_files')
-        serializer = BlogMediaSerializer(data=request.data.copy())
-        serializer.is_valid(raise_exception=True)
-        
-        media_ids = serializer.validated_data.get('media_ids', [])
-        if not media_ids and not media_files:
-            raise DRFValidationError({
-                'non_field_errors': [BLOG_ERRORS["media_ids_or_files_required"]]
-            })
-        
-        upload_max = settings.BLOG_MEDIA_UPLOAD_MAX
-        total_media = len(media_ids) + len(media_files)
-        if total_media > upload_max:
-            raise DRFValidationError({
-                'non_field_errors': [
-                    BLOG_ERRORS["media_upload_limit_exceeded"].format(max_items=upload_max, total_items=total_media)
-                ]
-            })
-        
-        result = BlogAdminMediaService.add_media_bulk(
-            blog_id=pk,
-            media_files=media_files,
-            media_ids=media_ids,
-            created_by=request.user
-        )
-        return APIResponse.success(
-            message=BLOG_SUCCESS["blog_media_added"],
-            data=result,
-            status_code=status.HTTP_200_OK
-        )
+        try:
+            media_files = request.FILES.getlist('media_files')
+            serializer = BlogMediaSerializer(data=request.data.copy())
+            serializer.is_valid(raise_exception=True)
+            
+            media_ids = serializer.validated_data.get('media_ids', [])
+            if not media_ids and not media_files:
+                raise DRFValidationError({
+                    'non_field_errors': [BLOG_ERRORS["media_ids_or_files_required"]]
+                })
+            
+            upload_max = settings.BLOG_MEDIA_UPLOAD_MAX
+            total_media = len(media_ids) + len(media_files)
+            if total_media > upload_max:
+                raise DRFValidationError({
+                    'non_field_errors': [
+                        BLOG_ERRORS["media_upload_limit_exceeded"].format(max_items=upload_max, total_items=total_media)
+                    ]
+                })
+            
+            result = BlogAdminMediaService.add_media_bulk(
+                blog_id=pk,
+                media_files=media_files,
+                media_ids=media_ids,
+                created_by=request.user
+            )
+            return APIResponse.success(
+                message=BLOG_SUCCESS["blog_media_added"],
+                data=result,
+                status_code=status.HTTP_200_OK
+            )
+        except DRFValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, BLOG_ERRORS["blog_update_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, BLOG_ERRORS["blog_update_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
 
     @action(detail=True, methods=['post'])
     def set_main_image(self, request, pk=None):

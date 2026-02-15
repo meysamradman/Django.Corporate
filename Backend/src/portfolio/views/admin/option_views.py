@@ -1,7 +1,7 @@
-import re
 from collections import defaultdict
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.exceptions import ValidationError
 
@@ -19,7 +19,7 @@ from src.core.pagination import StandardLimitPagination
 from src.user.access_control import portfolio_permission, PermissionRequiredMixin
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import OPTION_SUCCESS, OPTION_ERRORS
-from src.core.utils.validation_helpers import extract_validation_message
+from src.core.utils.validation_helpers import extract_validation_message, normalize_validation_error
 
 class PortfolioOptionAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [portfolio_permission]
@@ -83,10 +83,10 @@ class PortfolioOptionAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
             return PortfolioOptionAdminDetailSerializer
     
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
         try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
             option = PortfolioOptionAdminService.create_option(
                 serializer.validated_data,
                 created_by=request.user
@@ -98,15 +98,17 @@ class PortfolioOptionAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
                 data=detail_serializer.data,
                 status_code=status.HTTP_201_CREATED
             )
-        except ValidationError as e:
-            error_msg = extract_validation_message(e, "")
-            if "already exists" in error_msg.lower():
-                name = error_msg.split("'")[1] if "'" in error_msg else ""
-                message = OPTION_ERRORS["option_name_exists"].format(name=name)
-            else:
-                message = OPTION_ERRORS["option_create_failed"]
+        except DRFValidationError as e:
+            validation_errors = normalize_validation_error(e)
             return APIResponse.error(
-                message=message,
+                message=extract_validation_message(e, OPTION_ERRORS["option_create_failed"]),
+                errors=validation_errors,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, OPTION_ERRORS["option_create_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -136,10 +138,10 @@ class PortfolioOptionAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
                 status_code=status.HTTP_404_NOT_FOUND
             )
         
-        serializer = self.get_serializer(option, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        
         try:
+            serializer = self.get_serializer(option, data=request.data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+
             updated_option = PortfolioOptionAdminService.update_option_by_id(
                 option.id, 
                 serializer.validated_data
@@ -151,15 +153,17 @@ class PortfolioOptionAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
                 data=detail_serializer.data,
                 status_code=status.HTTP_200_OK
             )
-        except ValidationError as e:
-            error_msg = extract_validation_message(e, "")
-            if "already exists" in error_msg.lower():
-                name = error_msg.split("'")[1] if "'" in error_msg else ""
-                message = OPTION_ERRORS["option_name_exists"].format(name=name)
-            else:
-                message = OPTION_ERRORS["option_update_failed"]
+        except DRFValidationError as e:
+            validation_errors = normalize_validation_error(e)
             return APIResponse.error(
-                message=message,
+                message=extract_validation_message(e, OPTION_ERRORS["option_update_failed"]),
+                errors=validation_errors,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, OPTION_ERRORS["option_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -178,15 +182,9 @@ class PortfolioOptionAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except ValidationError as e:
-            error_msg = extract_validation_message(e, "")
-            if "portfolios" in error_msg:
-                count_match = re.search(r'\d+', error_msg)
-                count = count_match.group() if count_match else "0"
-                message = OPTION_ERRORS["option_has_portfolios"].format(count=count)
-            else:
-                message = OPTION_ERRORS["option_delete_failed"]
             return APIResponse.error(
-                message=message,
+                message=extract_validation_message(e, OPTION_ERRORS["option_delete_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -251,16 +249,9 @@ class PortfolioOptionAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            error_msg = extract_validation_message(e, "")
-            if "not found" in error_msg.lower():
-                message = OPTION_ERRORS["options_not_found"]
-            elif "in use" in error_msg.lower():
-                names = error_msg.split(":")[-1].strip() if ":" in error_msg else ""
-                message = OPTION_ERRORS["options_in_use"].format(names=names)
-            else:
-                message = OPTION_ERRORS["option_delete_failed"]
             return APIResponse.error(
-                message=message,
+                message=extract_validation_message(e, OPTION_ERRORS["option_delete_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     

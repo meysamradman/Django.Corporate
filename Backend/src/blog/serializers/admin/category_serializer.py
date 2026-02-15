@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from src.blog.models.category import BlogCategory
 from src.blog.serializers.mixins import SEODataMixin, CountsMixin
 from src.media.serializers import MediaAdminSerializer
@@ -154,16 +155,24 @@ class BlogCategoryAdminCreateSerializer(serializers.ModelSerializer):
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'
         ]
-    
-    def validate_name(self, value):
-        if not self.instance and BlogCategory.objects.filter(name=value).exists():
-            raise serializers.ValidationError(CATEGORY_ERRORS["category_name_exists"])
-        return value
-    
-    def validate_slug(self, value):
-        if value and not self.instance and BlogCategory.objects.filter(slug=value).exists():
-            raise serializers.ValidationError(CATEGORY_ERRORS["category_slug_exists"])
-        return value
+        extra_kwargs = {
+            'name': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=BlogCategory.objects.all(),
+                        message=CATEGORY_ERRORS["category_name_exists"]
+                    )
+                ]
+            },
+            'slug': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=BlogCategory.objects.all(),
+                        message=CATEGORY_ERRORS["category_slug_exists"]
+                    )
+                ]
+            },
+        }
     
     def validate(self, data):
         parent_id = data.get('parent_id')
@@ -199,20 +208,24 @@ class BlogCategoryAdminUpdateSerializer(serializers.ModelSerializer):
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'
         ]
-    
-    def validate_name(self, value):
-        if self.instance and BlogCategory.objects.exclude(
-            id=self.instance.id
-        ).filter(name=value).exists():
-            raise serializers.ValidationError(CATEGORY_ERRORS["category_name_exists"])
-        return value
-    
-    def validate_slug(self, value):
-        if value and self.instance and BlogCategory.objects.exclude(
-            id=self.instance.id
-        ).filter(slug=value).exists():
-            raise serializers.ValidationError(CATEGORY_ERRORS["category_slug_exists"])
-        return value
+        extra_kwargs = {
+            'name': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=BlogCategory.objects.all(),
+                        message=CATEGORY_ERRORS["category_name_exists"]
+                    )
+                ]
+            },
+            'slug': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=BlogCategory.objects.all(),
+                        message=CATEGORY_ERRORS["category_slug_exists"]
+                    )
+                ]
+            },
+        }
     
     def validate(self, data):
         parent_id = data.get('parent_id')

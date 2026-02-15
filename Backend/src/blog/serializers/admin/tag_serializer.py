@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from src.blog.models.tag import BlogTag
 from src.blog.serializers.mixins import CountsMixin
 from src.blog.messages import TAG_ERRORS
@@ -52,16 +53,24 @@ class BlogTagAdminCreateSerializer(serializers.ModelSerializer):
         fields = [
             'name', 'slug', 'description', 'is_active'
         ]
-    
-    def validate_slug(self, value):
-        if value and BlogTag.objects.filter(slug=value).exists():
-            raise serializers.ValidationError(TAG_ERRORS["tag_slug_exists"])
-        return value
-    
-    def validate_name(self, value):
-        if BlogTag.objects.filter(name=value).exists():
-            raise serializers.ValidationError(TAG_ERRORS["tag_name_exists"])
-        return value
+        extra_kwargs = {
+            'name': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=BlogTag.objects.all(),
+                        message=TAG_ERRORS["tag_name_exists"]
+                    )
+                ]
+            },
+            'slug': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=BlogTag.objects.all(),
+                        message=TAG_ERRORS["tag_slug_exists"]
+                    )
+                ]
+            },
+        }
 
 class BlogTagAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -69,20 +78,24 @@ class BlogTagAdminUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'name', 'slug', 'description', 'is_active'
         ]
-    
-    def validate_slug(self, value):
-        if value and BlogTag.objects.exclude(
-            id=self.instance.id
-        ).filter(slug=value).exists():
-            raise serializers.ValidationError(TAG_ERRORS["tag_slug_exists"])
-        return value
-    
-    def validate_name(self, value):
-        if BlogTag.objects.exclude(
-            id=self.instance.id
-        ).filter(name=value).exists():
-            raise serializers.ValidationError(TAG_ERRORS["tag_name_exists"])
-        return value
+        extra_kwargs = {
+            'name': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=BlogTag.objects.all(),
+                        message=TAG_ERRORS["tag_name_exists"]
+                    )
+                ]
+            },
+            'slug': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=BlogTag.objects.all(),
+                        message=TAG_ERRORS["tag_slug_exists"]
+                    )
+                ]
+            },
+        }
 
 class BlogTagSimpleAdminSerializer(serializers.ModelSerializer):
     class Meta:

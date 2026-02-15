@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.exceptions import ValidationError
 
@@ -16,7 +17,7 @@ from src.portfolio.filters.admin.category_filters import PortfolioCategoryAdminF
 from src.core.pagination import StandardLimitPagination
 from src.user.access_control import portfolio_permission, PermissionRequiredMixin
 from src.core.responses.response import APIResponse
-from src.core.utils.validation_helpers import extract_validation_message
+from src.core.utils.validation_helpers import extract_validation_message, normalize_validation_error
 from src.portfolio.messages.messages import CATEGORY_SUCCESS, CATEGORY_ERRORS
 
 class PortfolioCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
@@ -92,20 +93,33 @@ class PortfolioCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewS
         return value.lower() in ('1', 'true', 'yes', 'on')
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        category = PortfolioCategoryAdminService.create_category(
-            serializer.validated_data,
-            created_by=request.user
-        )
-        
-        detail_serializer = PortfolioCategoryAdminDetailSerializer(category)
-        return APIResponse.success(
-            message=CATEGORY_SUCCESS["category_created"],
-            data=detail_serializer.data,
-            status_code=status.HTTP_201_CREATED
-        )
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            category = PortfolioCategoryAdminService.create_category(
+                serializer.validated_data,
+                created_by=request.user
+            )
+
+            detail_serializer = PortfolioCategoryAdminDetailSerializer(category)
+            return APIResponse.success(
+                message=CATEGORY_SUCCESS["category_created"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_201_CREATED
+            )
+        except DRFValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, CATEGORY_ERRORS["category_create_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, CATEGORY_ERRORS["category_create_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
     
     def retrieve(self, request, *args, **kwargs):
         category = PortfolioCategoryAdminService.get_category_by_id(kwargs.get('pk'))
@@ -127,10 +141,10 @@ class PortfolioCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewS
         partial = kwargs.pop('partial', False)
         category_id = kwargs.get('pk')
         
-        serializer = self.get_serializer(data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        
         try:
+            serializer = self.get_serializer(data=request.data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+
             updated_category = PortfolioCategoryAdminService.update_category_by_id(
                 category_id, 
                 serializer.validated_data
@@ -142,7 +156,19 @@ class PortfolioCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewS
                 data=detail_serializer.data,
                 status_code=status.HTTP_200_OK
             )
-        except Exception as e:
+        except DRFValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, CATEGORY_ERRORS["category_update_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, CATEGORY_ERRORS["category_update_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception:
             return APIResponse.error(
                 message=CATEGORY_ERRORS["category_update_failed"],
                 status_code=status.HTTP_400_BAD_REQUEST

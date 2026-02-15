@@ -29,6 +29,7 @@ PORTFOLIO_ERRORS = {
     "portfolio_create_failed": "ایجاد نمونه کار ناموفق بود.",
     "portfolio_update_failed": "به‌روزرسانی نمونه کار ناموفق بود.",
     "portfolio_delete_failed": "حذف نمونه کار ناموفق بود.",
+    "portfolio_slug_exists": "این نامک قبلاً استفاده شده است.",
     "portfolio_export_failed": "خروجی گیری نمونه کارها ناموفق بود.",
     "portfolio_export_limit_exceeded": "حد مجاز خروجی گیری تجاوز شده است. لطفاً بعداً تلاش کنید.",
     "portfolio_export_too_large": "حجم خروجی بسیار بزرگ است. لطفاً فیلترهای بیشتری اعمال کنید.",
@@ -38,6 +39,7 @@ PORTFOLIO_ERRORS = {
     "category_not_found": "دسته‌بندی یافت نشد.",
     "tag_ids_required": "شناسه تگ‌ها مورد نیاز است.",
     "media_upload_limit_exceeded": "حداکثر {max_items} رسانه برای آپلود مجاز است. شما {total_items} رسانه ارسال کرده‌اید.",
+    "media_ids_or_files_required": "حداقل یک شناسه رسانه یا فایل رسانه باید ارسال شود.",
     "portfolios_not_found": "نمونه کارهای انتخاب‌شده یافت نشدند.",
 }
 CATEGORY_SUCCESS = {
@@ -88,6 +90,8 @@ OPTION_ERRORS = {
     "option_name_required": "نام نمی‌تواند خالی باشد.",
     "option_slug_required": "اسلاگ نمی‌تواند خالی باشد.",
     "option_name_exists": "گزینه‌ای با نام '{name}' قبلاً وجود دارد.",
+    "option_name_exists_simple": "این نام قبلاً استفاده شده است.",
+    "option_slug_exists": "این نامک قبلاً استفاده شده است.",
     "option_has_portfolios": "این گزینه در {count} نمونه کار استفاده شده و قابل حذف نیست.",
     "options_not_found": "گزینه‌های انتخاب شده یافت نشدند.",
     "options_in_use": "گزینه‌های زیر در حال استفاده هستند و قابل حذف نیستند: {names}",

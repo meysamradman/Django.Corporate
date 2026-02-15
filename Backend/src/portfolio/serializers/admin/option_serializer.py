@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from src.portfolio.models.option import PortfolioOption
 from src.portfolio.serializers.mixins import CountsMixin
 from src.portfolio.messages import OPTION_ERRORS
@@ -74,22 +75,28 @@ class PortfolioOptionAdminCreateSerializer(serializers.ModelSerializer):
         fields = [
             'name', 'slug', 'description', 'is_active', 'is_public'
         ]
-    
-    def validate(self, data):
-        name = data.get('name')
-        
-        if name:
-            if PortfolioOption.objects.filter(name=name).exists():
-                raise serializers.ValidationError({
-                    'non_field_errors': [OPTION_ERRORS["option_name_exists"].format(name=name)]
-                })
-        
-        return data
+        extra_kwargs = {
+            'name': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=PortfolioOption.objects.all(),
+                        message=OPTION_ERRORS["option_name_exists_simple"]
+                    )
+                ]
+            },
+            'slug': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=PortfolioOption.objects.all(),
+                        message=OPTION_ERRORS["option_slug_exists"]
+                    )
+                ]
+            },
+        }
     
     def validate_name(self, value):
         if not value or not value.strip():
             raise serializers.ValidationError(OPTION_ERRORS["option_name_required"])
-        
         return value
     
     def validate_slug(self, value):
@@ -103,24 +110,28 @@ class PortfolioOptionAdminUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'name', 'slug', 'description', 'is_active', 'is_public'
         ]
-    
-    def validate(self, data):
-        name = data.get('name')
-        
-        if name and self.instance:
-            if PortfolioOption.objects.exclude(
-                id=self.instance.id
-            ).filter(name=name).exists():
-                raise serializers.ValidationError({
-                    'non_field_errors': [OPTION_ERRORS["option_name_exists"].format(name=name)]
-                })
-        
-        return data
+        extra_kwargs = {
+            'name': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=PortfolioOption.objects.all(),
+                        message=OPTION_ERRORS["option_name_exists_simple"]
+                    )
+                ]
+            },
+            'slug': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=PortfolioOption.objects.all(),
+                        message=OPTION_ERRORS["option_slug_exists"]
+                    )
+                ]
+            },
+        }
     
     def validate_name(self, value):
         if not value or not value.strip():
             raise serializers.ValidationError(OPTION_ERRORS["option_name_required"])
-        
         return value
     
     def validate_slug(self, value):

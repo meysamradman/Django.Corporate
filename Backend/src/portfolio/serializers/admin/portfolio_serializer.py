@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from django.core.cache import cache
 from django.conf import settings
 from src.portfolio.models.portfolio import Portfolio
@@ -10,6 +11,7 @@ from src.portfolio.serializers.admin.category_serializer import PortfolioCategor
 from src.portfolio.serializers.admin.tag_serializer import PortfolioTagAdminSerializer
 from src.portfolio.serializers.admin.option_serializer import PortfolioOptionSimpleAdminSerializer
 from src.portfolio.services.admin.media_services import PortfolioAdminMediaService
+from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 from src.portfolio.utils.cache import PortfolioCacheKeys
 from src.media.serializers.media_serializer import MediaAdminSerializer, MediaCoverSerializer
 from src.media.serializers.mixins import MediaAggregationMixin
@@ -285,6 +287,11 @@ class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
     video_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
     audio_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
     document_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
+    media_files = serializers.ListField(
+        child=serializers.FileField(),
+        write_only=True,
+        required=False
+    )
     
     class Meta:
         model = Portfolio
@@ -297,6 +304,16 @@ class PortfolioAdminCreateSerializer(serializers.ModelSerializer):
             'categories', 'tags', 'options',
             'media_files', 'media_ids', 'image_ids', 'video_ids', 'audio_ids', 'document_ids'
         ]
+        extra_kwargs = {
+            'slug': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=Portfolio.objects.all(),
+                        message=PORTFOLIO_ERRORS["portfolio_slug_exists"]
+                    )
+                ]
+            },
+        }
     
     def validate(self, attrs):
         return attrs
@@ -365,6 +382,16 @@ class PortfolioAdminUpdateSerializer(serializers.ModelSerializer):
             'image_ids', 'video_ids', 'audio_ids', 'document_ids',
             'image_covers', 'video_covers', 'audio_covers', 'document_covers'
         ]
+        extra_kwargs = {
+            'slug': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=Portfolio.objects.all(),
+                        message=PORTFOLIO_ERRORS["portfolio_slug_exists"]
+                    )
+                ]
+            },
+        }
 
 class PortfolioAdminSerializer(PortfolioAdminDetailSerializer):
     pass

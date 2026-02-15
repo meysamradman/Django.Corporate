@@ -238,7 +238,6 @@ export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
                 if (nonFieldError) {
                     setFormAlert(nonFieldError);
                 }
-                showError(error, { customMessage: msg.error("checkForm") });
                 console.groupEnd();
                 return;
             }

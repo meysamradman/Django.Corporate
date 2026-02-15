@@ -86,6 +86,7 @@ BLOG_ERRORS = {
     "media_ids_or_files_required": "حداقل یک شناسه رسانه یا فایل رسانه باید ارسال شود.",
     "blogs_not_found": "مقالات انتخاب‌شده یافت نشدند.",
     "only_one_main_image": "فقط یک تصویر اصلی برای هر مقاله مجاز است.",
+    "blog_slug_exists": "این نامک قبلاً استفاده شده است.",
 }
 
 CATEGORY_SUCCESS = {

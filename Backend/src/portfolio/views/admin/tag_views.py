@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.exceptions import ValidationError
 
@@ -15,7 +16,7 @@ from src.portfolio.filters.admin.tag_filters import PortfolioTagAdminFilter
 from src.core.pagination import StandardLimitPagination
 from src.user.access_control import portfolio_permission, PermissionRequiredMixin
 from src.core.responses.response import APIResponse
-from src.core.utils.validation_helpers import extract_validation_message
+from src.core.utils.validation_helpers import extract_validation_message, normalize_validation_error
 from src.portfolio.messages.messages import TAG_SUCCESS, TAG_ERRORS
 
 class PortfolioTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
@@ -80,20 +81,33 @@ class PortfolioTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             return PortfolioTagAdminDetailSerializer
     
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        tag = PortfolioTagAdminService.create_tag(
-            serializer.validated_data,
-            created_by=request.user
-        )
-        
-        detail_serializer = PortfolioTagAdminDetailSerializer(tag)
-        return APIResponse.success(
-            message=TAG_SUCCESS["tag_created"],
-            data=detail_serializer.data,
-            status_code=status.HTTP_201_CREATED
-        )
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            tag = PortfolioTagAdminService.create_tag(
+                serializer.validated_data,
+                created_by=request.user
+            )
+
+            detail_serializer = PortfolioTagAdminDetailSerializer(tag)
+            return APIResponse.success(
+                message=TAG_SUCCESS["tag_created"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_201_CREATED
+            )
+        except DRFValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, TAG_ERRORS["tag_create_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, TAG_ERRORS["tag_create_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
     
     def retrieve(self, request, *args, **kwargs):
         tag = PortfolioTagAdminService.get_tag_by_id(kwargs.get('pk'))
@@ -121,20 +135,33 @@ class PortfolioTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         
-        serializer = self.get_serializer(tag, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        
-        updated_tag = PortfolioTagAdminService.update_tag_by_id(
-            tag.id, 
-            serializer.validated_data
-        )
-        
-        detail_serializer = PortfolioTagAdminDetailSerializer(updated_tag)
-        return APIResponse.success(
-            message=TAG_SUCCESS["tag_updated"],
-            data=detail_serializer.data,
-            status_code=status.HTTP_200_OK
-        )
+        try:
+            serializer = self.get_serializer(tag, data=request.data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+
+            updated_tag = PortfolioTagAdminService.update_tag_by_id(
+                tag.id, 
+                serializer.validated_data
+            )
+
+            detail_serializer = PortfolioTagAdminDetailSerializer(updated_tag)
+            return APIResponse.success(
+                message=TAG_SUCCESS["tag_updated"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_200_OK
+            )
+        except DRFValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, TAG_ERRORS["tag_update_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, TAG_ERRORS["tag_update_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
     
     def destroy(self, request, *args, **kwargs):
         tag_id = kwargs.get('pk')

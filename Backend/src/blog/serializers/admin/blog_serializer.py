@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from django.core.cache import cache
 from django.conf import settings
 from src.blog.models.blog import Blog
@@ -8,6 +9,7 @@ from src.blog.models.media import BlogImage, BlogVideo, BlogAudio, BlogDocument
 from src.blog.serializers.admin.category_serializer import BlogCategorySimpleAdminSerializer
 from src.blog.serializers.admin.tag_serializer import BlogTagAdminSerializer
 from src.blog.services.admin.media_services import BlogAdminMediaService
+from src.blog.messages.messages import BLOG_ERRORS
 from src.blog.utils.cache import BlogCacheKeys
 from src.media.serializers.media_serializer import MediaAdminSerializer, MediaCoverSerializer
 from src.media.serializers.mixins import MediaAggregationMixin
@@ -267,6 +269,16 @@ class BlogAdminCreateSerializer(serializers.ModelSerializer):
             'categories', 'tags',
             'media_files', 'media_ids'
         ]
+        extra_kwargs = {
+            'slug': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=Blog.objects.all(),
+                        message=BLOG_ERRORS["blog_slug_exists"]
+                    )
+                ]
+            },
+        }
     
     def validate(self, attrs):
         return attrs
@@ -318,6 +330,16 @@ class BlogAdminUpdateSerializer(serializers.ModelSerializer):
             'og_image', 'canonical_url', 'robots_meta',
             'categories', 'tags', 'media_ids', 'media_files', 'main_image_id', 'media_covers'
         ]
+        extra_kwargs = {
+            'slug': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=Blog.objects.all(),
+                        message=BLOG_ERRORS["blog_slug_exists"]
+                    )
+                ]
+            },
+        }
 
 class BlogAdminSerializer(BlogAdminDetailSerializer):
     pass

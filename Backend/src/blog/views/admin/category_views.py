@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.exceptions import ValidationError
 
@@ -91,9 +92,10 @@ class BlogCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         return value.lower() in ('1', 'true', 'yes', 'on')
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
         try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
             category = BlogCategoryAdminService.create_category(
                 serializer.validated_data,
                 created_by=request.user
@@ -103,6 +105,12 @@ class BlogCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=CATEGORY_SUCCESS["category_created"],
                 data=detail_serializer.data,
                 status_code=status.HTTP_201_CREATED
+            )
+        except DRFValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, CATEGORY_ERRORS["category_create_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         except ValidationError as e:
             return APIResponse.error(
@@ -138,9 +146,10 @@ class BlogCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
 
-        serializer = self.get_serializer(category, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
         try:
+            serializer = self.get_serializer(category, data=request.data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+
             updated_category = BlogCategoryAdminService.update_category_by_id(
                 category_id, 
                 serializer.validated_data
@@ -150,6 +159,12 @@ class BlogCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=CATEGORY_SUCCESS["category_updated"],
                 data=detail_serializer.data,
                 status_code=status.HTTP_200_OK
+            )
+        except DRFValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, CATEGORY_ERRORS["category_update_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         except ValidationError as e:
             return APIResponse.error(

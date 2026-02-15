@@ -220,10 +220,10 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         data = self._prepare_request_data(request)
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        
         try:
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+
             portfolio = PortfolioAdminService.create_portfolio(
                 validated_data=serializer.validated_data,
                 created_by=request.user
@@ -236,6 +236,13 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=PORTFOLIO_SUCCESS["portfolio_created"],
                 data=detail_serializer.data,
                 status_code=status.HTTP_201_CREATED
+            )
+        except DRFValidationError as e:
+            validation_errors = normalize_validation_error(e)
+            return APIResponse.error(
+                message=extract_validation_message(e, PORTFOLIO_ERRORS["portfolio_create_failed"]),
+                errors=validation_errors,
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         except ValidationError as e:
             validation_errors = normalize_validation_error(e)
@@ -253,10 +260,10 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         main_image_id = request.data.get('main_image_id')
         if main_image_id: data['main_image_id'] = main_image_id
             
-        serializer = self.get_serializer(instance, data=data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        
         try:
+            serializer = self.get_serializer(instance, data=data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+
             updated_instance = PortfolioAdminService.update_portfolio(
                 portfolio_id=instance.id,
                 validated_data=serializer.validated_data,
@@ -270,6 +277,13 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=PORTFOLIO_SUCCESS["portfolio_updated"],
                 data=detail_serializer.data,
                 status_code=status.HTTP_200_OK
+            )
+        except DRFValidationError as e:
+            validation_errors = normalize_validation_error(e)
+            return APIResponse.error(
+                message=extract_validation_message(e, PORTFOLIO_ERRORS["portfolio_update_failed"]),
+                errors=validation_errors,
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         except ValidationError as e:
             validation_errors = normalize_validation_error(e)
@@ -367,15 +381,9 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            error_msg = extract_validation_message(e, "")
-            if "not found" in error_msg.lower():
-                message = PORTFOLIO_ERRORS["portfolio_not_found"]
-            elif "required" in error_msg.lower():
-                message = PORTFOLIO_ERRORS["portfolio_ids_required"]
-            else:
-                message = PORTFOLIO_ERRORS["portfolio_delete_failed"]
             return APIResponse.error(
-                message=message,
+                message=extract_validation_message(e, PORTFOLIO_ERRORS["portfolio_delete_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -451,36 +459,49 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def add_media(self, request, pk=None):
-        media_files = request.FILES.getlist('media_files')
-        serializer = PortfolioMediaSerializer(data=request.data.copy())
-        serializer.is_valid(raise_exception=True)
-        
-        media_ids = serializer.validated_data.get('media_ids', [])
-        if not media_ids and not media_files:
-            raise DRFValidationError({
-                'non_field_errors': ['At least one of media_ids or media_files must be provided.']
-            })
-        
-        upload_max = settings.PORTFOLIO_MEDIA_UPLOAD_MAX
-        total_media = len(media_ids) + len(media_files)
-        if total_media > upload_max:
-            raise DRFValidationError({
-                'non_field_errors': [
-                    PORTFOLIO_ERRORS["media_upload_limit_exceeded"].format(max_items=upload_max, total_items=total_media)
-                ]
-            })
-        
-        result = PortfolioAdminMediaService.add_media_bulk(
-            portfolio_id=pk,
-            media_files=media_files,
-            media_ids=media_ids,
-            created_by=request.user
-        )
-        return APIResponse.success(
-            message=PORTFOLIO_SUCCESS["portfolio_media_added"],
-            data=result,
-            status_code=status.HTTP_200_OK
-        )
+        try:
+            media_files = request.FILES.getlist('media_files')
+            serializer = PortfolioMediaSerializer(data=request.data.copy())
+            serializer.is_valid(raise_exception=True)
+            
+            media_ids = serializer.validated_data.get('media_ids', [])
+            if not media_ids and not media_files:
+                raise DRFValidationError({
+                    'non_field_errors': [PORTFOLIO_ERRORS["media_ids_or_files_required"]]
+                })
+            
+            upload_max = settings.PORTFOLIO_MEDIA_UPLOAD_MAX
+            total_media = len(media_ids) + len(media_files)
+            if total_media > upload_max:
+                raise DRFValidationError({
+                    'non_field_errors': [
+                        PORTFOLIO_ERRORS["media_upload_limit_exceeded"].format(max_items=upload_max, total_items=total_media)
+                    ]
+                })
+            
+            result = PortfolioAdminMediaService.add_media_bulk(
+                portfolio_id=pk,
+                media_files=media_files,
+                media_ids=media_ids,
+                created_by=request.user
+            )
+            return APIResponse.success(
+                message=PORTFOLIO_SUCCESS["portfolio_media_added"],
+                data=result,
+                status_code=status.HTTP_200_OK
+            )
+        except DRFValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, PORTFOLIO_ERRORS["portfolio_update_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, PORTFOLIO_ERRORS["portfolio_update_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
 
     @action(detail=True, methods=['post'])
     def set_main_image(self, request, pk=None):

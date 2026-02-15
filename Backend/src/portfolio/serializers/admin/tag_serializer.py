@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from src.portfolio.models.tag import PortfolioTag
 from src.portfolio.serializers.mixins import CountsMixin
 from src.portfolio.messages import TAG_ERRORS
@@ -52,16 +53,24 @@ class PortfolioTagAdminCreateSerializer(serializers.ModelSerializer):
         fields = [
             'name', 'slug', 'description', 'is_active'
         ]
-    
-    def validate_slug(self, value):
-        if value and PortfolioTag.objects.filter(slug=value).exists():
-            raise serializers.ValidationError(TAG_ERRORS["tag_slug_exists"])
-        return value
-    
-    def validate_name(self, value):
-        if PortfolioTag.objects.filter(name=value).exists():
-            raise serializers.ValidationError(TAG_ERRORS["tag_name_exists"])
-        return value
+        extra_kwargs = {
+            'name': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=PortfolioTag.objects.all(),
+                        message=TAG_ERRORS["tag_name_exists"]
+                    )
+                ]
+            },
+            'slug': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=PortfolioTag.objects.all(),
+                        message=TAG_ERRORS["tag_slug_exists"]
+                    )
+                ]
+            },
+        }
 
 class PortfolioTagAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -69,20 +78,24 @@ class PortfolioTagAdminUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'name', 'slug', 'description', 'is_active'
         ]
-    
-    def validate_slug(self, value):
-        if value and PortfolioTag.objects.exclude(
-            id=self.instance.id
-        ).filter(slug=value).exists():
-            raise serializers.ValidationError(TAG_ERRORS["tag_slug_exists"])
-        return value
-    
-    def validate_name(self, value):
-        if PortfolioTag.objects.exclude(
-            id=self.instance.id
-        ).filter(name=value).exists():
-            raise serializers.ValidationError(TAG_ERRORS["tag_name_exists"])
-        return value
+        extra_kwargs = {
+            'name': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=PortfolioTag.objects.all(),
+                        message=TAG_ERRORS["tag_name_exists"]
+                    )
+                ]
+            },
+            'slug': {
+                'validators': [
+                    UniqueValidator(
+                        queryset=PortfolioTag.objects.all(),
+                        message=TAG_ERRORS["tag_slug_exists"]
+                    )
+                ]
+            },
+        }
 
 class PortfolioTagSimpleAdminSerializer(serializers.ModelSerializer):
     class Meta:

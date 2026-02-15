@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.exceptions import ValidationError
 
@@ -80,10 +81,10 @@ class BlogTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             return BlogTagAdminDetailSerializer
     
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
         try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
             tag = BlogTagAdminService.create_tag(
                 serializer.validated_data,
                 created_by=request.user
@@ -94,6 +95,12 @@ class BlogTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=TAG_SUCCESS["tag_created"],
                 data=detail_serializer.data,
                 status_code=status.HTTP_201_CREATED
+            )
+        except DRFValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, TAG_ERRORS["tag_create_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         except ValidationError as e:
             return APIResponse.error(
@@ -128,10 +135,10 @@ class BlogTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         
-        serializer = self.get_serializer(tag, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        
         try:
+            serializer = self.get_serializer(tag, data=request.data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+
             updated_tag = BlogTagAdminService.update_tag_by_id(
                 tag.id,
                 serializer.validated_data
@@ -142,6 +149,12 @@ class BlogTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=TAG_SUCCESS["tag_updated"],
                 data=detail_serializer.data,
                 status_code=status.HTTP_200_OK
+            )
+        except DRFValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, TAG_ERRORS["tag_update_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         except ValidationError as e:
             return APIResponse.error(
