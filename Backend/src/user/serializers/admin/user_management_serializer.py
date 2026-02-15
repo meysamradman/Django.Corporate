@@ -3,6 +3,7 @@ from src.user.models import User
 from src.user.serializers.user.user_profile_serializer import UserProfileSerializer, UserProfileUpdateSerializer
 from src.user.utils.email_validator import validate_email_address
 from src.user.utils.mobile_validator import validate_mobile_number
+from src.core.utils.validation_helpers import extract_validation_message
 from src.user.messages import AUTH_ERRORS
 
 class UserListSerializer(serializers.ModelSerializer):
@@ -75,7 +76,9 @@ class UserUpdateSerializer(serializers.ModelSerializer):
                 
                 return validated_email
             except Exception as e:
-                raise serializers.ValidationError(str(e))
+                raise serializers.ValidationError(
+                    extract_validation_message(e, AUTH_ERRORS.get("auth_invalid_email"))
+                )
         return value
     
     def validate_mobile(self, value):
@@ -90,7 +93,9 @@ class UserUpdateSerializer(serializers.ModelSerializer):
                 
                 return validated_mobile
             except Exception as e:
-                raise serializers.ValidationError(str(e))
+                raise serializers.ValidationError(
+                    extract_validation_message(e, AUTH_ERRORS.get("auth_invalid_mobile"))
+                )
         return value
 
 class UserFilterSerializer(serializers.Serializer):

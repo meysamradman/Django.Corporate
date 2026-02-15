@@ -10,6 +10,7 @@ from src.ticket.messages.messages import TICKET_SUCCESS, TICKET_ERRORS
 from src.ticket.utils.cache import TicketCacheManager
 from src.analytics.utils.cache import AnalyticsCacheManager
 from src.user.access_control import ticket_permission, PermissionRequiredMixin
+from src.core.utils.validation_helpers import extract_validation_message
 
 class AdminTicketViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [ticket_permission]
@@ -86,7 +87,7 @@ class AdminTicketViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=TICKET_ERRORS['mark_read_failed'].format(error=str(e)),
+                message=TICKET_ERRORS['mark_read_failed'].format(error=extract_validation_message(e, TICKET_ERRORS['error_occurred'])),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -113,12 +114,12 @@ class AdminTicketViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except ValidationError as e:
              return APIResponse.error(
-                message=e.detail[0] if isinstance(e.detail, list) else str(e),
+                message=extract_validation_message(e, TICKET_ERRORS['error_occurred']),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
             return APIResponse.error(
-                message=TICKET_ERRORS['update_status_failed'].format(error=str(e)),
+                message=TICKET_ERRORS['update_status_failed'].format(error=extract_validation_message(e, TICKET_ERRORS['error_occurred'])),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -134,6 +135,6 @@ class AdminTicketViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=TICKET_ERRORS["statistics_retrieve_failed"].format(error=str(e)),
+                message=TICKET_ERRORS["statistics_retrieve_failed"].format(error=extract_validation_message(e, TICKET_ERRORS['error_occurred'])),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

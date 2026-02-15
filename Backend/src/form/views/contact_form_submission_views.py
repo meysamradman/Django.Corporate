@@ -26,7 +26,6 @@ class ContactFormSubmissionViewSet(viewsets.ModelViewSet):
                 status_code=status.HTTP_201_CREATED
             )
         except ValidationError as e:
-            error_msg = str(e)
             if isinstance(e.args[0], dict):
                 return APIResponse.error(
                     message=FORM_SUBMISSION_ERRORS['validation_error'],

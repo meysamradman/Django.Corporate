@@ -8,6 +8,7 @@ from src.media.models import ImageMedia
 from src.media.utils.validators import validate_image_file
 from src.user.messages import AUTH_ERRORS
 from src.user.utils.national_id_validator import validate_national_id_format
+from src.core.utils.validation_helpers import extract_validation_message
 
 class UserRegisterSerializer(serializers.Serializer):
     identifier = serializers.CharField(required=True)
@@ -42,7 +43,9 @@ class UserRegisterSerializer(serializers.Serializer):
         try:
             return validate_register_password(value)
         except Exception as e:
-            raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(
+                extract_validation_message(e, AUTH_ERRORS.get("auth_invalid_password"))
+            )
 
     def validate_profile_picture_id(self, value):
         if value is None:
@@ -64,7 +67,9 @@ class UserRegisterSerializer(serializers.Serializer):
             validate_image_file(value)
             return value
         except DjangoValidationError as e:
-            raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(
+                extract_validation_message(e, AUTH_ERRORS.get("auth_validation_error"))
+            )
         except Exception as e:
             raise serializers.ValidationError(AUTH_ERRORS["auth_validation_error"])
 

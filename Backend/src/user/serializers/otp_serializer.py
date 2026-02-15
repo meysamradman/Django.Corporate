@@ -2,6 +2,7 @@ from rest_framework import serializers
 from src.user.messages import AUTH_ERRORS
 from src.user.utils.mobile_validator import validate_mobile_number
 from src.user.utils.otp_validator import validate_otp
+from src.core.utils.validation_helpers import extract_validation_message
 
 class SendOTPSerializer(serializers.Serializer):
     identifier = serializers.CharField(required=True)
@@ -37,4 +38,6 @@ class VerifyOTPSerializer(serializers.Serializer):
             validate_otp(value, None, None)
             return value
         except serializers.ValidationError as e:
-            raise serializers.ValidationError(str(e)) 
+            raise serializers.ValidationError(
+                extract_validation_message(e, AUTH_ERRORS.get("auth_validation_error"))
+            )

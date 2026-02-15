@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from src.user.messages import AUTH_ERRORS
 from src.user.utils.validate_identifier import validate_identifier
+from src.core.utils.validation_helpers import extract_validation_message
 
 class UserLoginSerializer(serializers.Serializer):
     identifier = serializers.CharField(required=True)
@@ -24,7 +25,9 @@ class UserLoginSerializer(serializers.Serializer):
             else:
                 raise serializers.ValidationError(AUTH_ERRORS.get("auth_identifier_error"))
         except Exception as e:
-            raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(
+                extract_validation_message(e, AUTH_ERRORS.get("auth_identifier_error"))
+            )
 
     def validate(self, data):
         login_type = data.get('login_type')

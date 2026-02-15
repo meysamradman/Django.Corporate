@@ -35,6 +35,7 @@ from src.core.pagination import StandardLimitPagination
 from src.user.access_control import blog_permission, PermissionRequiredMixin
 from src.blog.messages.messages import BLOG_SUCCESS, BLOG_ERRORS
 from src.blog.utils.cache import BlogCacheManager
+from src.core.utils.validation_helpers import extract_validation_message
 
 class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [blog_permission]
@@ -347,7 +348,7 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if "not found" in error_msg.lower():
                 message = BLOG_ERRORS["blog_not_found"]
             elif "required" in error_msg.lower():

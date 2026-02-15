@@ -39,6 +39,7 @@ from src.real_estate.services.admin import (
 from src.real_estate.utils.cache import PropertyCacheManager
 from src.real_estate.messages.messages import PROPERTY_SUCCESS, PROPERTY_ERRORS
 from src.real_estate.models.constants import LISTING_TYPE_CHOICES
+from src.core.utils.validation_helpers import extract_validation_message
 
 
 class PropertyFinalizeDealSerializer(serializers.Serializer):
@@ -265,7 +266,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except ValidationError as e:
             return APIResponse.error(
-                message=str(e.message if hasattr(e, 'message') else e),
+                message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
@@ -387,7 +388,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if "not found" in error_msg.lower():
                 message = PROPERTY_ERRORS["properties_not_found"]
             elif "required" in error_msg.lower():
@@ -431,7 +432,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 )
         except ValidationError as e:
             return APIResponse.error(
-                message=str(e),
+                message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -526,7 +527,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except ValidationError as exc:
             return APIResponse.error(
-                message=str(exc),
+                message=extract_validation_message(exc, PROPERTY_ERRORS["property_update_failed"]),
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -558,7 +559,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=str(e) or PROPERTY_ERRORS["property_update_failed"],
+                message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -728,7 +729,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=str(e) or PROPERTY_ERRORS["property_update_failed"],
+                message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -779,7 +780,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 )
         except Exception as e:
             return APIResponse.error(
-                message=str(e),
+                message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -852,7 +853,7 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         except ImportError as e:
             logger.error(f"Export dependency missing: {str(e)}")
             return APIResponse.error(
-                message=str(e),
+                message=extract_validation_message(e, PROPERTY_ERRORS["property_export_failed"]),
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE
             )
         except Exception as e:

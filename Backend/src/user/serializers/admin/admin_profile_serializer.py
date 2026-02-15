@@ -8,6 +8,7 @@ from src.core.models import Province, City
 from src.user.serializers.location_serializer import ProvinceCompactSerializer, CityCompactSerializer
 from src.user.utils.national_id_validator import validate_national_id_format, validate_national_id
 from src.user.messages import AUTH_ERRORS
+from src.core.utils.validation_helpers import extract_validation_message
 from src.user.utils.mobile_validator import validate_mobile_number
 from src.user.utils.phone_validator import validate_phone_number_with_uniqueness
 from src.user.access_control import get_role_config, is_super_admin_role, PermissionHelper
@@ -99,7 +100,9 @@ class AdminProfileUpdateSerializer(serializers.ModelSerializer):
             admin_user_id = self.context.get('admin_user_id') or (self.instance.admin_user_id if self.instance else None)
             return validate_phone_number_with_uniqueness(value, admin_user_id, 'admin')
         except Exception as e:
-            raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(
+                extract_validation_message(e, AUTH_ERRORS.get("auth_validation_error"))
+            )
     
     def validate_national_id(self, value):
         if value:
@@ -126,7 +129,9 @@ class AdminProfileUpdateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(AUTH_ERRORS["auth_file_must_be_image"])
             return value
         except Exception as e:
-            raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(
+                extract_validation_message(e, AUTH_ERRORS.get("auth_validation_error"))
+            )
     
     def validate(self, data):
         if data.get('profile_picture') and data.get('profile_picture_file'):

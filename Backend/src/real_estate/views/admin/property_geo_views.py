@@ -8,6 +8,7 @@ from src.user.access_control import real_estate_permission, PermissionRequiredMi
 from src.real_estate.services.admin import PropertyGeoService
 from src.real_estate.serializers.admin import PropertyAdminListSerializer
 from src.real_estate.messages.messages import PROPERTY_SUCCESS, PROPERTY_ERRORS
+from src.core.utils.validation_helpers import extract_validation_message
 
 class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     
@@ -64,7 +65,7 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             
         except Exception as e:
             return APIResponse.error(
-                message=str(e),
+                message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -114,7 +115,7 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             
         except Exception as e:
             return APIResponse.error(
-                message=str(e),
+                message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -158,7 +159,7 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             
         except Exception as e:
             return APIResponse.error(
-                message=str(e),
+                message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -206,7 +207,7 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             
         except Exception as e:
             return APIResponse.error(
-                message=str(e),
+                message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -222,6 +223,6 @@ class PropertyGeoViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=str(e),
+                message=extract_validation_message(e, PROPERTY_ERRORS["property_update_failed"]),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

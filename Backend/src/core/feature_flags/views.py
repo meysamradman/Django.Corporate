@@ -12,6 +12,7 @@ from .feature_config import FEATURE_CONFIG, get_module_to_feature_flag
 from src.user.access_control import PermissionRequiredMixin
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.core.responses.response import APIResponse
+from src.core.utils.validation_helpers import extract_validation_message
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -118,7 +119,7 @@ class FeatureFlagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_201_CREATED
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if "duplicate" in error_msg.lower() or "unique" in error_msg.lower():
                 message = FEATURE_FLAG_ERRORS['duplicate_key']
             elif "invalid" in error_msg.lower():
@@ -131,7 +132,7 @@ class FeatureFlagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if 'unique' in error_msg.lower() or 'duplicate' in error_msg.lower():
                 return APIResponse.error(
                     message=FEATURE_FLAG_ERRORS['duplicate_key'],
@@ -164,7 +165,7 @@ class FeatureFlagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if "duplicate" in error_msg.lower() or "unique" in error_msg.lower():
                 message = FEATURE_FLAG_ERRORS['duplicate_key']
             elif "invalid" in error_msg.lower():

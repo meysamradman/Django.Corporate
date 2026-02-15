@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from src.user.messages import AUTH_ERRORS
 from src.user.utils.mobile_validator import validate_mobile_number
+from src.core.utils.validation_helpers import extract_validation_message
 
 class AdminLoginSerializer(serializers.Serializer):
     mobile = serializers.CharField(required=True)
@@ -17,7 +18,9 @@ class AdminLoginSerializer(serializers.Serializer):
             validated_mobile = validate_mobile_number(value)
             return validated_mobile
         except Exception as e:
-            raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(
+                extract_validation_message(e, AUTH_ERRORS.get("auth_invalid_mobile"))
+            )
 
     def validate(self, data):
         mobile = data.get('mobile')

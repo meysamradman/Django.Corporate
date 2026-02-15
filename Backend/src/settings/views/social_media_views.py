@@ -14,6 +14,7 @@ from src.settings.services.social_media_service import (
 )
 from src.settings.messages.messages import SETTINGS_SUCCESS, SETTINGS_ERRORS
 from src.user.access_control import PermissionRequiredMixin
+from src.core.utils.validation_helpers import extract_validation_message
 
 class SocialMediaViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     queryset = SocialMedia.objects.all()
@@ -66,7 +67,7 @@ class SocialMediaViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_201_CREATED
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if "invalid" in error_msg.lower() or "url" in error_msg.lower():
                 message = SETTINGS_ERRORS['invalid_url']
             else:
@@ -98,7 +99,7 @@ class SocialMediaViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if "invalid" in error_msg.lower() or "url" in error_msg.lower():
                 message = SETTINGS_ERRORS['invalid_url']
             else:

@@ -13,6 +13,7 @@ from src.media.utils.validators import validate_image_file
 from src.user.messages import AUTH_ERRORS
 from src.user.utils.national_id_validator import validate_national_id_format
 from src.user.access_control import is_role_forbidden_for_consultant
+from src.core.utils.validation_helpers import extract_validation_message
 
 class AdminRegisterSerializer(serializers.Serializer):
     mobile = serializers.CharField(required=False, allow_blank=True, allow_null=True)
@@ -78,7 +79,7 @@ class AdminRegisterSerializer(serializers.Serializer):
         except serializers.ValidationError:
             raise
         except Exception as e:
-            raise serializers.ValidationError(str(e) or AUTH_ERRORS.get("auth_invalid_mobile"))
+            raise serializers.ValidationError(extract_validation_message(e, AUTH_ERRORS.get("auth_invalid_mobile")))
     
     def validate_email(self, value):
         if value == "":
@@ -94,7 +95,9 @@ class AdminRegisterSerializer(serializers.Serializer):
             except serializers.ValidationError:
                 raise
             except Exception as e:
-                raise serializers.ValidationError(str(e) or AUTH_ERRORS.get("auth_invalid_email"))
+                raise serializers.ValidationError(
+                    extract_validation_message(e, AUTH_ERRORS.get("auth_invalid_email"))
+                )
         return value
     
     def validate_password(self, value):
@@ -105,7 +108,9 @@ class AdminRegisterSerializer(serializers.Serializer):
             validate_register_password(value)
             return value
         except Exception as e:
-            raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(
+                extract_validation_message(e, AUTH_ERRORS.get("auth_invalid_password"))
+            )
     
     def validate_birth_date(self, value):
         if value and value > datetime.now().date():
@@ -122,7 +127,9 @@ class AdminRegisterSerializer(serializers.Serializer):
         try:
             return validate_phone_number_optional(value)
         except Exception as e:
-            raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(
+                extract_validation_message(e, AUTH_ERRORS.get("auth_validation_error"))
+            )
     
     def validate_profile_picture_id(self, value):
         if value is None:
@@ -354,7 +361,9 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             validate_image_file(value)
             return value
         except DjangoValidationError as e:
-            raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(
+                extract_validation_message(e, AUTH_ERRORS.get("auth_validation_error"))
+            )
         except Exception as e:
             raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
 
@@ -365,7 +374,9 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
         try:
             return validate_phone_number_optional(value)
         except Exception as e:
-            raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(
+                extract_validation_message(e, AUTH_ERRORS.get("auth_validation_error"))
+            )
     
     def validate_identifier(self, value):
         if not value:
@@ -380,7 +391,9 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
             else:
                 raise serializers.ValidationError(AUTH_ERRORS.get("auth_identifier_error"))
         except Exception as e:
-            raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(
+                extract_validation_message(e, AUTH_ERRORS.get("auth_identifier_error"))
+            )
 
     def validate(self, data):
         admin_user = self.context.get('admin_user')
@@ -426,7 +439,7 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
                 data['phone'] = validate_phone_number_optional(data['phone'])
             except Exception as e:
                 raise serializers.ValidationError({
-                    'phone': str(e)
+                    'phone': extract_validation_message(e, AUTH_ERRORS.get("auth_invalid_phone"))
                 })
         
         profile_data = data.get('profile', {})
@@ -459,7 +472,7 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
                 data['phone'] = validate_phone_number_optional(data['phone'])
             except Exception as e:
                 raise serializers.ValidationError({
-                    'phone': str(e)
+                    'phone': extract_validation_message(e, AUTH_ERRORS.get("auth_invalid_phone"))
                 })
         
         if 'national_id' in data and data['national_id']:
@@ -467,7 +480,7 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
                 data['national_id'] = validate_national_id_format(data['national_id'])
             except Exception as e:
                 raise serializers.ValidationError({
-                    'national_id': str(e)
+                    'national_id': extract_validation_message(e, AUTH_ERRORS.get("auth_invalid_national_id"))
                 })
         
         if 'phone' in data and data['phone']:
@@ -475,7 +488,7 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
                 data['phone'] = validate_phone_number_optional(data['phone'])
             except Exception as e:
                 raise serializers.ValidationError({
-                    'phone': str(e)
+                    'phone': extract_validation_message(e, AUTH_ERRORS.get("auth_invalid_phone"))
                 })
         
         if 'national_id' in data and data['national_id']:
@@ -483,7 +496,7 @@ class AdminCreateRegularUserSerializer(serializers.Serializer):
                 data['national_id'] = validate_national_id_format(data['national_id'])
             except Exception as e:
                 raise serializers.ValidationError({
-                    'national_id': str(e)
+                    'national_id': extract_validation_message(e, AUTH_ERRORS.get("auth_invalid_national_id"))
                 })
         
         return super().validate(data)

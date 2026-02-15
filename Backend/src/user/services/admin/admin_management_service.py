@@ -8,6 +8,7 @@ from src.user.models import User, AdminProfile, AdminUserRole, AdminRole
 from src.media.models import ImageMedia
 from src.media.services.media_services import MediaAdminService as MediaService
 from src.user.services.admin.admin_profile_service import AdminProfileService
+from src.core.utils.validation_helpers import extract_validation_message
 
 def _clear_permission_cache(user_id):
     try:
@@ -133,7 +134,9 @@ class AdminManagementService:
                             admin_fields_to_update['email'] = email
                             admin_fields_to_update['mobile'] = mobile
                         except ValidationError as e:
-                            raise ValidationError({"identifier": str(e)})
+                                raise ValidationError({
+                                    "identifier": extract_validation_message(e, AUTH_ERRORS["auth_identifier_error"])
+                                })
                 
                 if 'email' in validated_data:
                     email = validated_data.pop('email')

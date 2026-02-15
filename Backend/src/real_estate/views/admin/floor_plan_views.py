@@ -18,6 +18,7 @@ from src.real_estate.serializers.admin import (
 from src.real_estate.services.admin import FloorPlanMediaService
 from src.real_estate.messages import FLOOR_PLAN_SUCCESS, FLOOR_PLAN_ERRORS
 from src.user.access_control import real_estate_permission, PermissionRequiredMixin
+from src.core.utils.validation_helpers import extract_validation_message
 
 class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
@@ -210,7 +211,7 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=str(e),
+                message=extract_validation_message(e, FLOOR_PLAN_ERRORS["floor_plan_update_failed"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -248,7 +249,7 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 )
         except Exception as e:
             return APIResponse.error(
-                message=str(e),
+                message=extract_validation_message(e, FLOOR_PLAN_ERRORS["floor_plan_update_failed"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -313,7 +314,7 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=str(e),
+                message=extract_validation_message(e, FLOOR_PLAN_ERRORS["floor_plan_update_failed"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     

@@ -5,6 +5,7 @@ from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from rest_framework.response import Response
 
 from src.user.messages import AUTH_ERRORS
+from src.core.utils.validation_helpers import extract_validation_message
 
 def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
@@ -14,7 +15,7 @@ def custom_exception_handler(exc, context):
 
     status_code = getattr(response, 'status_code', status.HTTP_400_BAD_REQUEST)
 
-    error_message = str(exc)
+    error_message = extract_validation_message(exc, "")
     error_data = getattr(response, 'data', {'detail': error_message})
 
     if isinstance(exc, (TokenError, InvalidToken)):

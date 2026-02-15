@@ -15,6 +15,7 @@ from src.user.access_control import ai_permission, PermissionRequiredMixin
 from src.ai.providers.registry import AIProviderRegistry
 from src.ai.utils.error_mapper import map_ai_exception
 from src.ai.services.provider_access_service import ProviderAccessService
+from src.core.utils.validation_helpers import extract_validation_message
 import base64
 import logging
 
@@ -187,7 +188,7 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
             )
 
         except ValueError as e:
-            error_message = str(e)
+            error_message = extract_validation_message(e, "")
             final_message = AI_ERRORS["provider_not_available"] if 'provider' in error_message.lower() else AI_ERRORS["audio_generation_failed"]
             return APIResponse.error(
                 message=final_message,

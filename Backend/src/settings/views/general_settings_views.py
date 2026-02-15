@@ -12,6 +12,7 @@ from src.settings.services.general_settings_service import (
 from src.settings.messages.messages import SETTINGS_SUCCESS, SETTINGS_ERRORS
 from src.user.access_control import PermissionRequiredMixin
 from src.settings.utils.cache import SettingsCacheKeys, SettingsCacheManager
+from src.core.utils.validation_helpers import extract_validation_message
 
 class GeneralSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
@@ -52,7 +53,7 @@ class GeneralSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if error_msg == "database_error":
                 message = SETTINGS_ERRORS['settings_table_not_found']
                 status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -97,7 +98,7 @@ class GeneralSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if error_msg == "database_error":
                 message = SETTINGS_ERRORS['settings_table_not_found']
                 status_code = status.HTTP_500_INTERNAL_SERVER_ERROR

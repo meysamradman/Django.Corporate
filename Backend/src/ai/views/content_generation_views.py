@@ -19,6 +19,7 @@ from src.ai.models import AIProvider, AdminProviderSettings
 from src.ai.services.provider_access_service import ProviderAccessService
 from src.ai.utils.destination_handler import ContentDestinationHandler
 from src.ai.utils.error_mapper import map_ai_exception
+from src.core.utils.validation_helpers import extract_validation_message
 
 class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     permission_classes = [ai_permission]
@@ -432,7 +433,7 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             # Service raises ValueError for business logic errors
             logger.error(f"[ContentView] ValueError: {str(e)}")
             return APIResponse.error(
-                message=str(e),
+                    message=extract_validation_message(e, AI_ERRORS["validation_error"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:

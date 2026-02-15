@@ -17,6 +17,7 @@ from src.panel.serializers import PanelSettingsSerializer
 from src.core.responses.response import APIResponse
 from src.panel.messages.messages import PANEL_SUCCESS, PANEL_ERRORS
 from src.panel.utils.cache import PanelCacheKeys, PanelCacheManager
+from src.core.utils.validation_helpers import extract_validation_message
 
 class AdminPanelSettingsViewSet(viewsets.ViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
@@ -105,7 +106,7 @@ class AdminPanelSettingsViewSet(viewsets.ViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message=f'Error retrieving database information: {str(e)}',
+                message=f"Error retrieving database information: {extract_validation_message(e, PANEL_ERRORS['settings_retrieve_failed'])}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -151,6 +152,6 @@ class AdminPanelSettingsViewSet(viewsets.ViewSet):
             
         except Exception as e:
             return APIResponse.error(
-                message=f'Error exporting database: {str(e)}',
+                message=f"Error exporting database: {extract_validation_message(e, PANEL_ERRORS['settings_update_failed'])}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

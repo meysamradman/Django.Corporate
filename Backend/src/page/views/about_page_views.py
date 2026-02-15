@@ -15,6 +15,7 @@ from src.page.services.about_page_service import (
 from src.page.messages.messages import ABOUT_PAGE_SUCCESS, ABOUT_PAGE_ERRORS
 from src.user.access_control import PermissionRequiredMixin
 from src.page.utils.cache import PageCacheKeys, PageCacheManager
+from src.core.utils.validation_helpers import extract_validation_message
 
 class AboutPageViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
@@ -60,7 +61,7 @@ class AboutPageViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if error_msg == "about_page_retrieve_failed":
                 message = ABOUT_PAGE_ERRORS['about_page_retrieve_failed']
                 status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -96,7 +97,7 @@ class AboutPageViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if error_msg == "about_page_update_failed":
                 message = ABOUT_PAGE_ERRORS['about_page_update_failed']
                 status_code = status.HTTP_500_INTERNAL_SERVER_ERROR

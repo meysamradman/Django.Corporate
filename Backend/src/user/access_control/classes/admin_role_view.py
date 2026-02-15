@@ -33,6 +33,7 @@ from src.user.access_control.definitions.helpers import PermissionHelper
 from src.user.utils.cache import UserCacheManager
 from .role_utils import create_default_admin_roles, get_role_summary
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS, ROLE_ERRORS, ROLE_SUCCESS
+from src.core.utils.validation_helpers import normalize_validation_error, extract_validation_message
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class AdminRoleView(viewsets.ViewSet):
@@ -311,14 +312,17 @@ class AdminRoleView(viewsets.ViewSet):
             )
         except ValidationError as e:
             return APIResponse.error(
-                message=ROLE_ERRORS["validation_error_detail"].format(error=str(e)),
-                errors={"validation_errors": e.message_dict if hasattr(e, 'message_dict') else str(e)},
+                message=ROLE_ERRORS["validation_error_detail"].format(
+                    error=extract_validation_message(e, ROLE_ERRORS["validation_failed"])
+                ),
+                errors=normalize_validation_error(e),
                 status_code=400
             )
         except Exception as e:
+            error_detail = extract_validation_message(e, ROLE_ERRORS["validation_failed"])
             return APIResponse.error(
-                message=ROLE_ERRORS["failed_to_assign_roles"].format(error=str(e)),
-                errors={"error_type": type(e).__name__, "error_details": str(e)},
+                message=ROLE_ERRORS["failed_to_assign_roles"].format(error=error_detail),
+                errors={"error_type": type(e).__name__, "error_details": error_detail},
                 status_code=500
             )
     

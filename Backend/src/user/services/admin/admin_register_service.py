@@ -7,6 +7,7 @@ from src.user.utils.jwt_tokens import generate_jwt_tokens
 from src.user.utils.password_validator import validate_register_password
 from src.user.models import User, AdminProfile, UserProfile, AdminUserRole, AdminRole
 from src.core.models import Province, City
+from src.core.utils.validation_helpers import extract_validation_message
 from src.media.models import ImageMedia
 from src.media.services.media_services import MediaAdminService as MediaService
 
@@ -52,7 +53,9 @@ class AdminRegisterService:
         try:
             validate_register_password(password)
         except Exception as e:
-            raise ValidationError({'password': str(e)})
+            raise ValidationError({
+                'password': extract_validation_message(e, AUTH_ERRORS.get("auth_invalid_password"))
+            })
         admin.set_password(password)
         admin.save()
 
@@ -166,7 +169,9 @@ class AdminRegisterService:
             try:
                 validate_register_password(password)
             except Exception as e:
-                raise ValidationError({'password': str(e)})
+                raise ValidationError({
+                    'password': extract_validation_message(e, AUTH_ERRORS.get("auth_invalid_password"))
+                })
             admin.set_password(password)
             admin.save()
             

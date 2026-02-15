@@ -15,6 +15,7 @@ from src.page.services.terms_page_service import (
 from src.page.messages.messages import TERMS_PAGE_SUCCESS, TERMS_PAGE_ERRORS
 from src.user.access_control import PermissionRequiredMixin
 from src.page.utils.cache import PageCacheKeys, PageCacheManager
+from src.core.utils.validation_helpers import extract_validation_message
 
 class TermsPageViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
@@ -60,7 +61,7 @@ class TermsPageViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if error_msg == "terms_page_retrieve_failed":
                 message = TERMS_PAGE_ERRORS['terms_page_retrieve_failed']
                 status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -96,7 +97,7 @@ class TermsPageViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if error_msg == "terms_page_update_failed":
                 message = TERMS_PAGE_ERRORS['terms_page_update_failed']
                 status_code = status.HTTP_500_INTERNAL_SERVER_ERROR

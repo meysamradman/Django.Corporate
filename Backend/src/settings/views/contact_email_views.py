@@ -14,6 +14,7 @@ from src.settings.services.contact_email_service import (
 )
 from src.settings.messages.messages import SETTINGS_SUCCESS, SETTINGS_ERRORS
 from src.user.access_control import PermissionRequiredMixin
+from src.core.utils.validation_helpers import extract_validation_message
 
 class ContactEmailViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     queryset = ContactEmail.objects.all()
@@ -66,7 +67,7 @@ class ContactEmailViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_201_CREATED
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if "duplicate" in error_msg.lower() or "unique" in error_msg.lower():
                 message = SETTINGS_ERRORS['duplicate_email']
             elif "invalid" in error_msg.lower():
@@ -100,7 +101,7 @@ class ContactEmailViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if "duplicate" in error_msg.lower() or "unique" in error_msg.lower():
                 message = SETTINGS_ERRORS['duplicate_email']
             elif "invalid" in error_msg.lower():

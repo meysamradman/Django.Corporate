@@ -248,7 +248,7 @@ class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if "descendant" in error_msg.lower():
                 message = TYPE_ERRORS["type_move_to_descendant"]
             elif "itself" in error_msg.lower():

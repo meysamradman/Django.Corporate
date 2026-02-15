@@ -19,6 +19,7 @@ from src.core.pagination import StandardLimitPagination
 from src.user.access_control import portfolio_permission, PermissionRequiredMixin
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import OPTION_SUCCESS, OPTION_ERRORS
+from src.core.utils.validation_helpers import extract_validation_message
 
 class PortfolioOptionAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [portfolio_permission]
@@ -98,7 +99,7 @@ class PortfolioOptionAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
                 status_code=status.HTTP_201_CREATED
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if "already exists" in error_msg.lower():
                 name = error_msg.split("'")[1] if "'" in error_msg else ""
                 message = OPTION_ERRORS["option_name_exists"].format(name=name)
@@ -151,7 +152,7 @@ class PortfolioOptionAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if "already exists" in error_msg.lower():
                 name = error_msg.split("'")[1] if "'" in error_msg else ""
                 message = OPTION_ERRORS["option_name_exists"].format(name=name)
@@ -177,7 +178,7 @@ class PortfolioOptionAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if "portfolios" in error_msg:
                 count_match = re.search(r'\d+', error_msg)
                 count = count_match.group() if count_match else "0"
@@ -250,7 +251,7 @@ class PortfolioOptionAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if "not found" in error_msg.lower():
                 message = OPTION_ERRORS["options_not_found"]
             elif "in use" in error_msg.lower():

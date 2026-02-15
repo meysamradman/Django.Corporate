@@ -21,6 +21,7 @@ from src.media.services.media_services import MediaAdminService, MediaPublicServ
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.user.access_control import media_permission, PermissionRequiredMixin
 from src.user.access_control.definitions.validator import PermissionValidator
+from src.core.utils.validation_helpers import extract_validation_message
 
 class MediaAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]
@@ -320,7 +321,7 @@ class MediaAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except ValidationError as e:
             return APIResponse.error(
-                message=e.message if hasattr(e, 'message') else str(e),
+                message=extract_validation_message(e, MEDIA_ERRORS["media_data_invalid"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception:

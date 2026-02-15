@@ -6,6 +6,7 @@ from src.user.utils import validate_identifier, validate_register_password
 from src.user.models import User, UserProfile
 from src.user.services.user.user_profile_service import UserProfileService
 from src.media.services.media_services import MediaAdminService as MediaService
+from src.core.utils.validation_helpers import extract_validation_message
 
 class UserManagementService:
     @staticmethod
@@ -104,7 +105,9 @@ class UserManagementService:
                         user_fields_to_update['email'] = email
                         user_fields_to_update['mobile'] = mobile
                     except ValidationError as e:
-                        raise ValidationError({"identifier": str(e)})
+                            raise ValidationError({
+                                "identifier": extract_validation_message(e, AUTH_ERRORS["auth_identifier_error"])
+                            })
             
             if 'email' in validated_data:
                 email = validated_data.pop('email')

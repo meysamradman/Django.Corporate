@@ -17,6 +17,7 @@ from src.user.access_control import BASE_ADMIN_PERMISSIONS
 from src.user.services.admin.admin_session_service import AdminSessionService
 from rest_framework.exceptions import AuthenticationFailed, ValidationError
 from django.core.exceptions import ValidationError as DjangoValidationError
+from src.core.utils.validation_helpers import extract_validation_message
 
 BASE_ADMIN_PERMISSIONS_SIMPLE = list(BASE_ADMIN_PERMISSIONS.keys())
 from src.user.models import AdminUserRole
@@ -188,12 +189,12 @@ class AdminLoginView(APIView):
                 )
         except AuthenticationFailed as e:
             return APIResponse.error(
-                message=str(e) if str(e) else AUTH_ERRORS["auth_invalid_credentials"],
+                message=extract_validation_message(e, AUTH_ERRORS["auth_invalid_credentials"]),
                 status_code=401
             )
         except (ValidationError, DjangoValidationError) as e:
             return APIResponse.error(
-                message=str(e) if str(e) else AUTH_ERRORS["auth_validation_error"],
+                message=extract_validation_message(e, AUTH_ERRORS["auth_validation_error"]),
                 status_code=400
             )
         except Exception as e:

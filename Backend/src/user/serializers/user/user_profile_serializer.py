@@ -9,6 +9,7 @@ from src.user.utils.national_id_validator import validate_national_id_format, va
 from src.user.messages import AUTH_ERRORS
 from src.user.utils.mobile_validator import validate_mobile_number
 from src.user.utils.phone_validator import validate_phone_number_with_uniqueness
+from src.core.utils.validation_helpers import extract_validation_message
 
 class ProfilePictureSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
@@ -58,7 +59,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
             user_id = self.context.get('user_id')
             return validate_phone_number_with_uniqueness(value, user_id, 'user')
         except Exception as e:
-            raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(
+                extract_validation_message(e, AUTH_ERRORS.get("auth_validation_error"))
+            )
 
     def validate_national_id(self, value):
         return validate_national_id_format(value)
@@ -100,7 +103,9 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
             user_id = self.context.get('user_id') or (self.instance.user_id if self.instance else None)
             return validate_phone_number_with_uniqueness(value, user_id, 'user')
         except Exception as e:
-            raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(
+                extract_validation_message(e, AUTH_ERRORS.get("auth_validation_error"))
+            )
     
     def validate_national_id(self, value):
         if value:
@@ -123,7 +128,9 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
             validate_image_file(value)
             return value
         except Exception as e:
-            raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(
+                extract_validation_message(e, AUTH_ERRORS.get("auth_validation_error"))
+            )
     
     def validate(self, data):
         if data.get('profile_picture') and data.get('profile_picture_file'):

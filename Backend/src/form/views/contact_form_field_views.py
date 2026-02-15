@@ -25,6 +25,7 @@ from src.form.services.contact_form_field_service import (
 from src.form.messages.messages import FORM_FIELD_SUCCESS, FORM_FIELD_ERRORS
 from src.user.access_control import PermissionRequiredMixin
 from src.form.utils.cache import FormCacheKeys, FormCacheManager
+from src.core.utils.validation_helpers import extract_validation_message
 
 class ContactFormFieldViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
@@ -129,7 +130,7 @@ class ContactFormFieldViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_201_CREATED
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if "unique" in error_msg.lower() or "duplicate" in error_msg.lower():
                 message = FORM_FIELD_ERRORS['duplicate_field_key']
             elif "validation" in error_msg.lower():
@@ -169,7 +170,7 @@ class ContactFormFieldViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if "validation" in error_msg.lower():
                 message = FORM_FIELD_ERRORS['validation_error']
             else:

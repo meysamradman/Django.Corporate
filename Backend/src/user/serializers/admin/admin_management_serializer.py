@@ -14,6 +14,7 @@ from src.user.serializers.user.user_profile_serializer import UserProfileSeriali
 from src.user.serializers.admin.admin_profile_serializer import AdminProfileUpdateSerializer
 from src.real_estate.serializers.admin.agent_serializer import PropertyAgentAdminDetailSerializer
 from src.user.messages.role import ROLE_TEXT
+from src.core.utils.validation_helpers import extract_validation_message
 BASE_ADMIN_PERMISSIONS_SIMPLE = list(BASE_ADMIN_PERMISSIONS.keys())
 
 class AdminListSerializer(serializers.ModelSerializer):
@@ -351,7 +352,9 @@ class AdminUpdateSerializer(serializers.Serializer):
             validate_image_file(value)
             return value
         except Exception as e:
-            raise serializers.ValidationError(str(e))
+            raise serializers.ValidationError(
+                extract_validation_message(e, AUTH_ERRORS.get("auth_validation_error"))
+            )
 
     def validate_profile_picture_id(self, value):
         if value is None:

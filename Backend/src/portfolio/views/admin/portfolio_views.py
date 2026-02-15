@@ -35,6 +35,7 @@ from src.core.pagination import StandardLimitPagination
 from src.user.access_control import portfolio_permission, PermissionRequiredMixin
 from src.portfolio.messages.messages import PORTFOLIO_SUCCESS, PORTFOLIO_ERRORS
 from src.portfolio.utils.cache import PortfolioCacheManager
+from src.core.utils.validation_helpers import extract_validation_message
 
 class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [portfolio_permission]
@@ -362,7 +363,7 @@ class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
-            error_msg = str(e)
+            error_msg = extract_validation_message(e, "")
             if "not found" in error_msg.lower():
                 message = PORTFOLIO_ERRORS["portfolio_not_found"]
             elif "required" in error_msg.lower():

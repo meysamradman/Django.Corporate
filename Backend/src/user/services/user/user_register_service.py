@@ -46,7 +46,9 @@ class UserRegisterService:
         try:
             validate_register_password(password)
         except Exception as e:
-            raise ValidationError({'password': str(e)})
+            raise ValidationError({
+                'password': extract_validation_message(e, AUTH_ERRORS.get("auth_invalid_password"))
+            })
         user.set_password(password)
         user.save()
 
@@ -161,7 +163,9 @@ class UserRegisterService:
         try:
             validate_register_password(password)
         except Exception as e:
-            raise ValidationError({'password': str(e)})
+            raise ValidationError({
+                'password': extract_validation_message(e, AUTH_ERRORS.get("auth_invalid_password"))
+            })
         user.set_password(password)
         user.save()
         
