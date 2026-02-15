@@ -55,17 +55,20 @@ export const SliderSide = () => {
 
     useEffect(() => {
         if (isEditMode && sliderData) {
+            const imageId = typeof sliderData.image === "object" ? sliderData.image?.id : sliderData.image;
+            const videoId = typeof sliderData.video === "object" ? sliderData.video?.id : sliderData.video;
+
             reset({
                 title: sliderData.title,
                 description: sliderData.description || "",
                 link: sliderData.link || "",
                 order: sliderData.order,
-                image_id: sliderData.image || null,
-                video_id: sliderData.video || null,
+                image_id: imageId || null,
+                video_id: videoId || null,
                 is_active: sliderData.is_active,
             } as any);
-            setSelectedImage(sliderData.image_data as any);
-            setSelectedVideo(sliderData.video_data as any);
+            setSelectedImage((typeof sliderData.image === "object" ? sliderData.image : null) as any);
+            setSelectedVideo((typeof sliderData.video === "object" ? sliderData.video : null) as any);
         } else if (!isEditMode && isOpen) {
             reset({
                 title: "",
@@ -83,11 +86,7 @@ export const SliderSide = () => {
 
     const mutation = useMutation({
         mutationFn: async (data: SliderFormValues) => {
-            const payload = {
-                ...data,
-                image: data.image_id,
-                video: data.video_id,
-            };
+            const payload = { ...data };
             if (isEditMode && editId) {
                 return await settingsApi.updateSlider(editId, payload);
             } else {

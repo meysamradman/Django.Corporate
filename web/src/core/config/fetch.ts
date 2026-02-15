@@ -3,11 +3,17 @@ import { ApiError } from '@/types/api/apiError';
 import { env } from '@/core/config/environment';
 import { getNetworkError } from '@/core/messages/errors';
 
+type RequestOptions = {
+  headers?: Record<string, string>;
+  timeout?: number;
+  cache?: RequestCache;
+};
+
 async function request<T>(
   url: string,
-  method: 'GET' | 'POST' = 'GET',
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET',
   body?: any,
-  options?: { headers?: Record<string, string>; timeout?: number }
+  options?: RequestOptions
 ): Promise<ApiResponse<T>> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), options?.timeout || 30000);
@@ -21,7 +27,7 @@ async function request<T>(
     method,
     headers,
     signal: controller.signal,
-    cache: 'no-store',
+    cache: options?.cache || 'no-store',
   };
 
   if (body) {
@@ -66,6 +72,18 @@ async function request<T>(
       } as ApiResponse<T>;
     }
 
+    if (data?.metaData?.status === 'error') {
+      throw new ApiError({
+        response: {
+          AppStatusCode: data?.metaData?.AppStatusCode || response.status || 400,
+          _data: data,
+          ok: false,
+          message: data?.metaData?.message || `Error: ${response.status}`,
+          errors: data?.errors || null,
+        },
+      });
+    }
+
     return data as ApiResponse<T>;
   } catch (error) {
     clearTimeout(timeoutId);
@@ -91,4 +109,7 @@ async function request<T>(
 export const fetchApi = {
   get: <T>(url: string, options?: any) => request<T>(url, 'GET', undefined, options),
   post: <T>(url: string, body?: any, options?: any) => request<T>(url, 'POST', body, options),
+  put: <T>(url: string, body?: any, options?: any) => request<T>(url, 'PUT', body, options),
+  patch: <T>(url: string, body?: any, options?: any) => request<T>(url, 'PATCH', body, options),
+  delete: <T>(url: string, options?: any) => request<T>(url, 'DELETE', undefined, options),
 };

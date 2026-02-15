@@ -134,10 +134,10 @@ export interface Slider {
     id: number;
     title: string;
     description: string;
-    image: number | null;
-    image_data: Media | null;
-    video: number | null;
-    video_data: Media | null;
+    image: Media | null;
+    image_data?: Media | null;
+    video: Media | null;
+    video_data?: Media | null;
     link: string;
     order: number;
     is_active: boolean;

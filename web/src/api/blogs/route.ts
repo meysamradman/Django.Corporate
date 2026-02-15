@@ -1,25 +1,17 @@
 import { fetchApi } from "@/core/config/fetch";
 import { Blog } from "@/types/blog/blog";
 import { BlogCategory } from "@/types/blog/category/blogCategory";
+import { BlogCategoryListParams } from "@/types/blog/category/blogCategoryFilter";
 import { BlogTag } from "@/types/blog/tags/blogTag";
+import { BlogTagListParams } from "@/types/blog/tags/blogTagFilter";
+import { BlogListParams } from "@/types/blog/blogListParams";
 import { PaginatedResponse } from "@/types/shared/pagination";
+import { toPaginatedResponse, withQuery } from "@/api/shared";
 
 export const blogApi = {
-  getBlogList: async (params?: Record<string, any>): Promise<PaginatedResponse<Blog>> => {
-    let url = '/public/blog/';
-    if (params) {
-      const queryParams = new URLSearchParams();
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) queryParams.append(key, String(value));
-      });
-      const queryString = queryParams.toString();
-      if (queryString) url += '?' + queryString;
-    }
-    const response = await fetchApi.get<Blog[]>(url);
-    return {
-      data: Array.isArray(response.data) ? response.data : [],
-      pagination: (response as any).pagination || { count: 0, current_page: 1, total_pages: 0, page_size: 10 }
-    };
+  getBlogList: async (params?: BlogListParams): Promise<PaginatedResponse<Blog>> => {
+    const response = await fetchApi.get<Blog[]>(withQuery("/public/blog/", params as Record<string, unknown>));
+    return toPaginatedResponse<Blog>(response, params?.size || 10);
   },
 
   getBlogById: async (idOrSlug: string | number): Promise<Blog> => {
@@ -27,19 +19,13 @@ export const blogApi = {
     return response.data;
   },
 
-  getCategories: async (): Promise<PaginatedResponse<BlogCategory>> => {
-    const response = await fetchApi.get<BlogCategory[]>('/public/blog-category/');
-    return {
-      data: Array.isArray(response.data) ? response.data : [],
-      pagination: (response as any).pagination || { count: 0, current_page: 1, total_pages: 0, page_size: 10 }
-    };
+  getCategories: async (params?: BlogCategoryListParams): Promise<PaginatedResponse<BlogCategory>> => {
+    const response = await fetchApi.get<BlogCategory[]>(withQuery("/public/blog-category/", params as Record<string, unknown>));
+    return toPaginatedResponse<BlogCategory>(response, params?.size || 20);
   },
 
-  getTags: async (): Promise<PaginatedResponse<BlogTag>> => {
-    const response = await fetchApi.get<BlogTag[]>('/public/blog-tag/');
-    return {
-      data: Array.isArray(response.data) ? response.data : [],
-      pagination: (response as any).pagination || { count: 0, current_page: 1, total_pages: 0, page_size: 10 }
-    };
-  }
+  getTags: async (params?: BlogTagListParams): Promise<PaginatedResponse<BlogTag>> => {
+    const response = await fetchApi.get<BlogTag[]>(withQuery("/public/blog-tag/", params as Record<string, unknown>));
+    return toPaginatedResponse<BlogTag>(response, params?.size || 20);
+  },
 };

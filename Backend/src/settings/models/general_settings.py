@@ -82,14 +82,20 @@ class GeneralSettings(BaseModel):
     
     @classmethod
     def get_settings(cls):
-        cache_key = SettingsCacheKeys.general_settings()
-        settings = cache.get(cache_key)
+        settings = None
+        model_pk = cache.get(SettingsCacheKeys.general_settings_model_pk())
+
+        if model_pk:
+            settings = cls.objects.select_related('logo_image', 'favicon_image', 'enamad_image').filter(pk=model_pk).first()
+
         if settings is None:
             settings = cls.objects.select_related('logo_image', 'favicon_image', 'enamad_image').first()
-            if not settings:
-                settings = cls.objects.create(
-                    site_name="System Name",
-                    copyright_text="All rights reserved"
-                )
-            cache.set(cache_key, settings, 3600)  # 1 hour cache
+
+        if not settings:
+            settings = cls.objects.create(
+                site_name="System Name",
+                copyright_text="All rights reserved"
+            )
+
+        cache.set(SettingsCacheKeys.general_settings_model_pk(), settings.pk, 3600)
         return settings

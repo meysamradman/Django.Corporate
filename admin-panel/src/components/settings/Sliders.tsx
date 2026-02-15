@@ -125,10 +125,10 @@ export function Sliders() {
                                 {sliders.map((slider) => (
                                     <TableRow key={slider.id} className="hover:bg-bg/50 transition-colors">
                                         <TableCell className="text-center">
-                                            {slider.image_data ? (
+                                            {(slider.image || slider.image_data) ? (
                                                 <div className="flex justify-center p-1">
                                                     <MediaImage
-                                                        media={slider.image_data as any}
+                                                        media={(slider.image || slider.image_data) as any}
                                                         alt={slider.title}
                                                         className="h-16 w-24 object-cover rounded shadow-sm border border-muted/10"
                                                     />

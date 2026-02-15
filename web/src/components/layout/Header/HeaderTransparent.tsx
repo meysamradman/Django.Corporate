@@ -3,8 +3,6 @@
 import React from 'react';
 import { Logo } from '../Logo';
 import {Menu} from "@/components/layout/Header/Menu";
-import {Button} from "@/components/elements/Button";
-import {Phone} from "lucide-react";
 
 export function HeaderTransparent() {
     return (
@@ -13,12 +11,7 @@ export function HeaderTransparent() {
 
             <Menu />
 
-                <Button
-            size="sm"
-            onClick={() => router.push('/portfolios/create')}>
-            <Phone className="h-4 w-4" />
-            درخواست ملک
-          </Button>
+            <div className="w-10" />
         </header>
     );
 }

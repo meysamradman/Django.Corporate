@@ -5,6 +5,10 @@ class SettingsCacheKeys:
     @staticmethod
     def general_settings():
         return "settings_general"
+
+    @staticmethod
+    def general_settings_model_pk():
+        return "settings_general_model_pk"
     
     @staticmethod
     def contact_phones():
@@ -26,6 +30,7 @@ class SettingsCacheKeys:
     def all_keys():
         return [
             SettingsCacheKeys.general_settings(),
+            SettingsCacheKeys.general_settings_model_pk(),
             SettingsCacheKeys.contact_phones(),
             SettingsCacheKeys.contact_mobiles(),
             SettingsCacheKeys.contact_emails(),
@@ -36,7 +41,8 @@ class SettingsCacheManager:
     
     @staticmethod
     def invalidate_general_settings():
-        return CacheService.delete(SettingsCacheKeys.general_settings())
+        CacheService.delete(SettingsCacheKeys.general_settings())
+        return CacheService.delete(SettingsCacheKeys.general_settings_model_pk())
     
     @staticmethod
     def invalidate_contact_phones():

@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from src.settings.views.public.branding_view import PublicLogoView, PublicSliderListView
 from src.settings.views import (
     GeneralSettingsViewSet,
     MapSettingsViewSet,
@@ -20,6 +21,8 @@ router.register(r'settings/social-media', SocialMediaViewSet, basename='social-m
 router.register(r'settings/sliders', SliderViewSet, basename='slider')
 
 urlpatterns = [
+    path('public/settings/logo/', PublicLogoView.as_view(), name='public-settings-logo'),
+    path('public/settings/sliders/', PublicSliderListView.as_view(), name='public-settings-sliders'),
     path('', include(router.urls)),
 ]
 
