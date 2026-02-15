@@ -75,8 +75,10 @@ class AdminRegisterSerializer(serializers.Serializer):
                 raise serializers.ValidationError(AUTH_ERRORS.get("auth_mobile_exists"))
             
             return validated_mobile
+        except serializers.ValidationError:
+            raise
         except Exception as e:
-            raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+            raise serializers.ValidationError(str(e) or AUTH_ERRORS.get("auth_invalid_mobile"))
     
     def validate_email(self, value):
         if value == "":
@@ -89,8 +91,10 @@ class AdminRegisterSerializer(serializers.Serializer):
                     raise serializers.ValidationError(AUTH_ERRORS.get("auth_email_exists"))
                 
                 return validated_email
+            except serializers.ValidationError:
+                raise
             except Exception as e:
-                raise serializers.ValidationError(AUTH_ERRORS.get("auth_validation_error"))
+                raise serializers.ValidationError(str(e) or AUTH_ERRORS.get("auth_invalid_email"))
         return value
     
     def validate_password(self, value):
@@ -269,9 +273,12 @@ class AdminRegisterSerializer(serializers.Serializer):
                     'license_number': 'شماره پروانه برای مشاورین املاک الزامی است'
                 })
             if not data.get('first_name') or not data.get('last_name'):
-                raise serializers.ValidationError({
-                    'non_field_errors': 'نام و نام خانوادگی برای مشاورین املاک الزامی است'
-                })
+                error_map = {}
+                if not data.get('first_name'):
+                    error_map['first_name'] = 'نام برای مشاورین املاک الزامی است'
+                if not data.get('last_name'):
+                    error_map['last_name'] = 'نام خانوادگی برای مشاورین املاک الزامی است'
+                raise serializers.ValidationError(error_map)
         
         return data
 

@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getPanelSettings } from '@/api/panel/panel';
 import type { PanelSettings } from '@/types/settings/panelSettings';
 import { api } from '@/core/config/api';
-import { showError, showSuccess } from '@/core/toast';
+import { notifyApiError, showSuccess } from '@/core/toast';
 import { useAuth } from '@/core/auth/AuthContext';
 
 export function usePanelSettings() {
@@ -33,8 +33,11 @@ export function useUpdatePanelSettings() {
       queryClient.invalidateQueries({ queryKey: ['panel-settings'] });
       showSuccess('تنظیمات پنل با موفقیت به‌روزرسانی شد');
     },
-    onError: (_error) => {
-      showError('خطا در به‌روزرسانی تنظیمات پنل');
+    onError: (error: unknown) => {
+      notifyApiError(error, {
+        fallbackMessage: 'خطا در به‌روزرسانی تنظیمات پنل',
+        dedupeKey: 'panel-settings-update',
+      });
     },
   });
 }

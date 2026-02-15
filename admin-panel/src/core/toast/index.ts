@@ -14,19 +14,57 @@ const ERROR_OPTIONS: ExternalToast = {
   duration: 5000,
 };
 
+const TOAST_DEDUPE_MS = 1500;
+const lastToastMap = new Map<string, number>();
+
+type ErrorToastOptions = {
+  customMessage?: string;
+  showToast?: boolean;
+  silent?: boolean;
+  preferBackendMessage?: boolean;
+  dedupeKey?: string;
+  dedupeMs?: number;
+} & ExternalToast;
+
+function shouldSkipDuplicateToast(key: string, dedupeMs: number): boolean {
+  const now = Date.now();
+  const previous = lastToastMap.get(key);
+
+  if (previous && now - previous < dedupeMs) {
+    return true;
+  }
+
+  lastToastMap.set(key, now);
+  return false;
+}
+
+function buildToastDedupeKey(message: string, dedupeKey?: string): string {
+  if (dedupeKey && dedupeKey.trim() !== '') {
+    return `custom:${dedupeKey}`;
+  }
+  return `message:${message}`;
+}
+
 export function showError(
   error: unknown | string,
-  options?: {
-    customMessage?: string;
-    showToast?: boolean;
-    silent?: boolean;
-  } & ExternalToast
+  options?: ErrorToastOptions
 ): string {
-  const { customMessage, showToast = true, silent = false, ...toastOptions } = options || {};
+  const {
+    customMessage,
+    showToast = true,
+    silent = false,
+    preferBackendMessage = true,
+    dedupeKey,
+    dedupeMs = TOAST_DEDUPE_MS,
+    ...toastOptions
+  } = options || {};
 
   if (typeof error === 'string') {
     if (showToast && typeof window !== 'undefined') {
-      toast.error(error, { ...ERROR_OPTIONS, ...toastOptions });
+      const key = buildToastDedupeKey(error, dedupeKey);
+      if (!shouldSkipDuplicateToast(key, dedupeMs)) {
+        toast.error(error, { ...ERROR_OPTIONS, ...toastOptions });
+      }
     }
     return error;
   }
@@ -42,7 +80,7 @@ export function showError(
     }
 
     if (!customMessage) {
-      if (shouldUseBackendMessage(statusCode) && error.response.message) {
+      if (preferBackendMessage && shouldUseBackendMessage(statusCode) && error.response.message) {
         errorMessage = error.response.message;
       } else {
         errorMessage = getHttpError(statusCode);
@@ -53,10 +91,32 @@ export function showError(
   }
 
   if (showToast && typeof window !== 'undefined') {
-    toast.error(errorMessage, { ...ERROR_OPTIONS, ...toastOptions });
+    const key = buildToastDedupeKey(errorMessage, dedupeKey);
+    if (!shouldSkipDuplicateToast(key, dedupeMs)) {
+      toast.error(errorMessage, { ...ERROR_OPTIONS, ...toastOptions });
+    }
   }
 
   return errorMessage;
+}
+
+type NotifyApiErrorOptions = ErrorToastOptions & {
+  fallbackMessage?: string;
+};
+
+export function notifyApiError(error: unknown, options?: NotifyApiErrorOptions): string {
+  const { fallbackMessage, customMessage, preferBackendMessage = true, ...rest } = options || {};
+
+  const effectiveCustomMessage =
+    customMessage !== undefined
+      ? customMessage
+      : (preferBackendMessage ? undefined : fallbackMessage);
+
+  return showError(error, {
+    customMessage: effectiveCustomMessage,
+    preferBackendMessage,
+    ...rest,
+  });
 }
 
 export const showSuccess = (message: string, options?: ExternalToast) => {
@@ -100,4 +160,55 @@ export function extractFieldErrors(error: unknown): Record<string, string> {
 export function hasFieldErrors(error: unknown): boolean {
   const fieldErrors = extractFieldErrors(error);
   return Object.keys(fieldErrors).length > 0;
+}
+
+type FormFieldSetter = (field: string, message: string) => void;
+
+type HandleFormApiErrorOptions = {
+  setFieldError?: FormFieldSetter;
+  checkFormMessage?: string;
+  fallbackMessage?: string;
+  showToastForFieldErrors?: boolean;
+  preferBackendMessage?: boolean;
+  dedupeKey?: string;
+};
+
+export function handleFormApiError(error: unknown, options?: HandleFormApiErrorOptions): Record<string, string> {
+  const {
+    setFieldError,
+    checkFormMessage = 'لطفاً خطاهای فرم را بررسی کنید',
+    fallbackMessage,
+    showToastForFieldErrors = false,
+    preferBackendMessage = false,
+    dedupeKey,
+  } = options || {};
+
+  const fieldErrors = extractFieldErrors(error);
+  const hasErrors = Object.keys(fieldErrors).length > 0;
+
+  if (hasErrors) {
+    if (setFieldError) {
+      Object.entries(fieldErrors).forEach(([field, message]) => {
+        setFieldError(field, message);
+      });
+    }
+
+    if (showToastForFieldErrors) {
+      showError(error, {
+        customMessage: checkFormMessage,
+        preferBackendMessage,
+        dedupeKey,
+      });
+    }
+
+    return fieldErrors;
+  }
+
+  notifyApiError(error, {
+    customMessage: fallbackMessage,
+    preferBackendMessage,
+    dedupeKey,
+  });
+
+  return {};
 }

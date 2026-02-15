@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/ai';
-import { showSuccess, showError } from '@/core/toast';
+import { showSuccess, notifyApiError } from '@/core/toast';
 import { usePermission, PERMISSIONS } from '@/core/permissions';
 import type { AISettingsModel, AISettingsProvider } from '@/types/ai/ai';
 import {
@@ -205,8 +205,11 @@ export function useAISettings() {
       queryClient.invalidateQueries({ queryKey: ['ai-personal-settings'] });
       showSuccess('تنظیمات با موفقیت به‌روزرسانی شد');
     },
-    onError: (error: any) => {
-      showError(error?.message || 'خطا در به‌روزرسانی تنظیمات');
+    onError: (error: unknown) => {
+      notifyApiError(error, {
+        fallbackMessage: 'خطا در به‌روزرسانی تنظیمات',
+        dedupeKey: 'ai-toggle-use-shared-api',
+      });
     },
   });
 

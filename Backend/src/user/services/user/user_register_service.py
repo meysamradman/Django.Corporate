@@ -21,13 +21,13 @@ class UserRegisterService:
         email, mobile = validate_identifier(identifier)
 
         if not email and not mobile:
-            raise ValidationError(AUTH_ERRORS["auth_email_or_mobile_required"])
+            raise ValidationError({'identifier': AUTH_ERRORS["auth_email_or_mobile_required"]})
 
         if email and User.objects.filter(email=email).exists():
-            raise ValidationError(AUTH_ERRORS["auth_email_exists"])
+            raise ValidationError({'identifier': AUTH_ERRORS["auth_email_exists"]})
 
         if mobile and User.objects.filter(mobile=mobile).exists():
-            raise ValidationError(AUTH_ERRORS["auth_mobile_exists"])
+            raise ValidationError({'identifier': AUTH_ERRORS["auth_mobile_exists"]})
 
         user = User.objects.create(
             email=email,
@@ -39,7 +39,10 @@ class UserRegisterService:
             is_active=True
         )
 
-        validate_register_password(password)
+        try:
+            validate_register_password(password)
+        except Exception as e:
+            raise ValidationError({'password': str(e)})
         user.set_password(password)
         user.save()
 
@@ -74,10 +77,12 @@ class UserRegisterService:
             email = explicit_email or email_from_identifier
 
             if email and User.objects.filter(email=email).exists():
-                raise ValidationError(AUTH_ERRORS["auth_email_exists"])
+                if explicit_email:
+                    raise ValidationError({'email': AUTH_ERRORS["auth_email_exists"]})
+                raise ValidationError({'identifier': AUTH_ERRORS["auth_email_exists"]})
             
             if mobile and User.objects.filter(mobile=mobile).exists():
-                raise ValidationError(AUTH_ERRORS["auth_mobile_exists"])
+                raise ValidationError({'identifier': AUTH_ERRORS["auth_mobile_exists"]})
             
             user = User.objects.create(
                 email=email,
@@ -137,9 +142,12 @@ class UserRegisterService:
                 user_profile.save()
             
         else:
-            raise ValidationError(AUTH_ERRORS.get("auth_identifier_cannot_empty"))
+            raise ValidationError({'identifier': AUTH_ERRORS.get("auth_identifier_cannot_empty")})
 
-        validate_register_password(password)
+        try:
+            validate_register_password(password)
+        except Exception as e:
+            raise ValidationError({'password': str(e)})
         user.set_password(password)
         user.save()
         

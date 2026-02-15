@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/ai';
-import { showSuccess, showError } from '@/core/toast';
+import { showSuccess, notifyApiError } from '@/core/toast';
 import { frontendToBackendProviderMap } from '../hooks/useAISettings';
 
 interface UseProviderActionsProps {
@@ -179,8 +179,11 @@ export function useProviderActions({
         [providerId]: false
       }));
     },
-    onError: (error: any) => {
-      showError(error?.message || 'خطا در ذخیره API key');
+    onError: (error: unknown) => {
+      notifyApiError(error, {
+        fallbackMessage: 'خطا در ذخیره API key',
+        dedupeKey: 'ai-provider-save-key',
+      });
     },
   });
 
@@ -261,8 +264,11 @@ export function useProviderActions({
       queryClient.invalidateQueries({ queryKey: ['ai-personal-settings'] });
       showSuccess('وضعیت با موفقیت تغییر کرد');
     },
-    onError: (error: any) => {
-      showError(error?.message || 'خطا در تغییر وضعیت');
+    onError: (error: unknown) => {
+      notifyApiError(error, {
+        fallbackMessage: 'خطا در تغییر وضعیت',
+        dedupeKey: 'ai-provider-toggle-active',
+      });
     },
   });
 

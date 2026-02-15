@@ -1,12 +1,14 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import { showError, showSuccess } from "@/core/toast";
+import { extractFieldErrors, notifyApiError, showSuccess } from "@/core/toast";
 import type { UserWithProfile } from "@/types/auth/user";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { User, KeyRound } from "lucide-react";
+import { User, KeyRound, AlertCircle } from "lucide-react";
 import { UserProfileHeader } from "@/components/users/profile/UserProfileHeader.tsx";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { adminApi } from "@/api/admins/admins";
 import { msg } from '@/core/messages';
+import { ApiError } from "@/types/api/apiError";
+import { Alert, AlertDescription } from "@/components/elements/Alert";
 
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
@@ -49,6 +51,7 @@ export function EditUserForm({ userData }: EditUserFormProps) {
     });
     const [isSaving, setIsSaving] = useState(false);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+    const [formAlert, setFormAlert] = useState<string | null>(null);
     const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(
         userData.profile?.province?.id || null
     );
@@ -121,6 +124,7 @@ export function EditUserForm({ userData }: EditUserFormProps) {
         
         setIsSaving(true);
         setFieldErrors({});
+        setFormAlert(null);
         
         try {
             const updateData: Record<string, any> = {
@@ -146,46 +150,65 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                                     await adminApi.updateUserByType(userData.id, updateData, 'user');
                         showSuccess(msg.crud('updated', { item: 'پروفایل کاربر' }));
             setEditMode(false);
-        } catch (error: any) {
-            if (error?.response?.errors) {
-                const errorData = error.response.errors;
-                const newFieldErrors: Record<string, string> = {};
-                
-                if (errorData.mobile) {
-                    newFieldErrors.mobile = msg.validation('mobileInvalid');
+        } catch (error: unknown) {
+            const extractedFieldErrors = extractFieldErrors(error);
+            const nonFieldMessage = extractedFieldErrors.non_field_errors;
+            const { non_field_errors, ...fieldOnlyErrors } = extractedFieldErrors;
+
+            const fieldMap: Record<string, string> = {
+                mobile: 'mobile',
+                email: 'email',
+                first_name: 'firstName',
+                last_name: 'lastName',
+                national_id: 'nationalId',
+                phone: 'phone',
+                province_id: 'province',
+                city_id: 'city',
+                address: 'address',
+                bio: 'bio',
+                birth_date: 'birthDate',
+            };
+
+            const newFieldErrors: Record<string, string> = {};
+            Object.entries(fieldOnlyErrors).forEach(([key, message]) => {
+                const normalizedKey = key.startsWith('profile.') ? key.replace('profile.', '') : key;
+                const mappedKey = fieldMap[normalizedKey] || normalizedKey;
+                newFieldErrors[mappedKey] = message;
+            });
+
+            if (Object.keys(newFieldErrors).length > 0) {
+                setFieldErrors(newFieldErrors);
+
+                if (nonFieldMessage) {
+                    setFormAlert(nonFieldMessage);
                 }
-                if (errorData.email) {
-                    newFieldErrors.email = msg.validation('emailInvalid');
-                }
-                if (errorData.profile?.national_id) {
-                    if (errorData.profile.national_id.includes('تکراری') || errorData.profile.national_id.includes('قبلاً')) {
-                        newFieldErrors.nationalId = msg.validation('nationalIdInvalid');
-                        showError('کد ملی تکراری است');
-                    } else if (errorData.profile.national_id.includes('10 رقم') || errorData.profile.national_id.includes('طول')) {
-                        newFieldErrors.nationalId = msg.validation('nationalIdLength');
-                    } else {
-                        newFieldErrors.nationalId = msg.validation('nationalIdInvalid');
-                    }
-                }
-                if (errorData.profile?.first_name) {
-                    newFieldErrors.firstName = msg.validation('required', { field: 'نام' });
-                }
-                if (errorData.profile?.last_name) {
-                    newFieldErrors.lastName = msg.validation('required', { field: 'نام خانوادگی' });
-                }
-                
-                if (errorData.detail) {
-                    showError(errorData.detail);
+                return;
+            }
+
+            if (nonFieldMessage) {
+                setFormAlert(nonFieldMessage);
+                return;
+            }
+
+            if (error instanceof ApiError) {
+                const statusCode = error.response.AppStatusCode;
+                const nonFieldErrors = error.response.errors?.non_field_errors;
+
+                if (nonFieldErrors && nonFieldErrors.length > 0 && statusCode < 500) {
+                    setFormAlert(nonFieldErrors[0]);
                     return;
                 }
-                
-                if (Object.keys(newFieldErrors).length > 0) {
-                    setFieldErrors(newFieldErrors);
+
+                if (statusCode < 500) {
+                    setFormAlert(error.response.message || 'خطا در به‌روزرسانی پروفایل');
                     return;
                 }
             }
-            
-            showError('خطا در به‌روزرسانی پروفایل');
+
+            notifyApiError(error, {
+                fallbackMessage: 'خطای سیستمی در به‌روزرسانی پروفایل',
+                dedupeKey: 'users-edit-system-error',
+            });
         } finally {
             setIsSaving(false);
         }
@@ -193,6 +216,13 @@ export function EditUserForm({ userData }: EditUserFormProps) {
     
     return (
         <div className="space-y-6">
+            {formAlert ? (
+                <Alert variant="destructive" className="border-red-1/50">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{formAlert}</AlertDescription>
+                </Alert>
+            ) : null}
+
             <UserProfileHeader
                 user={userData} 
                 formData={formData}

@@ -14,7 +14,7 @@ class AdminRegisterService:
     @classmethod
     def register_admin(cls, mobile, password, email=None, admin_user=None):
         if not admin_user:
-            raise ValidationError(AUTH_ERRORS["auth_validation_error"])
+            raise ValidationError({'non_field_errors': AUTH_ERRORS["auth_validation_error"]})
             
         if not admin_user.is_staff:
             raise AuthenticationFailed(AUTH_ERRORS["auth_not_authorized"])
@@ -30,14 +30,14 @@ class AdminRegisterService:
         try:
             validated_mobile = validate_mobile_number(mobile)
         except Exception as e:
-            raise ValidationError(AUTH_ERRORS["auth_invalid_mobile"])
+            raise ValidationError({'mobile': AUTH_ERRORS["auth_invalid_mobile"]})
 
         if User.objects.filter(mobile=validated_mobile).exists():
-            raise ValidationError(AUTH_ERRORS["auth_mobile_exists"])
+            raise ValidationError({'mobile': AUTH_ERRORS["auth_mobile_exists"]})
 
         if email:
             if User.objects.filter(email=email).exists():
-                raise ValidationError(AUTH_ERRORS["auth_email_exists"])
+                raise ValidationError({'email': AUTH_ERRORS["auth_email_exists"]})
 
         admin = User.objects.create(
             mobile=validated_mobile,
@@ -49,7 +49,10 @@ class AdminRegisterService:
             is_active=True
         )
 
-        validate_register_password(password)
+        try:
+            validate_register_password(password)
+        except Exception as e:
+            raise ValidationError({'password': str(e)})
         admin.set_password(password)
         admin.save()
 
@@ -88,15 +91,15 @@ class AdminRegisterService:
                 try:
                     validated_mobile = validate_mobile_number(mobile)
                 except Exception:
-                    raise ValidationError(AUTH_ERRORS["auth_invalid_mobile"])
+                    raise ValidationError({'mobile': AUTH_ERRORS["auth_invalid_mobile"]})
                 
                 is_superuser = validated_data.get('is_superuser', False)
                 
                 if User.objects.filter(mobile=validated_mobile).exists():
-                    raise ValidationError(AUTH_ERRORS["auth_mobile_exists"])
+                    raise ValidationError({'mobile': AUTH_ERRORS["auth_mobile_exists"]})
                 
                 if email and User.objects.filter(email=email).exists():
-                    raise ValidationError(AUTH_ERRORS["auth_email_exists"])
+                    raise ValidationError({'email': AUTH_ERRORS["auth_email_exists"]})
                 
                 admin = User.objects.create(
                     mobile=validated_mobile,
@@ -114,7 +117,7 @@ class AdminRegisterService:
                 is_superuser = validated_data.get('is_superuser', False)
                 
                 if User.objects.filter(email=email).exists():
-                    raise ValidationError(AUTH_ERRORS["auth_email_exists"])
+                    raise ValidationError({'email': AUTH_ERRORS["auth_email_exists"]})
                 
                 admin = User.objects.create(
                     email=email,
@@ -125,12 +128,12 @@ class AdminRegisterService:
                     is_active=validated_data.get('is_active', True)
                 )
             else:
-                raise ValidationError(AUTH_ERRORS["auth_email_or_mobile_required"])
+                raise ValidationError({'non_field_errors': AUTH_ERRORS["auth_email_or_mobile_required"]})
 
             national_id = profile_fields.get('national_id')
             if national_id and national_id.strip():
                 if AdminProfile.objects.filter(national_id=national_id).exists():
-                    profile_fields['national_id'] = None
+                    raise ValidationError({'national_id': AUTH_ERRORS.get("national_id_exists")})
             
             profile_data = {k: v for k, v in profile_fields.items() if v is not None}
             
@@ -160,7 +163,10 @@ class AdminRegisterService:
                 **profile_data
             )
 
-            validate_register_password(password)
+            try:
+                validate_register_password(password)
+            except Exception as e:
+                raise ValidationError({'password': str(e)})
             admin.set_password(password)
             admin.save()
             
@@ -239,7 +245,7 @@ class AdminRegisterService:
             return agent
         except Exception as e:
             user.delete()
-            raise ValidationError(f"خطا در ایجاد PropertyAgent: {str(e)}")
+            raise ValidationError({'non_field_errors': f"خطا در ایجاد PropertyAgent: {str(e)}"})
 
     @classmethod
     def _handle_profile_picture_upload(cls, uploaded_file, admin_id):

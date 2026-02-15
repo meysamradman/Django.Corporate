@@ -1,7 +1,8 @@
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.views import APIView
-from rest_framework.exceptions import PermissionDenied, NotFound
+from rest_framework.exceptions import PermissionDenied, NotFound, ValidationError as DRFValidationError
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
@@ -43,6 +44,25 @@ class UserManagementView(PermissionRequiredMixin, AdminAuthMixin, APIView):
         'delete': 'users.delete',
     }
     permission_denied_message = AUTH_ERRORS["auth_not_authorized"]
+
+    @staticmethod
+    def _normalize_validation_error(error):
+        if isinstance(error, DRFValidationError):
+            detail = error.detail
+            if isinstance(detail, dict):
+                return detail
+            if isinstance(detail, list):
+                return {'non_field_errors': detail}
+            return {'non_field_errors': [str(detail)]}
+
+        if isinstance(error, DjangoValidationError):
+            if hasattr(error, 'message_dict'):
+                return error.message_dict
+            if hasattr(error, 'messages'):
+                return {'non_field_errors': error.messages}
+            return {'non_field_errors': [str(error)]}
+
+        return {'non_field_errors': [str(error)]}
 
     def get_permissions(self):
         return [user_permission()]  # ✅ instantiate می‌کند
@@ -126,7 +146,10 @@ class UserManagementView(PermissionRequiredMixin, AdminAuthMixin, APIView):
                 data=serializer.data
             )
         except Exception as e:
-            return APIResponse.error(message=AUTH_ERRORS["error_occurred"])
+            return APIResponse.error(
+                message=AUTH_ERRORS["error_occurred"],
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     def post(self, request, *args, **kwargs):
         bulk_action = kwargs.get('action')
@@ -158,8 +181,17 @@ class UserManagementView(PermissionRequiredMixin, AdminAuthMixin, APIView):
                 message=AUTH_SUCCESS["user_created_successfully"],
                 data=response_serializer.data
             )
+        except (DjangoValidationError, DRFValidationError) as e:
+            return APIResponse.error(
+                message=AUTH_ERRORS["auth_validation_error"],
+                errors=self._normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
         except Exception as e:
-            return APIResponse.error(message=AUTH_ERRORS["error_occurred"])
+            return APIResponse.error(
+                message=AUTH_ERRORS["error_occurred"],
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     def bulk_delete_post(self, request):
         serializer = BulkDeleteSerializer(data=request.data)
