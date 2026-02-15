@@ -12,7 +12,8 @@ from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
 from src.user.access_control import ai_permission, PermissionRequiredMixin
 from src.ai.providers.capabilities import get_provider_capabilities, supports_feature, PROVIDER_CAPABILITIES
 from src.ai.providers.registry import AIProviderRegistry
-from src.ai.models import AIProvider, AdminProviderSettings
+from src.ai.models import AIProvider
+from src.ai.services.provider_access_service import ProviderAccessService
 from src.ai.utils.error_mapper import map_ai_exception
 
 class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
@@ -161,21 +162,9 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             )
     
     def _check_provider_access(self, user, provider, is_super: bool) -> bool:
-        if is_super and provider.shared_api_key:
-            return True
-        
-        personal_settings = AdminProviderSettings.objects.filter(
-            admin=user,
+        return ProviderAccessService.can_admin_access_provider(
+            user=user,
             provider=provider,
-            is_active=True,
-            personal_api_key__isnull=False
-        ).exclude(personal_api_key='').first()
-        
-        if personal_settings:
-            return True
-        
-        if provider.allow_shared_for_normal_admins and provider.shared_api_key:
-            return True
-        
-        return False
+            is_super=is_super,
+        )
 

@@ -3,13 +3,18 @@ import { getPanelSettings } from '@/api/panel/panel';
 import type { PanelSettings } from '@/types/settings/panelSettings';
 import { api } from '@/core/config/api';
 import { showError, showSuccess } from '@/core/toast';
+import { useAuth } from '@/core/auth/AuthContext';
 
 export function usePanelSettings() {
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const isSuperAdmin = Boolean(user?.is_superuser || user?.is_admin_full);
+
   return useQuery({
     queryKey: ['panel-settings'],
     queryFn: getPanelSettings,
     staleTime: 0,
     gcTime: 0,
+    enabled: !isAuthLoading && isSuperAdmin,
   });
 }
 

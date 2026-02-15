@@ -20,6 +20,7 @@ from src.user.access_control import ai_permission, SuperAdminOnly, PermissionVal
 from src.ai.providers.capabilities import PROVIDER_CAPABILITIES, get_provider_capabilities, get_default_model
 from src.ai.providers.openrouter import OpenRouterProvider, OpenRouterModelCache
 from src.ai.providers.huggingface import HuggingFaceProvider
+from src.ai.services.provider_access_service import ProviderAccessService
 from src.media.serializers.media_serializer import MediaAdminSerializer
 
 class AIImageProviderViewSet(viewsets.ModelViewSet):
@@ -386,23 +387,11 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
             )
     
     def _check_provider_access(self, user, provider, is_super: bool) -> bool:
-        if is_super and provider.shared_api_key:
-            return True
-        
-        personal_settings = AdminProviderSettings.objects.filter(
-            admin=user,
+        return ProviderAccessService.can_admin_access_provider(
+            user=user,
             provider=provider,
-            is_active=True,
-            personal_api_key__isnull=False
-        ).exclude(personal_api_key='').first()
-        
-        if personal_settings:
-            return True
-        
-        if provider.allow_shared_for_normal_admins and provider.shared_api_key:
-            return True
-        
-        return False
+            is_super=is_super,
+        )
 
 class AIImageGenerationViewSet(viewsets.ViewSet):
     authentication_classes = [CSRFExemptSessionAuthentication]

@@ -17,6 +17,7 @@ from src.user.access_control import ai_permission, PermissionRequiredMixin
 from src.user.access_control.definitions import PermissionValidator
 from src.core.responses.response import APIResponse
 from src.ai.providers.capabilities import supports_feature, get_provider_capabilities
+from src.ai.services.provider_access_service import ProviderAccessService
 
 class AIProviderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [ai_permission]
@@ -136,28 +137,11 @@ class AIProviderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         )
     
     def _check_provider_access(self, user, provider_slug: str, is_super: bool) -> bool:
-        try:
-            provider = AIProvider.objects.get(slug=provider_slug, is_active=True)
-        except AIProvider.DoesNotExist:
-            return False
-        
-        if is_super and provider.shared_api_key:
-            return True
-        
-        personal_settings = AdminProviderSettings.objects.filter(
-            admin=user,
-            provider=provider,
-            is_active=True,
-            personal_api_key__isnull=False
-        ).exclude(personal_api_key='').first()
-        
-        if personal_settings:
-            return True
-        
-        if provider.allow_shared_for_normal_admins and provider.shared_api_key:
-            return True
-        
-        return False
+        return ProviderAccessService.can_admin_access_provider_by_slug(
+            user=user,
+            provider_slug=provider_slug,
+            is_super=is_super,
+        )
     
     @action(detail=False, methods=['get'])
     def stats(self, request):

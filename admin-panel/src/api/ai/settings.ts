@@ -2,11 +2,12 @@ import { api } from '@/core/config/api';
 import type { ApiResponse } from '@/types/api/apiResponse';
 import { showError } from '@/core/toast';
 import type { AdminProviderSettings } from '@/types/ai/ai';
+import { AI_SETTINGS_ENDPOINTS } from './settings.endpoints';
 
 export const personalSettingsApi = {
     getMySettings: async (): Promise<ApiResponse<AdminProviderSettings[]>> => {
         try {
-            const endpoint = '/admin/ai-settings/';
+            const endpoint = AI_SETTINGS_ENDPOINTS.root;
             return await api.get<AdminProviderSettings[]>(endpoint);
         } catch (error) {
             showError(error);
@@ -25,8 +26,8 @@ export const personalSettingsApi = {
     }): Promise<ApiResponse<AdminProviderSettings>> => {
         try {
             const endpoint = data.id
-                ? `/admin/ai-settings/${data.id}/`
-                : '/admin/ai-settings/';
+                ? AI_SETTINGS_ENDPOINTS.byId(data.id)
+                : AI_SETTINGS_ENDPOINTS.root;
 
             const method = data.id ? 'patch' : 'post';
             return await api[method]<AdminProviderSettings>(endpoint, data as Record<string, unknown>);
@@ -38,7 +39,7 @@ export const personalSettingsApi = {
 
     deleteMySettings: async (id: number): Promise<ApiResponse<{ success: boolean }>> => {
         try {
-            const endpoint = `/admin/ai-settings/${id}/`;
+            const endpoint = AI_SETTINGS_ENDPOINTS.byId(id);
             return await api.delete<{ success: boolean }>(endpoint);
         } catch (error) {
             showError(error);
@@ -48,7 +49,7 @@ export const personalSettingsApi = {
 
     getGlobalControl: async (): Promise<ApiResponse<{ allow_regular_admins_use_shared_api: boolean }>> => {
         try {
-            const endpoint = '/admin/ai-settings/global-control/';
+            const endpoint = AI_SETTINGS_ENDPOINTS.globalControl;
             return await api.get<{ allow_regular_admins_use_shared_api: boolean }>(endpoint);
         } catch (error) {
             showError(error);
@@ -58,7 +59,7 @@ export const personalSettingsApi = {
 
     updateGlobalControl: async (allowRegularAdmins: boolean): Promise<ApiResponse<{ allow_regular_admins_use_shared_api: boolean }>> => {
         try {
-            const endpoint = '/admin/ai-settings/global-control/';
+            const endpoint = AI_SETTINGS_ENDPOINTS.globalControl;
             return await api.patch<{ allow_regular_admins_use_shared_api: boolean }>(endpoint, {
                 allow_regular_admins_use_shared_api: allowRegularAdmins,
             } as Record<string, unknown>);
@@ -72,7 +73,7 @@ export const personalSettingsApi = {
 export const mySettingsApi = {
     getAll: async (): Promise<ApiResponse<AdminProviderSettings[]>> => {
         try {
-            const endpoint = '/admin/ai-settings/my_settings/';
+            const endpoint = AI_SETTINGS_ENDPOINTS.mySettings;
             return await api.get<AdminProviderSettings[]>(endpoint);
         } catch (error) {
             showError(error);

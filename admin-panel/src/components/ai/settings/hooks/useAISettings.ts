@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/ai';
 import { showSuccess, showError } from '@/core/toast';
+import { usePermission, PERMISSIONS } from '@/core/permissions';
 import type { AISettingsModel, AISettingsProvider } from '@/types/ai/ai';
 import {
   getProviderMetadata,
@@ -22,6 +23,8 @@ export const backendToFrontendProviderMap: Record<string, string[]> = Object.ent
 
 export function useAISettings() {
   const queryClient = useQueryClient();
+  const { hasPermission, isLoading: isPermissionLoading } = usePermission();
+  const canLoadModels = hasPermission(PERMISSIONS.AI.MODELS_MANAGE);
   const { data: backendProviders, isLoading: isLoadingBackendProviders } = useQuery({
     queryKey: ['ai-backend-providers'],
     queryFn: async () => {
@@ -38,6 +41,7 @@ export function useAISettings() {
       return response.data || [];
     },
     staleTime: 0,
+    enabled: !isPermissionLoading && canLoadModels,
   });
 
   const { data: personalSettings } = useQuery({

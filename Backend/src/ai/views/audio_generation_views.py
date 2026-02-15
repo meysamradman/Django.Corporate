@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 
-from src.ai.models import AIProvider, AdminProviderSettings
+from src.ai.models import AIProvider
 from src.ai.utils.state_machine import ModelAccessState
 from src.ai.serializers.audio_generation_serializer import AIAudioGenerationRequestSerializer
 from src.ai.services.audio_generation_service import AIAudioGenerationService
@@ -14,6 +14,7 @@ from src.core.responses.response import APIResponse
 from src.user.access_control import ai_permission, PermissionRequiredMixin
 from src.ai.providers.registry import AIProviderRegistry
 from src.ai.utils.error_mapper import map_ai_exception
+from src.ai.services.provider_access_service import ProviderAccessService
 import base64
 import logging
 
@@ -68,23 +69,11 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
             )
     
     def _check_provider_access(self, user, provider, is_super: bool) -> bool:
-        if is_super and provider.shared_api_key:
-            return True
-        
-        personal_settings = AdminProviderSettings.objects.filter(
-            admin=user,
+        return ProviderAccessService.can_admin_access_provider(
+            user=user,
             provider=provider,
-            is_active=True,
-            personal_api_key__isnull=False
-        ).exclude(personal_api_key='').first()
-        
-        if personal_settings:
-            return True
-        
-        if provider.allow_shared_for_normal_admins and provider.shared_api_key:
-            return True
-        
-        return False
+            is_super=is_super,
+        )
     
     @action(detail=False, methods=['post'], url_path='generate')
     def generate_audio(self, request):
