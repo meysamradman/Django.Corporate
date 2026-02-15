@@ -15,7 +15,7 @@ from src.blog.filters.admin.tag_filters import BlogTagAdminFilter
 from src.core.pagination import StandardLimitPagination
 from src.user.access_control import blog_permission, PermissionRequiredMixin
 from src.core.responses.response import APIResponse
-from src.core.utils.validation_helpers import extract_validation_message
+from src.core.utils.validation_helpers import extract_validation_message, normalize_validation_error
 from src.blog.messages.messages import TAG_SUCCESS, TAG_ERRORS
 
 class BlogTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
@@ -82,18 +82,25 @@ class BlogTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
-        tag = BlogTagAdminService.create_tag(
-            serializer.validated_data,
-            created_by=request.user
-        )
-        
-        detail_serializer = BlogTagAdminDetailSerializer(tag)
-        return APIResponse.success(
-            message=TAG_SUCCESS["tag_created"],
-            data=detail_serializer.data,
-            status_code=status.HTTP_201_CREATED
-        )
+
+        try:
+            tag = BlogTagAdminService.create_tag(
+                serializer.validated_data,
+                created_by=request.user
+            )
+
+            detail_serializer = BlogTagAdminDetailSerializer(tag)
+            return APIResponse.success(
+                message=TAG_SUCCESS["tag_created"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_201_CREATED
+            )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, TAG_ERRORS["tag_create_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
     
     def retrieve(self, request, *args, **kwargs):
         tag = BlogTagAdminService.get_tag_by_id(kwargs.get('pk'))
@@ -124,17 +131,24 @@ class BlogTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         serializer = self.get_serializer(tag, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         
-        updated_tag = BlogTagAdminService.update_tag_by_id(
-            tag.id, 
-            serializer.validated_data
-        )
-        
-        detail_serializer = BlogTagAdminDetailSerializer(updated_tag)
-        return APIResponse.success(
-            message=TAG_SUCCESS["tag_updated"],
-            data=detail_serializer.data,
-            status_code=status.HTTP_200_OK
-        )
+        try:
+            updated_tag = BlogTagAdminService.update_tag_by_id(
+                tag.id,
+                serializer.validated_data
+            )
+
+            detail_serializer = BlogTagAdminDetailSerializer(updated_tag)
+            return APIResponse.success(
+                message=TAG_SUCCESS["tag_updated"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_200_OK
+            )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, TAG_ERRORS["tag_update_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
     
     def destroy(self, request, *args, **kwargs):
         tag_id = kwargs.get('pk')
@@ -153,6 +167,7 @@ class BlogTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         except ValidationError as e:
             return APIResponse.error(
                 message=extract_validation_message(e, TAG_ERRORS["tag_delete_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -190,6 +205,7 @@ class BlogTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         except ValidationError as e:
             return APIResponse.error(
                 message=extract_validation_message(e, TAG_ERRORS["tag_delete_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -224,9 +240,10 @@ class BlogTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=TAG_ERRORS["tag_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        except Exception as e:
+        except ValidationError as e:
             return APIResponse.error(
-                message=TAG_ERRORS["tag_update_failed"],
+                message=extract_validation_message(e, TAG_ERRORS["tag_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     

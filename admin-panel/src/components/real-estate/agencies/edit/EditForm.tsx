@@ -1,10 +1,11 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from "react-hook-form";
+import { useFormState } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { showSuccess, showError } from '@/core/toast';
+import { notifyApiError, showSuccess } from '@/core/toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { Building2, Search, Loader2, Save, UserCircle } from "lucide-react";
+import { AlertCircle, Building2, Search, Loader2, Save, UserCircle } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate";
 import { msg } from '@/core/messages';
@@ -15,6 +16,8 @@ import type { Media } from "@/types/shared/media";
 import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { agencyFormSchema, agencyFormDefaults, type AgencyFormValues } from '@/components/real-estate/validations/agencySchema';
+import { AGENCY_FIELD_MAP, extractMappedAgencyFieldErrors } from '@/components/real-estate/validations/agencyApiError';
+import { Alert, AlertDescription } from "@/components/elements/Alert";
 
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
@@ -48,6 +51,39 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
     const [selectedProfilePicture, setSelectedProfilePicture] = useState<Media | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
+    const [formAlert, setFormAlert] = useState<string | null>(null);
+
+    const AGENCY_EDIT_TAB_BY_FIELD: Record<string, string> = {
+        name: 'account',
+        slug: 'account',
+        phone: 'account',
+        email: 'account',
+        website: 'account',
+        license_number: 'account',
+        license_expire_date: 'account',
+        city: 'account',
+        province: 'account',
+        description: 'profile',
+        address: 'profile',
+        is_active: 'profile',
+        rating: 'profile',
+        total_reviews: 'profile',
+        profile_picture: 'profile',
+        meta_title: 'seo',
+        meta_description: 'seo',
+        og_title: 'seo',
+        og_description: 'seo',
+        canonical_url: 'seo',
+        robots_meta: 'seo',
+    };
+
+    const resolveAgencyEditErrorTab = (fieldKeys: Iterable<string>): string | null => {
+        for (const key of fieldKeys) {
+            const tab = AGENCY_EDIT_TAB_BY_FIELD[key];
+            if (tab) return tab;
+        }
+        return null;
+    };
 
     const isNumericId = !Number.isNaN(Number(agencyId));
     const queryKey = ['agency', agencyId];
@@ -74,6 +110,8 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
         defaultValues: agencyFormDefaults,
         mode: "onSubmit",
     });
+
+    useFormState({ control: form.control });
 
     useEffect(() => {
         if (!agencyData) return;
@@ -125,8 +163,16 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
     const handleSave = async () => {
         if (isSaving) return;
 
+        setFormAlert(null);
+        form.clearErrors();
         const isValid = await form.trigger();
-        if (!isValid) return;
+        if (!isValid) {
+            const tabWithError = resolveAgencyEditErrorTab(Object.keys(form.formState.errors));
+            if (tabWithError) {
+                setActiveTab(tabWithError);
+            }
+            return;
+        }
 
         setIsSaving(true);
 
@@ -162,7 +208,7 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
             }
 
             if (!agencyData) {
-                showError('اطلاعات آژانس یافت نشد');
+                setFormAlert('اطلاعات آژانس یافت نشد');
                 return;
             }
 
@@ -174,22 +220,46 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
 
             showSuccess(msg.crud('updated', { item: 'آژانس' }));
             navigate("/admins/agencies");
-        } catch (error: any) {
-            if (error?.response?.errors) {
-                const errorData = error.response.errors;
+        } catch (error: unknown) {
+            const { fieldErrors, nonFieldError } = extractMappedAgencyFieldErrors(
+                error,
+                AGENCY_FIELD_MAP as unknown as Record<string, string>
+            );
 
-                Object.entries(errorData).forEach(([field, message]) => {
+            if (Object.keys(fieldErrors).length > 0) {
+                Object.entries(fieldErrors).forEach(([field, message]) => {
                     form.setError(field as keyof AgencyFormValues, {
                         type: 'server',
-                        message: message as string
+                        message,
                     });
                 });
 
-                showError("لطفاً خطاهای فرم را بررسی کنید");
-            } else {
-                const errorMessage = msg.error('serverError');
-                showError(errorMessage);
+                const tabWithError = resolveAgencyEditErrorTab(Object.keys(fieldErrors));
+                if (tabWithError) {
+                    setActiveTab(tabWithError);
+                }
+
+                if (nonFieldError) {
+                    setFormAlert(nonFieldError);
+                }
+                return;
             }
+
+            if (nonFieldError) {
+                setFormAlert(nonFieldError);
+                return;
+            }
+
+            if (error instanceof ApiError && error.response.AppStatusCode < 500) {
+                setFormAlert(error.response.message || msg.error('validation'));
+                return;
+            }
+
+            notifyApiError(error, {
+                fallbackMessage: msg.error('serverError'),
+                preferBackendMessage: false,
+                dedupeKey: 'agencies-edit-system-error',
+            });
         } finally {
             setIsSaving(false);
         }
@@ -197,6 +267,15 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
 
     const handleGoToList = () => {
         navigate("/admins/agencies");
+    };
+
+    const handleTabChange = (nextTab: string) => {
+        if (nextTab === activeTab) {
+            return;
+        }
+
+        setFormAlert(null);
+        setActiveTab(nextTab);
     };
 
     if (error) {
@@ -236,7 +315,14 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
 
     return (
         <>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            {formAlert ? (
+                <Alert variant="destructive" className="border-red-1/50 mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{formAlert}</AlertDescription>
+                </Alert>
+            ) : null}
+
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <TabsList>
                     <TabsTrigger value="account">
                         <Building2 className="h-4 w-4" />
@@ -294,7 +380,7 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                 context="media_library"
             />
 
-            <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
+            <div className="fixed bottom-0 left-0 right-0 lg:right-80 z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
                 <Button
                     type="button"
                     onClick={handleSave}

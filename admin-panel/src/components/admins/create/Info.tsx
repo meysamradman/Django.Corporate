@@ -18,7 +18,22 @@ export default function Info({
   form,
   editMode,
 }: BaseInfoTabProps) {
-  const { register, formState: { errors }, setValue, watch } = form;
+  const { register, formState: { errors }, setValue, watch, clearErrors } = form;
+
+  const consultantFields = [
+    "license_number",
+    "license_expire_date",
+    "specialization",
+    "agency_id",
+    "bio",
+    "is_verified",
+    "meta_title",
+    "meta_description",
+    "meta_keywords",
+    "og_title",
+    "og_description",
+    "og_image_id",
+  ] as const;
   return (
     <div className="space-y-6">
       <CardWithIcon
@@ -104,7 +119,8 @@ export default function Info({
             <div
               onClick={() => {
                 if (editMode) {
-                  setValue("admin_role_type", "admin");
+                  setValue("admin_role_type", "admin", { shouldValidate: false, shouldDirty: true });
+                  clearErrors(consultantFields);
                 }
               }}
               className={`relative cursor-pointer rounded-2xl border-2 p-5 transition-all duration-300 group ${watch("admin_role_type") !== "consultant"
@@ -137,8 +153,9 @@ export default function Info({
             <div
               onClick={() => {
                 if (editMode) {
-                  setValue("admin_role_type", "consultant");
-                  setValue("is_superuser", false);
+                  setValue("admin_role_type", "consultant", { shouldValidate: false, shouldDirty: true });
+                  setValue("is_superuser", false, { shouldValidate: false, shouldDirty: true });
+                  clearErrors("is_superuser");
                 }
               }}
               className={`relative cursor-pointer rounded-2xl border-2 p-5 transition-all duration-300 group ${watch("admin_role_type") === "consultant"

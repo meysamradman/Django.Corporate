@@ -61,6 +61,15 @@
 - هر فرم تب‌دار باید `field -> tab` map مخصوص خودش را داشته باشد.
 - هدف: اگر خطای فیلدی در تب دیگر باشد، تب همان فیلد به‌صورت خودکار فعال شود.
 
+### Tabbed RHF Re-render Contract (خیلی مهم)
+- در فرم‌های تب‌دار با `react-hook-form`، اگر parent روی `formState` subscribe نباشد، ممکن است خطاهای inline بعد از `trigger()` فقط بعد از جابه‌جایی تب دیده شوند.
+- راه‌حل اجباری:
+  - در parent فرم از `useFormState({ control: form.control })` استفاده شود تا re-render تضمین شود.
+  - اگر `tabs` با `useMemo` ساخته می‌شوند، dependency تغییر خطا داشته باشند (مثل یک `formErrorVersion` امن).
+- روی جابه‌جایی دستی تب (`onTabChange`) فقط `formAlert` پاک شود؛ `form.clearErrors()` نزنید (باعث UX اشتباه و حذف خطاهای لازم می‌شود).
+- هرگز `JSON.stringify(formState.errors)` نزنید؛ به خاطر `ref` ممکن است circular structure بدهد.
+  - به‌جای آن از کلید امن مثل `Object.keys(errors).sort().join('|')` استفاده کنید.
+
 ---
 
 ## Source of Truth در Backend (الزامی - حذف نشود)
@@ -112,6 +121,15 @@
 - خطاهای فیلدی حتماً در `errors.<field>`
 - خطاهای غیر فیلدی در `errors.non_field_errors`
 - `metaData.message` برای پیام کلی پاسخ
+
+### قرارداد الزامی Consultant در Backend
+- در `admin create` اگر `admin_role_type=consultant` باشد:
+  - `license_number` الزامی است.
+  - `first_name` و `last_name` الزامی هستند.
+- در `admin edit` برای کاربر consultant:
+  - اگر `agent_profile.license_number` خالی ارسال شود یا consultant فعلی اصلاً license نداشته باشد، خطای فیلدی الزامی برگردد.
+- پیام این خطاها باید فقط از `AUTH_ERRORS` بیاید (hardcode ممنوع).
+- کلیدهای خطای فیلدی consultant باید قابل map به فرم باشند (مثل `agent_profile.license_number`).
 
 ---
 
@@ -202,5 +220,28 @@
 - Validation shared: یکپارچه از `core/validation/index.ts`
 - Server error mapping: یکپارچه از `userApiError.ts`
 - Tab auto-switch on field errors: local per form در `users/create` و `users/edit`
+
+## وضعیت فعلی admins (مرجع)
+
+- Create admin: مطابق قرارداد (field inline، non-field alert، system toast)
+- Edit admin: مطابق قرارداد (field inline، non-field alert، system toast)
+- Server error mapping: یکپارچه در `components/admins/validations/adminApiError.ts`
+- Tab auto-switch on field errors: local per form در `admins/create` و `admins/[id]/edit`
+
+## وضعیت فعلی agencies / consultant (مرجع)
+
+- Create agency: مطابق قرارداد (field inline، non-field alert، system toast)
+- Edit agency: مطابق قرارداد (field inline، non-field alert، system toast)
+- Consultant fields (داخل admin create/edit): مطابق قرارداد و map‌شده از `adminApiError.ts`
+- Server error mapping agencies: یکپارچه در `components/real-estate/validations/agencyApiError.ts`
+- Tab auto-switch on field errors: local per form در `admins/agencies/create` و `agencies/edit/EditForm`
+
+## وضعیت فعلی blog (مرجع)
+
+- Create/Edit blog: مطابق قرارداد (field inline، non-field alert، system toast)
+- Server error mapping blog form: یکپارچه در `components/blogs/validations/blogApiError.ts`
+- Tab auto-switch on field errors: local per form در `blogs/create` و `blogs/[id]/edit`
+- Category/Tag sidebar: مطابق قرارداد (field inline، non-field alert، system toast)
+- Backend create/update blog: خطاهای validation به‌صورت ساختاری در `errors` برمی‌گردد (نه فقط `message`)
 
 از این به بعد همین الگو باید برای admins / agencies / auth / سایر فرم‌ها اجرا شود.

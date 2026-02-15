@@ -3,7 +3,6 @@ import { Button } from "@/components/elements/Button";
 import { ImageIcon, Upload, X, Eye } from "lucide-react";
 import { mediaService } from "@/components/media/services";
 import type { Media } from "@/types/shared/media";
-import { showError } from '@/core/toast';
 
 interface MediaTabProps {
   selectedLogo: Media | null;
@@ -39,9 +38,8 @@ export default function AgencyMedia({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
-                showError("انتخاب رسانه هنوز پیاده‌سازی نشده است");
-              }}
+              type="button"
+              disabled
             >
               <Upload className="h-4 w-4 mr-2" />
               انتخاب {title}
@@ -56,7 +54,7 @@ export default function AgencyMedia({
     return (
       <div className="border border-border rounded-lg p-4">
         <div className="flex items-start gap-4">
-          <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+          <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted shrink-0">
             {media.media_type === 'image' ? (
               <img
                 src={mediaUrl}

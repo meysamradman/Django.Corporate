@@ -1,9 +1,10 @@
 import React from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { Button } from "@/components/elements/Button";
+import { Alert, AlertDescription } from "@/components/elements/Alert";
 import {
     FileText, Image, Search,
-    Save, Loader2
+    Save, Loader2, AlertCircle
 } from "lucide-react";
 
 interface BlogFormLayoutProps {
@@ -14,6 +15,7 @@ interface BlogFormLayoutProps {
     isPending: boolean;
     isSubmitting: boolean;
     isEditMode: boolean;
+    formAlert?: string | null;
     children: React.ReactNode;
 }
 
@@ -25,10 +27,18 @@ export const BlogFormLayout: React.FC<BlogFormLayoutProps> = ({
     isPending,
     isSubmitting,
     isEditMode,
+    formAlert,
     children
 }) => {
     return (
         <div className="space-y-6 pb-28 relative">
+            {formAlert ? (
+                <Alert variant="destructive" className="border-red-1/50">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{formAlert}</AlertDescription>
+                </Alert>
+            ) : null}
+
             <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
                 <TabsList>
                     <TabsTrigger value="account">
@@ -48,7 +58,7 @@ export const BlogFormLayout: React.FC<BlogFormLayoutProps> = ({
                 {children}
             </Tabs>
 
-            <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
+            <div className="fixed bottom-0 left-0 right-0 lg:right-80 z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
                 {onSaveDraft && (
                     <Button
                         variant="outline"

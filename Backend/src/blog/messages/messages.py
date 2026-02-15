@@ -83,6 +83,7 @@ BLOG_ERRORS = {
     "category_not_found": "دسته‌بندی یافت نشد.",
     "tag_ids_required": "شناسه تگ‌ها مورد نیاز است.",
     "media_upload_limit_exceeded": "حداکثر {max_items} رسانه برای آپلود مجاز است. شما {total_items} رسانه ارسال کرده‌اید.",
+    "media_ids_or_files_required": "حداقل یک شناسه رسانه یا فایل رسانه باید ارسال شود.",
     "blogs_not_found": "مقالات انتخاب‌شده یافت نشدند.",
     "only_one_main_image": "فقط یک تصویر اصلی برای هر مقاله مجاز است.",
 }

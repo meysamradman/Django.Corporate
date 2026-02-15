@@ -181,6 +181,8 @@ class AdminManagementService:
                     for field in profile_model_fields:
                         if field in nested_profile:
                             profile_fields_to_update[field] = nested_profile[field]
+
+                nested_agent_profile = validated_data.pop('agent_profile', {}) or {}
                 
                 should_remove_picture = validated_data.pop('remove_profile_picture', 'false').lower() == 'true'
                 
@@ -263,6 +265,81 @@ class AdminManagementService:
                     
                     if profile_fields_to_update:
                         AdminProfileService.update_admin_profile(admin, profile_fields_to_update)
+
+                if isinstance(nested_agent_profile, dict) and nested_agent_profile:
+                    if not hasattr(admin, 'real_estate_agent_profile') or admin.real_estate_agent_profile is None:
+                        raise ValidationError({'agent_profile': AUTH_ERRORS.get("auth_validation_error")})
+
+                    agent_profile = admin.real_estate_agent_profile
+
+                    if 'license_number' in nested_agent_profile:
+                        license_number = nested_agent_profile.get('license_number')
+                        if isinstance(license_number, str):
+                            license_number = license_number.strip()
+                        if not license_number:
+                            raise ValidationError({'agent_profile.license_number': AUTH_ERRORS.get("consultant_license_required")})
+
+                        from src.real_estate.models import PropertyAgent
+                        if PropertyAgent.objects.exclude(id=agent_profile.id).filter(license_number=license_number).exists():
+                            raise ValidationError({'agent_profile.license_number': AUTH_ERRORS.get("license_number_exists")})
+                        agent_profile.license_number = license_number
+
+                    if 'license_expire_date' in nested_agent_profile:
+                        agent_profile.license_expire_date = nested_agent_profile.get('license_expire_date') or None
+
+                    if 'specialization' in nested_agent_profile:
+                        agent_profile.specialization = (nested_agent_profile.get('specialization') or '')
+
+                    if 'bio' in nested_agent_profile:
+                        agent_profile.bio = (nested_agent_profile.get('bio') or '')
+
+                    if 'is_verified' in nested_agent_profile:
+                        agent_profile.is_verified = bool(nested_agent_profile.get('is_verified'))
+
+                    if 'meta_title' in nested_agent_profile:
+                        agent_profile.meta_title = (nested_agent_profile.get('meta_title') or '')
+
+                    if 'meta_description' in nested_agent_profile:
+                        agent_profile.meta_description = (nested_agent_profile.get('meta_description') or '')
+
+                    if 'meta_keywords' in nested_agent_profile:
+                        agent_profile.meta_keywords = (nested_agent_profile.get('meta_keywords') or '')
+
+                    if 'og_title' in nested_agent_profile:
+                        agent_profile.og_title = (nested_agent_profile.get('og_title') or '')
+
+                    if 'og_description' in nested_agent_profile:
+                        agent_profile.og_description = (nested_agent_profile.get('og_description') or '')
+
+                    if 'canonical_url' in nested_agent_profile:
+                        agent_profile.canonical_url = (nested_agent_profile.get('canonical_url') or '')
+
+                    if 'robots_meta' in nested_agent_profile:
+                        agent_profile.robots_meta = (nested_agent_profile.get('robots_meta') or '')
+
+                    if 'agency_id' in nested_agent_profile:
+                        agency_id = nested_agent_profile.get('agency_id')
+                        if agency_id:
+                            from src.real_estate.models import RealEstateAgency
+                            try:
+                                agent_profile.agency = RealEstateAgency.objects.get(id=agency_id, is_active=True)
+                            except RealEstateAgency.DoesNotExist:
+                                raise ValidationError({'agent_profile.agency_id': AUTH_ERRORS.get("agency_not_found")})
+                        else:
+                            agent_profile.agency = None
+
+                    if 'og_image_id' in nested_agent_profile:
+                        og_image_id = nested_agent_profile.get('og_image_id')
+                        if og_image_id:
+                            try:
+                                og_image = ImageMedia.objects.get(id=og_image_id, is_active=True)
+                                agent_profile.og_image = og_image
+                            except ImageMedia.DoesNotExist:
+                                raise ValidationError({'agent_profile.og_image_id': AUTH_ERRORS.get("image_not_found")})
+                        else:
+                            agent_profile.og_image = None
+
+                    agent_profile.save()
                 
                 _clear_permission_cache(admin.id)
             

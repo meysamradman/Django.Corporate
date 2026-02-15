@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { showSuccess, showError } from '@/core/toast';
+import { notifyApiError, showSuccess, showError } from '@/core/toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { User, KeyRound, Share2, Settings2, Building2, Home } from "lucide-react";
 import { ProfileHeader } from "@/components/admins/profile/ProfileHeader";
@@ -10,8 +10,10 @@ import { msg } from '@/core/messages';
 import { useAuth } from "@/core/auth/AuthContext";
 import { ApiError } from "@/types/api/apiError";
 import { Button } from "@/components/elements/Button";
+import { Alert, AlertDescription } from "@/components/elements/Alert";
 import { useNavigate } from "react-router-dom";
 import { usePermission } from "@/core/permissions";
+import { extractMappedAdminFieldErrors, ADMIN_EDIT_FIELD_MAP } from "@/components/admins/validations/adminApiError";
 
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
@@ -102,6 +104,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
     });
     const [isSaving, setIsSaving] = useState(false);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+    const [formAlert, setFormAlert] = useState<string | null>(null);
     const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(null);
     const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
     const previousAdminIdRef = useRef<number | undefined>(undefined);
@@ -214,6 +217,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
 
         setIsSaving(true);
         setFieldErrors({});
+        setFormAlert(null);
 
         try {
             const profileData: Record<string, any> = {
@@ -276,45 +280,75 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
 
             showSuccess(msg.crud('updated', { item: 'پروفایل ادمین' }));
         } catch (error: any) {
-            if (error?.response?.errors) {
-                const errorData = error.response.errors;
-                const newFieldErrors: Record<string, string> = {};
+            const { fieldErrors: mappedFieldErrors, nonFieldError } = extractMappedAdminFieldErrors(
+                error,
+                ADMIN_EDIT_FIELD_MAP as unknown as Record<string, string>
+            );
 
-                if (errorData.mobile) {
-                    newFieldErrors.mobile = msg.validation('mobileInvalid');
-                }
-                if (errorData.email) {
-                    newFieldErrors.email = msg.validation('emailInvalid');
-                }
-                if (errorData.profile?.national_id) {
-                    if (errorData.profile.national_id.includes('تکراری') || errorData.profile.national_id.includes('قبلاً')) {
-                        newFieldErrors.nationalId = msg.validation('nationalIdInvalid');
-                    } else if (errorData.profile.national_id.includes('10 رقم') || errorData.profile.national_id.includes('طول')) {
-                        newFieldErrors.nationalId = msg.validation('nationalIdLength');
-                    } else {
-                        newFieldErrors.nationalId = msg.validation('nationalIdInvalid');
-                    }
-                }
-                if (errorData.profile?.first_name) {
-                    newFieldErrors.firstName = msg.validation('required', { field: 'نام' });
-                }
-                if (errorData.profile?.last_name) {
-                    newFieldErrors.lastName = msg.validation('required', { field: 'نام خانوادگی' });
+            if (Object.keys(mappedFieldErrors).length > 0) {
+                setFieldErrors(mappedFieldErrors);
+
+                const hasConsultantFieldError = Object.keys(mappedFieldErrors).some((key) =>
+                    [
+                        'license_number',
+                        'license_expire_date',
+                        'specialization',
+                        'agency_id',
+                        'agent_bio',
+                        'is_verified',
+                        'meta_title',
+                        'meta_description',
+                        'meta_keywords',
+                        'og_title',
+                        'og_description',
+                        'og_image_id',
+                    ].includes(key)
+                );
+
+                const hasAccountFieldError = Object.keys(mappedFieldErrors).some((key) =>
+                    [
+                        'firstName',
+                        'lastName',
+                        'email',
+                        'mobile',
+                        'phone',
+                        'nationalId',
+                        'address',
+                        'province',
+                        'city',
+                        'bio',
+                        'birthDate',
+                        'profileImage',
+                    ].includes(key)
+                );
+
+                if (hasConsultantFieldError && adminData?.user_role_type === 'consultant') {
+                    setActiveTab('consultant');
+                } else if (hasAccountFieldError) {
+                    setActiveTab('account');
                 }
 
-                if (errorData.detail) {
-                    showError(errorData.detail);
-                    return;
+                if (nonFieldError) {
+                    setFormAlert(nonFieldError);
                 }
-
-                if (Object.keys(newFieldErrors).length > 0) {
-                    setFieldErrors(newFieldErrors);
-                    return;
-                }
+                return;
             }
 
-            const errorMessage = msg.error('serverError');
-            showError(errorMessage);
+            if (nonFieldError) {
+                setFormAlert(nonFieldError);
+                return;
+            }
+
+            if (error instanceof ApiError && error.response.AppStatusCode < 500) {
+                setFormAlert(error.response.message || msg.error('validation'));
+                return;
+            }
+
+            notifyApiError(error, {
+                fallbackMessage: msg.error('serverError'),
+                preferBackendMessage: false,
+                dedupeKey: 'admins-edit-system-error',
+            });
         } finally {
             setIsSaving(false);
         }
@@ -363,6 +397,12 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
 
     return (
         <div className="space-y-6">
+            {formAlert ? (
+                <Alert variant="destructive" className="border-red-1/50">
+                    <AlertDescription>{formAlert}</AlertDescription>
+                </Alert>
+            ) : null}
+
             <ProfileHeader
                 admin={adminData}
                 formData={formData}

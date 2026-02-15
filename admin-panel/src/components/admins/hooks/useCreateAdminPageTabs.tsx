@@ -19,6 +19,7 @@ interface UseCreateAdminPageTabsParams {
   roles: Role[];
   loadingRoles: boolean;
   rolesError: string | null;
+  formErrorVersion: string;
 }
 
 export function useCreateAdminPageTabs({
@@ -29,6 +30,7 @@ export function useCreateAdminPageTabs({
   roles,
   loadingRoles,
   rolesError,
+  formErrorVersion,
 }: UseCreateAdminPageTabsParams) {
   const adminRoleType = form.watch("admin_role_type");
 
@@ -75,7 +77,7 @@ export function useCreateAdminPageTabs({
         ),
       },
     ],
-    [adminRoleType, editMode, form, loadingRoles, roles, rolesError, selectedMedia, setSelectedMedia]
+    [adminRoleType, editMode, form, loadingRoles, roles, rolesError, selectedMedia, setSelectedMedia, formErrorVersion]
   );
 
   return {

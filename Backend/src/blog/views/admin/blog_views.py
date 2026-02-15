@@ -35,7 +35,7 @@ from src.core.pagination import StandardLimitPagination
 from src.user.access_control import blog_permission, PermissionRequiredMixin
 from src.blog.messages.messages import BLOG_SUCCESS, BLOG_ERRORS
 from src.blog.utils.cache import BlogCacheManager
-from src.core.utils.validation_helpers import extract_validation_message
+from src.core.utils.validation_helpers import extract_validation_message, normalize_validation_error
 
 class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [blog_permission]
@@ -193,8 +193,10 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_201_CREATED
             )
         except ValidationError as e:
+            validation_errors = normalize_validation_error(e)
             return APIResponse.error(
-                message=str(e.message if hasattr(e, 'message') else e),
+                message=extract_validation_message(e, BLOG_ERRORS["blog_create_failed"]),
+                errors=validation_errors,
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
@@ -255,8 +257,10 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
         except ValidationError as e:
+            validation_errors = normalize_validation_error(e)
             return APIResponse.error(
-                message=str(e.message if hasattr(e, 'message') else e),
+                message=extract_validation_message(e, BLOG_ERRORS["blog_update_failed"]),
+                errors=validation_errors,
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -357,6 +361,7 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message = BLOG_ERRORS["blog_delete_failed"]
             return APIResponse.error(
                 message=message,
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -439,7 +444,7 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         media_ids = serializer.validated_data.get('media_ids', [])
         if not media_ids and not media_files:
             raise DRFValidationError({
-                'non_field_errors': ['At least one of media_ids or media_files must be provided.']
+                'non_field_errors': [BLOG_ERRORS["media_ids_or_files_required"]]
             })
         
         upload_max = settings.BLOG_MEDIA_UPLOAD_MAX
@@ -483,6 +488,12 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=BLOG_SUCCESS["blog_main_image_set"],
                 data=serializer.data,
                 status_code=status.HTTP_200_OK
+            )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, BLOG_ERRORS["blog_update_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception:
             return APIResponse.error(
@@ -546,6 +557,12 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=BLOG_ERRORS["category_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, BLOG_ERRORS["blog_update_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
         except Exception:
             return APIResponse.error(
                 message=BLOG_ERRORS["blog_update_failed"],
@@ -575,6 +592,12 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=BLOG_ERRORS["category_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, BLOG_ERRORS["blog_update_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
         except Exception:
             return APIResponse.error(
                 message=BLOG_ERRORS["blog_update_failed"],
@@ -600,6 +623,12 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 data={'added_count': tags.count()},
                 status_code=status.HTTP_200_OK
             )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, BLOG_ERRORS["blog_update_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
         except Exception:
             return APIResponse.error(
                 message=BLOG_ERRORS["blog_update_failed"],
@@ -624,6 +653,12 @@ class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 message=BLOG_SUCCESS["tags_removed"],
                 data={'removed_count': tags.count()},
                 status_code=status.HTTP_200_OK
+            )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, BLOG_ERRORS["blog_update_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception:
             return APIResponse.error(

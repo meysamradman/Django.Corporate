@@ -6,12 +6,14 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { blogApi } from "@/api/blogs/blogs";
 import { blogFormSchema, blogFormDefaults, type BlogFormValues } from "@/components/blogs/validations/blogSchema";
 import { collectModuleMediaIds as collectMediaIds, collectModuleMediaCovers as collectMediaCovers, parseModuleMedia as parseBlogMedia } from "@/components/media/utils/genericMediaUtils";
-import { showError, showSuccess, hasFieldErrors, extractFieldErrors } from "@/core/toast";
+import { notifyApiError, showSuccess } from "@/core/toast";
 import { msg } from "@/core/messages";
 import { MEDIA_CONFIG } from "@/core/config/environment";
 import { useMediaConfig } from "@/components/media/hooks/useMediaConfig";
 import { formatSlug } from '@/core/slug/generate';
 import type { BlogMedia } from "@/types/blog/blogMedia";
+import { ApiError } from "@/types/api/apiError";
+import { BLOG_FORM_FIELD_MAP, extractMappedBlogFieldErrors } from "@/components/blogs/validations/blogApiError";
 
 interface UseBlogFormProps {
     id?: string;
@@ -23,6 +25,7 @@ export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
     const queryClient = useQueryClient();
     const { data: mediaConfig } = useMediaConfig();
     const [activeTab, setActiveTab] = useState<string>("account");
+    const [formAlert, setFormAlert] = useState<string | null>(null);
     const [blogMedia, setBlogMedia] = useState<BlogMedia>({
         featuredImage: null,
         imageGallery: [],
@@ -38,6 +41,36 @@ export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
     });
 
     const { reset, setError } = form;
+
+    const BLOG_TAB_BY_FIELD: Record<string, string> = {
+        name: 'account',
+        slug: 'account',
+        short_description: 'account',
+        description: 'account',
+        selectedCategories: 'account',
+        selectedTags: 'account',
+        is_featured: 'account',
+        is_public: 'account',
+        is_active: 'account',
+        featuredImage: 'media',
+        media_ids: 'media',
+        main_image_id: 'media',
+        meta_title: 'seo',
+        meta_description: 'seo',
+        og_title: 'seo',
+        og_description: 'seo',
+        og_image: 'seo',
+        canonical_url: 'seo',
+        robots_meta: 'seo',
+    };
+
+    const resolveBlogErrorTab = (fieldKeys: Iterable<string>): string | null => {
+        for (const key of fieldKeys) {
+            const tab = BLOG_TAB_BY_FIELD[key];
+            if (tab) return tab;
+        }
+        return null;
+    };
 
     const { data: blog, isLoading } = useQuery({
         queryKey: ['blog', Number(id)],
@@ -165,6 +198,7 @@ export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
             }
         },
         onSuccess: (_data, variables) => {
+            setFormAlert(null);
             console.log("✅ [Blog][Submit] Success:", _data);
             console.groupEnd();
             queryClient.invalidateQueries({ queryKey: ['blogs'] });
@@ -179,46 +213,74 @@ export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
             showSuccess(successMessage);
             navigate("/blogs");
         },
-        onError: (error: any) => {
-            if (hasFieldErrors(error)) {
-                const fieldErrors = extractFieldErrors(error);
-                Object.entries(fieldErrors).forEach(([field, message]) => {
-                    const fieldMap: Record<string, string> = {
-                        'title': 'name',
-                        'categories_ids': 'selectedCategories',
-                        'tags_ids': 'selectedTags',
-                    };
+        onError: (error: unknown) => {
+            setFormAlert(null);
 
-                    const formField = fieldMap[field] || field;
-                    setError(formField as any, {
+            const { fieldErrors, nonFieldError } = extractMappedBlogFieldErrors(
+                error,
+                BLOG_FORM_FIELD_MAP as unknown as Record<string, string>
+            );
+
+            const mappedFieldKeys = Object.keys(fieldErrors);
+            if (mappedFieldKeys.length > 0) {
+                mappedFieldKeys.forEach((field) => {
+                    setError(field as any, {
                         type: 'server',
-                        message: message as string
+                        message: fieldErrors[field],
                     });
                 });
-                showError(error, { customMessage: msg.error("checkForm") });
-            } else {
-                showError(error);
+
+                const tabWithError = resolveBlogErrorTab(mappedFieldKeys);
+                if (tabWithError) {
+                    setActiveTab(tabWithError);
+                }
+
+                if (nonFieldError) {
+                    setFormAlert(nonFieldError);
+                }
+                console.groupEnd();
+                return;
             }
+
+            if (nonFieldError) {
+                setFormAlert(nonFieldError);
+                console.groupEnd();
+                return;
+            }
+
+            if (error instanceof ApiError) {
+                const statusCode = error.response.AppStatusCode;
+                if (statusCode < 500) {
+                    setFormAlert(error.response.message || msg.error('validation'));
+                    console.groupEnd();
+                    return;
+                }
+            }
+
+            notifyApiError(error, {
+                fallbackMessage: msg.error('serverError'),
+                dedupeKey: 'blogs-form-system-error',
+                preferBackendMessage: false,
+            });
             console.groupEnd();
         },
     });
 
     const handleSubmit = (status: "draft" | "published") =>
         form.handleSubmit(
-            (data) => mutation.mutate({ data, status }),
+            (data) => {
+                setFormAlert(null);
+                mutation.mutate({ data, status });
+            },
             (errors) => {
+                setFormAlert(null);
                 const errorFields = Object.keys(errors);
                 if (errorFields.length > 0) {
-                    if (errorFields.some(field => ['featuredImage', 'images', 'videos', 'audios', 'documents'].includes(field))) {
-                        setActiveTab('media');
+                    const tabWithError = resolveBlogErrorTab(errorFields);
+                    if (tabWithError) {
+                        setActiveTab(tabWithError);
                     }
-                    else if (errorFields.some(field => ['meta_title', 'meta_description', 'og_title', 'og_description', 'og_image', 'canonical_url', 'robots_meta'].includes(field))) {
-                        setActiveTab('seo');
-                    }
-                    else {
-                        setActiveTab('account');
-                    }
-                    showError(null, { customMessage: msg.error("checkForm") });
+                    setFormAlert(msg.error("checkForm"));
                 }
             }
         );
@@ -227,6 +289,8 @@ export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
         form,
         activeTab,
         setActiveTab,
+        formAlert,
+        clearFormAlert: () => setFormAlert(null),
         blogMedia,
         setBlogMedia,
         handleSubmit,

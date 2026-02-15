@@ -241,6 +241,34 @@ export const adminFormSchema = z.object({
     .any()
     .nullable()
     .optional(),
+}).superRefine((data, ctx) => {
+  if (data.admin_role_type !== 'consultant') {
+    return;
+  }
+
+  if (!data.license_number || data.license_number.trim() === '') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: msg.validation('required', { field: 'شماره پروانه کسب' }),
+      path: ['license_number'],
+    });
+  }
+
+  if (!data.profile_first_name || data.profile_first_name.trim() === '') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: msg.validation('required', { field: 'نام' }),
+      path: ['profile_first_name'],
+    });
+  }
+
+  if (!data.profile_last_name || data.profile_last_name.trim() === '') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: msg.validation('required', { field: 'نام خانوادگی' }),
+      path: ['profile_last_name'],
+    });
+  }
 });
 
 export type AdminFormValues = z.input<typeof adminFormSchema>;

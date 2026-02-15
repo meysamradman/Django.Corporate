@@ -45,7 +45,7 @@ const TabSkeleton = () => (
           </div>
         </div>
       </div>
-      <div className="w-full lg:w-[420px] lg:flex-shrink-0">
+      <div className="w-full lg:w-105 lg:shrink-0">
         <div className="border border-br overflow-hidden lg:sticky lg:top-20">
           <div className="border-b border-b-blue-1 bg-bg/50 px-6 py-4">
             <div className="flex items-center gap-3">
@@ -84,6 +84,8 @@ export default function EditBlogPage() {
     form,
     activeTab,
     setActiveTab,
+    formAlert,
+    clearFormAlert,
     blogMedia,
     setBlogMedia,
     handleSubmit,
@@ -94,6 +96,11 @@ export default function EditBlogPage() {
 
   const handleSave = handleSubmit("published");
   const handleSaveDraft = handleSubmit("draft");
+
+  const handleTabChange = (nextTab: string) => {
+    clearFormAlert();
+    setActiveTab(nextTab);
+  };
 
   if (isLoading) {
     return (
@@ -130,12 +137,13 @@ export default function EditBlogPage() {
   return (
     <BlogFormLayout
       activeTab={activeTab}
-      onTabChange={setActiveTab}
+      onTabChange={handleTabChange}
       onSubmit={handleSave}
       onSaveDraft={handleSaveDraft}
       isPending={isPending}
       isSubmitting={form.formState.isSubmitting}
       isEditMode={true}
+      formAlert={formAlert}
     >
       <TabsContent value="account">
         <Suspense fallback={<TabSkeleton />}>

@@ -16,7 +16,7 @@ from src.blog.filters.admin.category_filters import BlogCategoryAdminFilter
 from src.core.pagination import StandardLimitPagination
 from src.user.access_control import blog_permission, PermissionRequiredMixin
 from src.core.responses.response import APIResponse
-from src.core.utils.validation_helpers import extract_validation_message
+from src.core.utils.validation_helpers import extract_validation_message, normalize_validation_error
 from src.blog.messages.messages import CATEGORY_SUCCESS, CATEGORY_ERRORS
 
 class BlogCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
@@ -93,16 +93,23 @@ class BlogCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        category = BlogCategoryAdminService.create_category(
-            serializer.validated_data,
-            created_by=request.user
-        )
-        detail_serializer = BlogCategoryAdminDetailSerializer(category)
-        return APIResponse.success(
-            message=CATEGORY_SUCCESS["category_created"],
-            data=detail_serializer.data,
-            status_code=status.HTTP_201_CREATED
-        )
+        try:
+            category = BlogCategoryAdminService.create_category(
+                serializer.validated_data,
+                created_by=request.user
+            )
+            detail_serializer = BlogCategoryAdminDetailSerializer(category)
+            return APIResponse.success(
+                message=CATEGORY_SUCCESS["category_created"],
+                data=detail_serializer.data,
+                status_code=status.HTTP_201_CREATED
+            )
+        except ValidationError as e:
+            return APIResponse.error(
+                message=extract_validation_message(e, CATEGORY_ERRORS["category_create_failed"]),
+                errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
     
     def retrieve(self, request, *args, **kwargs):
         category = BlogCategoryAdminService.get_category_by_id(kwargs.get('pk'))
@@ -123,8 +130,15 @@ class BlogCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         category_id = kwargs.get('pk')
-        
-        serializer = self.get_serializer(data=request.data, partial=partial)
+
+        category = BlogCategoryAdminService.get_category_by_id(category_id)
+        if not category:
+            return APIResponse.error(
+                message=CATEGORY_ERRORS["category_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = self.get_serializer(category, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         try:
             updated_category = BlogCategoryAdminService.update_category_by_id(
@@ -137,9 +151,10 @@ class BlogCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 data=detail_serializer.data,
                 status_code=status.HTTP_200_OK
             )
-        except Exception as e:
+        except ValidationError as e:
             return APIResponse.error(
-                message=CATEGORY_ERRORS["category_update_failed"],
+                message=extract_validation_message(e, CATEGORY_ERRORS["category_update_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
@@ -160,6 +175,7 @@ class BlogCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         except ValidationError as e:
             return APIResponse.error(
                 message=extract_validation_message(e, CATEGORY_ERRORS["category_delete_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -246,6 +262,7 @@ class BlogCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             message = extract_validation_message(e, CATEGORY_ERRORS["category_move_failed"].format(error="unknown"))
             return APIResponse.error(
                 message=message,
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     
@@ -281,6 +298,7 @@ class BlogCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         except ValidationError as e:
             return APIResponse.error(
                 message=extract_validation_message(e, CATEGORY_ERRORS["category_delete_failed"]),
+                errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     

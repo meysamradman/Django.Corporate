@@ -7,6 +7,8 @@ import { blogCategoryFormSchema, blogCategoryFormDefaults, type BlogCategoryForm
 import { FormField, FormFieldInput, FormFieldTextarea, FormFieldSwitch } from "@/components/shared/FormField";
 import { TreeSelect } from "@/components/elements/TreeSelect";
 import { ImageSelector } from "@/components/media/selectors/ImageSelector";
+import { Alert, AlertDescription } from "@/components/elements/Alert";
+import { AlertCircle } from "lucide-react";
 
 interface BlogCategorySideProps {
     isOpen: boolean;
@@ -22,6 +24,7 @@ export const BlogCategorySide: React.FC<BlogCategorySideProps> = ({
     editId,
 }) => {
     const isEditMode = !!editId;
+    const [formAlert, setFormAlert] = React.useState<string | null>(null);
 
     const {
         form,
@@ -47,6 +50,9 @@ export const BlogCategorySide: React.FC<BlogCategorySideProps> = ({
         },
         itemLabel: "دسته‌بندی",
         titleFieldName: "name",
+        onValidationMessage: setFormAlert,
+        showFieldErrorToast: false,
+        showClientValidationToast: false,
     });
 
     const { register, formState: { errors }, watch, setValue } = form;
@@ -68,6 +74,13 @@ export const BlogCategorySide: React.FC<BlogCategorySideProps> = ({
             submitButtonText={isEditMode ? "بروزرسانی" : "ایجاد"}
         >
             <div className="space-y-6">
+                {formAlert ? (
+                    <Alert variant="destructive" className="border-red-1/50">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>{formAlert}</AlertDescription>
+                    </Alert>
+                ) : null}
+
                 <ImageSelector
                     selectedMedia={selectedMedia}
                     onMediaSelect={handleImageSelect}

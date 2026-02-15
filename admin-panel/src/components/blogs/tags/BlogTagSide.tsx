@@ -4,6 +4,8 @@ import { TaxonomyDrawer } from "@/components/templates/TaxonomyDrawer";
 import { useRealEstateTaxonomyForm } from "@/components/real-estate/hooks/useRealEstateTaxonomyForm";
 import { blogTagFormSchema, blogTagFormDefaults, type BlogTagFormValues } from "@/components/blogs/validations/tagSchema";
 import { FormFieldInput, FormFieldTextarea, FormFieldSwitch } from "@/components/shared/FormField";
+import { Alert, AlertDescription } from "@/components/elements/Alert";
+import { AlertCircle } from "lucide-react";
 
 interface BlogTagSideProps {
     isOpen: boolean;
@@ -19,6 +21,7 @@ export const BlogTagSide: React.FC<BlogTagSideProps> = ({
     editId,
 }) => {
     const isEditMode = !!editId;
+    const [formAlert, setFormAlert] = React.useState<string | null>(null);
 
     const {
         form,
@@ -42,6 +45,9 @@ export const BlogTagSide: React.FC<BlogTagSideProps> = ({
         },
         itemLabel: "تگ",
         titleFieldName: "name",
+        onValidationMessage: setFormAlert,
+        showFieldErrorToast: false,
+        showClientValidationToast: false,
     });
 
     const { register, formState: { errors }, watch, setValue } = form;
@@ -58,6 +64,13 @@ export const BlogTagSide: React.FC<BlogTagSideProps> = ({
             submitButtonText={isEditMode ? "بروزرسانی" : "ایجاد"}
         >
             <div className="space-y-6">
+                {formAlert ? (
+                    <Alert variant="destructive" className="border-red-1/50">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>{formAlert}</AlertDescription>
+                    </Alert>
+                ) : null}
+
                 <div className="grid gap-5">
                     <FormFieldInput
                         label="نام"

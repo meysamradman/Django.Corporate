@@ -341,6 +341,7 @@ class AdminUpdateSerializer(serializers.Serializer):
     role_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     profile = serializers.DictField(required=False)
+    agent_profile = serializers.DictField(required=False)
     
     profile_picture = serializers.ImageField(required=False, allow_null=True, write_only=True)
 
@@ -417,11 +418,21 @@ class AdminUpdateSerializer(serializers.Serializer):
             try:
                 user = User.objects.get(id=user_id)
                 is_consultant = hasattr(user, 'real_estate_agent_profile') and user.real_estate_agent_profile is not None
+                agent_profile_payload = data.get('agent_profile') or {}
                 
                 if is_consultant:
                     if data.get('is_superuser') is True:
                         raise serializers.ValidationError({
                             'is_superuser': AUTH_ERRORS["consultant_superuser_forbidden"]
+                        })
+
+                    current_license = getattr(user.real_estate_agent_profile, 'license_number', None)
+                    incoming_license = agent_profile_payload.get('license_number') if isinstance(agent_profile_payload, dict) else None
+                    normalized_incoming_license = incoming_license.strip() if isinstance(incoming_license, str) else incoming_license
+
+                    if (incoming_license is not None and not normalized_incoming_license) or (not current_license and not normalized_incoming_license):
+                        raise serializers.ValidationError({
+                            'agent_profile.license_number': AUTH_ERRORS["consultant_license_required"]
                         })
                     
                     role_id = data.get('role_id')

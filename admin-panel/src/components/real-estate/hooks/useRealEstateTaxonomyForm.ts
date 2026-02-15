@@ -24,6 +24,10 @@ interface UseTaxonomyFormProps<T extends FieldValues> {
     itemLabel: string;
     autoSlug?: boolean;
     titleFieldName?: string;
+    mapFieldErrorKey?: (field: string) => string;
+    onValidationMessage?: (message: string | null) => void;
+    showFieldErrorToast?: boolean;
+    showClientValidationToast?: boolean;
 }
 
 export function useRealEstateTaxonomyForm<T extends FieldValues>({
@@ -41,6 +45,10 @@ export function useRealEstateTaxonomyForm<T extends FieldValues>({
     itemLabel,
     autoSlug = true,
     titleFieldName = "title",
+    mapFieldErrorKey,
+    onValidationMessage,
+    showFieldErrorToast = true,
+    showClientValidationToast = true,
 }: UseTaxonomyFormProps<T>) {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -87,6 +95,7 @@ export function useRealEstateTaxonomyForm<T extends FieldValues>({
             }
         },
         onSuccess: () => {
+            onValidationMessage?.(null);
             showSuccess(msg.crud(isEditMode ? "updated" : "created", { item: itemLabel }));
             invalidateQueryKeys.forEach(key => queryClient.invalidateQueries({ queryKey: key }));
 
@@ -103,15 +112,33 @@ export function useRealEstateTaxonomyForm<T extends FieldValues>({
             }
         },
         onError: (error: any) => {
+            onValidationMessage?.(null);
             if (hasFieldErrors(error)) {
                 const fieldErrors = extractFieldErrors(error);
+                const nonFieldError = fieldErrors.non_field_errors;
+                let hasMappedFieldErrors = false;
+
                 Object.entries(fieldErrors).forEach(([field, message]) => {
-                    setError(field as any, {
+                    if (field === 'non_field_errors') {
+                        return;
+                    }
+
+                    const mappedField = mapFieldErrorKey ? mapFieldErrorKey(field) : field;
+                    hasMappedFieldErrors = true;
+
+                    setError(mappedField as any, {
                         type: 'server',
                         message: message as string
                     });
                 });
-                showError(error, { customMessage: msg.error("checkForm") });
+
+                if (nonFieldError) {
+                    onValidationMessage?.(nonFieldError);
+                }
+
+                if (hasMappedFieldErrors && showFieldErrorToast) {
+                    showError(error, { customMessage: msg.error("checkForm") });
+                }
             } else {
                 showError(error);
             }
@@ -130,8 +157,12 @@ export function useRealEstateTaxonomyForm<T extends FieldValues>({
     };
 
     const handleSubmit = form.handleSubmit(
-        (data) => mutation.mutate(data as T),
+        (data) => {
+            onValidationMessage?.(null);
+            mutation.mutate(data as T);
+        },
         (errors) => {
+            onValidationMessage?.(null);
             const errorFields = Object.keys(errors);
             if (errorFields.length > 0) {
                 if (errorFields.some(field => field === 'image_id')) {
@@ -143,7 +174,9 @@ export function useRealEstateTaxonomyForm<T extends FieldValues>({
                 else {
                     setActiveTab('account');
                 }
-                showError(null, { customMessage: msg.error("checkForm") });
+                if (showClientValidationToast) {
+                    showError(null, { customMessage: msg.error("checkForm") });
+                }
             }
         }
     );

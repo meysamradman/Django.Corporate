@@ -1,16 +1,20 @@
 import { useState, lazy } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { useFormState } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
-import { showSuccess, showError, extractFieldErrors, hasFieldErrors } from '@/core/toast';
+import { extractFieldErrors, handleFormApiError, notifyApiError, showSuccess } from '@/core/toast';
 import { msg } from '@/core/messages';
-import { Building2, UserCircle, Search } from "lucide-react";
+import { AlertCircle, Building2, UserCircle, Search } from "lucide-react";
 import type { Media } from "@/types/shared/media";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { agencyFormSchema, agencyFormDefaults, type AgencyFormValues } from '@/components/real-estate/validations/agencySchema';
+import { AGENCY_FIELD_MAP, mapAgencyFieldErrorKey } from '@/components/real-estate/validations/agencyApiError';
 import { TabbedPageLayout } from "@/components/templates/TabbedPageLayout";
+import { ApiError } from "@/types/api/apiError";
+import { Alert, AlertDescription } from "@/components/elements/Alert";
 
 const BaseInfoTab = lazy(() => import("@/components/real-estate/agencies/edit/AgencyInfo"));
 const ProfileTab = lazy(() => import("@/components/real-estate/agencies/create/AgencyProfile"));
@@ -21,12 +25,47 @@ export default function AdminsAgenciesCreatePage() {
     const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState<string>("account");
     const [selectedLogo, setSelectedLogo] = useState<Media | null>(null);
+    const [formAlert, setFormAlert] = useState<string | null>(null);
+
+    const AGENCY_CREATE_TAB_BY_FIELD: Record<string, string> = {
+        name: 'account',
+        slug: 'account',
+        phone: 'account',
+        email: 'account',
+        website: 'account',
+        license_number: 'account',
+        license_expire_date: 'account',
+        city: 'account',
+        province: 'account',
+        profile_picture: 'profile',
+        description: 'profile',
+        address: 'profile',
+        is_active: 'profile',
+        rating: 'profile',
+        total_reviews: 'profile',
+        meta_title: 'seo',
+        meta_description: 'seo',
+        og_title: 'seo',
+        og_description: 'seo',
+        canonical_url: 'seo',
+        robots_meta: 'seo',
+    };
+
+    const resolveAgencyCreateErrorTab = (fieldKeys: Iterable<string>): string | null => {
+        for (const key of fieldKeys) {
+            const tab = AGENCY_CREATE_TAB_BY_FIELD[key];
+            if (tab) return tab;
+        }
+        return null;
+    };
 
     const form = useForm<AgencyFormValues>({
         resolver: zodResolver(agencyFormSchema),
         defaultValues: agencyFormDefaults,
         mode: "onSubmit",
     });
+
+    useFormState({ control: form.control });
 
     const handleInputChange = (field: string, value: any) => {
         if (field === "name" && typeof value === "string") {
@@ -71,94 +110,142 @@ export default function AdminsAgenciesCreatePage() {
             return await realEstateApi.createAgency(agencyData as any);
         },
         onSuccess: () => {
+            setFormAlert(null);
             queryClient.invalidateQueries({ queryKey: ['agencies'] });
             showSuccess(msg.crud('created', { item: 'آژانس' }));
             navigate("/admins/agencies");
         },
-        onError: (error: any) => {
-            if (hasFieldErrors(error)) {
-                const fieldErrors = extractFieldErrors(error);
+        onError: (error: unknown) => {
+            setFormAlert(null);
 
-                Object.entries(fieldErrors).forEach(([field, message]) => {
-                    const fieldMap: Record<string, any> = {
-                        'name': 'name',
-                        'phone': 'phone',
-                        'email': 'email',
-                        'license_number': 'license_number',
-                        'city': 'city',
-                        'province': 'province',
-                        'slug': 'slug',
-                    };
+            const fieldErrors = extractFieldErrors(error);
+            if (Object.keys(fieldErrors).length > 0) {
+                const mappedFieldKeys: string[] = [];
 
-                    const formField = fieldMap[field] || field;
-                    form.setError(formField as keyof AgencyFormValues, {
-                        type: 'server',
-                        message: message as string
-                    });
+                handleFormApiError(error, {
+                    setFieldError: (field, message) => {
+                        if (field === 'non_field_errors') {
+                            setFormAlert(message);
+                            return;
+                        }
+
+                        const formField = mapAgencyFieldErrorKey(
+                            field,
+                            AGENCY_FIELD_MAP as unknown as Record<string, string>
+                        ) as keyof AgencyFormValues;
+
+                        mappedFieldKeys.push(String(formField));
+                        form.setError(formField, {
+                            type: 'server',
+                            message,
+                        });
+                    },
+                    checkFormMessage: msg.error('checkForm'),
+                    showToastForFieldErrors: false,
+                    preferBackendMessage: false,
+                    dedupeKey: 'agencies-create-validation-error',
                 });
 
-                showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
+                const tabWithError = resolveAgencyCreateErrorTab(mappedFieldKeys);
+                if (tabWithError) {
+                    setActiveTab(tabWithError);
+                }
+                return;
             }
-            else {
-                showError(error);
+
+            if (error instanceof ApiError && error.response.AppStatusCode < 500) {
+                setFormAlert(error.response.message || msg.error('validation'));
+                return;
             }
+
+            notifyApiError(error, {
+                fallbackMessage: msg.error('serverError'),
+                preferBackendMessage: false,
+                dedupeKey: 'agencies-create-system-error',
+            });
         },
     });
 
     const handleSubmit = async () => {
+        setFormAlert(null);
+        form.clearErrors();
         const isValid = await form.trigger();
-        if (!isValid) return;
+        if (!isValid) {
+            const tabWithError = resolveAgencyCreateErrorTab(Object.keys(form.formState.errors));
+            if (tabWithError) {
+                setActiveTab(tabWithError);
+            }
+            return;
+        }
 
         const data = form.getValues();
         createAgencyMutation.mutate(data);
     };
 
+    const handleTabChange = (nextTab: string) => {
+        if (nextTab === activeTab) {
+            return;
+        }
+
+        setFormAlert(null);
+        setActiveTab(nextTab);
+    };
+
     return (
-        <TabbedPageLayout
-            title="افزودن آژانس"
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            onSave={handleSubmit}
-            isSaving={createAgencyMutation.isPending}
-            tabs={[
-                {
-                    id: "account",
-                    label: "اطلاعات پایه",
-                    icon: <Building2 className="h-4 w-4" />,
-                    content: (
-                        <BaseInfoTab
-                            form={form}
-                            editMode={true}
-                            handleInputChange={handleInputChange}
-                        />
-                    ),
-                },
-                {
-                    id: "profile",
-                    label: "پروفایل",
-                    icon: <UserCircle className="h-4 w-4" />,
-                    content: (
-                        <ProfileTab
-                            form={form}
-                            selectedMedia={selectedLogo}
-                            setSelectedMedia={setSelectedLogo}
-                            editMode={true}
-                        />
-                    ),
-                },
-                {
-                    id: "seo",
-                    label: "سئو",
-                    icon: <Search className="h-4 w-4" />,
-                    content: (
-                        <SEOTab
-                            form={form}
-                            editMode={true}
-                        />
-                    ),
-                },
-            ]}
-        />
+        <div className="space-y-4">
+            {formAlert ? (
+                <Alert variant="destructive" className="border-red-1/50">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{formAlert}</AlertDescription>
+                </Alert>
+            ) : null}
+
+            <TabbedPageLayout
+                title="افزودن آژانس"
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+                onSave={handleSubmit}
+                isSaving={createAgencyMutation.isPending}
+                tabs={[
+                    {
+                        id: "account",
+                        label: "اطلاعات پایه",
+                        icon: <Building2 className="h-4 w-4" />,
+                        content: (
+                            <BaseInfoTab
+                                form={form}
+                                editMode={true}
+                                handleInputChange={handleInputChange}
+                            />
+                        ),
+                    },
+                    {
+                        id: "profile",
+                        label: "پروفایل",
+                        icon: <UserCircle className="h-4 w-4" />,
+                        content: (
+                            <ProfileTab
+                                form={form}
+                                selectedMedia={selectedLogo}
+                                setSelectedMedia={setSelectedLogo}
+                                editMode={true}
+                            />
+                        ),
+                    },
+                    {
+                        id: "seo",
+                        label: "سئو",
+                        icon: <Search className="h-4 w-4" />,
+                        content: (
+                            <SEOTab
+                                form={form}
+                                editMode={true}
+                            />
+                        ),
+                    },
+                ]}
+            />
+        </div>
     );
 }
 

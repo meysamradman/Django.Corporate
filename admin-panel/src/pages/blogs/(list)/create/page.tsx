@@ -42,7 +42,7 @@ const TabSkeleton = () => (
         </CardWithIcon>
       </div>
 
-      <div className="w-full lg:w-[420px] lg:shrink-0">
+      <div className="w-full lg:w-105 lg:shrink-0">
         <CardWithIcon
           icon={Settings}
           title="تنظیمات"
@@ -77,6 +77,8 @@ export default function CreateBlogPage() {
     form,
     activeTab,
     setActiveTab,
+    formAlert,
+    clearFormAlert,
     blogMedia,
     setBlogMedia,
     handleSubmit,
@@ -86,15 +88,21 @@ export default function CreateBlogPage() {
   const handleSave = handleSubmit("published");
   const handleSaveDraft = handleSubmit("draft");
 
+  const handleTabChange = (nextTab: string) => {
+    clearFormAlert();
+    setActiveTab(nextTab);
+  };
+
   return (
     <BlogFormLayout
       activeTab={activeTab}
-      onTabChange={setActiveTab}
+      onTabChange={handleTabChange}
       onSubmit={handleSave}
       onSaveDraft={handleSaveDraft}
       isPending={isPending}
       isSubmitting={form.formState.isSubmitting}
       isEditMode={false}
+      formAlert={formAlert}
     >
       <TabsContent value="account">
         <Suspense fallback={<TabSkeleton />}>

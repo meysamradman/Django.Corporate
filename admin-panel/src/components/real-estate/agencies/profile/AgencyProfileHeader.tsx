@@ -3,7 +3,7 @@ import { CheckCircle2, XCircle, Phone, Clock, Star, MapPin } from "lucide-react"
 import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import type { Media } from "@/types/shared/media";
 import { useQueryClient } from '@tanstack/react-query';
-import { showSuccess, showError } from '@/core/toast';
+import { notifyApiError, showSuccess } from '@/core/toast';
 import { realEstateApi } from '@/api/real-estate';
 
 interface AgencyProfileHeaderProps {
@@ -23,7 +23,6 @@ export function AgencyProfileHeader({ agency, selectedLogo, onLogoChange, agency
         const targetAgencyId = agencyId && !isNaN(Number(agencyId)) ? Number(agencyId) : agency?.id;
 
         if (!targetAgencyId) {
-            showError("شناسه آژانس یافت نشد");
             return;
         }
 
@@ -49,7 +48,6 @@ export function AgencyProfileHeader({ agency, selectedLogo, onLogoChange, agency
             const updatedAgency = await realEstateApi.updateAgency(targetAgencyId, updateData);
 
             if (!updatedAgency) {
-                showError("خطا در دریافت پاسخ از سرور");
                 return;
             }
 
@@ -70,7 +68,11 @@ export function AgencyProfileHeader({ agency, selectedLogo, onLogoChange, agency
                 showSuccess("لوگو آژانس با موفقیت حذف شد");
             }
         } catch (error) {
-            showError(error, { customMessage: "خطا در ذخیره لوگو آژانس" });
+            notifyApiError(error, {
+                fallbackMessage: "خطا در ذخیره لوگو آژانس",
+                preferBackendMessage: true,
+                dedupeKey: 'agency-logo-update-system-error',
+            });
         }
     };
 
