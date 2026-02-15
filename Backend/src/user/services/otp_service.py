@@ -92,7 +92,15 @@ class OTPService:
             self._send_sms(mobile, otp)
             return True
 
-        except Exception:
+        except Exception as e:
+            message = str(e) if str(e) else ''
+            if message in {
+                AUTH_ERRORS.get("auth_invalid_mobile"),
+                AUTH_ERRORS.get("otp_request_limit"),
+                AUTH_ERRORS.get("otp_send_failed"),
+            }:
+                raise Exception(message)
+
             raise Exception(AUTH_ERRORS["otp_send_failed"])
 
     def verify_otp(self, identifier, otp):

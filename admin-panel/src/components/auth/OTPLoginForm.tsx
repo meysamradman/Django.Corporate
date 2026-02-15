@@ -14,6 +14,7 @@ import { notifyApiError } from '@/core/toast';
 import { Alert, AlertDescription } from '@/components/elements/Alert';
 import { authApi } from '@/api/auth/auth';
 import { extractMappedLoginFieldErrors, LOGIN_OTP_FIELD_MAP } from './validations/loginApiError';
+import { AUTH_UI_CONFIG } from '@/core/config/auth';
 
 interface OTPLoginFormProps {
   mobile: string;
@@ -30,7 +31,7 @@ function OTPLoginForm({
   onSwitchToPassword,
   onCaptchaInvalid,
   loading = false,
-  otpLength = 5,
+  otpLength = AUTH_UI_CONFIG.defaultOtpLength,
 }: OTPLoginFormProps) {
   const [otpSent, setOtpSent] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
@@ -77,7 +78,7 @@ function OTPLoginForm({
     try {
       await authApi.sendOTP(mobile);
       setOtpSent(true);
-      setResendTimer(60);
+      setResendTimer(AUTH_UI_CONFIG.otpResendSeconds);
     } catch (error) {
       notifyApiError(error, { customMessage: msg.auth("otpSendFailed") });
     } finally {
@@ -88,7 +89,7 @@ function OTPLoginForm({
   useEffect(() => {
     if (mobile) {
       setOtpSent(true);
-      setResendTimer(60);
+      setResendTimer(AUTH_UI_CONFIG.otpResendSeconds);
     }
   }, [mobile]);
 

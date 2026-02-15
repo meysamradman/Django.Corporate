@@ -165,26 +165,28 @@ function PasswordLoginForm({
         </div>
       </FormField>
 
-      {onSwitchToOTP && (
-        <button
-          type="button"
-          onClick={onSwitchToOTP}
-          className="w-full flex items-center justify-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          ورود با کد یکبار مصرف
-        </button>
-      )}
+      <div className="space-y-2">
+        {onSwitchToOTP && (
+          <button
+            type="button"
+            onClick={onSwitchToOTP}
+            className="w-full flex items-center justify-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors cursor-pointer"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            ورود با کد یکبار مصرف
+          </button>
+        )}
 
-      {onForgotPassword && (
-        <button
-          type="button"
-          onClick={onForgotPassword}
-          className="w-full text-sm text-font-s hover:text-font-p transition-colors"
-        >
-          فراموشی رمز عبور
-        </button>
-      )}
+        {onForgotPassword && (
+          <button
+            type="button"
+            onClick={onForgotPassword}
+            className="w-full text-sm text-font-s hover:text-font-p transition-colors cursor-pointer"
+          >
+            فراموشی رمز عبور
+          </button>
+        )}
+      </div>
 
       <Button 
         type="submit" 

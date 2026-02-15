@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,6 +16,7 @@ import { notifyApiError, extractFieldErrors, showSuccess } from '@/core/toast';
 import { filterNumericOnly } from '@/core/utils/numeric';
 import { validateMobile } from '@/core/validation/mobile';
 import { ApiError } from '@/types/api/apiError';
+import { AUTH_UI_CONFIG } from '@/core/config/auth';
 
 type ResetStep = 'request' | 'verify' | 'confirm';
 
@@ -92,7 +93,7 @@ function AdminPasswordResetForm({
   initialCaptchaId,
   initialCaptchaDigits,
   initialCaptchaAnswer,
-  otpLength = 5,
+  otpLength = AUTH_UI_CONFIG.defaultOtpLength,
   loading = false,
   onBack,
   onCompleted,
@@ -106,6 +107,7 @@ function AdminPasswordResetForm({
   const [captchaId, setCaptchaId] = useState(initialCaptchaId || '');
   const [captchaDigits, setCaptchaDigits] = useState(initialCaptchaDigits || '');
   const [captchaLoading, setCaptchaLoading] = useState(false);
+  const autoRequestTriedRef = useRef(false);
 
   const requestForm = useForm<RequestForm>({
     resolver: zodResolver(requestSchema),
@@ -180,6 +182,11 @@ function AdminPasswordResetForm({
 
   useEffect(() => {
     const autoRequest = async () => {
+      if (autoRequestTriedRef.current) {
+        return;
+      }
+      autoRequestTriedRef.current = true;
+
       if (!mobile || !initialCaptchaId || !initialCaptchaAnswer) {
         if (!captchaId) {
           await fetchCaptchaChallenge();
@@ -199,7 +206,7 @@ function AdminPasswordResetForm({
       } catch (error) {
         const backendMessage = error instanceof ApiError ? (error.response?.message || '').toLowerCase() : '';
         if (backendMessage.includes('captcha') || backendMessage.includes('کپتچا')) {
-          setFormAlert('برای ادامه، کپچا را دوباره وارد کنید.');
+          setFormAlert(null);
           await fetchCaptchaChallenge();
           requestForm.setValue('captcha_answer', '', { shouldValidate: false });
           setStep('request');
@@ -366,7 +373,7 @@ function AdminPasswordResetForm({
       <button
         type="button"
         onClick={onBack}
-        className="flex items-center gap-2 text-sm text-font-s hover:text-font-p transition-colors"
+        className="inline-flex items-center gap-2 text-sm text-font-s hover:text-font-p transition-colors cursor-pointer"
       >
         <ChevronLeft className="h-4 w-4" />
         بازگشت به ورود

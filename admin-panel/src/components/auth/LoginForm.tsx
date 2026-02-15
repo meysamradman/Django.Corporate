@@ -5,6 +5,7 @@ import { showError, showSuccess } from '@/core/toast';
 import { msg } from '@/core/messages';
 import { authApi } from '@/api/auth/auth';
 import { MobileInputForm } from './MobileInputForm';
+import { AUTH_UI_CONFIG } from '@/core/config/auth';
 import { ChevronLeft } from 'lucide-react';
 
 const PasswordLoginForm = lazy(() => import('./PasswordLoginForm'));
@@ -40,7 +41,7 @@ export function LoginForm() {
   
   const [step, setStep] = useState<LoginStep>('mobile');
   const [mobile, setMobile] = useState<string>('');
-  const [otpLength, setOtpLength] = useState(5);
+  const [otpLength, setOtpLength] = useState<number>(AUTH_UI_CONFIG.defaultOtpLength);
   const [captchaId, setCaptchaId] = useState<string>('');
   const [captchaDigits, setCaptchaDigits] = useState<string>('');
   const [captchaLoading, setCaptchaLoading] = useState<boolean>(false);
@@ -62,7 +63,7 @@ export function LoginForm() {
   useEffect(() => {
     const fetchData = async () => {
       const [otpSettingsResult, captchaResult] = await Promise.allSettled([
-        authApi.getOTPSettings().catch(() => ({ otp_length: 5 })),
+        authApi.getOTPSettings().catch(() => ({ otp_length: AUTH_UI_CONFIG.defaultOtpLength })),
         authApi.getCaptchaChallenge().catch(() => null),
       ]);
 
@@ -159,11 +160,11 @@ export function LoginForm() {
 
   return (
     <>
-      {(step === 'otp' || step === 'forgot-password') && (
+      {step === 'otp' && (
         <button
           type="button"
           onClick={handleBackToMobile}
-          className="mb-4 flex items-center gap-2 text-sm text-font-s hover:text-font-p transition-colors"
+          className="mb-4 flex items-center gap-2 text-sm text-font-s hover:text-font-p transition-colors cursor-pointer"
         >
           <ChevronLeft className="h-4 w-4" />
           بازگشت

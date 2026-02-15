@@ -1,11 +1,12 @@
 from django.core.exceptions import ValidationError
+from django.conf import settings
 import random
 import string
 from datetime import datetime, timedelta
 
 from src.user.messages import AUTH_ERRORS
 
-OTP_LENGTH = 5
+OTP_LENGTH = int(getattr(settings, 'OTP_LENGTH', 4))
 
 def get_otp_length():
 

@@ -52,9 +52,9 @@ class AdminPasswordResetRequestOTPView(APIView):
                 message=AUTH_SUCCESS.get("otp_sent"),
                 status_code=200,
             )
-        except Exception:
+        except Exception as e:
             return APIResponse.error(
-                message=AUTH_ERRORS.get("otp_send_failed"),
+                message=extract_validation_message(e, AUTH_ERRORS.get("otp_send_failed")),
                 status_code=400,
             )
 
