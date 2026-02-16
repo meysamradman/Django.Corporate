@@ -56,6 +56,9 @@ export interface PropertyType extends Base {
     name: string;
     slug: string;
     description?: string;
+    // Backend public serializer returns `image_url` string.
+    image_url?: string | null;
+    // Keep `image` optional for any other endpoints that return a nested Media object.
     image?: Media | null;
 }
 

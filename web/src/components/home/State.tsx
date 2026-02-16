@@ -4,21 +4,11 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardFooter } from "@/components/elements/Card";
 import { realEstateApi } from "@/api/real-estate/route";
 import type { PropertyState } from "@/types/real-estate/property";
+import { realEstateMedia } from "@/core/utils/media";
 
 export default function State() {
   const [states, setStates] = useState<PropertyState[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const apiBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || '').replace(/\/$/, '');
-  const backendBaseUrl = apiBaseUrl.replace(/\/api$/i, '');
-
-  const getStateImageUrl = (imageUrl?: string | null) => {
-    if (!imageUrl) return "/images/profile-banner.png";
-    if (/^https?:\/\//i.test(imageUrl)) return imageUrl;
-    if (imageUrl.startsWith('/')) {
-      return backendBaseUrl ? `${backendBaseUrl}${imageUrl}` : imageUrl;
-    }
-    return imageUrl;
-  };
 
   const formatUsageType = (usageType?: string) => {
     switch ((usageType || '').toLowerCase()) {
@@ -47,7 +37,8 @@ export default function State() {
           const items = Array.isArray(result?.data) ? result.data : [];
           setStates(items.slice(0, 3));
         }
-      } catch {
+      } catch (error) {
+        console.error('Error loading states:', error);
         if (isMounted) {
           setStates([]);
         }
@@ -65,28 +56,26 @@ export default function State() {
     };
   }, []);
 
-  if (isLoading || states.length === 0) {
+  if (isLoading) {
     return (
       <div className="justify-center grid grid-cols-3 gap-5 bg-bg">
         {[1, 2, 3].map((i) => (
           <Card key={i} className="">
             <CardContent className="">
-              <div className="relative h-40 md:h-56">
-                <img
-                  src="/images/profile-banner.png"
-                  alt="Cover image"
-                  className="h-full w-full object-cover"
-                />
-              </div>
+              <div className="relative h-40 md:h-56 bg-gray-200 animate-pulse"></div>
             </CardContent>
             <CardFooter className="flex flex-col gap-5">
-              <h1 className="">sdsd</h1>
-              <p className="">sdsd</p>
+              <div className="h-5 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
             </CardFooter>
           </Card>
         ))}
       </div>
     );
+  }
+
+  if (states.length === 0) {
+    return null;
   }
 
   return (
@@ -96,7 +85,7 @@ export default function State() {
           <CardContent className="">
             <div className="relative h-40 md:h-56">
               <img
-                src={getStateImageUrl(state.image_url)}
+                src={realEstateMedia.getStateImage(state.image_url)}
                 alt={state.name || state.title || 'state'}
                 className="h-full w-full object-cover"
               />

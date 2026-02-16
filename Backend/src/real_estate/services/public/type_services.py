@@ -1,7 +1,5 @@
 import hashlib
 import json
-
-from django.core.cache import cache
 from django.db.models import Count, Q
 
 from src.real_estate.models.type import PropertyType
@@ -9,12 +7,6 @@ from src.real_estate.models.type import PropertyType
 
 class PropertyTypePublicService:
     ALLOWED_ORDERING_FIELDS = {'title', 'created_at', 'display_order', 'property_count'}
-
-    @staticmethod
-    def _build_cache_key(prefix, payload):
-        serialized = json.dumps(payload, sort_keys=True, default=str)
-        digest = hashlib.md5(serialized.encode('utf-8')).hexdigest()
-        return f"{prefix}:{digest}"
 
     @staticmethod
     def _normalize_ordering(ordering):
@@ -49,16 +41,6 @@ class PropertyTypePublicService:
 
     @staticmethod
     def get_type_queryset(filters=None, search=None, ordering=None):
-        payload = {
-            'filters': filters or {},
-            'search': search or '',
-            'ordering': PropertyTypePublicService._normalize_ordering(ordering),
-        }
-        cache_key = PropertyTypePublicService._build_cache_key('real_estate_public_type_list', payload)
-        cached_result = cache.get(cache_key)
-        if cached_result is not None:
-            return cached_result
-
         queryset = PropertyTypePublicService._base_queryset()
 
         if filters:
@@ -80,9 +62,7 @@ class PropertyTypePublicService:
                 Q(description__icontains=search)
             )
 
-        queryset = queryset.order_by(*PropertyTypePublicService._normalize_ordering(ordering))
-        cache.set(cache_key, queryset, 300)
-        return queryset
+        return queryset.order_by(*PropertyTypePublicService._normalize_ordering(ordering))
 
     @staticmethod
     def get_type_by_slug(slug):

@@ -2,6 +2,7 @@ import { fetchApi } from '@/core/config/fetch';
 import { Media, MediaFilter } from '@/types/shared/media';
 import { ApiResponse } from '@/types/api/apiResponse';
 import { withQuery } from '@/api/shared';
+import { MEDIA_API_ROUTE } from '@/core/utils/media';
 
 const DEFAULT_MEDIA_PAGE_SIZE = 12;
 
@@ -18,12 +19,12 @@ export const mediaApi = {
         };
 
         return fetchApi.get<Media[]>(
-            withQuery('/media/', normalizedFilters as Record<string, unknown>),
+            withQuery(MEDIA_API_ROUTE, normalizedFilters as Record<string, unknown>),
             options?.forceRefresh ? { cache: 'no-store' } : undefined,
         );
     },
 
     getMediaDetails: async (mediaId: number | string): Promise<ApiResponse<Media>> => {
-        return fetchApi.get<Media>(`/media/${mediaId}/`);
+        return fetchApi.get<Media>(`${MEDIA_API_ROUTE}${mediaId}/`);
     },
 };

@@ -7,6 +7,8 @@ if (!backendOrigin) {
 }
 
 let normalizedBackendOrigin: string;
+let backendHostname: string;
+
 try {
   const parsed = new URL(backendOrigin);
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
@@ -16,11 +18,28 @@ try {
   parsed.search = '';
   parsed.hash = '';
   normalizedBackendOrigin = parsed.toString().replace(/\/$/, '');
+  backendHostname = parsed.hostname;
 } catch {
   throw new Error("🚨 CONFIGURATION ERROR: API_INTERNAL_ORIGIN must be a valid absolute URL.");
 }
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '8000',
+        pathname: '/media/**',
+      },
+      {
+        protocol: 'https',
+        hostname: backendHostname,
+        pathname: '/media/**',
+      },
+    ],
+  },
+
   async rewrites() {
     return [
       {
@@ -30,6 +49,19 @@ const nextConfig: NextConfig = {
       {
         source: '/media/:path*',
         destination: `${normalizedBackendOrigin}/media/:path*`,
+      },
+    ];
+  },
+
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+        ],
       },
     ];
   },

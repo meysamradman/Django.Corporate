@@ -4,14 +4,12 @@ export const IS_TEST = process.env.NODE_ENV === 'test';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
 const MEDIA_BASE_URL = process.env.NEXT_PUBLIC_MEDIA_BASE_URL?.trim();
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+const API_INTERNAL_ORIGIN = process.env.API_INTERNAL_ORIGIN?.trim();
 
 const assertEnvValue = (key: string, value: string | undefined): string => {
   if (!value) {
-    if (IS_PRODUCTION) {
-      throw new Error(`🚨 CONFIGURATION ERROR: ${key} environment variable is required in production.`);
-    }
-
-    throw new Error(`🚨 DEVELOPMENT ERROR: ${key} environment variable is required. Please set it in .env.local`);
+    throw new Error(`🚨 CONFIGURATION ERROR: ${key} environment variable is required.`);
   }
 
   return value.replace(/\/$/, '');
@@ -24,6 +22,14 @@ export const env = {
 
   get MEDIA_BASE_URL(): string {
     return assertEnvValue('NEXT_PUBLIC_MEDIA_BASE_URL', MEDIA_BASE_URL);
+  },
+
+  get SITE_URL(): string {
+    return SITE_URL || '';
+  },
+
+  get API_INTERNAL_ORIGIN(): string {
+    return assertEnvValue('API_INTERNAL_ORIGIN', API_INTERNAL_ORIGIN);
   },
 
   get APP_VERSION(): string { return process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0'; },
