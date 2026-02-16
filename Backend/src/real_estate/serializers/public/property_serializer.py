@@ -90,21 +90,26 @@ class PropertyPublicListSerializer(serializers.ModelSerializer):
         return None
 
     def get_main_image(self, obj):
+        main_details = obj.get_main_image_details()
+        if main_details:
+            return main_details
+
         image_relation = self._get_prefetched_main_image(obj)
         if image_relation is None:
             image_relation = obj.images.select_related('image').order_by('-is_main', 'order', 'created_at').first()
-        if not image_relation or not image_relation.image:
-            return None
 
-        image_file = getattr(image_relation.image, 'file', None)
-        image_url = image_file.url if image_file else None
-        return {
-            'id': image_relation.image.id,
-            'url': image_url,
-            'file_url': image_url,
-            'title': getattr(image_relation.image, 'title', ''),
-            'alt_text': getattr(image_relation.image, 'alt_text', ''),
-        }
+        if image_relation and image_relation.image:
+            image_file = getattr(image_relation.image, 'file', None)
+            image_url = image_file.url if image_file else None
+            return {
+                'id': image_relation.image.id,
+                'url': image_url,
+                'file_url': image_url,
+                'title': getattr(image_relation.image, 'title', ''),
+                'alt_text': getattr(image_relation.image, 'alt_text', ''),
+            }
+
+        return None
 
     def get_province_name(self, obj):
         province = getattr(obj, 'province', None)
@@ -120,8 +125,38 @@ class PropertyPublicListSerializer(serializers.ModelSerializer):
 
 
 class PropertyPublicDetailSerializer(PropertyPublicListSerializer):
+    media = serializers.SerializerMethodField()
+
     class Meta(PropertyPublicListSerializer.Meta):
         fields = PropertyPublicListSerializer.Meta.fields + [
             'description', 'address', 'latitude', 'longitude',
+            'media',
         ]
         read_only_fields = fields
+
+    def get_media(self, obj):
+        main_details = obj.get_main_image_details() or {}
+        main_image_id = main_details.get('id')
+
+        images = obj.images.select_related('image').order_by('-is_main', 'order', 'created_at')
+        result = []
+        for rel in images:
+            image = getattr(rel, 'image', None)
+            file_url = image.file.url if image and getattr(image, 'file', None) else None
+            media_payload = {
+                'id': getattr(image, 'id', None),
+                'public_id': str(getattr(image, 'public_id', '')) if getattr(image, 'public_id', None) else '',
+                'url': file_url,
+                'file_url': file_url,
+                'title': getattr(image, 'title', '') if image else '',
+                'alt_text': getattr(image, 'alt_text', '') if image else '',
+                'media_type': 'image',
+            }
+            result.append({
+                'id': rel.id,
+                'order': rel.order,
+                'is_main_image': bool(main_image_id and image and getattr(image, 'id', None) == main_image_id),
+                'media': media_payload,
+                'media_detail': media_payload,
+            })
+        return result

@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Card, CardContent, CardFooter } from "@/components/elements/Card";
 import { Separator } from "@/components/elements/Separator";
 import type { Property } from '@/types/real-estate/property';
@@ -37,7 +38,7 @@ export default function RealFeachure({ properties = [] }: RealFeachureProps) {
     };
 
     return (
-        <div className=" justify-center grid grid-cols-4 gap-5  bg-bg">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
 
             {cards.map((property, index) => {
                 const hasData = Boolean(property?.id);
@@ -47,8 +48,10 @@ export default function RealFeachure({ properties = [] }: RealFeachureProps) {
                 const footerLeft = hasData && property ? formatPrice(property) : '';
                 const footerRight = hasData && property ? (property.property_type?.name || property.state?.name || '') : '';
 
-                return (
-                    <Card key={hasData && property ? String(property.id) : `placeholder-${index}`} className="p-0 gap-0">
+                const slugOrId = hasData && property ? (property.slug || property.id) : null;
+
+                const content = (
+                    <Card className="p-0 gap-0">
 
                         <div className="relative h-40 md:h-56">
                             <Image
@@ -62,16 +65,29 @@ export default function RealFeachure({ properties = [] }: RealFeachureProps) {
 
 
                         <CardContent className="p-5">
-                            <h1 className="">{title}</h1>
+                            <h3 className="">{title}</h3>
                             <p className="">{sub}</p>
                         </CardContent>
                         <Separator></Separator>
                         <CardFooter className="flex justify-between gap-5 p-5">
-                            <h1 className="">{footerLeft}</h1>
+                            <h4 className="">{footerLeft}</h4>
                             <p className="">{footerRight}</p>
                         </CardFooter>
 
                     </Card>
+                );
+
+                return hasData && slugOrId ? (
+                    <Link
+                        key={String(slugOrId)}
+                        href={`/real-estate/${slugOrId}`}
+                        className="block"
+                        aria-label={title || "جزئیات ملک"}
+                    >
+                        {content}
+                    </Link>
+                ) : (
+                    <div key={`placeholder-${index}`}>{content}</div>
                 );
             })}
 

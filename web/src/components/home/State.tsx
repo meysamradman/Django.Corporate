@@ -29,13 +29,13 @@ export default function State({ states = [] }: StateProps) {
 
   if (items.length === 0) {
     return (
-      <div className="justify-center grid grid-cols-3 gap-5 bg-bg">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3].map((i) => (
           <Card key={i} className="">
             <CardContent className="">
               <div className="relative h-40 md:h-56 bg-gray-200 animate-pulse"></div>
             </CardContent>
-            <CardFooter className="flex flex-col gap-5">
+            <CardFooter className="flex flex-col items-center text-center gap-5">
               <div className="h-5 bg-gray-200 rounded w-3/4 animate-pulse"></div>
               <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
             </CardFooter>
@@ -46,7 +46,7 @@ export default function State({ states = [] }: StateProps) {
   }
 
   return (
-    <div className="justify-center grid grid-cols-3 gap-5 bg-bg">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((state) => (
         <Card key={state.id} className="">
           <CardContent className="">
@@ -58,8 +58,8 @@ export default function State({ states = [] }: StateProps) {
               />
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col gap-5">
-            <h1 className="">{state.name || state.title || '-'}</h1>
+          <CardFooter className="flex flex-col items-center text-center gap-5">
+            <h3 className="">{state.name || state.title || '-'}</h3>
             <p className="">{formatUsageType(state.usage_type)}</p>
           </CardFooter>
         </Card>

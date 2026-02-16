@@ -15,7 +15,7 @@ export default function Types({ types = [] }: TypesProps) {
     const displayItems = items.length === 0 ? placeholders : items;
 
     return (
-        <div className=" justify-center grid grid-cols-4 gap-5  bg-bg">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {displayItems.map((item, idx) => {
                 const type = typeof item === 'number' ? null : item;
                 const src = type

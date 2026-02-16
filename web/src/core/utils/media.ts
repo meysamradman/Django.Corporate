@@ -109,12 +109,41 @@ export const getImageUrl = (
  * Real Estate specific media utilities
  */
 export const realEstateMedia = {
+  getPropertyMainImageOrNull: (
+    mainImage?: { url?: string; file_url?: string } | null
+  ): string | null => {
+    if (!mainImage) return null;
+    return getMediaUrl(mainImage.url || mainImage.file_url);
+  },
   getPropertyMainImage: (
     mainImage?: { url?: string; file_url?: string } | null,
     fallback: string = MEDIA_DEFAULT_IMAGES.realEstate.property
   ): string => {
     if (!mainImage) return fallback;
     return getMediaUrlWithFallback(mainImage.url || mainImage.file_url, fallback);
+  },
+  extractPropertyMediaPath: (item: unknown): string | null => {
+    if (!item || typeof item !== 'object') return null;
+    const obj = item as Record<string, unknown>;
+
+    const direct = obj.file_url || obj.url || obj.file;
+    if (typeof direct === 'string' && direct.trim()) return direct;
+
+    const mediaObj = obj.media as Record<string, unknown> | undefined;
+    const mediaUrl = mediaObj?.file_url || mediaObj?.url || mediaObj?.file;
+    if (typeof mediaUrl === 'string' && mediaUrl.trim()) return mediaUrl;
+
+    const mediaDetailObj = obj.media_detail as Record<string, unknown> | undefined;
+    const mediaDetailUrl = mediaDetailObj?.file_url || mediaDetailObj?.url || mediaDetailObj?.file;
+    if (typeof mediaDetailUrl === 'string' && mediaDetailUrl.trim()) return mediaDetailUrl;
+
+    const coverUrl = obj.cover_image_url;
+    if (typeof coverUrl === 'string' && coverUrl.trim()) return coverUrl;
+
+    return null;
+  },
+  extractPropertyMediaUrl: (item: unknown): string | null => {
+    return getMediaUrl(realEstateMedia.extractPropertyMediaPath(item));
   },
   getStateImage: (
     imageUrl?: string | null,
@@ -129,15 +158,15 @@ export const realEstateMedia = {
     return getImageUrl(image, fallback);
   },
   getPropertyGallery: (
-    media?: Array<{ media?: { url?: string; file_url?: string } }> | null
+    media?: unknown[] | null
   ): string[] => {
     if (!media || !Array.isArray(media)) return [];
-    return media
-      .map(item => {
-        const mediaUrl = item.media?.url || item.media?.file_url;
-        return getMediaUrl(mediaUrl);
-      })
+
+    const urls = media
+      .map((item) => realEstateMedia.extractPropertyMediaUrl(item))
       .filter((url): url is string => url !== null);
+
+    return Array.from(new Set(urls));
   },
   getFloorPlanImage: (
     floorPlan?: { main_image?: { url?: string } | null } | null,
