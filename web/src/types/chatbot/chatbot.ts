@@ -15,4 +15,5 @@ export type PublicChatbotSendMessageResponse = {
 export type PublicChatbotFaqItem = {
   public_id: string;
   question: string;
+  answer: string;
 };

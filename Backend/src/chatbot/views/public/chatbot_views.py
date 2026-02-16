@@ -103,8 +103,15 @@ class PublicChatbotViewSet(viewsets.ViewSet):
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE
                 )
 
-            faqs = FAQ.objects.filter(is_active=True).order_by('order', 'created_at').only('public_id', 'question')
-            data = [{'public_id': str(f.public_id), 'question': f.question} for f in faqs]
+            faqs = FAQ.objects.filter(is_active=True).order_by('order', 'created_at').only('public_id', 'question', 'answer')
+            data = [
+                {
+                    'public_id': str(f.public_id),
+                    'question': f.question,
+                    'answer': f.answer,
+                }
+                for f in faqs
+            ]
 
             return APIResponse.success(
                 message=CHATBOT_SUCCESS['public_faq_list_retrieved'],
