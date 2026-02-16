@@ -12,6 +12,11 @@ import { PaginatedResponse } from "@/types/shared/pagination";
 import { withQuery, toPaginatedResponse } from "@/api/shared";
 
 export const realEstateApi = {
+    getFeaturedProperties: async (limit: number = 4): Promise<Property[]> => {
+        const response = await fetchApi.get<Property[]>(withQuery('/real-estate/properties/featured/', { limit }));
+        return response.data;
+    },
+
     getProperties: async (params?: RealEstateListParams): Promise<PaginatedResponse<Property>> => {
         const response = await fetchApi.get<Property[]>(withQuery('/real-estate/properties/', params as Record<string, unknown>));
         return toPaginatedResponse<Property>(response, params?.size || 10);
