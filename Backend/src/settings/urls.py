@@ -22,9 +22,9 @@ router.register(r'settings/social-media', SocialMediaViewSet, basename='social-m
 router.register(r'settings/sliders', SliderViewSet, basename='slider')
 
 urlpatterns = [
-    path('public/settings/logo/', PublicLogoView.as_view(), name='public-settings-logo'),
-    path('public/settings/sliders/', PublicSliderListView.as_view(), name='public-settings-sliders'),
-    path('public/settings/contact/', PublicContactView.as_view(), name='public-settings-contact'),
+    path('settings/logo/', PublicLogoView.as_view(), name='public-settings-logo'),
+    path('settings/sliders/', PublicSliderListView.as_view(), name='public-settings-sliders'),
+    path('settings/contact/', PublicContactView.as_view(), name='public-settings-contact'),
     path('', include(router.urls)),
 ]
 

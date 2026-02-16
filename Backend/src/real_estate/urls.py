@@ -11,7 +11,6 @@ from src.real_estate.views.public import (
     feature_views,
 )
 
-# Admin router
 admin_router = DefaultRouter()
 admin_router.register(r'admin/property', views.PropertyAdminViewSet, basename='admin-property')
 admin_router.register(r'admin/property-geo', property_geo_views.PropertyGeoViewSet, basename='admin-property-geo')
@@ -26,15 +25,13 @@ admin_router.register(r'admin/real-estate-agency', views.RealEstateAgencyAdminVi
 admin_router.register(r'admin/real-estate-provinces', location_views.RealEstateProvinceViewSet, basename='admin-real-estate-provinces')
 admin_router.register(r'admin/real-estate-cities', location_views.RealEstateCityViewSet, basename='admin-real-estate-cities')
 admin_router.register(r'admin/real-estate-city-regions', location_views.RealEstateCityRegionViewSet, basename='admin-real-estate-city-regions')
-
-# Public router
 public_router = DefaultRouter()
-public_router.register(r'public/real-estate/properties', property_views.PropertyPublicViewSet, basename='public-property')
-public_router.register(r'public/real-estate/types', type_views.PropertyTypePublicViewSet, basename='public-property-type')
-public_router.register(r'public/real-estate/states', state_views.PropertyStatePublicViewSet, basename='public-property-state')
-public_router.register(r'public/real-estate/labels', label_views.PropertyLabelPublicViewSet, basename='public-property-label')
-public_router.register(r'public/real-estate/tags', tag_views.PropertyTagPublicViewSet, basename='public-property-tag')
-public_router.register(r'public/real-estate/features', feature_views.PropertyFeaturePublicViewSet, basename='public-property-feature')
+public_router.register(r'real-estate/properties', property_views.PropertyPublicViewSet, basename='public-property')
+public_router.register(r'real-estate/types', type_views.PropertyTypePublicViewSet, basename='public-property-type')
+public_router.register(r'real-estate/states', state_views.PropertyStatePublicViewSet, basename='public-property-state')
+public_router.register(r'real-estate/labels', label_views.PropertyLabelPublicViewSet, basename='public-property-label')
+public_router.register(r'real-estate/tags', tag_views.PropertyTagPublicViewSet, basename='public-property-tag')
+public_router.register(r'real-estate/features', feature_views.PropertyFeaturePublicViewSet, basename='public-property-feature')
 
 urlpatterns = [
     path('', include(admin_router.urls)),

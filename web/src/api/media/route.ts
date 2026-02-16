@@ -18,12 +18,12 @@ export const mediaApi = {
         };
 
         return fetchApi.get<Media[]>(
-            withQuery('/public/media/', normalizedFilters as Record<string, unknown>),
+            withQuery('/media/', normalizedFilters as Record<string, unknown>),
             options?.forceRefresh ? { cache: 'no-store' } : undefined,
         );
     },
 
     getMediaDetails: async (mediaId: number | string): Promise<ApiResponse<Media>> => {
-        return fetchApi.get<Media>(`/public/media/${mediaId}/`);
+        return fetchApi.get<Media>(`/media/${mediaId}/`);
     },
 };

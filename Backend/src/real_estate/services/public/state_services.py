@@ -1,7 +1,3 @@
-import hashlib
-import json
-
-from django.core.cache import cache
 from django.db.models import Count, Q
 
 from src.real_estate.models.state import PropertyState
@@ -9,12 +5,6 @@ from src.real_estate.models.state import PropertyState
 
 class PropertyStatePublicService:
     ALLOWED_ORDERING_FIELDS = {'title', 'created_at', 'property_count'}
-
-    @staticmethod
-    def _build_cache_key(prefix, payload):
-        serialized = json.dumps(payload, sort_keys=True, default=str)
-        digest = hashlib.md5(serialized.encode('utf-8')).hexdigest()
-        return f"{prefix}:{digest}"
 
     @staticmethod
     def _parse_int(value):
@@ -59,10 +49,6 @@ class PropertyStatePublicService:
             'search': search or '',
             'ordering': PropertyStatePublicService._normalize_ordering(ordering),
         }
-        cache_key = PropertyStatePublicService._build_cache_key('real_estate_public_state_list', payload)
-        cached_result = cache.get(cache_key)
-        if cached_result is not None:
-            return cached_result
 
         queryset = PropertyStatePublicService._base_queryset()
 
@@ -81,7 +67,6 @@ class PropertyStatePublicService:
             )
 
         queryset = queryset.order_by(*PropertyStatePublicService._normalize_ordering(ordering))
-        cache.set(cache_key, queryset, 300)
         return queryset
 
     @staticmethod

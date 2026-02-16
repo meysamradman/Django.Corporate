@@ -12,27 +12,27 @@ import { toPaginatedResponse, withQuery } from "@/api/shared";
 
 export const portfolioApi = {
   getPortfolioList: async (params?: PortfolioListParams): Promise<PaginatedResponse<Portfolio>> => {
-    const response = await fetchApi.get<Portfolio[]>(withQuery("/public/portfolio/", params as Record<string, unknown>));
+    const response = await fetchApi.get<Portfolio[]>(withQuery("/portfolio/", params as Record<string, unknown>));
     return toPaginatedResponse<Portfolio>(response, params?.size || 10);
   },
 
   getPortfolioById: async (idOrSlug: string | number): Promise<Portfolio> => {
-    const response = await fetchApi.get<Portfolio>(`/public/portfolio/${idOrSlug}/`);
+    const response = await fetchApi.get<Portfolio>(`/portfolio/${idOrSlug}/`);
     return response.data;
   },
 
   getCategories: async (params?: PortfolioCategoryListParams): Promise<PaginatedResponse<PortfolioCategory>> => {
-    const response = await fetchApi.get<PortfolioCategory[]>(withQuery("/public/portfolio-category/", params as Record<string, unknown>));
+    const response = await fetchApi.get<PortfolioCategory[]>(withQuery("/portfolio-category/", params as Record<string, unknown>));
     return toPaginatedResponse<PortfolioCategory>(response, params?.size || 20);
   },
 
   getTags: async (params?: PortfolioTagListParams): Promise<PaginatedResponse<PortfolioTag>> => {
-    const response = await fetchApi.get<PortfolioTag[]>(withQuery("/public/portfolio-tag/", params as Record<string, unknown>));
+    const response = await fetchApi.get<PortfolioTag[]>(withQuery("/portfolio-tag/", params as Record<string, unknown>));
     return toPaginatedResponse<PortfolioTag>(response, params?.size || 20);
   },
 
   getOptions: async (params?: PortfolioOptionListParams): Promise<PaginatedResponse<PortfolioOption>> => {
-    const response = await fetchApi.get<PortfolioOption[]>(withQuery("/public/portfolio-option/", params as Record<string, unknown>));
+    const response = await fetchApi.get<PortfolioOption[]>(withQuery("/portfolio-option/", params as Record<string, unknown>));
     return toPaginatedResponse<PortfolioOption>(response, params?.size || 20);
   },
 };

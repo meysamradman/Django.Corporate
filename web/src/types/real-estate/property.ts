@@ -60,9 +60,12 @@ export interface PropertyType extends Base {
 }
 
 export interface PropertyState extends Base {
+    title?: string;
     name: string;
     slug: string;
     usage_type: string; // sale, rent, etc.
+    image_url?: string | null;
+    property_count?: number;
 }
 
 export interface PropertyLabel extends Base {
