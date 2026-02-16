@@ -10,6 +10,12 @@ from .admin import (
 from .public import (
     PublicLogoSerializer,
     PublicSliderSerializer,
+    PublicContactPhoneSerializer,
+    PublicContactMobileSerializer,
+    PublicContactEmailSerializer,
+    PublicSocialMediaSerializer,
+    PublicMapSettingsSerializer,
+    PublicContactSettingsSerializer,
 )
 
 __all__ = [
@@ -22,4 +28,10 @@ __all__ = [
     'MapSettingsSerializer',
     'PublicLogoSerializer',
     'PublicSliderSerializer',
+    'PublicContactPhoneSerializer',
+    'PublicContactMobileSerializer',
+    'PublicContactEmailSerializer',
+    'PublicSocialMediaSerializer',
+    'PublicMapSettingsSerializer',
+    'PublicContactSettingsSerializer',
 ]

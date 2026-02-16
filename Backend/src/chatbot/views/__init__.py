@@ -1,5 +1,5 @@
-from .admin_chatbot_views import AdminFAQViewSet, AdminChatbotSettingsViewSet
-from .public_chatbot_views import PublicChatbotViewSet
+from .admin import AdminFAQViewSet, AdminChatbotSettingsViewSet
+from .public import PublicChatbotViewSet
 
 __all__ = [
     'AdminFAQViewSet',

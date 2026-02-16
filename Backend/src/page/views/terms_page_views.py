@@ -4,11 +4,11 @@ from django.core.cache import cache
 
 from src.core.responses.response import APIResponse
 from src.page.models import TermsPage
-from src.page.serializers import (
+from src.page.serializers.admin import (
     TermsPageSerializer,
     TermsPageUpdateSerializer,
 )
-from src.page.services.terms_page_service import (
+from src.page.services.admin.terms_page_service import (
     get_terms_page,
     update_terms_page,
 )

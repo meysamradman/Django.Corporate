@@ -3,8 +3,8 @@ from rest_framework.permissions import AllowAny
 from django.core.exceptions import ValidationError
 
 from src.core.responses.response import APIResponse
-from src.form.serializers import ContactFormSubmissionCreateSerializer
-from src.form.services.contact_form_submission_service import create_contact_form_submission
+from src.form.serializers.admin import ContactFormSubmissionCreateSerializer
+from src.form.services.admin.contact_form_submission_service import create_contact_form_submission
 from src.form.messages.messages import FORM_SUBMISSION_SUCCESS, FORM_SUBMISSION_ERRORS
 
 class ContactFormSubmissionViewSet(viewsets.ModelViewSet):

@@ -1,8 +1,9 @@
-from .faq_serializer import FAQSerializer, FAQListSerializer
-from .settings_serializer import ChatbotSettingsSerializer
+from .admin import FAQSerializer, FAQListSerializer, ChatbotSettingsSerializer
+from .public import PublicChatbotSettingsSerializer
 
 __all__ = [
     'FAQSerializer',
     'FAQListSerializer',
     'ChatbotSettingsSerializer',
+    'PublicChatbotSettingsSerializer',
 ]

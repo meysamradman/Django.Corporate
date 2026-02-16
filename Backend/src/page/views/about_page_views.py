@@ -4,11 +4,11 @@ from django.core.cache import cache
 
 from src.core.responses.response import APIResponse
 from src.page.models import AboutPage
-from src.page.serializers import (
+from src.page.serializers.admin import (
     AboutPageSerializer,
     AboutPageUpdateSerializer,
 )
-from src.page.services.about_page_service import (
+from src.page.services.admin.about_page_service import (
     get_about_page,
     update_about_page,
 )

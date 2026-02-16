@@ -1,5 +1,10 @@
-from .about_page_views import AboutPageViewSet
-from .terms_page_views import TermsPageViewSet
+from .admin import AboutPageViewSet, TermsPageViewSet
+from .public import PublicAboutPageView, PublicTermsPageView
 
-__all__ = ['AboutPageViewSet', 'TermsPageViewSet']
+__all__ = [
+	'AboutPageViewSet',
+	'TermsPageViewSet',
+	'PublicAboutPageView',
+	'PublicTermsPageView',
+]
 

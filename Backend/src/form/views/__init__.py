@@ -1,5 +1,9 @@
-from .contact_form_field_views import ContactFormFieldViewSet
-from .contact_form_submission_views import ContactFormSubmissionViewSet
+from .admin import ContactFormFieldViewSet, ContactFormSubmissionViewSet
+from .public import PublicContactFormFieldsView, PublicContactFormSubmissionView
 
-__all__ = ['ContactFormFieldViewSet', 'ContactFormSubmissionViewSet']
-
+__all__ = [
+    'ContactFormFieldViewSet',
+    'ContactFormSubmissionViewSet',
+    'PublicContactFormFieldsView',
+    'PublicContactFormSubmissionView',
+]

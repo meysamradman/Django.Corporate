@@ -1,7 +1,7 @@
 from django.core.cache import cache
 from src.chatbot.models.faq import FAQ
 from src.chatbot.models.settings import ChatbotSettings
-from src.chatbot.services.rule_based_service import RuleBasedChatService
+from src.chatbot.services.public.chatbot_service import RuleBasedChatService
 from src.chatbot.utils.cache import ChatbotCacheKeys, ChatbotCacheManager
 
 class ChatbotAdminService:

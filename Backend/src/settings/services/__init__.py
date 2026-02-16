@@ -25,6 +25,7 @@ from .admin import (
 from .public import (
     get_public_logo_settings,
     get_public_active_sliders,
+    get_public_contact_payload,
 )
 
 __all__ = [
@@ -52,4 +53,5 @@ __all__ = [
     'delete_social_media',
     'get_public_logo_settings',
     'get_public_active_sliders',
+    'get_public_contact_payload',
 ]
