@@ -41,6 +41,8 @@ export interface Property extends Base {
     district_name?: string;
     neighborhood?: string;
     address?: string | null;
+    postal_code?: string | null;
+    country_name?: string | null;
 
     latitude?: number | null;
     longitude?: number | null;
@@ -86,6 +88,7 @@ export interface PropertyFeature extends Base {
     name: string;
     slug: string;
     icon?: string;
+    group?: string | null;
 }
 
 export interface PropertyMediaItem {
@@ -98,10 +101,13 @@ export interface PropertyMediaItem {
 export interface FloorPlan {
     id: number;
     title: string;
+    description?: string | null;
     floor_size: number;
+    size_unit?: "sqft" | "sqm" | string;
     bedrooms?: number | null;
     bathrooms?: number | null;
     price?: number | null;
+    currency?: string;
     unit_type?: string;
     main_image?: {
         url: string;

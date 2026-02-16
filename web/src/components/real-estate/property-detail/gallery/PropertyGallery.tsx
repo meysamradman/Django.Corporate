@@ -8,7 +8,7 @@ import useEmblaCarousel from "embla-carousel-react";
 import { cn } from "@/core/utils/cn";
 import PropertyGalleryLightbox, {
   type PropertyGalleryItem,
-} from "@/components/real-estate/detail/PropertyGalleryLightbox";
+} from "@/components/real-estate/property-detail/gallery/PropertyGalleryLightbox";
 
 type PropertyGalleryProps = {
   title: string;
@@ -17,7 +17,12 @@ type PropertyGalleryProps = {
   className?: string;
 };
 
-export default function PropertyGallery({ title, images, mainImageUrl, className }: PropertyGalleryProps) {
+export default function PropertyGallery({
+  title,
+  images,
+  mainImageUrl,
+  className,
+}: PropertyGalleryProps) {
   const items = useMemo<PropertyGalleryItem[]>(() => {
     const list = Array.isArray(images) ? images.filter(Boolean) : [];
     return list.map((url, index) => ({

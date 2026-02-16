@@ -83,6 +83,23 @@ class PropertyPublicListSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        if 'latitude' in data and data['latitude'] is not None:
+            try:
+                data['latitude'] = float(data['latitude'])
+            except (ValueError, TypeError):
+                pass
+
+        if 'longitude' in data and data['longitude'] is not None:
+            try:
+                data['longitude'] = float(data['longitude'])
+            except (ValueError, TypeError):
+                pass
+
+        return data
+
     def _get_prefetched_main_image(self, obj):
         images = getattr(obj, 'all_images', None)
         if images:
@@ -126,13 +143,20 @@ class PropertyPublicListSerializer(serializers.ModelSerializer):
 
 class PropertyPublicDetailSerializer(PropertyPublicListSerializer):
     media = serializers.SerializerMethodField()
+    country_name = serializers.SerializerMethodField()
+    floor_plans = serializers.SerializerMethodField()
 
     class Meta(PropertyPublicListSerializer.Meta):
         fields = PropertyPublicListSerializer.Meta.fields + [
             'description', 'address', 'latitude', 'longitude',
+            'postal_code', 'country_name',
             'media',
+            'floor_plans',
         ]
         read_only_fields = fields
+
+    def get_country_name(self, obj):
+        return getattr(obj, 'country_name', None)
 
     def get_media(self, obj):
         main_details = obj.get_main_image_details() or {}
@@ -160,3 +184,16 @@ class PropertyPublicDetailSerializer(PropertyPublicListSerializer):
                 'media_detail': media_payload,
             })
         return result
+
+    def get_floor_plans(self, obj):
+        from src.real_estate.serializers.public.floor_plan_serializer import FloorPlanPublicListSerializer
+
+        prefetched = getattr(obj, '_prefetched_objects_cache', {})
+        if 'floor_plans' in prefetched:
+            floor_plans = prefetched['floor_plans']
+        else:
+            floor_plans = obj.floor_plans.filter(is_active=True).order_by('display_order', 'floor_number').prefetch_related(
+                'images__image'
+            )
+
+        return FloorPlanPublicListSerializer(floor_plans, many=True, context=self.context).data

@@ -13,6 +13,9 @@ from .property_serializer import (
     PropertyPublicListSerializer,
     PropertyPublicDetailSerializer,
 )
+from .floor_plan_serializer import (
+    FloorPlanPublicListSerializer,
+)
 
 __all__ = [
     'PropertyStatePublicSerializer',
@@ -24,4 +27,5 @@ __all__ = [
     'PropertyFeaturePublicSerializer',
     'PropertyPublicListSerializer',
     'PropertyPublicDetailSerializer',
+    'FloorPlanPublicListSerializer',
 ]
