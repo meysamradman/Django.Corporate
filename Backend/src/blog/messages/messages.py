@@ -91,6 +91,9 @@ BLOG_ERRORS = {
 
 CATEGORY_SUCCESS = {
     "category_list_success": "لیست دسته‌بندی‌ها با موفقیت دریافت شد.",
+    "categories_list_retrieved": "لیست دسته‌بندی‌های عمومی با موفقیت دریافت شد.",
+    "categories_tree_retrieved": "درخت دسته‌بندی‌ها با موفقیت دریافت شد.",
+    "root_categories_retrieved": "دسته‌بندی‌های ریشه با موفقیت دریافت شدند.",
     "category_created": "دسته‌بندی با موفقیت ایجاد شد.",
     "category_updated": "دسته‌بندی با موفقیت به‌روزرسانی شد.",
     "category_deleted": "دسته‌بندی با موفقیت حذف شد.",
@@ -121,6 +124,8 @@ CATEGORY_ERRORS = {
 
 TAG_SUCCESS = {
     "tag_list_success": "لیست تگ‌ها با موفقیت دریافت شد.",
+    "tags_list_retrieved": "لیست تگ‌های عمومی با موفقیت دریافت شد.",
+    "popular_tags_retrieved": "تگ‌های محبوب با موفقیت دریافت شدند.",
     "tag_created": "تگ با موفقیت ایجاد شد.",
     "tag_updated": "تگ با موفقیت به‌روزرسانی شد.",
     "tag_deleted": "تگ با موفقیت حذف شد.",

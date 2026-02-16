@@ -5,8 +5,8 @@ from django.core.exceptions import ValidationError
 
 from src.core.responses.response import APIResponse
 from src.settings.models import ContactEmail
-from src.settings.serializers.contact_email_serializer import ContactEmailSerializer
-from src.settings.services.contact_email_service import (
+from src.settings.serializers.admin.contact_email_serializer import ContactEmailSerializer
+from src.settings.services.admin.contact_email_service import (
     get_contact_emails,
     create_contact_email,
     update_contact_email,

@@ -1,24 +1,16 @@
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
-from rest_framework.filters import SearchFilter
-from django_filters.rest_framework import DjangoFilterBackend
 
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import TAG_SUCCESS, TAG_ERRORS
 from src.portfolio.serializers.public.tag_serializer import PortfolioTagPublicSerializer
 from src.portfolio.services.public.tag_services import PortfolioTagPublicService
-from src.portfolio.filters.public.tag_filters import PortfolioTagPublicFilter
 from src.core.pagination import StandardLimitPagination
 
 class PortfolioTagPublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     serializer_class = PortfolioTagPublicSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_class = PortfolioTagPublicFilter
-    search_fields = ['name', 'description']
-    ordering_fields = ['name', 'portfolio_count']
-    ordering = ['-portfolio_count', 'name']
     lookup_field = 'slug'
     pagination_class = StandardLimitPagination
 
@@ -26,8 +18,6 @@ class PortfolioTagPublicViewSet(viewsets.ReadOnlyModelViewSet):
         return PortfolioTagPublicService.get_tag_queryset()
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        
         filters = {
             'name': request.query_params.get('name'),
             'min_portfolio_count': request.query_params.get('min_portfolio_count'),
@@ -35,10 +25,8 @@ class PortfolioTagPublicViewSet(viewsets.ReadOnlyModelViewSet):
         filters = {k: v for k, v in filters.items() if v is not None}
         
         search = request.query_params.get('search')
-        service_queryset = PortfolioTagPublicService.get_tag_queryset(filters=filters, search=search)
-        
-        filtered_ids = list(service_queryset.values_list('id', flat=True))
-        queryset = queryset.filter(id__in=filtered_ids)
+        ordering = request.query_params.get('ordering')
+        queryset = PortfolioTagPublicService.get_tag_queryset(filters=filters, search=search, ordering=ordering)
         
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -47,7 +35,7 @@ class PortfolioTagPublicViewSet(viewsets.ReadOnlyModelViewSet):
         
         serializer = PortfolioTagPublicSerializer(queryset, many=True)
         return APIResponse.success(
-            message=TAG_SUCCESS.get('tags_list_retrieved', 'Tags retrieved successfully'),
+            message=TAG_SUCCESS['tags_list_retrieved'],
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )
@@ -57,7 +45,7 @@ class PortfolioTagPublicViewSet(viewsets.ReadOnlyModelViewSet):
         if tag:
             serializer = self.get_serializer(tag)
             return APIResponse.success(
-                message=TAG_SUCCESS.get('tag_retrieved', 'Tag retrieved successfully'),
+                message=TAG_SUCCESS['tag_retrieved'],
                 data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
@@ -66,13 +54,40 @@ class PortfolioTagPublicViewSet(viewsets.ReadOnlyModelViewSet):
             status_code=status.HTTP_404_NOT_FOUND
         )
 
+    @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
+    def get_by_public_id(self, request, public_id=None):
+        tag = PortfolioTagPublicService.get_tag_by_public_id(public_id)
+        if tag:
+            serializer = self.get_serializer(tag)
+            return APIResponse.success(
+                message=TAG_SUCCESS['tag_retrieved'],
+                data=serializer.data,
+                status_code=status.HTTP_200_OK,
+            )
+
+        return APIResponse.error(
+            message=TAG_ERRORS['tag_not_found'],
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
     @action(detail=False, methods=['get'])
     def popular(self, request):
-        limit = int(request.query_params.get('limit', 10))
+        limit = self._parse_positive_int(request.query_params.get('limit'), default=10, max_value=50)
         tags = PortfolioTagPublicService.get_popular_tags(limit=limit)
         serializer = PortfolioTagPublicSerializer(tags, many=True)
         return APIResponse.success(
-            message=TAG_SUCCESS.get('popular_tags_retrieved', 'Popular tags retrieved successfully'),
+            message=TAG_SUCCESS['popular_tags_retrieved'],
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )
+
+    @staticmethod
+    def _parse_positive_int(value, default, max_value=100):
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError):
+            return default
+
+        if parsed < 1:
+            return default
+        return min(parsed, max_value)

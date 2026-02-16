@@ -1,32 +1,23 @@
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import SearchFilter
 
 from src.core.pagination import StandardLimitPagination
 from src.core.responses.response import APIResponse
-from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.messages.messages import PORTFOLIO_ERRORS, PORTFOLIO_SUCCESS
 from src.portfolio.serializers.public.portfolio_serializer import (
     PortfolioPublicListSerializer,
     PortfolioPublicDetailSerializer
 )
 from src.portfolio.services.public.portfolio_services import PortfolioPublicService
-from src.portfolio.filters.public.portfolio_filters import PortfolioPublicFilter
 
 class PortfolioPublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
-    filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_class = PortfolioPublicFilter
-    search_fields = ['title', 'short_description', 'description', 'categories__name', 'tags__name']
-    ordering_fields = ['title', 'created_at', 'is_featured']
-    ordering = ['-created_at']
     lookup_field = 'slug'
     pagination_class = StandardLimitPagination
 
     def get_queryset(self):
-        return Portfolio.objects.published()
+        return PortfolioPublicService.get_portfolio_queryset()
     
     def get_serializer_class(self):
         if self.action == 'list':
@@ -34,20 +25,18 @@ class PortfolioPublicViewSet(viewsets.ReadOnlyModelViewSet):
         return PortfolioPublicDetailSerializer
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        
         filters = {
             'category_slug': request.query_params.get('category_slug'),
             'tag_slug': request.query_params.get('tag_slug'),
             'is_featured': self._parse_bool(request.query_params.get('is_featured')),
+            'created_after': request.query_params.get('created_after'),
+            'created_before': request.query_params.get('created_before'),
         }
         filters = {k: v for k, v in filters.items() if v is not None}
         
         search = request.query_params.get('search')
-        service_queryset = PortfolioPublicService.get_portfolio_queryset(filters=filters, search=search)
-        
-        filtered_ids = list(service_queryset.values_list('id', flat=True))
-        queryset = queryset.filter(id__in=filtered_ids)
+        ordering = request.query_params.get('ordering')
+        queryset = PortfolioPublicService.get_portfolio_queryset(filters=filters, search=search, ordering=ordering)
         
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -96,7 +85,7 @@ class PortfolioPublicViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=False, methods=['get'])
     def featured(self, request):
-        limit = int(request.query_params.get('limit', 6))
+        limit = self._parse_positive_int(request.query_params.get('limit'), default=6, max_value=24)
         portfolios = PortfolioPublicService.get_featured_portfolios(limit=limit)
         serializer = PortfolioPublicListSerializer(portfolios, many=True)
         return APIResponse.success(
@@ -114,7 +103,7 @@ class PortfolioPublicViewSet(viewsets.ReadOnlyModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         
-        limit = int(request.query_params.get('limit', 4))
+        limit = self._parse_positive_int(request.query_params.get('limit'), default=4, max_value=24)
         related_portfolios = PortfolioPublicService.get_related_portfolios(portfolio, limit=limit)
         serializer = PortfolioPublicListSerializer(related_portfolios, many=True)
         return APIResponse.success(
@@ -130,3 +119,14 @@ class PortfolioPublicViewSet(viewsets.ReadOnlyModelViewSet):
         if isinstance(value, bool):
             return value
         return value.lower() in ('1', 'true', 'yes', 'on')
+
+    @staticmethod
+    def _parse_positive_int(value, default, max_value=100):
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError):
+            return default
+
+        if parsed < 1:
+            return default
+        return min(parsed, max_value)

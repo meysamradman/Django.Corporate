@@ -44,6 +44,9 @@ PORTFOLIO_ERRORS = {
 }
 CATEGORY_SUCCESS = {
     "category_list_success": "لیست دسته‌بندی‌ها با موفقیت دریافت شد.",
+    "categories_list_retrieved": "لیست دسته‌بندی‌های عمومی با موفقیت دریافت شد.",
+    "categories_tree_retrieved": "درخت دسته‌بندی‌ها با موفقیت دریافت شد.",
+    "root_categories_retrieved": "دسته‌بندی‌های ریشه با موفقیت دریافت شدند.",
     "category_created": "دسته‌بندی با موفقیت ایجاد شد.",
     "category_updated": "دسته‌بندی با موفقیت به‌روزرسانی شد.",
     "category_deleted": "دسته‌بندی با موفقیت حذف شد.",
@@ -72,6 +75,8 @@ CATEGORY_ERRORS = {
 }
 OPTION_SUCCESS = {
     "option_list_success": "لیست گزینه‌ها با موفقیت دریافت شد.",
+    "options_list_retrieved": "لیست گزینه‌های عمومی با موفقیت دریافت شد.",
+    "options_by_name_retrieved": "گزینه‌ها بر اساس نام با موفقیت دریافت شدند.",
     "option_created": "گزینه با موفقیت ایجاد شد.",
     "option_updated": "گزینه با موفقیت به‌روزرسانی شد.",
     "option_deleted": "گزینه با موفقیت حذف شد.",
@@ -95,9 +100,12 @@ OPTION_ERRORS = {
     "option_has_portfolios": "این گزینه در {count} نمونه کار استفاده شده و قابل حذف نیست.",
     "options_not_found": "گزینه‌های انتخاب شده یافت نشدند.",
     "options_in_use": "گزینه‌های زیر در حال استفاده هستند و قابل حذف نیستند: {names}",
+    "validation_error": "ورودی نامعتبر است.",
 }
 TAG_SUCCESS = {
     "tag_list_success": "لیست تگ‌ها با موفقیت دریافت شد.",
+    "tags_list_retrieved": "لیست تگ‌های عمومی با موفقیت دریافت شد.",
+    "popular_tags_retrieved": "تگ‌های محبوب با موفقیت دریافت شدند.",
     "tag_created": "تگ با موفقیت ایجاد شد.",
     "tag_updated": "تگ با موفقیت به‌روزرسانی شد.",
     "tag_deleted": "تگ با موفقیت حذف شد.",

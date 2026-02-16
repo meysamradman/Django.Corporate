@@ -1,43 +1,78 @@
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
-from rest_framework.filters import SearchFilter
-from django_filters.rest_framework import DjangoFilterBackend
 
 from src.core.responses.response import APIResponse
 from src.blog.messages.messages import CATEGORY_ERRORS, CATEGORY_SUCCESS
 from src.blog.serializers.public.category_serializer import BlogCategoryPublicSerializer
 from src.blog.services.public.category_services import BlogCategoryPublicService
-from src.blog.filters.public.category_filters import BlogCategoryPublicFilter
 from src.core.pagination import StandardLimitPagination
 
 class BlogCategoryPublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     serializer_class = BlogCategoryPublicSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_class = BlogCategoryPublicFilter
-    search_fields = ['name', 'description']
-    ordering_fields = ['name', 'sort_order', 'blog_count']
-    ordering = ['-blog_count', 'sort_order', 'name']
     lookup_field = 'slug'
     pagination_class = StandardLimitPagination
 
     def get_queryset(self):
         return BlogCategoryPublicService.get_category_queryset()
 
+    @staticmethod
+    def _build_category_maps(items):
+        category_list = list(items)
+        if not category_list:
+            return {'category_parent_map': {}, 'category_children_map': {}}
+
+        by_path = {getattr(item, 'path', None): item for item in category_list}
+        parent_map = {}
+        children_map = {item.id: [] for item in category_list}
+
+        for item in category_list:
+            path = getattr(item, 'path', '')
+            depth = getattr(item, 'depth', 0)
+            steplen = getattr(item, 'steplen', 4)
+
+            if depth > 1 and path:
+                parent_path = path[:-steplen]
+                parent = by_path.get(parent_path)
+                if parent:
+                    parent_map[item.id] = {
+                        'public_id': parent.public_id,
+                        'name': parent.name,
+                        'slug': parent.slug,
+                    }
+                    children_map[parent.id].append({
+                        'public_id': item.public_id,
+                        'name': item.name,
+                        'slug': item.slug,
+                    })
+
+        return {
+            'category_parent_map': parent_map,
+            'category_children_map': children_map,
+        }
+
+    def _serializer_context_with_maps(self, request, items):
+        context = self.get_serializer_context()
+        context.update(self._build_category_maps(items))
+        context['request'] = request
+        return context
+
     def list(self, request, *args, **kwargs):
         tree_mode = request.GET.get('tree', '').lower() == 'true'
         if tree_mode:
             tree_data = BlogCategoryPublicService.get_tree_data()
-            serializer = BlogCategoryPublicSerializer(tree_data, many=True)
+            serializer = BlogCategoryPublicSerializer(
+                tree_data,
+                many=True,
+                context=self._serializer_context_with_maps(request, tree_data),
+            )
             return APIResponse.success(
-                message=CATEGORY_SUCCESS.get('categories_tree_retrieved', 'Categories tree retrieved successfully'),
+                message=CATEGORY_SUCCESS['categories_tree_retrieved'],
                 data={'items': serializer.data},
                 status_code=status.HTTP_200_OK
             )
 
-        queryset = self.filter_queryset(self.get_queryset())
-        
         filters = {
             'name': request.query_params.get('name'),
             'parent_slug': request.query_params.get('parent_slug'),
@@ -47,19 +82,25 @@ class BlogCategoryPublicViewSet(viewsets.ReadOnlyModelViewSet):
         filters = {k: v for k, v in filters.items() if v is not None}
         
         search = request.query_params.get('search')
-        service_queryset = BlogCategoryPublicService.get_category_queryset(filters=filters, search=search)
-        
-        filtered_ids = list(service_queryset.values_list('id', flat=True))
-        queryset = queryset.filter(id__in=filtered_ids)
+        ordering = request.query_params.get('ordering')
+        queryset = BlogCategoryPublicService.get_category_queryset(filters=filters, search=search, ordering=ordering)
         
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = BlogCategoryPublicSerializer(page, many=True)
+            serializer = BlogCategoryPublicSerializer(
+                page,
+                many=True,
+                context=self._serializer_context_with_maps(request, page),
+            )
             return self.get_paginated_response(serializer.data)
         
-        serializer = BlogCategoryPublicSerializer(queryset, many=True)
+        serializer = BlogCategoryPublicSerializer(
+            queryset,
+            many=True,
+            context=self._serializer_context_with_maps(request, queryset),
+        )
         return APIResponse.success(
-            message=CATEGORY_SUCCESS.get('categories_list_retrieved', 'Categories retrieved successfully'),
+            message=CATEGORY_SUCCESS['categories_list_retrieved'],
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )
@@ -67,9 +108,12 @@ class BlogCategoryPublicViewSet(viewsets.ReadOnlyModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         category = BlogCategoryPublicService.get_category_by_slug(kwargs.get('slug'))
         if category:
-            serializer = self.get_serializer(category)
+            serializer = self.get_serializer(
+                category,
+                context=self._serializer_context_with_maps(request, [category]),
+            )
             return APIResponse.success(
-                message=CATEGORY_SUCCESS.get('category_retrieved', 'Category retrieved successfully'),
+                message=CATEGORY_SUCCESS['category_retrieved'],
                 data=serializer.data,
                 status_code=status.HTTP_200_OK
             )
@@ -78,12 +122,35 @@ class BlogCategoryPublicViewSet(viewsets.ReadOnlyModelViewSet):
             status_code=status.HTTP_404_NOT_FOUND
         )
 
+    @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
+    def get_by_public_id(self, request, public_id=None):
+        category = BlogCategoryPublicService.get_category_by_public_id(public_id)
+        if category:
+            serializer = self.get_serializer(
+                category,
+                context=self._serializer_context_with_maps(request, [category]),
+            )
+            return APIResponse.success(
+                message=CATEGORY_SUCCESS['category_retrieved'],
+                data=serializer.data,
+                status_code=status.HTTP_200_OK,
+            )
+
+        return APIResponse.error(
+            message=CATEGORY_ERRORS['category_not_found'],
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
     @action(detail=False, methods=['get'])
     def roots(self, request):
         categories = BlogCategoryPublicService.get_root_categories()
-        serializer = BlogCategoryPublicSerializer(categories, many=True)
+        serializer = BlogCategoryPublicSerializer(
+            categories,
+            many=True,
+            context=self._serializer_context_with_maps(request, categories),
+        )
         return APIResponse.success(
-            message=CATEGORY_SUCCESS.get('root_categories_retrieved', 'Root categories retrieved successfully'),
+            message=CATEGORY_SUCCESS['root_categories_retrieved'],
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )

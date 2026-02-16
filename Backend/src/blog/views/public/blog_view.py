@@ -1,32 +1,23 @@
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import SearchFilter
 
 from src.core.pagination import StandardLimitPagination
 from src.core.responses.response import APIResponse
-from src.blog.models.blog import Blog
 from src.blog.messages.messages import BLOG_ERRORS, BLOG_SUCCESS
 from src.blog.serializers.public.blog_serializer import (
     BlogPublicListSerializer,
     BlogPublicDetailSerializer
 )
 from src.blog.services.public.blog_services import BlogPublicService
-from src.blog.filters.public.blog_filters import BlogPublicFilter
 
 class BlogPublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
-    filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_class = BlogPublicFilter
-    search_fields = ['title', 'short_description', 'description', 'categories__name', 'tags__name']
-    ordering_fields = ['title', 'created_at', 'is_featured']
-    ordering = ['-created_at']
     lookup_field = 'slug'
     pagination_class = StandardLimitPagination
 
     def get_queryset(self):
-        return Blog.objects.published()
+        return BlogPublicService.get_blog_queryset()
     
     def get_serializer_class(self):
         if self.action == 'list':
@@ -34,20 +25,18 @@ class BlogPublicViewSet(viewsets.ReadOnlyModelViewSet):
         return BlogPublicDetailSerializer
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        
         filters = {
             'category_slug': request.query_params.get('category_slug'),
             'tag_slug': request.query_params.get('tag_slug'),
             'is_featured': self._parse_bool(request.query_params.get('is_featured')),
+            'created_after': request.query_params.get('created_after'),
+            'created_before': request.query_params.get('created_before'),
         }
         filters = {k: v for k, v in filters.items() if v is not None}
         
         search = request.query_params.get('search')
-        service_queryset = BlogPublicService.get_blog_queryset(filters=filters, search=search)
-        
-        filtered_ids = list(service_queryset.values_list('id', flat=True))
-        queryset = queryset.filter(id__in=filtered_ids)
+        ordering = request.query_params.get('ordering')
+        queryset = BlogPublicService.get_blog_queryset(filters=filters, search=search, ordering=ordering)
         
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -96,7 +85,7 @@ class BlogPublicViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=False, methods=['get'])
     def featured(self, request):
-        limit = int(request.query_params.get('limit', 6))
+        limit = self._parse_positive_int(request.query_params.get('limit'), default=6, max_value=24)
         blogs = BlogPublicService.get_featured_blogs(limit=limit)
         serializer = BlogPublicListSerializer(blogs, many=True)
         return APIResponse.success(
@@ -114,7 +103,7 @@ class BlogPublicViewSet(viewsets.ReadOnlyModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         
-        limit = int(request.query_params.get('limit', 4))
+        limit = self._parse_positive_int(request.query_params.get('limit'), default=4, max_value=24)
         related_blogs = BlogPublicService.get_related_blogs(blog, limit=limit)
         serializer = BlogPublicListSerializer(related_blogs, many=True)
         return APIResponse.success(
@@ -130,3 +119,14 @@ class BlogPublicViewSet(viewsets.ReadOnlyModelViewSet):
         if isinstance(value, bool):
             return value
         return value.lower() in ('1', 'true', 'yes', 'on')
+
+    @staticmethod
+    def _parse_positive_int(value, default, max_value=100):
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError):
+            return default
+
+        if parsed < 1:
+            return default
+        return min(parsed, max_value)

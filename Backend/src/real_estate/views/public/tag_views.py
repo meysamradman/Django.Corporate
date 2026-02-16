@@ -4,40 +4,23 @@ from rest_framework.permissions import AllowAny
 
 from src.core.pagination import StandardLimitPagination
 from src.core.responses.response import APIResponse
-from src.real_estate.messages.messages import STATE_ERRORS, STATE_SUCCESS
-from src.real_estate.services.public.state_services import PropertyStatePublicService
-from src.real_estate.serializers.public.state_serializer import (
-    PropertyStatePublicListSerializer,
-    PropertyStatePublicDetailSerializer,
-)
+from src.real_estate.messages.messages import TAG_ERRORS, TAG_SUCCESS
+from src.real_estate.serializers.public.taxonomy_serializer import PropertyTagPublicSerializer
+from src.real_estate.services.public.tag_services import PropertyTagPublicService
 
 
-class PropertyStatePublicViewSet(viewsets.ReadOnlyModelViewSet):
+class PropertyTagPublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     pagination_class = StandardLimitPagination
-    serializer_class = PropertyStatePublicListSerializer
     lookup_field = 'slug'
+    serializer_class = PropertyTagPublicSerializer
 
     def get_queryset(self):
-        filters = {
-            'usage_type': self.request.query_params.get('usage_type'),
-            'min_property_count': self.request.query_params.get('min_property_count'),
-        }
+        filters = {'min_property_count': self.request.query_params.get('min_property_count')}
         filters = {k: v for k, v in filters.items() if v is not None}
-
         search = self.request.query_params.get('search')
         ordering = self.request.query_params.get('ordering')
-
-        return PropertyStatePublicService.get_state_queryset(
-            filters=filters,
-            search=search,
-            ordering=ordering,
-        )
-
-    def get_serializer_class(self):
-        if self.action == 'retrieve':
-            return PropertyStatePublicDetailSerializer
-        return PropertyStatePublicListSerializer
+        return PropertyTagPublicService.get_tag_queryset(filters=filters, search=search, ordering=ordering)
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -48,51 +31,49 @@ class PropertyStatePublicViewSet(viewsets.ReadOnlyModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return APIResponse.success(
-            message=STATE_SUCCESS['state_list_success'],
+            message=TAG_SUCCESS['tag_list_success'],
             data=serializer.data,
             status_code=status.HTTP_200_OK,
         )
 
-    def retrieve(self, request, slug=None):
-        state = PropertyStatePublicService.get_state_by_slug(slug)
-
-        if not state:
+    def retrieve(self, request, *args, **kwargs):
+        tag = PropertyTagPublicService.get_tag_by_slug(kwargs.get('slug'))
+        if not tag:
             return APIResponse.error(
-                message=STATE_ERRORS['state_not_found'],
+                message=TAG_ERRORS['tag_not_found'],
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = self.get_serializer(state)
+        serializer = self.get_serializer(tag)
         return APIResponse.success(
-            message=STATE_SUCCESS['state_retrieved'],
+            message=TAG_SUCCESS['tag_retrieved'],
             data=serializer.data,
             status_code=status.HTTP_200_OK,
         )
 
     @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
     def get_by_public_id(self, request, public_id=None):
-        state = PropertyStatePublicService.get_state_by_public_id(public_id)
-        if not state:
+        tag = PropertyTagPublicService.get_tag_by_public_id(public_id)
+        if not tag:
             return APIResponse.error(
-                message=STATE_ERRORS['state_not_found'],
+                message=TAG_ERRORS['tag_not_found'],
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = self.get_serializer(state)
+        serializer = self.get_serializer(tag)
         return APIResponse.success(
-            message=STATE_SUCCESS['state_retrieved'],
+            message=TAG_SUCCESS['tag_retrieved'],
             data=serializer.data,
             status_code=status.HTTP_200_OK,
         )
 
-    @action(detail=False, methods=['get'], url_path='featured')
-    def featured(self, request):
-        limit = self._parse_positive_int(request.query_params.get('limit'), default=3, max_value=24)
-        states = PropertyStatePublicService.get_featured_states(limit=limit)
-        serializer = self.get_serializer(states, many=True)
-
+    @action(detail=False, methods=['get'])
+    def popular(self, request):
+        limit = self._parse_positive_int(request.query_params.get('limit'), default=10, max_value=50)
+        queryset = PropertyTagPublicService.get_popular_tags(limit=limit)
+        serializer = self.get_serializer(queryset, many=True)
         return APIResponse.success(
-            message=STATE_SUCCESS['state_list_success'],
+            message=TAG_SUCCESS['tag_list_success'],
             data=serializer.data,
             status_code=status.HTTP_200_OK,
         )

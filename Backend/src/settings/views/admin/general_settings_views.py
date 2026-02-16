@@ -4,8 +4,8 @@ from django.core.cache import cache
 
 from src.core.responses.response import APIResponse
 from src.settings.models import GeneralSettings
-from src.settings.serializers.general_settings_serializer import GeneralSettingsSerializer
-from src.settings.services.general_settings_service import (
+from src.settings.serializers.admin.general_settings_serializer import GeneralSettingsSerializer
+from src.settings.services.admin.general_settings_service import (
     get_general_settings,
     update_general_settings,
 )

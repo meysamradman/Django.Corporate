@@ -5,8 +5,8 @@ from django.core.exceptions import ValidationError
 
 from src.core.responses.response import APIResponse
 from src.settings.models import ContactPhone
-from src.settings.serializers.contact_phone_serializer import ContactPhoneSerializer
-from src.settings.services.contact_phone_service import (
+from src.settings.serializers.admin.contact_phone_serializer import ContactPhoneSerializer
+from src.settings.services.admin.contact_phone_service import (
     get_contact_phones,
     create_contact_phone,
     update_contact_phone,

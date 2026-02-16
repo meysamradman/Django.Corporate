@@ -4,8 +4,8 @@ import requests
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from src.core.responses.response import APIResponse
-from ..models.map_settings import MapSettings
-from ..serializers.map_settings_serializer import MapSettingsSerializer
+from src.settings.models.map_settings import MapSettings
+from src.settings.serializers.admin.map_settings_serializer import MapSettingsSerializer
 from src.user.access_control import PermissionRequiredMixin
 
 class MapSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from src.media.models import ImageMedia, VideoMedia
 from src.media.serializers.media_serializer import ImageMediaSerializer, VideoMediaSerializer
-from ..models import Slider
+from src.settings.models import Slider
 
 class SliderSerializer(serializers.ModelSerializer):
     image_id = serializers.PrimaryKeyRelatedField(

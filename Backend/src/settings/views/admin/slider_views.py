@@ -1,8 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from src.user.access_control import settings_permission, PermissionRequiredMixin
-from ..models import Slider
-from ..serializers import SliderSerializer
+from src.settings.models import Slider
+from src.settings.serializers.admin.slider_serializer import SliderSerializer
 
 class SliderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     queryset = Slider.objects.all()

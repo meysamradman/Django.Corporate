@@ -6,6 +6,8 @@ router = DefaultRouter()
 router.register(r'admin/blog', views.BlogAdminViewSet, basename='admin-blog')
 router.register(r'admin/blog-category', views.BlogCategoryAdminViewSet, basename='admin-blog-category')
 router.register(r'admin/blog-tag', views.BlogTagAdminViewSet, basename='admin-blog-tag')
+
+# Backward-compatible public routes
 router.register(r'blog', views.BlogPublicViewSet, basename='public-blog')
 router.register(r'blog-category', views.BlogCategoryPublicViewSet, basename='public-blog-category')
 router.register(r'blog-tag', views.BlogTagPublicViewSet, basename='public-blog-tag')
@@ -13,4 +15,3 @@ router.register(r'blog-tag', views.BlogTagPublicViewSet, basename='public-blog-t
 urlpatterns = [
     path('', include(router.urls)),
 ]
-

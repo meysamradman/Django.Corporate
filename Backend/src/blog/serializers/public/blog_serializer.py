@@ -3,16 +3,8 @@ from drf_spectacular.utils import extend_schema_field
 from src.media.serializers.media_serializer import MediaPublicSerializer
 from src.blog.models.media import BlogImage, BlogVideo, BlogAudio, BlogDocument
 from src.blog.models.blog import Blog
-from src.blog.models.category import BlogCategory
 from src.blog.serializers.public.category_serializer import BlogCategorySimplePublicSerializer
 from src.blog.serializers.public.tag_serializer import BlogTagPublicSerializer
-
-class BlogCategorySimplePublicSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BlogCategory
-        fields = [
-            'public_id', 'name', 'slug', 'created_at',
-        ]
 
 class BlogPublicListSerializer(serializers.ModelSerializer):
     main_image_url = serializers.SerializerMethodField()
@@ -27,10 +19,13 @@ class BlogPublicListSerializer(serializers.ModelSerializer):
     
     def get_main_image_url(self, obj):
         try:
-            main_image = obj.images.filter(is_main=True).first()
+            if hasattr(obj, 'main_image_media') and obj.main_image_media:
+                main_image = obj.main_image_media[0]
+            else:
+                main_image = obj.images.select_related('image').filter(is_main=True).first()
             if main_image and main_image.image:
                 return main_image.image.file.url
-        except:
+        except Exception:
             pass
         return None
 
@@ -95,10 +90,10 @@ class BlogPublicDetailSerializer(serializers.ModelSerializer):
     
     def get_media(self, obj):
         media_list = []
-        images = obj.images.all()
-        videos = obj.videos.all()
-        audios = obj.audios.all()
-        documents = obj.documents.all()
+        images = getattr(obj, 'all_images', obj.images.select_related('image').all())
+        videos = obj.videos.select_related('video').all()
+        audios = obj.audios.select_related('audio').all()
+        documents = obj.documents.select_related('document').all()
         for image in images:
             media_list.append(BlogMediaPublicSerializer(image, context=self.context).data)
         for video in videos:
@@ -108,6 +103,7 @@ class BlogPublicDetailSerializer(serializers.ModelSerializer):
         for document in documents:
             media_list.append(BlogMediaPublicSerializer(document, context=self.context).data)
             
+        media_list.sort(key=lambda item: (item.get('order') or 0, item.get('created_at') or ''))
         return media_list
     
     def get_seo_data(self, obj):

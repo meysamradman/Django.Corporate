@@ -4,10 +4,10 @@ import json
 from django.core.cache import cache
 from django.db.models import Count, Q
 
-from src.real_estate.models.state import PropertyState
+from src.real_estate.models.tag import PropertyTag
 
 
-class PropertyStatePublicService:
+class PropertyTagPublicService:
     ALLOWED_ORDERING_FIELDS = {'title', 'created_at', 'property_count'}
 
     @staticmethod
@@ -17,31 +17,25 @@ class PropertyStatePublicService:
         return f"{prefix}:{digest}"
 
     @staticmethod
-    def _parse_int(value):
-        try:
-            return int(value)
-        except (TypeError, ValueError):
-            return None
-
-    @staticmethod
     def _normalize_ordering(ordering):
         if not ordering:
-            return ('title',)
+            return ('-property_count', 'title')
 
         candidate = ordering.split(',')[0].strip()
         descending = candidate.startswith('-')
         field = candidate[1:] if descending else candidate
 
-        if field not in PropertyStatePublicService.ALLOWED_ORDERING_FIELDS:
-            return ('title',)
+        if field not in PropertyTagPublicService.ALLOWED_ORDERING_FIELDS:
+            return ('-property_count', 'title')
 
         return (f"-{field}" if descending else field,)
 
     @staticmethod
     def _base_queryset():
-        return PropertyState.objects.filter(
+        return PropertyTag.objects.filter(
             is_active=True,
-        ).select_related('image').annotate(
+            is_public=True,
+        ).annotate(
             property_count=Count(
                 'properties',
                 filter=Q(
@@ -49,51 +43,52 @@ class PropertyStatePublicService:
                     properties__is_public=True,
                     properties__is_published=True,
                 ),
+                distinct=True,
             )
         )
 
     @staticmethod
-    def get_state_queryset(filters=None, search=None, ordering=None):
+    def get_tag_queryset(filters=None, search=None, ordering=None):
         payload = {
             'filters': filters or {},
             'search': search or '',
-            'ordering': PropertyStatePublicService._normalize_ordering(ordering),
+            'ordering': PropertyTagPublicService._normalize_ordering(ordering),
         }
-        cache_key = PropertyStatePublicService._build_cache_key('real_estate_public_state_list', payload)
+        cache_key = PropertyTagPublicService._build_cache_key('real_estate_public_tag_list', payload)
         cached_result = cache.get(cache_key)
         if cached_result is not None:
             return cached_result
 
-        queryset = PropertyStatePublicService._base_queryset()
+        queryset = PropertyTagPublicService._base_queryset()
 
         if filters:
-            usage_type = filters.get('usage_type')
-            if usage_type:
-                queryset = queryset.filter(usage_type=usage_type)
-
-            min_property_count = PropertyStatePublicService._parse_int(filters.get('min_property_count'))
+            min_property_count = filters.get('min_property_count')
+            try:
+                min_property_count = int(min_property_count)
+            except (TypeError, ValueError):
+                min_property_count = None
             if min_property_count is not None:
                 queryset = queryset.filter(property_count__gte=min_property_count)
 
         if search:
             queryset = queryset.filter(
-                Q(title__icontains=search) | Q(slug__icontains=search)
+                Q(title__icontains=search) |
+                Q(description__icontains=search) |
+                Q(slug__icontains=search)
             )
 
-        queryset = queryset.order_by(*PropertyStatePublicService._normalize_ordering(ordering))
+        queryset = queryset.order_by(*PropertyTagPublicService._normalize_ordering(ordering))
         cache.set(cache_key, queryset, 300)
         return queryset
 
     @staticmethod
-    def get_state_by_slug(slug):
-        return PropertyStatePublicService._base_queryset().filter(slug=slug).first()
+    def get_tag_by_slug(slug):
+        return PropertyTagPublicService._base_queryset().filter(slug=slug).first()
 
     @staticmethod
-    def get_state_by_public_id(public_id):
-        return PropertyStatePublicService._base_queryset().filter(public_id=public_id).first()
+    def get_tag_by_public_id(public_id):
+        return PropertyTagPublicService._base_queryset().filter(public_id=public_id).first()
 
     @staticmethod
-    def get_featured_states(limit=3):
-        return PropertyStatePublicService._base_queryset().filter(
-            property_count__gt=0,
-        ).order_by('-property_count', 'title')[:limit]
+    def get_popular_tags(limit=10):
+        return PropertyTagPublicService._base_queryset().filter(property_count__gt=0).order_by('-property_count', 'title')[:limit]

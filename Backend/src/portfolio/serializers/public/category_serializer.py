@@ -18,6 +18,11 @@ class PortfolioCategoryPublicSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(serializers.DictField())
     def get_parent(self, obj):
+        parent_map = self.context.get('category_parent_map', {})
+        parent_info = parent_map.get(obj.id)
+        if parent_info:
+            return parent_info
+
         parent = obj.get_parent()
         if parent:
             return {'public_id': parent.public_id, 'name': parent.name, 'slug': parent.slug}
@@ -25,6 +30,10 @@ class PortfolioCategoryPublicSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(serializers.ListField(child=serializers.DictField()))
     def get_children(self, obj):
+        children_map = self.context.get('category_children_map', {})
+        if obj.id in children_map:
+            return children_map[obj.id] or None
+
         children = obj.get_children()
         return [{'public_id': child.public_id, 'name': child.name, 'slug': child.slug} for child in children] if children.exists() else None
 

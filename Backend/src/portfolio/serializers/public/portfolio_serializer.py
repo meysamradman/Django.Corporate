@@ -3,17 +3,9 @@ from drf_spectacular.utils import extend_schema_field
 from src.media.serializers.media_serializer import MediaPublicSerializer
 from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
 from src.portfolio.models.portfolio import Portfolio
-from src.portfolio.models.category import PortfolioCategory
 from src.portfolio.serializers.public.category_serializer import PortfolioCategorySimplePublicSerializer
 from src.portfolio.serializers.public.option_serializer import PortfolioOptionPublicSerializer
 from src.portfolio.serializers.public.tag_serializer import PortfolioTagPublicSerializer
-
-class PortfolioCategorySimplePublicSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PortfolioCategory
-        fields = [
-            'public_id', 'name', 'slug', 'created_at',
-        ]
 
 class PortfolioPublicListSerializer(serializers.ModelSerializer):
     main_image_url = serializers.SerializerMethodField()
@@ -28,10 +20,13 @@ class PortfolioPublicListSerializer(serializers.ModelSerializer):
     
     def get_main_image_url(self, obj):
         try:
-            main_image = obj.images.filter(is_main=True).first()
+            if hasattr(obj, 'main_image_media') and obj.main_image_media:
+                main_image = obj.main_image_media[0]
+            else:
+                main_image = obj.images.select_related('image').filter(is_main=True).first()
             if main_image and main_image.image:
                 return main_image.image.file.url
-        except:
+        except Exception:
             pass
         return None
 
@@ -97,10 +92,10 @@ class PortfolioPublicDetailSerializer(serializers.ModelSerializer):
     
     def get_media(self, obj):
         media_list = []
-        images = obj.images.all()
-        videos = obj.videos.all()
-        audios = obj.audios.all()
-        documents = obj.documents.all()
+        images = getattr(obj, 'all_images', obj.images.select_related('image').all())
+        videos = obj.videos.select_related('video').all()
+        audios = obj.audios.select_related('audio').all()
+        documents = obj.documents.select_related('document').all()
         for image in images:
             media_list.append(PortfolioMediaPublicSerializer(image, context=self.context).data)
         for video in videos:
@@ -110,6 +105,7 @@ class PortfolioPublicDetailSerializer(serializers.ModelSerializer):
         for document in documents:
             media_list.append(PortfolioMediaPublicSerializer(document, context=self.context).data)
             
+        media_list.sort(key=lambda item: (item.get('order') or 0, item.get('created_at') or ''))
         return media_list
     
     def get_seo_data(self, obj):

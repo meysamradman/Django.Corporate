@@ -2,7 +2,14 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from src.real_estate import views
 from src.real_estate.views.admin import location_views, property_geo_views
-from src.real_estate.views.public import state_views
+from src.real_estate.views.public import (
+    state_views,
+    property_views,
+    type_views,
+    label_views,
+    tag_views,
+    feature_views,
+)
 
 # Admin router
 admin_router = DefaultRouter()
@@ -22,7 +29,12 @@ admin_router.register(r'admin/real-estate-city-regions', location_views.RealEsta
 
 # Public router
 public_router = DefaultRouter()
+public_router.register(r'public/real-estate/properties', property_views.PropertyPublicViewSet, basename='public-property')
+public_router.register(r'public/real-estate/types', type_views.PropertyTypePublicViewSet, basename='public-property-type')
 public_router.register(r'public/real-estate/states', state_views.PropertyStatePublicViewSet, basename='public-property-state')
+public_router.register(r'public/real-estate/labels', label_views.PropertyLabelPublicViewSet, basename='public-property-label')
+public_router.register(r'public/real-estate/tags', tag_views.PropertyTagPublicViewSet, basename='public-property-tag')
+public_router.register(r'public/real-estate/features', feature_views.PropertyFeaturePublicViewSet, basename='public-property-feature')
 
 urlpatterns = [
     path('', include(admin_router.urls)),

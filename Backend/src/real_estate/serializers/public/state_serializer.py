@@ -14,8 +14,8 @@ class PropertyStatePublicSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = PropertyState
-        fields = ['id', 'name', 'slug', 'usage_type', 'property_count', 'image_url']
-        read_only_fields = ['id', 'name', 'slug', 'usage_type', 'property_count', 'image_url']
+        fields = ['id', 'public_id', 'name', 'slug', 'usage_type', 'property_count', 'image_url', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'public_id', 'name', 'slug', 'usage_type', 'property_count', 'image_url', 'created_at', 'updated_at']
 
     def get_image_url(self, obj):
         try:
@@ -33,7 +33,5 @@ class PropertyStatePublicListSerializer(PropertyStatePublicSerializer):
 
 class PropertyStatePublicDetailSerializer(PropertyStatePublicSerializer):
     """Detail serializer for PropertyState with extra info"""
-    
-    class Meta(PropertyStatePublicSerializer.Meta):
-        fields = PropertyStatePublicSerializer.Meta.fields + ['created_at']
-        read_only_fields = PropertyStatePublicSerializer.Meta.read_only_fields + ['created_at']
+
+    pass

@@ -1,27 +1,81 @@
+import hashlib
+import json
+
+from django.core.cache import cache
 from django.db.models import Count, Q
 from src.blog.models.category import BlogCategory
-from src.blog.models.blog import Blog
 
 class BlogCategoryPublicService:
+    ALLOWED_ORDERING_FIELDS = {'name', 'sort_order', 'blog_count', 'created_at'}
+
     @staticmethod
-    def get_category_queryset(filters=None, search=None):
-        queryset = BlogCategory.objects.filter(
-            is_active=True
+    def _build_cache_key(prefix, payload):
+        serialized = json.dumps(payload, sort_keys=True, default=str)
+        digest = hashlib.md5(serialized.encode('utf-8')).hexdigest()
+        return f"{prefix}:{digest}"
+
+    @staticmethod
+    def _normalize_ordering(ordering):
+        if not ordering:
+            return ('-blog_count', 'sort_order', 'name')
+
+        candidate = ordering.split(',')[0].strip()
+        descending = candidate.startswith('-')
+        field = candidate[1:] if descending else candidate
+
+        if field not in BlogCategoryPublicService.ALLOWED_ORDERING_FIELDS:
+            return ('-blog_count', 'sort_order', 'name')
+
+        return (f"-{field}" if descending else field,)
+
+    @staticmethod
+    def _parse_int(value):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _base_queryset():
+        return BlogCategory.objects.filter(
+            is_active=True,
+            is_public=True,
         ).annotate(
-            blog_count=Count('blogs', filter=Q(blogs__is_active=True, blogs__is_public=True))
-        ).filter(
-            blog_count__gt=0
-        )
+            blog_count=Count(
+                'blog_categories',
+                filter=Q(
+                    blog_categories__is_active=True,
+                    blog_categories__is_public=True,
+                    blog_categories__status='published',
+                ),
+            )
+        ).filter(blog_count__gt=0)
+
+    @staticmethod
+    def get_category_queryset(filters=None, search=None, ordering=None):
+        payload = {
+            'filters': filters or {},
+            'search': search or '',
+            'ordering': BlogCategoryPublicService._normalize_ordering(ordering),
+        }
+        cache_key = BlogCategoryPublicService._build_cache_key('blog_public_category_list', payload)
+        cached_result = cache.get(cache_key)
+        if cached_result is not None:
+            return cached_result
+
+        queryset = BlogCategoryPublicService._base_queryset().select_related('image')
         
         if filters:
             if filters.get('name'):
                 queryset = queryset.filter(name__icontains=filters['name'])
             if filters.get('parent_slug'):
                 queryset = queryset.filter(parent__slug=filters['parent_slug'])
-            if filters.get('depth'):
-                queryset = queryset.filter(depth=filters['depth'])
-            if filters.get('min_blog_count'):
-                queryset = queryset.filter(blog_count__gte=filters['min_blog_count'])
+            depth = BlogCategoryPublicService._parse_int(filters.get('depth'))
+            min_blog_count = BlogCategoryPublicService._parse_int(filters.get('min_blog_count'))
+            if depth is not None:
+                queryset = queryset.filter(depth=depth)
+            if min_blog_count is not None:
+                queryset = queryset.filter(blog_count__gte=min_blog_count)
         
         if search:
             queryset = queryset.filter(
@@ -29,35 +83,36 @@ class BlogCategoryPublicService:
                 Q(description__icontains=search)
             )
         
-        return queryset.order_by('-blog_count', 'name')
+        queryset = queryset.order_by(*BlogCategoryPublicService._normalize_ordering(ordering))
+        cache.set(cache_key, queryset, 300)
+        return queryset
     
     @staticmethod
     def get_category_by_slug(slug):
-        return BlogCategory.objects.filter(
+        return BlogCategoryPublicService._base_queryset().filter(
             slug=slug, 
-            is_active=True
-        ).annotate(
-            blog_count=Count('blogs', filter=Q(blogs__is_active=True, blogs__is_public=True))
-        ).first()
+        ).select_related('image').first()
+
+    @staticmethod
+    def get_category_by_public_id(public_id):
+        return BlogCategoryPublicService._base_queryset().filter(
+            public_id=public_id,
+        ).select_related('image').first()
     
     @staticmethod
     def get_tree_data():
-        return BlogCategory.objects.filter(
-            is_active=True
-        ).annotate(
-            blog_count=Count('blogs', filter=Q(blogs__is_active=True, blogs__is_public=True))
-        ).filter(
-            blog_count__gt=0
-        ).order_by('path')
+        cache_key = 'blog_public_category_tree'
+        cached_result = cache.get(cache_key)
+        if cached_result is not None:
+            return cached_result
+
+        queryset = BlogCategoryPublicService._base_queryset().select_related('image').order_by('path')
+        cache.set(cache_key, queryset, 300)
+        return queryset
     
     @staticmethod
     def get_root_categories():
-        return BlogCategory.objects.filter(
-            is_active=True,
+        return BlogCategoryPublicService._base_queryset().filter(
             depth=1
-        ).annotate(
-            blog_count=Count('blogs', filter=Q(blogs__is_active=True, blogs__is_public=True))
-        ).filter(
-            blog_count__gt=0
         ).order_by('sort_order', 'name')
 

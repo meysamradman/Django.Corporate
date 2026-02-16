@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from src.settings.views.public.branding_view import PublicLogoView, PublicSliderListView
-from src.settings.views import (
+from src.settings.views.admin import (
     GeneralSettingsViewSet,
     MapSettingsViewSet,
     ContactPhoneViewSet,

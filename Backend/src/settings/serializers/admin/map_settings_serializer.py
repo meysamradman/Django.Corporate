@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..models.map_settings import MapSettings
+from src.settings.models import MapSettings
 
 class MapSettingsSerializer(serializers.ModelSerializer):
     class Meta:
