@@ -1,17 +1,17 @@
 from rest_framework import serializers
+
 from src.ticket.models.ticket_message import TicketMessage
-from src.ticket.models.ticket_attachment import TicketAttachment
 from src.ticket.messages.messages import TICKET_ERRORS
-from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.user.serializers.user.user_public_serializer import UserPublicSerializer
 from src.user.serializers.admin.admin_profile_serializer import AdminProfileSerializer
 from .ticket_attachment_serializer import TicketAttachmentSerializer
+
 
 class TicketMessageSerializer(serializers.ModelSerializer):
     sender_user = UserPublicSerializer(read_only=True)
     sender_admin = AdminProfileSerializer(read_only=True)
     attachments = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = TicketMessage
         fields = [
@@ -28,10 +28,11 @@ class TicketMessageSerializer(serializers.ModelSerializer):
             'attachments',
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
-    
+
     def get_attachments(self, obj):
         attachments = obj.attachments.all().order_by('created_at')
         return TicketAttachmentSerializer(attachments, many=True).data
+
 
 class TicketMessageCreateSerializer(serializers.ModelSerializer):
     attachment_ids = serializers.ListField(
@@ -41,7 +42,7 @@ class TicketMessageCreateSerializer(serializers.ModelSerializer):
         write_only=True,
         help_text="List of media IDs to attach (image, video, audio, or document)"
     )
-    
+
     class Meta:
         model = TicketMessage
         fields = [
@@ -50,10 +51,15 @@ class TicketMessageCreateSerializer(serializers.ModelSerializer):
             'sender_type',
             'attachment_ids',
         ]
-    
+
     def validate(self, attrs):
         sender_type = attrs.get('sender_type')
         if sender_type not in ['user', 'admin']:
             raise serializers.ValidationError(TICKET_ERRORS['invalid_sender_type'])
         return attrs
 
+
+__all__ = [
+    'TicketMessageSerializer',
+    'TicketMessageCreateSerializer',
+]

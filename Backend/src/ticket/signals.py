@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from src.ticket.models.ticket import Ticket
-from src.ticket.services.ticket_stats_service import TicketStatsService
+from src.ticket.services.admin.ticket_stats_service import TicketStatsService
 from src.user.services.admin_performance_service import AdminPerformanceService
 
 @receiver(post_save, sender=Ticket)

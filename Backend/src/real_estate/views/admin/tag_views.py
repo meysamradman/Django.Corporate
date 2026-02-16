@@ -125,7 +125,14 @@ class PropertyTagAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         partial = kwargs.pop('partial', False)
         tag_id = kwargs.get('pk')
 
-        serializer = self.get_serializer(data=request.data, partial=partial)
+        tag = PropertyTagAdminService.get_tag_by_id(tag_id)
+        if not tag:
+            return APIResponse.error(
+                message=TAG_ERRORS["tag_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = self.get_serializer(tag, data=request.data, partial=partial)
 
         try:
             serializer.is_valid(raise_exception=True)

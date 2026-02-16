@@ -5,7 +5,7 @@ from django.db.models import Exists, OuterRef
 from src.core.responses.response import APIResponse
 from src.ticket.models.ticket import Ticket
 from src.ticket.models.ticket_message import TicketMessage
-from src.ticket.serializers.ticket_serializer import TicketSerializer, TicketListSerializer, TicketDetailSerializer
+from src.ticket.serializers.admin.ticket_serializer import TicketSerializer, TicketListSerializer, TicketDetailSerializer
 from src.ticket.messages.messages import TICKET_SUCCESS, TICKET_ERRORS
 from src.ticket.utils.cache import TicketCacheManager
 from src.analytics.utils.cache import AnalyticsCacheManager

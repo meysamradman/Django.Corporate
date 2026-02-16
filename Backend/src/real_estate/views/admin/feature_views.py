@@ -124,7 +124,14 @@ class PropertyFeatureAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
         partial = kwargs.pop('partial', False)
         feature_id = kwargs.get('pk')
 
-        serializer = self.get_serializer(data=request.data, partial=partial)
+        feature_obj = PropertyFeatureAdminService.get_feature_by_id(feature_id)
+        if not feature_obj:
+            return APIResponse.error(
+                message=FEATURE_ERRORS["feature_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = self.get_serializer(feature_obj, data=request.data, partial=partial)
 
         try:
             serializer.is_valid(raise_exception=True)

@@ -4,8 +4,8 @@ from rest_framework.exceptions import ValidationError as DRFValidationError
 from django.core.exceptions import ValidationError as DjangoValidationError
 from src.core.responses.response import APIResponse
 from src.ticket.models.ticket_message import TicketMessage
-from src.ticket.serializers.ticket_message_serializer import TicketMessageSerializer, TicketMessageCreateSerializer
-from src.ticket.services import TicketMessageService
+from src.ticket.serializers.admin.ticket_message_serializer import TicketMessageSerializer, TicketMessageCreateSerializer
+from src.ticket.services.admin.ticket_message_service import TicketMessageService
 from src.ticket.messages.messages import TICKET_SUCCESS, TICKET_ERRORS
 from src.ticket.utils.cache import TicketCacheManager
 from src.analytics.utils.cache import AnalyticsCacheManager

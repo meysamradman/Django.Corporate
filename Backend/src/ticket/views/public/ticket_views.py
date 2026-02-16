@@ -5,8 +5,8 @@ from django.utils import timezone
 from datetime import timedelta
 from src.core.responses.response import APIResponse
 from src.ticket.models.ticket import Ticket
-from src.ticket.serializers.ticket_serializer import TicketDetailSerializer, TicketSerializer
-from src.ticket.serializers.ticket_message_serializer import TicketMessageSerializer, TicketMessageCreateSerializer
+from src.ticket.serializers.public.ticket_serializer import TicketDetailSerializer, TicketSerializer
+from src.ticket.serializers.public.ticket_message_serializer import TicketMessageSerializer, TicketMessageCreateSerializer
 from src.ticket.messages.messages import TICKET_SUCCESS, TICKET_ERRORS
 from src.ticket.utils.cache import TicketCacheManager
 from src.analytics.utils.cache import AnalyticsCacheManager

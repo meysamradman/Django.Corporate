@@ -124,7 +124,15 @@ class PropertyStateAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         state_id = kwargs.get('pk')
-        serializer = self.get_serializer(data=request.data, partial=partial)
+        state_obj = PropertyStateAdminService.get_state_by_id(state_id)
+
+        if not state_obj:
+            return APIResponse.error(
+                message=STATE_ERRORS["state_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = self.get_serializer(state_obj, data=request.data, partial=partial)
 
         try:
             serializer.is_valid(raise_exception=True)

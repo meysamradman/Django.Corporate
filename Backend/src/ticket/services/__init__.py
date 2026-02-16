@@ -1,3 +1,11 @@
-from .ticket_message_service import TicketMessageService
+from .admin import (
+	TicketAdminService,
+	TicketMessageService,
+	TicketStatsService,
+)
 
-__all__ = ['TicketMessageService']
+__all__ = [
+	'TicketAdminService',
+	'TicketMessageService',
+	'TicketStatsService',
+]

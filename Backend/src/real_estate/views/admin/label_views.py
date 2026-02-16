@@ -123,7 +123,14 @@ class PropertyLabelAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         partial = kwargs.pop('partial', False)
         label_id = kwargs.get('pk')
 
-        serializer = self.get_serializer(data=request.data, partial=partial)
+        label_obj = PropertyLabelAdminService.get_label_by_id(label_id)
+        if not label_obj:
+            return APIResponse.error(
+                message=LABEL_ERRORS["label_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = self.get_serializer(label_obj, data=request.data, partial=partial)
 
         try:
             serializer.is_valid(raise_exception=True)

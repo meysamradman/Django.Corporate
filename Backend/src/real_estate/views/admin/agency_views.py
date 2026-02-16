@@ -136,8 +136,15 @@ class RealEstateAgencyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSe
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         agency_id = kwargs.get('pk')
+
+        agency = RealEstateAgencyAdminService.get_agency_by_id(agency_id)
+        if not agency:
+            return APIResponse.error(
+                message=AGENCY_ERRORS["agency_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
         
-        serializer = self.get_serializer(data=request.data, partial=partial)
+        serializer = self.get_serializer(agency, data=request.data, partial=partial)
 
         try:
             serializer.is_valid(raise_exception=True)

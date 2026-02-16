@@ -135,7 +135,14 @@ class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         partial = kwargs.pop('partial', False)
         type_id = kwargs.get('pk')
 
-        serializer = self.get_serializer(data=request.data, partial=partial)
+        property_type = PropertyTypeAdminService.get_type_by_id(type_id)
+        if not property_type:
+            return APIResponse.error(
+                message=TYPE_ERRORS["type_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = self.get_serializer(property_type, data=request.data, partial=partial)
 
         try:
             serializer.is_valid(raise_exception=True)
