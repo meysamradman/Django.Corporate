@@ -2,6 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from src.core.models.base import BaseModel
 from src.real_estate.models.property import Property
+from src.real_estate.messages.messages import PROPERTY_ERRORS
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 
 class PropertyImage(BaseModel):
@@ -59,7 +60,7 @@ class PropertyImage(BaseModel):
                 is_main=True
             ).exclude(pk=self.pk).exists()
             if exists:
-                raise ValidationError("Only one main image is allowed per property.")
+                raise ValidationError(PROPERTY_ERRORS["only_one_main_image"])
 
     def save(self, *args, **kwargs):
         self.full_clean()

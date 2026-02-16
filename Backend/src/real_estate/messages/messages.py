@@ -58,6 +58,19 @@ PROPERTY_ERRORS = {
     "geo_polygon_min_points": "چندضلعی باید حداقل 3 نقطه داشته باشد.",
     "geo_polygon_invalid": "مختصات چندضلعی معتبر نیست.",
     "property_slug_exists": "این نامک قبلاً استفاده شده است.",
+    "province_required": "استان الزامی است.",
+    "city_required": "شهر الزامی است.",
+    "region_city_mismatch": "منطقه انتخاب شده متعلق به این شهر نیست.",
+    "bedrooms_range": "تعداد خواب باید بین 0 تا 20 باشد.",
+    "bathrooms_range": "تعداد سرویس بهداشتی باید بین 0 تا 20 باشد.",
+    "parking_spaces_range": "تعداد پارکینگ باید بین 0 تا 20 باشد.",
+    "document_type_invalid": "نوع سند نامعتبر است. مقادیر مجاز: {allowed_values}",
+    "extra_space_type_invalid": "نوع فضا نامعتبر: {invalid_value}. مقادیر مجاز: {allowed_values}",
+    "extra_construction_status_invalid": "وضعیت ساخت نامعتبر: {invalid_value}. مقادیر مجاز: {allowed_values}",
+    "extra_property_condition_invalid": "وضعیت ملک نامعتبر: {invalid_value}. مقادیر مجاز: {allowed_values}",
+    "extra_property_direction_invalid": "جهت ملک نامعتبر: {invalid_value}. مقادیر مجاز: {allowed_values}",
+    "extra_city_position_invalid": "موقعیت شهری نامعتبر: {invalid_value}. مقادیر مجاز: {allowed_values}",
+    "extra_unit_type_invalid": "نوع واحد نامعتبر: {invalid_value}. مقادیر مجاز: {allowed_values}",
 }
 
 AGENT_DEFAULTS = {

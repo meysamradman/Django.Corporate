@@ -2,6 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from src.core.models.base import BaseModel
 from src.real_estate.models.floor_plan import RealEstateFloorPlan
+from src.real_estate.messages.messages import FLOOR_PLAN_ERRORS
 from src.media.models.media import ImageMedia
 
 class FloorPlanImage(BaseModel):
@@ -74,7 +75,7 @@ class FloorPlanImage(BaseModel):
                 is_main=True
             ).exclude(pk=self.pk).exists()
             if exists:
-                raise ValidationError("Only one main image is allowed per floor plan.")
+                raise ValidationError(FLOOR_PLAN_ERRORS["only_one_main_image"])
 
     def save(self, *args, **kwargs):
         self.full_clean()

@@ -16,6 +16,7 @@ from src.core.models import City, Province
 from src.real_estate.models.location import CityRegion
 from src.real_estate.utils.cache import PropertyCacheKeys
 from src.media.serializers.media_serializer import MediaAdminSerializer, MediaCoverSerializer
+from src.real_estate.messages.messages import PROPERTY_ERRORS
 from src.real_estate.models.constants import (
     DOCUMENT_TYPE_CHOICES,
     SPACE_TYPE_CHOICES,
@@ -637,30 +638,32 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         if not attrs.get('province'):
-            raise serializers.ValidationError("استان الزامی است.")
+            raise serializers.ValidationError(PROPERTY_ERRORS["province_required"])
         if not attrs.get('city'):
-            raise serializers.ValidationError("شهر الزامی است.")
+            raise serializers.ValidationError(PROPERTY_ERRORS["city_required"])
 
         if attrs.get('region'):
             if attrs['region'].city_id != attrs['city'].id:
-                raise serializers.ValidationError("منطقه انتخاب شده متعلق به این شهر نیست.")
+                raise serializers.ValidationError(PROPERTY_ERRORS["region_city_mismatch"])
         
         if attrs.get('bedrooms') is not None:
             if attrs['bedrooms'] < 0 or attrs['bedrooms'] > 20:
-                raise serializers.ValidationError({"bedrooms": "تعداد خواب باید بین 0 تا 20 باشد."})
+                raise serializers.ValidationError({"bedrooms": PROPERTY_ERRORS["bedrooms_range"]})
         
         if attrs.get('bathrooms') is not None:
             if attrs['bathrooms'] < 0 or attrs['bathrooms'] > 20:
-                raise serializers.ValidationError({"bathrooms": "تعداد سرویس بهداشتی باید بین 0 تا 20 باشد."})
+                raise serializers.ValidationError({"bathrooms": PROPERTY_ERRORS["bathrooms_range"]})
         
         if attrs.get('parking_spaces') is not None:
             if attrs['parking_spaces'] < 0 or attrs['parking_spaces'] > 20:
-                raise serializers.ValidationError({"parking_spaces": "تعداد پارکینگ باید بین 0 تا 20 باشد."})
+                raise serializers.ValidationError({"parking_spaces": PROPERTY_ERRORS["parking_spaces_range"]})
 
         if attrs.get('document_type'):
             if attrs['document_type'] not in DOCUMENT_TYPE_CHOICES:
                 raise serializers.ValidationError({
-                    "document_type": f"نوع سند نامعتبر است. مقادیر مجاز: {', '.join(DOCUMENT_TYPE_CHOICES.keys())}"
+                    "document_type": PROPERTY_ERRORS["document_type_invalid"].format(
+                        allowed_values=', '.join(DOCUMENT_TYPE_CHOICES.keys())
+                    )
                 })
         
         extra_attrs = attrs.get('extra_attributes', {})
@@ -668,37 +671,55 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
             if 'space_type' in extra_attrs:
                 if extra_attrs['space_type'] not in SPACE_TYPE_CHOICES:
                     raise serializers.ValidationError({
-                        "extra_attributes": f"نوع فضا نامعتبر: {extra_attrs['space_type']}. مقادیر مجاز: {', '.join(SPACE_TYPE_CHOICES.keys())}"
+                        "extra_attributes": PROPERTY_ERRORS["extra_space_type_invalid"].format(
+                            invalid_value=extra_attrs['space_type'],
+                            allowed_values=', '.join(SPACE_TYPE_CHOICES.keys())
+                        )
                     })
             
             if 'construction_status' in extra_attrs:
                 if extra_attrs['construction_status'] not in CONSTRUCTION_STATUS_CHOICES:
                     raise serializers.ValidationError({
-                        "extra_attributes": f"وضعیت ساخت نامعتبر: {extra_attrs['construction_status']}. مقادیر مجاز: {', '.join(CONSTRUCTION_STATUS_CHOICES.keys())}"
+                        "extra_attributes": PROPERTY_ERRORS["extra_construction_status_invalid"].format(
+                            invalid_value=extra_attrs['construction_status'],
+                            allowed_values=', '.join(CONSTRUCTION_STATUS_CHOICES.keys())
+                        )
                     })
             
             if 'property_condition' in extra_attrs:
                 if extra_attrs['property_condition'] not in PROPERTY_CONDITION_CHOICES:
                     raise serializers.ValidationError({
-                        "extra_attributes": f"وضعیت ملک نامعتبر: {extra_attrs['property_condition']}. مقادیر مجاز: {', '.join(PROPERTY_CONDITION_CHOICES.keys())}"
+                        "extra_attributes": PROPERTY_ERRORS["extra_property_condition_invalid"].format(
+                            invalid_value=extra_attrs['property_condition'],
+                            allowed_values=', '.join(PROPERTY_CONDITION_CHOICES.keys())
+                        )
                     })
             
             if 'property_direction' in extra_attrs:
                 if extra_attrs['property_direction'] not in PROPERTY_DIRECTION_CHOICES:
                     raise serializers.ValidationError({
-                        "extra_attributes": f"جهت ملک نامعتبر: {extra_attrs['property_direction']}. مقادیر مجاز: {', '.join(PROPERTY_DIRECTION_CHOICES.keys())}"
+                        "extra_attributes": PROPERTY_ERRORS["extra_property_direction_invalid"].format(
+                            invalid_value=extra_attrs['property_direction'],
+                            allowed_values=', '.join(PROPERTY_DIRECTION_CHOICES.keys())
+                        )
                     })
             
             if 'city_position' in extra_attrs:
                 if extra_attrs['city_position'] not in CITY_POSITION_CHOICES:
                     raise serializers.ValidationError({
-                        "extra_attributes": f"موقعیت شهری نامعتبر: {extra_attrs['city_position']}. مقادیر مجاز: {', '.join(CITY_POSITION_CHOICES.keys())}"
+                        "extra_attributes": PROPERTY_ERRORS["extra_city_position_invalid"].format(
+                            invalid_value=extra_attrs['city_position'],
+                            allowed_values=', '.join(CITY_POSITION_CHOICES.keys())
+                        )
                     })
             
             if 'unit_type' in extra_attrs:
                 if extra_attrs['unit_type'] not in UNIT_TYPE_CHOICES:
                     raise serializers.ValidationError({
-                        "extra_attributes": f"نوع واحد نامعتبر: {extra_attrs['unit_type']}. مقادیر مجاز: {', '.join(UNIT_TYPE_CHOICES.keys())}"
+                        "extra_attributes": PROPERTY_ERRORS["extra_unit_type_invalid"].format(
+                            invalid_value=extra_attrs['unit_type'],
+                            allowed_values=', '.join(UNIT_TYPE_CHOICES.keys())
+                        )
                     })
 
         return attrs
@@ -904,20 +925,22 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
 
         if attrs.get('bedrooms') is not None:
             if attrs['bedrooms'] < 0 or attrs['bedrooms'] > 20:
-                raise serializers.ValidationError({"bedrooms": "تعداد خواب باید بین 0 تا 20 باشد."})
+                raise serializers.ValidationError({"bedrooms": PROPERTY_ERRORS["bedrooms_range"]})
         
         if attrs.get('bathrooms') is not None:
             if attrs['bathrooms'] < 0 or attrs['bathrooms'] > 20:
-                raise serializers.ValidationError({"bathrooms": "تعداد سرویس بهداشتی باید بین 0 تا 20 باشد."})
+                raise serializers.ValidationError({"bathrooms": PROPERTY_ERRORS["bathrooms_range"]})
         
         if attrs.get('parking_spaces') is not None:
             if attrs['parking_spaces'] < 0 or attrs['parking_spaces'] > 20:
-                raise serializers.ValidationError({"parking_spaces": "تعداد پارکینگ باید بین 0 تا 20 باشد."})
+                raise serializers.ValidationError({"parking_spaces": PROPERTY_ERRORS["parking_spaces_range"]})
 
         if attrs.get('document_type'):
             if attrs['document_type'] not in DOCUMENT_TYPE_CHOICES:
                 raise serializers.ValidationError({
-                    "document_type": f"نوع سند نامعتبر است. مقادیر مجاز: {', '.join(DOCUMENT_TYPE_CHOICES.keys())}"
+                    "document_type": PROPERTY_ERRORS["document_type_invalid"].format(
+                        allowed_values=', '.join(DOCUMENT_TYPE_CHOICES.keys())
+                    )
                 })
         
         extra_attrs = attrs.get('extra_attributes', {})
@@ -925,37 +948,55 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
             if 'space_type' in extra_attrs:
                 if extra_attrs['space_type'] not in SPACE_TYPE_CHOICES:
                     raise serializers.ValidationError({
-                        "extra_attributes": f"نوع فضا نامعتبر: {extra_attrs['space_type']}. مقادیر مجاز: {', '.join(SPACE_TYPE_CHOICES.keys())}"
+                        "extra_attributes": PROPERTY_ERRORS["extra_space_type_invalid"].format(
+                            invalid_value=extra_attrs['space_type'],
+                            allowed_values=', '.join(SPACE_TYPE_CHOICES.keys())
+                        )
                     })
             
             if 'construction_status' in extra_attrs:
                 if extra_attrs['construction_status'] not in CONSTRUCTION_STATUS_CHOICES:
                     raise serializers.ValidationError({
-                        "extra_attributes": f"وضعیت ساخت نامعتبر: {extra_attrs['construction_status']}. مقادیر مجاز: {', '.join(CONSTRUCTION_STATUS_CHOICES.keys())}"
+                        "extra_attributes": PROPERTY_ERRORS["extra_construction_status_invalid"].format(
+                            invalid_value=extra_attrs['construction_status'],
+                            allowed_values=', '.join(CONSTRUCTION_STATUS_CHOICES.keys())
+                        )
                     })
             
             if 'property_condition' in extra_attrs:
                 if extra_attrs['property_condition'] not in PROPERTY_CONDITION_CHOICES:
                     raise serializers.ValidationError({
-                        "extra_attributes": f"وضعیت ملک نامعتبر: {extra_attrs['property_condition']}. مقادیر مجاز: {', '.join(PROPERTY_CONDITION_CHOICES.keys())}"
+                        "extra_attributes": PROPERTY_ERRORS["extra_property_condition_invalid"].format(
+                            invalid_value=extra_attrs['property_condition'],
+                            allowed_values=', '.join(PROPERTY_CONDITION_CHOICES.keys())
+                        )
                     })
             
             if 'property_direction' in extra_attrs:
                 if extra_attrs['property_direction'] not in PROPERTY_DIRECTION_CHOICES:
                     raise serializers.ValidationError({
-                        "extra_attributes": f"جهت ملک نامعتبر: {extra_attrs['property_direction']}. مقادیر مجاز: {', '.join(PROPERTY_DIRECTION_CHOICES.keys())}"
+                        "extra_attributes": PROPERTY_ERRORS["extra_property_direction_invalid"].format(
+                            invalid_value=extra_attrs['property_direction'],
+                            allowed_values=', '.join(PROPERTY_DIRECTION_CHOICES.keys())
+                        )
                     })
             
             if 'city_position' in extra_attrs:
                 if extra_attrs['city_position'] not in CITY_POSITION_CHOICES:
                     raise serializers.ValidationError({
-                        "extra_attributes": f"موقعیت شهری نامعتبر: {extra_attrs['city_position']}. مقادیر مجاز: {', '.join(CITY_POSITION_CHOICES.keys())}"
+                        "extra_attributes": PROPERTY_ERRORS["extra_city_position_invalid"].format(
+                            invalid_value=extra_attrs['city_position'],
+                            allowed_values=', '.join(CITY_POSITION_CHOICES.keys())
+                        )
                     })
             
             if 'unit_type' in extra_attrs:
                 if extra_attrs['unit_type'] not in UNIT_TYPE_CHOICES:
                     raise serializers.ValidationError({
-                        "extra_attributes": f"نوع واحد نامعتبر: {extra_attrs['unit_type']}. مقادیر مجاز: {', '.join(UNIT_TYPE_CHOICES.keys())}"
+                        "extra_attributes": PROPERTY_ERRORS["extra_unit_type_invalid"].format(
+                            invalid_value=extra_attrs['unit_type'],
+                            allowed_values=', '.join(UNIT_TYPE_CHOICES.keys())
+                        )
                     })
 
         region = attrs.get('region')
@@ -964,7 +1005,7 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         if region:
             if city and region.city_id != city.id:
                 raise serializers.ValidationError({
-                    'region': 'منطقه انتخاب شده متعلق به این شهر نیست.'
+                    'region': PROPERTY_ERRORS["region_city_mismatch"]
                 })
 
             attrs['city'] = region.city
