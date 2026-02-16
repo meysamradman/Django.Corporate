@@ -1,32 +1,15 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import { Home } from 'lucide-react'; // Placeholder icon for logo
-import { brandingApi } from '@/api/settings/branding';
 import type { SiteLogo } from '@/types/settings/branding';
 
-export function Logo() {
-    const [data, setData] = useState<SiteLogo | null>(null);
+type LogoProps = {
+    data?: SiteLogo | null;
+};
 
-    useEffect(() => {
-        let isMounted = true;
-
-        const loadLogo = async () => {
-            try {
-                const result = await brandingApi.getLogo();
-                if (isMounted) {
-                    setData(result);
-                }
-            } catch {
-            }
-        };
-
-        loadLogo();
-
-        return () => {
-            isMounted = false;
-        };
-    }, []);
+export function Logo({ data = null }: LogoProps) {
 
     return (
         <Link href="/" className="flex items-center gap-2 group">

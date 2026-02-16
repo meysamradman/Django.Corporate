@@ -1,42 +1,21 @@
-"use client";
-
-import React, { useEffect, useMemo, useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardFooter } from "@/components/elements/Card";
 import { Separator } from "@/components/elements/Separator";
-import { realEstateApi } from '@/api/real-estate/route';
 import type { Property } from '@/types/real-estate/property';
 import { realEstateMedia } from '@/core/utils/media';
 
-export default function RealFeachure() {
-    const [items, setItems] = useState<Property[]>([]);
+type RealFeachureProps = {
+    properties?: Property[];
+};
 
-    useEffect(() => {
-        let mounted = true;
-        realEstateApi
-            .getFeaturedProperties(4)
-            .then((data) => {
-                if (!mounted) return;
-                setItems(Array.isArray(data) ? data : []);
-            })
-            .catch(() => {
-                if (!mounted) return;
-                setItems([]);
-            });
+export default function RealFeachure({ properties = [] }: RealFeachureProps) {
+    const items = Array.isArray(properties) ? properties : [];
 
-        return () => {
-            mounted = false;
-        };
-    }, []);
+    const cards: Array<Property | null> = items.slice(0, 4);
+    while (cards.length < 4) cards.push(null);
 
-    const cards = useMemo<Array<Property | null>>(() => {
-        const slice: Array<Property | null> = items.slice(0, 4);
-        while (slice.length < 4) slice.push(null);
-        return slice;
-    }, [items]);
-
-    const formatPrice = (property?: Property | null): string => {
-        if (!property) return '';
+    const formatPrice = (property: Property): string => {
         const value =
             property.sale_price ??
             property.price ??
@@ -52,8 +31,7 @@ export default function RealFeachure() {
         }
     };
 
-    const getLocation = (property?: Property | null): string => {
-        if (!property) return '';
+    const getLocation = (property: Property): string => {
         const parts = [property.province_name, property.city_name, property.district_name].filter(Boolean);
         return parts.join('، ') || property.neighborhood || '';
     };
@@ -64,18 +42,18 @@ export default function RealFeachure() {
             {cards.map((property, index) => {
                 const hasData = Boolean(property?.id);
                 const imageSrc = realEstateMedia.getPropertyMainImage(property?.main_image || null);
-                const title = hasData ? property.title : '';
-                const sub = hasData ? (getLocation(property) || property.short_description || '') : '';
-                const footerLeft = hasData ? formatPrice(property) : '';
-                const footerRight = hasData ? (property.property_type?.name || property.state?.name || '') : '';
+                const title = hasData && property ? property.title : '';
+                const sub = hasData && property ? (getLocation(property) || property.short_description || '') : '';
+                const footerLeft = hasData && property ? formatPrice(property) : '';
+                const footerRight = hasData && property ? (property.property_type?.name || property.state?.name || '') : '';
 
                 return (
-                    <Card key={hasData ? String(property!.id) : `placeholder-${index}`} className="p-0 gap-0">
+                    <Card key={hasData && property ? String(property.id) : `placeholder-${index}`} className="p-0 gap-0">
 
                         <div className="relative h-40 md:h-56">
                             <Image
                                 src={imageSrc}
-                                alt={hasData ? (property.main_image?.alt_text || property.title) : 'Cover image'}
+                                alt={hasData && property ? (property.main_image?.alt_text || property.title) : 'Cover image'}
                                 fill
                                 className="object-cover"
                                 priority={index === 0}

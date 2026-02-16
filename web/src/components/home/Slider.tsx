@@ -1,11 +1,9 @@
 "use client";
 
 import React from 'react';
-import { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay, EffectFade, Parallax } from 'swiper/modules';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { brandingApi } from '@/api/settings/branding';
 import type { HomeSliderItem } from '@/types/settings/branding';
 
 // Import Swiper styles
@@ -14,40 +12,14 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/effect-fade';
 
-export default function Slider() {
-  const [slidesData, setSlidesData] = useState<HomeSliderItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+type SliderProps = {
+  slidesData?: HomeSliderItem[];
+};
 
-  useEffect(() => {
-    let isMounted = true;
+export default function Slider({ slidesData = [] }: SliderProps) {
+  const slides = (Array.isArray(slidesData) ? slidesData : []).filter((item) => item.media_url) as HomeSliderItem[];
 
-    const loadSlides = async () => {
-      try {
-        const result = await brandingApi.getSliders();
-        if (isMounted) {
-          setSlidesData(result);
-        }
-      } catch {
-        if (isMounted) {
-          setSlidesData([]);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    loadSlides();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const slides = slidesData.filter((item) => item.media_url) as HomeSliderItem[];
-
-  if (isLoading || slides.length === 0) {
+  if (slides.length === 0) {
     return <div className="relative w-full h-[80vh] bg-bg" dir="rtl" />;
   }
 

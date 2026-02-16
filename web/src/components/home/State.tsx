@@ -1,15 +1,13 @@
-"use client";
-
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardFooter } from "@/components/elements/Card";
-import { realEstateApi } from "@/api/real-estate/route";
 import type { PropertyState } from "@/types/real-estate/property";
 import { realEstateMedia } from "@/core/utils/media";
 
-export default function State() {
-  const [states, setStates] = useState<PropertyState[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+type StateProps = {
+  states?: PropertyState[];
+};
 
+export default function State({ states = [] }: StateProps) {
   const formatUsageType = (usageType?: string) => {
     switch ((usageType || '').toLowerCase()) {
       case 'sale':
@@ -27,36 +25,9 @@ export default function State() {
     }
   };
 
-  useEffect(() => {
-    let isMounted = true;
+  const items = Array.isArray(states) ? states.slice(0, 3) : [];
 
-    const loadStates = async () => {
-      try {
-        const result = await realEstateApi.getStates({ size: 3 });
-        if (isMounted) {
-          const items = Array.isArray(result?.data) ? result.data : [];
-          setStates(items.slice(0, 3));
-        }
-      } catch (error) {
-        console.error('Error loading states:', error);
-        if (isMounted) {
-          setStates([]);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    loadStates();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  if (isLoading) {
+  if (items.length === 0) {
     return (
       <div className="justify-center grid grid-cols-3 gap-5 bg-bg">
         {[1, 2, 3].map((i) => (
@@ -74,13 +45,9 @@ export default function State() {
     );
   }
 
-  if (states.length === 0) {
-    return null;
-  }
-
   return (
     <div className="justify-center grid grid-cols-3 gap-5 bg-bg">
-      {states.map((state) => (
+      {items.map((state) => (
         <Card key={state.id} className="">
           <CardContent className="">
             <div className="relative h-40 md:h-56">

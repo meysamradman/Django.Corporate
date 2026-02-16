@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from src.settings.views.public.branding_view import PublicLogoView, PublicSliderListView
 from src.settings.views.public.contact_view import PublicContactView
+from src.settings.views.public.general_settings_view import PublicGeneralSettingsView
 from src.settings.views.admin import (
     GeneralSettingsViewSet,
     MapSettingsViewSet,
@@ -25,6 +26,7 @@ urlpatterns = [
     path('settings/logo/', PublicLogoView.as_view(), name='public-settings-logo'),
     path('settings/sliders/', PublicSliderListView.as_view(), name='public-settings-sliders'),
     path('settings/contact/', PublicContactView.as_view(), name='public-settings-contact'),
+    path('settings/general/public/', PublicGeneralSettingsView.as_view(), name='public-settings-general'),
     path('', include(router.urls)),
 ]
 

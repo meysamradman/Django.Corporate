@@ -9,6 +9,32 @@ type RequestOptions = {
   cache?: RequestCache;
 };
 
+const joinUrl = (base: string, path: string): string => {
+  const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${normalizedBase}${normalizedPath}`;
+};
+
+const resolveApiUrl = (url: string): string => {
+  if (/^https?:\/\//i.test(url)) return url;
+
+  const apiBase = env.API_BASE_URL;
+  const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+
+  if (/^https?:\/\//i.test(apiBase)) {
+    return joinUrl(apiBase, cleanUrl);
+  }
+
+  const cleanBase = apiBase.startsWith('/') ? apiBase : `/${apiBase}`;
+
+  // On the server, relative URLs may fail; use internal origin directly.
+  if (typeof window === 'undefined') {
+    return joinUrl(joinUrl(env.API_INTERNAL_ORIGIN, cleanBase), cleanUrl);
+  }
+
+  return joinUrl(cleanBase, cleanUrl);
+};
+
 async function request<T>(
   url: string,
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET',
@@ -20,6 +46,7 @@ async function request<T>(
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
     ...options?.headers,
   };
 
@@ -40,7 +67,7 @@ async function request<T>(
   }
 
   try {
-    const fullUrl = url.startsWith('http') ? url : `${env.API_BASE_URL}${url}`;
+    const fullUrl = resolveApiUrl(url);
     const response = await fetch(fullUrl, fetchOptions);
     clearTimeout(timeoutId);
 

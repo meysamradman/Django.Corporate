@@ -13,16 +13,16 @@ export const MEDIA_API_ROUTE = '/media/' as const;
 export const MEDIA_DEFAULT_IMAGES = {
   profileBanner: '/images/profile-banner.png',
   realEstate: {
-    property: '/images/default-property.jpg',
-    state: '/images/default-state.jpg',
-    type: '/images/default-type.jpg',
-    floorPlan: '/images/default-floor-plan.jpg',
+    property: '/images/profile-banner.png',
+    state: '/images/profile-banner.png',
+    type: '/images/profile-banner.png',
+    floorPlan: '/images/profile-banner.png',
   },
   blog: {
-    post: '/images/defaults/blog-placeholder.jpg',
+    post: '/images/profile-banner.png',
   },
   user: {
-    avatar: '/images/defaults/avatar-placeholder.jpg',
+    avatar: '/images/default_profile.png',
   },
 } as const;
 

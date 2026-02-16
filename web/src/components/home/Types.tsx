@@ -1,43 +1,18 @@
-"use client";
-
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import { ChevronLeft } from 'lucide-react';
-import { realEstateApi } from "@/api/real-estate/route";
 import type { PropertyType } from "@/types/real-estate/property";
 import { realEstateMedia } from "@/core/utils/media";
 
-export default function Types() {
-    const [types, setTypes] = useState<PropertyType[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+type TypesProps = {
+    types?: PropertyType[];
+};
 
-    useEffect(() => {
-        let isMounted = true;
-
-        const loadTypes = async () => {
-            try {
-                const result = await realEstateApi.getTypes({ size: 4 });
-                if (!isMounted) return;
-
-                const items = Array.isArray(result?.data) ? result.data : [];
-                setTypes(items.slice(0, 4));
-            } catch (error) {
-                console.error('Error loading types:', error);
-                if (isMounted) setTypes([]);
-            } finally {
-                if (isMounted) setIsLoading(false);
-            }
-        };
-
-        loadTypes();
-
-        return () => {
-            isMounted = false;
-        };
-    }, []);
+export default function Types({ types = [] }: TypesProps) {
+    const items = Array.isArray(types) ? types.slice(0, 4) : [];
 
     const placeholders = [1, 2, 3, 4];
-    const displayItems = isLoading || types.length === 0 ? placeholders : types;
+    const displayItems = items.length === 0 ? placeholders : items;
 
     return (
         <div className=" justify-center grid grid-cols-4 gap-5  bg-bg">
