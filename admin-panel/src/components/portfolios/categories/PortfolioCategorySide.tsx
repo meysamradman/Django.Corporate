@@ -28,6 +28,7 @@ export const PortfolioCategorySide: React.FC<PortfolioCategorySideProps> = ({
         selectedMedia,
         handleImageSelect,
         handleSubmit,
+        isLoading,
         isPending,
         isSubmitting,
     } = useRealEstateTaxonomyForm<PortfolioCategoryFormValues>({
@@ -71,6 +72,8 @@ export const PortfolioCategorySide: React.FC<PortfolioCategorySideProps> = ({
                 <ImageSelector
                     selectedMedia={selectedMedia}
                     onMediaSelect={handleImageSelect}
+                    loading={isEditMode && isLoading && !selectedMedia}
+                    showRemoveButton={false}
                     size="sm"
                     context="portfolio"
                     placeholderColor="purple"

@@ -1,7 +1,5 @@
-import React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
-import { Link } from "react-router-dom";
 import { Badge } from "@/components/elements/Badge";
 import { formatDate } from "@/core/utils/commonFormat";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
@@ -10,7 +8,10 @@ import { Checkbox } from "@/components/elements/Checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import { mediaService } from "@/components/media/services";
 
-export const useCategoryColumns = (actions: DataTableRowAction<PortfolioCategory>[] = []) => {
+export const useCategoryColumns = (
+  actions: DataTableRowAction<PortfolioCategory>[] = [],
+  onEditCategory?: (id: number) => void
+) => {
 
   const baseColumns: ColumnDef<PortfolioCategory>[] = [
     {
@@ -55,8 +56,15 @@ export const useCategoryColumns = (actions: DataTableRowAction<PortfolioCategory
           return category.name.charAt(0).toUpperCase();
         };
 
+        const isEditable = !!onEditCategory;
+
         return (
-          <Link to={`/portfolios/categories/${category.id}/edit`} className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => onEditCategory?.(Number(category.id))}
+            disabled={!isEditable}
+            className={`flex items-center gap-3 ${isEditable ? "cursor-pointer" : "cursor-not-allowed"}`}
+          >
             <Avatar className="table-avatar">
               {imageUrl ? (
                 <AvatarImage src={imageUrl} alt={category.name} />
@@ -69,7 +77,7 @@ export const useCategoryColumns = (actions: DataTableRowAction<PortfolioCategory
             <div className="table-cell-primary table-cell-wide">
               {category.name}
             </div>
-          </Link>
+          </button>
         );
       },
       enableSorting: true,

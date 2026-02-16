@@ -18,7 +18,7 @@ import { Plus, Edit, Trash2, Layout, ExternalLink, CheckCircle2, XCircle } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { MediaImage } from "@/components/media/base/MediaImage";
+import { MediaThumbnail } from "@/components/media/base/MediaThumbnail";
 import { Badge } from "@/components/elements/Badge";
 import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
 import { DRAWER_IDS } from "@/components/shared/drawer/types";
@@ -113,24 +113,25 @@ export function Sliders() {
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-bg/50 hover:bg-bg/50">
-                                    <TableHead className="w-[120px] text-center">تصویر</TableHead>
+                                    <TableHead className="w-30 text-center">رسانه</TableHead>
                                     <TableHead className="text-right">عنوان</TableHead>
                                     <TableHead className="text-right">لینک</TableHead>
                                     <TableHead className="w-24 text-center">وضعیت</TableHead>
                                     <TableHead className="w-24 text-center">ترتیب</TableHead>
-                                    <TableHead className="w-[60px] text-center"></TableHead>
+                                    <TableHead className="w-15 text-center"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {sliders.map((slider) => (
                                     <TableRow key={slider.id} className="hover:bg-bg/50 transition-colors">
                                         <TableCell className="text-center">
-                                            {(slider.image || slider.image_data) ? (
+                                            {(slider.video || slider.image || slider.image_data) ? (
                                                 <div className="flex justify-center p-1">
-                                                    <MediaImage
-                                                        media={(slider.image || slider.image_data) as any}
+                                                    <MediaThumbnail
+                                                        media={(slider.video || slider.image || slider.image_data) as any}
                                                         alt={slider.title}
                                                         className="h-16 w-24 object-cover rounded shadow-sm border border-muted/10"
+                                                        showIcon={true}
                                                     />
                                                 </div>
                                             ) : (
@@ -143,7 +144,7 @@ export function Sliders() {
                                             <div className="flex flex-col gap-1">
                                                 <span>{slider.title}</span>
                                                 {slider.description && (
-                                                    <span className="text-xs text-font-s font-normal truncate max-w-[200px]">
+                                                    <span className="text-xs text-font-s font-normal truncate max-w-50">
                                                         {slider.description}
                                                     </span>
                                                 )}
@@ -175,11 +176,11 @@ export function Sliders() {
                                             )}
                                         </TableCell>
                                         <TableCell className="text-center">
-                                            <span className="inline-flex items-center justify-center px-2.5 py-1 text-xs font-semibold bg-bg border rounded-full text-font-p shadow-sm min-w-[32px]">
+                                            <span className="inline-flex items-center justify-center px-2.5 py-1 text-xs font-semibold bg-bg border rounded-full text-font-p shadow-sm min-w-8">
                                                 {slider.order}
                                             </span>
                                         </TableCell>
-                                        <TableCell className="w-[60px]">
+                                        <TableCell className="w-15">
                                             <div className="flex items-center justify-center">
                                                 <DataTableRowActions
                                                     row={{ original: slider } as any}

@@ -119,7 +119,12 @@ export default function TagPage() {
     },
   ];
 
-  const columns = useTagColumns(rowActions) as ColumnDef<PortfolioTag>[];
+  const columns = useTagColumns(rowActions, (id) =>
+    open(DRAWER_IDS.PORTFOLIO_TAG_FORM, {
+      editId: id,
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["portfolio-tags"] }),
+    })
+  ) as ColumnDef<PortfolioTag>[];
 
   if (error) {
     return (

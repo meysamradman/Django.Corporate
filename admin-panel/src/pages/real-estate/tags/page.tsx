@@ -112,7 +112,14 @@ export default function PropertyTagsPage() {
     },
   ];
 
-  const columns = usePropertyTagColumns(rowActions, handleToggleActive) as ColumnDef<PropertyTag>[];
+  const handleEditTag = (id: number) => {
+    open(DRAWER_IDS.REAL_ESTATE_TAG_FORM, {
+      editId: id,
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["property-tags"] }),
+    });
+  };
+
+  const columns = usePropertyTagColumns(rowActions, handleToggleActive, handleEditTag) as ColumnDef<PropertyTag>[];
 
   if (error) {
     showError("خطا در بارگذاری داده‌ها");

@@ -53,7 +53,7 @@ export function MediaSelectorPreview({
                 ) : (
                     <div className="w-full h-full bg-bg flex items-center justify-center rounded-lg">
                         <span className={`font-medium ${size === 'sm' ? 'text-sm' : size === 'md' ? 'text-lg' : 'text-xl'}`}>
-                            IMG
+                            MEDIA
                         </span>
                     </div>
                 )}
@@ -68,7 +68,7 @@ export function MediaSelectorPreview({
                     className="flex gap-2"
                 >
                     <ImagePlus className={iconSize[size]} />
-                    مدیریت تصویر
+                    مدیریت رسانه
                 </Button>
 
                 {selectedMedia && (
@@ -80,7 +80,7 @@ export function MediaSelectorPreview({
                         className="text-destructive hover:text-destructive"
                     >
                         <X className={iconSize[size]} />
-                        حذف تصویر
+                        حذف رسانه
                     </Button>
                 )}
             </div>

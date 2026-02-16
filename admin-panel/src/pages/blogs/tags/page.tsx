@@ -113,7 +113,7 @@ export default function TagPage() {
     },
   ];
 
-  const columns = useTagColumns(rowActions) as ColumnDef<BlogTag>[];
+  const columns = useTagColumns(rowActions, handleEditTag) as ColumnDef<BlogTag>[];
 
   if (error) {
     return (

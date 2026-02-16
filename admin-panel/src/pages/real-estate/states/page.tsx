@@ -111,7 +111,14 @@ export default function PropertyStatesPage() {
     },
   ];
 
-  const columns = usePropertyStateColumns(rowActions, handleToggleActive) as ColumnDef<PropertyState>[];
+  const handleEditState = (id: number) => {
+    open(DRAWER_IDS.REAL_ESTATE_STATE_FORM, {
+      editId: id,
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["property-states"] }),
+    });
+  };
+
+  const columns = usePropertyStateColumns(rowActions, handleToggleActive, handleEditState) as ColumnDef<PropertyState>[];
 
   if (error) {
     showError("خطا در بارگذاری داده‌ها");

@@ -111,7 +111,14 @@ export default function PropertyFeaturesPage() {
     },
   ];
 
-  const columns = usePropertyFeatureColumns(rowActions, handleToggleActive) as ColumnDef<PropertyFeature>[];
+  const handleEditFeature = (id: number) => {
+    open(DRAWER_IDS.REAL_ESTATE_FEATURE_FORM, {
+      editId: id,
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["property-features"] }),
+    });
+  };
+
+  const columns = usePropertyFeatureColumns(rowActions, handleToggleActive, handleEditFeature) as ColumnDef<PropertyFeature>[];
 
   if (error) {
     showError("خطا در بارگذاری داده‌ها");

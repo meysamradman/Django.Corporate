@@ -4,12 +4,13 @@ from django.db import transaction
 from django.core.exceptions import ValidationError
 from src.real_estate.models.state import PropertyState
 from src.real_estate.messages.messages import STATE_ERRORS
+from src.media.models.media import ImageMedia
 
 class PropertyStateAdminService:
     
     @staticmethod
     def get_state_queryset(filters=None, search=None, date_from=None, date_to=None):
-        queryset = PropertyState.objects.annotate(
+        queryset = PropertyState.objects.select_related('image').annotate(
             property_count=Count('properties', distinct=True)
         )
         
@@ -41,7 +42,7 @@ class PropertyStateAdminService:
     @staticmethod
     def get_state_by_id(state_id):
         try:
-            return PropertyState.objects.annotate(
+            return PropertyState.objects.select_related('image').annotate(
                 property_count=Count('properties', distinct=True)
             ).get(id=state_id)
         except PropertyState.DoesNotExist:
@@ -50,7 +51,16 @@ class PropertyStateAdminService:
     @staticmethod
     def create_state(validated_data, created_by=None):
         with transaction.atomic():
+            image_id = validated_data.pop('image_id', None)
             state_obj = PropertyState.objects.create(**validated_data)
+
+            if image_id:
+                try:
+                    media = ImageMedia.objects.get(id=image_id)
+                    state_obj.image = media
+                    state_obj.save(update_fields=['image', 'updated_at'])
+                except ImageMedia.DoesNotExist:
+                    pass
         return state_obj
     
     @staticmethod
@@ -61,8 +71,21 @@ class PropertyStateAdminService:
             raise PropertyState.DoesNotExist(STATE_ERRORS["state_not_found"])
         
         with transaction.atomic():
+            image_id = validated_data.pop('image_id', None)
+
             for field, value in validated_data.items():
                 setattr(state_obj, field, value)
+
+            if image_id is not None:
+                if image_id:
+                    try:
+                        media = ImageMedia.objects.get(id=image_id)
+                        state_obj.image = media
+                    except ImageMedia.DoesNotExist:
+                        pass
+                else:
+                    state_obj.image = None
+
             state_obj.save()
         
         return state_obj

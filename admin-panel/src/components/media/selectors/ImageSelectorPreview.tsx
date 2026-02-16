@@ -5,6 +5,7 @@ import { Camera, User, X } from 'lucide-react';
 
 interface ImageSelectorPreviewProps {
     selectedMedia: Media | null;
+    loading: boolean;
     disabled: boolean;
     sizeClass: string;
     iconSize: string;
@@ -35,6 +36,7 @@ const getPlaceholderContent = (
 
 export function ImageSelectorPreview({
     selectedMedia,
+    loading,
     disabled,
     sizeClass,
     iconSize,
@@ -50,7 +52,9 @@ export function ImageSelectorPreview({
 }: ImageSelectorPreviewProps) {
     return (
         <div className="relative shrink-0 group">
-            {selectedMedia ? (
+            {loading ? (
+                <div className={`${sizeClass} rounded-xl border-4 border-card bg-muted/40 animate-pulse`} />
+            ) : selectedMedia ? (
                 <>
                     <div className={`${sizeClass} rounded-xl overflow-hidden border-4 border-card relative`}>
                         <MediaImage

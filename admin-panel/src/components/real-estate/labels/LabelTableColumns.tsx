@@ -5,13 +5,14 @@ import { Switch } from "@/components/elements/Switch";
 import { formatDate } from "@/core/utils/commonFormat";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { ProtectedLink, usePermission } from "@/core/permissions";
+import { usePermission } from "@/core/permissions";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Avatar, AvatarFallback } from "@/components/elements/Avatar";
 
 export const usePropertyLabelColumns = (
   actions: DataTableRowAction<PropertyLabel>[] = [],
-  onToggleActive?: (label: PropertyLabel) => void
+  onToggleActive?: (label: PropertyLabel) => void,
+  onEditLabel?: (id: number) => void
 ) => {
   const { hasPermission } = usePermission();
 
@@ -53,11 +54,15 @@ export const usePropertyLabelColumns = (
           return label.title.charAt(0).toUpperCase();
         };
 
+        const canEdit = hasPermission("real_estate.label.update");
+        const isEditable = canEdit && !!onEditLabel;
+
         return (
-          <ProtectedLink
-            to={`/real-estate/labels/${label.id}/edit`}
-            permission="real_estate.label.update"
-            className="flex items-center gap-3"
+          <button
+            type="button"
+            onClick={() => onEditLabel?.(Number(label.id))}
+            disabled={!isEditable}
+            className={`flex items-center gap-3 ${isEditable ? "cursor-pointer" : "cursor-not-allowed"}`}
           >
             <Avatar className="table-avatar">
               <AvatarFallback className="table-cell-avatar-fallback">
@@ -67,7 +72,7 @@ export const usePropertyLabelColumns = (
             <div className="table-cell-primary table-cell-wide">
               {label.title}
             </div>
-          </ProtectedLink>
+          </button>
         );
       },
       enableSorting: true,

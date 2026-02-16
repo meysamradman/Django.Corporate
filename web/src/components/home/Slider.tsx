@@ -6,7 +6,6 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay, EffectFade, Parallax } from 'swiper/modules';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { brandingApi } from '@/api/settings/branding';
-import { env } from '@/core/config/environment';
 import type { HomeSliderItem } from '@/types/settings/branding';
 
 // Import Swiper styles
@@ -14,12 +13,6 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/effect-fade';
-
-const resolveMediaUrl = (url: string | null | undefined): string | null => {
-  if (!url) return null;
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  return new URL(url, env.API_BASE_URL).toString();
-};
 
 export default function Slider() {
   const [slidesData, setSlidesData] = useState<HomeSliderItem[]>([]);
@@ -94,7 +87,7 @@ export default function Slider() {
               <div className="relative w-full h-full">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={resolveMediaUrl(slide.media_url) || ''}
+                  src={slide.media_url || ''}
                   alt={slide.title || 'اسلاید'}
                   className="h-full w-full object-cover transition-transform duration-2000 ease-out group-hover:scale-110"
                 />
@@ -128,7 +121,7 @@ export default function Slider() {
                   muted
                   playsInline
                 >
-                  <source src={resolveMediaUrl(slide.media_url) || ''} type="video/mp4" />
+                  <source src={slide.media_url || ''} type="video/mp4" />
                 </video>
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                   <div className="max-w-4xl text-center text-white px-6">

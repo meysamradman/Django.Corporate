@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from src.panel.models import PanelSettings
 from src.settings.models import GeneralSettings, Slider
 
 
@@ -16,6 +17,11 @@ class PublicLogoSerializer(serializers.ModelSerializer):
     def get_logo_url(self, obj):
         if obj.logo_image and getattr(obj.logo_image, 'file', None):
             return obj.logo_image.file.url
+
+        panel_settings = PanelSettings.objects.select_related('logo').first()
+        if panel_settings and panel_settings.logo and getattr(panel_settings.logo, 'file', None):
+            return panel_settings.logo.file.url
+
         return None
 
 

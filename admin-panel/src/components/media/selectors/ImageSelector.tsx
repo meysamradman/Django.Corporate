@@ -9,6 +9,7 @@ import { ImageSelectorPreview } from './ImageSelectorPreview';
 interface ImageSelectorProps {
     selectedMedia: Media | null;
     onMediaSelect: (media: Media | null) => void;
+    loading?: boolean;
     disabled?: boolean;
     className?: string;
     size?: "sm" | "md" | "lg";
@@ -38,6 +39,7 @@ const iconSizes = {
 export function ImageSelector({
     selectedMedia,
     onMediaSelect,
+    loading = false,
     disabled = false,
     className = "",
     size = "lg",
@@ -86,6 +88,7 @@ export function ImageSelector({
         <div className="relative shrink-0 group">
             <ImageSelectorPreview
                 selectedMedia={selectedMedia}
+                loading={loading}
                 disabled={disabled}
                 sizeClass={sizeClass}
                 iconSize={iconSize}

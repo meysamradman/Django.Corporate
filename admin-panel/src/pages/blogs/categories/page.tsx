@@ -114,7 +114,7 @@ export default function CategoryPage() {
     },
   ];
 
-  const columns = useCategoryColumns(rowActions) as ColumnDef<BlogCategory>[];
+  const columns = useCategoryColumns(rowActions, handleEditCategory) as ColumnDef<BlogCategory>[];
 
   if (error) {
     return (

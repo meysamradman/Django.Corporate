@@ -5,13 +5,15 @@ import { Switch } from "@/components/elements/Switch";
 import { formatDate } from "@/core/utils/commonFormat";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { ProtectedLink, usePermission } from "@/core/permissions";
+import { usePermission } from "@/core/permissions";
 import { Checkbox } from "@/components/elements/Checkbox";
-import { Avatar, AvatarFallback } from "@/components/elements/Avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
+import { mediaService } from "@/components/media/services";
 
 export const usePropertyStateColumns = (
   actions: DataTableRowAction<PropertyState>[] = [],
-  onToggleActive?: (state: PropertyState) => void
+  onToggleActive?: (state: PropertyState) => void,
+  onEditState?: (id: number) => void
 ) => {
   const { hasPermission } = usePermission();
 
@@ -47,27 +49,40 @@ export const usePropertyStateColumns = (
       header: () => <div className="table-header-text">عنوان</div>,
       cell: ({ row }) => {
         const state = row.original;
+        const imageUrl = state.image_url
+          ? mediaService.getMediaUrlFromObject({ file_url: state.image_url } as any)
+          : state.image
+            ? mediaService.getMediaUrlFromObject(state.image)
+            : "";
 
         const getInitial = () => {
           if (!state.title) return "؟";
           return state.title.charAt(0).toUpperCase();
         };
 
+        const canEdit = hasPermission("real_estate.state.update");
+        const isEditable = canEdit && !!onEditState;
+
         return (
-          <ProtectedLink
-            to={`/real-estate/states/${state.id}/edit`}
-            permission="real_estate.state.update"
-            className="flex items-center gap-3"
+          <button
+            type="button"
+            onClick={() => onEditState?.(Number(state.id))}
+            disabled={!isEditable}
+            className={`flex items-center gap-3 ${isEditable ? "cursor-pointer" : "cursor-not-allowed"}`}
           >
             <Avatar className="table-avatar">
-              <AvatarFallback className="table-cell-avatar-fallback">
-                {getInitial()}
-              </AvatarFallback>
+              {imageUrl ? (
+                <AvatarImage src={imageUrl} alt={state.title} />
+              ) : (
+                <AvatarFallback className="table-cell-avatar-fallback">
+                  {getInitial()}
+                </AvatarFallback>
+              )}
             </Avatar>
             <div className="table-cell-primary table-cell-wide">
               {state.title}
             </div>
-          </ProtectedLink>
+          </button>
         );
       },
       enableSorting: true,

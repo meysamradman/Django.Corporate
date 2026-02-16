@@ -74,11 +74,18 @@ export function useRealEstateTaxonomyForm<T extends FieldValues>({
     useEffect(() => {
         if (isEditMode && item) {
             reset(item);
-            if (item.image) {
-                setSelectedMedia(item.image);
+            setSelectedMedia(item.image || null);
+            if ("image_id" in item) {
+                setValue("image_id" as any, (item.image_id as any) ?? null, { shouldValidate: false });
             }
         }
-    }, [isEditMode, item, reset]);
+    }, [isEditMode, item, reset, setValue]);
+
+    useEffect(() => {
+        if (!isEditMode) {
+            setSelectedMedia(null);
+        }
+    }, [isEditMode]);
 
     useEffect(() => {
         if (autoSlug && titleValue && !isEditMode) {

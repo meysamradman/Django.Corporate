@@ -5,14 +5,15 @@ import { Switch } from "@/components/elements/Switch";
 import { formatDate } from "@/core/utils/commonFormat";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { ProtectedLink, usePermission } from "@/core/permissions";
+import { usePermission } from "@/core/permissions";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import { mediaService } from "@/components/media/services";
 
 export const usePropertyFeatureColumns = (
   actions: DataTableRowAction<PropertyFeature>[] = [],
-  onToggleActive?: (feature: PropertyFeature) => void
+  onToggleActive?: (feature: PropertyFeature) => void,
+  onEditFeature?: (id: number) => void
 ) => {
   const { hasPermission } = usePermission();
 
@@ -59,11 +60,15 @@ export const usePropertyFeatureColumns = (
           return feature.title.charAt(0).toUpperCase();
         };
 
+        const canEdit = hasPermission("real_estate.feature.update");
+        const isEditable = canEdit && !!onEditFeature;
+
         return (
-          <ProtectedLink
-            to={`/real-estate/features/${feature.id}/edit`}
-            permission="real_estate.feature.update"
-            className="flex items-center gap-3"
+          <button
+            type="button"
+            onClick={() => onEditFeature?.(Number(feature.id))}
+            disabled={!isEditable}
+            className={`flex items-center gap-3 ${isEditable ? "cursor-pointer" : "cursor-not-allowed"}`}
           >
             <Avatar className="table-avatar">
               {imageUrl ? (
@@ -77,7 +82,7 @@ export const usePropertyFeatureColumns = (
             <div className="table-cell-primary table-cell-wide">
               {feature.title}
             </div>
-          </ProtectedLink>
+          </button>
         );
       },
       enableSorting: true,

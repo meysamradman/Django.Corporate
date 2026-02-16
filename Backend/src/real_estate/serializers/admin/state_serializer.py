@@ -2,33 +2,51 @@ from rest_framework import serializers
 from django.utils.text import slugify
 from src.real_estate.models.state import PropertyState
 from src.real_estate.messages.messages import STATE_ERRORS
+from src.media.serializers import MediaAdminSerializer
 
 class PropertyStateAdminListSerializer(serializers.ModelSerializer):
     property_count = serializers.IntegerField(read_only=True)
+    image_url = serializers.SerializerMethodField()
     
     class Meta:
         model = PropertyState
         fields = [
             'id', 'public_id', 'title', 'slug', 'usage_type',
-            'is_active', 'property_count', 'created_at', 'updated_at'
+            'is_active', 'property_count', 'image_url', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
 
+    def get_image_url(self, obj):
+        try:
+            if obj.image and hasattr(obj.image, 'file') and obj.image.file:
+                return obj.image.file.url
+        except Exception:
+            pass
+        return None
+
 class PropertyStateAdminDetailSerializer(serializers.ModelSerializer):
     property_count = serializers.IntegerField(read_only=True)
+    image = MediaAdminSerializer(read_only=True)
     
     class Meta:
         model = PropertyState
         fields = [
             'id', 'public_id', 'title', 'slug', 'usage_type',
-            'is_active', 'property_count', 'created_at', 'updated_at'
+            'is_active', 'property_count', 'image', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
 
 class PropertyStateAdminCreateSerializer(serializers.ModelSerializer):
+    image_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        write_only=True,
+        help_text="Media ID from central media app"
+    )
+
     class Meta:
         model = PropertyState
-        fields = ['title', 'slug', 'usage_type', 'is_active']
+        fields = ['title', 'slug', 'usage_type', 'is_active', 'image_id']
     
     def validate_title(self, value):
         if PropertyState.objects.filter(title=value).exists():
@@ -46,9 +64,16 @@ class PropertyStateAdminCreateSerializer(serializers.ModelSerializer):
         return data
 
 class PropertyStateAdminUpdateSerializer(serializers.ModelSerializer):
+    image_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        write_only=True,
+        help_text="Media ID from central media app"
+    )
+
     class Meta:
         model = PropertyState
-        fields = ['title', 'slug', 'usage_type', 'is_active']
+        fields = ['title', 'slug', 'usage_type', 'is_active', 'image_id']
     
     def validate_title(self, value):
         if self.instance and hasattr(self.instance, 'id'):

@@ -119,7 +119,12 @@ export default function OptionPage() {
     },
   ];
 
-  const columns = useOptionColumns(rowActions) as ColumnDef<PortfolioOption>[];
+  const columns = useOptionColumns(rowActions, (id) =>
+    open(DRAWER_IDS.PORTFOLIO_OPTION_FORM, {
+      editId: id,
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["portfolio-options"] }),
+    })
+  ) as ColumnDef<PortfolioOption>[];
 
   if (error) {
     return (

@@ -1,6 +1,7 @@
 from django.db import models
 from src.core.models import BaseModel
 from src.real_estate.models.managers import PropertyStateQuerySet
+from src.media.models.media import ImageMedia
 
 from src.real_estate.models.constants import LISTING_TYPE_CHOICES
 
@@ -28,6 +29,15 @@ class PropertyState(BaseModel):
         db_index=True,
         verbose_name="Usage Type",
         help_text="System category for analytics (e.g. Sale vs Rent)"
+    )
+    image = models.ForeignKey(
+        ImageMedia,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='property_state_images',
+        verbose_name="Main Image",
+        help_text="Main image for this property state"
     )
     
     objects = PropertyStateQuerySet.as_manager()

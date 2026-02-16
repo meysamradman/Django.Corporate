@@ -125,7 +125,15 @@ export default function CategoryPage() {
     },
   ];
 
-  const columns = useCategoryColumns(rowActions) as ColumnDef<PortfolioCategory>[];
+  const columns = useCategoryColumns(rowActions, (id) =>
+    open(DRAWER_IDS.PORTFOLIO_CATEGORY_FORM, {
+      editId: id,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["portfolio-categories"] });
+        queryClient.invalidateQueries({ queryKey: ["portfolio-categories-tree"] });
+      },
+    })
+  ) as ColumnDef<PortfolioCategory>[];
 
   if (error) {
     return (

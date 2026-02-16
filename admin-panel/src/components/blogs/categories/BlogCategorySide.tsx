@@ -31,6 +31,7 @@ export const BlogCategorySide: React.FC<BlogCategorySideProps> = ({
         selectedMedia,
         handleImageSelect,
         handleSubmit,
+        isLoading,
         isPending,
         isSubmitting,
     } = useRealEstateTaxonomyForm<BlogCategoryFormValues>({
@@ -84,6 +85,8 @@ export const BlogCategorySide: React.FC<BlogCategorySideProps> = ({
                 <ImageSelector
                     selectedMedia={selectedMedia}
                     onMediaSelect={handleImageSelect}
+                    loading={isEditMode && isLoading && !selectedMedia}
+                    showRemoveButton={false}
                     size="sm"
                     context="blog"
                     placeholderColor="purple"

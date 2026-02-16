@@ -1,14 +1,17 @@
-import React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { BlogTag } from "@/types/blog/tags/blogTag";
 import { Badge } from "@/components/elements/Badge";
 import { formatDate } from "@/core/utils/commonFormat";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { ProtectedLink } from "@/core/permissions";
+import { usePermission } from "@/core/permissions";
 import { Checkbox } from "@/components/elements/Checkbox";
 
-export const useTagColumns = (actions: DataTableRowAction<BlogTag>[] = []) => {
+export const useTagColumns = (
+  actions: DataTableRowAction<BlogTag>[] = [],
+  onEditTag?: (id: number) => void
+) => {
+  const { hasPermission } = usePermission();
 
   const baseColumns: ColumnDef<BlogTag>[] = [
     {
@@ -40,15 +43,21 @@ export const useTagColumns = (actions: DataTableRowAction<BlogTag>[] = []) => {
     {
       accessorKey: "name",
       header: () => <div className="table-header-text">نام</div>,
-      cell: ({ row }) => (
-        <ProtectedLink
-          to={`/blogs/tags/${row.original.id}/edit`}
-          permission="blog_tags.update"
-          className="table-cell-primary table-cell-wide"
-        >
-          {row.original.name}
-        </ProtectedLink>
-      ),
+      cell: ({ row }) => {
+        const canEdit = hasPermission("blog.tag.update");
+        const isEditable = canEdit && !!onEditTag;
+
+        return (
+          <button
+            type="button"
+            onClick={() => onEditTag?.(Number(row.original.id))}
+            disabled={!isEditable}
+            className={`table-cell-primary table-cell-wide text-right ${isEditable ? "cursor-pointer" : "cursor-not-allowed"}`}
+          >
+            {row.original.name}
+          </button>
+        );
+      },
       enableSorting: true,
       enableHiding: true,
       minSize: 200,

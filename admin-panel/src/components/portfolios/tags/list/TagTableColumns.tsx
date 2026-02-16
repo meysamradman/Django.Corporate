@@ -1,14 +1,15 @@
-import React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
-import { Link } from "react-router-dom";
 import { Badge } from "@/components/elements/Badge";
 import { formatDate } from "@/core/utils/commonFormat";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { Checkbox } from "@/components/elements/Checkbox";
 
-export const useTagColumns = (actions: DataTableRowAction<PortfolioTag>[] = []) => {
+export const useTagColumns = (
+  actions: DataTableRowAction<PortfolioTag>[] = [],
+  onEditTag?: (id: number) => void
+) => {
 
   const baseColumns: ColumnDef<PortfolioTag>[] = [
     {
@@ -40,11 +41,20 @@ export const useTagColumns = (actions: DataTableRowAction<PortfolioTag>[] = []) 
     {
       accessorKey: "name",
       header: () => <div className="table-header-text">نام</div>,
-      cell: ({ row }) => (
-        <Link to={`/portfolios/tags/${row.original.id}/edit`} className="table-cell-primary table-cell-wide">
-          {row.original.name}
-        </Link>
-      ),
+      cell: ({ row }) => {
+        const isEditable = !!onEditTag;
+
+        return (
+          <button
+            type="button"
+            onClick={() => onEditTag?.(Number(row.original.id))}
+            disabled={!isEditable}
+            className={`table-cell-primary table-cell-wide text-right ${isEditable ? "cursor-pointer" : "cursor-not-allowed"}`}
+          >
+            {row.original.name}
+          </button>
+        );
+      },
       enableSorting: true,
       enableHiding: true,
       minSize: 200,

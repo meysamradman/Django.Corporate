@@ -154,6 +154,7 @@ export const SliderSide = () => {
                             onMediaSelect={handleVideoSelect}
                             size="sm"
                             context="media_library"
+                            initialFileType="video"
                             label="ویدئو اسلایدر"
                         />
                     </div>

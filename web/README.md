@@ -13,7 +13,9 @@ npm install
 فایل `.env.local` ایجاد کنید:
 
 ```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api
+NEXT_PUBLIC_API_BASE_URL=/api
+NEXT_PUBLIC_MEDIA_BASE_URL=/media
+API_INTERNAL_ORIGIN=http://localhost:8000
 ```
 
 ## اجرا

@@ -26,6 +26,7 @@ export const PropertyFeatureSide: React.FC<PropertyFeatureSideProps> = ({
         selectedMedia,
         handleImageSelect,
         handleSubmit,
+        isLoading,
         isPending,
         isSubmitting,
     } = useRealEstateTaxonomyForm<PropertyFeatureFormValues>({
@@ -65,6 +66,8 @@ export const PropertyFeatureSide: React.FC<PropertyFeatureSideProps> = ({
                 <ImageSelector
                     selectedMedia={selectedMedia}
                     onMediaSelect={handleImageSelect}
+                    loading={isEditMode && isLoading && !selectedMedia}
+                    showRemoveButton={false}
                     size="sm"
                     context="real_estate"
                     placeholderColor="purple"

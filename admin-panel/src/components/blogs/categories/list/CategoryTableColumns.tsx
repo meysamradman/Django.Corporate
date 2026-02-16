@@ -1,16 +1,19 @@
-import React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { BlogCategory } from "@/types/blog/category/blogCategory";
 import { Badge } from "@/components/elements/Badge";
 import { formatDate } from "@/core/utils/commonFormat";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
-import { ProtectedLink } from "@/core/permissions";
+import { usePermission } from "@/core/permissions";
 import { Checkbox } from "@/components/elements/Checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import { mediaService } from "@/components/media/services";
 
-export const useCategoryColumns = (actions: DataTableRowAction<BlogCategory>[] = []) => {
+export const useCategoryColumns = (
+  actions: DataTableRowAction<BlogCategory>[] = [],
+  onEditCategory?: (id: number) => void
+) => {
+  const { hasPermission } = usePermission();
 
   const baseColumns: ColumnDef<BlogCategory>[] = [
     {
@@ -55,11 +58,15 @@ export const useCategoryColumns = (actions: DataTableRowAction<BlogCategory>[] =
           return category.name.charAt(0).toUpperCase();
         };
 
+        const canEdit = hasPermission("blog.category.update");
+        const isEditable = canEdit && !!onEditCategory;
+
         return (
-          <ProtectedLink
-            to={`/blogs/categories/${category.id}/edit`}
-            permission="blog_categories.update"
-            className="flex items-center gap-3"
+          <button
+            type="button"
+            onClick={() => onEditCategory?.(Number(category.id))}
+            disabled={!isEditable}
+            className={`flex items-center gap-3 ${isEditable ? "cursor-pointer" : "cursor-not-allowed"}`}
           >
             <Avatar className="table-avatar">
               {imageUrl ? (
@@ -73,7 +80,7 @@ export const useCategoryColumns = (actions: DataTableRowAction<BlogCategory>[] =
             <div className="table-cell-primary table-cell-wide">
               {category.name}
             </div>
-          </ProtectedLink>
+          </button>
         );
       },
       enableSorting: true,

@@ -118,7 +118,17 @@ export default function PropertyTypesPage() {
     },
   ];
 
-  const columns = usePropertyTypeColumns(rowActions, handleToggleActive) as ColumnDef<PropertyType>[];
+  const handleEditType = (id: number) => {
+    open(DRAWER_IDS.REAL_ESTATE_TYPE_FORM, {
+      editId: id,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["property-types"] });
+        queryClient.invalidateQueries({ queryKey: ["property-types-tree"] });
+      },
+    });
+  };
+
+  const columns = usePropertyTypeColumns(rowActions, handleToggleActive, handleEditType) as ColumnDef<PropertyType>[];
 
   if (error) {
     showError("خطا در بارگذاری داده‌ها");

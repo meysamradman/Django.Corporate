@@ -111,7 +111,14 @@ export default function PropertyLabelsPage() {
     },
   ];
 
-  const columns = usePropertyLabelColumns(rowActions, handleToggleActive) as ColumnDef<PropertyLabel>[];
+  const handleEditLabel = (id: number) => {
+    open(DRAWER_IDS.REAL_ESTATE_LABEL_FORM, {
+      editId: id,
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["property-labels"] }),
+    });
+  };
+
+  const columns = usePropertyLabelColumns(rowActions, handleToggleActive, handleEditLabel) as ColumnDef<PropertyLabel>[];
 
   if (error) {
     showError("خطا در بارگذاری داده‌ها");

@@ -30,6 +30,13 @@ export const propertyStateFormSchema = z.object({
         .boolean()
         .default(true)
         .optional(),
+
+    image_id: z
+        .number()
+        .int()
+        .positive()
+        .nullable()
+        .optional(),
 });
 
 export type PropertyStateFormValues = z.input<typeof propertyStateFormSchema>;
@@ -39,5 +46,6 @@ export const propertyStateFormDefaults: PropertyStateFormValues = {
     slug: "",
     usage_type: "sale",
     is_active: true,
+    image_id: null,
 } as PropertyStateFormValues;
 

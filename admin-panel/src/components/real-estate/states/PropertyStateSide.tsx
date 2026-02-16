@@ -5,6 +5,7 @@ import { useRealEstateTaxonomyForm } from "@/components/real-estate/hooks/useRea
 import { propertyStateFormSchema, propertyStateFormDefaults, type PropertyStateFormValues } from "@/components/real-estate/validations/stateSchema";
 import { FormField, FormFieldInput, FormFieldSwitch } from "@/components/shared/FormField";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
+import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 
 interface PropertyStateSideProps {
     isOpen: boolean;
@@ -23,7 +24,10 @@ export const PropertyStateSide: React.FC<PropertyStateSideProps> = ({
 
     const {
         form,
+        selectedMedia,
+        handleImageSelect,
         handleSubmit,
+        isLoading,
         isPending,
         isSubmitting,
     } = useRealEstateTaxonomyForm<PropertyStateFormValues>({
@@ -59,6 +63,18 @@ export const PropertyStateSide: React.FC<PropertyStateSideProps> = ({
             submitButtonText={isEditMode ? "بروزرسانی" : "ایجاد"}
         >
             <div className="space-y-6">
+                <ImageSelector
+                    selectedMedia={selectedMedia}
+                    onMediaSelect={handleImageSelect}
+                    loading={isEditMode && isLoading && !selectedMedia}
+                    showRemoveButton={false}
+                    size="sm"
+                    context="real_estate"
+                    placeholderColor="primary"
+                    alt="تصویر وضعیت ملک"
+                    className="mx-auto"
+                />
+
                 <div className="grid gap-5">
                     <FormFieldInput
                         label="عنوان"
