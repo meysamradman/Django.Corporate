@@ -27,14 +27,27 @@ export interface Property extends Base {
 
     price?: number | null;
     sale_price?: number | null;
+    pre_sale_price?: number | null;
+    price_per_sqm?: number | null;
     monthly_rent?: number | null;
     mortgage_amount?: number | null;
+    rent_amount?: number | null;
+    security_deposit?: number | null;
 
     land_area?: number | null;
     built_area?: number | null;
     bedrooms?: number | null;
     bathrooms?: number | null;
     year_built?: number | null;
+    build_years?: number | null;
+    kitchens?: number | null;
+    living_rooms?: number | null;
+    floors_in_building?: number | null;
+    floor_number?: number | null;
+    parking_spaces?: number | null;
+    storage_rooms?: number | null;
+    document_type?: string | null;
+    has_document?: boolean | null;
 
     province_name?: string;
     city_name?: string;
@@ -46,6 +59,8 @@ export interface Property extends Base {
 
     latitude?: number | null;
     longitude?: number | null;
+
+    extra_attributes?: Record<string, unknown> | null;
 
     views_count?: number;
     favorites_count?: number;

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { realEstateApi } from "@/api/real-estate/route";
 import {
   PropertyDescription,
+  PropertyAttributes,
+  PropertyDetails,
   PropertyFloorPlans,
   PropertyFeatures,
   PropertyGallery,
@@ -33,6 +35,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
         images={images}
         mainImageUrl={mainImageUrl}
       />
+
+      <PropertyDetails property={property} />
+
+      <PropertyAttributes property={property} />
 
       <PropertyFloorPlans floorPlans={property.floor_plans} />
 
