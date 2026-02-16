@@ -36,7 +36,7 @@ export default function PropertyFloorPlans({
       }
     >
       <div className="px-6 py-5 border-b border-br/50">
-        <h2 className="text-lg font-black text-font-p">Floor Plans</h2>
+        <h2 className="text-lg font-black text-font-p">پلان‌ها</h2>
       </div>
 
       <div className="divide-y divide-br/40">
@@ -80,28 +80,28 @@ export default function PropertyFloorPlans({
                   {sizeText ? (
                     <span className="flex items-center gap-1.5">
                       <Ruler className="w-3.5 h-3.5" />
-                      <span>Size: {sizeText}</span>
+                      <span>متراژ: {sizeText}</span>
                     </span>
                   ) : null}
 
                   {bedroomsText ? (
                     <span className="flex items-center gap-1.5">
                       <BedDouble className="w-3.5 h-3.5" />
-                      <span>{bedroomsText}</span>
+                      <span>خواب: {bedroomsText}</span>
                     </span>
                   ) : null}
 
                   {bathroomsText ? (
                     <span className="flex items-center gap-1.5">
                       <Bath className="w-3.5 h-3.5" />
-                      <span>{bathroomsText}</span>
+                      <span>حمام: {bathroomsText}</span>
                     </span>
                   ) : null}
 
                   {priceText ? (
                     <span className="flex items-center gap-1.5">
                       <DollarSign className="w-3.5 h-3.5" />
-                      <span>Price: {priceText}</span>
+                      <span>قیمت: {priceText}</span>
                     </span>
                   ) : null}
                 </span>
@@ -109,19 +109,21 @@ export default function PropertyFloorPlans({
 
               <div className="px-6 pb-6 pt-2">
                 {mainImageUrl ? (
-                  <div className="w-full rounded-xl overflow-hidden border border-br/50 bg-bg">
+                  <div className="w-full h-[300px] md:h-[380px] lg:h-[440px] rounded-xl overflow-hidden border border-br/50 bg-bg">
                     <img
                       src={mainImageUrl}
                       alt={plan.main_image?.title || plan.title}
-                      className="w-full h-auto object-contain"
+                      className="w-full h-full object-contain"
                       loading="lazy"
+                      decoding="async"
+                      fetchPriority="low"
                     />
                   </div>
                 ) : null}
 
                 {plan.description ? (
                   <div className="pt-4">
-                    <p className="text-xs font-black text-font-p">Description:</p>
+                    <p className="text-xs font-black text-font-p">توضیحات:</p>
                     <p className="mt-2 text-sm leading-7 text-font-s">
                       {plan.description}
                     </p>

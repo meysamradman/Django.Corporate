@@ -13,7 +13,8 @@ export default function PropertyFeatures({ property, className }: PropertyFeatur
 
   const grouped = new Map<string, typeof features>();
   for (const feature of features) {
-    const groupName = (feature as any)?.group || "Features";
+    const groupNameRaw = (feature as any)?.group || "ویژگی‌ها";
+    const groupName = groupNameRaw === "Features" ? "ویژگی‌ها" : groupNameRaw;
     const list = grouped.get(groupName);
     if (list) list.push(feature);
     else grouped.set(groupName, [feature]);
@@ -31,7 +32,7 @@ export default function PropertyFeatures({ property, className }: PropertyFeatur
       }
     >
       <div className="px-6 py-5 border-b border-br/50">
-        <h2 className="text-lg font-black text-font-p">Features</h2>
+        <h2 className="text-lg font-black text-font-p">ویژگی‌ها</h2>
       </div>
 
       <div className="px-6 py-6 space-y-6">

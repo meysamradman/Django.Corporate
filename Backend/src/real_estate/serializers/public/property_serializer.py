@@ -6,6 +6,7 @@ from src.real_estate.models.property import Property
 from src.real_estate.models.state import PropertyState
 from src.real_estate.models.tag import PropertyTag
 from src.real_estate.models.type import PropertyType
+from src.media.serializers.media_serializer import MediaPublicSerializer, MediaCoverSerializer
 
 
 class PropertyTypeNestedPublicSerializer(serializers.ModelSerializer):
@@ -145,6 +146,8 @@ class PropertyPublicDetailSerializer(PropertyPublicListSerializer):
     media = serializers.SerializerMethodField()
     country_name = serializers.SerializerMethodField()
     floor_plans = serializers.SerializerMethodField()
+    videos = serializers.SerializerMethodField()
+    documents = serializers.SerializerMethodField()
 
     class Meta(PropertyPublicListSerializer.Meta):
         fields = PropertyPublicListSerializer.Meta.fields + [
@@ -152,6 +155,8 @@ class PropertyPublicDetailSerializer(PropertyPublicListSerializer):
             'postal_code', 'country_name',
             'media',
             'floor_plans',
+            'videos',
+            'documents',
         ]
         read_only_fields = fields
 
@@ -197,3 +202,65 @@ class PropertyPublicDetailSerializer(PropertyPublicListSerializer):
             )
 
         return FloorPlanPublicListSerializer(floor_plans, many=True, context=self.context).data
+
+    @staticmethod
+    def _apply_cover_override(cover_obj, media_payload: dict):
+        if cover_obj is None:
+            return
+        try:
+            media_payload['cover_image'] = MediaCoverSerializer(cover_obj).data
+            media_payload['cover_image_url'] = cover_obj.file.url if getattr(cover_obj, 'file', None) else None
+        except Exception:
+            pass
+
+    def get_videos(self, obj):
+        videos = obj.videos.select_related('video', 'cover_image', 'video__cover_image').order_by('order', 'created_at')
+        result = []
+
+        for item in videos:
+            media_obj = getattr(item, 'video', None)
+            media_payload = MediaPublicSerializer(media_obj, context=self.context).data if media_obj else None
+            if not media_payload:
+                continue
+
+            if getattr(item, 'cover_image', None) is not None:
+                self._apply_cover_override(item.cover_image, media_payload)
+
+            result.append({
+                'id': item.id,
+                'order': item.order,
+                'autoplay': bool(getattr(item, 'autoplay', False)),
+                'mute': bool(getattr(item, 'mute', True)),
+                'show_cover': bool(getattr(item, 'show_cover', True)),
+                'media': media_payload,
+                'media_detail': media_payload,
+            })
+
+        return result
+
+    def get_documents(self, obj):
+        documents = obj.documents.select_related('document', 'cover_image', 'document__cover_image').order_by('order', 'created_at')
+        result = []
+
+        for item in documents:
+            media_obj = getattr(item, 'document', None)
+            media_payload = MediaPublicSerializer(media_obj, context=self.context).data if media_obj else None
+            if not media_payload:
+                continue
+
+            if getattr(item, 'cover_image', None) is not None:
+                self._apply_cover_override(item.cover_image, media_payload)
+
+            custom_title = getattr(item, 'title', None)
+            if custom_title:
+                media_payload['title'] = custom_title
+
+            result.append({
+                'id': item.id,
+                'order': item.order,
+                'title': custom_title or media_payload.get('title', ''),
+                'media': media_payload,
+                'media_detail': media_payload,
+            })
+
+        return result

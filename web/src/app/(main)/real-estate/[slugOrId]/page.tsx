@@ -2,10 +2,12 @@ import { notFound } from "next/navigation";
 
 import { realEstateApi } from "@/api/real-estate/route";
 import {
+  PropertyDescription,
   PropertyFloorPlans,
   PropertyFeatures,
   PropertyGallery,
   PropertyLocation,
+  PropertyVideo,
 } from "@/components/real-estate/property-detail";
 import { preparePropertyGallery } from "@/features/real-estate/detail/preparePropertyGallery";
 
@@ -35,6 +37,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       <PropertyFloorPlans floorPlans={property.floor_plans} />
 
       <PropertyFeatures property={property} />
+
+      <PropertyVideo property={property} />
+
+      <PropertyDescription property={property} />
 
       <PropertyLocation property={property} />
     </main>

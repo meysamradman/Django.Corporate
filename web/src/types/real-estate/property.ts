@@ -52,6 +52,8 @@ export interface Property extends Base {
 
     media?: PropertyMediaItem[];
     floor_plans?: FloorPlan[];
+    videos?: PropertyVideoItem[];
+    documents?: PropertyDocumentItem[];
 }
 
 export interface PropertyType extends Base {
@@ -96,6 +98,24 @@ export interface PropertyMediaItem {
     media: Media;
     is_main_image?: boolean;
     order: number;
+}
+
+export interface PropertyVideoItem {
+    id: number;
+    order?: number;
+    autoplay?: boolean;
+    mute?: boolean;
+    show_cover?: boolean;
+    media: Media;
+    media_detail?: Media;
+}
+
+export interface PropertyDocumentItem {
+    id: number;
+    order?: number;
+    title?: string;
+    media: Media;
+    media_detail?: Media;
 }
 
 export interface FloorPlan {
