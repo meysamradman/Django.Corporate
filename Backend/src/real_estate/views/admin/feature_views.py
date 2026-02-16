@@ -2,6 +2,7 @@ from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db import IntegrityError
 from django_filters.rest_framework import DjangoFilterBackend
 
 from src.core.responses.response import APIResponse
@@ -80,6 +81,21 @@ class PropertyFeatureAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
         if isinstance(value, bool):
             return value
         return value.lower() in ('1', 'true', 'yes', 'on')
+
+    @staticmethod
+    def _map_integrity_unique_error(error):
+        error_text = str(error).lower()
+        if 'title' in error_text:
+            return APIResponse.error(
+                message=FEATURE_ERRORS["feature_exists"],
+                errors={'title': [FEATURE_ERRORS["feature_exists"]]},
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        return APIResponse.error(
+            message=FEATURE_ERRORS["feature_create_failed"],
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -103,6 +119,8 @@ class PropertyFeatureAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
                 errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
+        except IntegrityError as e:
+            return self._map_integrity_unique_error(e)
     
     def retrieve(self, request, *args, **kwargs):
         feature_obj = PropertyFeatureAdminService.get_feature_by_id(kwargs.get('pk'))
@@ -158,6 +176,8 @@ class PropertyFeatureAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
                 errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
+        except IntegrityError as e:
+            return self._map_integrity_unique_error(e)
     
     def destroy(self, request, *args, **kwargs):
         feature_id = kwargs.get('pk')

@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db import IntegrityError
 
 from src.real_estate.models.type import PropertyType
 from src.real_estate.filters.admin.type_filters import PropertyTypeAdminFilter
@@ -92,6 +93,28 @@ class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             return value
         return value.lower() in ('1', 'true', 'yes', 'on')
 
+    @staticmethod
+    def _map_integrity_unique_error(error):
+        error_text = str(error).lower()
+        errors = {}
+
+        if 'title' in error_text:
+            errors['title'] = [TYPE_ERRORS["type_title_exists"]]
+        if 'slug' in error_text:
+            errors['slug'] = [TYPE_ERRORS["type_slug_exists"]]
+
+        if errors:
+            return APIResponse.error(
+                message=next(iter(errors.values()))[0],
+                errors=errors,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        return APIResponse.error(
+            message=TYPE_ERRORS["type_create_failed"],
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         try:
@@ -114,6 +137,8 @@ class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
+        except IntegrityError as e:
+            return self._map_integrity_unique_error(e)
     
     def retrieve(self, request, *args, **kwargs):
         property_type = PropertyTypeAdminService.get_type_by_id(kwargs.get('pk'))
@@ -169,6 +194,8 @@ class PropertyTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
+        except IntegrityError as e:
+            return self._map_integrity_unique_error(e)
 
     def destroy(self, request, *args, **kwargs):
         type_id = kwargs.get('pk')

@@ -2,6 +2,7 @@ from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django_filters.rest_framework import DjangoFilterBackend
 from src.core.responses.response import APIResponse
 from django.conf import settings
@@ -146,6 +147,12 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
+        except IntegrityError:
+            return APIResponse.error(
+                message=FLOOR_PLAN_ERRORS["slug_exists"],
+                errors={'slug': [FLOOR_PLAN_ERRORS["slug_exists"]]},
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
     
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -176,6 +183,12 @@ class FloorPlanAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             return APIResponse.error(
                 message=extract_validation_message(e, FLOOR_PLAN_ERRORS["floor_plan_update_failed"]),
                 errors=normalize_validation_error(e),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        except IntegrityError:
+            return APIResponse.error(
+                message=FLOOR_PLAN_ERRORS["slug_exists"],
+                errors={'slug': [FLOOR_PLAN_ERRORS["slug_exists"]]},
                 status_code=status.HTTP_400_BAD_REQUEST
             )
     

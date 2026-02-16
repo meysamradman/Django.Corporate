@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db import IntegrityError
 
 from src.core.responses.response import APIResponse
 from src.core.pagination import StandardLimitPagination
@@ -18,7 +19,7 @@ from src.real_estate.serializers.admin.agent_serializer import (
 )
 from src.real_estate.services.admin.agent_services import PropertyAgentAdminService
 from src.real_estate.messages.messages import AGENT_SUCCESS, AGENT_ERRORS
-from src.core.utils.validation_helpers import normalize_validation_error
+from src.core.utils.validation_helpers import extract_validation_message, normalize_validation_error
 
 class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
@@ -80,6 +81,30 @@ class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         if isinstance(value, bool):
             return value
         return value.lower() in ('1', 'true', 'yes', 'on')
+
+    @staticmethod
+    def _map_integrity_unique_error(error):
+        error_text = str(error).lower()
+        errors = {}
+
+        if 'slug' in error_text:
+            errors['slug'] = [AGENT_ERRORS["slug_exists"]]
+        if 'license' in error_text or 'license_number' in error_text:
+            errors['license_number'] = [AGENT_ERRORS["license_number_exists"]]
+        if 'user' in error_text:
+            errors['user_id'] = [AGENT_ERRORS["user_already_has_agent"]]
+
+        if errors:
+            return APIResponse.error(
+                message=next(iter(errors.values()))[0],
+                errors=errors,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        return APIResponse.error(
+            message=AGENT_ERRORS["agent_create_failed"],
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -100,10 +125,12 @@ class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except (DRFValidationError, DjangoValidationError) as e:
             return APIResponse.error(
-                message=AGENT_ERRORS["agent_create_failed"],
+                message=extract_validation_message(e, AGENT_ERRORS["agent_create_failed"]),
                 errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
+        except IntegrityError as e:
+            return self._map_integrity_unique_error(e)
     
     def retrieve(self, request, *args, **kwargs):
         agent = PropertyAgentAdminService.get_agent_by_id(kwargs.get('pk'))
@@ -157,10 +184,12 @@ class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except (DRFValidationError, DjangoValidationError) as e:
             return APIResponse.error(
-                message=AGENT_ERRORS["agent_update_failed"],
+                message=extract_validation_message(e, AGENT_ERRORS["agent_update_failed"]),
                 errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
+        except IntegrityError as e:
+            return self._map_integrity_unique_error(e)
         except Exception:
             return APIResponse.error(
                 message=AGENT_ERRORS["agent_update_failed"],
@@ -183,7 +212,7 @@ class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except DjangoValidationError as e:
             return APIResponse.error(
-                message=AGENT_ERRORS["agent_delete_failed"],
+                message=extract_validation_message(e, AGENT_ERRORS["agent_delete_failed"]),
                 errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
@@ -211,7 +240,7 @@ class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         except DjangoValidationError as e:
             return APIResponse.error(
-                message=AGENT_ERRORS["agent_delete_failed"],
+                message=extract_validation_message(e, AGENT_ERRORS["agent_delete_failed"]),
                 errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )

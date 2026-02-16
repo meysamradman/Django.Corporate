@@ -164,11 +164,13 @@ class PropertyTypeAdminCreateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_title(self, value):
+        value = value.strip() if isinstance(value, str) else value
         if not self.instance and PropertyType.objects.filter(title=value).exists():
             raise serializers.ValidationError(TYPE_ERRORS["type_title_exists"])
         return value
     
     def validate_slug(self, value):
+        value = value.strip() if isinstance(value, str) else value
         if value and not self.instance and PropertyType.objects.filter(slug=value).exists():
             raise serializers.ValidationError(TYPE_ERRORS["type_slug_exists"])
         return value
@@ -224,6 +226,7 @@ class PropertyTypeAdminUpdateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_title(self, value):
+        value = value.strip() if isinstance(value, str) else value
         if self.instance and PropertyType.objects.exclude(
             id=self.instance.id
         ).filter(title=value).exists():
@@ -231,6 +234,7 @@ class PropertyTypeAdminUpdateSerializer(serializers.ModelSerializer):
         return value
     
     def validate_slug(self, value):
+        value = value.strip() if isinstance(value, str) else value
         if value and self.instance and PropertyType.objects.exclude(
             id=self.instance.id
         ).filter(slug=value).exists():

@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db import IntegrityError
 
 from src.core.responses.response import APIResponse
 from src.core.pagination import StandardLimitPagination
@@ -81,6 +82,28 @@ class PropertyStateAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         if isinstance(value, bool):
             return value
         return value.lower() in ('1', 'true', 'yes', 'on')
+
+    @staticmethod
+    def _map_integrity_unique_error(error):
+        error_text = str(error).lower()
+        errors = {}
+
+        if 'title' in error_text:
+            errors['title'] = [STATE_ERRORS["state_exists"]]
+        if 'slug' in error_text:
+            errors['slug'] = [STATE_ERRORS["state_slug_exists"]]
+
+        if errors:
+            return APIResponse.error(
+                message=next(iter(errors.values()))[0],
+                errors=errors,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        return APIResponse.error(
+            message=STATE_ERRORS["state_create_failed"],
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -104,6 +127,8 @@ class PropertyStateAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
+        except IntegrityError as e:
+            return self._map_integrity_unique_error(e)
     
     def retrieve(self, request, *args, **kwargs):
         state_obj = PropertyStateAdminService.get_state_by_id(kwargs.get('pk'))
@@ -159,6 +184,8 @@ class PropertyStateAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
+        except IntegrityError as e:
+            return self._map_integrity_unique_error(e)
     
     @action(detail=False, methods=['get'], url_path='field-options')
     def field_options(self, request):

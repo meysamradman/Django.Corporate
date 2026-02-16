@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from src.real_estate.models.floor_plan import RealEstateFloorPlan
 from src.real_estate.models.floor_plan_media import FloorPlanImage
 from src.real_estate.messages.messages import FLOOR_PLAN_ERRORS
@@ -82,12 +83,16 @@ class FloorPlanAdminCreateSerializer(serializers.ModelSerializer):
             'display_order', 'is_available',
             'is_active'
         ]
-        extra_kwargs = {
-            'slug': {'error_messages': {'unique': FLOOR_PLAN_ERRORS["slug_exists"]}},
-        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['slug'].validators = [
+            validator for validator in self.fields['slug'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
     
     def validate_slug(self, value):
-        
+        value = value.strip() if isinstance(value, str) else value
         if RealEstateFloorPlan.objects.filter(slug=value).exists():
             raise serializers.ValidationError(FLOOR_PLAN_ERRORS["slug_exists"])
         return value
@@ -105,12 +110,16 @@ class FloorPlanAdminUpdateSerializer(serializers.ModelSerializer):
             'display_order', 'is_available',
             'is_active'
         ]
-        extra_kwargs = {
-            'slug': {'error_messages': {'unique': FLOOR_PLAN_ERRORS["slug_exists"]}},
-        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['slug'].validators = [
+            validator for validator in self.fields['slug'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
     
     def validate_slug(self, value):
-        
+        value = value.strip() if isinstance(value, str) else value
         instance = self.instance
         if instance and RealEstateFloorPlan.objects.filter(slug=value).exclude(pk=instance.pk).exists():
             raise serializers.ValidationError(FLOOR_PLAN_ERRORS["slug_exists"])

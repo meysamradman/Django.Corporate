@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from django.db.models import Sum, Avg
 from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.models.agency import RealEstateAgency
@@ -168,6 +169,17 @@ class PropertyAgentAdminCreateSerializer(serializers.ModelSerializer):
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image_id', 'canonical_url', 'robots_meta'
         ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['slug'].validators = [
+            validator for validator in self.fields['slug'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
+        self.fields['license_number'].validators = [
+            validator for validator in self.fields['license_number'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
     
     def validate_slug(self, value):
         
@@ -215,6 +227,17 @@ class PropertyAgentAdminUpdateSerializer(serializers.ModelSerializer):
             'is_active',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image_id', 'canonical_url', 'robots_meta'
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['slug'].validators = [
+            validator for validator in self.fields['slug'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
+        self.fields['license_number'].validators = [
+            validator for validator in self.fields['license_number'].validators
+            if not isinstance(validator, UniqueValidator)
         ]
     
     def validate_slug(self, value):
