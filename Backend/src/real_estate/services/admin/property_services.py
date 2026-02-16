@@ -199,8 +199,19 @@ class PropertyAdminService:
         if validated_data.get('agency'):
             logger.info(f"🏢 [PropertyService][Create] Agency explicitly provided: {validated_data.get('agency').id if hasattr(validated_data.get('agency'), 'id') else validated_data.get('agency')}")
 
-        if not validated_data.get('slug') and validated_data.get('title'):
-            pass # (Simplified for replacement, keep original logic in mind)
+        provided_slug = (validated_data.get('slug') or '').strip() if isinstance(validated_data.get('slug'), str) else validated_data.get('slug')
+        if provided_slug:
+            if Property.objects.filter(slug=provided_slug).exists():
+                raise ValidationError({'slug': [PROPERTY_ERRORS["property_slug_exists"]]})
+            validated_data['slug'] = provided_slug
+        elif validated_data.get('title'):
+            base_slug = slugify(validated_data['title'], allow_unicode=True)
+            slug = base_slug
+            counter = 1
+            while Property.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            validated_data['slug'] = slug
 
         with transaction.atomic():
             property_obj = Property.objects.create(created_by=created_by, **validated_data)
@@ -271,8 +282,12 @@ class PropertyAdminService:
         province = validated_data.get('province')
         region = validated_data.get('region')
         
+        if 'slug' in validated_data and validated_data.get('slug'):
+            validated_data['slug'] = validated_data['slug'].strip() if isinstance(validated_data['slug'], str) else validated_data['slug']
+            if Property.objects.filter(slug=validated_data['slug']).exclude(pk=property_id).exists():
+                raise ValidationError({'slug': [PROPERTY_ERRORS["property_slug_exists"]]})
+
         if 'title' in validated_data and not validated_data.get('slug'):
-            from django.utils.text import slugify
             base_slug = slugify(validated_data['title'])
             slug = base_slug
             counter = 1

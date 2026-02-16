@@ -5,6 +5,7 @@ from rest_framework.exceptions import ValidationError as DRFValidationError
 from django.core.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
+from django.db import IntegrityError
 from django.conf import settings
 from src.core.utils.request_helpers import MultipartDataParser
 
@@ -109,6 +110,21 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         'export': 'real_estate.property.read',
     }
     permission_denied_message = PROPERTY_ERRORS["property_not_authorized"]
+
+    @staticmethod
+    def _map_integrity_unique_error(error):
+        error_text = str(error).lower()
+        if 'slug' in error_text:
+            return APIResponse.error(
+                message=PROPERTY_ERRORS["property_slug_exists"],
+                errors={'slug': [PROPERTY_ERRORS["property_slug_exists"]]},
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        return APIResponse.error(
+            message=PROPERTY_ERRORS["property_create_failed"],
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
     
     def get_queryset(self):
         user = self.request.user
@@ -268,6 +284,8 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
+        except IntegrityError as e:
+            return self._map_integrity_unique_error(e)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -351,6 +369,8 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 errors=normalize_validation_error(e),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
+        except IntegrityError as e:
+            return self._map_integrity_unique_error(e)
     
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

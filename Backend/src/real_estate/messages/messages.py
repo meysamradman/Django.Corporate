@@ -57,6 +57,7 @@ PROPERTY_ERRORS = {
     "geo_bbox_coordinates_required": "مختصات محدوده الزامی است.",
     "geo_polygon_min_points": "چندضلعی باید حداقل 3 نقطه داشته باشد.",
     "geo_polygon_invalid": "مختصات چندضلعی معتبر نیست.",
+    "property_slug_exists": "این نامک قبلاً استفاده شده است.",
 }
 
 AGENT_DEFAULTS = {
@@ -277,5 +278,17 @@ FLOOR_PLAN_ERRORS = {
     "media_upload_limit_exceeded": "حداکثر {max_items} تصویر برای آپلود مجاز است. شما {total_items} تصویر ارسال کرده‌اید.",
     "only_one_main_image": "فقط یک تصویر اصلی برای هر پلان مجاز است.",
     "slug_exists": "این نامک قبلاً استفاده شده است.",
+}
+
+LOCATION_SUCCESS = {
+    "province_list_success": "استان‌ها با موفقیت دریافت شدند.",
+    "city_list_success": "شهرها با موفقیت دریافت شدند.",
+    "region_list_success": "مناطق شهری با موفقیت دریافت شدند.",
+}
+
+LOCATION_ERRORS = {
+    "location_not_authorized": "شما اجازه دسترسی به موقعیت‌های مکانی را ندارید.",
+    "province_not_found": "استان یافت نشد.",
+    "city_not_found": "شهر یافت نشد.",
 }
 

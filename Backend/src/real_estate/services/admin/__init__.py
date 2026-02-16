@@ -14,6 +14,7 @@ from .feature_services import PropertyFeatureAdminService
 from .tag_services import PropertyTagAdminService
 from .agent_services import PropertyAgentAdminService
 from .agency_services import RealEstateAgencyAdminService
+from .location_services import RealEstateLocationAdminService
 from .excel_export_service import PropertyExcelExportService
 from .pdf_list_export_service import PropertyPDFListExportService
 
@@ -32,6 +33,7 @@ __all__ = [
     'PropertyTagAdminService',
     'PropertyAgentAdminService',
     'RealEstateAgencyAdminService',
+    'RealEstateLocationAdminService',
     'PropertyExcelExportService',
     'PropertyPDFListExportService',
 ]

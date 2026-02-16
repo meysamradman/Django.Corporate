@@ -17,6 +17,8 @@ from .messages import (
     TAG_ERRORS,
     FLOOR_PLAN_SUCCESS,
     FLOOR_PLAN_ERRORS,
+    LOCATION_SUCCESS,
+    LOCATION_ERRORS,
     PDF_LABELS,
 )
 
@@ -39,6 +41,8 @@ __all__ = [
     'TAG_ERRORS',
     'FLOOR_PLAN_SUCCESS',
     'FLOOR_PLAN_ERRORS',
+    'LOCATION_SUCCESS',
+    'LOCATION_ERRORS',
     'PDF_LABELS',
 ]
 

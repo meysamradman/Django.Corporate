@@ -1,14 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from django.core.cache import cache
-from django.db.models import Q, F, Count
-from decimal import Decimal
-import math
 
-from src.core.models import Province, City
-from src.real_estate.models.location import CityRegion
 from src.real_estate.serializers.admin import (
     RealEstateProvinceSerializer,
     RealEstateCitySerializer,
@@ -17,13 +10,22 @@ from src.real_estate.serializers.admin import (
 )
 from src.core.responses.response import APIResponse
 from src.core.pagination.pagination import StandardLimitPagination
+from src.user.access_control import real_estate_permission, PermissionRequiredMixin
+from src.real_estate.services.admin import RealEstateLocationAdminService
+from src.real_estate.messages import LOCATION_SUCCESS, LOCATION_ERRORS
 
-class RealEstateProvinceViewSet(viewsets.ReadOnlyModelViewSet):
+class RealEstateProvinceViewSet(PermissionRequiredMixin, viewsets.ReadOnlyModelViewSet):
     
-    queryset = Province.objects.filter(is_active=True).select_related('country').order_by('country__name', 'name')
+    queryset = RealEstateLocationAdminService.get_provinces_queryset()
     serializer_class = RealEstateProvinceSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [real_estate_permission]
     pagination_class = StandardLimitPagination
+    permission_map = {
+        'list': 'real_estate.property.read',
+        'retrieve': 'real_estate.property.read',
+        'cities': 'real_estate.property.read',
+    }
+    permission_denied_message = LOCATION_ERRORS["location_not_authorized"]
     
     def list(self, request, *args, **kwargs):
         cache_key = 'real_estate_active_provinces'
@@ -31,7 +33,7 @@ class RealEstateProvinceViewSet(viewsets.ReadOnlyModelViewSet):
         
         if cached_data:
             return APIResponse.success(
-                message="استان‌ها با موفقیت دریافت شدند",
+                message=LOCATION_SUCCESS["province_list_success"],
                 data=cached_data
             )
         
@@ -42,55 +44,59 @@ class RealEstateProvinceViewSet(viewsets.ReadOnlyModelViewSet):
         cache.set(cache_key, data, 3600)  # Cache for 1 hour
         
         return APIResponse.success(
-            message="استان‌ها با موفقیت دریافت شدند",
+            message=LOCATION_SUCCESS["province_list_success"],
             data=data
         )
     
     @action(detail=True, methods=['get'], url_path='cities')
     def cities(self, request, pk=None):
-        
-        province = self.get_object()
+        province = RealEstateLocationAdminService.get_province_by_id(pk)
+        if not province:
+            return APIResponse.error(
+                message=LOCATION_ERRORS["province_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
         cache_key = f'real_estate_province_{province.id}_cities'
         cached_data = cache.get(cache_key)
         
         if cached_data:
             return APIResponse.success(
-                message="شهرها با موفقیت دریافت شدند",
+                message=LOCATION_SUCCESS["city_list_success"],
                 data=cached_data
             )
         
-        cities = City.objects.filter(province=province, is_active=True).order_by('name')
+        cities = RealEstateLocationAdminService.get_province_cities(province)
         serializer = RealEstateCitySimpleSerializer(cities, many=True)
         data = serializer.data
         
         cache.set(cache_key, data, 3600)
         
         return APIResponse.success(
-            message="شهرها با موفقیت دریافت شدند",
+            message=LOCATION_SUCCESS["city_list_success"],
             data=data
         )
 
-class RealEstateCityViewSet(viewsets.ReadOnlyModelViewSet):
+class RealEstateCityViewSet(PermissionRequiredMixin, viewsets.ReadOnlyModelViewSet):
     
-    queryset = City.objects.filter(is_active=True).select_related('province', 'province__country').order_by('province__name', 'name')
+    queryset = RealEstateLocationAdminService.get_cities_queryset()
     serializer_class = RealEstateCitySerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [real_estate_permission]
     pagination_class = StandardLimitPagination
+    permission_map = {
+        'list': 'real_estate.property.read',
+        'retrieve': 'real_estate.property.read',
+        'regions': 'real_estate.property.read',
+    }
+    permission_denied_message = LOCATION_ERRORS["location_not_authorized"]
     
     def get_queryset(self):
-        queryset = super().get_queryset()
         province_id = self.request.query_params.get('province_id')
         has_properties = self.request.query_params.get('has_properties', 'false').lower() == 'true'
-        
-        if province_id:
-            queryset = queryset.filter(province_id=province_id)
-        
-        if has_properties:
-            queryset = queryset.annotate(
-                property_count=Count('real_estate_properties', filter=Q(real_estate_properties__is_active=True))
-            ).filter(property_count__gt=0)
-        
-        return queryset
+        return RealEstateLocationAdminService.get_cities_queryset(
+            province_id=province_id,
+            has_properties=has_properties
+        )
     
     def list(self, request, *args, **kwargs):
         province_id = request.query_params.get('province_id')
@@ -101,7 +107,7 @@ class RealEstateCityViewSet(viewsets.ReadOnlyModelViewSet):
         
         if cached_data:
             return APIResponse.success(
-                message="شهرها با موفقیت دریافت شدند",
+                message=LOCATION_SUCCESS["city_list_success"],
                 data=cached_data
             )
         
@@ -122,24 +128,29 @@ class RealEstateCityViewSet(viewsets.ReadOnlyModelViewSet):
         cache.set(cache_key, data, 1800)
         
         return APIResponse.success(
-            message="شهرها با موفقیت دریافت شدند",
+            message=LOCATION_SUCCESS["city_list_success"],
             data=data
         )
     
     @action(detail=True, methods=['get'], url_path='regions')
     def regions(self, request, pk=None):
-        
-        city = self.get_object()
+        city = RealEstateLocationAdminService.get_city_by_id(pk)
+        if not city:
+            return APIResponse.error(
+                message=LOCATION_ERRORS["city_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
         cache_key = f'real_estate_city_{city.id}_city_regions'
         cached_data = cache.get(cache_key)
 
         if cached_data:
             return APIResponse.success(
-                message="مناطق شهری با موفقیت دریافت شدند",
+                message=LOCATION_SUCCESS["region_list_success"],
                 data=cached_data
             )
 
-        regions = CityRegion.objects.filter(city=city, is_active=True).order_by('code')
+        regions = RealEstateLocationAdminService.get_city_regions_for_city(city)
         data = [{
             'id': region.id,
             'code': region.code,
@@ -149,22 +160,24 @@ class RealEstateCityViewSet(viewsets.ReadOnlyModelViewSet):
         cache.set(cache_key, data, 3600)
 
         return APIResponse.success(
-            message="مناطق شهری با موفقیت دریافت شدند",
+            message=LOCATION_SUCCESS["region_list_success"],
             data=data
         )
 
-class RealEstateCityRegionViewSet(viewsets.ReadOnlyModelViewSet):
+class RealEstateCityRegionViewSet(PermissionRequiredMixin, viewsets.ReadOnlyModelViewSet):
     
-    queryset = CityRegion.objects.filter(is_active=True).select_related('city', 'city__province').order_by('city', 'code')
+    queryset = RealEstateLocationAdminService.get_city_regions_queryset()
     serializer_class = RealEstateCityRegionSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [real_estate_permission]
+    permission_map = {
+        'list': 'real_estate.property.read',
+        'retrieve': 'real_estate.property.read',
+    }
+    permission_denied_message = LOCATION_ERRORS["location_not_authorized"]
 
     def get_queryset(self):
-        queryset = super().get_queryset()
         city_id = self.request.query_params.get('city_id')
-        if city_id:
-            queryset = queryset.filter(city_id=city_id)
-        return queryset
+        return RealEstateLocationAdminService.get_city_regions_queryset(city_id=city_id)
 
     def list(self, request, *args, **kwargs):
         city_id = request.query_params.get('city_id')
@@ -174,7 +187,7 @@ class RealEstateCityRegionViewSet(viewsets.ReadOnlyModelViewSet):
 
         if cached_data:
             return APIResponse.success(
-                message="مناطق شهری با موفقیت دریافت شدند",
+                message=LOCATION_SUCCESS["region_list_success"],
                 data=cached_data
             )
 
@@ -190,7 +203,7 @@ class RealEstateCityRegionViewSet(viewsets.ReadOnlyModelViewSet):
         cache.set(cache_key, data, 3600)  # 1 hour
 
         return APIResponse.success(
-            message="مناطق شهری با موفقیت دریافت شدند",
+            message=LOCATION_SUCCESS["region_list_success"],
             data=data
         )
 
