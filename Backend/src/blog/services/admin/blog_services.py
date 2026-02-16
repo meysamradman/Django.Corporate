@@ -273,7 +273,7 @@ class BlogAdminService:
         try:
             blog = Blog.objects.get(id=blog_id)
         except Blog.DoesNotExist:
-            raise Blog.DoesNotExist("Blog not found")
+            raise Blog.DoesNotExist(BLOG_ERRORS["blog_not_found"])
         
         BlogImage.objects.filter(
             blog=blog,
@@ -286,7 +286,7 @@ class BlogAdminService:
                 image_id=media_id
             )
         except BlogImage.DoesNotExist:
-            raise BlogImage.DoesNotExist("Blog image not found")
+            raise BlogImage.DoesNotExist(BLOG_ERRORS["blog_image_not_found"])
         blog_image.is_main = True
         blog_image.save()
         
@@ -384,7 +384,7 @@ class BlogAdminService:
         try:
             blog = Blog.objects.get(id=blog_id)
         except Blog.DoesNotExist:
-            raise Blog.DoesNotExist("Blog not found")
+            raise Blog.DoesNotExist(BLOG_ERRORS["blog_not_found"])
         
         blog_medias = BlogImage.objects.filter(blog=blog)
         media_ids = list(blog_medias.values_list('image_id', flat=True))
@@ -418,7 +418,7 @@ class BlogAdminStatusService:
         try:
             blog = Blog.objects.get(id=blog_id)
         except Blog.DoesNotExist:
-            raise Blog.DoesNotExist("Blog not found")
+            raise Blog.DoesNotExist(BLOG_ERRORS["blog_not_found"])
 
         if new_status not in dict(Blog.STATUS_CHOICES):
             return None
@@ -432,15 +432,15 @@ class BlogAdminStatusService:
         try:
             blog = Blog.objects.get(id=blog_id)
         except Blog.DoesNotExist:
-            raise Blog.DoesNotExist("Blog not found")
+            raise Blog.DoesNotExist(BLOG_ERRORS["blog_not_found"])
         
         seo_warnings = []
         if not blog.meta_title:
-            seo_warnings.append("Meta title is missing")
+            seo_warnings.append(BLOG_ERRORS["seo_meta_title_missing"])
         if not blog.meta_description:
-            seo_warnings.append("Meta description is missing")
+            seo_warnings.append(BLOG_ERRORS["seo_meta_description_missing"])
         if not blog.og_image:
-            seo_warnings.append("OG image is missing")
+            seo_warnings.append(BLOG_ERRORS["seo_og_image_missing"])
         
         blog.status = 'published'
         blog.save(update_fields=['status', 'updated_at'])
@@ -457,7 +457,7 @@ class BlogAdminSEOService:
         try:
             blog = Blog.objects.get(id=blog_id)
         except Blog.DoesNotExist:
-            raise Blog.DoesNotExist("Blog not found")
+            raise Blog.DoesNotExist(BLOG_ERRORS["blog_not_found"])
         
         updates = {}
         
@@ -493,22 +493,22 @@ class BlogAdminSEOService:
         try:
             blog = Blog.objects.get(id=blog_id)
         except Blog.DoesNotExist:
-            raise Blog.DoesNotExist("Blog not found")
+            raise Blog.DoesNotExist(BLOG_ERRORS["blog_not_found"])
         
         suggestions = []
         
         if blog.meta_title:
             if len(blog.meta_title) > 60:
-                suggestions.append("Meta title should be under 60 characters for optimal display")
+                suggestions.append(BLOG_ERRORS["seo_meta_title_under_60"])
         
         if blog.meta_description:
             if len(blog.meta_description) < 120:
-                suggestions.append("Meta description should be at least 120 characters")
+                suggestions.append(BLOG_ERRORS["seo_meta_description_min_120"])
             elif len(blog.meta_description) > 160:
-                suggestions.append("Meta description should be under 160 characters")
+                suggestions.append(BLOG_ERRORS["seo_meta_description_max_160"])
         
         if not blog.og_image:
-            suggestions.append("Adding an OG image improves social media sharing")
+            suggestions.append(BLOG_ERRORS["seo_add_og_image"])
         
         return {
             'is_valid': len(suggestions) == 0,

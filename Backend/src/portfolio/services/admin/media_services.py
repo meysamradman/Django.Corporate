@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
 from src.portfolio.utils.cache import PortfolioCacheManager
+from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia, detect_media_type_from_extension
 from src.media.services.media_services import MediaAdminService
 
@@ -121,7 +122,7 @@ class PortfolioAdminMediaService:
             logger.info(f"✅ [PortfolioMedia][AddBulk] Found portfolio: {portfolio.title}")
         except Portfolio.DoesNotExist:
             logger.error(f"❌ [PortfolioMedia][AddBulk] Error: Portfolio not found")
-            raise Portfolio.DoesNotExist("Portfolio not found")
+            raise Portfolio.DoesNotExist(PORTFOLIO_ERRORS["portfolio_not_found"])
         media_files = media_files or []
         media_ids = media_ids or []
         image_ids = image_ids or []
@@ -369,7 +370,7 @@ class PortfolioAdminMediaService:
                 portfolio = Portfolio.objects.get(id=portfolio_id)
             except Portfolio.DoesNotExist:
                 logger.error(f"❌ [PortfolioMedia][Sync] Error: Portfolio {portfolio_id} not found")
-                raise Portfolio.DoesNotExist("Portfolio not found")
+                raise Portfolio.DoesNotExist(PORTFOLIO_ERRORS["portfolio_not_found"])
             
             has_segmented = any(x is not None for x in [image_ids, video_ids, audio_ids, document_ids])
             
@@ -448,7 +449,7 @@ class PortfolioAdminMediaService:
         try:
             portfolio = Portfolio.objects.get(id=portfolio_id)
         except Portfolio.DoesNotExist:
-            raise Portfolio.DoesNotExist("Portfolio not found")
+            raise Portfolio.DoesNotExist(PORTFOLIO_ERRORS["portfolio_not_found"])
 
         with transaction.atomic():
             PortfolioImage.objects.filter(portfolio_id=portfolio_id, is_main=True).update(is_main=False)
@@ -476,7 +477,7 @@ class PortfolioAdminMediaService:
                         portfolio.og_image = media_image
                         portfolio.save(update_fields=['og_image'])
                 except ImageMedia.DoesNotExist:
-                    raise ValidationError("Media image not found")
+                    raise ValidationError(PORTFOLIO_ERRORS["media_image_not_found"])
 
             PortfolioCacheManager.invalidate_portfolio(portfolio_id)
             return True

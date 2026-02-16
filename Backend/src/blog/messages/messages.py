@@ -87,6 +87,15 @@ BLOG_ERRORS = {
     "blogs_not_found": "مقالات انتخاب‌شده یافت نشدند.",
     "only_one_main_image": "فقط یک تصویر اصلی برای هر مقاله مجاز است.",
     "blog_slug_exists": "این نامک قبلاً استفاده شده است.",
+    "blog_image_not_found": "تصویر مقاله یافت نشد.",
+    "media_image_not_found": "تصویر رسانه یافت نشد.",
+    "seo_meta_title_missing": "عنوان متا تکمیل نشده است.",
+    "seo_meta_description_missing": "توضیحات متا تکمیل نشده است.",
+    "seo_og_image_missing": "تصویر Open Graph تکمیل نشده است.",
+    "seo_meta_title_under_60": "برای نمایش بهتر، عنوان متا باید کمتر از ۶۰ کاراکتر باشد.",
+    "seo_meta_description_min_120": "برای کیفیت بهتر، توضیحات متا حداقل ۱۲۰ کاراکتر باشد.",
+    "seo_meta_description_max_160": "برای نمایش بهتر، توضیحات متا باید کمتر از ۱۶۰ کاراکتر باشد.",
+    "seo_add_og_image": "افزودن تصویر Open Graph کیفیت اشتراک‌گذاری در شبکه‌های اجتماعی را بهبود می‌دهد.",
 }
 
 CATEGORY_SUCCESS = {

@@ -41,6 +41,16 @@ PORTFOLIO_ERRORS = {
     "media_upload_limit_exceeded": "حداکثر {max_items} رسانه برای آپلود مجاز است. شما {total_items} رسانه ارسال کرده‌اید.",
     "media_ids_or_files_required": "حداقل یک شناسه رسانه یا فایل رسانه باید ارسال شود.",
     "portfolios_not_found": "نمونه کارهای انتخاب‌شده یافت نشدند.",
+    "portfolio_image_not_found": "تصویر نمونه کار یافت نشد.",
+    "media_image_not_found": "تصویر رسانه یافت نشد.",
+    "only_one_main_image": "فقط یک تصویر اصلی برای هر نمونه کار مجاز است.",
+    "seo_meta_title_missing": "عنوان متا تکمیل نشده است.",
+    "seo_meta_description_missing": "توضیحات متا تکمیل نشده است.",
+    "seo_og_image_missing": "تصویر Open Graph تکمیل نشده است.",
+    "seo_meta_title_under_60": "برای نمایش بهتر، عنوان متا باید کمتر از ۶۰ کاراکتر باشد.",
+    "seo_meta_description_min_120": "برای کیفیت بهتر، توضیحات متا حداقل ۱۲۰ کاراکتر باشد.",
+    "seo_meta_description_max_160": "برای نمایش بهتر، توضیحات متا باید کمتر از ۱۶۰ کاراکتر باشد.",
+    "seo_add_og_image": "افزودن تصویر Open Graph کیفیت اشتراک‌گذاری در شبکه‌های اجتماعی را بهبود می‌دهد.",
 }
 CATEGORY_SUCCESS = {
     "category_list_success": "لیست دسته‌بندی‌ها با موفقیت دریافت شد.",

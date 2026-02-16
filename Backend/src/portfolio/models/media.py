@@ -2,6 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from src.core.models.base import BaseModel
 from src.portfolio.models.portfolio import Portfolio
+from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 
 class PortfolioImage(BaseModel):
@@ -59,7 +60,7 @@ class PortfolioImage(BaseModel):
                 is_main=True
             ).exclude(pk=self.pk).exists()
             if exists:
-                raise ValidationError("Only one main image is allowed per portfolio.")
+                raise ValidationError(PORTFOLIO_ERRORS["only_one_main_image"])
 
     def save(self, *args, **kwargs):
         self.full_clean()

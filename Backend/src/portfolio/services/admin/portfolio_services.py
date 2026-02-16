@@ -305,7 +305,7 @@ class PortfolioAdminService:
         try:
             portfolio = Portfolio.objects.get(id=portfolio_id)
         except Portfolio.DoesNotExist:
-            raise Portfolio.DoesNotExist("Portfolio not found")
+            raise Portfolio.DoesNotExist(PORTFOLIO_ERRORS["portfolio_not_found"])
         
         PortfolioImage.objects.filter(
             portfolio=portfolio,
@@ -318,7 +318,7 @@ class PortfolioAdminService:
                 image_id=media_id
             )
         except PortfolioImage.DoesNotExist:
-            raise PortfolioImage.DoesNotExist("Portfolio image not found")
+            raise PortfolioImage.DoesNotExist(PORTFOLIO_ERRORS["portfolio_image_not_found"])
         portfolio_image.is_main = True
         portfolio_image.save()
         
@@ -416,7 +416,7 @@ class PortfolioAdminService:
         try:
             portfolio = Portfolio.objects.get(id=portfolio_id)
         except Portfolio.DoesNotExist:
-            raise Portfolio.DoesNotExist("Portfolio not found")
+            raise Portfolio.DoesNotExist(PORTFOLIO_ERRORS["portfolio_not_found"])
         
         portfolio_medias = PortfolioImage.objects.filter(portfolio=portfolio)
         media_ids = list(portfolio_medias.values_list('image_id', flat=True))
@@ -450,7 +450,7 @@ class PortfolioAdminStatusService:
         try:
             portfolio = Portfolio.objects.get(id=portfolio_id)
         except Portfolio.DoesNotExist:
-            raise Portfolio.DoesNotExist("Portfolio not found")
+            raise Portfolio.DoesNotExist(PORTFOLIO_ERRORS["portfolio_not_found"])
 
         if new_status not in dict(Portfolio.STATUS_CHOICES):
             return None
@@ -464,15 +464,15 @@ class PortfolioAdminStatusService:
         try:
             portfolio = Portfolio.objects.get(id=portfolio_id)
         except Portfolio.DoesNotExist:
-            raise Portfolio.DoesNotExist("Portfolio not found")
+            raise Portfolio.DoesNotExist(PORTFOLIO_ERRORS["portfolio_not_found"])
         
         seo_warnings = []
         if not portfolio.meta_title:
-            seo_warnings.append("Meta title is missing")
+            seo_warnings.append(PORTFOLIO_ERRORS["seo_meta_title_missing"])
         if not portfolio.meta_description:
-            seo_warnings.append("Meta description is missing")
+            seo_warnings.append(PORTFOLIO_ERRORS["seo_meta_description_missing"])
         if not portfolio.og_image:
-            seo_warnings.append("OG image is missing")
+            seo_warnings.append(PORTFOLIO_ERRORS["seo_og_image_missing"])
         
         portfolio.status = 'published'
         portfolio.save(update_fields=['status', 'updated_at'])
@@ -489,7 +489,7 @@ class PortfolioAdminSEOService:
         try:
             portfolio = Portfolio.objects.get(id=portfolio_id)
         except Portfolio.DoesNotExist:
-            raise Portfolio.DoesNotExist("Portfolio not found")
+            raise Portfolio.DoesNotExist(PORTFOLIO_ERRORS["portfolio_not_found"])
         
         updates = {}
         
@@ -525,22 +525,22 @@ class PortfolioAdminSEOService:
         try:
             portfolio = Portfolio.objects.get(id=portfolio_id)
         except Portfolio.DoesNotExist:
-            raise Portfolio.DoesNotExist("Portfolio not found")
+            raise Portfolio.DoesNotExist(PORTFOLIO_ERRORS["portfolio_not_found"])
         
         suggestions = []
         
         if portfolio.meta_title:
             if len(portfolio.meta_title) > 60:
-                suggestions.append("Meta title should be under 60 characters for optimal display")
+                suggestions.append(PORTFOLIO_ERRORS["seo_meta_title_under_60"])
         
         if portfolio.meta_description:
             if len(portfolio.meta_description) < 120:
-                suggestions.append("Meta description should be at least 120 characters")
+                suggestions.append(PORTFOLIO_ERRORS["seo_meta_description_min_120"])
             elif len(portfolio.meta_description) > 160:
-                suggestions.append("Meta description should be under 160 characters")
+                suggestions.append(PORTFOLIO_ERRORS["seo_meta_description_max_160"])
         
         if not portfolio.og_image:
-            suggestions.append("Adding an OG image improves social media sharing")
+            suggestions.append(PORTFOLIO_ERRORS["seo_add_og_image"])
         
         return {
             'is_valid': len(suggestions) == 0,

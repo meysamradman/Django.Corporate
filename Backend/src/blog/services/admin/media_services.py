@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 from src.blog.models.blog import Blog
 from src.blog.models.media import BlogImage, BlogVideo, BlogAudio, BlogDocument
 from src.blog.utils.cache import BlogCacheManager
+from src.blog.messages.messages import BLOG_ERRORS
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia, detect_media_type_from_extension
 from src.media.services.media_services import MediaAdminService
 
@@ -115,7 +116,7 @@ class BlogAdminMediaService:
         try:
             blog = Blog.objects.get(id=blog_id)
         except Blog.DoesNotExist:
-            raise Blog.DoesNotExist("Blog not found")
+            raise Blog.DoesNotExist(BLOG_ERRORS["blog_not_found"])
         media_files = media_files or []
         media_ids = media_ids or []
         
@@ -342,7 +343,7 @@ class BlogAdminMediaService:
         try:
             blog = Blog.objects.get(id=blog_id)
         except Blog.DoesNotExist:
-            raise Blog.DoesNotExist("Blog not found")
+            raise Blog.DoesNotExist(BLOG_ERRORS["blog_not_found"])
         
         media_to_remove = set()
         media_to_add = set()
@@ -492,7 +493,7 @@ class BlogAdminMediaService:
         try:
             blog = Blog.objects.get(id=blog_id)
         except Blog.DoesNotExist:
-            raise Blog.DoesNotExist("Blog not found")
+            raise Blog.DoesNotExist(BLOG_ERRORS["blog_not_found"])
 
         with transaction.atomic():
             BlogImage.objects.filter(blog_id=blog_id, is_main=True).update(is_main=False)
@@ -520,7 +521,7 @@ class BlogAdminMediaService:
                         blog.og_image = media_image
                         blog.save(update_fields=['og_image'])
                 except ImageMedia.DoesNotExist:
-                    raise ValidationError("Media image not found")
+                    raise ValidationError(BLOG_ERRORS["media_image_not_found"])
 
             BlogCacheManager.invalidate_blog(blog_id)
             return True
