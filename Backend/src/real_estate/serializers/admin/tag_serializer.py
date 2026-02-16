@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from src.real_estate.models.tag import PropertyTag
 from src.real_estate.messages.messages import TAG_ERRORS
 
@@ -36,6 +37,17 @@ class PropertyTagAdminCreateSerializer(serializers.ModelSerializer):
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'
         ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['title'].validators = [
+            validator for validator in self.fields['title'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
+        self.fields['slug'].validators = [
+            validator for validator in self.fields['slug'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
     
     def validate_slug(self, value):
         if value and PropertyTag.objects.filter(slug=value).exists():
@@ -54,6 +66,17 @@ class PropertyTagAdminUpdateSerializer(serializers.ModelSerializer):
             'title', 'slug', 'description', 'is_active', 'is_public',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['title'].validators = [
+            validator for validator in self.fields['title'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
+        self.fields['slug'].validators = [
+            validator for validator in self.fields['slug'].validators
+            if not isinstance(validator, UniqueValidator)
         ]
     
     def validate_slug(self, value):

@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from src.real_estate.models.label import PropertyLabel
 from src.real_estate.messages.messages import LABEL_ERRORS
 
@@ -28,6 +29,13 @@ class PropertyLabelAdminCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyLabel
         fields = ['title', 'slug', 'is_active']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['title'].validators = [
+            validator for validator in self.fields['title'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
     
     def validate_title(self, value):
         if PropertyLabel.objects.filter(title=value).exists():
@@ -44,6 +52,13 @@ class PropertyLabelAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyLabel
         fields = ['title', 'slug', 'is_active']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['title'].validators = [
+            validator for validator in self.fields['title'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
     
     def validate_title(self, value):
         if self.instance and hasattr(self.instance, 'id'):

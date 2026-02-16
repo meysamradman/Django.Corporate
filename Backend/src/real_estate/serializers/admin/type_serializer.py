@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from src.real_estate.models.type import PropertyType
 from src.real_estate.messages import TYPE_ERRORS
 from src.media.serializers import MediaAdminSerializer
@@ -150,6 +151,17 @@ class PropertyTypeAdminCreateSerializer(serializers.ModelSerializer):
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'
         ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['title'].validators = [
+            validator for validator in self.fields['title'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
+        self.fields['slug'].validators = [
+            validator for validator in self.fields['slug'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
     
     def validate_title(self, value):
         if not self.instance and PropertyType.objects.filter(title=value).exists():
@@ -198,6 +210,17 @@ class PropertyTypeAdminUpdateSerializer(serializers.ModelSerializer):
             'display_order', 'parent_id', 'image_id',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['title'].validators = [
+            validator for validator in self.fields['title'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
+        self.fields['slug'].validators = [
+            validator for validator in self.fields['slug'].validators
+            if not isinstance(validator, UniqueValidator)
         ]
     
     def validate_title(self, value):

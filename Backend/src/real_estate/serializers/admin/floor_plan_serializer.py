@@ -82,6 +82,9 @@ class FloorPlanAdminCreateSerializer(serializers.ModelSerializer):
             'display_order', 'is_available',
             'is_active'
         ]
+        extra_kwargs = {
+            'slug': {'error_messages': {'unique': FLOOR_PLAN_ERRORS["slug_exists"]}},
+        }
     
     def validate_slug(self, value):
         
@@ -102,6 +105,9 @@ class FloorPlanAdminUpdateSerializer(serializers.ModelSerializer):
             'display_order', 'is_available',
             'is_active'
         ]
+        extra_kwargs = {
+            'slug': {'error_messages': {'unique': FLOOR_PLAN_ERRORS["slug_exists"]}},
+        }
     
     def validate_slug(self, value):
         

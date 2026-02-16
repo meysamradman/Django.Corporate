@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from django.utils.text import slugify
 from src.real_estate.models.state import PropertyState
 from src.real_estate.messages.messages import STATE_ERRORS
@@ -47,6 +48,17 @@ class PropertyStateAdminCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyState
         fields = ['title', 'slug', 'usage_type', 'is_active', 'image_id']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['title'].validators = [
+            validator for validator in self.fields['title'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
+        self.fields['slug'].validators = [
+            validator for validator in self.fields['slug'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
     
     def validate_title(self, value):
         if PropertyState.objects.filter(title=value).exists():
@@ -74,6 +86,17 @@ class PropertyStateAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyState
         fields = ['title', 'slug', 'usage_type', 'is_active', 'image_id']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['title'].validators = [
+            validator for validator in self.fields['title'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
+        self.fields['slug'].validators = [
+            validator for validator in self.fields['slug'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
     
     def validate_title(self, value):
         if self.instance and hasattr(self.instance, 'id'):

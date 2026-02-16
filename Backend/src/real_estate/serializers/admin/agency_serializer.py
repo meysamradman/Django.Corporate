@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from src.real_estate.models.agency import RealEstateAgency
 from src.real_estate.messages.messages import AGENCY_ERRORS
 from src.media.serializers.media_serializer import MediaAdminSerializer
@@ -64,6 +65,17 @@ class RealEstateAgencyAdminCreateSerializer(serializers.ModelSerializer):
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'
         ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['slug'].validators = [
+            validator for validator in self.fields['slug'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
+        self.fields['license_number'].validators = [
+            validator for validator in self.fields['license_number'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
     
     def validate_slug(self, value):
         
@@ -90,6 +102,17 @@ class RealEstateAgencyAdminUpdateSerializer(serializers.ModelSerializer):
             'description', 'is_active',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['slug'].validators = [
+            validator for validator in self.fields['slug'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
+        self.fields['license_number'].validators = [
+            validator for validator in self.fields['license_number'].validators
+            if not isinstance(validator, UniqueValidator)
         ]
     
     def validate_slug(self, value):

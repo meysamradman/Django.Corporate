@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from src.real_estate.models.feature import PropertyFeature
 from src.real_estate.messages.messages import FEATURE_ERRORS
 from src.media.serializers import MediaAdminSerializer
@@ -46,6 +47,13 @@ class PropertyFeatureAdminCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyFeature
         fields = ['title', 'group', 'image_id', 'is_active']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['title'].validators = [
+            validator for validator in self.fields['title'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
     
     def validate_title(self, value):
         if PropertyFeature.objects.filter(title=value).exists():
@@ -63,6 +71,13 @@ class PropertyFeatureAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyFeature
         fields = ['title', 'group', 'image_id', 'is_active']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['title'].validators = [
+            validator for validator in self.fields['title'].validators
+            if not isinstance(validator, UniqueValidator)
+        ]
     
     def validate_title(self, value):
         if self.instance and hasattr(self.instance, 'id'):
