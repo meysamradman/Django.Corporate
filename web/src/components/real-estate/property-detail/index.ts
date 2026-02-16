@@ -6,3 +6,4 @@ export { default as PropertyVideo } from "@/components/real-estate/property-deta
 export { default as PropertyDescription } from "@/components/real-estate/property-detail/sections/PropertyDescription";
 export { default as PropertyDetails } from "@/components/real-estate/property-detail/sections/PropertyDetails";
 export { default as PropertyAttributes } from "@/components/real-estate/property-detail/sections/PropertyAttributes";
+export { default as PropertyAgentSticky } from "@/components/real-estate/property-detail/sidebar/PropertyAgentSticky";

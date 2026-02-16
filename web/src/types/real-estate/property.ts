@@ -21,6 +21,7 @@ export interface Property extends Base {
 
     property_type?: PropertyType | null;
     state?: PropertyState | null;
+    agent?: PropertyAgent | null;
     labels: PropertyLabel[];
     tags: PropertyTag[];
     features: PropertyFeature[];
@@ -69,6 +70,17 @@ export interface Property extends Base {
     floor_plans?: FloorPlan[];
     videos?: PropertyVideoItem[];
     documents?: PropertyDocumentItem[];
+}
+
+export interface PropertyAgent extends Base {
+    first_name?: string;
+    last_name?: string;
+    full_name?: string;
+    phone?: string;
+    email?: string;
+    license_number?: string;
+    profile_picture_url?: string | null;
+    public_url?: string | null;
 }
 
 export interface PropertyType extends Base {

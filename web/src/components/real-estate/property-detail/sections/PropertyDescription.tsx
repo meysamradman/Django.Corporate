@@ -1,4 +1,5 @@
 import { Download, SquareCheck } from "lucide-react";
+import sanitizeHtml from "sanitize-html";
 
 import type { Property, PropertyDocumentItem } from "@/types/real-estate/property";
 
@@ -18,8 +19,101 @@ function getDocumentTitle(item: PropertyDocumentItem): string {
   return (typeof title === "string" && title.trim()) ? title : "فایل";
 }
 
+function decodeBasicHtmlEntities(input: string): string {
+  return input
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, " ");
+}
+
+function looksLikeHtml(input: string): boolean {
+  return /<\s*\/?\s*[a-zA-Z][\s\S]*?>/.test(input);
+}
+
+function toSafeHtml(raw: string): string {
+  const trimmed = raw.trim();
+  const decoded = /&lt;|&gt;/.test(trimmed) ? decodeBasicHtmlEntities(trimmed) : trimmed;
+  const htmlSource = decoded;
+
+  if (!looksLikeHtml(htmlSource)) return "";
+
+  return sanitizeHtml(htmlSource, {
+    allowedTags: [
+      "p",
+      "br",
+      "strong",
+      "b",
+      "em",
+      "i",
+      "u",
+      "s",
+      "ul",
+      "ol",
+      "li",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "blockquote",
+      "pre",
+      "code",
+      "hr",
+      "img",
+      "a",
+      "span",
+      "div",
+    ],
+    allowedAttributes: {
+      a: ["href", "name", "target", "rel"],
+      img: ["src", "alt", "title", "width", "height", "loading", "decoding", "class"],
+      "*": ["class"],
+    },
+    allowedSchemes: ["http", "https", "mailto", "tel"],
+    allowProtocolRelative: false,
+    transformTags: {
+      a: (tagName, attribs) => {
+        const href = attribs.href || "";
+        const isExternal = /^https?:\/\//i.test(href);
+        return {
+          tagName,
+          attribs: {
+            ...attribs,
+            target: isExternal ? "_blank" : attribs.target,
+            rel: isExternal ? "noopener noreferrer" : attribs.rel,
+          },
+        };
+      },
+      img: (tagName, attribs) => {
+        const currentClass = attribs.class || "";
+        const mergedClass = [
+          "max-w-full",
+          "h-auto",
+          "rounded-md",
+          currentClass,
+        ]
+          .join(" ")
+          .trim();
+
+        return {
+          tagName,
+          attribs: {
+            ...attribs,
+            loading: attribs.loading || "lazy",
+            decoding: attribs.decoding || "async",
+            class: mergedClass,
+          },
+        };
+      },
+    },
+  });
+}
+
 export default function PropertyDescription({ property, className }: PropertyDescriptionProps) {
   const description = typeof property.description === "string" ? property.description.trim() : "";
+  const safeHtml = description ? toSafeHtml(description) : "";
   const documents = Array.isArray(property.documents) ? property.documents.filter(Boolean) : [];
 
   if (!description && !documents.length) return null;
@@ -37,9 +131,16 @@ export default function PropertyDescription({ property, className }: PropertyDes
 
       <div className="px-6 py-6">
         {description ? (
-          <div className="text-sm leading-7 text-font-s whitespace-pre-line">
-            {description}
-          </div>
+          safeHtml ? (
+            <div
+              className="text-sm leading-7 text-font-s [&_p]:mb-4 last:[&_p]:mb-0 [&_a]:text-blue-1 [&_a]:font-black [&_a:hover]:underline [&_ul]:list-disc [&_ul]:pr-5 [&_ol]:list-decimal [&_ol]:pr-5 [&_li]:mb-2"
+              dangerouslySetInnerHTML={{ __html: safeHtml }}
+            />
+          ) : (
+            <div className="text-sm leading-7 text-font-s whitespace-pre-line">
+              {description}
+            </div>
+          )
         ) : null}
 
         {documents.length ? (

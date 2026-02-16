@@ -48,3 +48,19 @@ export interface ContactFormSubmissionCreate {
     [key: string]: unknown;
 }
 
+export interface PublicContactFormField {
+    field_key: string;
+    field_type: ContactFormField['field_type'];
+    label: string;
+    placeholder: string | null;
+    required: boolean;
+    options: Array<{ value: string; label: string }>;
+    validation_rules: Record<string, any>;
+    order: number;
+}
+
+export interface PublicContactFormSubmissionCreate {
+    form_data: Record<string, any>;
+    platform: 'website' | 'mobile_app';
+}
+

@@ -6,6 +6,7 @@ from src.real_estate.models.property import Property
 from src.real_estate.models.state import PropertyState
 from src.real_estate.models.tag import PropertyTag
 from src.real_estate.models.type import PropertyType
+from src.real_estate.models.agent import PropertyAgent
 from src.media.serializers.media_serializer import MediaPublicSerializer, MediaCoverSerializer
 
 
@@ -56,6 +57,50 @@ class PropertyFeatureNestedPublicSerializer(serializers.ModelSerializer):
 
     def get_slug(self, obj):
         return str(getattr(obj, 'public_id', ''))
+
+
+class PropertyAgentNestedPublicSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField(read_only=True)
+    profile_picture_url = serializers.SerializerMethodField()
+    public_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PropertyAgent
+        fields = [
+            'id',
+            'public_id',
+            'first_name',
+            'last_name',
+            'full_name',
+            'phone',
+            'email',
+            'license_number',
+            'profile_picture_url',
+            'public_url',
+        ]
+        read_only_fields = fields
+
+    def get_profile_picture_url(self, obj):
+        if getattr(obj, 'profile_picture', None) and getattr(obj.profile_picture, 'file', None):
+            try:
+                return obj.profile_picture.file.url
+            except Exception:
+                pass
+
+        try:
+            if obj.user and hasattr(obj.user, 'admin_profile'):
+                profile = obj.user.admin_profile
+                if profile.profile_picture and profile.profile_picture.file:
+                    return profile.profile_picture.file.url
+        except Exception:
+            pass
+        return None
+
+    def get_public_url(self, obj):
+        try:
+            return obj.get_public_url()
+        except Exception:
+            return None
 
 
 class PropertyPublicListSerializer(serializers.ModelSerializer):
@@ -148,11 +193,13 @@ class PropertyPublicDetailSerializer(PropertyPublicListSerializer):
     floor_plans = serializers.SerializerMethodField()
     videos = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
+    agent = PropertyAgentNestedPublicSerializer(read_only=True)
 
     class Meta(PropertyPublicListSerializer.Meta):
         fields = PropertyPublicListSerializer.Meta.fields + [
             'description', 'address', 'latitude', 'longitude',
             'postal_code', 'country_name',
+            'agent',
             'kitchens', 'living_rooms',
             'floors_in_building', 'floor_number',
             'parking_spaces', 'storage_rooms',
