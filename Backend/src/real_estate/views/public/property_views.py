@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny
 from src.core.pagination import StandardLimitPagination
 from src.core.responses.response import APIResponse
 from src.real_estate.messages.messages import PROPERTY_ERRORS, PROPERTY_SUCCESS
+from src.real_estate.models.constants.property_status_choices import get_property_status_choices_list
 from src.real_estate.serializers.public.property_serializer import (
     PropertyPublicDetailSerializer,
     PropertyPublicListSerializer,
@@ -48,6 +49,7 @@ class PropertyPublicViewSet(viewsets.ReadOnlyModelViewSet):
             'state_slug': request.query_params.get('state_slug'),
             'tag_slug': request.query_params.get('tag_slug'),
             'label_slug': request.query_params.get('label_slug'),
+            'label_public_id': request.query_params.get('label_public_id'),
             'feature_public_id': request.query_params.get('feature_public_id'),
         }
         filters = {k: v for k, v in filters.items() if v is not None}
@@ -130,6 +132,21 @@ class PropertyPublicViewSet(viewsets.ReadOnlyModelViewSet):
         return APIResponse.success(
             message=PROPERTY_SUCCESS['property_list_success'],
             data=serializer.data,
+            status_code=status.HTTP_200_OK,
+        )
+
+    @action(detail=False, methods=['get'])
+    def statuses(self, request):
+        status_choices = [
+            {
+                'value': code,
+                'label': label,
+            }
+            for code, label in get_property_status_choices_list()
+        ]
+        return APIResponse.success(
+            message=PROPERTY_SUCCESS['property_list_success'],
+            data=status_choices,
             status_code=status.HTTP_200_OK,
         )
 

@@ -120,6 +120,11 @@ export interface PropertyFeature extends Base {
     group?: string | null;
 }
 
+export interface PropertyStatusOption {
+    value: string;
+    label: string;
+}
+
 export interface PropertyMediaItem {
     id: number;
     media: Media;

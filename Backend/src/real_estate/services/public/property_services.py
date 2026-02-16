@@ -98,6 +98,7 @@ class PropertyPublicService:
                 ('state_slug', 'state__slug'),
                 ('tag_slug', 'tags__slug'),
                 ('label_slug', 'labels__slug'),
+                ('label_public_id', 'labels__public_id'),
                 ('feature_public_id', 'features__public_id'),
             ):
                 slug_value = filters.get(slug_field)

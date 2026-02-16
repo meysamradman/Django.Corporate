@@ -1,7 +1,3 @@
-import hashlib
-import json
-
-from django.core.cache import cache
 from django.db.models import Count, Q
 
 from src.real_estate.models.feature import PropertyFeature
@@ -9,12 +5,6 @@ from src.real_estate.models.feature import PropertyFeature
 
 class PropertyFeaturePublicService:
     ALLOWED_ORDERING_FIELDS = {'title', 'group', 'created_at', 'property_count'}
-
-    @staticmethod
-    def _build_cache_key(prefix, payload):
-        serialized = json.dumps(payload, sort_keys=True, default=str)
-        digest = hashlib.md5(serialized.encode('utf-8')).hexdigest()
-        return f"{prefix}:{digest}"
 
     @staticmethod
     def _normalize_ordering(ordering):
@@ -48,16 +38,6 @@ class PropertyFeaturePublicService:
 
     @staticmethod
     def get_feature_queryset(filters=None, search=None, ordering=None):
-        payload = {
-            'filters': filters or {},
-            'search': search or '',
-            'ordering': PropertyFeaturePublicService._normalize_ordering(ordering),
-        }
-        cache_key = PropertyFeaturePublicService._build_cache_key('real_estate_public_feature_list', payload)
-        cached_result = cache.get(cache_key)
-        if cached_result is not None:
-            return cached_result
-
         queryset = PropertyFeaturePublicService._base_queryset()
 
         if filters:
@@ -80,7 +60,6 @@ class PropertyFeaturePublicService:
             )
 
         queryset = queryset.order_by(*PropertyFeaturePublicService._normalize_ordering(ordering))
-        cache.set(cache_key, queryset, 300)
         return queryset
 
     @staticmethod

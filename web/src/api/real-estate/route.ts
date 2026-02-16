@@ -5,7 +5,8 @@ import {
     PropertyState,
     PropertyLabel,
     PropertyTag,
-    PropertyFeature
+    PropertyFeature,
+    PropertyStatusOption,
 } from "@/types/real-estate/property";
 import { RealEstateListParams, RealEstateTaxonomyListParams } from "@/types/real-estate/realEstateListParams";
 import { PaginatedResponse } from "@/types/shared/pagination";
@@ -24,6 +25,11 @@ export const realEstateApi = {
 
     getPropertyDetail: async (slugOrId: string | number): Promise<Property> => {
         const response = await fetchApi.get<Property>(`/real-estate/properties/${slugOrId}/`);
+        return response.data;
+    },
+
+    getPropertyStatuses: async (): Promise<PropertyStatusOption[]> => {
+        const response = await fetchApi.get<PropertyStatusOption[]>('/real-estate/properties/statuses/');
         return response.data;
     },
 

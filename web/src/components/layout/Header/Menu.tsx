@@ -1,14 +1,15 @@
 "use client";
 
 import React from 'react';
+import Link from 'next/link';
 
 export function Menu() {
     return (
             <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold text-wt">
-                <a href="/" className="hover:text-primary transition-colors text-wt">خانه</a>
-                <a href="/real-estate" className="hover:text-primary transition-colors text-wt">املاک</a>
-                <a href="/blogs" className="hover:text-primary transition-colors text-wt">مجله خبری</a>
-                <a href="/contact" className="hover:text-primary transition-colors text-wt">تماس با ما</a>
+                <Link href="/" className="hover:text-primary transition-colors text-wt">خانه</Link>
+                <Link href="/real-estate" className="hover:text-primary transition-colors text-wt">جستجوی ملک</Link>
+                <Link href="/blogs" className="hover:text-primary transition-colors text-wt">مجله خبری</Link>
+                <Link href="/contact" className="hover:text-primary transition-colors text-wt">تماس با ما</Link>
             </nav>
     );
 }

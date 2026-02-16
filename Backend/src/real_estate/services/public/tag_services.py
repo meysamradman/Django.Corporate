@@ -1,7 +1,3 @@
-import hashlib
-import json
-
-from django.core.cache import cache
 from django.db.models import Count, Q
 
 from src.real_estate.models.tag import PropertyTag
@@ -9,12 +5,6 @@ from src.real_estate.models.tag import PropertyTag
 
 class PropertyTagPublicService:
     ALLOWED_ORDERING_FIELDS = {'title', 'created_at', 'property_count'}
-
-    @staticmethod
-    def _build_cache_key(prefix, payload):
-        serialized = json.dumps(payload, sort_keys=True, default=str)
-        digest = hashlib.md5(serialized.encode('utf-8')).hexdigest()
-        return f"{prefix}:{digest}"
 
     @staticmethod
     def _normalize_ordering(ordering):
@@ -49,16 +39,6 @@ class PropertyTagPublicService:
 
     @staticmethod
     def get_tag_queryset(filters=None, search=None, ordering=None):
-        payload = {
-            'filters': filters or {},
-            'search': search or '',
-            'ordering': PropertyTagPublicService._normalize_ordering(ordering),
-        }
-        cache_key = PropertyTagPublicService._build_cache_key('real_estate_public_tag_list', payload)
-        cached_result = cache.get(cache_key)
-        if cached_result is not None:
-            return cached_result
-
         queryset = PropertyTagPublicService._base_queryset()
 
         if filters:
@@ -78,7 +58,6 @@ class PropertyTagPublicService:
             )
 
         queryset = queryset.order_by(*PropertyTagPublicService._normalize_ordering(ordering))
-        cache.set(cache_key, queryset, 300)
         return queryset
 
     @staticmethod
