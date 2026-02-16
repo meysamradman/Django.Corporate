@@ -98,3 +98,29 @@ export const mapSettingsSchema = z.object({
 });
 
 export type MapSettingsFormValues = z.infer<typeof mapSettingsSchema>;
+
+export const footerSectionSchema = z.object({
+    title: z.string().min(1, "عنوان ستون فوتر الزامی است"),
+    order: z.preprocess((val) => Number(val), z.number().int().nonnegative().default(0)),
+    is_active: z.boolean().default(true),
+});
+
+export type FooterSectionFormValues = z.infer<typeof footerSectionSchema>;
+
+export const footerLinkSchema = z.object({
+    section: z.preprocess((val) => Number(val), z.number().int().positive("ستون فوتر الزامی است")),
+    title: z.string().min(1, "عنوان لینک الزامی است"),
+    href: z.string().min(1, "آدرس لینک الزامی است"),
+    order: z.preprocess((val) => Number(val), z.number().int().nonnegative().default(0)),
+    is_active: z.boolean().default(true),
+});
+
+export type FooterLinkFormValues = z.infer<typeof footerLinkSchema>;
+
+export const footerAboutSchema = z.object({
+    title: z.string().min(1, "عنوان درباره فوتر الزامی است"),
+    text: z.string().min(1, "متن درباره فوتر الزامی است"),
+    is_active: z.boolean().default(true),
+});
+
+export type FooterAboutFormValues = z.infer<typeof footerAboutSchema>;

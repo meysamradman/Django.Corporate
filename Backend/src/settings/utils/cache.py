@@ -25,6 +25,14 @@ class SettingsCacheKeys:
     @staticmethod
     def social_media():
         return "settings_social_media"
+
+    @staticmethod
+    def footer_public():
+        return "settings_footer_public"
+
+    @staticmethod
+    def footer_about_public():
+        return "settings_footer_about_public"
     
     @staticmethod
     def all_keys():
@@ -35,6 +43,8 @@ class SettingsCacheKeys:
             SettingsCacheKeys.contact_mobiles(),
             SettingsCacheKeys.contact_emails(),
             SettingsCacheKeys.social_media(),
+            SettingsCacheKeys.footer_public(),
+            SettingsCacheKeys.footer_about_public(),
         ]
 
 class SettingsCacheManager:
@@ -59,6 +69,14 @@ class SettingsCacheManager:
     @staticmethod
     def invalidate_social_media():
         return CacheService.delete(SettingsCacheKeys.social_media())
+
+    @staticmethod
+    def invalidate_footer_public():
+        return CacheService.delete(SettingsCacheKeys.footer_public())
+
+    @staticmethod
+    def invalidate_footer_about_public():
+        return CacheService.delete(SettingsCacheKeys.footer_about_public())
     
     @staticmethod
     def invalidate_all():

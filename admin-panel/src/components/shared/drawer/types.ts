@@ -15,6 +15,9 @@ export const DRAWER_IDS = {
     SETTINGS_EMAIL_FORM: 'SETTINGS_EMAIL_FORM',
     SETTINGS_SOCIAL_FORM: 'SETTINGS_SOCIAL_FORM',
     SETTINGS_SLIDER_FORM: 'SETTINGS_SLIDER_FORM',
+    SETTINGS_FOOTER_SECTION_FORM: 'SETTINGS_FOOTER_SECTION_FORM',
+    SETTINGS_FOOTER_LINK_FORM: 'SETTINGS_FOOTER_LINK_FORM',
+    SETTINGS_FOOTER_ABOUT_FORM: 'SETTINGS_FOOTER_ABOUT_FORM',
     CHATBOT_FAQ_FORM: 'CHATBOT_FAQ_FORM',
     FORM_BUILDER_FIELD_FORM: 'FORM_BUILDER_FIELD_FORM',
     SETTINGS_MAP_FORM: 'SETTINGS_MAP_FORM',
@@ -83,6 +86,18 @@ export interface DrawerProps {
         onSuccess?: () => void;
     };
     SETTINGS_SLIDER_FORM: {
+        editId?: number | null;
+        onSuccess?: () => void;
+    };
+    SETTINGS_FOOTER_SECTION_FORM: {
+        editId?: number | null;
+        onSuccess?: () => void;
+    };
+    SETTINGS_FOOTER_LINK_FORM: {
+        editId?: number | null;
+        onSuccess?: () => void;
+    };
+    SETTINGS_FOOTER_ABOUT_FORM: {
         editId?: number | null;
         onSuccess?: () => void;
     };

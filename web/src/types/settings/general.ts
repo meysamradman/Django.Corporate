@@ -3,3 +3,4 @@ export interface PublicGeneralSettings {
   copyright_text: string;
   copyright_link: string | null;
 }
+

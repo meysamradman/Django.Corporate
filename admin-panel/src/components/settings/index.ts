@@ -6,6 +6,7 @@ export { ContactEmails } from "./ContactEmails";
 export { SocialMediaSection } from "./SocialMediaSection";
 export { Sliders as SlidersSection } from "./Sliders";
 export { FeatureFlagsManagement } from "./FeatureFlagsManagement";
+export { FooterSettingsSection } from "./FooterSettingsSection";
 
 export { ContactPhoneSide } from "./ContactPhoneSide";
 export { ContactMobileSide } from "./ContactMobileSide";
@@ -14,3 +15,6 @@ export { SocialMediaSide } from "./SocialMediaSide";
 export { SliderSide } from "./SliderSide";
 export { GeneralSettingsSide } from "./GeneralSettingsSide";
 export { MapSettingsSide } from "./MapSettingsSide";
+export { FooterSectionSide } from "./FooterSectionSide";
+export { FooterLinkSide } from "./FooterLinkSide";
+export { FooterAboutSide } from "./FooterAboutSide";

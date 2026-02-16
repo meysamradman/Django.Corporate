@@ -48,7 +48,8 @@ import {
   Music,
   Inbox,
   Send,
-  Map as MapIcon
+  Map as MapIcon,
+  Layout
 } from "lucide-react";
 
 import { useMemo, useCallback } from "react"
@@ -380,6 +381,7 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
           { title: "تنظیمات عمومی", url: "/settings/general", icon: Settings },
           { title: "تنظیمات نقشه", url: "/settings/map", icon: MapIcon },
           { title: "مدیریت اسلایدرها", url: "/settings/sliders", icon: GalleryHorizontal },
+          { title: "مدیریت فوتر", url: "/settings/footer", icon: Layout },
           { title: "ارتباطات و تماس", isTitle: true },
           { title: "شماره‌های تماس", url: "/settings/phones", icon: Phone },
           { title: "شماره‌های موبایل", url: "/settings/mobiles", icon: Smartphone },

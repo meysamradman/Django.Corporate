@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { Settings, Phone, Smartphone, Mail, Share2, GalleryHorizontal, Map as MapIcon } from "lucide-react";
+import { Settings, Phone, Smartphone, Mail, Share2, GalleryHorizontal, Map as MapIcon, Layout } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { DRAWER_IDS } from "@/components/shared/drawer/types";
 import { useOpenDrawerFromUrlAction } from "@/components/shared/drawer/useOpenDrawerFromUrlAction";
@@ -22,6 +22,7 @@ const ContactEmailsSection = lazy(() => import("@/components/settings").then(mod
 const SocialMediaSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.SocialMediaSection })));
 const SlidersSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.SlidersSection })));
 const MapSettingsSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.MapSettingsSection })));
+const FooterSettingsSection = lazy(() => import("@/components/settings").then(mod => ({ default: mod.FooterSettingsSection })));
 
 const SETTINGS_DRAWER_ACTIONS = {
     "edit-general": { drawerId: DRAWER_IDS.SETTINGS_GENERAL_FORM },
@@ -36,6 +37,13 @@ const SETTINGS_DRAWER_ACTIONS = {
     "create-slider": { drawerId: DRAWER_IDS.SETTINGS_SLIDER_FORM },
     "edit-slider": { drawerId: DRAWER_IDS.SETTINGS_SLIDER_FORM, withEditId: true },
     "edit-map": { drawerId: DRAWER_IDS.SETTINGS_MAP_FORM },
+
+    "create-footer-section": { drawerId: DRAWER_IDS.SETTINGS_FOOTER_SECTION_FORM },
+    "edit-footer-section": { drawerId: DRAWER_IDS.SETTINGS_FOOTER_SECTION_FORM, withEditId: true },
+    "create-footer-link": { drawerId: DRAWER_IDS.SETTINGS_FOOTER_LINK_FORM },
+    "edit-footer-link": { drawerId: DRAWER_IDS.SETTINGS_FOOTER_LINK_FORM, withEditId: true },
+    "create-footer-about": { drawerId: DRAWER_IDS.SETTINGS_FOOTER_ABOUT_FORM },
+    "edit-footer-about": { drawerId: DRAWER_IDS.SETTINGS_FOOTER_ABOUT_FORM, withEditId: true },
 } as const;
 
 export default function SettingsPage() {
@@ -128,6 +136,18 @@ export default function SettingsPage() {
                     </div>
                     <Suspense fallback={<TabSkeleton />}>
                         <MapSettingsSection />
+                    </Suspense>
+                </div>
+            )}
+
+            {activeTab === "footer" && (
+                <div className="space-y-6">
+                    <div className="flex items-center gap-2 pb-4 border-b">
+                        <Layout className="w-6 h-6 text-primary" />
+                        <h1 className="text-xl font-bold">مدیریت فوتر</h1>
+                    </div>
+                    <Suspense fallback={<TabSkeleton />}>
+                        <FooterSettingsSection />
                     </Suspense>
                 </div>
             )}

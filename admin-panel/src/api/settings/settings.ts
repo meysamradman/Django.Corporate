@@ -19,6 +19,17 @@ import type {
     SliderUpdate,
 } from "@/types/settings/generalSettings";
 import type { MapSettings } from "@/types/real_estate/map";
+import type {
+    FooterSection,
+    FooterSectionCreate,
+    FooterSectionUpdate,
+    FooterLink,
+    FooterLinkCreate,
+    FooterLinkUpdate,
+    FooterAbout,
+    FooterAboutCreate,
+    FooterAboutUpdate,
+} from "@/types/settings/footerSettings";
 
 class SettingsApi {
     private baseUrl = '/settings/';
@@ -206,6 +217,87 @@ class SettingsApi {
 
     async deleteSlider(id: number): Promise<void> {
         await api.delete(`${this.baseUrl}sliders/${id}/`);
+    }
+
+    async getFooterSections(): Promise<FooterSection[]> {
+        const response = await api.get<FooterSection[]>(
+            `${this.baseUrl}footer-sections/`
+        );
+        return response.data;
+    }
+
+    async createFooterSection(data: FooterSectionCreate): Promise<FooterSection> {
+        const response = await api.post<FooterSection>(
+            `${this.baseUrl}footer-sections/`,
+            data as unknown as Record<string, unknown>
+        );
+        return response.data;
+    }
+
+    async updateFooterSection(id: number, data: FooterSectionUpdate): Promise<FooterSection> {
+        const response = await api.patch<FooterSection>(
+            `${this.baseUrl}footer-sections/${id}/`,
+            data as unknown as Record<string, unknown>
+        );
+        return response.data;
+    }
+
+    async deleteFooterSection(id: number): Promise<void> {
+        await api.delete(`${this.baseUrl}footer-sections/${id}/`);
+    }
+
+    async getFooterLinks(): Promise<FooterLink[]> {
+        const response = await api.get<FooterLink[]>(
+            `${this.baseUrl}footer-links/`
+        );
+        return response.data;
+    }
+
+    async createFooterLink(data: FooterLinkCreate): Promise<FooterLink> {
+        const response = await api.post<FooterLink>(
+            `${this.baseUrl}footer-links/`,
+            data as unknown as Record<string, unknown>
+        );
+        return response.data;
+    }
+
+    async updateFooterLink(id: number, data: FooterLinkUpdate): Promise<FooterLink> {
+        const response = await api.patch<FooterLink>(
+            `${this.baseUrl}footer-links/${id}/`,
+            data as unknown as Record<string, unknown>
+        );
+        return response.data;
+    }
+
+    async deleteFooterLink(id: number): Promise<void> {
+        await api.delete(`${this.baseUrl}footer-links/${id}/`);
+    }
+
+    async getFooterAbout(): Promise<FooterAbout[]> {
+        const response = await api.get<FooterAbout[]>(
+            `${this.baseUrl}footer-about/`
+        );
+        return response.data;
+    }
+
+    async createFooterAbout(data: FooterAboutCreate): Promise<FooterAbout> {
+        const response = await api.post<FooterAbout>(
+            `${this.baseUrl}footer-about/`,
+            data as unknown as Record<string, unknown>
+        );
+        return response.data;
+    }
+
+    async updateFooterAbout(id: number, data: FooterAboutUpdate): Promise<FooterAbout> {
+        const response = await api.patch<FooterAbout>(
+            `${this.baseUrl}footer-about/${id}/`,
+            data as unknown as Record<string, unknown>
+        );
+        return response.data;
+    }
+
+    async deleteFooterAbout(id: number): Promise<void> {
+        await api.delete(`${this.baseUrl}footer-about/${id}/`);
     }
 }
 

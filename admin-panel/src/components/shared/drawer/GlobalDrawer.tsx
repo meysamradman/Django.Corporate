@@ -20,6 +20,9 @@ const ContactMobileSide = lazy(() => import('@/components/settings/ContactMobile
 const ContactEmailSide = lazy(() => import('@/components/settings/ContactEmailSide').then(module => ({ default: module.ContactEmailSide })));
 const SocialMediaSide = lazy(() => import('@/components/settings/SocialMediaSide').then(module => ({ default: module.SocialMediaSide })));
 const SliderSide = lazy(() => import('@/components/settings/SliderSide').then(module => ({ default: module.SliderSide })));
+const FooterSectionSide = lazy(() => import('@/components/settings/FooterSectionSide').then(module => ({ default: module.FooterSectionSide })));
+const FooterLinkSide = lazy(() => import('@/components/settings/FooterLinkSide').then(module => ({ default: module.FooterLinkSide })));
+const FooterAboutSide = lazy(() => import('@/components/settings/FooterAboutSide').then(module => ({ default: module.FooterAboutSide })));
 const FAQSide = lazy(() => import('@/components/chatbot/FAQSide').then(module => ({ default: module.FAQSide })));
 const FormFieldSide = lazy(() => import('@/components/form-builder/FormFieldSide').then(module => ({ default: module.FormFieldSide })));
 const MapSettingsSide = lazy(() => import('@/components/settings/MapSettingsSide').then(module => ({ default: module.MapSettingsSide })));
@@ -41,6 +44,9 @@ const DRAWERS = {
     [DRAWER_IDS.SETTINGS_EMAIL_FORM]: ContactEmailSide,
     [DRAWER_IDS.SETTINGS_SOCIAL_FORM]: SocialMediaSide,
     [DRAWER_IDS.SETTINGS_SLIDER_FORM]: SliderSide,
+    [DRAWER_IDS.SETTINGS_FOOTER_SECTION_FORM]: FooterSectionSide,
+    [DRAWER_IDS.SETTINGS_FOOTER_LINK_FORM]: FooterLinkSide,
+    [DRAWER_IDS.SETTINGS_FOOTER_ABOUT_FORM]: FooterAboutSide,
     [DRAWER_IDS.CHATBOT_FAQ_FORM]: FAQSide,
     [DRAWER_IDS.FORM_BUILDER_FIELD_FORM]: FormFieldSide,
     [DRAWER_IDS.SETTINGS_MAP_FORM]: MapSettingsSide,

@@ -5,6 +5,9 @@ from .contact_mobile_views import ContactMobileViewSet
 from .contact_email_views import ContactEmailViewSet
 from .social_media_views import SocialMediaViewSet
 from .slider_views import SliderViewSet
+from .footer_section_views import FooterSectionViewSet
+from .footer_link_views import FooterLinkViewSet
+from .footer_about_views import FooterAboutViewSet
 
 __all__ = [
     'GeneralSettingsViewSet',
@@ -14,4 +17,7 @@ __all__ = [
     'ContactEmailViewSet',
     'SocialMediaViewSet',
     'SliderViewSet',
+    'FooterSectionViewSet',
+    'FooterLinkViewSet',
+    'FooterAboutViewSet',
 ]
