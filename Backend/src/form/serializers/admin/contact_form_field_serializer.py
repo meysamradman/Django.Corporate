@@ -83,7 +83,7 @@ class ContactFormFieldCreateSerializer(ContactFormFieldSerializer):
         value = super().validate_field_key(value)
         
         if ContactFormField.objects.filter(field_key=value).exists():
-            raise serializers.ValidationError("کلید فیلد تکراری است")
+            raise serializers.ValidationError(FORM_FIELD_ERRORS['duplicate_field_key'])
         
         return value
     

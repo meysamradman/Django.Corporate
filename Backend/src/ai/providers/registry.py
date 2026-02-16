@@ -1,6 +1,7 @@
 from typing import Dict, Type, Optional, Any
 import inspect
 from .base import BaseProvider
+from src.ai.messages.messages import AI_ERRORS
 
 class AIProviderRegistry:
     _instance = None
@@ -20,7 +21,9 @@ class AIProviderRegistry:
     @classmethod
     def register(cls, name: str, provider_class: Type[BaseProvider]):
         if not issubclass(provider_class, BaseProvider):
-            raise ValueError(f"{provider_class.__name__} must inherit from BaseProvider")
+            raise ValueError(
+                AI_ERRORS["provider_class_invalid_base"].format(provider_class=provider_class.__name__)
+            )
         
         cls._providers[name] = provider_class
     
@@ -40,7 +43,7 @@ class AIProviderRegistry:
     def create_instance(cls, name: str, api_key: str, config: Optional[Dict[str, Any]] = None) -> BaseProvider:
         provider_class = cls.get(name)
         if not provider_class:
-            raise ValueError(f"Provider '{name}' not found. Registered providers: {', '.join(cls.get_registered_names())}")
+            raise ValueError(AI_ERRORS["provider_not_registered"].format(provider_name=name))
         
         return provider_class(api_key=api_key, config=config or {})
     

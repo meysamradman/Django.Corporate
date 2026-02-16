@@ -4,6 +4,7 @@ from io import BytesIO
 from datetime import datetime
 from django.http import HttpResponse
 from src.core.utils.date_utils import format_jalali_date, format_jalali_datetime, format_jalali_short
+from src.core.messages.messages import CORE_ERRORS
 
 try:
     import xlsxwriter
@@ -15,7 +16,7 @@ class ExcelBaseExportService:
     @staticmethod
     def get_workbook_and_formats(sheet_name='Sheet1'):
         if not XLSXWRITER_AVAILABLE:
-            raise ImportError("XlsxWriter is not installed")
+            raise ImportError(CORE_ERRORS["xlsxwriter_not_installed"])
 
         output = BytesIO()
         workbook = xlsxwriter.Workbook(output, {'in_memory': True, 'default_date_format': 'yyyy-mm-dd hh:mm:ss', 'remove_timezone': True})

@@ -6,5 +6,6 @@ CORE_SUCCESS = {
 CORE_ERRORS = {
     "error_occurred": "خطایی رخ داد.",
     "request_failed": "درخواست ناموفق بود.",
+    "xlsxwriter_not_installed": "پکیج XlsxWriter نصب نیست.",
 }
 

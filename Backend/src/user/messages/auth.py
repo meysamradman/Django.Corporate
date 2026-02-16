@@ -33,6 +33,9 @@ AUTH_SUCCESS = {
 
 AUTH_ERRORS = {
     "auth_identifier_empty": "ایمیل یا شماره موبایل نمی‌تواند خالی باشد",
+    "auth_mobile_or_email_required": "ایمیل یا شماره موبایل الزامی است",
+    "superuser_staff_required": "کاربر سوپرادمین باید is_staff=True داشته باشد",
+    "superuser_superuser_required": "کاربر سوپرادمین باید is_superuser=True داشته باشد",
     "auth_identifier_error": "ایمیل یا شماره موبایل نامعتبر است",
     "auth_not_superuser": "شما باید یک ابرمدیر باشید تا این عمل را انجام دهید",
     "auth_not_authorized": "شما مجاز به انجام این عمل نیستید",

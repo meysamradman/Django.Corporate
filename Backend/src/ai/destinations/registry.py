@@ -1,4 +1,5 @@
 from typing import Dict, Any, Callable, List
+from src.ai.messages.messages import AI_ERRORS
 
 class ContentDestinationRegistry:
     
@@ -16,7 +17,7 @@ class ContentDestinationRegistry:
     def get_handler(cls, key: str) -> Callable:
         
         if key not in cls._destinations:
-            raise ValueError(f"Destination '{key}' is not registered.")
+            raise ValueError(AI_ERRORS['destination_not_supported'].format(destination=key))
         return cls._destinations[key]['handler']
 
     @classmethod

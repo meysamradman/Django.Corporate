@@ -51,4 +51,12 @@ SETTINGS_ERRORS = {
     'duplicate_email': 'ایمیل تکراری است',
     'mobile_format_error': 'شماره موبایل باید با 09 یا +989 شروع شود و 11 رقم باشد',
     'phone_format_error': 'شماره تماس باید شامل اعداد، +، -، () و فاصله باشد',
+    'map_query_required': 'پارامتر جستجو الزامی است',
+    'map_geocode_service_unavailable': 'سرویس ژئوکدینگ در دسترس نیست',
+    'map_geocode_not_found': 'نتیجه‌ای برای ژئوکدینگ یافت نشد',
+    'map_geocode_failed': 'عملیات ژئوکدینگ ناموفق بود',
+    'map_lat_lng_required': 'پارامترهای lat و lng الزامی هستند',
+    'map_lat_lng_invalid': 'مقادیر lat/lng نامعتبر هستند',
+    'map_reverse_geocode_service_unavailable': 'سرویس ژئوکدینگ معکوس در دسترس نیست',
+    'map_reverse_geocode_failed': 'عملیات ژئوکدینگ معکوس ناموفق بود',
 }

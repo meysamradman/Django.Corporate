@@ -390,7 +390,7 @@ class PropertyAdminMediaService:
             try:
                 property_obj = Property.objects.get(id=property_id)
             except Property.DoesNotExist:
-                logger.error(f"❌ [PropertyMedia][Sync] Error: Property {property_id} not found")
+                logger.error(f"❌ [PropertyMedia][Sync] Error: {PROPERTY_ERRORS['property_not_found']} (id={property_id})")
                 raise Property.DoesNotExist(PROPERTY_ERRORS["property_not_found"])
             
             has_segmented = any(x is not None for x in [image_ids, video_ids, audio_ids, document_ids])

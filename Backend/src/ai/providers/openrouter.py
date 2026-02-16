@@ -73,7 +73,7 @@ class OpenRouterProvider(BaseProvider):
     
     def _get_headers(self, extra_headers: Optional[Dict[str, str]] = None) -> Dict[str, str]:
         if not self.api_key:
-            raise ValueError("API key is required for OpenRouter")
+            raise ValueError(AI_ERRORS["api_key_required"])
         
         headers = {
             "Authorization": f"Bearer {self.api_key}",

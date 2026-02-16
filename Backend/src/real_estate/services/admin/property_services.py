@@ -253,7 +253,7 @@ class PropertyAdminService:
             property_obj = Property.objects.get(id=property_id)
             logger.info(f"✅ [PropertyService][Update] Found property: {property_obj.title}")
         except Property.DoesNotExist:
-            logger.error(f"❌ [PropertyService][Update] ERROR: Property not found")
+            logger.error(f"❌ [PropertyService][Update] ERROR: {PROPERTY_ERRORS['property_not_found']}")
             raise ValidationError(PROPERTY_ERRORS["property_not_found"])
 
         labels_val = validated_data.pop('labels', validated_data.pop('labels_ids', None))

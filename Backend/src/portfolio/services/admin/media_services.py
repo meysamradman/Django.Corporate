@@ -121,7 +121,7 @@ class PortfolioAdminMediaService:
             portfolio = Portfolio.objects.get(id=portfolio_id)
             logger.info(f"✅ [PortfolioMedia][AddBulk] Found portfolio: {portfolio.title}")
         except Portfolio.DoesNotExist:
-            logger.error(f"❌ [PortfolioMedia][AddBulk] Error: Portfolio not found")
+            logger.error(f"❌ [PortfolioMedia][AddBulk] Error: {PORTFOLIO_ERRORS['portfolio_not_found']}")
             raise Portfolio.DoesNotExist(PORTFOLIO_ERRORS["portfolio_not_found"])
         media_files = media_files or []
         media_ids = media_ids or []
@@ -369,7 +369,7 @@ class PortfolioAdminMediaService:
             try:
                 portfolio = Portfolio.objects.get(id=portfolio_id)
             except Portfolio.DoesNotExist:
-                logger.error(f"❌ [PortfolioMedia][Sync] Error: Portfolio {portfolio_id} not found")
+                logger.error(f"❌ [PortfolioMedia][Sync] Error: {PORTFOLIO_ERRORS['portfolio_not_found']} (id={portfolio_id})")
                 raise Portfolio.DoesNotExist(PORTFOLIO_ERRORS["portfolio_not_found"])
             
             has_segmented = any(x is not None for x in [image_ids, video_ids, audio_ids, document_ids])

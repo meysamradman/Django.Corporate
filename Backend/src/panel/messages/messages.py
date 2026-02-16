@@ -8,5 +8,8 @@ PANEL_ERRORS = {
     "settings_retrieve_failed": "دریافت تنظیمات پنل ناموفق بود.",
     "settings_update_failed": "به‌روزرسانی تنظیمات پنل ناموفق بود.",
     "validation_error": "خطا در اعتبارسنجی داده‌ها.",
+    "db_export_postgres_only": "خروجی دیتابیس فقط برای PostgreSQL پشتیبانی می‌شود.",
+    "db_export_psycopg_required": "برای خروجی دیتابیس، پکیج psycopg لازم است.",
+    "db_export_failed": "خروجی‌گیری دیتابیس ناموفق بود: {error}",
 }
 

@@ -7,6 +7,7 @@ from datetime import datetime
 from django.db import connections
 from django.conf import settings
 from django.core.management import call_command
+from src.panel.messages.messages import PANEL_ERRORS
 
 def export_database_to_sql():
     try:
@@ -14,7 +15,7 @@ def export_database_to_sql():
         db_config = db_conn.settings_dict
         
         if 'postgresql' not in db_config['ENGINE']:
-            raise Exception("Database export is only supported for PostgreSQL")
+            raise Exception(PANEL_ERRORS["db_export_postgres_only"])
         
         silk_tables_exist = _check_silk_tables_exist(db_conn)
         
@@ -24,7 +25,7 @@ def export_database_to_sql():
             return _export_with_django_to_sql_gzip(db_config, exclude_silk=silk_tables_exist)
         
     except Exception as e:
-        raise Exception(f"Error exporting database: {str(e)}")
+        raise Exception(PANEL_ERRORS["db_export_failed"].format(error=str(e)))
 
 def _check_silk_tables_exist(db_conn):
     try:
@@ -114,7 +115,7 @@ def _export_with_django_to_sql_gzip(db_config, exclude_silk=False):
         import psycopg
         from psycopg.rows import dict_row
     except ImportError:
-        raise Exception("psycopg (psycopg3) is required for database export. Please install it: pip install 'psycopg[binary]'")
+        raise Exception(PANEL_ERRORS["db_export_psycopg_required"])
     
     EXCLUDED_TABLES = {'silk_request', 'silk_response', 'silk_sqlquery', 'silk_profile'} if exclude_silk else set()
     
@@ -212,8 +213,7 @@ def _export_with_django_to_sql_gzip(db_config, exclude_silk=False):
         return buffer
         
     except Exception as e:
-        error_str = str(e)
-        raise Exception(f"Database error: {error_str}")
+        raise Exception(PANEL_ERRORS["db_export_failed"].format(error=str(e)))
 
 def get_database_export_filename():
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')

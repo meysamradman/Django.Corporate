@@ -74,6 +74,8 @@ AI_ERRORS = {
     
     # API Key & Authentication
     "api_key_required": "کلید API الزامی است",
+    "api_key_encryption_error": "خطا در رمزنگاری کلید API: {error}",
+    "api_key_decryption_error": "خطا در رمزگشایی کلید API: {error}",
     "api_key_invalid": "کلید API نامعتبر است",
     "api_key_not_provided": "کلید API ارائه نشده است",
     "shared_api_key_not_set": "کلید API اشتراکی برای {provider_name} تنظیم نشده است",
@@ -99,6 +101,11 @@ AI_ERRORS = {
     "providers_list_error": "خطا در دریافت لیست سرویس‌دهنده‌ها",
     "provider_tts_not_supported": "این سرویس‌دهنده از تولید فایل صوتی پشتیبانی نمی‌کند",
     "destination_not_supported": "مقصد {destination} پشتیبانی نمی‌شود",
+    "provider_class_invalid_base": "کلاس {provider_class} باید از BaseProvider ارث‌بری کند",
+    "provider_not_registered": "سرویس‌دهنده {provider_name} ثبت نشده است",
+    "provider_class_not_configured": "کلاس سرویس‌دهنده برای {provider_slug} تنظیم نشده است",
+    "provider_class_format_invalid": "فرمت provider_class نامعتبر است: {provider_class}",
+    "provider_class_import_failed": "ایمپورت کلاس provider ناموفق بود: {provider_class} ({error})",
     
     # Content Generation Errors
     "content_generation_failed": "خطا در تولید محتوا. لطفاً دوباره تلاش کنید",

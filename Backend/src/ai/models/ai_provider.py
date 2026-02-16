@@ -35,12 +35,12 @@ class EncryptedAPIKeyMixin:
             encrypted = fernet.encrypt(api_key.strip().encode())
             return encrypted.decode()
         except Exception as e:
-            raise ValidationError(f"API key encryption error: {str(e)}")
+            raise ValidationError(AI_ERRORS['api_key_encryption_error'].format(error=str(e)))
     
     @classmethod
     def decrypt_key(cls, encrypted_key: str) -> str:
         if not encrypted_key:
-            raise ValidationError("API key is required.")
+            raise ValidationError(AI_ERRORS['api_key_required'])
         
         try:
             key = cls._get_encryption_key()
@@ -48,7 +48,7 @@ class EncryptedAPIKeyMixin:
             decrypted = fernet.decrypt(encrypted_key.encode())
             return decrypted.decode()
         except Exception as e:
-            raise ValidationError(f"API key decryption error: {str(e)}")
+            raise ValidationError(AI_ERRORS['api_key_decryption_error'].format(error=str(e)))
 
 class CacheMixin:
     CACHE_TIMEOUT = 300
@@ -215,20 +215,22 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
     def get_provider_instance(self, api_key: str, config: dict = None):
         
         if not self.provider_class:
-            raise ValueError(f"Provider class not configured for {self.slug}")
+            raise ValueError(AI_ERRORS['provider_class_not_configured'].format(provider_slug=self.slug))
         
         import importlib
         
         try:
             module_path, class_name = self.provider_class.rsplit('.', 1)
         except ValueError:
-            raise ValueError(f"Invalid provider_class format: {self.provider_class}")
+            raise ValueError(AI_ERRORS['provider_class_format_invalid'].format(provider_class=self.provider_class))
         
         try:
             module = importlib.import_module(module_path)
             provider_class = getattr(module, class_name)
         except (ImportError, AttributeError) as e:
-            raise ImportError(f"Failed to import {self.provider_class}: {e}")
+            raise ImportError(
+                AI_ERRORS['provider_class_import_failed'].format(provider_class=self.provider_class, error=str(e))
+            )
         
         return provider_class(api_key=api_key, config=config or self.config)
     

@@ -30,6 +30,7 @@ ANALYTICS_ERRORS = {
     
     "not_authorized": "شما دسترسی لازم برای مشاهده آمار را ندارید.",
     "invalid_date_range": "بازه زمانی نامعتبر است.",
+    "redis_info_unavailable": "اطلاعات Redis در دسترس نیست.",
     
     'stats_not_found': 'آماری یافت نشد',
     'tracking_failed': 'خطا در ثبت بازدید',

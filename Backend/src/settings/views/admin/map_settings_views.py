@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from src.core.responses.response import APIResponse
 from src.settings.models.map_settings import MapSettings
 from src.settings.serializers.admin.map_settings_serializer import MapSettingsSerializer
+from src.settings.messages.messages import SETTINGS_ERRORS
 from src.user.access_control import PermissionRequiredMixin
 
 class MapSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
@@ -48,7 +49,10 @@ class MapSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         province = (request.query_params.get('province') or '').strip()
 
         if not query:
-            return APIResponse.error(message='query is required', status_code=status.HTTP_400_BAD_REQUEST)
+            return APIResponse.error(
+                message=SETTINGS_ERRORS['map_query_required'],
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
 
         neshan_api_key = (os.getenv('NESHAN_SERVER_API_KEY') or '').strip()
 
@@ -100,11 +104,17 @@ class MapSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 timeout=8,
             )
             if not search_response.ok:
-                return APIResponse.error(message='Geocoding service unavailable', status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
+                return APIResponse.error(
+                    message=SETTINGS_ERRORS['map_geocode_service_unavailable'],
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE
+                )
 
             search_data = search_response.json() or []
             if not isinstance(search_data, list) or not search_data:
-                return APIResponse.error(message='No geocoding result found', status_code=status.HTTP_404_NOT_FOUND)
+                return APIResponse.error(
+                    message=SETTINGS_ERRORS['map_geocode_not_found'],
+                    status_code=status.HTTP_404_NOT_FOUND
+                )
 
             first = search_data[0]
             return APIResponse.success(data={
@@ -114,7 +124,10 @@ class MapSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 'source': 'nominatim',
             })
         except Exception:
-            return APIResponse.error(message='Geocoding failed', status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
+            return APIResponse.error(
+                message=SETTINGS_ERRORS['map_geocode_failed'],
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
 
     @action(detail=False, methods=['get'], url_path='reverse-geocode')
     def reverse_geocode(self, request, *args, **kwargs):
@@ -122,13 +135,19 @@ class MapSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         lng = request.query_params.get('lng')
 
         if lat is None or lng is None:
-            return APIResponse.error(message='lat and lng are required', status_code=status.HTTP_400_BAD_REQUEST)
+            return APIResponse.error(
+                message=SETTINGS_ERRORS['map_lat_lng_required'],
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             lat_value = float(lat)
             lng_value = float(lng)
         except (TypeError, ValueError):
-            return APIResponse.error(message='lat/lng are invalid', status_code=status.HTTP_400_BAD_REQUEST)
+            return APIResponse.error(
+                message=SETTINGS_ERRORS['map_lat_lng_invalid'],
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
 
         neshan_api_key = (os.getenv('NESHAN_SERVER_API_KEY') or '').strip()
 
@@ -175,10 +194,16 @@ class MapSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 timeout=8,
             )
             if not response.ok:
-                return APIResponse.error(message='Reverse geocoding service unavailable', status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
+                return APIResponse.error(
+                    message=SETTINGS_ERRORS['map_reverse_geocode_service_unavailable'],
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE
+                )
 
             data = response.json() or {}
             data['source'] = 'nominatim'
             return APIResponse.success(data=data)
         except Exception:
-            return APIResponse.error(message='Reverse geocoding failed', status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
+            return APIResponse.error(
+                message=SETTINGS_ERRORS['map_reverse_geocode_failed'],
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE
+            )

@@ -5,6 +5,7 @@ from django.db import connection
 from django.db.models import Sum, Count
 from src.core.cache import CacheService
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
+from src.analytics.messages.messages import ANALYTICS_ERRORS
 from src.analytics.utils.cache import AnalyticsCacheKeys, AnalyticsCacheManager
 
 class SystemStatsService:
@@ -81,7 +82,7 @@ class SystemStatsService:
             stats_info = CacheService.get_redis_info('stats')
             
             if not memory_info or not stats_info:
-                raise Exception("Could not get Redis info")
+                raise Exception(ANALYTICS_ERRORS["redis_info_unavailable"])
             
             used_memory = memory_info.get('used_memory', 0)
             used_memory_human = memory_info.get('used_memory_human', '0B')

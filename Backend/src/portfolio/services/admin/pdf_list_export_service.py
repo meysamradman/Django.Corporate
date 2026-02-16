@@ -5,6 +5,7 @@ from datetime import datetime
 from django.http import HttpResponse
 from src.core.utils.date_utils import format_jalali_medium, format_jalali_short
 from src.core.utils.pdf_base_service import PDFBaseExportService, REPORTLAB_AVAILABLE
+from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,7 @@ class PortfolioPDFListExportService:
     @staticmethod
     def export_portfolios_pdf(queryset):
         if not REPORTLAB_AVAILABLE:
-            raise ImportError("ReportLab is not installed.")
+            raise ImportError(PORTFOLIO_ERRORS["portfolio_export_failed"])
             
         buffer = BytesIO()
         font_name = PDFBaseExportService.register_persian_font()
@@ -60,7 +61,7 @@ class PortfolioPDFListExportService:
         clr = PDFBaseExportService.get_colors()
         if not clr:
             logger.error("Could not obtain PDF colors.")
-            raise ValueError("PDF color configuration failed.")
+            raise ValueError(PORTFOLIO_ERRORS["portfolio_export_failed"])
 
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), clr.PRIMARY),

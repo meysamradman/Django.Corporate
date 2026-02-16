@@ -5,7 +5,7 @@ from datetime import datetime
 from django.http import HttpResponse
 from src.core.utils.date_utils import format_jalali_medium, format_jalali_short
 from src.core.utils.pdf_base_service import PDFBaseExportService, REPORTLAB_AVAILABLE
-from src.blog.messages.messages import PDF_LABELS
+from src.blog.messages.messages import PDF_LABELS, BLOG_ERRORS
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class BlogPDFListExportService:
     @staticmethod
     def export_blogs_pdf(queryset):
         if not REPORTLAB_AVAILABLE:
-            raise ImportError("ReportLab is not installed.")
+            raise ImportError(BLOG_ERRORS["blog_export_failed"])
             
         buffer = BytesIO()
         font_name = PDFBaseExportService.register_persian_font()
@@ -63,7 +63,7 @@ class BlogPDFListExportService:
         clr = PDFBaseExportService.get_colors()
         if not clr:
             logger.error("Could not obtain PDF colors.")
-            raise ValueError("PDF color configuration failed.")
+            raise ValueError(BLOG_ERRORS["blog_export_failed"])
 
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), clr.PRIMARY),

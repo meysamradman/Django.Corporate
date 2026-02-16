@@ -3,11 +3,12 @@ from django.db import models
 from django.utils import timezone
 from django.core.validators import RegexValidator
 import uuid
+from src.user.messages.auth import AUTH_ERRORS
 
 class UserManager(BaseUserManager):
     def create_user(self, mobile=None, email=None, password=None, **extra_fields):
         if not mobile and not email:
-            raise ValueError('Either mobile or email must be provided')
+            raise ValueError(AUTH_ERRORS["auth_mobile_or_email_required"])
             
         email = self.normalize_email(email) if email else None
         user = self.model(mobile=mobile, email=email, **extra_fields)
@@ -26,9 +27,9 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_admin_full', True)
 
         if extra_fields.get('is_staff') is not True:
-            raise ValueError('Superuser must have is_staff=True.')
+            raise ValueError(AUTH_ERRORS["superuser_staff_required"])
         if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
+            raise ValueError(AUTH_ERRORS["superuser_superuser_required"])
 
         return self.create_user(mobile, email, password, **extra_fields)
     

@@ -5,7 +5,7 @@ from datetime import datetime
 from django.http import HttpResponse
 from src.core.utils.date_utils import format_jalali_medium, format_jalali_long
 from src.core.utils.pdf_base_service import PDFBaseExportService, REPORTLAB_AVAILABLE
-from src.real_estate.messages.messages import PDF_LABELS
+from src.real_estate.messages.messages import PDF_LABELS, PROPERTY_ERRORS
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class PropertyPDFExportService:
     def export_property_pdf(property_instance):
         
         if not REPORTLAB_AVAILABLE:
-            raise ImportError("ReportLab is not installed.")
+            raise ImportError(PROPERTY_ERRORS["property_export_failed"])
             
         buffer = BytesIO()
         font_name = PDFBaseExportService.register_persian_font()
@@ -30,7 +30,7 @@ class PropertyPDFExportService:
         
         if not clr:
             logger.error("PDF config colors missing.")
-            raise ValueError("Config failed.")
+            raise ValueError(PROPERTY_ERRORS["property_export_failed"])
 
         doc = SimpleDocTemplate(
             buffer, 

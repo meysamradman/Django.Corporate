@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from src.core.models import BaseModel
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
+from src.ticket.messages.messages import TICKET_ERRORS
 from .ticket_message import TicketMessage
 
 class TicketAttachment(BaseModel):
@@ -95,7 +96,7 @@ class TicketAttachment(BaseModel):
             bool(self.document)
         ])
         if media_count != 1:
-            raise ValidationError("Exactly one media type must be selected.")
+            raise ValidationError(TICKET_ERRORS['multiple_media'])
     
     def get_media(self):
         return self.image or self.video or self.audio or self.document

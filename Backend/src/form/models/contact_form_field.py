@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import MinLengthValidator
 
 from src.core.models.base import BaseModel
+from src.form.messages.messages import FORM_FIELD_ERRORS
 
 class ContactFormField(BaseModel):
 
@@ -33,7 +34,7 @@ class ContactFormField(BaseModel):
         db_index=True,
         verbose_name="Field Key",
         help_text="Unique key for the field (e.g., name, email, phone)",
-        validators=[MinLengthValidator(2, message="Field key must be at least 2 characters.")]
+        validators=[MinLengthValidator(2, message=FORM_FIELD_ERRORS['field_key_min_length'])]
     )
     label = models.CharField(
         max_length=200,
@@ -97,20 +98,22 @@ class ContactFormField(BaseModel):
         super().clean()
 
         if not isinstance(self.platforms, list):
-            raise models.ValidationError("Platforms must be a list.")
+            raise models.ValidationError(FORM_FIELD_ERRORS['platforms_must_be_list'])
 
         valid_platforms = ['website', 'mobile_app']
         for platform in self.platforms:
             if platform not in valid_platforms:
-                raise models.ValidationError("Invalid platform.")
+                raise models.ValidationError(FORM_FIELD_ERRORS['invalid_platform'])
 
         if self.field_type in ['select', 'radio']:
             if not self.options or not isinstance(self.options, list):
-                raise models.ValidationError(f"{self.field_type} fields must have at least one option.")
+                raise models.ValidationError(
+                    FORM_FIELD_ERRORS['options_required'].format(field_type=self.field_type)
+                )
 
             for option in self.options:
                 if not isinstance(option, dict) or 'value' not in option or 'label' not in option:
-                    raise models.ValidationError("Each option must have value and label.")
+                    raise models.ValidationError(FORM_FIELD_ERRORS['option_missing_fields'])
 
     def save(self, *args, **kwargs):
         self.full_clean()

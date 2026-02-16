@@ -58,6 +58,7 @@ PROPERTY_ERRORS = {
     "geo_polygon_min_points": "چندضلعی باید حداقل 3 نقطه داشته باشد.",
     "geo_polygon_invalid": "مختصات چندضلعی معتبر نیست.",
     "property_slug_exists": "این نامک قبلاً استفاده شده است.",
+    "property_required_defaults_missing": "ایجاد ملک ناموفق بود: اطلاعات پایه نوع/وضعیت/موقعیت تکمیل نیست.",
     "province_required": "استان الزامی است.",
     "city_required": "شهر الزامی است.",
     "region_city_mismatch": "منطقه انتخاب شده متعلق به این شهر نیست.",

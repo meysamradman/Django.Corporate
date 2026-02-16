@@ -40,7 +40,7 @@ class GroqProvider(BaseProvider):
     
     def _get_headers(self) -> Dict[str, str]:
         if not self.api_key:
-            raise ValueError("API key is required for Groq")
+            raise ValueError(AI_ERRORS["api_key_required"])
         
         return {
             "Authorization": f"Bearer {self.api_key}",

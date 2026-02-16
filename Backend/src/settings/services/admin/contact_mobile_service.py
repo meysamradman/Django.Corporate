@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from src.settings.models import ContactMobile
+from src.settings.messages.messages import SETTINGS_ERRORS
 
 def get_contact_mobiles(filters=None, ordering=None):
     queryset = ContactMobile.objects.all()
@@ -22,7 +23,7 @@ def get_contact_mobile_by_id(mobile_id):
     try:
         return ContactMobile.objects.get(id=mobile_id)
     except ContactMobile.DoesNotExist:
-        raise ContactMobile.DoesNotExist("Contact mobile not found")
+        raise ContactMobile.DoesNotExist(SETTINGS_ERRORS['mobile_not_found'])
 
 def update_contact_mobile(instance, validated_data):
     for field, value in validated_data.items():

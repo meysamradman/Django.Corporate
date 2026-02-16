@@ -19,7 +19,7 @@ class BlogPDFExportService:
     @staticmethod
     def export_blog_pdf(blog):
         if not REPORTLAB_AVAILABLE:
-            raise ImportError("ReportLab not found.")
+            raise ImportError(BLOG_ERRORS["blog_export_failed"])
         
         buffer = BytesIO()
         font_name = PDFBaseExportService.register_persian_font()
@@ -29,7 +29,7 @@ class BlogPDFExportService:
         
         if not clr:
             logger.error("PDF configuration colors missing.")
-            raise ValueError("Configuration failed.")
+            raise ValueError(BLOG_ERRORS["blog_export_failed"])
 
         status_map = {
             'published': PDF_LABELS.get('published', 'منتشر شده'), 

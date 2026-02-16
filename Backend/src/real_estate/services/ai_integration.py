@@ -5,6 +5,7 @@ from django.utils.text import slugify
 from src.real_estate.models import Property, PropertyType, PropertyState
 from src.core.models import Province, City
 from src.real_estate.utils.cache import PropertyCacheManager
+from src.real_estate.messages.messages import PROPERTY_ERRORS
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
 
 def save_ai_content_to_real_estate(
@@ -53,7 +54,7 @@ def save_ai_content_to_real_estate(
                             province = city.province
 
             if not all([property_type, state, province, city]):
-                raise ValueError("Cannot create property: missing mandatory type/state/location data and no defaults found.")
+                raise ValueError(PROPERTY_ERRORS['property_required_defaults_missing'])
 
             property_obj = Property.objects.create(
                 title=content_data['title'],
