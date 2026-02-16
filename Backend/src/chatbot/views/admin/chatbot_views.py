@@ -20,7 +20,7 @@ class AdminFAQViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         'partial_update': 'chatbot.manage',
         'destroy': 'chatbot.manage',
     }
-    permission_denied_message = CHATBOT_ERRORS.get('permission_denied', 'شما اجازه دسترسی به این بخش را ندارید')
+    permission_denied_message = CHATBOT_ERRORS['permission_denied']
 
     def get_queryset(self):
         return FAQ.objects.all().order_by('order', '-created_at')
@@ -37,7 +37,7 @@ class AdminFAQViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
 
         if is_cached:
             return APIResponse.success(
-                message=CHATBOT_SUCCESS.get('faq_list_retrieved', 'FAQs retrieved successfully'),
+                message=CHATBOT_SUCCESS['faq_list_retrieved'],
                 data=data,
                 status_code=status.HTTP_200_OK
             )
@@ -102,7 +102,7 @@ class AdminChatbotSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
         'destroy': 'chatbot.manage',
         'update_settings': 'chatbot.manage',
     }
-    permission_denied_message = CHATBOT_ERRORS.get('permission_denied', 'شما اجازه دسترسی به این بخش را ندارید')
+    permission_denied_message = CHATBOT_ERRORS['permission_denied']
 
     def get_queryset(self):
         return ChatbotSettings.objects.all()

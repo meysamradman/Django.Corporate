@@ -7,7 +7,7 @@ from src.chatbot.utils.cache import ChatbotCacheKeys, ChatbotCacheManager
 class ChatbotAdminService:
     @staticmethod
     def get_faq_list():
-        cache_key = ChatbotCacheKeys.faqs_active()
+        cache_key = ChatbotCacheKeys.admin_faq_list()
         cached_data = cache.get(cache_key)
         if cached_data is not None:
             return cached_data, True
@@ -17,7 +17,7 @@ class ChatbotAdminService:
 
     @staticmethod
     def cache_faq_list(data):
-        cache_key = ChatbotCacheKeys.faqs_active()
+        cache_key = ChatbotCacheKeys.admin_faq_list()
         cache.set(cache_key, data, 300)
 
     @staticmethod
@@ -27,7 +27,7 @@ class ChatbotAdminService:
 
     @staticmethod
     def get_settings():
-        cache_key = ChatbotCacheKeys.settings()
+        cache_key = ChatbotCacheKeys.admin_settings()
         cached_data = cache.get(cache_key)
         
         if cached_data is not None:
@@ -41,7 +41,7 @@ class ChatbotAdminService:
 
     @staticmethod
     def cache_settings(data):
-        cache_key = ChatbotCacheKeys.settings()
+        cache_key = ChatbotCacheKeys.admin_settings()
         cache.set(cache_key, data, 300)
 
     @staticmethod

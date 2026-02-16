@@ -5,7 +5,7 @@ from src.chatbot.views import AdminFAQViewSet, AdminChatbotSettingsViewSet, Publ
 router = DefaultRouter()
 router.register(r'admin/chatbot/faq', AdminFAQViewSet, basename='chatbot-faq')
 router.register(r'admin/chatbot/settings', AdminChatbotSettingsViewSet, basename='chatbot-settings')
-router.register(r'public/chatbot', PublicChatbotViewSet, basename='public-chatbot')
+router.register(r'chatbot', PublicChatbotViewSet, basename='public-chatbot')
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -2,6 +2,7 @@ from django.db import models
 from django.core.cache import cache
 from src.core.models import BaseModel
 from src.chatbot.utils.cache import ChatbotCacheKeys, ChatbotCacheManager
+from src.chatbot.messages.messages import CHATBOT_DEFAULTS
 
 class ChatbotSettings(BaseModel):
 
@@ -14,13 +15,13 @@ class ChatbotSettings(BaseModel):
     
     welcome_message = models.CharField(
         max_length=500,
-        default="Hello! How can I help you?",
+        default=CHATBOT_DEFAULTS['welcome_message'],
         verbose_name="Welcome Message",
         help_text="Message displayed when chatbot starts"
     )
     default_message = models.CharField(
         max_length=500,
-        default="Sorry, I didn't understand. Please ask your question more clearly.",
+        default=CHATBOT_DEFAULTS['default_message'],
         verbose_name="Default Message",
         help_text="Message displayed when chatbot doesn't understand the query"
     )
@@ -50,11 +51,19 @@ class ChatbotSettings(BaseModel):
     
     @classmethod
     def get_settings(cls):
-        cache_key = ChatbotCacheKeys.settings()
-        settings = cache.get(cache_key)
-        if settings is None:
-            settings = cls.objects.first()
-            if not settings:
-                settings = cls.objects.create()
-            cache.set(cache_key, settings, 3600)
+        cache_key = ChatbotCacheKeys.public_settings_id()
+        settings_id = cache.get(cache_key)
+        if settings_id:
+            settings = cls.objects.filter(id=settings_id).first()
+            if settings:
+                return settings
+
+        settings = cls.objects.first()
+        if not settings:
+            settings = cls.objects.create(
+                welcome_message=CHATBOT_DEFAULTS['welcome_message'],
+                default_message=CHATBOT_DEFAULTS['default_message'],
+            )
+
+        cache.set(cache_key, settings.id, 3600)
         return settings
