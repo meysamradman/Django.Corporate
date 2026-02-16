@@ -3,7 +3,7 @@
 import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay, EffectFade, Parallax } from 'swiper/modules';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import type { HomeSliderItem } from '@/types/settings/branding';
 
 // Import Swiper styles
@@ -18,13 +18,15 @@ type SliderProps = {
 
 export default function Slider({ slidesData = [] }: SliderProps) {
   const slides = (Array.isArray(slidesData) ? slidesData : []).filter((item) => item.media_url) as HomeSliderItem[];
+  const prevRef = React.useRef<HTMLButtonElement | null>(null);
+  const nextRef = React.useRef<HTMLButtonElement | null>(null);
 
   if (slides.length === 0) {
-    return <div className="relative w-full h-[80vh] bg-bg" dir="rtl" />;
+    return <div className="relative w-full h-[80vh] bg-bg" />;
   }
 
   return (
-    <div className="relative w-full h-[80vh]" dir="rtl">
+    <div className="relative w-full h-[80vh]">
       <Swiper
         modules={[Navigation, Pagination, Autoplay, EffectFade, Parallax]}
         spaceBetween={0}
@@ -40,9 +42,19 @@ export default function Slider({ slidesData = [] }: SliderProps) {
           disableOnInteraction: false,
           pauseOnMouseEnter: true,
         }}
+        onBeforeInit={(swiper) => {
+          // Swiper React may initialize before selector-based nav is ready.
+          // Using element refs here makes navigation reliable.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const navigation = (swiper.params as any).navigation;
+          if (navigation && typeof navigation !== 'boolean') {
+            navigation.prevEl = prevRef.current;
+            navigation.nextEl = nextRef.current;
+          }
+        }}
         navigation={{
-          nextEl: '.swiper-button-next',
-          prevEl: '.swiper-button-prev',
+          prevEl: prevRef.current,
+          nextEl: nextRef.current,
         }}
         pagination={{
           clickable: true,
@@ -121,12 +133,22 @@ export default function Slider({ slidesData = [] }: SliderProps) {
         ))}
 
         {/* Navigation Buttons */}
-        <div className="swiper-button-prev flex! items-center justify-center translate-x-4 md:translate-x-0 z-10 opacity-70 hover:opacity-100 transition-opacity duration-300">
-          <ChevronRight className="w-12 h-12 text-white stroke-[1px]" />
-        </div>
-        <div className="swiper-button-next flex! items-center justify-center -translate-x-4 md:translate-x-0 z-10 opacity-70 hover:opacity-100 transition-opacity duration-300">
-          <ChevronLeft className="w-12 h-12 text-white stroke-[1px]" />
-        </div>
+        <button
+          type="button"
+          aria-label="اسلاید قبلی"
+          className="swiper-button-prev flex! items-center justify-center z-10 text-white opacity-70 hover:opacity-100 transition-opacity duration-300"
+          ref={prevRef}
+        >
+          <ArrowRight aria-hidden="true" focusable="false" />
+        </button>
+        <button
+          type="button"
+          aria-label="اسلاید بعدی"
+          className="swiper-button-next flex! items-center justify-center z-10 text-white opacity-70 hover:opacity-100 transition-opacity duration-300"
+          ref={nextRef}
+        >
+          <ArrowLeft aria-hidden="true" focusable="false" />
+        </button>
 
         {/* Pagination */}
         <div className="swiper-pagination swiper-pagination-custom"></div>

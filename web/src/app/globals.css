@@ -249,17 +249,35 @@
 /* Swiper RTL Styles */
 .swiper-button-prev,
 .swiper-button-next {
-  width: 3.5rem;
-  height: 3.5rem;
-  color: white;
-  /* Clean white color */
-  background: transparent;
-  /* No background as requested */
+  width: 3.25rem;
+  height: 3.25rem;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  color: var(--color-static-w) !important;
+  background: transparent !important;
+  border: none !important;
   backdrop-filter: none;
   border-radius: 0;
-  transition: all 0.3s ease;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
-  /* For visibility on light backgrounds */
+  cursor: pointer;
+  user-select: none;
+  z-index: 20;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  filter: none;
+}
+
+.swiper-button-prev svg,
+.swiper-button-next svg {
+  width: 3rem;
+  height: 3rem;
+  display: block;
+  fill: none !important;
+  stroke: currentColor !important;
 }
 
 /* Hide default arrows from swiper css */
@@ -268,19 +286,36 @@
   display: none !important;
 }
 
-.swiper-button-prev {
+/* Navigation positioning: swap sides for RTL */
+[dir='ltr'] .swiper-button-prev {
   left: 3rem !important;
+  right: auto !important;
 }
 
-.swiper-button-next {
+[dir='ltr'] .swiper-button-next {
   right: 3rem !important;
+  left: auto !important;
+}
+
+[dir='rtl'] .swiper-button-prev {
+  right: 3rem !important;
+  left: auto !important;
+}
+
+[dir='rtl'] .swiper-button-next {
+  left: 3rem !important;
+  right: auto !important;
 }
 
 .swiper-button-prev:hover,
 .swiper-button-next:hover {
-  background: transparent;
-  transform: scale(1.2);
-  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+  transform: none;
+}
+
+.swiper-button-prev:focus-visible,
+.swiper-button-next:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-static-w) 45%, transparent);
+  outline-offset: 3px;
 }
 
 .swiper-pagination-custom {
