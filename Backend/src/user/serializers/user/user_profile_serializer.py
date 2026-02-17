@@ -93,12 +93,17 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
         write_only=True,
         help_text="Upload an image file directly (alternative to profile_picture ID)."
     )
+    social_media = serializers.ListField(
+        child=serializers.DictField(),
+        required=False,
+        write_only=True
+    )
     
     class Meta:
         model = UserProfile
         fields = [
             'first_name', 'last_name', 'birth_date', 'national_id', 'address', 'phone', 'province', 'city', 'profile_picture',
-            'bio', 'profile_picture_file'
+            'bio', 'profile_picture_file', 'social_media'
         ]
         extra_kwargs = {
             'first_name': {'required': False},

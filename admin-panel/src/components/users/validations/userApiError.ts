@@ -26,6 +26,11 @@ export const USER_EDIT_FIELD_MAP = {
   address: 'address',
   bio: 'bio',
   birth_date: 'birthDate',
+  social_media: 'social',
+  'social_media.name': 'social',
+  'social_media.url': 'social',
+  'social_media.order': 'social',
+  'social_media.icon': 'social',
 } as const;
 
 export function normalizeUserErrorKey(key: string): string {

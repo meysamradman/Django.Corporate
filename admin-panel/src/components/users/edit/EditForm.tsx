@@ -2,7 +2,7 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { notifyApiError, showSuccess } from "@/core/toast";
 import type { UserWithProfile } from "@/types/auth/user";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { User, KeyRound, AlertCircle } from "lucide-react";
+import { User, KeyRound, AlertCircle, Share2 } from "lucide-react";
 import { UserProfileHeader } from "@/components/users/profile/UserProfileHeader.tsx";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { adminApi } from "@/api/admins/admins";
@@ -11,6 +11,8 @@ import { ApiError } from "@/types/api/apiError";
 import { Alert, AlertDescription } from "@/components/elements/Alert";
 import { userEditSchema } from "@/components/users/validations/userEditSchema";
 import { extractMappedUserFieldErrors, USER_EDIT_FIELD_MAP } from "@/components/users/validations/userApiError";
+import type { SocialMediaItem } from "@/types/shared/socialMedia";
+import { SocialMediaArrayEditor } from "@/components/shared/SocialMediaArrayEditor";
 
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
@@ -42,6 +44,7 @@ const USER_EDIT_TAB_BY_FIELD: Record<string, string> = {
     city: "account",
     bio: "account",
     birthDate: "account",
+    social: "social",
 };
 
 function resolveEditUserErrorTab(fieldKeys: Iterable<string>): string | null {
@@ -82,6 +85,9 @@ export function EditUserForm({ userData }: EditUserFormProps) {
     const [selectedCityId, setSelectedCityId] = useState<number | null>(
         userData.profile?.city?.id || null
     );
+    const [socialMediaItems, setSocialMediaItems] = useState<SocialMediaItem[]>(
+        userData.profile?.social_media || []
+    );
 
     useEffect(() => {
         if (userData) {
@@ -101,6 +107,7 @@ export function EditUserForm({ userData }: EditUserFormProps) {
             });
             setSelectedProvinceId(userData.profile?.province?.id || null);
             setSelectedCityId(userData.profile?.city?.id || null);
+            setSocialMediaItems(userData.profile?.social_media || []);
         }
     }, [userData?.id]);
 
@@ -183,6 +190,15 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                     profile_picture: formData.profileImage?.id || null,
                     province: selectedProvinceId,
                     city: selectedCityId,
+                    social_media: socialMediaItems
+                        .filter((item) => (item.name || '').trim() && (item.url || '').trim())
+                        .map((item, index) => ({
+                            id: item.id,
+                            name: item.name,
+                            url: item.url,
+                            icon: item.icon ?? item.icon_data?.id ?? null,
+                            order: item.order ?? index,
+                        })),
                 }
             };
             
@@ -266,6 +282,10 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                         <KeyRound className="w-4 h-4" />
                         گذرواژه
                     </TabsTrigger>
+                    <TabsTrigger value="social">
+                        <Share2 className="w-4 h-4" />
+                        شبکه‌های اجتماعی
+                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="account">
@@ -290,6 +310,16 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                     <Suspense fallback={<TabContentSkeleton />}>
                         <SecurityTab />
                     </Suspense>
+                </TabsContent>
+
+                <TabsContent value="social">
+                    <div className="rounded-lg border p-6">
+                        <SocialMediaArrayEditor
+                            items={socialMediaItems}
+                            onChange={setSocialMediaItems}
+                            canEdit={true}
+                        />
+                    </div>
                 </TabsContent>
             </Tabs>
         </div>

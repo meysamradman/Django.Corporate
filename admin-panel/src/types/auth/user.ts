@@ -2,6 +2,7 @@ import type { Media } from "@/types/shared/media";
 import type { Base } from "@/types/shared/base";
 import type { ProvinceCompact, CityCompact } from "@/types/shared/location";
 import type { PermissionProfile } from "@/types/auth/permission";
+import type { SocialMediaItem } from "@/types/shared/socialMedia";
 
 export interface User extends Base {
     mobile: string;
@@ -25,6 +26,7 @@ export interface UserProfile extends Base {
     city: CityCompact | null;
     bio: string | null;
     profile_picture: Media | null;
+    social_media?: SocialMediaItem[];
 }
 
 export interface UserWithProfile extends Base {

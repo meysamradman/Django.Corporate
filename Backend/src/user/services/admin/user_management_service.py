@@ -131,7 +131,7 @@ class UserManagementService:
                         continue
                     user_fields_to_update[field] = value
 
-            profile_model_fields = ['first_name', 'last_name', 'birth_date', 'national_id', 'address', 'bio', 'province', 'city', 'phone', 'profile_picture']
+            profile_model_fields = ['first_name', 'last_name', 'birth_date', 'national_id', 'address', 'bio', 'province', 'city', 'phone', 'profile_picture', 'social_media']
             for field in profile_model_fields:
                 if field in validated_data:
                     profile_fields_to_update[field] = validated_data.pop(field)
