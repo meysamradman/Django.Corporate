@@ -151,6 +151,8 @@ AGENCY_ERRORS = {
     "agency_create_failed": "ایجاد آژانس ناموفق بود.",
     "agency_update_failed": "به‌روزرسانی آژانس ناموفق بود.",
     "agency_delete_failed": "حذف آژانس ناموفق بود.",
+    "agency_name_required": "نام آژانس الزامی است.",
+    "agency_phone_required": "شماره تماس آژانس الزامی است.",
     "agency_ids_required": "شناسه آژانس‌ها مورد نیاز است.",
     "agencies_not_found": "آژانس‌های انتخاب شده یافت نشدند.",
     "agency_has_properties": "این آژانس دارای {count} ملک است و قابل حذف نیست.",

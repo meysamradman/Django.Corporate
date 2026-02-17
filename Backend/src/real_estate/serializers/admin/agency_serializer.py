@@ -67,9 +67,15 @@ class RealEstateAgencyAdminDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
 
 class RealEstateAgencyAdminCreateSerializer(serializers.ModelSerializer):
+    slug = serializers.SlugField(required=False, allow_blank=True, allow_null=True)
+    email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
+    website = serializers.URLField(required=False, allow_blank=True, allow_null=True)
+    address = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    description = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     social_media = serializers.ListField(
         child=serializers.DictField(),
         required=False,
+        allow_null=True,
         write_only=True
     )
 
@@ -86,6 +92,22 @@ class RealEstateAgencyAdminCreateSerializer(serializers.ModelSerializer):
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'
         ]
+        extra_kwargs = {
+            'name': {
+                'error_messages': {
+                    'blank': AGENCY_ERRORS["agency_name_required"],
+                    'null': AGENCY_ERRORS["agency_name_required"],
+                    'required': AGENCY_ERRORS["agency_name_required"],
+                }
+            },
+            'phone': {
+                'error_messages': {
+                    'blank': AGENCY_ERRORS["agency_phone_required"],
+                    'null': AGENCY_ERRORS["agency_phone_required"],
+                    'required': AGENCY_ERRORS["agency_phone_required"],
+                }
+            },
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -99,12 +121,25 @@ class RealEstateAgencyAdminCreateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_slug(self, value):
-        
         if not value:
-            raise serializers.ValidationError(AGENCY_ERRORS["slug_required"])
+            return value
         if RealEstateAgency.objects.filter(slug=value).exists():
             raise serializers.ValidationError(AGENCY_ERRORS["slug_exists"])
         return value
+
+    def validate(self, attrs):
+        nullable_string_fields = ['email', 'website', 'address', 'description', 'slug']
+        for field in nullable_string_fields:
+            if attrs.get(field) is None:
+                attrs[field] = ''
+
+        if attrs.get('slug', '') == '':
+            attrs.pop('slug', None)
+
+        if attrs.get('social_media') is None:
+            attrs.pop('social_media', None)
+
+        return attrs
     
     def validate_license_number(self, value):
         if RealEstateAgency.objects.filter(license_number=value).exists():
@@ -112,9 +147,15 @@ class RealEstateAgencyAdminCreateSerializer(serializers.ModelSerializer):
         return value
 
 class RealEstateAgencyAdminUpdateSerializer(serializers.ModelSerializer):
+    slug = serializers.SlugField(required=False, allow_blank=True, allow_null=True)
+    email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
+    website = serializers.URLField(required=False, allow_blank=True, allow_null=True)
+    address = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    description = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     social_media = serializers.ListField(
         child=serializers.DictField(),
         required=False,
+        allow_null=True,
         write_only=True
     )
 
@@ -131,6 +172,22 @@ class RealEstateAgencyAdminUpdateSerializer(serializers.ModelSerializer):
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'
         ]
+        extra_kwargs = {
+            'name': {
+                'error_messages': {
+                    'blank': AGENCY_ERRORS["agency_name_required"],
+                    'null': AGENCY_ERRORS["agency_name_required"],
+                    'required': AGENCY_ERRORS["agency_name_required"],
+                }
+            },
+            'phone': {
+                'error_messages': {
+                    'blank': AGENCY_ERRORS["agency_phone_required"],
+                    'null': AGENCY_ERRORS["agency_phone_required"],
+                    'required': AGENCY_ERRORS["agency_phone_required"],
+                }
+            },
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -144,12 +201,25 @@ class RealEstateAgencyAdminUpdateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_slug(self, value):
-        
         if not value:
-            raise serializers.ValidationError(AGENCY_ERRORS["slug_required"])
+            return value
         if RealEstateAgency.objects.exclude(id=self.instance.id).filter(slug=value).exists():
             raise serializers.ValidationError(AGENCY_ERRORS["slug_exists"])
         return value
+
+    def validate(self, attrs):
+        nullable_string_fields = ['email', 'website', 'address', 'description', 'slug']
+        for field in nullable_string_fields:
+            if attrs.get(field) is None:
+                attrs[field] = ''
+
+        if attrs.get('slug', '') == '':
+            attrs.pop('slug', None)
+
+        if attrs.get('social_media') is None:
+            attrs.pop('social_media', None)
+
+        return attrs
     
     def validate_license_number(self, value):
         if RealEstateAgency.objects.exclude(id=self.instance.id).filter(license_number=value).exists():

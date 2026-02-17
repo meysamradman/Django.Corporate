@@ -27,6 +27,7 @@ export default function AgencyProfile({
   editMode,
 }: ProfileTabProps) {
   const { register, formState: { errors }, setValue, watch } = form;
+  const watchedProvince = watch("province");
   const [provinces, setProvinces] = useState<ProvinceCompact[]>([]);
   const [cities, setCities] = useState<CityCompact[]>([]);
   const [loadingProvinces, setLoadingProvinces] = useState(false);
@@ -43,11 +44,6 @@ export default function AgencyProfile({
       try {
         const provincesData = await locationApi.getProvincesCompact();
         setProvinces(provincesData);
-
-        const currentProvince = watch("province");
-        if (currentProvince) {
-          setSelectedProvinceId(Number(currentProvince));
-        }
       } catch {
       } finally {
         setLoadingProvinces(false);
@@ -56,6 +52,12 @@ export default function AgencyProfile({
 
     fetchProvinces();
   }, []);
+
+  useEffect(() => {
+    if (watchedProvince) {
+      setSelectedProvinceId(Number(watchedProvince));
+    }
+  }, [watchedProvince]);
 
   useEffect(() => {
     if (selectedProvinceId) {
@@ -73,9 +75,8 @@ export default function AgencyProfile({
       fetchCities();
     } else {
       setCities([]);
-      setValue("city", null);
     }
-  }, [selectedProvinceId, setValue]);
+  }, [selectedProvinceId]);
 
   const handleProvinceChange = (provinceId: string) => {
     const provinceIdNum = Number(provinceId);
@@ -206,7 +207,7 @@ export default function AgencyProfile({
           </CardWithIcon>
         </div>
 
-        <div className="lg:w-80 flex-shrink-0">
+        <div className="lg:w-80 shrink-0">
           <Card className="sticky top-6">
             <CardContent className="pt-6">
               <div className="flex flex-col items-center space-y-4">

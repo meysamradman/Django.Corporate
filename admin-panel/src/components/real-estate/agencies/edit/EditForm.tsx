@@ -45,6 +45,14 @@ interface EditAgencyFormProps {
 }
 
 export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
+    const toNumberOrZero = (value: unknown): number => {
+        if (typeof value === 'number' && Number.isFinite(value)) return value;
+        if (typeof value === 'string') {
+            const parsed = Number(value);
+            if (Number.isFinite(parsed)) return parsed;
+        }
+        return 0;
+    };
 
     const [activeTab, setActiveTab] = useState("account");
     const queryClient = useQueryClient();
@@ -64,8 +72,8 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
         website: 'account',
         license_number: 'account',
         license_expire_date: 'account',
-        city: 'account',
-        province: 'account',
+        city: 'profile',
+        province: 'profile',
         description: 'profile',
         address: 'profile',
         is_active: 'profile',
@@ -136,8 +144,8 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
             description: agencyData.description || "",
             address: agencyData.address || "",
             is_active: agencyData.is_active ?? true,
-            rating: agencyData.rating || 0,
-            total_reviews: agencyData.total_reviews || 0,
+            rating: toNumberOrZero(agencyData.rating),
+            total_reviews: toNumberOrZero(agencyData.total_reviews),
             meta_title: agencyData.meta_title || "",
             meta_description: agencyData.meta_description || "",
             og_title: agencyData.og_title || "",
@@ -179,6 +187,7 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
             if (tabWithError) {
                 setActiveTab(tabWithError);
             }
+            setFormAlert(msg.error('checkForm'));
             return;
         }
 
@@ -199,8 +208,8 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                 description: data.description || null,
                 address: data.address || null,
                 is_active: data.is_active,
-                rating: data.rating || 0,
-                total_reviews: data.total_reviews || 0,
+                rating: toNumberOrZero(data.rating),
+                total_reviews: toNumberOrZero(data.total_reviews),
                 meta_title: data.meta_title || null,
                 meta_description: data.meta_description || null,
                 og_title: data.og_title || null,
