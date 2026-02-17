@@ -439,7 +439,7 @@ class BlogExportRateLimitService:
 
     @staticmethod
     def check_and_increment(user_id, limit, window_seconds):
-        cache_key = f"blog_export_limit_{user_id}"
+        cache_key = f"admin:blog:export:limit:{user_id}"
         export_count = cache.get(cache_key, 0)
         if export_count >= limit:
             return False

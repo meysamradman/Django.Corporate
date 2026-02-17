@@ -33,7 +33,7 @@ class BlogCacheKeys:
     
     @staticmethod
     def seo_report():
-        return "blog:seo:report"
+        return "admin:blog:seo:report"
     
     @staticmethod
     def all_keys(blog_id):
@@ -61,19 +61,19 @@ class CategoryCacheKeys:
     
     @staticmethod
     def root_categories():
-        return "blog_root_categories"
+        return "admin:blog:category:root"
     
     @staticmethod
     def tree_admin():
-        return "blog_category_tree_admin"
+        return "admin:blog:category:tree"
     
     @staticmethod
     def statistics():
-        return "blog_category_statistics"
+        return "admin:blog:category:stats"
     
     @staticmethod
     def popular(limit):
-        return f"blog_popular_categories_{limit}"
+        return f"admin:blog:category:popular:{limit}"
     
     @staticmethod
     def list_admin(params):
@@ -81,7 +81,7 @@ class CategoryCacheKeys:
         import json
         params_str = json.dumps(params, sort_keys=True)
         params_hash = hashlib.md5(params_str.encode()).hexdigest()[:8]
-        return f"blog_category_list_admin:{params_hash}"
+        return f"admin:blog:category:list:{params_hash}"
     
     @staticmethod
     def all_keys():
@@ -105,7 +105,7 @@ class CategoryCacheManager:
         all_keys.extend(CategoryCacheKeys.all_popular_keys())
         if all_keys:
             cache.delete_many(all_keys)
-        return CacheService.delete_pattern("blog_category_list_admin:*")
+        return CacheService.delete_pattern("admin:blog:category:list:*")
     
     @staticmethod
     def invalidate_popular():
@@ -117,11 +117,11 @@ class TagCacheKeys:
     
     @staticmethod
     def tag(tag_id):
-        return f"blog_tag_{tag_id}"
+        return f"admin:blog:tag:{tag_id}"
     
     @staticmethod
     def popular():
-        return "blog_popular_tags"
+        return "admin:blog:tag:popular"
     
     @staticmethod
     def all_keys(tag_ids=None):

@@ -33,7 +33,7 @@ class PortfolioCacheKeys:
     
     @staticmethod
     def seo_report():
-        return f"{CacheKeyBuilder.portfolio_seo()}:report"
+        return "admin:portfolio:seo:report"
     
     @staticmethod
     def all_keys(portfolio_id):
@@ -61,19 +61,19 @@ class CategoryCacheKeys:
     
     @staticmethod
     def root_categories():
-        return "portfolio_root_categories"
+        return "admin:portfolio:category:root"
     
     @staticmethod
     def tree_admin():
-        return "portfolio_category_tree_admin"
+        return "admin:portfolio:category:tree"
     
     @staticmethod
     def statistics():
-        return "portfolio_category_statistics"
+        return "admin:portfolio:category:stats"
     
     @staticmethod
     def popular(limit):
-        return f"portfolio_popular_categories_{limit}"
+        return f"admin:portfolio:category:popular:{limit}"
     
     @staticmethod
     def list_admin(params):
@@ -81,7 +81,7 @@ class CategoryCacheKeys:
         import json
         params_str = json.dumps(params, sort_keys=True)
         params_hash = hashlib.md5(params_str.encode()).hexdigest()[:8]
-        return f"portfolio_category_list_admin:{params_hash}"
+        return f"admin:portfolio:category:list:{params_hash}"
     
     @staticmethod
     def all_keys():
@@ -105,7 +105,7 @@ class CategoryCacheManager:
         all_keys.extend(CategoryCacheKeys.all_popular_keys())
         if all_keys:
             cache.delete_many(all_keys)
-        return CacheService.delete_pattern("portfolio_category_list_admin:*")
+        return CacheService.delete_pattern("admin:portfolio:category:list:*")
     
     @staticmethod
     def invalidate_popular():
@@ -117,11 +117,11 @@ class TagCacheKeys:
     
     @staticmethod
     def tag(tag_id):
-        return f"portfolio_tag_{tag_id}"
+        return f"admin:portfolio:tag:{tag_id}"
     
     @staticmethod
     def popular():
-        return "portfolio_popular_tags"
+        return "admin:portfolio:tag:popular"
     
     @staticmethod
     def all_keys(tag_ids=None):
@@ -151,11 +151,11 @@ class OptionCacheKeys:
     
     @staticmethod
     def option(option_id):
-        return f"portfolio_option_{option_id}"
+        return f"admin:portfolio:option:{option_id}"
     
     @staticmethod
     def popular():
-        return "portfolio_popular_options"
+        return "admin:portfolio:option:popular"
     
     @staticmethod
     def all_keys(option_ids=None):
