@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from datetime import datetime
 
 from src.portfolio.models.category import PortfolioCategory
-from src.portfolio.utils.cache import CategoryCacheKeys, CategoryCacheManager
+from src.portfolio.utils.cache_admin import CategoryCacheKeys, CategoryCacheManager
 from src.portfolio.messages.messages import CATEGORY_ERRORS
 from src.media.models.media import ImageMedia
 

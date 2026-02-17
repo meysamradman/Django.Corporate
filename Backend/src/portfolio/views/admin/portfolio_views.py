@@ -33,7 +33,7 @@ from src.portfolio.filters.admin.portfolio_filters import PortfolioAdminFilter
 from src.core.pagination import StandardLimitPagination
 from src.user.access_control import portfolio_permission, PermissionRequiredMixin
 from src.portfolio.messages.messages import PORTFOLIO_SUCCESS, PORTFOLIO_ERRORS
-from src.portfolio.utils.cache import PortfolioCacheManager
+from src.portfolio.utils.cache_admin import PortfolioCacheManager
 from src.core.utils.validation_helpers import extract_validation_message, normalize_validation_error
 
 class PortfolioAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):

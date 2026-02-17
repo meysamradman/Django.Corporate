@@ -1,8 +1,15 @@
+from django.core.cache import cache
 from django.db.models import Count, Q
 from src.portfolio.models.category import PortfolioCategory
+from src.portfolio.serializers.public.category_serializer import PortfolioCategoryPublicSerializer
+from src.portfolio.utils.cache_public import PortfolioCategoryPublicCacheKeys
 
 class PortfolioCategoryPublicService:
     ALLOWED_ORDERING_FIELDS = {'name', 'portfolio_count', 'created_at'}
+    LIST_CACHE_TTL = 600
+    DETAIL_CACHE_TTL = 900
+    TREE_CACHE_TTL = 900
+    ROOTS_CACHE_TTL = 900
 
     @staticmethod
     def _normalize_ordering(ordering):
@@ -88,4 +95,130 @@ class PortfolioCategoryPublicService:
         return PortfolioCategoryPublicService._base_queryset().filter(
             depth=1
         ).order_by('name')
+
+    @staticmethod
+    def _build_category_maps(items):
+        category_list = list(items)
+        if not category_list:
+            return {'category_parent_map': {}, 'category_children_map': {}}
+
+        by_path = {getattr(item, 'path', None): item for item in category_list}
+        parent_map = {}
+        children_map = {item.id: [] for item in category_list}
+
+        for item in category_list:
+            path = getattr(item, 'path', '')
+            depth = getattr(item, 'depth', 0)
+            steplen = getattr(item, 'steplen', 4)
+
+            if depth > 1 and path:
+                parent_path = path[:-steplen]
+                parent = by_path.get(parent_path)
+                if parent:
+                    parent_map[item.id] = {
+                        'public_id': parent.public_id,
+                        'name': parent.name,
+                        'slug': parent.slug,
+                    }
+                    children_map[parent.id].append({
+                        'public_id': item.public_id,
+                        'name': item.name,
+                        'slug': item.slug,
+                    })
+
+        return {
+            'category_parent_map': parent_map,
+            'category_children_map': children_map,
+        }
+
+    @staticmethod
+    def _serialize_categories(items):
+        maps = PortfolioCategoryPublicService._build_category_maps(items)
+        serializer = PortfolioCategoryPublicSerializer(
+            items,
+            many=True,
+            context={
+                'category_parent_map': maps['category_parent_map'],
+                'category_children_map': maps['category_children_map'],
+            },
+        )
+        return list(serializer.data)
+
+    @staticmethod
+    def _serialize_category(item):
+        maps = PortfolioCategoryPublicService._build_category_maps([item])
+        serializer = PortfolioCategoryPublicSerializer(
+            item,
+            context={
+                'category_parent_map': maps['category_parent_map'],
+                'category_children_map': maps['category_children_map'],
+            },
+        )
+        return dict(serializer.data)
+
+    @staticmethod
+    def get_category_list_data(filters=None, search=None, ordering=None):
+        cache_key = PortfolioCategoryPublicCacheKeys.list(filters=filters, search=search, ordering=ordering)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = PortfolioCategoryPublicService.get_category_queryset(filters=filters, search=search, ordering=ordering)
+        data = PortfolioCategoryPublicService._serialize_categories(queryset)
+        cache.set(cache_key, data, PortfolioCategoryPublicService.LIST_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_tree_data_serialized():
+        cache_key = PortfolioCategoryPublicCacheKeys.tree()
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = PortfolioCategoryPublicService.get_tree_data()
+        data = PortfolioCategoryPublicService._serialize_categories(queryset)
+        cache.set(cache_key, data, PortfolioCategoryPublicService.TREE_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_root_categories_serialized():
+        cache_key = PortfolioCategoryPublicCacheKeys.roots()
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        categories = PortfolioCategoryPublicService.get_root_categories()
+        data = PortfolioCategoryPublicService._serialize_categories(categories)
+        cache.set(cache_key, data, PortfolioCategoryPublicService.ROOTS_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_category_detail_by_slug_data(slug):
+        cache_key = PortfolioCategoryPublicCacheKeys.detail_slug(slug)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        category = PortfolioCategoryPublicService.get_category_by_slug(slug)
+        if not category:
+            return None
+
+        data = PortfolioCategoryPublicService._serialize_category(category)
+        cache.set(cache_key, data, PortfolioCategoryPublicService.DETAIL_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_category_detail_by_public_id_data(public_id):
+        cache_key = PortfolioCategoryPublicCacheKeys.detail_public_id(public_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        category = PortfolioCategoryPublicService.get_category_by_public_id(public_id)
+        if not category:
+            return None
+
+        data = PortfolioCategoryPublicService._serialize_category(category)
+        cache.set(cache_key, data, PortfolioCategoryPublicService.DETAIL_CACHE_TTL)
+        return data
 

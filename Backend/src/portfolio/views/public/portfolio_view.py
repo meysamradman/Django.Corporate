@@ -5,11 +5,11 @@ from rest_framework.permissions import AllowAny
 from src.core.pagination import StandardLimitPagination
 from src.core.responses.response import APIResponse
 from src.portfolio.messages.messages import PORTFOLIO_ERRORS, PORTFOLIO_SUCCESS
+from src.portfolio.services.public.portfolio_services import PortfolioPublicService
 from src.portfolio.serializers.public.portfolio_serializer import (
     PortfolioPublicListSerializer,
-    PortfolioPublicDetailSerializer
+    PortfolioPublicDetailSerializer,
 )
-from src.portfolio.services.public.portfolio_services import PortfolioPublicService
 
 class PortfolioPublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
@@ -36,29 +36,26 @@ class PortfolioPublicViewSet(viewsets.ReadOnlyModelViewSet):
         
         search = request.query_params.get('search')
         ordering = request.query_params.get('ordering')
-        queryset = PortfolioPublicService.get_portfolio_queryset(filters=filters, search=search, ordering=ordering)
+        data = PortfolioPublicService.get_portfolio_list_data(filters=filters, search=search, ordering=ordering)
         
-        page = self.paginate_queryset(queryset)
+        page = self.paginate_queryset(data)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            return self.get_paginated_response(page)
         
-        serializer = self.get_serializer(queryset, many=True)
         return APIResponse.success(
             message=PORTFOLIO_SUCCESS['portfolio_list_success'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK
         )
 
     def retrieve(self, request, *args, **kwargs):
         slug = kwargs.get('slug')
-        portfolio = PortfolioPublicService.get_portfolio_by_slug(slug)
+        portfolio_data = PortfolioPublicService.get_portfolio_detail_by_slug_data(slug)
         
-        if portfolio:
-            serializer = self.get_serializer(portfolio)
+        if portfolio_data:
             return APIResponse.success(
                 message=PORTFOLIO_SUCCESS['portfolio_retrieved'],
-                data=serializer.data,
+                data=portfolio_data,
                 status_code=status.HTTP_200_OK
             )
         
@@ -69,12 +66,11 @@ class PortfolioPublicViewSet(viewsets.ReadOnlyModelViewSet):
         
     @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
     def get_by_public_id(self, request, public_id=None):
-        portfolio = PortfolioPublicService.get_portfolio_by_public_id(public_id)
-        if portfolio:
-            serializer = self.get_serializer(portfolio)
+        portfolio_data = PortfolioPublicService.get_portfolio_detail_by_public_id_data(public_id)
+        if portfolio_data:
             return APIResponse.success(
                 message=PORTFOLIO_SUCCESS['portfolio_retrieved'],
-                data=serializer.data,
+                data=portfolio_data,
                 status_code=status.HTTP_200_OK
             )
         
@@ -86,29 +82,26 @@ class PortfolioPublicViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=['get'])
     def featured(self, request):
         limit = self._parse_positive_int(request.query_params.get('limit'), default=6, max_value=24)
-        portfolios = PortfolioPublicService.get_featured_portfolios(limit=limit)
-        serializer = PortfolioPublicListSerializer(portfolios, many=True)
+        data = PortfolioPublicService.get_featured_portfolios_data(limit=limit)
         return APIResponse.success(
             message=PORTFOLIO_SUCCESS['featured_portfolios_retrieved'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK
         )
     
     @action(detail=True, methods=['get'])
     def related(self, request, slug=None):
-        portfolio = PortfolioPublicService.get_portfolio_by_slug(slug)
-        if not portfolio:
+        limit = self._parse_positive_int(request.query_params.get('limit'), default=4, max_value=24)
+        data = PortfolioPublicService.get_related_portfolios_by_slug_data(slug=slug, limit=limit)
+        if data is None:
             return APIResponse.error(
                 message=PORTFOLIO_ERRORS['portfolio_not_found'],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        
-        limit = self._parse_positive_int(request.query_params.get('limit'), default=4, max_value=24)
-        related_portfolios = PortfolioPublicService.get_related_portfolios(portfolio, limit=limit)
-        serializer = PortfolioPublicListSerializer(related_portfolios, many=True)
+
         return APIResponse.success(
             message=PORTFOLIO_SUCCESS['related_portfolios_retrieved'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK
         )
     

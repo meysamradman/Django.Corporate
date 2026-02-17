@@ -2,7 +2,7 @@ from django.db import models
 from src.core.models import BaseModel
 from src.portfolio.models.seo import SEOMixin
 from src.portfolio.models.portfolio import Portfolio
-from src.portfolio.utils.cache import OptionCacheManager
+from src.portfolio.utils.cache_admin import OptionCacheManager
 from src.analytics.utils.cache import AnalyticsCacheManager
 from .managers import PortfolioOptionQuerySet
 

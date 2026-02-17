@@ -4,7 +4,7 @@ from src.core.models.base import BaseModel
 from src.portfolio.models.seo import SEOMixin
 from src.portfolio.models.category import PortfolioCategory
 from src.portfolio.models.tag import PortfolioTag
-from src.portfolio.utils.cache import PortfolioCacheManager
+from src.portfolio.utils.cache_admin import PortfolioCacheManager
 from .managers import PortfolioQuerySet
 
 class Portfolio(BaseModel, SEOMixin):

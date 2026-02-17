@@ -1,10 +1,20 @@
 from datetime import date
 
+from django.core.cache import cache
 from django.db.models import Q
 from src.portfolio.models.portfolio import Portfolio
+from src.portfolio.serializers.public.portfolio_serializer import (
+    PortfolioPublicDetailSerializer,
+    PortfolioPublicListSerializer,
+)
+from src.portfolio.utils.cache_public import PortfolioPublicCacheKeys
 
 class PortfolioPublicService:
     ALLOWED_ORDERING_FIELDS = {'created_at', 'title', 'is_featured'}
+    LIST_CACHE_TTL = 90
+    DETAIL_CACHE_TTL = 180
+    FEATURED_CACHE_TTL = 90
+    RELATED_CACHE_TTL = 90
 
     @staticmethod
     def _normalize_ordering(ordering):
@@ -89,3 +99,73 @@ class PortfolioPublicService:
             id=portfolio.id
         ).for_public_listing().prefetch_related('options').distinct().order_by('-created_at')[:limit]
         return portfolios
+
+    @staticmethod
+    def get_portfolio_list_data(filters=None, search=None, ordering=None):
+        cache_key = PortfolioPublicCacheKeys.list(filters=filters, search=search, ordering=ordering)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = PortfolioPublicService.get_portfolio_queryset(filters=filters, search=search, ordering=ordering)
+        data = list(PortfolioPublicListSerializer(queryset, many=True).data)
+        cache.set(cache_key, data, PortfolioPublicService.LIST_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_portfolio_detail_by_slug_data(slug):
+        cache_key = PortfolioPublicCacheKeys.detail_slug(slug)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        portfolio = PortfolioPublicService.get_portfolio_by_slug(slug)
+        if not portfolio:
+            return None
+
+        data = dict(PortfolioPublicDetailSerializer(portfolio).data)
+        cache.set(cache_key, data, PortfolioPublicService.DETAIL_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_portfolio_detail_by_public_id_data(public_id):
+        cache_key = PortfolioPublicCacheKeys.detail_public_id(public_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        portfolio = PortfolioPublicService.get_portfolio_by_public_id(public_id)
+        if not portfolio:
+            return None
+
+        data = dict(PortfolioPublicDetailSerializer(portfolio).data)
+        cache.set(cache_key, data, PortfolioPublicService.DETAIL_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_featured_portfolios_data(limit=6):
+        cache_key = PortfolioPublicCacheKeys.featured(limit)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        portfolios = PortfolioPublicService.get_featured_portfolios(limit=limit)
+        data = list(PortfolioPublicListSerializer(portfolios, many=True).data)
+        cache.set(cache_key, data, PortfolioPublicService.FEATURED_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_related_portfolios_by_slug_data(slug, limit=4):
+        cache_key = PortfolioPublicCacheKeys.related(slug, limit)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        portfolio = PortfolioPublicService.get_portfolio_by_slug(slug)
+        if not portfolio:
+            return None
+
+        related_portfolios = PortfolioPublicService.get_related_portfolios(portfolio, limit=limit)
+        data = list(PortfolioPublicListSerializer(related_portfolios, many=True).data)
+        cache.set(cache_key, data, PortfolioPublicService.RELATED_CACHE_TTL)
+        return data

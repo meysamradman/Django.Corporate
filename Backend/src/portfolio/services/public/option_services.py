@@ -1,8 +1,14 @@
+from django.core.cache import cache
 from django.db.models import Count, Q
 from src.portfolio.models.option import PortfolioOption
+from src.portfolio.serializers.public.option_serializer import PortfolioOptionPublicSerializer
+from src.portfolio.utils.cache_public import PortfolioOptionPublicCacheKeys
 
 class PortfolioOptionPublicService:
     ALLOWED_ORDERING_FIELDS = {'name', 'slug', 'portfolio_count', 'created_at'}
+    LIST_CACHE_TTL = 600
+    DETAIL_CACHE_TTL = 900
+    BY_NAME_CACHE_TTL = 900
 
     @staticmethod
     def _normalize_ordering(ordering):
@@ -79,4 +85,58 @@ class PortfolioOptionPublicService:
         return PortfolioOptionPublicService._base_queryset().filter(
             name=name,
         ).order_by('-portfolio_count', 'name')[:limit]
+
+    @staticmethod
+    def get_option_list_data(filters=None, search=None, ordering=None):
+        cache_key = PortfolioOptionPublicCacheKeys.list(filters=filters, search=search, ordering=ordering)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = PortfolioOptionPublicService.get_option_queryset(filters=filters, search=search, ordering=ordering)
+        data = list(PortfolioOptionPublicSerializer(queryset, many=True).data)
+        cache.set(cache_key, data, PortfolioOptionPublicService.LIST_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_option_detail_by_slug_data(slug):
+        cache_key = PortfolioOptionPublicCacheKeys.detail_slug(slug)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        option = PortfolioOptionPublicService.get_option_by_slug(slug)
+        if not option:
+            return None
+
+        data = dict(PortfolioOptionPublicSerializer(option).data)
+        cache.set(cache_key, data, PortfolioOptionPublicService.DETAIL_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_option_detail_by_public_id_data(public_id):
+        cache_key = PortfolioOptionPublicCacheKeys.detail_public_id(public_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        option = PortfolioOptionPublicService.get_option_by_public_id(public_id)
+        if not option:
+            return None
+
+        data = dict(PortfolioOptionPublicSerializer(option).data)
+        cache.set(cache_key, data, PortfolioOptionPublicService.DETAIL_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_options_by_name_data(name, limit=10):
+        cache_key = PortfolioOptionPublicCacheKeys.by_name(name=name, limit=limit)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        options = PortfolioOptionPublicService.get_options_by_name(name=name, limit=limit)
+        data = list(PortfolioOptionPublicSerializer(options, many=True).data)
+        cache.set(cache_key, data, PortfolioOptionPublicService.BY_NAME_CACHE_TTL)
+        return data
 

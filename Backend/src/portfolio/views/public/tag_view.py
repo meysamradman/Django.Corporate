@@ -26,27 +26,24 @@ class PortfolioTagPublicViewSet(viewsets.ReadOnlyModelViewSet):
         
         search = request.query_params.get('search')
         ordering = request.query_params.get('ordering')
-        queryset = PortfolioTagPublicService.get_tag_queryset(filters=filters, search=search, ordering=ordering)
+        data = PortfolioTagPublicService.get_tag_list_data(filters=filters, search=search, ordering=ordering)
         
-        page = self.paginate_queryset(queryset)
+        page = self.paginate_queryset(data)
         if page is not None:
-            serializer = PortfolioTagPublicSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            return self.get_paginated_response(page)
         
-        serializer = PortfolioTagPublicSerializer(queryset, many=True)
         return APIResponse.success(
             message=TAG_SUCCESS['tags_list_retrieved'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK
         )
 
     def retrieve(self, request, *args, **kwargs):
-        tag = PortfolioTagPublicService.get_tag_by_slug(kwargs.get("slug"))
-        if tag:
-            serializer = self.get_serializer(tag)
+        tag_data = PortfolioTagPublicService.get_tag_detail_by_slug_data(kwargs.get("slug"))
+        if tag_data:
             return APIResponse.success(
                 message=TAG_SUCCESS['tag_retrieved'],
-                data=serializer.data,
+                data=tag_data,
                 status_code=status.HTTP_200_OK
             )
         return APIResponse.error(
@@ -56,12 +53,11 @@ class PortfolioTagPublicViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
     def get_by_public_id(self, request, public_id=None):
-        tag = PortfolioTagPublicService.get_tag_by_public_id(public_id)
-        if tag:
-            serializer = self.get_serializer(tag)
+        tag_data = PortfolioTagPublicService.get_tag_detail_by_public_id_data(public_id)
+        if tag_data:
             return APIResponse.success(
                 message=TAG_SUCCESS['tag_retrieved'],
-                data=serializer.data,
+                data=tag_data,
                 status_code=status.HTTP_200_OK,
             )
 
@@ -73,11 +69,10 @@ class PortfolioTagPublicViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=['get'])
     def popular(self, request):
         limit = self._parse_positive_int(request.query_params.get('limit'), default=10, max_value=50)
-        tags = PortfolioTagPublicService.get_popular_tags(limit=limit)
-        serializer = PortfolioTagPublicSerializer(tags, many=True)
+        data = PortfolioTagPublicService.get_popular_tags_data(limit=limit)
         return APIResponse.success(
             message=TAG_SUCCESS['popular_tags_retrieved'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK
         )
 

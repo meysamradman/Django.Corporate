@@ -1,7 +1,7 @@
 from django.db import models
 from src.core.models import BaseModel
 from src.portfolio.models.seo import SEOMixin
-from src.portfolio.utils.cache import TagCacheManager
+from src.portfolio.utils.cache_admin import TagCacheManager
 from src.analytics.utils.cache import AnalyticsCacheManager
 from .managers import PortfolioTagQuerySet
 

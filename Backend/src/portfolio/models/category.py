@@ -4,7 +4,7 @@ from treebeard.mp_tree import MP_Node
 from src.core.models import BaseModel
 from src.portfolio.models.seo import SEOMixin
 from src.media.models.media import ImageMedia
-from src.portfolio.utils.cache import CategoryCacheManager
+from src.portfolio.utils.cache_admin import CategoryCacheManager
 from src.analytics.utils.cache import AnalyticsCacheManager
 from .managers import PortfolioCategoryQuerySet
 

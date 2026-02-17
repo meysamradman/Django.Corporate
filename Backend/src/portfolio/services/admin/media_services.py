@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
-from src.portfolio.utils.cache import PortfolioCacheManager
+from src.portfolio.utils.cache_admin import PortfolioCacheManager
 from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia, detect_media_type_from_extension
 from src.media.services.media_services import MediaAdminService

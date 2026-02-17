@@ -26,27 +26,24 @@ class PortfolioOptionPublicViewSet(viewsets.ReadOnlyModelViewSet):
         
         search = request.query_params.get('search')
         ordering = request.query_params.get('ordering')
-        queryset = PortfolioOptionPublicService.get_option_queryset(filters=filters, search=search, ordering=ordering)
+        data = PortfolioOptionPublicService.get_option_list_data(filters=filters, search=search, ordering=ordering)
         
-        page = self.paginate_queryset(queryset)
+        page = self.paginate_queryset(data)
         if page is not None:
-            serializer = PortfolioOptionPublicSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            return self.get_paginated_response(page)
         
-        serializer = PortfolioOptionPublicSerializer(queryset, many=True)
         return APIResponse.success(
             message=OPTION_SUCCESS['options_list_retrieved'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK
         )
 
     def retrieve(self, request, *args, **kwargs):
-        option = PortfolioOptionPublicService.get_option_by_slug(kwargs.get("slug"))
-        if option:
-            serializer = self.get_serializer(option)
+        option_data = PortfolioOptionPublicService.get_option_detail_by_slug_data(kwargs.get("slug"))
+        if option_data:
             return APIResponse.success(
                 message=OPTION_SUCCESS['option_retrieved'],
-                data=serializer.data,
+                data=option_data,
                 status_code=status.HTTP_200_OK
             )
         return APIResponse.error(
@@ -56,12 +53,11 @@ class PortfolioOptionPublicViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
     def get_by_public_id(self, request, public_id=None):
-        option = PortfolioOptionPublicService.get_option_by_public_id(public_id)
-        if option:
-            serializer = self.get_serializer(option)
+        option_data = PortfolioOptionPublicService.get_option_detail_by_public_id_data(public_id)
+        if option_data:
             return APIResponse.success(
                 message=OPTION_SUCCESS['option_retrieved'],
-                data=serializer.data,
+                data=option_data,
                 status_code=status.HTTP_200_OK,
             )
 
@@ -80,11 +76,10 @@ class PortfolioOptionPublicViewSet(viewsets.ReadOnlyModelViewSet):
             )
         
         limit = self._parse_positive_int(request.query_params.get('limit'), default=10, max_value=50)
-        options = PortfolioOptionPublicService.get_options_by_name(name=name, limit=limit)
-        serializer = PortfolioOptionPublicSerializer(options, many=True)
+        data = PortfolioOptionPublicService.get_options_by_name_data(name=name, limit=limit)
         return APIResponse.success(
             message=OPTION_SUCCESS['options_by_name_retrieved'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK
         )
 

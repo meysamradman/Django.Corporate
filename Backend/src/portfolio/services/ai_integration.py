@@ -3,7 +3,7 @@ from django.db import transaction
 from django.utils.text import slugify
 
 from src.portfolio.models import Portfolio, PortfolioCategory, PortfolioTag, PortfolioOption
-from src.portfolio.utils.cache import PortfolioCacheManager
+from src.portfolio.utils.cache_admin import PortfolioCacheManager
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
 
 def save_ai_content_to_portfolio(
