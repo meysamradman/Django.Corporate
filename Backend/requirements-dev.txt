@@ -1,0 +1,6 @@
+-r requirements.txt
+
+# Development / testing / load testing only
+pytest==9.0.2
+locust==2.43.3
+locust-cloud==1.30.0
