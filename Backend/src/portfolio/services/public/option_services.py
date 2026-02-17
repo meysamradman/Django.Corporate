@@ -53,16 +53,6 @@ class PortfolioOptionPublicService:
 
     @staticmethod
     def get_option_queryset(filters=None, search=None, ordering=None):
-        payload = {
-            'filters': filters or {},
-            'search': search or '',
-            'ordering': PortfolioOptionPublicService._normalize_ordering(ordering),
-        }
-        cache_key = PortfolioOptionPublicService._build_cache_key('portfolio_public_option_list', payload)
-        cached_result = cache.get(cache_key)
-        if cached_result is not None:
-            return cached_result
-
         queryset = PortfolioOptionPublicService._base_queryset()
         
         if filters:
@@ -80,7 +70,6 @@ class PortfolioOptionPublicService:
             )
         
         queryset = queryset.order_by(*PortfolioOptionPublicService._normalize_ordering(ordering))
-        cache.set(cache_key, queryset, 300)
         return queryset
     
     @staticmethod

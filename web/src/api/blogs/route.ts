@@ -10,7 +10,24 @@ import { toPaginatedResponse, withQuery } from "@/api/shared";
 
 export const blogApi = {
   getBlogList: async (params?: BlogListParams): Promise<PaginatedResponse<Blog>> => {
-    const response = await fetchApi.get<Blog[]>(withQuery("/blog/", params as Record<string, unknown>));
+    const limit = params?.size;
+    const offset = params?.page && params?.size ? (params.page - 1) * params.size : undefined;
+    const ordering = params?.ordering || (params?.order_by
+      ? `${params.order_desc ? "-" : ""}${params.order_by}`
+      : undefined);
+
+    const queryParams = {
+      ...params,
+      limit,
+      offset,
+      ordering,
+      page: undefined,
+      size: undefined,
+      order_by: undefined,
+      order_desc: undefined,
+    } as Record<string, unknown>;
+
+    const response = await fetchApi.get<Blog[]>(withQuery("/blog/", queryParams));
     return toPaginatedResponse<Blog>(response, params?.size || 10);
   },
 

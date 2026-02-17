@@ -6,7 +6,7 @@ from django.db.models import Count, Q
 from src.portfolio.models.category import PortfolioCategory
 
 class PortfolioCategoryPublicService:
-    ALLOWED_ORDERING_FIELDS = {'name', 'sort_order', 'portfolio_count', 'created_at'}
+    ALLOWED_ORDERING_FIELDS = {'name', 'portfolio_count', 'created_at'}
 
     @staticmethod
     def _build_cache_key(prefix, payload):
@@ -17,14 +17,14 @@ class PortfolioCategoryPublicService:
     @staticmethod
     def _normalize_ordering(ordering):
         if not ordering:
-            return ('-portfolio_count', 'sort_order', 'name')
+            return ('-portfolio_count', 'name')
 
         candidate = ordering.split(',')[0].strip()
         descending = candidate.startswith('-')
         field = candidate[1:] if descending else candidate
 
         if field not in PortfolioCategoryPublicService.ALLOWED_ORDERING_FIELDS:
-            return ('-portfolio_count', 'sort_order', 'name')
+            return ('-portfolio_count', 'name')
 
         return (f"-{field}" if descending else field,)
 
@@ -53,16 +53,6 @@ class PortfolioCategoryPublicService:
 
     @staticmethod
     def get_category_queryset(filters=None, search=None, ordering=None):
-        payload = {
-            'filters': filters or {},
-            'search': search or '',
-            'ordering': PortfolioCategoryPublicService._normalize_ordering(ordering),
-        }
-        cache_key = PortfolioCategoryPublicService._build_cache_key('portfolio_public_category_list', payload)
-        cached_result = cache.get(cache_key)
-        if cached_result is not None:
-            return cached_result
-
         queryset = PortfolioCategoryPublicService._base_queryset().select_related('image')
         
         if filters:
@@ -84,7 +74,6 @@ class PortfolioCategoryPublicService:
             )
         
         queryset = queryset.order_by(*PortfolioCategoryPublicService._normalize_ordering(ordering))
-        cache.set(cache_key, queryset, 300)
         return queryset
     
     @staticmethod
@@ -101,18 +90,12 @@ class PortfolioCategoryPublicService:
     
     @staticmethod
     def get_tree_data():
-        cache_key = 'portfolio_public_category_tree'
-        cached_result = cache.get(cache_key)
-        if cached_result is not None:
-            return cached_result
-
         queryset = PortfolioCategoryPublicService._base_queryset().select_related('image').order_by('path')
-        cache.set(cache_key, queryset, 300)
         return queryset
     
     @staticmethod
     def get_root_categories():
         return PortfolioCategoryPublicService._base_queryset().filter(
             depth=1
-        ).order_by('sort_order', 'name')
+        ).order_by('name')
 

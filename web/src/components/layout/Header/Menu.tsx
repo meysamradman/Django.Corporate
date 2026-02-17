@@ -10,7 +10,7 @@ export function Menu() {
                 <Link href="/real-estate" className="hover:text-primary transition-colors text-wt">جستجوی ملک</Link>
                 <Link href="/agents" className="hover:text-primary transition-colors text-wt">مشاورین</Link>
                 <Link href="/agencies" className="hover:text-primary transition-colors text-wt">آژانس‌ها</Link>
-                <Link href="/blogs" className="hover:text-primary transition-colors text-wt">مجله خبری</Link>
+                <Link href="/blogs" className="hover:text-primary transition-colors text-wt">وبلاگ</Link>
                 <Link href="/contact" className="hover:text-primary transition-colors text-wt">تماس با ما</Link>
             </nav>
     );

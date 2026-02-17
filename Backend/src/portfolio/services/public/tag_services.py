@@ -53,16 +53,6 @@ class PortfolioTagPublicService:
 
     @staticmethod
     def get_tag_queryset(filters=None, search=None, ordering=None):
-        payload = {
-            'filters': filters or {},
-            'search': search or '',
-            'ordering': PortfolioTagPublicService._normalize_ordering(ordering),
-        }
-        cache_key = PortfolioTagPublicService._build_cache_key('portfolio_public_tag_list', payload)
-        cached_result = cache.get(cache_key)
-        if cached_result is not None:
-            return cached_result
-
         queryset = PortfolioTagPublicService._base_queryset()
         
         if filters:
@@ -79,7 +69,6 @@ class PortfolioTagPublicService:
             )
         
         queryset = queryset.order_by(*PortfolioTagPublicService._normalize_ordering(ordering))
-        cache.set(cache_key, queryset, 300)
         return queryset
     
     @staticmethod
@@ -96,12 +85,6 @@ class PortfolioTagPublicService:
     
     @staticmethod
     def get_popular_tags(limit=10):
-        cache_key = f"portfolio_public_tag_popular:{limit}"
-        cached_result = cache.get(cache_key)
-        if cached_result is not None:
-            return cached_result
-
         queryset = PortfolioTagPublicService._base_queryset().order_by('-portfolio_count', 'name')[:limit]
-        cache.set(cache_key, queryset, 300)
         return queryset
 

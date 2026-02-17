@@ -53,16 +53,6 @@ class BlogTagPublicService:
 
     @staticmethod
     def get_tag_queryset(filters=None, search=None, ordering=None):
-        payload = {
-            'filters': filters or {},
-            'search': search or '',
-            'ordering': BlogTagPublicService._normalize_ordering(ordering),
-        }
-        cache_key = BlogTagPublicService._build_cache_key('blog_public_tag_list', payload)
-        cached_result = cache.get(cache_key)
-        if cached_result is not None:
-            return cached_result
-
         queryset = BlogTagPublicService._base_queryset()
         
         if filters:
@@ -79,7 +69,6 @@ class BlogTagPublicService:
             )
         
         queryset = queryset.order_by(*BlogTagPublicService._normalize_ordering(ordering))
-        cache.set(cache_key, queryset, 300)
         return queryset
     
     @staticmethod
@@ -96,12 +85,6 @@ class BlogTagPublicService:
     
     @staticmethod
     def get_popular_tags(limit=10):
-        cache_key = f"blog_public_tag_popular:{limit}"
-        cached_result = cache.get(cache_key)
-        if cached_result is not None:
-            return cached_result
-
         queryset = BlogTagPublicService._base_queryset().order_by('-blog_count', 'name')[:limit]
-        cache.set(cache_key, queryset, 300)
         return queryset
 

@@ -2,6 +2,7 @@ export interface BlogListParams {
   search?: string;
   page?: number;
   size?: number;
+  ordering?: string;
   order_by?: string;
   order_desc?: boolean;
   status?: string;

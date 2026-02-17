@@ -41,16 +41,6 @@ class BlogPublicService:
 
     @staticmethod
     def get_blog_queryset(filters=None, search=None, ordering=None):
-        payload = {
-            'filters': filters or {},
-            'search': search or '',
-            'ordering': BlogPublicService._normalize_ordering(ordering),
-        }
-        cache_key = BlogPublicService._build_cache_key('blog_public_list', payload)
-        cached_result = cache.get(cache_key)
-        if cached_result is not None:
-            return cached_result
-        
         queryset = Blog.objects.active().published().for_public_listing()
         
         if filters:
@@ -77,66 +67,35 @@ class BlogPublicService:
             ).distinct()
         
         queryset = queryset.order_by(BlogPublicService._normalize_ordering(ordering))
-        cache.set(cache_key, queryset, 300)
         return queryset
     
     @staticmethod
     def get_blog_by_slug(slug):
-        cache_key = BlogCacheKeys.blog(f"public_slug_{slug}")
-        cached_blog = cache.get(cache_key)
-        if cached_blog is not None:
-            return cached_blog
-        
         blog = Blog.objects.active().published().filter(
             slug=slug,
         ).for_detail().first()
-        
-        if blog:
-            cache.set(cache_key, blog, 600)
         return blog
     
     @staticmethod
     def get_blog_by_public_id(public_id):
-        cache_key = BlogCacheKeys.blog(f"public_id_{public_id}")
-        cached_blog = cache.get(cache_key)
-        if cached_blog is not None:
-            return cached_blog
-        
         blog = Blog.objects.active().published().filter(
             public_id=public_id,
         ).for_detail().first()
-        
-        if blog:
-            cache.set(cache_key, blog, 600)
         return blog
     
     @staticmethod
     def get_featured_blogs(limit=6):
-        cache_key = f"blog_public_featured_{limit}"
-        cached_result = cache.get(cache_key)
-        if cached_result is not None:
-            return cached_result
-        
         blogs = Blog.objects.active().published().filter(
             is_featured=True
         ).for_public_listing().order_by('-created_at')[:limit]
-        
-        cache.set(cache_key, blogs, 300)
         return blogs
     
     @staticmethod
     def get_related_blogs(blog, limit=4):
-        cache_key = f"blog_public_related_{blog.id}_{limit}"
-        cached_result = cache.get(cache_key)
-        if cached_result is not None:
-            return cached_result
-        
         category_ids = blog.categories.values_list('id', flat=True)
         blogs = Blog.objects.active().published().filter(
             categories__id__in=category_ids
         ).exclude(
             id=blog.id
         ).for_public_listing().distinct().order_by('-created_at')[:limit]
-        
-        cache.set(cache_key, blogs, 300)
         return blogs
