@@ -2,6 +2,7 @@ from django.core.cache import cache
 from typing import Optional
 
 from src.core.cache import CacheKeyBuilder, CacheService
+from src.user.utils.cache_shared import hash_payload
 
 
 class UserCacheKeys:
@@ -57,6 +58,37 @@ class UserCacheKeys:
     @staticmethod
     def permission_display_name(perm: str):
         return CacheKeyBuilder.permission_display(perm)
+
+    @staticmethod
+    def location_active_provinces():
+        return 'admin:user:location:province:active'
+
+    @staticmethod
+    def location_provinces_list(offset: str, limit: str):
+        return f"admin:user:location:province:list:{hash_payload({'offset': offset, 'limit': limit})}"
+
+    @staticmethod
+    def location_province_cities(province_id: int):
+        return f'admin:user:location:province:{province_id}:cities'
+
+    @staticmethod
+    def location_provinces_dropdown():
+        return 'admin:user:location:province:dropdown:all'
+
+    @staticmethod
+    def location_cities_by_province_list(province_id: str, offset: str, limit: str):
+        return (
+            f"admin:user:location:city:province:{province_id}:list:"
+            f"{hash_payload({'offset': offset, 'limit': limit})}"
+        )
+
+    @staticmethod
+    def location_all_cities_list(offset: str, limit: str):
+        return f"admin:user:location:city:list:{hash_payload({'offset': offset, 'limit': limit})}"
+
+    @staticmethod
+    def location_cities_dropdown(province_id: str):
+        return f'admin:user:location:city:dropdown:province:{province_id}'
 
     @staticmethod
     def all_user_keys(user_id: int):

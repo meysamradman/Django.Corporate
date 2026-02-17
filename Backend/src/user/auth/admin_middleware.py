@@ -6,14 +6,31 @@ from django.utils import timezone
 from django.core.cache import cache
 from src.core.cache import CacheService
 from src.user.messages import AUTH_ERRORS
+from src.user.utils.cache_ttl import USER_ADMIN_SESSION_CHECK_TTL
 
 class AdminSessionExpiryMiddleware(MiddlewareMixin):
  
-    SESSION_CHECK_CACHE_TTL = 5
+    SESSION_CHECK_CACHE_TTL = USER_ADMIN_SESSION_CHECK_TTL
 
     PUBLIC_ENDPOINTS = frozenset([
         '/api/admin/logout/',
     ])
+
+    @staticmethod
+    def _normalized_allowed_origins():
+        raw_origins = getattr(settings, 'CORS_ALLOWED_ORIGINS', [])
+        if isinstance(raw_origins, str):
+            raw_origins = raw_origins.split(',')
+        return {origin.strip() for origin in raw_origins if origin and origin.strip()}
+
+    def _resolve_response_origin(self, request):
+        origin = (request.META.get('HTTP_ORIGIN') or '').strip()
+        if not origin:
+            return None
+        allowed_origins = self._normalized_allowed_origins()
+        if settings.DEBUG or origin in allowed_origins:
+            return origin
+        return None
     
     def _is_public_endpoint(self, request):
         if request.path in self.PUBLIC_ENDPOINTS:
@@ -116,7 +133,7 @@ class AdminSessionExpiryMiddleware(MiddlewareMixin):
         response = JsonResponse(
             {
                 'metaData': {
-                    'message': AUTH_ERRORS.get('auth_token_expired', 'نشست شما منقضی شده است. لطفاً دوباره وارد شوید.'),
+                    'message': AUTH_ERRORS['auth_token_expired'],
                     'AppStatusCode': 401,
                     'success': False
                 },
@@ -124,12 +141,13 @@ class AdminSessionExpiryMiddleware(MiddlewareMixin):
             },
             status=401
         )
-        
-        origin = request.META.get('HTTP_ORIGIN', 'http://localhost:3000')
-        response['Access-Control-Allow-Origin'] = origin
-        response['Access-Control-Allow-Credentials'] = 'true'
-        response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
-        response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-CSRFToken'
+
+        response_origin = self._resolve_response_origin(request)
+        if response_origin:
+            response['Access-Control-Allow-Origin'] = response_origin
+            response['Access-Control-Allow-Credentials'] = 'true'
+            response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+            response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-CSRFToken'
         
         return response
     

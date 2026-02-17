@@ -5,6 +5,16 @@ from django.core.cache import cache
 
 from src.user.messages import AUTH_SUCCESS, AUTH_ERRORS
 from src.core.models import Province, City
+from src.user.utils.cache import UserCacheKeys
+from src.user.utils.cache_ttl import (
+    USER_LOCATION_PROVINCES_TTL,
+    USER_LOCATION_PROVINCES_LIST_TTL,
+    USER_LOCATION_PROVINCE_CITIES_TTL,
+    USER_LOCATION_DROPDOWN_TTL,
+    USER_LOCATION_CITIES_BY_PROVINCE_LIST_TTL,
+    USER_LOCATION_ALL_CITIES_LIST_TTL,
+    USER_LOCATION_CITIES_DROPDOWN_TTL,
+)
 from src.user.serializers.location_serializer import (
     ProvinceSerializer, ProvinceDetailSerializer,
     CitySerializer, CityDetailSerializer
@@ -23,14 +33,14 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
         return ProvinceSerializer
     
     def get_queryset(self):
-        cache_key = 'active_provinces'
+        cache_key = UserCacheKeys.location_active_provinces()
         provinces = cache.get(cache_key)
         
         if not provinces:
             provinces = list(Province.objects.filter(is_active=True).order_by('name').values(
                 'id', 'public_id', 'name', 'code'
             ))
-            cache.set(cache_key, provinces, 3600)
+            cache.set(cache_key, provinces, USER_LOCATION_PROVINCES_TTL)
         
         return Province.objects.filter(is_active=True).order_by('name')
     
@@ -38,7 +48,7 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
         page = request.query_params.get('offset', 0)
         limit = request.query_params.get('limit', 10)
         
-        cache_key = f'provinces_list_{page}_{limit}'
+        cache_key = UserCacheKeys.location_provinces_list(str(page), str(limit))
         cached_response = cache.get(cache_key)
         
         if cached_response:
@@ -57,7 +67,7 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
                 'results': serializer.data
             }
             
-            cache.set(cache_key, paginated_data, 1800)
+            cache.set(cache_key, paginated_data, USER_LOCATION_PROVINCES_LIST_TTL)
             
             return self.paginator.get_paginated_response(serializer.data)
         
@@ -85,7 +95,7 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
     def cities(self, request, pk=None):
         province = self.get_object()
         
-        cache_key = f'province_{province.id}_cities'
+        cache_key = UserCacheKeys.location_province_cities(province.id)
         cached_cities = cache.get(cache_key)
         
         if cached_cities:
@@ -97,7 +107,7 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
         cities = province.cities.filter(is_active=True).order_by('name')
         serializer = CitySerializer(cities, many=True)
         
-        cache.set(cache_key, serializer.data, 3600)
+        cache.set(cache_key, serializer.data, USER_LOCATION_PROVINCE_CITIES_TTL)
         
         return APIResponse.success(
             message=AUTH_SUCCESS["location_province_cities_retrieved"],
@@ -106,7 +116,7 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['get'])
     def all_for_dropdown(self, request):
-        cache_key = 'provinces_dropdown_all'
+        cache_key = UserCacheKeys.location_provinces_dropdown()
         cached_response = cache.get(cache_key)
         
         if cached_response:
@@ -120,7 +130,7 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
         )
         
         provinces_list = list(provinces)
-        cache.set(cache_key, provinces_list, 7200)
+        cache.set(cache_key, provinces_list, USER_LOCATION_DROPDOWN_TTL)
         
         return APIResponse.success(
             message=AUTH_SUCCESS["location_provinces_retrieved"],
@@ -166,7 +176,7 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
         limit = request.query_params.get('limit', 10)
         
         if province_id:
-            cache_key = f'cities_province_{province_id}_{page}_{limit}'
+            cache_key = UserCacheKeys.location_cities_by_province_list(str(province_id), str(page), str(limit))
             cached_response = cache.get(cache_key)
             
             if cached_response:
@@ -188,7 +198,7 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
                         'results': serializer.data
                     }
                     
-                    cache.set(cache_key, paginated_data, 1800)
+                    cache.set(cache_key, paginated_data, USER_LOCATION_CITIES_BY_PROVINCE_LIST_TTL)
                     
                     return self.paginator.get_paginated_response(serializer.data)
                 
@@ -204,7 +214,7 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
                     status_code=status.HTTP_404_NOT_FOUND
                 )
         
-        cache_key = f'all_cities_list_{page}_{limit}'
+        cache_key = UserCacheKeys.location_all_cities_list(str(page), str(limit))
         cached_response = cache.get(cache_key)
         
         if cached_response:
@@ -223,7 +233,7 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
                 'results': serializer.data
             }
             
-            cache.set(cache_key, paginated_data, 900)
+            cache.set(cache_key, paginated_data, USER_LOCATION_ALL_CITIES_LIST_TTL)
             
             return self.paginator.get_paginated_response(serializer.data)
         
@@ -243,7 +253,7 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
-        cache_key = f'cities_dropdown_province_{province_id}'
+        cache_key = UserCacheKeys.location_cities_dropdown(str(province_id))
         cached_response = cache.get(cache_key)
         
         if cached_response:
@@ -260,7 +270,7 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
             )
             
             cities_list = list(cities)
-            cache.set(cache_key, cities_list, 7200)
+            cache.set(cache_key, cities_list, USER_LOCATION_CITIES_DROPDOWN_TTL)
             
             return APIResponse.success(
                 message=AUTH_SUCCESS["location_province_cities_retrieved"],
