@@ -36,6 +36,16 @@ export const blogApi = {
     return response.data;
   },
 
+  getBlogByPublicId: async (publicId: string): Promise<Blog> => {
+    const response = await fetchApi.get<Blog>(`/blog/p/${publicId}/`);
+    return response.data;
+  },
+
+  getBlogByNumericId: async (id: string | number): Promise<Blog> => {
+    const response = await fetchApi.get<Blog>(`/blog/id/${id}/`);
+    return response.data;
+  },
+
   getCategories: async (params?: BlogCategoryListParams): Promise<PaginatedResponse<BlogCategory>> => {
     const response = await fetchApi.get<BlogCategory[]>(withQuery("/blog-category/", params as Record<string, unknown>));
     return toPaginatedResponse<BlogCategory>(response, params?.size || 20);

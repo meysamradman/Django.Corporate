@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 
 import { blogApi } from "@/api/blogs/route";
 import BlogDetailHeader from "@/components/blogs/detail/BlogDetailHeader";
@@ -6,16 +6,32 @@ import BlogDetailContent from "@/components/blogs/detail/BlogDetailContent";
 import BlogDetailMeta from "@/components/blogs/detail/BlogDetailMeta";
 
 type PageProps = {
-  params: Promise<{ slugOrId: string }>;
+  params: Promise<{ id: string; slug: string }>;
+};
+
+const getCanonicalBlogPath = (id: string | number, slug: string) => `/blogs/${id}/${encodeURIComponent(slug)}`;
+
+const getCanonicalBlogId = (blog: { id?: number; public_id: string }): string | number => {
+  if (typeof blog.id === "number" && Number.isFinite(blog.id)) {
+    return blog.id;
+  }
+
+  return blog.public_id;
 };
 
 export default async function BlogDetailPage({ params }: PageProps) {
-  const { slugOrId } = await params;
+  const { id, slug } = await params;
 
-  const blog = await blogApi.getBlogById(slugOrId).catch(() => null);
+  const blog = await blogApi.getBlogByNumericId(id).catch(() => null);
 
   if (!blog) {
     notFound();
+  }
+
+  const canonicalId = getCanonicalBlogId(blog);
+
+  if (String(canonicalId) !== id) {
+    permanentRedirect(getCanonicalBlogPath(canonicalId, blog.slug));
   }
 
   return (
@@ -33,9 +49,9 @@ export default async function BlogDetailPage({ params }: PageProps) {
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const { slugOrId } = await params;
+  const { id } = await params;
 
-  const blog = await blogApi.getBlogById(slugOrId).catch(() => null);
+  const blog = await blogApi.getBlogByNumericId(id).catch(() => null);
 
   if (!blog) {
     return {

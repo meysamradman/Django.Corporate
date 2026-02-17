@@ -15,8 +15,17 @@ type BlogWithMainImageUrl = Blog & {
   main_image_url?: string | null;
 };
 
+const getCanonicalBlogId = (blog: Blog): string | number => {
+  if (typeof blog.id === "number" && Number.isFinite(blog.id)) {
+    return blog.id;
+  }
+
+  return blog.public_id;
+};
+
 export default function BlogCard({ blog }: BlogCardProps) {
   const blogData = blog as BlogWithMainImageUrl;
+  const canonicalId = getCanonicalBlogId(blog);
 
   const imageSrc = blogMedia.getPostImage(
     blogData.main_image_url || blogData.main_image?.file_url || null
@@ -46,7 +55,7 @@ export default function BlogCard({ blog }: BlogCardProps) {
         </div>
 
         <h2 className="line-clamp-2 text-lg font-semibold text-font-p">
-          <Link href={`/blogs/${blog.slug}`} className="hover:text-primary transition-colors">
+          <Link href={`/blogs/${canonicalId}/${blog.slug}`} className="hover:text-primary transition-colors">
             {blog.title}
           </Link>
         </h2>
@@ -60,7 +69,7 @@ export default function BlogCard({ blog }: BlogCardProps) {
 
         <div>
           <Link
-            href={`/blogs/${blog.slug}`}
+            href={`/blogs/${canonicalId}/${blog.slug}`}
             className="text-sm font-black text-primary hover:underline"
           >
             مشاهده مطلب

@@ -13,7 +13,7 @@ class BlogPublicListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Blog
         fields = [
-            'public_id', 'title', 'slug', 'short_description',
+            'id', 'public_id', 'title', 'slug', 'short_description',
             'main_image_url', 'categories', 'is_featured', 'created_at',
         ]
     
@@ -82,7 +82,7 @@ class BlogPublicDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Blog
         fields = [
-            'public_id', 'title', 'slug',
+            'id', 'public_id', 'title', 'slug',
             'short_description', 'description',
             'media', 'categories', 'tags',
             'seo_data', 'created_at',

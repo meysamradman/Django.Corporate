@@ -20,6 +20,10 @@ class BlogPublicCacheKeys:
         return f"public:blog:detail:public_id:{public_id}"
 
     @staticmethod
+    def detail_id(blog_id):
+        return f"public:blog:detail:id:{blog_id}"
+
+    @staticmethod
     def featured(limit):
         return f"public:blog:featured:{limit}"
 

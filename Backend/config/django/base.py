@@ -197,6 +197,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 from rest_framework.authentication import SessionAuthentication
 
+DRF_ENABLE_GLOBAL_THROTTLE = env.bool('DRF_ENABLE_GLOBAL_THROTTLE', default=False)
+DRF_GLOBAL_THROTTLE_CLASSES = [
+    'rest_framework.throttling.AnonRateThrottle',
+    'rest_framework.throttling.UserRateThrottle',
+] if DRF_ENABLE_GLOBAL_THROTTLE else []
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
@@ -207,13 +213,10 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle'
-    ],
+    'DEFAULT_THROTTLE_CLASSES': DRF_GLOBAL_THROTTLE_CLASSES,
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '500/hour',           # 🔧 Anonymous - فقط برای جلوگیری از حملات
-        'user': '10000/hour',         # 🔧 Authenticated users - تقریباً unlimited برای ادمین‌ها
+        'anon': env('DRF_THROTTLE_ANON_RATE', default='60000/hour' if DEBUG else '3000/hour'),
+        'user': env('DRF_THROTTLE_USER_RATE', default='60000/hour' if DEBUG else '12000/hour'),
         'admin_login': '20/min',      # 🔧 Login attempts - فقط برای brute force protection
         'user_login': '20/min',       # 🔧 Login attempts - فقط برای brute force protection
         'captcha': '100/min',         # 🔧 Captcha - راحت برای ادمین‌ها

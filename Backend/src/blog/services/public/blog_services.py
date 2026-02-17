@@ -83,6 +83,13 @@ class BlogPublicService:
             public_id=public_id,
         ).for_detail().first()
         return blog
+
+    @staticmethod
+    def get_blog_by_id(blog_id):
+        blog = Blog.objects.active().published().filter(
+            id=blog_id,
+        ).for_detail().first()
+        return blog
     
     @staticmethod
     def get_featured_blogs(limit=6):
@@ -136,6 +143,21 @@ class BlogPublicService:
             return cached_data
 
         blog = BlogPublicService.get_blog_by_public_id(public_id)
+        if not blog:
+            return None
+
+        data = dict(BlogPublicDetailSerializer(blog).data)
+        cache.set(cache_key, data, BlogPublicService.DETAIL_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_blog_detail_by_id_data(blog_id):
+        cache_key = BlogPublicCacheKeys.detail_id(blog_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        blog = BlogPublicService.get_blog_by_id(blog_id)
         if not blog:
             return None
 
