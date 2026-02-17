@@ -1,8 +1,14 @@
+from django.core.cache import cache
 from django.db.models import Count, Q
 from src.blog.models.tag import BlogTag
+from src.blog.serializers.public.tag_serializer import BlogTagPublicSerializer
+from src.blog.utils.cache_public import BlogTagPublicCacheKeys
 
 class BlogTagPublicService:
     ALLOWED_ORDERING_FIELDS = {'name', 'blog_count', 'created_at'}
+    LIST_CACHE_TTL = 600
+    DETAIL_CACHE_TTL = 900
+    POPULAR_CACHE_TTL = 900
 
     @staticmethod
     def _normalize_ordering(ordering):
@@ -77,4 +83,58 @@ class BlogTagPublicService:
     def get_popular_tags(limit=10):
         queryset = BlogTagPublicService._base_queryset().order_by('-blog_count', 'name')[:limit]
         return queryset
+
+    @staticmethod
+    def get_tag_list_data(filters=None, search=None, ordering=None):
+        cache_key = BlogTagPublicCacheKeys.list(filters=filters, search=search, ordering=ordering)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = BlogTagPublicService.get_tag_queryset(filters=filters, search=search, ordering=ordering)
+        data = list(BlogTagPublicSerializer(queryset, many=True).data)
+        cache.set(cache_key, data, BlogTagPublicService.LIST_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_tag_detail_by_slug_data(slug):
+        cache_key = BlogTagPublicCacheKeys.detail_slug(slug)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        tag = BlogTagPublicService.get_tag_by_slug(slug)
+        if not tag:
+            return None
+
+        data = dict(BlogTagPublicSerializer(tag).data)
+        cache.set(cache_key, data, BlogTagPublicService.DETAIL_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_tag_detail_by_public_id_data(public_id):
+        cache_key = BlogTagPublicCacheKeys.detail_public_id(public_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        tag = BlogTagPublicService.get_tag_by_public_id(public_id)
+        if not tag:
+            return None
+
+        data = dict(BlogTagPublicSerializer(tag).data)
+        cache.set(cache_key, data, BlogTagPublicService.DETAIL_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_popular_tags_data(limit=10):
+        cache_key = BlogTagPublicCacheKeys.popular(limit)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        tags = BlogTagPublicService.get_popular_tags(limit=limit)
+        data = list(BlogTagPublicSerializer(tags, many=True).data)
+        cache.set(cache_key, data, BlogTagPublicService.POPULAR_CACHE_TTL)
+        return data
 

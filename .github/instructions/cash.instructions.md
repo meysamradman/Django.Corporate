@@ -214,6 +214,27 @@ cache.delete("public:property:detail:42")   # دقیق
 
 ---
 
+## ۶.۱ ساختار فایل‌ها (الزامی برای هر اپ)
+
+برای جلوگیری از تکرار، coupling و خطای invalidate، ساختار کش هر اپ باید این باشد:
+
+```text
+src/<app>/utils/
+	cache_shared.py   # helper مشترک (hash payload, common helpers)
+	cache_public.py   # کلیدها و manager مربوط به public
+	cache_admin.py    # کلیدها و manager مربوط به admin
+	cache.py          # facade/re-export برای backward compatibility
+```
+
+قواعد:
+
+- `public` و `admin` در یک فایل سنگین ادغام نشوند.
+- helper تکراری فقط در `cache_shared.py` باشد.
+- import جدید در سرویس‌ها مستقیم از `cache_public` یا `cache_admin` انجام شود.
+- فایل `cache.py` فقط نقش facade داشته باشد تا importهای قدیمی نشکنند.
+
+---
+
 ## ۷. Matrix TTL
 
 | نوع Endpoint | TTL | توضیح |
@@ -408,6 +429,33 @@ LOGGING = {
 | Feature flag برای cache | خاموش کردن cache یک endpoint بدون deploy |
 | Unit test برای invalidation | mock کردن `cache.delete_pattern` در tests |
 | Cache warming | بعد از deploy، endpointهای پرتکرار را pre-warm کن |
+
+---
+
+## ۱۴. Rollout یکپارچه برای همه اپ‌ها (الزامی)
+
+این بخش برای اجرای یکدست در `blog`, `portfolio`, `real_estate`, `page`, `ticket`, ... الزامی است.
+
+### ترتیب ثابت اجرا در هر اپ
+
+1. ساختار فایل کش را طبق بند `۶.۱` ایجاد کن (`cache_shared`, `cache_public`, `cache_admin`, `cache`).
+2. endpointهای `public` را در service layer با serializer `.data` کش کن.
+3. endpointهای `admin list` را با TTL کوتاه کش کن؛ `admin CRUD` بدون کش بماند.
+4. تمام mutationها (`create/update/delete/status/bulk/media`) را به invalidation هدفمند وصل کن.
+5. در صورت استفاده از Next.js ISR، revalidate tag/path را بعد از mutation فعال کن.
+
+### Definition of Done هر اپ
+
+- بعد از mutation، اولین request دیتای تازه برگرداند.
+- keyها فقط با convention استاندارد (`{scope}:{app}:{resource}:{id/hash}`) باشند.
+- هیچ cache IO در model/serializer وجود نداشته باشد.
+- هیچ `cache.clear()` در اپ استفاده نشده باشد.
+- smoke test: list/detail public + list admin + یک mutation end-to-end پاس شود.
+
+### Rule تغییرات
+
+- هر اپ قبل از merge باید همین DoD را پاس کند.
+- هر exception فقط با ثبت در همین سند و دلیل فنی قابل قبول است.
 
 ---
 

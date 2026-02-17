@@ -33,7 +33,7 @@ from src.blog.filters.admin.blog_filters import BlogAdminFilter
 from src.core.pagination import StandardLimitPagination
 from src.user.access_control import blog_permission, PermissionRequiredMixin
 from src.blog.messages.messages import BLOG_SUCCESS, BLOG_ERRORS
-from src.blog.utils.cache import BlogCacheManager
+from src.blog.utils.cache_admin import BlogCacheManager
 from src.core.utils.validation_helpers import extract_validation_message, normalize_validation_error
 
 class BlogAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):

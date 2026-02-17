@@ -3,7 +3,7 @@ from src.core.models.base import BaseModel
 from src.blog.models.seo import SEOMixin
 from src.blog.models.category import BlogCategory
 from src.blog.models.tag import BlogTag
-from src.blog.utils.cache import BlogCacheManager
+from src.blog.utils.cache_admin import BlogCacheManager
 from .managers import BlogQuerySet
 
 class Blog(BaseModel, SEOMixin):

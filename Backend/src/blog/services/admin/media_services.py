@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 from src.blog.models.blog import Blog
 from src.blog.models.media import BlogImage, BlogVideo, BlogAudio, BlogDocument
-from src.blog.utils.cache import BlogCacheManager
+from src.blog.utils.cache_admin import BlogCacheManager
 from src.blog.messages.messages import BLOG_ERRORS
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia, detect_media_type_from_extension
 from src.media.services.media_services import MediaAdminService

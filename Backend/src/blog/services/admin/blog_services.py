@@ -10,7 +10,7 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 from src.blog.models.blog import Blog
-from src.blog.utils.cache import BlogCacheManager, BlogCacheKeys
+from src.blog.utils.cache_admin import BlogCacheManager, BlogCacheKeys
 from src.blog.models.media import BlogImage, BlogVideo, BlogAudio, BlogDocument
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.blog.services.admin.media_services import BlogAdminMediaService

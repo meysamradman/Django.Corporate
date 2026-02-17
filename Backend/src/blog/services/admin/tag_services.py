@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from datetime import datetime
 from src.blog.models.tag import BlogTag
-from src.blog.utils.cache import TagCacheKeys, TagCacheManager
+from src.blog.utils.cache_admin import TagCacheKeys, TagCacheManager
 from src.blog.messages import TAG_ERRORS
 
 class BlogTagAdminService:

@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from datetime import datetime
 
 from src.blog.models.category import BlogCategory
-from src.blog.utils.cache import CategoryCacheKeys, CategoryCacheManager
+from src.blog.utils.cache_admin import CategoryCacheKeys, CategoryCacheManager
 from src.blog.messages.messages import CATEGORY_ERRORS
 from src.media.models.media import ImageMedia
 

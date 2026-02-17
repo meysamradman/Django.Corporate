@@ -1,7 +1,7 @@
 from django.db import models
 from src.core.models import BaseModel
 from src.blog.models.seo import SEOMixin
-from src.blog.utils.cache import TagCacheManager
+from src.blog.utils.cache_admin import TagCacheManager
 from src.analytics.utils.cache import AnalyticsCacheManager
 from .managers import BlogTagQuerySet
 

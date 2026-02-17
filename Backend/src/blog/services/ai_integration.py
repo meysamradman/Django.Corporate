@@ -3,7 +3,7 @@ from django.db import transaction
 from django.utils.text import slugify
 
 from src.blog.models import Blog, BlogCategory, BlogTag
-from src.blog.utils.cache import BlogCacheManager
+from src.blog.utils.cache_admin import BlogCacheManager
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
 
 def save_ai_content_to_blog(

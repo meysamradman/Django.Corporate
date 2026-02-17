@@ -1,10 +1,20 @@
 from datetime import date
 
+from django.core.cache import cache
 from django.db.models import Q
 from src.blog.models.blog import Blog
+from src.blog.serializers.public.blog_serializer import (
+    BlogPublicDetailSerializer,
+    BlogPublicListSerializer,
+)
+from src.blog.utils.cache_public import BlogPublicCacheKeys
 
 class BlogPublicService:
     ALLOWED_ORDERING_FIELDS = {'created_at', 'title', 'is_featured'}
+    LIST_CACHE_TTL = 90
+    DETAIL_CACHE_TTL = 180
+    FEATURED_CACHE_TTL = 90
+    RELATED_CACHE_TTL = 90
 
     @staticmethod
     def _normalize_ordering(ordering):
@@ -89,3 +99,73 @@ class BlogPublicService:
             id=blog.id
         ).for_public_listing().distinct().order_by('-created_at')[:limit]
         return blogs
+
+    @staticmethod
+    def get_blog_list_data(filters=None, search=None, ordering=None):
+        cache_key = BlogPublicCacheKeys.list(filters=filters, search=search, ordering=ordering)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = BlogPublicService.get_blog_queryset(filters=filters, search=search, ordering=ordering)
+        data = list(BlogPublicListSerializer(queryset, many=True).data)
+        cache.set(cache_key, data, BlogPublicService.LIST_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_blog_detail_by_slug_data(slug):
+        cache_key = BlogPublicCacheKeys.detail_slug(slug)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        blog = BlogPublicService.get_blog_by_slug(slug)
+        if not blog:
+            return None
+
+        data = dict(BlogPublicDetailSerializer(blog).data)
+        cache.set(cache_key, data, BlogPublicService.DETAIL_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_blog_detail_by_public_id_data(public_id):
+        cache_key = BlogPublicCacheKeys.detail_public_id(public_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        blog = BlogPublicService.get_blog_by_public_id(public_id)
+        if not blog:
+            return None
+
+        data = dict(BlogPublicDetailSerializer(blog).data)
+        cache.set(cache_key, data, BlogPublicService.DETAIL_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_featured_blogs_data(limit=6):
+        cache_key = BlogPublicCacheKeys.featured(limit)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        blogs = BlogPublicService.get_featured_blogs(limit=limit)
+        data = list(BlogPublicListSerializer(blogs, many=True).data)
+        cache.set(cache_key, data, BlogPublicService.FEATURED_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_related_blogs_by_slug_data(slug, limit=4):
+        cache_key = BlogPublicCacheKeys.related(slug, limit)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        blog = BlogPublicService.get_blog_by_slug(slug)
+        if not blog:
+            return None
+
+        related_blogs = BlogPublicService.get_related_blogs(blog, limit=limit)
+        data = list(BlogPublicListSerializer(related_blogs, many=True).data)
+        cache.set(cache_key, data, BlogPublicService.RELATED_CACHE_TTL)
+        return data

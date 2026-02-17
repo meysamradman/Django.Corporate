@@ -6,8 +6,8 @@ from src.core.pagination import StandardLimitPagination
 from src.core.responses.response import APIResponse
 from src.blog.messages.messages import BLOG_ERRORS, BLOG_SUCCESS
 from src.blog.serializers.public.blog_serializer import (
+    BlogPublicDetailSerializer,
     BlogPublicListSerializer,
-    BlogPublicDetailSerializer
 )
 from src.blog.services.public.blog_services import BlogPublicService
 
@@ -36,29 +36,26 @@ class BlogPublicViewSet(viewsets.ReadOnlyModelViewSet):
         
         search = request.query_params.get('search')
         ordering = request.query_params.get('ordering')
-        queryset = BlogPublicService.get_blog_queryset(filters=filters, search=search, ordering=ordering)
+        data = BlogPublicService.get_blog_list_data(filters=filters, search=search, ordering=ordering)
         
-        page = self.paginate_queryset(queryset)
+        page = self.paginate_queryset(data)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            return self.get_paginated_response(page)
         
-        serializer = self.get_serializer(queryset, many=True)
         return APIResponse.success(
             message=BLOG_SUCCESS['blog_list_success'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK
         )
 
     def retrieve(self, request, *args, **kwargs):
         slug = kwargs.get('slug')
-        blog = BlogPublicService.get_blog_by_slug(slug)
+        blog_data = BlogPublicService.get_blog_detail_by_slug_data(slug)
         
-        if blog:
-            serializer = self.get_serializer(blog)
+        if blog_data:
             return APIResponse.success(
                 message=BLOG_SUCCESS['blog_retrieved'],
-                data=serializer.data,
+                data=blog_data,
                 status_code=status.HTTP_200_OK
             )
         
@@ -69,12 +66,11 @@ class BlogPublicViewSet(viewsets.ReadOnlyModelViewSet):
         
     @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
     def get_by_public_id(self, request, public_id=None):
-        blog = BlogPublicService.get_blog_by_public_id(public_id)
-        if blog:
-            serializer = self.get_serializer(blog)
+        blog_data = BlogPublicService.get_blog_detail_by_public_id_data(public_id)
+        if blog_data:
             return APIResponse.success(
                 message=BLOG_SUCCESS['blog_retrieved'],
-                data=serializer.data,
+                data=blog_data,
                 status_code=status.HTTP_200_OK
             )
         
@@ -86,29 +82,26 @@ class BlogPublicViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=['get'])
     def featured(self, request):
         limit = self._parse_positive_int(request.query_params.get('limit'), default=6, max_value=24)
-        blogs = BlogPublicService.get_featured_blogs(limit=limit)
-        serializer = BlogPublicListSerializer(blogs, many=True)
+        data = BlogPublicService.get_featured_blogs_data(limit=limit)
         return APIResponse.success(
             message=BLOG_SUCCESS['featured_blogs_retrieved'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK
         )
     
     @action(detail=True, methods=['get'])
     def related(self, request, slug=None):
-        blog = BlogPublicService.get_blog_by_slug(slug)
-        if not blog:
+        limit = self._parse_positive_int(request.query_params.get('limit'), default=4, max_value=24)
+        data = BlogPublicService.get_related_blogs_by_slug_data(slug=slug, limit=limit)
+        if data is None:
             return APIResponse.error(
                 message=BLOG_ERRORS['blog_not_found'],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        
-        limit = self._parse_positive_int(request.query_params.get('limit'), default=4, max_value=24)
-        related_blogs = BlogPublicService.get_related_blogs(blog, limit=limit)
-        serializer = BlogPublicListSerializer(related_blogs, many=True)
+
         return APIResponse.success(
             message=BLOG_SUCCESS['related_blogs_retrieved'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK
         )
     
