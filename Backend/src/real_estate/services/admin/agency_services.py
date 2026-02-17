@@ -4,11 +4,61 @@ from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from src.real_estate.models.agency import RealEstateAgency
+from src.real_estate.models.agency_social_media import RealEstateAgencySocialMedia
 from src.real_estate.models.property import Property
 from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.messages.messages import AGENCY_ERRORS
 
 class RealEstateAgencyAdminService:
+    @staticmethod
+    def _sync_social_media(agency, social_media_items):
+        if social_media_items is None:
+            return
+
+        if not isinstance(social_media_items, list):
+            raise ValidationError({'social_media': AGENCY_ERRORS.get("agency_update_failed")})
+
+        existing_items = {item.id: item for item in agency.social_media.all()}
+        kept_ids = []
+
+        for index, item in enumerate(social_media_items):
+            if not isinstance(item, dict):
+                continue
+
+            name = (item.get('name') or '').strip()
+            url = (item.get('url') or '').strip()
+
+            if not name or not url:
+                continue
+
+            order = item.get('order')
+            if order is None:
+                order = index
+
+            icon_id = item.get('icon', item.get('icon_id'))
+            icon_id = icon_id or None
+
+            social_id = item.get('id')
+            if social_id in existing_items:
+                social_obj = existing_items[social_id]
+                social_obj.name = name
+                social_obj.url = url
+                social_obj.icon_id = icon_id
+                social_obj.order = order
+                social_obj.is_active = True
+                social_obj.save(update_fields=['name', 'url', 'icon', 'order', 'is_active', 'updated_at'])
+                kept_ids.append(social_obj.id)
+            else:
+                social_obj = RealEstateAgencySocialMedia.objects.create(
+                    agency=agency,
+                    name=name,
+                    url=url,
+                    icon_id=icon_id,
+                    order=order,
+                )
+                kept_ids.append(social_obj.id)
+
+        agency.social_media.exclude(id__in=kept_ids).delete()
     
     @staticmethod
     def get_agency_queryset(filters=None, search=None, date_from=None, date_to=None):
@@ -69,6 +119,8 @@ class RealEstateAgencyAdminService:
     
     @staticmethod
     def create_agency(validated_data, created_by=None):
+        social_media_items = validated_data.pop('social_media', None)
+
         if not validated_data.get('slug') and validated_data.get('name'):
             base_slug = slugify(validated_data['name'])
             slug = base_slug
@@ -92,6 +144,7 @@ class RealEstateAgencyAdminService:
         
         with transaction.atomic():
             agency = RealEstateAgency.objects.create(**validated_data)
+            RealEstateAgencyAdminService._sync_social_media(agency, social_media_items)
         
         return agency
     
@@ -123,10 +176,13 @@ class RealEstateAgencyAdminService:
                 if not validated_data.get('og_description'):
                     validated_data['og_description'] = validated_data['meta_description']
         
+        social_media_items = validated_data.pop('social_media', None)
+
         with transaction.atomic():
             for field, value in validated_data.items():
                 setattr(agency, field, value)
             agency.save()
+            RealEstateAgencyAdminService._sync_social_media(agency, social_media_items)
         
         return agency
     

@@ -1,3 +1,5 @@
+import type { SocialMediaItem } from "@/types/shared/socialMedia";
+
 export interface RealEstateAgency {
   id: number;
   public_id: string;
@@ -56,6 +58,7 @@ export interface RealEstateAgency {
   og_description?: string;
   canonical_url?: string;
   robots_meta?: string;
+  social_media?: SocialMediaItem[];
 }
 
 export interface AgencyFormData {

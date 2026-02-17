@@ -5,7 +5,7 @@ import { useFormState } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { notifyApiError, showSuccess } from '@/core/toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { AlertCircle, Building2, Search, Loader2, Save, UserCircle } from "lucide-react";
+import { AlertCircle, Building2, Search, Loader2, Save, Share2, UserCircle } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate";
 import { msg } from '@/core/messages';
@@ -18,6 +18,8 @@ import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { agencyFormSchema, agencyFormDefaults, type AgencyFormValues } from '@/components/real-estate/validations/agencySchema';
 import { AGENCY_FIELD_MAP, extractMappedAgencyFieldErrors } from '@/components/real-estate/validations/agencyApiError';
 import { Alert, AlertDescription } from "@/components/elements/Alert";
+import type { SocialMediaItem } from "@/types/shared/socialMedia";
+import { SocialMediaArrayEditor } from "@/components/shared/SocialMediaArrayEditor";
 
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
@@ -52,6 +54,7 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
     const [isSaving, setIsSaving] = useState(false);
     const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
     const [formAlert, setFormAlert] = useState<string | null>(null);
+    const [socialMediaItems, setSocialMediaItems] = useState<SocialMediaItem[]>([]);
 
     const AGENCY_EDIT_TAB_BY_FIELD: Record<string, string> = {
         name: 'account',
@@ -75,6 +78,10 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
         og_description: 'seo',
         canonical_url: 'seo',
         robots_meta: 'seo',
+        social_media: 'social',
+        'social_media.name': 'social',
+        'social_media.url': 'social',
+        'social_media.order': 'social',
     };
 
     const resolveAgencyEditErrorTab = (fieldKeys: Iterable<string>): string | null => {
@@ -140,6 +147,7 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
         });
 
         setSelectedProfilePicture((agencyData as any).profile_picture || null);
+        setSocialMediaItems((agencyData as any).social_media || []);
     }, [agencyData, form]);
 
     const handleInputChange = (field: string, value: string | boolean | number | null) => {
@@ -199,6 +207,15 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                 og_description: data.og_description || null,
                 canonical_url: data.canonical_url || null,
                 robots_meta: data.robots_meta || null,
+                social_media: socialMediaItems
+                    .filter((item) => (item.name || '').trim() && (item.url || '').trim())
+                    .map((item, index) => ({
+                        id: item.id,
+                        name: item.name,
+                        url: item.url,
+                        icon: item.icon ?? item.icon_data?.id ?? null,
+                        order: item.order ?? index,
+                    })),
             };
 
             if (selectedProfilePicture?.id) {
@@ -336,6 +353,10 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                         <Search className="h-4 w-4" />
                         سئو
                     </TabsTrigger>
+                    <TabsTrigger value="social">
+                        <Share2 className="h-4 w-4" />
+                        شبکه‌های اجتماعی
+                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="account" className="mt-0">
@@ -367,6 +388,15 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                             editMode={editMode}
                         />
                     </Suspense>
+                </TabsContent>
+
+                <TabsContent value="social" className="mt-0">
+                    <div className="rounded-lg border p-6">
+                        <SocialMediaArrayEditor
+                            items={socialMediaItems}
+                            onChange={setSocialMediaItems}
+                        />
+                    </div>
                 </TabsContent>
             </Tabs>
 

@@ -67,7 +67,9 @@ class RealEstateAgencyPublicService:
             'city',
             'profile_picture'
         ).prefetch_related(
-            'agents'
+            'agents',
+            'social_media',
+            'social_media__icon'
         ).annotate(
             property_count=Count(
                 'properties',

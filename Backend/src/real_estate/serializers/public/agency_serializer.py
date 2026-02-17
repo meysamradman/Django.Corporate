@@ -80,12 +80,14 @@ class RealEstateAgencyPublicListSerializer(serializers.ModelSerializer):
 class RealEstateAgencyPublicDetailSerializer(RealEstateAgencyPublicListSerializer):
     """Public detail serializer for real estate agencies"""
     agents = serializers.SerializerMethodField()
-    social_links = serializers.JSONField(read_only=True, allow_null=True)
+    social_media = serializers.SerializerMethodField()
+    social_links = serializers.SerializerMethodField()
 
     class Meta(RealEstateAgencyPublicListSerializer.Meta):
         fields = RealEstateAgencyPublicListSerializer.Meta.fields + [
             'agents',
             'license_expire_date',
+            'social_media',
             'social_links',
             'meta_title',
             'meta_description',
@@ -103,3 +105,25 @@ class RealEstateAgencyPublicDetailSerializer(RealEstateAgencyPublicListSerialize
         ).order_by('-rating', '-total_sales')[:10]
 
         return PropertyAgentPublicListSerializer(active_agents, many=True).data
+
+    def get_social_media(self, obj):
+        links = []
+        for item in obj.social_media.filter(is_active=True).order_by('order', '-created_at'):
+            icon_url = item.icon.file.url if item.icon and item.icon.file else None
+            links.append({
+                'id': item.id,
+                'public_id': str(item.public_id),
+                'name': item.name,
+                'url': item.url,
+                'icon_url': icon_url,
+                'order': item.order,
+            })
+        return links
+
+    def get_social_links(self, obj):
+        output = {}
+        for item in obj.social_media.filter(is_active=True).only('name', 'url'):
+            key = (item.name or '').strip().lower()
+            if key:
+                output[key] = item.url
+        return output

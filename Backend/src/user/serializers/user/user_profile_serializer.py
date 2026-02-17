@@ -10,6 +10,7 @@ from src.user.messages import AUTH_ERRORS
 from src.user.utils.mobile_validator import validate_mobile_number
 from src.user.utils.phone_validator import validate_phone_number_with_uniqueness
 from src.core.utils.validation_helpers import extract_validation_message
+from src.user.models import UserProfileSocialMedia
 
 class ProfilePictureSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
@@ -24,6 +25,18 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
         return None
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    class SocialMediaSerializer(serializers.ModelSerializer):
+        icon_url = serializers.SerializerMethodField()
+
+        class Meta:
+            model = UserProfileSocialMedia
+            fields = ['id', 'public_id', 'name', 'url', 'icon', 'icon_url', 'order']
+
+        def get_icon_url(self, obj):
+            if obj.icon and obj.icon.file:
+                return obj.icon.file.url
+            return None
+
     profile_picture = ProfilePictureSerializer(read_only=True)
     province = ProvinceCompactSerializer(read_only=True)
     city = CityCompactSerializer(read_only=True)
@@ -31,11 +44,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
     updated_at = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
     public_id = serializers.UUIDField(read_only=True)
+    social_media = SocialMediaSerializer(many=True, read_only=True)
 
     class Meta:
         model = UserProfile
         fields = ['id', 'public_id', 'first_name', 'last_name', 'full_name', 'birth_date', 'national_id', 'address', 'province', 'city', 'phone', 'bio',
-                 'profile_picture', 'created_at', 'updated_at']
+                 'profile_picture', 'social_media', 'created_at', 'updated_at']
         read_only_fields = ['public_id', 'national_id']
 
     def get_full_name(self, obj):

@@ -1,131 +1,71 @@
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Input } from "@/components/elements/Input";
 import { Button } from "@/components/elements/Button";
-import { Label } from "@/components/elements/Label";
 import { TabsContent } from "@/components/elements/Tabs";
-import { Linkedin, Twitter, Instagram, Youtube, Send, Phone, Share2 } from "lucide-react";
-import { filterNumericOnly } from "@/core/utils/numeric";
+import { Building2, Save, User } from "lucide-react";
+import type { SocialMediaItem } from "@/types/shared/socialMedia";
+import { SocialMediaArrayEditor } from "@/components/shared/SocialMediaArrayEditor";
 
 interface SocialTabProps {
-    formData: any;
-    handleInputChange: (field: string, value: string) => void;
+    adminSocialMedia: SocialMediaItem[];
+    consultantSocialMedia: SocialMediaItem[];
+    hasConsultantProfile: boolean;
+    showAdminSection?: boolean;
+    onAdminSocialMediaChange: (items: SocialMediaItem[]) => void;
+    onConsultantSocialMediaChange: (items: SocialMediaItem[]) => void;
     handleSaveProfile: () => void;
 }
 
 export function Social({
-    formData,
-    handleInputChange,
+    adminSocialMedia,
+    consultantSocialMedia,
+    hasConsultantProfile,
+    showAdminSection = true,
+    onAdminSocialMediaChange,
+    onConsultantSocialMediaChange,
     handleSaveProfile,
 }: SocialTabProps) {
-    const isSocialEditable = true;
     return (
         <TabsContent value="social">
-            <CardWithIcon
-                icon={Share2}
-                title="شبکه‌های اجتماعی"
-                iconBgColor="bg-pink"
-                iconColor="stroke-pink-2"
-                cardBorderColor="border-b-pink-1"
-                className="hover:shadow-lg transition-all duration-300"
-            >
-                <div className="space-y-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="linkedin">لینکداین</Label>
-                        <div className="relative flex items-center">
-                            <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-font-s" />
-                            <Input
-                                id="linkedin"
-                                value={formData.linkedin}
-                                onChange={(e) => handleInputChange("linkedin", e.target.value)}
-                                disabled={!isSocialEditable}
-                                placeholder="https://linkedin.com/in/..."
-                                className="ps-10"
-                            />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="twitter">توییتر (X)</Label>
-                        <div className="relative flex items-center">
-                            <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-font-s" />
-                            <Input
-                                id="twitter"
-                                value={formData.twitter}
-                                onChange={(e) => handleInputChange("twitter", e.target.value)}
-                                disabled={!isSocialEditable}
-                                placeholder="https://x.com/..."
-                                className="ps-10"
-                            />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="instagram">اینستاگرام</Label>
-                        <div className="relative flex items-center">
-                            <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-font-s" />
-                            <Input
-                                id="instagram"
-                                value={formData.instagram}
-                                onChange={(e) => handleInputChange("instagram", e.target.value)}
-                                disabled={!isSocialEditable}
-                                placeholder="https://instagram.com/..."
-                                className="ps-10"
-                            />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="whatsapp">واتساپ</Label>
-                        <div className="relative flex items-center">
-                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-font-s" />
-                            <Input
-                                id="whatsapp"
-                                value={formData.whatsapp}
-                                onChange={(e) => {
-                                    const filteredValue = filterNumericOnly(e.target.value);
-                                    handleInputChange("whatsapp", filteredValue);
-                                }}
-                                disabled={!isSocialEditable}
-                                placeholder="شماره واتساپ..."
-                                className="ps-10"
-                                inputMode="tel"
-                            />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="telegram">تلگرام</Label>
-                        <div className="relative flex items-center">
-                            <Send className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-font-s" />
-                            <Input
-                                id="telegram"
-                                value={formData.telegram}
-                                onChange={(e) => handleInputChange("telegram", e.target.value)}
-                                disabled={!isSocialEditable}
-                                placeholder="آیدی تلگرام..."
-                                className="ps-10"
-                            />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="youtube">یوتیوب</Label>
-                        <div className="relative flex items-center">
-                            <Youtube className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-font-s" />
-                            <Input
-                                id="youtube"
-                                value={formData.youtube}
-                                onChange={(e) => handleInputChange("youtube", e.target.value)}
-                                disabled={!isSocialEditable}
-                                placeholder="https://youtube.com/c/..."
-                                className="ps-10"
-                            />
-                        </div>
-                    </div>
-                    {isSocialEditable && (
-                        <div className="flex justify-end gap-2 pt-4">
-                            <Button onClick={handleSaveProfile}>
-                                ذخیره تغییرات
-                            </Button>
-                        </div>
-                    )}
+            <div className="space-y-6">
+                {showAdminSection ? (
+                    <CardWithIcon
+                        icon={User}
+                        title="شبکه‌های اجتماعی ادمین"
+                        iconBgColor="bg-pink"
+                        iconColor="stroke-pink-2"
+                        cardBorderColor="border-b-pink-1"
+                        className="hover:shadow-lg transition-all duration-300"
+                    >
+                        <SocialMediaArrayEditor
+                            items={adminSocialMedia}
+                            onChange={onAdminSocialMediaChange}
+                        />
+                    </CardWithIcon>
+                ) : null}
+
+                {hasConsultantProfile ? (
+                    <CardWithIcon
+                        icon={Building2}
+                        title="شبکه‌های اجتماعی مشاور"
+                        iconBgColor="bg-blue"
+                        iconColor="stroke-blue-2"
+                        cardBorderColor="border-b-blue-1"
+                        className="hover:shadow-lg transition-all duration-300"
+                    >
+                        <SocialMediaArrayEditor
+                            items={consultantSocialMedia}
+                            onChange={onConsultantSocialMediaChange}
+                        />
+                    </CardWithIcon>
+                ) : null}
+
+                <div className="flex justify-end gap-2 pt-2">
+                    <Button onClick={handleSaveProfile}>
+                        <Save className="h-4 w-4" />
+                        ذخیره تغییرات
+                    </Button>
                 </div>
-            </CardWithIcon>
+            </div>
         </TabsContent>
     );
 }

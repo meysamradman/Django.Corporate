@@ -461,6 +461,12 @@ class AdminUpdateSerializer(serializers.Serializer):
                 if hasattr(user, 'admin_profile') and user.admin_profile:
                     data['profile'] = data.get('profile', {})
                     profile_data = data['profile']
+                    profile_social_media = None
+
+                    if isinstance(profile_data, dict) and 'social_media' in profile_data:
+                        profile_social_media = profile_data.get('social_media')
+                        profile_data = profile_data.copy()
+                        profile_data.pop('social_media', None)
                     
                     if 'profile_picture' in data:
                         profile_data['profile_picture'] = data['profile_picture']
@@ -480,6 +486,10 @@ class AdminUpdateSerializer(serializers.Serializer):
                                 profile_data_for_super[key] = value.id
                             else:
                                 profile_data_for_super[key] = value
+
+                        if profile_social_media is not None:
+                            profile_data_for_super['social_media'] = profile_social_media
+
                         data['profile'] = profile_data_for_super
                     else:
                         raise serializers.ValidationError({'profile': temp_serializer.errors})

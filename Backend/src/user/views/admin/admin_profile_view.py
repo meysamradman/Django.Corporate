@@ -220,52 +220,31 @@ class AdminProfileView(APIView):
                     'birth_date': profile_data.get('birth_date'),
                 }
             )
-            
-            if not created:
-                serializer = AdminProfileUpdateSerializer(
-                    admin_profile, 
-                    data=profile_data, 
-                    partial=True,
-                    context={
-                        'request': request, 
-                        'user_id': user.id,
-                        'admin_user_id': user.id
-                    }
-                )
-                
-                if serializer.is_valid():
-                    updated_profile = serializer.save()
-                    
-                    AdminPermissionCache.clear_user_cache(user.id)
-                    PermissionValidator.clear_user_cache(user.id)
-                    PermissionHelper.clear_user_cache(user.id)
-                    
-                    user.refresh_from_db()
-                    if hasattr(user, 'admin_profile'):
-                        user.admin_profile.refresh_from_db()
-                        if hasattr(user.admin_profile, 'profile_picture') and user.admin_profile.profile_picture:
-                            user.admin_profile.profile_picture.refresh_from_db()
-                    
-                    user = User.objects.select_related(
-                        'user_profile',
-                        'admin_profile',
-                        'admin_profile__profile_picture'
-                    ).prefetch_related(
-                        'groups__permissions',
-                        'user_permissions'
-                    ).get(id=user.id)
-                    
-                    response_serializer = AdminCompleteProfileSerializer(
-                        user, 
-                        context={'request': request}
-                    )
-                    
-                    return APIResponse.success(message=AUTH_SUCCESS["user_updated_successfully"], data=response_serializer.data)
-                else:
-                    return APIResponse.error(message=AUTH_ERRORS["auth_validation_error"], errors=serializer.errors, status_code=400)
-            else:
+
+            serializer = AdminProfileUpdateSerializer(
+                admin_profile,
+                data=profile_data,
+                partial=True,
+                context={
+                    'request': request,
+                    'user_id': user.id,
+                    'admin_user_id': user.id
+                }
+            )
+
+            if serializer.is_valid():
+                serializer.save()
+
+                AdminPermissionCache.clear_user_cache(user.id)
+                PermissionValidator.clear_user_cache(user.id)
+                PermissionHelper.clear_user_cache(user.id)
+
                 user.refresh_from_db()
-                
+                if hasattr(user, 'admin_profile'):
+                    user.admin_profile.refresh_from_db()
+                    if hasattr(user.admin_profile, 'profile_picture') and user.admin_profile.profile_picture:
+                        user.admin_profile.profile_picture.refresh_from_db()
+
                 user = User.objects.select_related(
                     'user_profile',
                     'admin_profile',
@@ -274,13 +253,18 @@ class AdminProfileView(APIView):
                     'groups__permissions',
                     'user_permissions'
                 ).get(id=user.id)
-                
+
                 response_serializer = AdminCompleteProfileSerializer(
-                    user, 
+                    user,
                     context={'request': request}
                 )
-                
-                return APIResponse.success(message=AUTH_SUCCESS["auth_created_successfully"], data=response_serializer.data)
+
+                return APIResponse.success(
+                    message=AUTH_SUCCESS["user_updated_successfully"] if not created else AUTH_SUCCESS["auth_created_successfully"],
+                    data=response_serializer.data
+                )
+
+            return APIResponse.error(message=AUTH_ERRORS["auth_validation_error"], errors=serializer.errors, status_code=400)
                 
         except Exception as e:
             return APIResponse.error(message=AUTH_ERRORS["error_occurred"], status_code=500)

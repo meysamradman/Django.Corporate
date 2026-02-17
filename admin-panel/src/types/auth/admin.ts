@@ -3,6 +3,7 @@ import type { Base } from "@/types/shared/base";
 import type { PermissionCategory, PermissionProfile, Role } from "@/types/auth/permission";
 import type { ProvinceCompact, CityCompact } from "@/types/shared/location";
 import type { Pagination } from '@/types/api/apiResponse';
+import type { SocialMediaItem } from "@/types/shared/socialMedia";
 
 export type UserStatus = 'active' | 'inactive' | 'all';
 export type UserType = 'admin' | 'user';
@@ -46,6 +47,7 @@ export interface PropertyAgentProfile {
     twitter_card: 'summary' | 'summary_large_image' | null;
     created_at: string;
     updated_at: string;
+    social_media?: SocialMediaItem[];
 }
 
 export interface Admin extends Base {
@@ -71,6 +73,7 @@ export interface AdminProfile extends Base {
     profile_picture: Media | null;
     department?: string | null;
     position?: string | null;
+    social_media?: SocialMediaItem[];
 }
 
 export interface AdminWithProfile extends Base {

@@ -24,6 +24,7 @@ export const AGENCY_FIELD_MAP = {
   canonical_url: 'canonical_url',
   robots_meta: 'robots_meta',
   profile_picture: 'profile_picture',
+  social_media: 'social_media',
 } as const;
 
 export function normalizeAgencyErrorKey(key: string): string {

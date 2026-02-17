@@ -1,15 +1,17 @@
 import { lazy, useMemo } from "react";
-import { User, UserCircle, ShieldCheck, Building2 } from "lucide-react";
+import { User, UserCircle, ShieldCheck, Building2, Share2 } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import type { Media } from "@/types/shared/media";
 import type { AdminFormValues } from "@/components/admins/validations/adminSchema";
 import type { Role } from "@/types/auth/permission";
 import type { TabbedPageTab } from "@/components/templates/TabbedPageLayout";
+import type { SocialMediaItem } from "@/types/shared/socialMedia";
 
 const BaseInfoTab = lazy(() => import("@/components/admins/create/Info"));
 const ProfileTab = lazy(() => import("@/components/admins/create/Profile"));
 const PermissionsTab = lazy(() => import("@/components/admins/create/Permissions"));
 const ConsultantFields = lazy(() => import("@/components/admins/ConsultantFields"));
+const SocialMediaTab = lazy(() => import("@/components/admins/create/SocialMediaTab"));
 
 interface UseCreateAdminPageTabsParams {
   form: UseFormReturn<AdminFormValues>;
@@ -20,6 +22,10 @@ interface UseCreateAdminPageTabsParams {
   loadingRoles: boolean;
   rolesError: string | null;
   formErrorVersion: string;
+  adminSocialMedia: SocialMediaItem[];
+  consultantSocialMedia: SocialMediaItem[];
+  onAdminSocialMediaChange: (items: SocialMediaItem[]) => void;
+  onConsultantSocialMediaChange: (items: SocialMediaItem[]) => void;
 }
 
 export function useCreateAdminPageTabs({
@@ -31,6 +37,10 @@ export function useCreateAdminPageTabs({
   loadingRoles,
   rolesError,
   formErrorVersion,
+  adminSocialMedia,
+  consultantSocialMedia,
+  onAdminSocialMediaChange,
+  onConsultantSocialMediaChange,
 }: UseCreateAdminPageTabsParams) {
   const adminRoleType = form.watch("admin_role_type");
 
@@ -76,8 +86,22 @@ export function useCreateAdminPageTabs({
           />
         ),
       },
+      {
+        id: "social",
+        label: "شبکه‌های اجتماعی",
+        icon: <Share2 className="w-4 h-4" />,
+        content: (
+          <SocialMediaTab
+            adminSocialMedia={adminSocialMedia}
+            consultantSocialMedia={consultantSocialMedia}
+            isConsultant={adminRoleType === "consultant"}
+            onAdminSocialMediaChange={onAdminSocialMediaChange}
+            onConsultantSocialMediaChange={onConsultantSocialMediaChange}
+          />
+        ),
+      },
     ],
-    [adminRoleType, editMode, form, loadingRoles, roles, rolesError, selectedMedia, setSelectedMedia, formErrorVersion]
+    [adminRoleType, editMode, form, loadingRoles, roles, rolesError, selectedMedia, setSelectedMedia, formErrorVersion, adminSocialMedia, consultantSocialMedia, onAdminSocialMediaChange, onConsultantSocialMediaChange]
   );
 
   return {

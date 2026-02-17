@@ -19,6 +19,7 @@ import { useAdminRolesOptions } from "@/components/admins/hooks/useAdminRolesOpt
 import { useCreateAdminPageTabs } from "@/components/admins/hooks/useCreateAdminPageTabs";
 import { ApiError } from "@/types/api/apiError";
 import { Alert, AlertDescription } from "@/components/elements/Alert";
+import type { SocialMediaItem } from "@/types/shared/socialMedia";
 
 const TabSkeleton = () => (
     <div className="mt-0 space-y-6">
@@ -63,6 +64,8 @@ export default function CreateAdminPage() {
     const [activeTab, setActiveTab] = useState<string>("base-info");
     const [editMode] = useState(true);
     const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
+    const [adminSocialMedia, setAdminSocialMedia] = useState<SocialMediaItem[]>([]);
+    const [consultantSocialMedia, setConsultantSocialMedia] = useState<SocialMediaItem[]>([]);
     const [formAlert, setFormAlert] = useState<string | null>(null);
 
     const ADMIN_CREATE_TAB_BY_FIELD: Record<string, string> = {
@@ -99,6 +102,9 @@ export default function CreateAdminPage() {
         role_id: "permissions",
         is_superuser: "permissions",
         is_active: "permissions",
+        social_media: "social",
+        'profile.social_media': 'social',
+        'agent_profile.social_media': 'social',
     };
 
     const resolveCreateAdminErrorTab = (fieldKeys: Iterable<string>): string | null => {
@@ -149,6 +155,15 @@ export default function CreateAdminPage() {
             };
 
             if (Object.keys(profileData).length > 0) {
+                profileData.social_media = adminSocialMedia
+                    .filter((item) => (item.name || '').trim() && (item.url || '').trim())
+                    .map((item, index) => ({
+                        id: item.id,
+                        name: item.name,
+                        url: item.url,
+                        icon: item.icon ?? item.icon_data?.id ?? null,
+                        order: item.order ?? index,
+                    }));
                 adminDataToSubmit.profile = profileData;
             }
 
@@ -172,6 +187,15 @@ export default function CreateAdminPage() {
                 if (data.og_image_id) agentProfile.og_image_id = data.og_image_id;
 
                 if (Object.keys(agentProfile).length > 0) {
+                    agentProfile.social_media = consultantSocialMedia
+                        .filter((item) => (item.name || '').trim() && (item.url || '').trim())
+                        .map((item, index) => ({
+                            id: item.id,
+                            name: item.name,
+                            url: item.url,
+                            icon: item.icon ?? item.icon_data?.id ?? null,
+                            order: item.order ?? index,
+                        }));
                     adminDataToSubmit.agent_profile = agentProfile;
                 }
             }
@@ -272,6 +296,10 @@ export default function CreateAdminPage() {
         loadingRoles,
         rolesError,
         formErrorVersion,
+        adminSocialMedia,
+        consultantSocialMedia,
+        onAdminSocialMediaChange: setAdminSocialMedia,
+        onConsultantSocialMediaChange: setConsultantSocialMedia,
     });
 
     return (

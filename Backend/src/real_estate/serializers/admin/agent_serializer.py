@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from django.db.models import Sum, Avg
 from src.real_estate.models.agent import PropertyAgent
+from src.real_estate.models.agent_social_media import PropertyAgentSocialMedia
 from src.real_estate.models.agency import RealEstateAgency
 from src.real_estate.models.statistics import AgentStatistics
 from src.core.models import Province, City
@@ -49,6 +50,18 @@ class PropertyAgentAdminListSerializer(serializers.ModelSerializer):
         return None
 
 class PropertyAgentAdminDetailSerializer(serializers.ModelSerializer):
+    class SocialMediaSerializer(serializers.ModelSerializer):
+        icon_url = serializers.SerializerMethodField()
+
+        class Meta:
+            model = PropertyAgentSocialMedia
+            fields = ['id', 'public_id', 'name', 'url', 'icon', 'icon_url', 'order']
+
+        def get_icon_url(self, obj):
+            if obj.icon and obj.icon.file:
+                return obj.icon.file.url
+            return None
+
     full_name = serializers.CharField(read_only=True)
     first_name = serializers.CharField(read_only=True, source='user.admin_profile.first_name')
     last_name = serializers.CharField(read_only=True, source='user.admin_profile.last_name')
@@ -70,6 +83,7 @@ class PropertyAgentAdminDetailSerializer(serializers.ModelSerializer):
     avg_deal_time = serializers.SerializerMethodField()
     lead_to_contract_rate = serializers.SerializerMethodField()
     failure_rate = serializers.SerializerMethodField()
+    social_media = SocialMediaSerializer(many=True, read_only=True)
     
     class Meta:
         model = PropertyAgent
@@ -83,6 +97,7 @@ class PropertyAgentAdminDetailSerializer(serializers.ModelSerializer):
             'total_sales_value', 'total_commissions', 'properties_sold', 'properties_rented',
             'conversion_rate', 'avg_deal_time', 'lead_to_contract_rate', 'failure_rate',
             'specialization', 'bio',
+            'social_media',
             'is_active', 'created_at', 'updated_at',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'og_image', 'canonical_url', 'robots_meta'
@@ -156,6 +171,11 @@ class PropertyAgentAdminDetailSerializer(serializers.ModelSerializer):
 
 class PropertyAgentAdminCreateSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(write_only=True)
+    social_media = serializers.ListField(
+        child=serializers.DictField(),
+        required=False,
+        write_only=True
+    )
     
     class Meta:
         model = PropertyAgent
@@ -215,6 +235,11 @@ class PropertyAgentAdminCreateSerializer(serializers.ModelSerializer):
 
 class PropertyAgentAdminUpdateSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(write_only=True, required=False)
+    social_media = serializers.ListField(
+        child=serializers.DictField(),
+        required=False,
+        write_only=True
+    )
     
     class Meta:
         model = PropertyAgent

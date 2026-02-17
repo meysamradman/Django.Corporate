@@ -13,6 +13,7 @@ from src.user.utils.mobile_validator import validate_mobile_number
 from src.user.utils.phone_validator import validate_phone_number_with_uniqueness
 from src.user.access_control import get_role_config, is_super_admin_role, PermissionHelper
 from src.real_estate.serializers.admin.agent_serializer import PropertyAgentAdminDetailSerializer
+from src.user.models import AdminProfileSocialMedia
 
 class ProfilePictureSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
@@ -32,6 +33,18 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
         return super().to_representation(instance)
 
 class AdminProfileSerializer(serializers.ModelSerializer):
+    class SocialMediaSerializer(serializers.ModelSerializer):
+        icon_url = serializers.SerializerMethodField()
+
+        class Meta:
+            model = AdminProfileSocialMedia
+            fields = ['id', 'public_id', 'name', 'url', 'icon', 'icon_url', 'order']
+
+        def get_icon_url(self, obj):
+            if obj.icon and obj.icon.file:
+                return obj.icon.file.url
+            return None
+
     profile_picture = ProfilePictureSerializer(read_only=True)
     province = ProvinceCompactSerializer(read_only=True)
     city = CityCompactSerializer(read_only=True)
@@ -39,12 +52,13 @@ class AdminProfileSerializer(serializers.ModelSerializer):
     updated_at = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
     public_id = serializers.UUIDField(read_only=True)
+    social_media = SocialMediaSerializer(many=True, read_only=True)
 
     class Meta:
         model = AdminProfile
         fields = ['id', 'public_id', 'first_name', 'last_name', 'full_name', 'birth_date',
                  'national_id', 'address', 'phone', 'province', 'city', 'bio',
-                 'profile_picture', 'created_at', 'updated_at']
+                 'profile_picture', 'social_media', 'created_at', 'updated_at']
         read_only_fields = ['public_id']
 
     def get_full_name(self, obj):

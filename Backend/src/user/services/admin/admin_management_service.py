@@ -5,10 +5,12 @@ from rest_framework.exceptions import NotFound, ValidationError, AuthenticationF
 from src.user.messages import AUTH_ERRORS, PROTECTED_ADMIN_ID
 from src.user.utils import validate_identifier, validate_register_password
 from src.user.models import User, AdminProfile, AdminUserRole, AdminRole
+from src.user.models import AdminProfileSocialMedia
 from src.media.models import ImageMedia
 from src.media.services.media_services import MediaAdminService as MediaService
 from src.user.services.admin.admin_profile_service import AdminProfileService
 from src.core.utils.validation_helpers import extract_validation_message
+from src.real_estate.models.agent_social_media import PropertyAgentSocialMedia
 
 def _clear_permission_cache(user_id):
     try:
@@ -20,6 +22,103 @@ def _clear_permission_cache(user_id):
         pass
 
 class AdminManagementService:
+    @staticmethod
+    def _sync_admin_profile_social_media(profile, social_media_items):
+        if social_media_items is None:
+            return
+
+        if not isinstance(social_media_items, list):
+            raise ValidationError({'profile.social_media': AUTH_ERRORS.get("auth_validation_error")})
+
+        existing_items = {item.id: item for item in profile.social_media.all()}
+        kept_ids = []
+
+        for index, item in enumerate(social_media_items):
+            if not isinstance(item, dict):
+                continue
+
+            name = (item.get('name') or '').strip()
+            url = (item.get('url') or '').strip()
+            if not name or not url:
+                continue
+
+            order = item.get('order')
+            if order is None:
+                order = index
+
+            icon_id = item.get('icon', item.get('icon_id'))
+            icon_id = icon_id or None
+
+            social_id = item.get('id')
+            if social_id in existing_items:
+                social_obj = existing_items[social_id]
+                social_obj.name = name
+                social_obj.url = url
+                social_obj.icon_id = icon_id
+                social_obj.order = order
+                social_obj.is_active = True
+                social_obj.save(update_fields=['name', 'url', 'icon', 'order', 'is_active', 'updated_at'])
+                kept_ids.append(social_obj.id)
+            else:
+                social_obj = AdminProfileSocialMedia.objects.create(
+                    admin_profile=profile,
+                    name=name,
+                    url=url,
+                    icon_id=icon_id,
+                    order=order,
+                )
+                kept_ids.append(social_obj.id)
+
+        profile.social_media.exclude(id__in=kept_ids).delete()
+
+    @staticmethod
+    def _sync_agent_profile_social_media(agent_profile, social_media_items):
+        if social_media_items is None:
+            return
+
+        if not isinstance(social_media_items, list):
+            raise ValidationError({'agent_profile.social_media': AUTH_ERRORS.get("auth_validation_error")})
+
+        existing_items = {item.id: item for item in agent_profile.social_media.all()}
+        kept_ids = []
+
+        for index, item in enumerate(social_media_items):
+            if not isinstance(item, dict):
+                continue
+
+            name = (item.get('name') or '').strip()
+            url = (item.get('url') or '').strip()
+            if not name or not url:
+                continue
+
+            order = item.get('order')
+            if order is None:
+                order = index
+
+            icon_id = item.get('icon', item.get('icon_id'))
+            icon_id = icon_id or None
+
+            social_id = item.get('id')
+            if social_id in existing_items:
+                social_obj = existing_items[social_id]
+                social_obj.name = name
+                social_obj.url = url
+                social_obj.icon_id = icon_id
+                social_obj.order = order
+                social_obj.is_active = True
+                social_obj.save(update_fields=['name', 'url', 'icon', 'order', 'is_active', 'updated_at'])
+                kept_ids.append(social_obj.id)
+            else:
+                social_obj = PropertyAgentSocialMedia.objects.create(
+                    agent=agent_profile,
+                    name=name,
+                    url=url,
+                    icon_id=icon_id,
+                    order=order,
+                )
+                kept_ids.append(social_obj.id)
+
+        agent_profile.social_media.exclude(id__in=kept_ids).delete()
     @staticmethod
     def get_admins_list(search=None, is_active=None, is_superuser=None, user_role_type=None, date_from=None, date_to=None, request=None):
         queryset = User.objects.select_related(
@@ -177,12 +276,17 @@ class AdminManagementService:
                         profile_fields_to_update[field] = validated_data.pop(key)
 
                 nested_profile = validated_data.pop('profile', {}) or {}
+                profile_social_media = None
                 if isinstance(nested_profile, dict):
+                    profile_social_media = nested_profile.get('social_media')
                     for field in profile_model_fields:
                         if field in nested_profile:
                             profile_fields_to_update[field] = nested_profile[field]
 
                 nested_agent_profile = validated_data.pop('agent_profile', {}) or {}
+                agent_social_media = None
+                if isinstance(nested_agent_profile, dict):
+                    agent_social_media = nested_agent_profile.get('social_media')
                 
                 should_remove_picture = validated_data.pop('remove_profile_picture', 'false').lower() == 'true'
                 
@@ -266,6 +370,12 @@ class AdminManagementService:
                     if profile_fields_to_update:
                         AdminProfileService.update_admin_profile(admin, profile_fields_to_update)
 
+                if hasattr(admin, 'admin_profile') and admin.admin_profile is not None:
+                    AdminManagementService._sync_admin_profile_social_media(
+                        admin.admin_profile,
+                        profile_social_media
+                    )
+
                 if isinstance(nested_agent_profile, dict) and nested_agent_profile:
                     if not hasattr(admin, 'real_estate_agent_profile') or admin.real_estate_agent_profile is None:
                         raise ValidationError({'agent_profile': AUTH_ERRORS.get("auth_validation_error")})
@@ -340,6 +450,10 @@ class AdminManagementService:
                             agent_profile.og_image = None
 
                     agent_profile.save()
+                    AdminManagementService._sync_agent_profile_social_media(
+                        agent_profile,
+                        agent_social_media
+                    )
                 
                 _clear_permission_cache(admin.id)
             

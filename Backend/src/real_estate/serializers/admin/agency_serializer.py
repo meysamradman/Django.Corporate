@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from src.real_estate.models.agency import RealEstateAgency
+from src.real_estate.models.agency_social_media import RealEstateAgencySocialMedia
 from src.real_estate.messages.messages import AGENCY_ERRORS
 from src.media.serializers.media_serializer import MediaAdminSerializer
 
@@ -30,11 +31,24 @@ class RealEstateAgencyAdminListSerializer(serializers.ModelSerializer):
         return None
 
 class RealEstateAgencyAdminDetailSerializer(serializers.ModelSerializer):
+    class SocialMediaSerializer(serializers.ModelSerializer):
+        icon_url = serializers.SerializerMethodField()
+
+        class Meta:
+            model = RealEstateAgencySocialMedia
+            fields = ['id', 'public_id', 'name', 'url', 'icon', 'icon_url', 'order']
+
+        def get_icon_url(self, obj):
+            if obj.icon and obj.icon.file:
+                return obj.icon.file.url
+            return None
+
     province_name = serializers.CharField(source='province.name', read_only=True)
     city_name = serializers.CharField(source='city.name', read_only=True)
     property_count = serializers.IntegerField(read_only=True)
     agent_count = serializers.IntegerField(read_only=True)
     profile_picture = MediaAdminSerializer(read_only=True)
+    social_media = SocialMediaSerializer(many=True, read_only=True)
     
     class Meta:
         model = RealEstateAgency
@@ -45,7 +59,7 @@ class RealEstateAgencyAdminDetailSerializer(serializers.ModelSerializer):
             'profile_picture',
             'property_count', 'agent_count',
             'rating', 'total_reviews',
-            'description', 'is_active',
+            'description', 'social_media', 'is_active',
             'created_at', 'updated_at',
             'meta_title', 'meta_description', 'og_title', 'og_description',
             'canonical_url', 'robots_meta'
@@ -53,6 +67,12 @@ class RealEstateAgencyAdminDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
 
 class RealEstateAgencyAdminCreateSerializer(serializers.ModelSerializer):
+    social_media = serializers.ListField(
+        child=serializers.DictField(),
+        required=False,
+        write_only=True
+    )
+
     class Meta:
         model = RealEstateAgency
         fields = [
@@ -91,6 +111,12 @@ class RealEstateAgencyAdminCreateSerializer(serializers.ModelSerializer):
         return value
 
 class RealEstateAgencyAdminUpdateSerializer(serializers.ModelSerializer):
+    social_media = serializers.ListField(
+        child=serializers.DictField(),
+        required=False,
+        write_only=True
+    )
+
     class Meta:
         model = RealEstateAgency
         fields = [

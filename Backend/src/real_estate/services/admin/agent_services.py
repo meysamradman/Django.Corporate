@@ -4,10 +4,60 @@ from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from src.real_estate.models.agent import PropertyAgent
+from src.real_estate.models.agent_social_media import PropertyAgentSocialMedia
 from src.real_estate.models.property import Property
 from src.real_estate.messages.messages import AGENT_ERRORS, AGENT_DEFAULTS
 
 class PropertyAgentAdminService:
+    @staticmethod
+    def _sync_social_media(agent, social_media_items):
+        if social_media_items is None:
+            return
+
+        if not isinstance(social_media_items, list):
+            raise ValidationError({'social_media': AGENT_ERRORS.get("agent_update_failed")})
+
+        existing_items = {item.id: item for item in agent.social_media.all()}
+        kept_ids = []
+
+        for index, item in enumerate(social_media_items):
+            if not isinstance(item, dict):
+                continue
+
+            name = (item.get('name') or '').strip()
+            url = (item.get('url') or '').strip()
+
+            if not name or not url:
+                continue
+
+            order = item.get('order')
+            if order is None:
+                order = index
+
+            icon_id = item.get('icon', item.get('icon_id'))
+            icon_id = icon_id or None
+
+            social_id = item.get('id')
+            if social_id in existing_items:
+                social_obj = existing_items[social_id]
+                social_obj.name = name
+                social_obj.url = url
+                social_obj.icon_id = icon_id
+                social_obj.order = order
+                social_obj.is_active = True
+                social_obj.save(update_fields=['name', 'url', 'icon', 'order', 'is_active', 'updated_at'])
+                kept_ids.append(social_obj.id)
+            else:
+                social_obj = PropertyAgentSocialMedia.objects.create(
+                    agent=agent,
+                    name=name,
+                    url=url,
+                    icon_id=icon_id,
+                    order=order,
+                )
+                kept_ids.append(social_obj.id)
+
+        agent.social_media.exclude(id__in=kept_ids).delete()
     
     @staticmethod
     def get_agent_queryset(filters=None, search=None, date_from=None, date_to=None):
@@ -128,9 +178,12 @@ class PropertyAgentAdminService:
         if not validated_data.get('og_description') and validated_data.get('meta_description'):
             validated_data['og_description'] = validated_data['meta_description']
         
+        social_media_items = validated_data.pop('social_media', None)
+
         with transaction.atomic():
             validated_data['user_id'] = user_id
             agent = PropertyAgent.objects.create(**validated_data)
+            PropertyAgentAdminService._sync_social_media(agent, social_media_items)
         
         return agent
     
@@ -200,12 +253,15 @@ class PropertyAgentAdminService:
                 if not validated_data.get('og_description'):
                     validated_data['og_description'] = validated_data['meta_description']
         
+        social_media_items = validated_data.pop('social_media', None)
+
         with transaction.atomic():
             if user_id:
                 validated_data['user_id'] = user_id
             for field, value in validated_data.items():
                 setattr(agent, field, value)
             agent.save()
+            PropertyAgentAdminService._sync_social_media(agent, social_media_items)
         
         return agent
     

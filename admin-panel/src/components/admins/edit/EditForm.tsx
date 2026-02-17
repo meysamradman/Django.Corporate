@@ -11,9 +11,10 @@ import { useAuth } from "@/core/auth/AuthContext";
 import { ApiError } from "@/types/api/apiError";
 import { Button } from "@/components/elements/Button";
 import { Alert, AlertDescription } from "@/components/elements/Alert";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { usePermission } from "@/core/permissions";
 import { extractMappedAdminFieldErrors, ADMIN_EDIT_FIELD_MAP } from "@/components/admins/validations/adminApiError";
+import type { SocialMediaItem } from "@/types/shared/socialMedia";
 
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
@@ -47,10 +48,12 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
     const [activeTab, setActiveTab] = useState("account");
     const queryClient = useQueryClient();
     const navigate = useNavigate();
+    const location = useLocation();
     const { user, refreshUser } = useAuth();
     const { hasPermission } = usePermission();
 
     const isMeRoute = adminId === "me";
+    const isAgentRoute = location.pathname.includes('/agents/');
     const isNumericId = !Number.isNaN(Number(adminId));
     const queryKey = ['admin', isMeRoute ? 'me' : adminId];
 
@@ -105,6 +108,8 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
     const [isSaving, setIsSaving] = useState(false);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [formAlert, setFormAlert] = useState<string | null>(null);
+    const [adminSocialMedia, setAdminSocialMedia] = useState<SocialMediaItem[]>([]);
+    const [consultantSocialMedia, setConsultantSocialMedia] = useState<SocialMediaItem[]>([]);
     const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(null);
     const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
     const previousAdminIdRef = useRef<number | undefined>(undefined);
@@ -151,6 +156,8 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
             });
             setSelectedProvinceId(adminData.profile?.province?.id || null);
             setSelectedCityId(adminData.profile?.city?.id || null);
+            setAdminSocialMedia(adminData.profile?.social_media || []);
+            setConsultantSocialMedia(adminData.agent_profile?.social_media || []);
             previousAdminIdRef.current = adminData.id;
         } else if (!editMode) {
             setFormData(prev => {
@@ -257,8 +264,27 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                     og_title: formData.og_title || null,
                     og_description: formData.og_description || null,
                     og_image_id: formData.og_image_id || null,
+                    social_media: consultantSocialMedia
+                        .filter((item) => (item.name || '').trim() && (item.url || '').trim())
+                        .map((item, index) => ({
+                            id: item.id,
+                            name: item.name,
+                            url: item.url,
+                            icon: item.icon ?? item.icon_data?.id ?? null,
+                            order: item.order ?? index,
+                        })),
                 };
             }
+
+            profileData.profile.social_media = adminSocialMedia
+                .filter((item) => (item.name || '').trim() && (item.url || '').trim())
+                .map((item, index) => ({
+                    id: item.id,
+                    name: item.name,
+                    url: item.url,
+                    icon: item.icon ?? item.icon_data?.id ?? null,
+                    order: item.order ?? index,
+                }));
 
             if (!adminData) {
                 showError('اطلاعات ادمین یافت نشد');
@@ -322,10 +348,16 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                     ].includes(key)
                 );
 
+                const hasSocialFieldError = Object.keys(mappedFieldErrors).some((key) =>
+                    key.includes('social_media')
+                );
+
                 if (hasConsultantFieldError && adminData?.user_role_type === 'consultant') {
                     setActiveTab('consultant');
                 } else if (hasAccountFieldError) {
                     setActiveTab('account');
+                } else if (hasSocialFieldError) {
+                    setActiveTab('social');
                 }
 
                 if (nonFieldError) {
@@ -502,8 +534,12 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                 <TabsContent value="social">
                     <Suspense fallback={<TabContentSkeleton />}>
                         <SocialTab
-                            formData={formData}
-                            handleInputChange={handleInputChange}
+                            adminSocialMedia={adminSocialMedia}
+                            consultantSocialMedia={consultantSocialMedia}
+                            hasConsultantProfile={adminData.user_role_type === 'consultant'}
+                            showAdminSection={!isAgentRoute}
+                            onAdminSocialMediaChange={setAdminSocialMedia}
+                            onConsultantSocialMediaChange={setConsultantSocialMedia}
                             handleSaveProfile={handleSaveProfile}
                         />
                     </Suspense>

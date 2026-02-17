@@ -9,6 +9,8 @@ from .roles import (
 )
 from .user_profile import UserProfile
 from .admin_profile import AdminProfile
+from .admin_profile_social_media import AdminProfileSocialMedia
+from .user_profile_social_media import UserProfileSocialMedia
 
 __all__ = [
     'User',
@@ -20,4 +22,6 @@ __all__ = [
     'RolePermission',
     'UserProfile',
     'AdminProfile',
+    'AdminProfileSocialMedia',
+    'UserProfileSocialMedia',
 ]

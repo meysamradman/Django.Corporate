@@ -69,6 +69,9 @@ class PropertyAgentPublicService:
             'user__admin_profile__province',
             'agency',
             'profile_picture'
+        ).prefetch_related(
+            'social_media',
+            'social_media__icon'
         ).annotate(
             property_count=Count(
                 'properties',

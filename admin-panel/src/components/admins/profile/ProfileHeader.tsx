@@ -74,19 +74,9 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
                 }
                 updatedAdmin = await adminApi.updateProfile(updatePayload);
             } else {
-                const currentProfile = admin?.profile;
                 const updateData: any = {
                     profile: {
-                        first_name: currentProfile?.first_name || null,
-                        last_name: currentProfile?.last_name || null,
-                        phone: currentProfile?.phone || null,
-                        address: currentProfile?.address || null,
-                        province: currentProfile?.province?.id || null,
-                        city: currentProfile?.city?.id || null,
-                        bio: currentProfile?.bio || null,
-                        national_id: currentProfile?.national_id || null,
                         profile_picture: profilePictureId,
-                        birth_date: currentProfile?.birth_date || null,
                     }
                 };
                 if (!profilePictureId) {

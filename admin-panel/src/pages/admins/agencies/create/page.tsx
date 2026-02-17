@@ -8,13 +8,16 @@ import { realEstateApi } from "@/api/real-estate";
 import { extractFieldErrors, handleFormApiError, notifyApiError, showSuccess } from '@/core/toast';
 import { msg } from '@/core/messages';
 import { AlertCircle, Building2, UserCircle, Search } from "lucide-react";
+import { Share2 } from "lucide-react";
 import type { Media } from "@/types/shared/media";
+import type { SocialMediaItem } from "@/types/shared/socialMedia";
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { agencyFormSchema, agencyFormDefaults, type AgencyFormValues } from '@/components/real-estate/validations/agencySchema';
 import { AGENCY_FIELD_MAP, mapAgencyFieldErrorKey } from '@/components/real-estate/validations/agencyApiError';
 import { TabbedPageLayout } from "@/components/templates/TabbedPageLayout";
 import { ApiError } from "@/types/api/apiError";
 import { Alert, AlertDescription } from "@/components/elements/Alert";
+import { SocialMediaArrayEditor } from "@/components/shared/SocialMediaArrayEditor";
 
 const BaseInfoTab = lazy(() => import("@/components/real-estate/agencies/edit/AgencyInfo"));
 const ProfileTab = lazy(() => import("@/components/real-estate/agencies/create/AgencyProfile"));
@@ -25,6 +28,7 @@ export default function AdminsAgenciesCreatePage() {
     const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState<string>("account");
     const [selectedLogo, setSelectedLogo] = useState<Media | null>(null);
+    const [socialMediaItems, setSocialMediaItems] = useState<SocialMediaItem[]>([]);
     const [formAlert, setFormAlert] = useState<string | null>(null);
 
     const AGENCY_CREATE_TAB_BY_FIELD: Record<string, string> = {
@@ -49,6 +53,10 @@ export default function AdminsAgenciesCreatePage() {
         og_description: 'seo',
         canonical_url: 'seo',
         robots_meta: 'seo',
+        social_media: 'social',
+        'social_media.name': 'social',
+        'social_media.url': 'social',
+        'social_media.order': 'social',
     };
 
     const resolveAgencyCreateErrorTab = (fieldKeys: Iterable<string>): string | null => {
@@ -101,6 +109,14 @@ export default function AdminsAgenciesCreatePage() {
                 meta_description: data.meta_description || undefined,
                 og_title: data.og_title || undefined,
                 og_description: data.og_description || undefined,
+                social_media: socialMediaItems
+                    .filter((item) => (item.name || '').trim() && (item.url || '').trim())
+                    .map((item, index) => ({
+                        name: item.name,
+                        url: item.url,
+                        icon: item.icon ?? item.icon_data?.id ?? null,
+                        order: item.order ?? index,
+                    })),
             };
 
             if (selectedLogo?.id) {
@@ -241,6 +257,19 @@ export default function AdminsAgenciesCreatePage() {
                                 form={form}
                                 editMode={true}
                             />
+                        ),
+                    },
+                    {
+                        id: "social",
+                        label: "شبکه‌های اجتماعی",
+                        icon: <Share2 className="h-4 w-4" />,
+                        content: (
+                            <div className="rounded-lg border p-6">
+                                <SocialMediaArrayEditor
+                                    items={socialMediaItems}
+                                    onChange={setSocialMediaItems}
+                                />
+                            </div>
                         ),
                     },
                 ]}

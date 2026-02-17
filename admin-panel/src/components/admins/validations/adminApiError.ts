@@ -38,6 +38,8 @@ export const ADMIN_CREATE_FIELD_MAP = {
   og_image_id: 'og_image_id',
   'profile.bio': 'profile_bio',
   'agent_profile.bio': 'bio',
+  'profile.social_media': 'profile.social_media',
+  'agent_profile.social_media': 'agent_profile.social_media',
 } as const;
 
 export const ADMIN_EDIT_FIELD_MAP = {
@@ -68,6 +70,8 @@ export const ADMIN_EDIT_FIELD_MAP = {
   og_image_id: 'og_image_id',
   'profile.bio': 'bio',
   'agent_profile.bio': 'agent_bio',
+  'profile.social_media': 'profile.social_media',
+  'agent_profile.social_media': 'agent_profile.social_media',
 } as const;
 
 export function normalizeAdminErrorKey(key: string): string {
