@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from django.core.cache import cache
 from django.conf import settings
 from src.blog.models.blog import Blog
 from src.blog.models.category import BlogCategory
@@ -10,7 +9,6 @@ from src.blog.serializers.admin.category_serializer import BlogCategorySimpleAdm
 from src.blog.serializers.admin.tag_serializer import BlogTagAdminSerializer
 from src.blog.services.admin.media_services import BlogAdminMediaService
 from src.blog.messages.messages import BLOG_ERRORS
-from src.blog.utils.cache import BlogCacheKeys
 from src.media.serializers.media_serializer import MediaAdminSerializer, MediaCoverSerializer
 from src.media.serializers.mixins import MediaAggregationMixin
 
@@ -166,11 +164,6 @@ class BlogAdminDetailSerializer(MediaAggregationMixin, serializers.ModelSerializ
         return self.get_media(obj)
     
     def get_seo_data(self, obj):
-        cache_key = BlogCacheKeys.seo_data(obj.pk)
-        cached_data = cache.get(cache_key)
-        if cached_data:
-            return cached_data
-        
         seo_data = {
             'meta_title': obj.get_meta_title(),
             'meta_description': obj.get_meta_description(),
@@ -179,16 +172,9 @@ class BlogAdminDetailSerializer(MediaAggregationMixin, serializers.ModelSerializ
             'canonical_url': obj.get_canonical_url(),
             'structured_data': obj.generate_structured_data(),
         }
-        
-        cache.set(cache_key, seo_data, 1800)
         return seo_data
     
     def get_seo_preview(self, obj):
-        cache_key = BlogCacheKeys.seo_preview(obj.pk)
-        cached_preview = cache.get(cache_key)
-        if cached_preview:
-            return cached_preview
-        
         preview_data = {
             'google': {
                 'title': obj.get_meta_title()[:60],
@@ -201,16 +187,9 @@ class BlogAdminDetailSerializer(MediaAggregationMixin, serializers.ModelSerializ
                 'image': obj.og_image.file.url if obj.og_image else None
             }
         }
-        
-        cache.set(cache_key, preview_data, 1800)
         return preview_data
     
     def get_seo_completeness(self, obj):
-        cache_key = BlogCacheKeys.seo_completeness(obj.pk)
-        cached_completeness = cache.get(cache_key)
-        if cached_completeness:
-            return cached_completeness
-        
         checks = [
             bool(obj.meta_title),
             bool(obj.meta_description),
@@ -228,8 +207,6 @@ class BlogAdminDetailSerializer(MediaAggregationMixin, serializers.ModelSerializ
             'total': len(checks),
             'percentage': round((score / len(checks)) * 100, 1)
         }
-        
-        cache.set(cache_key, completeness_data, 1800)
         return completeness_data
 
 class BlogAdminCreateSerializer(serializers.ModelSerializer):

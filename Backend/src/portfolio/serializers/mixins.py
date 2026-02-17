@@ -1,29 +1,21 @@
 from rest_framework import serializers
-from django.core.cache import cache
-from src.portfolio.utils.cache import PortfolioCacheKeys
 
 class MainImageMixin:
     
     def get_main_image_url(self, obj):
-        cache_key = PortfolioCacheKeys.main_image(obj.id)
-        url = cache.get(cache_key)
-        
-        if url is None:
-            try:
-                if hasattr(obj, 'main_image_media') and obj.main_image_media:
-                    url = obj.main_image_media[0].media.file.url if obj.main_image_media[0].media else ""
+        try:
+            if hasattr(obj, 'main_image_media') and obj.main_image_media:
+                url = obj.main_image_media[0].media.file.url if obj.main_image_media[0].media else ""
+            else:
+                for media in obj.portfolio_medias.all():
+                    if media.is_main_image and media.media:
+                        url = media.media.file.url
+                        break
                 else:
-                    for media in obj.portfolio_medias.all():
-                        if media.is_main_image and media.media:
-                            url = media.media.file.url
-                            break
-                    else:
-                        url = ""
-                
-                cache.set(cache_key, url, 1800)
-            except Exception:
-                url = ""
-        
+                    url = ""
+        except Exception:
+            url = ""
+
         return url or None
 
 class SEODataMixin:

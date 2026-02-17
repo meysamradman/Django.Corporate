@@ -1,18 +1,8 @@
-import hashlib
-import json
-
-from django.core.cache import cache
 from django.db.models import Count, Q
 from src.portfolio.models.tag import PortfolioTag
 
 class PortfolioTagPublicService:
     ALLOWED_ORDERING_FIELDS = {'name', 'portfolio_count', 'created_at'}
-
-    @staticmethod
-    def _build_cache_key(prefix, payload):
-        serialized = json.dumps(payload, sort_keys=True, default=str)
-        digest = hashlib.md5(serialized.encode('utf-8')).hexdigest()
-        return f"{prefix}:{digest}"
 
     @staticmethod
     def _normalize_ordering(ordering):
