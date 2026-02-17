@@ -1,3 +1,5 @@
+import type { ApiPagination, PaginatedResponse } from '@/types/shared/pagination';
+
 export function convertToLimitOffset(page: number, size: number): { limit: number; offset: number } {
   const limit = size;
   const offset = (page - 1) * size;
@@ -31,4 +33,27 @@ export function normalizePaginationParams(
   }
   
   return { page, size };
+}
+
+export function resolvePaginatedData<T>(
+  response: PaginatedResponse<T> | null | undefined,
+  fallbackPage: number = 1
+): {
+  items: T[];
+  pagination: ApiPagination;
+} {
+  const items = response?.data ?? [];
+  const pagination = response?.pagination;
+
+  return {
+    items,
+    pagination: {
+      count: pagination?.count ?? 0,
+      next: pagination?.next ?? null,
+      previous: pagination?.previous ?? null,
+      page_size: pagination?.page_size ?? items.length,
+      current_page: pagination?.current_page ?? fallbackPage,
+      total_pages: pagination?.total_pages ?? 1,
+    },
+  };
 }

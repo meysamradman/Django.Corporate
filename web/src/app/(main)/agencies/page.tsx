@@ -1,6 +1,7 @@
 import AgencyCard from "@/components/agencies/AgencyCard";
 import { agencyApi } from "@/api/real-estate/agent";
 import type { Agency } from "@/types/real-estate/agent";
+import { resolvePaginatedData } from "@/core/utils/pagination";
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -37,10 +38,10 @@ export default async function AgenciesPage({ searchParams }: PageProps) {
     order_desc: true,
   }).catch(() => null);
 
-  const agencies = response?.data || [];
-  const totalCount = response?.pagination?.count || 0;
-  const totalPages = response?.pagination?.total_pages || 1;
-  const currentPage = response?.pagination?.current_page || page;
+  const { items: agencies, pagination } = resolvePaginatedData(response, page);
+  const totalCount = pagination.count;
+  const totalPages = pagination.total_pages;
+  const currentPage = pagination.current_page;
 
   return (
     <main className="container mx-auto px-4 py-10 md:py-12">

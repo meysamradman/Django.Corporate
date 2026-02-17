@@ -4,6 +4,7 @@ import {
   resolvePropertySearchFilters,
   toPropertyListApiParams,
 } from "@/components/real-estate/search/filters";
+import { resolvePaginatedData } from "@/core/utils/pagination";
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -23,10 +24,10 @@ export default async function RealEstatePage({ searchParams }: PageProps) {
     realEstateApi.getPropertyStatuses().catch(() => []),
   ]);
 
-  const properties = propertiesResponse?.data ?? [];
-  const totalCount = propertiesResponse?.pagination?.count ?? 0;
-  const totalPages = propertiesResponse?.pagination?.total_pages ?? 1;
-  const currentPage = propertiesResponse?.pagination?.current_page ?? filters.page;
+  const { items: properties, pagination } = resolvePaginatedData(propertiesResponse, filters.page);
+  const totalCount = pagination.count;
+  const totalPages = pagination.total_pages;
+  const currentPage = pagination.current_page;
 
   const typeOptions = (typesResponse?.data ?? []).map((item) => ({
     id: item.id,
