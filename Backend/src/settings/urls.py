@@ -1,6 +1,9 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from src.settings.views.public.branding_view import PublicLogoView, PublicSliderListView
+from src.settings.views.public.branding_view import (
+    PublicLogoView,
+    PublicSliderListView,
+)
 from src.settings.views.public.contact_view import PublicContactView
 from src.settings.views.public.general_settings_view import PublicGeneralSettingsView
 from src.settings.views.public.footer_view import PublicFooterView

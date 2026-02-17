@@ -5,6 +5,7 @@ export interface SiteLogo {
 
 export interface HomeSliderItem {
   id: number;
+  public_id: string;
   title: string;
   description: string;
   link: string;

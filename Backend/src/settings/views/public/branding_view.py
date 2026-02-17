@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 
 from src.core.cache import CacheService
 from src.core.responses.response import APIResponse
-from src.settings.messages.messages import SETTINGS_ERRORS
+from src.settings.messages.messages import SETTINGS_ERRORS, SETTINGS_SUCCESS
 from src.settings.serializers.public.branding_serializer import (
     PublicLogoSerializer,
     PublicSliderSerializer,
@@ -31,7 +31,7 @@ class PublicLogoView(APIView):
                 CacheService.set(cache_key, cached_data, cache_ttl.PUBLIC_BRANDING_LOGO_TTL)
 
             return APIResponse.success(
-                message='لوگو با موفقیت دریافت شد',
+                message=SETTINGS_SUCCESS['settings_retrieved'],
                 data=cached_data,
                 status_code=status.HTTP_200_OK,
             )
@@ -56,7 +56,7 @@ class PublicSliderListView(APIView):
                 CacheService.set(cache_key, cached_data, cache_ttl.PUBLIC_BRANDING_SLIDERS_TTL)
 
             return APIResponse.success(
-                message='اسلایدرها با موفقیت دریافت شدند',
+                message=SETTINGS_SUCCESS['settings_retrieved'],
                 data=cached_data,
                 status_code=status.HTTP_200_OK,
             )

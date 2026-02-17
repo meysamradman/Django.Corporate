@@ -31,6 +31,7 @@ class PublicSliderSerializer(serializers.ModelSerializer):
         model = Slider
         fields = [
             'id',
+            'public_id',
             'title',
             'description',
             'link',
