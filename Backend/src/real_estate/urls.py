@@ -9,6 +9,8 @@ from src.real_estate.views.public import (
     label_views,
     tag_views,
     feature_views,
+    agent_views,
+    agency_views,
 )
 
 admin_router = DefaultRouter()
@@ -32,6 +34,8 @@ public_router.register(r'real-estate/states', state_views.PropertyStatePublicVie
 public_router.register(r'real-estate/labels', label_views.PropertyLabelPublicViewSet, basename='public-property-label')
 public_router.register(r'real-estate/tags', tag_views.PropertyTagPublicViewSet, basename='public-property-tag')
 public_router.register(r'real-estate/features', feature_views.PropertyFeaturePublicViewSet, basename='public-property-feature')
+public_router.register(r'real-estate/agents', agent_views.PropertyAgentPublicViewSet, basename='public-agent')
+public_router.register(r'real-estate/agencies', agency_views.RealEstateAgencyPublicViewSet, basename='public-agency')
 
 urlpatterns = [
     path('', include(admin_router.urls)),
