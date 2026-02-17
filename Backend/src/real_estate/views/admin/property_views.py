@@ -37,7 +37,6 @@ from src.real_estate.services.admin import (
     PropertyExcelExportService,
     PropertyPDFListExportService,
 )
-from src.real_estate.utils.cache import PropertyCacheManager
 from src.real_estate.messages.messages import PROPERTY_SUCCESS, PROPERTY_ERRORS
 from src.real_estate.models.constants import LISTING_TYPE_CHOICES
 from src.core.utils.validation_helpers import extract_validation_message, normalize_validation_error
@@ -794,7 +793,6 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             
             if deleted > 0:
                 property_obj.refresh_from_db()
-                PropertyCacheManager.invalidate_property(property_obj.id)
                 serializer = PropertyAdminDetailSerializer(property_obj)
                 
                 return APIResponse.success(

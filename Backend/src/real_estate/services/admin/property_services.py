@@ -53,6 +53,18 @@ class PropertyYearService:
             'total_choices': Property.get_year_max() - Property.YEAR_MIN + 1
         }
 
+
+class PropertyExportRateLimitService:
+
+    @staticmethod
+    def check_and_increment(user_id, limit, window_seconds):
+        cache_key = f"admin:real_estate:property:export_limit:{user_id}"
+        export_count = cache.get(cache_key, 0)
+        if export_count >= limit:
+            return False
+        cache.set(cache_key, export_count + 1, window_seconds)
+        return True
+
 class PropertyAdminService:
     
     @staticmethod

@@ -5,7 +5,6 @@ from src.core.models import BaseModel
 from src.real_estate.models.seo import SEOMixin
 from src.media.models.media import ImageMedia
 from src.real_estate.models.managers import PropertyTypeQuerySet
-from src.real_estate.utils.cache import TypeCacheManager
 
 class PropertyType(MP_Node, BaseModel, SEOMixin):
     
@@ -92,12 +91,9 @@ class PropertyType(MP_Node, BaseModel, SEOMixin):
             self.meta_description = self.description[:300]
             
         super().save(*args, **kwargs)
-        
-        TypeCacheManager.invalidate_all()
     
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
-        TypeCacheManager.invalidate_all()
     
     def is_root_level(self):
         

@@ -14,7 +14,6 @@ from src.real_estate.models.feature import PropertyFeature
 from src.real_estate.models.tag import PropertyTag
 from src.real_estate.models.agency import RealEstateAgency
 from src.real_estate.models.agent import PropertyAgent
-from src.real_estate.utils.cache import PropertyCacheManager
 from src.real_estate.models.managers import PropertyQuerySet
 from src.real_estate.models.constants import PROPERTY_STATUS_CHOICES
 
@@ -823,7 +822,6 @@ class Property(BaseModel, SEOMixin):
             from django.utils import timezone
             self.published_at = timezone.now()
 
-        is_new = self.pk is None
         super().save(*args, **kwargs)
 
         Property.objects.filter(pk=self.pk).update(
@@ -834,13 +832,5 @@ class Property(BaseModel, SEOMixin):
             )
         )
 
-        if self.pk:
-            PropertyCacheManager.invalidate_property(self.pk)
-            PropertyCacheManager.invalidate_list()
-    
     def delete(self, *args, **kwargs):
-        property_id = self.pk
         super().delete(*args, **kwargs)
-        if property_id:
-            PropertyCacheManager.invalidate_property(property_id)
-            PropertyCacheManager.invalidate_list()

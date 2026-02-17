@@ -2,13 +2,13 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
-from django.core.cache import cache
 from django.db.models import Q
 from django.http import HttpResponse
 from django.conf import settings
 from src.real_estate.models.property import Property
 from src.real_estate.services.admin.excel_export_service import PropertyExcelExportService
 from src.real_estate.services.admin.pdf_list_export_service import PropertyPDFListExportService
+from src.real_estate.services.admin.property_services import PropertyExportRateLimitService
 from src.real_estate.filters.admin.property_filters import PropertyAdminFilter
 from src.core.responses.response import APIResponse
 from src.user.access_control import real_estate_permission, PermissionRequiredMixin
@@ -61,14 +61,16 @@ class PropertyExportView(PermissionRequiredMixin, APIView):
         if not getattr(request.user, 'is_admin_full', False):
             export_rate_limit = settings.REAL_ESTATE_EXPORT_RATE_LIMIT
             export_rate_window = settings.REAL_ESTATE_EXPORT_RATE_LIMIT_WINDOW
-            cache_key = f"admin:real_estate:property:export_limit:{request.user.id}"
-            export_count = cache.get(cache_key, 0)
-            if export_count >= export_rate_limit:
+            allowed = PropertyExportRateLimitService.check_and_increment(
+                user_id=request.user.id,
+                limit=export_rate_limit,
+                window_seconds=export_rate_window,
+            )
+            if not allowed:
                 return APIResponse.error(
                     message=PROPERTY_ERRORS["property_export_limit_exceeded"],
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS
                 )
-            cache.set(cache_key, export_count + 1, export_rate_window)
         
         try:
             queryset = Property.objects.prefetch_related(
