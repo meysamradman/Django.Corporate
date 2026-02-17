@@ -1,20 +1,10 @@
-import hashlib
-import json
 from datetime import date
 
 from django.db.models import Q
-from django.core.cache import cache
 from src.blog.models.blog import Blog
-from src.blog.utils.cache import BlogCacheKeys
 
 class BlogPublicService:
     ALLOWED_ORDERING_FIELDS = {'created_at', 'title', 'is_featured'}
-
-    @staticmethod
-    def _build_cache_key(prefix, payload):
-        serialized = json.dumps(payload, sort_keys=True, default=str)
-        digest = hashlib.md5(serialized.encode('utf-8')).hexdigest()
-        return f"{prefix}:{digest}"
 
     @staticmethod
     def _normalize_ordering(ordering):

@@ -1,10 +1,9 @@
 from django.db import models
-from django.core.cache import cache
 from src.core.models.base import BaseModel
 from src.blog.models.seo import SEOMixin
 from src.blog.models.category import BlogCategory
 from src.blog.models.tag import BlogTag
-from src.blog.utils.cache import BlogCacheKeys, BlogCacheManager
+from src.blog.utils.cache import BlogCacheManager
 from .managers import BlogQuerySet
 
 class Blog(BaseModel, SEOMixin):
@@ -193,34 +192,28 @@ class Blog(BaseModel, SEOMixin):
         return None
     
     def generate_structured_data(self):
-        cache_key = BlogCacheKeys.structured_data(self.pk)
-        structured_data = cache.get(cache_key)
-        
-        if structured_data is None:
-            main_image = self.get_main_image()
-            
-            tags = list(self.tags.values_list('name', flat=True)[:5])
-            categories = list(self.categories.values_list('name', flat=True)[:3])
-            
-            structured_data = {
-                "@context": "https://schema.org",
-                "@type": "CreativeWork",
-                "name": self.get_meta_title(),
-                "description": self.get_meta_description(),
-                "url": self.get_public_url(),
-                "image": main_image.file.url if main_image else None,
-                "dateCreated": self.created_at.isoformat() if self.created_at else None,
-                "dateModified": self.updated_at.isoformat() if self.updated_at else None,
-                "creator": {
-                    "@type": "Organization",
-                    "name": "Your Company Name"
-                },
-                "keywords": tags,
-                "about": categories
-            }
-            
-            cache.set(cache_key, structured_data, 1800)
-        
+        main_image = self.get_main_image()
+
+        tags = list(self.tags.values_list('name', flat=True)[:5])
+        categories = list(self.categories.values_list('name', flat=True)[:3])
+
+        structured_data = {
+            "@context": "https://schema.org",
+            "@type": "CreativeWork",
+            "name": self.get_meta_title(),
+            "description": self.get_meta_description(),
+            "url": self.get_public_url(),
+            "image": main_image.file.url if main_image else None,
+            "dateCreated": self.created_at.isoformat() if self.created_at else None,
+            "dateModified": self.updated_at.isoformat() if self.updated_at else None,
+            "creator": {
+                "@type": "Organization",
+                "name": "Your Company Name"
+            },
+            "keywords": tags,
+            "about": categories
+        }
+
         return structured_data
     
     def save(self, *args, **kwargs):
