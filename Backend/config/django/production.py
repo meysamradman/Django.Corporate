@@ -23,7 +23,7 @@ DEBUG = False
 
 # ALLOWED_HOSTS از env می‌خواند
 # در .env.production: ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
-ALLOWED_HOSTS = env('ALLOWED_HOSTS', default='').split(',')
+ALLOWED_HOSTS = env_list('ALLOWED_HOSTS', default='')
 
 # ============================================
 # 🔐 HTTPS & SSL Configuration
@@ -72,7 +72,7 @@ X_FRAME_OPTIONS = 'DENY'
 
 # فقط دامنه‌های مشخص را اجازه دهید
 CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = env('CORS_ALLOWED_ORIGINS', default='').split(',')
+CORS_ALLOWED_ORIGINS = env_list('CORS_ALLOWED_ORIGINS', default='')
 
 # ============================================
 # 🗄️ Database Security
@@ -219,7 +219,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 SESSION_CACHE_ALIAS = 'session'
 
 # CSRF Trusted Origins
-CSRF_TRUSTED_ORIGINS = env('CSRF_TRUSTED_ORIGINS', default='').split(',')
+CSRF_TRUSTED_ORIGINS = env_list('CSRF_TRUSTED_ORIGINS', default='')
 
 # Rate Limiting - محدودتر از development
 REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'] = {

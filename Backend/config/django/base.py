@@ -10,6 +10,17 @@ mimetypes.add_type("image/webp", ".webp")
 from config.env import env, BASE_DIR
 from django.utils.translation import gettext_lazy as _
 env.read_env(os.path.join(BASE_DIR, ".env"))
+
+
+def env_list(name: str, default: str = '') -> list[str]:
+    raw_value = env(name, default=default)
+    if isinstance(raw_value, (list, tuple, set)):
+        values = raw_value
+    else:
+        values = str(raw_value).split(',')
+    return [item.strip() for item in values if item and str(item).strip()]
+
+
 SECRET_KEY = env('SECRET_KEY')
 
 DEBUG = True
@@ -216,11 +227,10 @@ REST_FRAMEWORK = {
         'src.core.responses.APIResponse',
     ]
 }
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://localhost:4173",
-    "http://localhost:3000",
-]
+CORS_ALLOWED_ORIGINS = env_list(
+    'CORS_ALLOWED_ORIGINS',
+    default='http://localhost:5173,http://localhost:4173,http://localhost:3000',
+)
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = list(default_headers) + [
@@ -238,11 +248,10 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",
-    "http://localhost:4173",
-    'http://localhost:3000',
-]
+CSRF_TRUSTED_ORIGINS = env_list(
+    'CSRF_TRUSTED_ORIGINS',
+    default='http://localhost:5173,http://localhost:4173,http://localhost:3000',
+)
 
 AUTH_COOKIE_NAME = 'auth_token'
 REFRESH_COOKIE_NAME = 'refresh_token'
@@ -261,8 +270,7 @@ ADMIN_URL_SECRET = os.getenv('ADMIN_URL_SECRET', 'x7K9mP2qL5nR8tY3vZ6wC4fH1jN0bM
 # در production حتماً یک مقدار تصادفی و پیچیده بذار!
 
 # 🔒 Admin IP Whitelist (اختیاری - برای امنیت بیشتر)
-ADMIN_ALLOWED_IPS = os.getenv('ADMIN_ALLOWED_IPS', '').split(',')
-ADMIN_ALLOWED_IPS = [ip.strip() for ip in ADMIN_ALLOWED_IPS if ip.strip()]
+ADMIN_ALLOWED_IPS = env_list('ADMIN_ALLOWED_IPS', default='')
 
 # ============================================
 # Django Session Settings
