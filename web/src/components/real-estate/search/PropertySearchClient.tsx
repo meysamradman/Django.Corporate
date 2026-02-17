@@ -6,8 +6,8 @@ import PropertySearchSidebar, {
 } from "@/components/real-estate/search/PropertySearchSidebar";
 import {
   resolvePropertySearchFilters,
-} from "@/real-estate/search/filters";
-import { usePropertySearch } from "@/real-estate/search/usePropertySearch";
+} from "@/components/real-estate/search/filters";
+import { usePropertySearch } from "@/components/real-estate/search/usePropertySearch";
 import type { Property } from "@/types/real-estate/property";
 import type { PropertySearchFilters } from "@/types/real-estate/searchFilters";
 

@@ -12,7 +12,7 @@ import {
   PropertyLocation,
   PropertyVideo,
 } from "@/components/real-estate/property-detail";
-import { preparePropertyGallery } from "@/features/real-estate/detail/preparePropertyGallery";
+import { preparePropertyGallery } from "@/components/real-estate/property-detail/preparePropertyGallery";
 
 type PageProps = {
   params: Promise<{ slugOrId: string }>;

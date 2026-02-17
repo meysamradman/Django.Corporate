@@ -3,7 +3,7 @@ import PropertySearchClient from "@/components/real-estate/search/PropertySearch
 import {
   resolvePropertySearchFilters,
   toPropertyListApiParams,
-} from "@/real-estate/search/filters";
+} from "@/components/real-estate/search/filters";
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

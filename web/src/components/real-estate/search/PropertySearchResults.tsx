@@ -13,7 +13,7 @@ import {
 
 import type { Property } from "@/types/real-estate/property";
 import type { PropertySearchFilters } from "@/types/real-estate/searchFilters";
-import { filtersToSearchParams } from "@/real-estate/search/filters";
+import { filtersToSearchParams } from "@/components/real-estate/search/filters";
 
 type PropertySearchResultsProps = {
   properties: Property[];

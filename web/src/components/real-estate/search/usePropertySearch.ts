@@ -7,7 +7,7 @@ import { realEstateApi } from "@/api/real-estate/route";
 import {
   filtersToSearchParams,
   toPropertyListApiParams,
-} from "@/real-estate/search/filters";
+} from "@/components/real-estate/search/filters";
 import type { Property } from "@/types/real-estate/property";
 import type { PropertySearchFilters } from "@/types/real-estate/searchFilters";
 
