@@ -23,7 +23,7 @@ class PropertyYearService:
         
         from src.real_estate.models.property import Property
         
-        cache_key = 'property_year_choices'
+        cache_key = 'admin:real_estate:property:year_choices'
         cached_choices = cache.get(cache_key)
         
         if cached_choices:

@@ -114,7 +114,7 @@ class PropertyCacheManager:
 
 class PropertyTagCacheKeys:
 
-    NAMESPACE = "property:tag"
+    NAMESPACE = "real_estate:property:tag"
     
     @staticmethod
     def tag(tag_id: int) -> str:
@@ -156,7 +156,7 @@ class PropertyTagCacheManager:
 
 class TypeCacheKeys:
 
-    NAMESPACE = "property:type"
+    NAMESPACE = "real_estate:property:type"
     
     @staticmethod
     def type_detail(type_id: int) -> str:

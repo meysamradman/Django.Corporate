@@ -14,7 +14,7 @@ from src.real_estate.models.feature import PropertyFeature
 from src.real_estate.models.tag import PropertyTag
 from src.real_estate.models.agency import RealEstateAgency
 from src.real_estate.models.agent import PropertyAgent
-from src.real_estate.utils.cache import PropertyCacheKeys, PropertyCacheManager
+from src.real_estate.utils.cache import PropertyCacheManager
 from src.real_estate.models.managers import PropertyQuerySet
 from src.real_estate.models.constants import PROPERTY_STATUS_CHOICES
 
@@ -708,84 +708,73 @@ class Property(BaseModel, SEOMixin):
         return None
     
     def generate_structured_data(self):
+        main_image = self.get_main_image()
 
-        from django.core.cache import cache
-        
-        cache_key = PropertyCacheKeys.structured_data(self.pk)
-        structured_data = cache.get(cache_key)
-        
-        if structured_data is None:
-            main_image = self.get_main_image()
-            
-            prefetched = getattr(self, '_prefetched_objects_cache', {})
+        prefetched = getattr(self, '_prefetched_objects_cache', {})
 
-            if 'tags' in prefetched:
-                tags = [tag.title for tag in prefetched['tags'][:5]]
-            else:
-                tags = list(self.tags.values_list('title', flat=True)[:5])
+        if 'tags' in prefetched:
+            tags = [tag.title for tag in prefetched['tags'][:5]]
+        else:
+            tags = list(self.tags.values_list('title', flat=True)[:5])
 
-            if 'features' in prefetched:
-                features = [feature.title for feature in prefetched['features'][:5]]
-            else:
-                features = list(self.features.values_list('title', flat=True)[:5])
-            
-            address_parts = []
-            if self.neighborhood:
-                address_parts.append(self.neighborhood)
-            if self.region:
-                address_parts.append(f"منطقه {self.region.code}")
-            if self.city:
-                address_parts.append(self.city.name)
-            if self.province:
-                address_parts.append(self.province.name)
+        if 'features' in prefetched:
+            features = [feature.title for feature in prefetched['features'][:5]]
+        else:
+            features = list(self.features.values_list('title', flat=True)[:5])
 
-            full_address = ", ".join(address_parts) if address_parts else self.address
+        address_parts = []
+        if self.neighborhood:
+            address_parts.append(self.neighborhood)
+        if self.region:
+            address_parts.append(f"منطقه {self.region.code}")
+        if self.city:
+            address_parts.append(self.city.name)
+        if self.province:
+            address_parts.append(self.province.name)
 
-            structured_data = {
-                "@context": "https://schema.org",
-                "@type": "RealEstateListing",
-                "name": self.get_meta_title(),
-                "description": self.get_meta_description(),
-                "url": self.get_public_url(),
-                "image": main_image.file.url if main_image and main_image.file else None,
-                "dateCreated": self.created_at.isoformat() if self.created_at else None,
-                "dateModified": self.updated_at.isoformat() if self.updated_at else None,
-                "address": {
-                    "@type": "PostalAddress",
-                    "streetAddress": self.address,
-                    "addressLocality": self.city.name if self.city else None,
-                    "addressRegion": self.province.name if self.province else None,
-                    "postalCode": self.postal_code or None,
-                    "addressCountry": "IR",  # Iran
-                },
-                "geo": {
-                    "@type": "GeoCoordinates",
-                    "latitude": float(self.latitude) if self.latitude else None,
-                    "longitude": float(self.longitude) if self.longitude else None,
-                } if self.latitude and self.longitude else None,
-                "numberOfRooms": self.bedrooms,
-                "numberOfBathroomsTotal": self.bathrooms,
-                "floorSize": {
-                    "@type": "QuantitativeValue",
-                    "value": float(self.built_area),
-                    "unitCode": "MTK"
-                } if self.built_area else None,
-                "price": {
-                    "@type": "PriceSpecification",
-                    "price": float(self.price),
-                } if self.price else None,
-                "keywords": tags + ([self.neighborhood] if self.neighborhood else []),
-                "amenityFeature": [
-                    {
-                        "@type": "LocationFeatureSpecification",
-                        "name": feature
-                    } for feature in features
-                ] if features else None,
-            }
-            
-            cache.set(cache_key, structured_data, 1800)
-        
-        return structured_data
+        full_address = ", ".join(address_parts) if address_parts else self.address
+
+        return {
+            "@context": "https://schema.org",
+            "@type": "RealEstateListing",
+            "name": self.get_meta_title(),
+            "description": self.get_meta_description(),
+            "url": self.get_public_url(),
+            "image": main_image.file.url if main_image and main_image.file else None,
+            "dateCreated": self.created_at.isoformat() if self.created_at else None,
+            "dateModified": self.updated_at.isoformat() if self.updated_at else None,
+            "address": {
+                "@type": "PostalAddress",
+                "streetAddress": full_address,
+                "addressLocality": self.city.name if self.city else None,
+                "addressRegion": self.province.name if self.province else None,
+                "postalCode": self.postal_code or None,
+                "addressCountry": "IR",  # Iran
+            },
+            "geo": {
+                "@type": "GeoCoordinates",
+                "latitude": float(self.latitude) if self.latitude else None,
+                "longitude": float(self.longitude) if self.longitude else None,
+            } if self.latitude and self.longitude else None,
+            "numberOfRooms": self.bedrooms,
+            "numberOfBathroomsTotal": self.bathrooms,
+            "floorSize": {
+                "@type": "QuantitativeValue",
+                "value": float(self.built_area),
+                "unitCode": "MTK"
+            } if self.built_area else None,
+            "price": {
+                "@type": "PriceSpecification",
+                "price": float(self.price),
+            } if self.price else None,
+            "keywords": tags + ([self.neighborhood] if self.neighborhood else []),
+            "amenityFeature": [
+                {
+                    "@type": "LocationFeatureSpecification",
+                    "name": feature
+                } for feature in features
+            ] if features else None,
+        }
     
     def clean(self):
         super().clean()

@@ -61,7 +61,7 @@ class PropertyExportView(PermissionRequiredMixin, APIView):
         if not getattr(request.user, 'is_admin_full', False):
             export_rate_limit = settings.REAL_ESTATE_EXPORT_RATE_LIMIT
             export_rate_window = settings.REAL_ESTATE_EXPORT_RATE_LIMIT_WINDOW
-            cache_key = f"property_export_limit_{request.user.id}"
+            cache_key = f"admin:real_estate:property:export_limit:{request.user.id}"
             export_count = cache.get(cache_key, 0)
             if export_count >= export_rate_limit:
                 return APIResponse.error(

@@ -1,6 +1,5 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from django.core.cache import cache
 
 from src.real_estate.serializers.admin import (
     RealEstateProvinceSerializer,
@@ -28,21 +27,10 @@ class RealEstateProvinceViewSet(PermissionRequiredMixin, viewsets.ReadOnlyModelV
     permission_denied_message = LOCATION_ERRORS["location_not_authorized"]
     
     def list(self, request, *args, **kwargs):
-        cache_key = 'real_estate_active_provinces'
-        cached_data = cache.get(cache_key)
-        
-        if cached_data:
-            return APIResponse.success(
-                message=LOCATION_SUCCESS["province_list_success"],
-                data=cached_data
-            )
-        
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         data = serializer.data
-        
-        cache.set(cache_key, data, 3600)  # Cache for 1 hour
-        
+
         return APIResponse.success(
             message=LOCATION_SUCCESS["province_list_success"],
             data=data
@@ -56,22 +44,11 @@ class RealEstateProvinceViewSet(PermissionRequiredMixin, viewsets.ReadOnlyModelV
                 message=LOCATION_ERRORS["province_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-
-        cache_key = f'real_estate_province_{province.id}_cities'
-        cached_data = cache.get(cache_key)
-        
-        if cached_data:
-            return APIResponse.success(
-                message=LOCATION_SUCCESS["city_list_success"],
-                data=cached_data
-            )
         
         cities = RealEstateLocationAdminService.get_province_cities(province)
         serializer = RealEstateCitySimpleSerializer(cities, many=True)
         data = serializer.data
-        
-        cache.set(cache_key, data, 3600)
-        
+
         return APIResponse.success(
             message=LOCATION_SUCCESS["city_list_success"],
             data=data
@@ -101,15 +78,6 @@ class RealEstateCityViewSet(PermissionRequiredMixin, viewsets.ReadOnlyModelViewS
     def list(self, request, *args, **kwargs):
         province_id = request.query_params.get('province_id')
         has_properties = request.query_params.get('has_properties', 'false').lower() == 'true'
-        cache_key = f'real_estate_cities_province_{province_id or "all"}_has_prop_{has_properties}'
-        
-        cached_data = cache.get(cache_key)
-        
-        if cached_data:
-            return APIResponse.success(
-                message=LOCATION_SUCCESS["city_list_success"],
-                data=cached_data
-            )
         
         queryset = self.get_queryset()
         
@@ -124,9 +92,7 @@ class RealEstateCityViewSet(PermissionRequiredMixin, viewsets.ReadOnlyModelViewS
         else:
             serializer = self.get_serializer(queryset, many=True)
             data = serializer.data
-        
-        cache.set(cache_key, data, 1800)
-        
+
         return APIResponse.success(
             message=LOCATION_SUCCESS["city_list_success"],
             data=data
@@ -141,23 +107,12 @@ class RealEstateCityViewSet(PermissionRequiredMixin, viewsets.ReadOnlyModelViewS
                 status_code=status.HTTP_404_NOT_FOUND
             )
 
-        cache_key = f'real_estate_city_{city.id}_city_regions'
-        cached_data = cache.get(cache_key)
-
-        if cached_data:
-            return APIResponse.success(
-                message=LOCATION_SUCCESS["region_list_success"],
-                data=cached_data
-            )
-
         regions = RealEstateLocationAdminService.get_city_regions_for_city(city)
         data = [{
             'id': region.id,
             'code': region.code,
             'name': region.name
         } for region in regions]
-
-        cache.set(cache_key, data, 3600)
 
         return APIResponse.success(
             message=LOCATION_SUCCESS["region_list_success"],
@@ -182,15 +137,6 @@ class RealEstateCityRegionViewSet(PermissionRequiredMixin, viewsets.ReadOnlyMode
     def list(self, request, *args, **kwargs):
         city_id = request.query_params.get('city_id')
 
-        cache_key = f'real_estate_city_regions_{city_id or "all"}'
-        cached_data = cache.get(cache_key)
-
-        if cached_data:
-            return APIResponse.success(
-                message=LOCATION_SUCCESS["region_list_success"],
-                data=cached_data
-            )
-
         queryset = self.get_queryset()
         data = [{
             'id': region.id,
@@ -199,8 +145,6 @@ class RealEstateCityRegionViewSet(PermissionRequiredMixin, viewsets.ReadOnlyMode
             'city_id': region.city_id,
             'city_name': region.city.name,
         } for region in queryset]
-
-        cache.set(cache_key, data, 3600)  # 1 hour
 
         return APIResponse.success(
             message=LOCATION_SUCCESS["region_list_success"],

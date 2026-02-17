@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from django.core.cache import cache
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 
@@ -14,7 +13,6 @@ from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.models.agency import RealEstateAgency
 from src.core.models import City, Province
 from src.real_estate.models.location import CityRegion
-from src.real_estate.utils.cache import PropertyCacheKeys
 from src.media.serializers.media_serializer import MediaAdminSerializer, MediaCoverSerializer
 from src.real_estate.messages.messages import PROPERTY_ERRORS
 from src.real_estate.models.constants import (
@@ -364,12 +362,7 @@ class PropertyAdminDetailSerializer(MediaAggregationMixin, serializers.ModelSeri
         return self.get_media(obj)
     
     def get_seo_data(self, obj):
-        cache_key = PropertyCacheKeys.structured_data(obj.pk)
-        cached_data = cache.get(cache_key)
-        if cached_data:
-            return cached_data
-        
-        seo_data = {
+        return {
             'meta_title': obj.get_meta_title(),
             'meta_description': obj.get_meta_description(),
             'og_title': obj.get_og_title(),
@@ -377,9 +370,6 @@ class PropertyAdminDetailSerializer(MediaAggregationMixin, serializers.ModelSeri
             'canonical_url': obj.get_canonical_url(),
             'structured_data': obj.generate_structured_data(),
         }
-        
-        cache.set(cache_key, seo_data, 1800)
-        return seo_data
 
     def get_created_by_name(self, obj):
         if not obj.created_by:
@@ -394,12 +384,7 @@ class PropertyAdminDetailSerializer(MediaAggregationMixin, serializers.ModelSeri
         return obj.created_by.mobile or obj.created_by.email or str(obj.created_by)
     
     def get_seo_preview(self, obj):
-        cache_key = PropertyCacheKeys.seo_preview(obj.pk)
-        cached_preview = cache.get(cache_key)
-        if cached_preview:
-            return cached_preview
-        
-        preview_data = {
+        return {
             'google': {
                 'title': obj.get_meta_title()[:60] if obj.get_meta_title() else '',
                 'description': obj.get_meta_description()[:160] if obj.get_meta_description() else '',
@@ -411,16 +396,8 @@ class PropertyAdminDetailSerializer(MediaAggregationMixin, serializers.ModelSeri
                 'image': obj.og_image.file.url if obj.og_image and obj.og_image.file else None
             }
         }
-        
-        cache.set(cache_key, preview_data, 1800)
-        return preview_data
     
     def get_seo_completeness(self, obj):
-        cache_key = PropertyCacheKeys.seo_completeness(obj.pk)
-        cached_completeness = cache.get(cache_key)
-        if cached_completeness:
-            return cached_completeness
-        
         checks = [
             bool(obj.meta_title),
             bool(obj.meta_description),
@@ -433,14 +410,11 @@ class PropertyAdminDetailSerializer(MediaAggregationMixin, serializers.ModelSeri
             len(obj.get_meta_description() or '') <= 160,
         ]
         score = sum(checks)
-        completeness_data = {
+        return {
             'score': score,
             'total': len(checks),
             'percentage': round((score / len(checks)) * 100, 1) if checks else 0
         }
-        
-        cache.set(cache_key, completeness_data, 1800)
-        return completeness_data
     
     def get_city_name(self, obj):
         return obj.city.name if obj.city else None
