@@ -12,10 +12,11 @@ from src.real_estate.models.tag import PropertyTag
 from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.models.agency import RealEstateAgency
 from src.real_estate.models.statistics import PropertyStatistics, AgentStatistics
-from src.real_estate.utils.cache import PropertyCacheKeys
+from src.real_estate.utils.cache_admin import PropertyCacheKeys
+from src.real_estate.utils.cache_ttl import ADMIN_PROPERTY_STATISTICS_TTL
 
 class PropertyStatisticsService:
-    CACHE_TIMEOUT = 600
+    CACHE_TIMEOUT = ADMIN_PROPERTY_STATISTICS_TTL
     
     @classmethod
     def get_statistics(cls):

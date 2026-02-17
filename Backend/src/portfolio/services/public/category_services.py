@@ -3,13 +3,14 @@ from django.db.models import Count, Q
 from src.portfolio.models.category import PortfolioCategory
 from src.portfolio.serializers.public.category_serializer import PortfolioCategoryPublicSerializer
 from src.portfolio.utils.cache_public import PortfolioCategoryPublicCacheKeys
+from src.portfolio.utils import cache_ttl
 
 class PortfolioCategoryPublicService:
     ALLOWED_ORDERING_FIELDS = {'name', 'portfolio_count', 'created_at'}
-    LIST_CACHE_TTL = 600
-    DETAIL_CACHE_TTL = 900
-    TREE_CACHE_TTL = 900
-    ROOTS_CACHE_TTL = 900
+    LIST_CACHE_TTL = cache_ttl.TAXONOMY_LIST_TTL
+    DETAIL_CACHE_TTL = cache_ttl.TAXONOMY_DETAIL_TTL
+    TREE_CACHE_TTL = cache_ttl.TAXONOMY_TREE_TTL
+    ROOTS_CACHE_TTL = cache_ttl.TAXONOMY_ROOTS_TTL
 
     @staticmethod
     def _normalize_ordering(ordering):

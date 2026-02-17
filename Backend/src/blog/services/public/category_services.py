@@ -3,13 +3,14 @@ from django.db.models import Count, Q
 from src.blog.models.category import BlogCategory
 from src.blog.serializers.public.category_serializer import BlogCategoryPublicSerializer
 from src.blog.utils.cache_public import BlogCategoryPublicCacheKeys
+from src.blog.utils import cache_ttl
 
 class BlogCategoryPublicService:
     ALLOWED_ORDERING_FIELDS = {'name', 'blog_count', 'created_at'}
-    LIST_CACHE_TTL = 600
-    DETAIL_CACHE_TTL = 900
-    TREE_CACHE_TTL = 900
-    ROOTS_CACHE_TTL = 900
+    LIST_CACHE_TTL = cache_ttl.TAXONOMY_LIST_TTL
+    DETAIL_CACHE_TTL = cache_ttl.TAXONOMY_DETAIL_TTL
+    TREE_CACHE_TTL = cache_ttl.TAXONOMY_TREE_TTL
+    ROOTS_CACHE_TTL = cache_ttl.TAXONOMY_ROOTS_TTL
 
     @staticmethod
     def _normalize_ordering(ordering):

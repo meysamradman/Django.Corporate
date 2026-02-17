@@ -26,78 +26,79 @@ class PropertyTypePublicViewSet(viewsets.ReadOnlyModelViewSet):
         return PropertyTypePublicService.get_type_queryset(filters=filters, search=search, ordering=ordering)
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+        filters = {
+            'root_only': self._parse_bool(request.query_params.get('root_only')),
+            'min_property_count': request.query_params.get('min_property_count'),
+        }
+        filters = {k: v for k, v in filters.items() if v is not None}
+        search = request.query_params.get('search')
+        ordering = request.query_params.get('ordering')
 
-        serializer = self.get_serializer(queryset, many=True)
+        data = PropertyTypePublicService.get_type_list_data(filters=filters, search=search, ordering=ordering)
+        page = self.paginate_queryset(data)
+        if page is not None:
+            return self.get_paginated_response(page)
+
         return APIResponse.success(
             message=TYPE_SUCCESS['type_list_success'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK,
         )
 
     def retrieve(self, request, *args, **kwargs):
-        property_type = PropertyTypePublicService.get_type_by_slug(kwargs.get('slug'))
-        if not property_type:
+        type_data = PropertyTypePublicService.get_type_detail_by_slug_data(kwargs.get('slug'))
+        if not type_data:
             return APIResponse.error(
                 message=TYPE_ERRORS['type_not_found'],
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = self.get_serializer(property_type)
         return APIResponse.success(
             message=TYPE_SUCCESS['type_retrieved'],
-            data=serializer.data,
+            data=type_data,
             status_code=status.HTTP_200_OK,
         )
 
     @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
     def get_by_public_id(self, request, public_id=None):
-        property_type = PropertyTypePublicService.get_type_by_public_id(public_id)
-        if not property_type:
+        type_data = PropertyTypePublicService.get_type_detail_by_public_id_data(public_id)
+        if not type_data:
             return APIResponse.error(
                 message=TYPE_ERRORS['type_not_found'],
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = self.get_serializer(property_type)
         return APIResponse.success(
             message=TYPE_SUCCESS['type_retrieved'],
-            data=serializer.data,
+            data=type_data,
             status_code=status.HTTP_200_OK,
         )
 
     @action(detail=False, methods=['get'])
     def roots(self, request):
-        roots = PropertyTypePublicService.get_root_types()
-        serializer = self.get_serializer(roots, many=True)
+        data = PropertyTypePublicService.get_root_types_data()
         return APIResponse.success(
             message=TYPE_SUCCESS['type_list_success'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK,
         )
 
     @action(detail=False, methods=['get'])
     def tree(self, request):
-        tree_queryset = PropertyTypePublicService.get_tree_queryset()
-        serializer = self.get_serializer(tree_queryset, many=True)
+        data = PropertyTypePublicService.get_tree_data()
         return APIResponse.success(
             message=TYPE_SUCCESS['type_list_success'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK,
         )
 
     @action(detail=False, methods=['get'])
     def popular(self, request):
         limit = self._parse_positive_int(request.query_params.get('limit'), default=10, max_value=50)
-        queryset = PropertyTypePublicService.get_popular_types(limit=limit)
-        serializer = self.get_serializer(queryset, many=True)
+        data = PropertyTypePublicService.get_popular_types_data(limit=limit)
         return APIResponse.success(
             message=TYPE_SUCCESS['type_list_success'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK,
         )
 

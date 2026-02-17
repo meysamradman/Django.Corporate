@@ -1,8 +1,14 @@
-import hashlib
-import json
+from django.core.cache import cache
 from django.db.models import Count, Q
 
 from src.real_estate.models.type import PropertyType
+from src.real_estate.serializers.public.taxonomy_serializer import PropertyTypePublicSerializer
+from src.real_estate.utils.cache_public import TypePublicCacheKeys
+from src.real_estate.utils.cache_ttl import (
+    PUBLIC_TAXONOMY_DETAIL_TTL,
+    PUBLIC_TAXONOMY_LIST_TTL,
+    PUBLIC_TAXONOMY_POPULAR_TTL,
+)
 
 
 class PropertyTypePublicService:
@@ -83,3 +89,81 @@ class PropertyTypePublicService:
     @staticmethod
     def get_tree_queryset():
         return PropertyTypePublicService._base_queryset().order_by('path')
+
+    @staticmethod
+    def get_type_list_data(filters=None, search=None, ordering=None):
+        cache_key = TypePublicCacheKeys.list(filters=filters, search=search, ordering=ordering)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = PropertyTypePublicService.get_type_queryset(filters=filters, search=search, ordering=ordering)
+        data = PropertyTypePublicSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_LIST_TTL)
+        return data
+
+    @staticmethod
+    def get_type_detail_by_slug_data(slug):
+        cache_key = TypePublicCacheKeys.detail_slug(slug)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        property_type = PropertyTypePublicService.get_type_by_slug(slug)
+        if not property_type:
+            return None
+
+        data = PropertyTypePublicSerializer(property_type).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_DETAIL_TTL)
+        return data
+
+    @staticmethod
+    def get_type_detail_by_public_id_data(public_id):
+        cache_key = TypePublicCacheKeys.detail_public_id(public_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        property_type = PropertyTypePublicService.get_type_by_public_id(public_id)
+        if not property_type:
+            return None
+
+        data = PropertyTypePublicSerializer(property_type).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_DETAIL_TTL)
+        return data
+
+    @staticmethod
+    def get_root_types_data():
+        cache_key = TypePublicCacheKeys.roots()
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = PropertyTypePublicService.get_root_types()
+        data = PropertyTypePublicSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_LIST_TTL)
+        return data
+
+    @staticmethod
+    def get_tree_data():
+        cache_key = TypePublicCacheKeys.tree()
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = PropertyTypePublicService.get_tree_queryset()
+        data = PropertyTypePublicSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_LIST_TTL)
+        return data
+
+    @staticmethod
+    def get_popular_types_data(limit=10):
+        cache_key = TypePublicCacheKeys.popular(limit)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = PropertyTypePublicService.get_popular_types(limit=limit)
+        data = PropertyTypePublicSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_POPULAR_TTL)
+        return data

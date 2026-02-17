@@ -1,8 +1,21 @@
 from datetime import datetime
+from django.core.cache import cache
 from django.db.models import Count, Q
 
 from src.real_estate.models.agency import RealEstateAgency
 from src.real_estate.messages.messages import AGENCY_ERRORS
+from src.real_estate.serializers.public.agency_serializer import (
+    RealEstateAgencyPublicDetailSerializer,
+    RealEstateAgencyPublicListSerializer,
+)
+from src.real_estate.serializers.public.agent_serializer import PropertyAgentPublicListSerializer
+from src.real_estate.utils.cache_public import AgencyPublicCacheKeys
+from src.real_estate.utils.cache_ttl import (
+    PUBLIC_AGENCY_DETAIL_TTL,
+    PUBLIC_AGENCY_LIST_TTL,
+    PUBLIC_AGENCY_STATS_TTL,
+    PUBLIC_AGENCY_WITH_AGENTS_TTL,
+)
 
 
 class RealEstateAgencyPublicService:
@@ -282,3 +295,110 @@ class RealEstateAgencyPublicService:
         # این متد می‌تواند در آینده با استفاده از GeoDjango پیاده‌سازی شود
         # فعلاً یک پیاده‌سازی ساده برگشت می‌دهیم
         return RealEstateAgencyPublicService._base_queryset().order_by('-rating')[:limit]
+
+    @staticmethod
+    def get_agency_list_data(filters=None, search=None, ordering=None):
+        cache_key = AgencyPublicCacheKeys.list(filters=filters, search=search, ordering=ordering)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = RealEstateAgencyPublicService.get_agency_queryset(filters=filters, search=search, ordering=ordering)
+        data = RealEstateAgencyPublicListSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_AGENCY_LIST_TTL)
+        return data
+
+    @staticmethod
+    def get_agency_detail_by_slug_data(slug):
+        cache_key = AgencyPublicCacheKeys.detail_slug(slug)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        agency = RealEstateAgencyPublicService.get_agency_by_slug(slug)
+        if not agency:
+            return None
+
+        data = RealEstateAgencyPublicDetailSerializer(agency).data
+        cache.set(cache_key, data, PUBLIC_AGENCY_DETAIL_TTL)
+        return data
+
+    @staticmethod
+    def get_featured_agencies_data(limit=6):
+        cache_key = AgencyPublicCacheKeys.featured(limit)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = RealEstateAgencyPublicService.get_featured_agencies(limit=limit)
+        data = RealEstateAgencyPublicListSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_AGENCY_LIST_TTL)
+        return data
+
+    @staticmethod
+    def get_top_rated_agencies_data(limit=10):
+        cache_key = AgencyPublicCacheKeys.top_rated(limit)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = RealEstateAgencyPublicService.get_top_rated_agencies(limit=limit)
+        data = RealEstateAgencyPublicListSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_AGENCY_LIST_TTL)
+        return data
+
+    @staticmethod
+    def get_agencies_by_city_data(city_id, limit=None):
+        cache_key = AgencyPublicCacheKeys.by_city(city_id, limit)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = RealEstateAgencyPublicService.get_agencies_by_city(city_id=city_id, limit=limit)
+        data = RealEstateAgencyPublicListSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_AGENCY_LIST_TTL)
+        return data
+
+    @staticmethod
+    def get_agencies_by_province_data(province_id, limit=None):
+        cache_key = AgencyPublicCacheKeys.by_province(province_id, limit)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = RealEstateAgencyPublicService.get_agencies_by_province(province_id=province_id, limit=limit)
+        data = RealEstateAgencyPublicListSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_AGENCY_LIST_TTL)
+        return data
+
+    @staticmethod
+    def get_agency_statistics_data(agency_id):
+        cache_key = AgencyPublicCacheKeys.statistics(agency_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        stats = RealEstateAgencyPublicService.get_agency_statistics(agency_id)
+        if stats is None:
+            return None
+
+        cache.set(cache_key, stats, PUBLIC_AGENCY_STATS_TTL)
+        return stats
+
+    @staticmethod
+    def get_agency_with_agents_data(slug):
+        cache_key = AgencyPublicCacheKeys.with_agents(slug)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        agency_data = RealEstateAgencyPublicService.get_agency_with_agents(slug)
+        if not agency_data:
+            return None
+
+        payload = {
+            'agency': RealEstateAgencyPublicDetailSerializer(agency_data['agency']).data,
+            'agents': PropertyAgentPublicListSerializer(agency_data['agents'], many=True).data,
+        }
+        cache.set(cache_key, payload, PUBLIC_AGENCY_WITH_AGENTS_TTL)
+        return payload

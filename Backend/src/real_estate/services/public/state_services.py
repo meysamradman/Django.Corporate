@@ -1,6 +1,13 @@
+from django.core.cache import cache
 from django.db.models import Count, Q
 
 from src.real_estate.models.state import PropertyState
+from src.real_estate.serializers.public.state_serializer import PropertyStatePublicSerializer
+from src.real_estate.utils.cache_public import StatePublicCacheKeys
+from src.real_estate.utils.cache_ttl import (
+    PUBLIC_TAXONOMY_DETAIL_TTL,
+    PUBLIC_TAXONOMY_LIST_TTL,
+)
 
 
 class PropertyStatePublicService:
@@ -44,12 +51,6 @@ class PropertyStatePublicService:
 
     @staticmethod
     def get_state_queryset(filters=None, search=None, ordering=None):
-        payload = {
-            'filters': filters or {},
-            'search': search or '',
-            'ordering': PropertyStatePublicService._normalize_ordering(ordering),
-        }
-
         queryset = PropertyStatePublicService._base_queryset()
 
         if filters:
@@ -82,3 +83,57 @@ class PropertyStatePublicService:
         return PropertyStatePublicService._base_queryset().filter(
             property_count__gt=0,
         ).order_by('-property_count', 'title')[:limit]
+
+    @staticmethod
+    def get_state_list_data(filters=None, search=None, ordering=None):
+        cache_key = StatePublicCacheKeys.list(filters=filters, search=search, ordering=ordering)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = PropertyStatePublicService.get_state_queryset(filters=filters, search=search, ordering=ordering)
+        data = PropertyStatePublicSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_LIST_TTL)
+        return data
+
+    @staticmethod
+    def get_state_detail_by_slug_data(slug):
+        cache_key = StatePublicCacheKeys.detail_slug(slug)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        state = PropertyStatePublicService.get_state_by_slug(slug)
+        if not state:
+            return None
+
+        data = PropertyStatePublicSerializer(state).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_DETAIL_TTL)
+        return data
+
+    @staticmethod
+    def get_state_detail_by_public_id_data(public_id):
+        cache_key = StatePublicCacheKeys.detail_public_id(public_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        state = PropertyStatePublicService.get_state_by_public_id(public_id)
+        if not state:
+            return None
+
+        data = PropertyStatePublicSerializer(state).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_DETAIL_TTL)
+        return data
+
+    @staticmethod
+    def get_featured_states_data(limit=3):
+        cache_key = StatePublicCacheKeys.featured(limit)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = PropertyStatePublicService.get_featured_states(limit=limit)
+        data = PropertyStatePublicSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_LIST_TTL)
+        return data

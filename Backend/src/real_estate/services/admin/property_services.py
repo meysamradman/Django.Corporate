@@ -10,7 +10,11 @@ from datetime import datetime
 
 from src.real_estate.models.property import Property
 from src.real_estate.models.media import PropertyImage, PropertyVideo, PropertyAudio, PropertyDocument
-from src.real_estate.utils.cache import PropertyCacheManager, PropertyCacheKeys
+from src.real_estate.utils.cache_admin import PropertyCacheManager, PropertyCacheKeys
+from src.real_estate.utils.cache_ttl import (
+    ADMIN_PROPERTY_SEO_REPORT_TTL,
+    ADMIN_PROPERTY_YEAR_CHOICES_TTL,
+)
 from src.real_estate.messages.messages import PROPERTY_ERRORS
 from src.real_estate.services.analytics.deals_service import DealsService
 
@@ -36,7 +40,7 @@ class PropertyYearService:
             for year, label in choices_tuples
         ]
         
-        cache.set(cache_key, year_choices, 3600)
+        cache.set(cache_key, year_choices, ADMIN_PROPERTY_YEAR_CHOICES_TTL)
         
         return year_choices
     
@@ -505,7 +509,7 @@ class PropertyAdminService:
                 'og_image_count': 0,
                 'canonical_url_count': 0
             }
-            cache.set(cache_key, report_data, 600)
+            cache.set(cache_key, report_data, ADMIN_PROPERTY_SEO_REPORT_TTL)
             return report_data
         
         complete_seo = Property.objects.filter(
@@ -537,7 +541,7 @@ class PropertyAdminService:
             'canonical_url_count': canonical_url_count
         }
         
-        cache.set(cache_key, report_data, 600)
+        cache.set(cache_key, report_data, ADMIN_PROPERTY_SEO_REPORT_TTL)
         return report_data
 
 class PropertyAdminStatusService:

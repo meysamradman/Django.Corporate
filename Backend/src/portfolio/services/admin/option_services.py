@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from datetime import datetime
 from src.portfolio.models.option import PortfolioOption
 from src.portfolio.utils.cache_admin import OptionCacheKeys, OptionCacheManager
+from src.portfolio.utils import cache_ttl
 from src.portfolio.messages.messages import OPTION_ERRORS
 
 class PortfolioOptionAdminService:
@@ -58,7 +59,7 @@ class PortfolioOptionAdminService:
             option = PortfolioOption.objects.annotate(
                 portfolio_count=Count('portfolio_options')
             ).get(id=option_id)
-            cache.set(cache_key, True, 3600)
+            cache.set(cache_key, True, cache_ttl.ADMIN_OPTION_EXISTS_TTL)
             return option
         except PortfolioOption.DoesNotExist:
             return None
@@ -158,7 +159,7 @@ class PortfolioOptionAdminService:
             ).order_by('-usage_count')[:limit].values(
                 'id', 'name', 'usage_count'
             ))
-            cache.set(cache_key, options, 3600)
+            cache.set(cache_key, options, cache_ttl.ADMIN_OPTION_POPULAR_TTL)
         
         return options
     

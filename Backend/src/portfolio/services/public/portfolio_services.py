@@ -8,13 +8,14 @@ from src.portfolio.serializers.public.portfolio_serializer import (
     PortfolioPublicListSerializer,
 )
 from src.portfolio.utils.cache_public import PortfolioPublicCacheKeys
+from src.portfolio.utils import cache_ttl
 
 class PortfolioPublicService:
     ALLOWED_ORDERING_FIELDS = {'created_at', 'title', 'is_featured'}
-    LIST_CACHE_TTL = 90
-    DETAIL_CACHE_TTL = 180
-    FEATURED_CACHE_TTL = 90
-    RELATED_CACHE_TTL = 90
+    LIST_CACHE_TTL = cache_ttl.PUBLIC_LIST_TTL
+    DETAIL_CACHE_TTL = cache_ttl.PUBLIC_DETAIL_TTL
+    FEATURED_CACHE_TTL = cache_ttl.PUBLIC_FEATURED_TTL
+    RELATED_CACHE_TTL = cache_ttl.PUBLIC_RELATED_TTL
 
     @staticmethod
     def _normalize_ordering(ordering):

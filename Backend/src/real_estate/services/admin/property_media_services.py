@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 from src.real_estate.models.property import Property
 from src.real_estate.models.media import PropertyImage, PropertyVideo, PropertyAudio, PropertyDocument
-from src.real_estate.utils.cache import PropertyCacheManager
+from src.real_estate.utils.cache_admin import PropertyCacheManager
 from src.real_estate.messages.messages import PROPERTY_ERRORS
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia, detect_media_type_from_extension
 from src.media.services.media_services import MediaAdminService

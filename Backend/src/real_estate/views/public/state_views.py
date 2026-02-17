@@ -40,60 +40,63 @@ class PropertyStatePublicViewSet(viewsets.ReadOnlyModelViewSet):
         return PropertyStatePublicListSerializer
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+        filters = {
+            'usage_type': request.query_params.get('usage_type'),
+            'min_property_count': request.query_params.get('min_property_count'),
+        }
+        filters = {k: v for k, v in filters.items() if v is not None}
+        search = request.query_params.get('search')
+        ordering = request.query_params.get('ordering')
 
-        serializer = self.get_serializer(queryset, many=True)
+        data = PropertyStatePublicService.get_state_list_data(filters=filters, search=search, ordering=ordering)
+        page = self.paginate_queryset(data)
+        if page is not None:
+            return self.get_paginated_response(page)
+
         return APIResponse.success(
             message=STATE_SUCCESS['state_list_success'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK,
         )
 
     def retrieve(self, request, slug=None):
-        state = PropertyStatePublicService.get_state_by_slug(slug)
+        state_data = PropertyStatePublicService.get_state_detail_by_slug_data(slug)
 
-        if not state:
+        if not state_data:
             return APIResponse.error(
                 message=STATE_ERRORS['state_not_found'],
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = self.get_serializer(state)
         return APIResponse.success(
             message=STATE_SUCCESS['state_retrieved'],
-            data=serializer.data,
+            data=state_data,
             status_code=status.HTTP_200_OK,
         )
 
     @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
     def get_by_public_id(self, request, public_id=None):
-        state = PropertyStatePublicService.get_state_by_public_id(public_id)
-        if not state:
+        state_data = PropertyStatePublicService.get_state_detail_by_public_id_data(public_id)
+        if not state_data:
             return APIResponse.error(
                 message=STATE_ERRORS['state_not_found'],
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = self.get_serializer(state)
         return APIResponse.success(
             message=STATE_SUCCESS['state_retrieved'],
-            data=serializer.data,
+            data=state_data,
             status_code=status.HTTP_200_OK,
         )
 
     @action(detail=False, methods=['get'], url_path='featured')
     def featured(self, request):
         limit = self._parse_positive_int(request.query_params.get('limit'), default=3, max_value=24)
-        states = PropertyStatePublicService.get_featured_states(limit=limit)
-        serializer = self.get_serializer(states, many=True)
+        data = PropertyStatePublicService.get_featured_states_data(limit=limit)
 
         return APIResponse.success(
             message=STATE_SUCCESS['state_list_success'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK,
         )
 

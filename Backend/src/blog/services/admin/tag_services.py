@@ -6,6 +6,7 @@ from django.utils.text import slugify
 from datetime import datetime
 from src.blog.models.tag import BlogTag
 from src.blog.utils.cache_admin import TagCacheKeys, TagCacheManager
+from src.blog.utils import cache_ttl
 from src.blog.messages import TAG_ERRORS
 
 class BlogTagAdminService:
@@ -58,7 +59,7 @@ class BlogTagAdminService:
             tag = BlogTag.objects.annotate(
                 blog_count=Count('blog_tags')
             ).get(id=tag_id)
-            cache.set(cache_key, True, 3600)
+            cache.set(cache_key, True, cache_ttl.ADMIN_TAG_EXISTS_TTL)
             return tag
         except BlogTag.DoesNotExist:
             return None
@@ -133,7 +134,7 @@ class BlogTagAdminService:
             tags = list(BlogTag.objects.popular(limit).values(
                 'id', 'name', 'slug', 'usage_count'
             ))
-            cache.set(cache_key, tags, 3600)
+            cache.set(cache_key, tags, cache_ttl.ADMIN_TAG_POPULAR_TTL)
         
         return tags
     

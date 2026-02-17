@@ -6,6 +6,7 @@ from datetime import datetime
 
 from src.blog.models.category import BlogCategory
 from src.blog.utils.cache_admin import CategoryCacheKeys, CategoryCacheManager
+from src.blog.utils import cache_ttl
 from src.blog.messages.messages import CATEGORY_ERRORS
 from src.media.models.media import ImageMedia
 
@@ -61,7 +62,7 @@ class BlogCategoryAdminService:
                     'id', 'public_id', 'name', 'slug', 'blog_count'
                 )
             )
-            cache.set(cache_key, root_categories, 300)
+            cache.set(cache_key, root_categories, cache_ttl.ADMIN_TAXONOMY_ROOTS_TTL)
         
         return root_categories
 
@@ -92,7 +93,7 @@ class BlogCategoryAdminService:
             ).filter(is_active=True)
             
             tree_data = build_tree(root_nodes)
-            cache.set(cache_key, tree_data, 900)
+            cache.set(cache_key, tree_data, cache_ttl.ADMIN_TAXONOMY_TREE_TTL)
         
         return tree_data
 
@@ -214,7 +215,7 @@ class BlogCategoryAdminService:
                     'id', 'public_id', 'name', 'slug', 'blog_count'
                 )
             )
-            cache.set(cache_key, popular, 600)
+            cache.set(cache_key, popular, cache_ttl.ADMIN_TAXONOMY_POPULAR_TTL)
         
         return popular
     
@@ -306,6 +307,6 @@ class BlogCategoryAdminService:
                 'root_categories': root_categories,
                 'max_depth': max_depth
             }
-            cache.set(cache_key, stats, 300)
+            cache.set(cache_key, stats, cache_ttl.ADMIN_TAXONOMY_STATS_TTL)
         
         return stats

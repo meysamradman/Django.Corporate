@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 from src.blog.models.blog import Blog
 from src.blog.utils.cache_admin import BlogCacheManager, BlogCacheKeys
+from src.blog.utils import cache_ttl
 from src.blog.models.media import BlogImage, BlogVideo, BlogAudio, BlogDocument
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.blog.services.admin.media_services import BlogAdminMediaService
@@ -361,7 +362,7 @@ class BlogAdminService:
                 'og_image_count': 0,
                 'canonical_url_count': 0
             }
-            cache.set(cache_key, report_data, 600)
+            cache.set(cache_key, report_data, cache_ttl.ADMIN_SEO_REPORT_TTL)
             return report_data
         
         complete_seo = Blog.objects.filter(
@@ -393,7 +394,7 @@ class BlogAdminService:
             'canonical_url_count': canonical_url_count
         }
         
-        cache.set(cache_key, report_data, 600)
+        cache.set(cache_key, report_data, cache_ttl.ADMIN_SEO_REPORT_TTL)
         return report_data
     
     @staticmethod

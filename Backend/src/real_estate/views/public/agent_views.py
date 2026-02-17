@@ -56,61 +56,66 @@ class PropertyAgentPublicViewSet(viewsets.ReadOnlyModelViewSet):
     
     def list(self, request, *args, **kwargs):
         """لیست مشاورین فعال"""
-        queryset = self.filter_queryset(self.get_queryset())
-        
-        page = self.paginate_queryset(queryset)
+        filters = {
+            'agency_id': request.query_params.get('agency_id'),
+            'is_verified': request.query_params.get('is_verified'),
+            'specialization': request.query_params.get('specialization'),
+            'min_rating': request.query_params.get('min_rating'),
+            'city_id': request.query_params.get('city_id'),
+            'province_id': request.query_params.get('province_id'),
+        }
+        search = request.query_params.get('search')
+        ordering = request.query_params.get('ordering')
+
+        data = PropertyAgentPublicService.get_agent_list_data(filters=filters, search=search, ordering=ordering)
+        page = self.paginate_queryset(data)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        
-        serializer = self.get_serializer(queryset, many=True)
+            return self.get_paginated_response(page)
+
         return APIResponse.success(
             message=AGENT_SUCCESS["agent_list_success"],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK
         )
     
     def retrieve(self, request, *args, **kwargs):
         """دریافت جزئیات مشاور با slug"""
         slug = kwargs.get('slug')
-        agent = PropertyAgentPublicService.get_agent_by_slug(slug)
+        agent_data = PropertyAgentPublicService.get_agent_detail_by_slug_data(slug)
         
-        if not agent:
+        if not agent_data:
             return APIResponse.error(
                 message=AGENT_ERRORS["agent_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        
-        serializer = self.get_serializer(agent)
+
         return APIResponse.success(
             message=AGENT_SUCCESS["agent_retrieved"],
-            data=serializer.data,
+            data=agent_data,
             status_code=status.HTTP_200_OK
         )
     
     @action(detail=False, methods=['get'], url_path='featured')
     def featured(self, request):
         """دریافت مشاورین برجسته (تایید شده با امتیاز بالا)"""
-        limit = int(request.query_params.get('limit', 6))
-        agents = PropertyAgentPublicService.get_featured_agents(limit=limit)
-        
-        serializer = self.get_serializer(agents, many=True)
+        limit = self._parse_positive_int(request.query_params.get('limit'), default=6, max_value=50)
+        data = PropertyAgentPublicService.get_featured_agents_data(limit=limit)
+
         return APIResponse.success(
             message=AGENT_SUCCESS["agent_list_success"],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK
         )
     
     @action(detail=False, methods=['get'], url_path='top-rated')
     def top_rated(self, request):
         """دریافت مشاورین با بالاترین امتیاز"""
-        limit = int(request.query_params.get('limit', 10))
-        agents = PropertyAgentPublicService.get_top_rated_agents(limit=limit)
-        
-        serializer = self.get_serializer(agents, many=True)
+        limit = self._parse_positive_int(request.query_params.get('limit'), default=10, max_value=50)
+        data = PropertyAgentPublicService.get_top_rated_agents_data(limit=limit)
+
         return APIResponse.success(
             message=AGENT_SUCCESS["agent_list_success"],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK
         )
     
@@ -118,17 +123,13 @@ class PropertyAgentPublicViewSet(viewsets.ReadOnlyModelViewSet):
     def by_agency(self, request, agency_id=None):
         """دریافت مشاورین یک آژانس"""
         limit = request.query_params.get('limit')
-        limit = int(limit) if limit else None
-        
-        agents = PropertyAgentPublicService.get_agents_by_agency(
-            agency_id=agency_id,
-            limit=limit
-        )
-        
-        serializer = self.get_serializer(agents, many=True)
+        limit = self._parse_positive_int(limit, default=None, max_value=100, allow_none=True)
+
+        data = PropertyAgentPublicService.get_agents_by_agency_data(agency_id=agency_id, limit=limit)
+
         return APIResponse.success(
             message=AGENT_SUCCESS["agent_list_success"],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK
         )
     
@@ -143,7 +144,7 @@ class PropertyAgentPublicViewSet(viewsets.ReadOnlyModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         
-        stats = PropertyAgentPublicService.get_agent_statistics(agent.id)
+        stats = PropertyAgentPublicService.get_agent_statistics_data(agent.id)
         
         if not stats:
             return APIResponse.error(
@@ -156,4 +157,17 @@ class PropertyAgentPublicViewSet(viewsets.ReadOnlyModelViewSet):
             data=stats,
             status_code=status.HTTP_200_OK
         )
+
+    @staticmethod
+    def _parse_positive_int(value, default, max_value=100, allow_none=False):
+        if allow_none and value in (None, ''):
+            return None
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError):
+            return default
+
+        if parsed < 1:
+            return default
+        return min(parsed, max_value)
 

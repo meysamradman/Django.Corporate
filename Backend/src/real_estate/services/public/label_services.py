@@ -1,6 +1,13 @@
+from django.core.cache import cache
 from django.db.models import Count, Q
 
 from src.real_estate.models.label import PropertyLabel
+from src.real_estate.serializers.public.taxonomy_serializer import PropertyLabelPublicSerializer
+from src.real_estate.utils.cache_public import LabelPublicCacheKeys
+from src.real_estate.utils.cache_ttl import (
+    PUBLIC_TAXONOMY_DETAIL_TTL,
+    PUBLIC_TAXONOMY_LIST_TTL,
+)
 
 
 class PropertyLabelPublicService:
@@ -62,3 +69,45 @@ class PropertyLabelPublicService:
     @staticmethod
     def get_label_by_public_id(public_id):
         return PropertyLabelPublicService._base_queryset().filter(public_id=public_id).first()
+
+    @staticmethod
+    def get_label_list_data(filters=None, search=None, ordering=None):
+        cache_key = LabelPublicCacheKeys.list(filters=filters, search=search, ordering=ordering)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = PropertyLabelPublicService.get_label_queryset(filters=filters, search=search, ordering=ordering)
+        data = PropertyLabelPublicSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_LIST_TTL)
+        return data
+
+    @staticmethod
+    def get_label_detail_by_slug_data(slug):
+        cache_key = LabelPublicCacheKeys.detail_slug(slug)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        label = PropertyLabelPublicService.get_label_by_slug(slug)
+        if not label:
+            return None
+
+        data = PropertyLabelPublicSerializer(label).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_DETAIL_TTL)
+        return data
+
+    @staticmethod
+    def get_label_detail_by_public_id_data(public_id):
+        cache_key = LabelPublicCacheKeys.detail_public_id(public_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        label = PropertyLabelPublicService.get_label_by_public_id(public_id)
+        if not label:
+            return None
+
+        data = PropertyLabelPublicSerializer(label).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_DETAIL_TTL)
+        return data

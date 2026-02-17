@@ -1,8 +1,20 @@
 from datetime import datetime
 
+from django.core.cache import cache
 from django.db.models import Q
 
 from src.real_estate.models.property import Property
+from src.real_estate.serializers.public.property_serializer import (
+    PropertyPublicDetailSerializer,
+    PropertyPublicListSerializer,
+)
+from src.real_estate.utils.cache_public import PropertyPublicCacheKeys
+from src.real_estate.utils.cache_ttl import (
+    PUBLIC_PROPERTY_DETAIL_TTL,
+    PUBLIC_PROPERTY_FEATURED_TTL,
+    PUBLIC_PROPERTY_LIST_TTL,
+    PUBLIC_PROPERTY_RELATED_TTL,
+)
 
 
 class PropertyPublicService:
@@ -141,3 +153,72 @@ class PropertyPublicService:
             queryset = queryset.filter(related_filter)
 
         return queryset.order_by('-is_featured', '-published_at', '-created_at')[:limit]
+
+    @staticmethod
+    def get_property_list_data(filters=None, search=None, ordering=None):
+        cache_key = PropertyPublicCacheKeys.list(filters=filters, search=search, ordering=ordering)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = PropertyPublicService.get_property_queryset(filters=filters, search=search, ordering=ordering)
+        data = PropertyPublicListSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_PROPERTY_LIST_TTL)
+        return data
+
+    @staticmethod
+    def get_property_detail_by_slug_data(slug):
+        cache_key = PropertyPublicCacheKeys.detail_slug(slug)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        property_obj = PropertyPublicService.get_property_by_slug(slug)
+        if not property_obj:
+            return None
+
+        data = PropertyPublicDetailSerializer(property_obj).data
+        cache.set(cache_key, data, PUBLIC_PROPERTY_DETAIL_TTL)
+        return data
+
+    @staticmethod
+    def get_property_detail_by_public_id_data(public_id):
+        cache_key = PropertyPublicCacheKeys.detail_public_id(public_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        property_obj = PropertyPublicService.get_property_by_public_id(public_id)
+        if not property_obj:
+            return None
+
+        data = PropertyPublicDetailSerializer(property_obj).data
+        cache.set(cache_key, data, PUBLIC_PROPERTY_DETAIL_TTL)
+        return data
+
+    @staticmethod
+    def get_featured_properties_data(limit=10):
+        cache_key = PropertyPublicCacheKeys.featured(limit)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = PropertyPublicService.get_featured_properties(limit=limit)
+        data = PropertyPublicListSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_PROPERTY_FEATURED_TTL)
+        return data
+
+    @staticmethod
+    def get_related_properties_data(property_obj, limit=4):
+        if not property_obj:
+            return []
+
+        cache_key = PropertyPublicCacheKeys.related(property_obj.slug, limit)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = PropertyPublicService.get_related_properties(property_obj, limit=limit)
+        data = PropertyPublicListSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_PROPERTY_RELATED_TTL)
+        return data

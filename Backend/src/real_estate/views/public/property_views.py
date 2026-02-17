@@ -61,59 +61,54 @@ class PropertyPublicViewSet(viewsets.ReadOnlyModelViewSet):
             self._parse_bool(request.query_params.get('order_desc')),
         )
 
-        queryset = PropertyPublicService.get_property_queryset(filters=filters, search=search, ordering=ordering)
-        page = self.paginate_queryset(queryset)
+        data = PropertyPublicService.get_property_list_data(filters=filters, search=search, ordering=ordering)
+        page = self.paginate_queryset(data)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            return self.get_paginated_response(page)
 
-        serializer = self.get_serializer(queryset, many=True)
         return APIResponse.success(
             message=PROPERTY_SUCCESS['property_list_success'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK,
         )
 
     def retrieve(self, request, *args, **kwargs):
         slug = kwargs.get('slug')
-        property_obj = PropertyPublicService.get_property_by_slug(slug)
-        if not property_obj:
+        property_data = PropertyPublicService.get_property_detail_by_slug_data(slug)
+        if not property_data:
             return APIResponse.error(
                 message=PROPERTY_ERRORS['property_not_found'],
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = self.get_serializer(property_obj)
         return APIResponse.success(
             message=PROPERTY_SUCCESS['property_retrieved'],
-            data=serializer.data,
+            data=property_data,
             status_code=status.HTTP_200_OK,
         )
 
     @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
     def get_by_public_id(self, request, public_id=None):
-        property_obj = PropertyPublicService.get_property_by_public_id(public_id)
-        if not property_obj:
+        property_data = PropertyPublicService.get_property_detail_by_public_id_data(public_id)
+        if not property_data:
             return APIResponse.error(
                 message=PROPERTY_ERRORS['property_not_found'],
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = self.get_serializer(property_obj)
         return APIResponse.success(
             message=PROPERTY_SUCCESS['property_retrieved'],
-            data=serializer.data,
+            data=property_data,
             status_code=status.HTTP_200_OK,
         )
 
     @action(detail=False, methods=['get'])
     def featured(self, request):
         limit = self._parse_positive_int(request.query_params.get('limit'), default=6, max_value=24)
-        properties = PropertyPublicService.get_featured_properties(limit=limit)
-        serializer = PropertyPublicListSerializer(properties, many=True)
+        data = PropertyPublicService.get_featured_properties_data(limit=limit)
         return APIResponse.success(
             message=PROPERTY_SUCCESS['property_list_success'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK,
         )
 
@@ -127,11 +122,10 @@ class PropertyPublicViewSet(viewsets.ReadOnlyModelViewSet):
             )
 
         limit = self._parse_positive_int(request.query_params.get('limit'), default=4, max_value=24)
-        related = PropertyPublicService.get_related_properties(property_obj, limit=limit)
-        serializer = PropertyPublicListSerializer(related, many=True)
+        data = PropertyPublicService.get_related_properties_data(property_obj, limit=limit)
         return APIResponse.success(
             message=PROPERTY_SUCCESS['property_list_success'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK,
         )
 

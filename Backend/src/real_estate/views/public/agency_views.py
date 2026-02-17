@@ -59,61 +59,66 @@ class RealEstateAgencyPublicViewSet(viewsets.ReadOnlyModelViewSet):
     
     def list(self, request, *args, **kwargs):
         """لیست آژانس‌های فعال"""
-        queryset = self.filter_queryset(self.get_queryset())
-        
-        page = self.paginate_queryset(queryset)
+        filters = {
+            'province_id': request.query_params.get('province_id'),
+            'city_id': request.query_params.get('city_id'),
+            'min_rating': request.query_params.get('min_rating'),
+            'min_agents': request.query_params.get('min_agents'),
+            'min_properties': request.query_params.get('min_properties'),
+        }
+        search = request.query_params.get('search')
+        ordering = request.query_params.get('ordering')
+
+        data = RealEstateAgencyPublicService.get_agency_list_data(filters=filters, search=search, ordering=ordering)
+
+        page = self.paginate_queryset(data)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        
-        serializer = self.get_serializer(queryset, many=True)
+            return self.get_paginated_response(page)
+
         return APIResponse.success(
             message=AGENCY_SUCCESS["agency_list_success"],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK
         )
     
     def retrieve(self, request, *args, **kwargs):
         """دریافت جزئیات آژانس با slug"""
         slug = kwargs.get('slug')
-        agency = RealEstateAgencyPublicService.get_agency_by_slug(slug)
+        agency_data = RealEstateAgencyPublicService.get_agency_detail_by_slug_data(slug)
         
-        if not agency:
+        if not agency_data:
             return APIResponse.error(
                 message=AGENCY_ERRORS["agency_not_found"],
                 status_code=status.HTTP_404_NOT_FOUND
             )
-        
-        serializer = self.get_serializer(agency)
+
         return APIResponse.success(
             message=AGENCY_SUCCESS["agency_retrieved"],
-            data=serializer.data,
+            data=agency_data,
             status_code=status.HTTP_200_OK
         )
     
     @action(detail=False, methods=['get'], url_path='featured')
     def featured(self, request):
         """دریافت آژانس‌های برجسته (با امتیاز بالا)"""
-        limit = int(request.query_params.get('limit', 6))
-        agencies = RealEstateAgencyPublicService.get_featured_agencies(limit=limit)
-        
-        serializer = self.get_serializer(agencies, many=True)
+        limit = self._parse_positive_int(request.query_params.get('limit'), default=6, max_value=50)
+        data = RealEstateAgencyPublicService.get_featured_agencies_data(limit=limit)
+
         return APIResponse.success(
             message=AGENCY_SUCCESS["agency_list_success"],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK
         )
     
     @action(detail=False, methods=['get'], url_path='top-rated')
     def top_rated(self, request):
         """دریافت آژانس‌ها با بالاترین امتیاز"""
-        limit = int(request.query_params.get('limit', 10))
-        agencies = RealEstateAgencyPublicService.get_top_rated_agencies(limit=limit)
-        
-        serializer = self.get_serializer(agencies, many=True)
+        limit = self._parse_positive_int(request.query_params.get('limit'), default=10, max_value=50)
+        data = RealEstateAgencyPublicService.get_top_rated_agencies_data(limit=limit)
+
         return APIResponse.success(
             message=AGENCY_SUCCESS["agency_list_success"],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK
         )
     
@@ -121,17 +126,13 @@ class RealEstateAgencyPublicViewSet(viewsets.ReadOnlyModelViewSet):
     def by_city(self, request, city_id=None):
         """دریافت آژانس‌های یک شهر"""
         limit = request.query_params.get('limit')
-        limit = int(limit) if limit else None
-        
-        agencies = RealEstateAgencyPublicService.get_agencies_by_city(
-            city_id=city_id,
-            limit=limit
-        )
-        
-        serializer = self.get_serializer(agencies, many=True)
+        limit = self._parse_positive_int(limit, default=None, max_value=100, allow_none=True)
+
+        data = RealEstateAgencyPublicService.get_agencies_by_city_data(city_id=city_id, limit=limit)
+
         return APIResponse.success(
             message=AGENCY_SUCCESS["agency_list_success"],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK
         )
     
@@ -139,17 +140,13 @@ class RealEstateAgencyPublicViewSet(viewsets.ReadOnlyModelViewSet):
     def by_province(self, request, province_id=None):
         """دریافت آژانس‌های یک استان"""
         limit = request.query_params.get('limit')
-        limit = int(limit) if limit else None
-        
-        agencies = RealEstateAgencyPublicService.get_agencies_by_province(
-            province_id=province_id,
-            limit=limit
-        )
-        
-        serializer = self.get_serializer(agencies, many=True)
+        limit = self._parse_positive_int(limit, default=None, max_value=100, allow_none=True)
+
+        data = RealEstateAgencyPublicService.get_agencies_by_province_data(province_id=province_id, limit=limit)
+
         return APIResponse.success(
             message=AGENCY_SUCCESS["agency_list_success"],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK
         )
     
@@ -164,7 +161,7 @@ class RealEstateAgencyPublicViewSet(viewsets.ReadOnlyModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         
-        stats = RealEstateAgencyPublicService.get_agency_statistics(agency.id)
+        stats = RealEstateAgencyPublicService.get_agency_statistics_data(agency.id)
         
         if not stats:
             return APIResponse.error(
@@ -181,7 +178,7 @@ class RealEstateAgencyPublicViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=['get'], url_path='with-agents')
     def with_agents(self, request, slug=None):
         """دریافت آژانس با لیست کامل مشاورین"""
-        agency_data = RealEstateAgencyPublicService.get_agency_with_agents(slug)
+        agency_data = RealEstateAgencyPublicService.get_agency_with_agents_data(slug)
         
         if not agency_data:
             return APIResponse.error(
@@ -189,14 +186,21 @@ class RealEstateAgencyPublicViewSet(viewsets.ReadOnlyModelViewSet):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         
-        agency_serializer = RealEstateAgencyPublicDetailSerializer(agency_data['agency'])
-        agents_serializer = PropertyAgentPublicListSerializer(agency_data['agents'], many=True)
-        
         return APIResponse.success(
             message=AGENCY_SUCCESS["agency_retrieved"],
-            data={
-                'agency': agency_serializer.data,
-                'agents': agents_serializer.data
-            },
+            data=agency_data,
             status_code=status.HTTP_200_OK
         )
+
+    @staticmethod
+    def _parse_positive_int(value, default, max_value=100, allow_none=False):
+        if allow_none and value in (None, ''):
+            return None
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError):
+            return default
+
+        if parsed < 1:
+            return default
+        return min(parsed, max_value)

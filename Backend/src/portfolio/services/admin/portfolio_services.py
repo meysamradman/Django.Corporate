@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.services.admin.media_services import PortfolioAdminMediaService
 from src.portfolio.utils.cache_admin import PortfolioCacheManager, PortfolioCacheKeys
+from src.portfolio.utils import cache_ttl
 from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.portfolio.messages.messages import PORTFOLIO_ERRORS
@@ -393,7 +394,7 @@ class PortfolioAdminService:
                 'og_image_count': 0,
                 'canonical_url_count': 0
             }
-            cache.set(cache_key, report_data, 600)
+            cache.set(cache_key, report_data, cache_ttl.ADMIN_SEO_REPORT_TTL)
             return report_data
         
         complete_seo = Portfolio.objects.filter(
@@ -425,7 +426,7 @@ class PortfolioAdminService:
             'canonical_url_count': canonical_url_count
         }
         
-        cache.set(cache_key, report_data, 600)
+        cache.set(cache_key, report_data, cache_ttl.ADMIN_SEO_REPORT_TTL)
         return report_data
     
     @staticmethod

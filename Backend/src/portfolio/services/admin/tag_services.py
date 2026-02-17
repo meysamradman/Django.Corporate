@@ -6,6 +6,7 @@ from django.utils.text import slugify
 from datetime import datetime
 from src.portfolio.models.tag import PortfolioTag
 from src.portfolio.utils.cache_admin import TagCacheKeys, TagCacheManager
+from src.portfolio.utils import cache_ttl
 from src.portfolio.messages import TAG_ERRORS
 
 class PortfolioTagAdminService:
@@ -58,7 +59,7 @@ class PortfolioTagAdminService:
             tag = PortfolioTag.objects.annotate(
                 portfolio_count=Count('portfolio_tags')
             ).get(id=tag_id)
-            cache.set(cache_key, True, 3600)
+            cache.set(cache_key, True, cache_ttl.ADMIN_TAG_EXISTS_TTL)
             return tag
         except PortfolioTag.DoesNotExist:
             return None
@@ -133,7 +134,7 @@ class PortfolioTagAdminService:
             tags = list(PortfolioTag.objects.popular(limit).values(
                 'id', 'name', 'slug', 'usage_count'
             ))
-            cache.set(cache_key, tags, 3600)
+            cache.set(cache_key, tags, cache_ttl.ADMIN_TAG_POPULAR_TTL)
         
         return tags
     

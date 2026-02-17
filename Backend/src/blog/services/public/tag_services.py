@@ -3,12 +3,13 @@ from django.db.models import Count, Q
 from src.blog.models.tag import BlogTag
 from src.blog.serializers.public.tag_serializer import BlogTagPublicSerializer
 from src.blog.utils.cache_public import BlogTagPublicCacheKeys
+from src.blog.utils import cache_ttl
 
 class BlogTagPublicService:
     ALLOWED_ORDERING_FIELDS = {'name', 'blog_count', 'created_at'}
-    LIST_CACHE_TTL = 600
-    DETAIL_CACHE_TTL = 900
-    POPULAR_CACHE_TTL = 900
+    LIST_CACHE_TTL = cache_ttl.TAXONOMY_LIST_TTL
+    DETAIL_CACHE_TTL = cache_ttl.TAXONOMY_DETAIL_TTL
+    POPULAR_CACHE_TTL = cache_ttl.TAXONOMY_POPULAR_TTL
 
     @staticmethod
     def _normalize_ordering(ordering):

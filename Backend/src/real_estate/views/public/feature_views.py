@@ -26,46 +26,50 @@ class PropertyFeaturePublicViewSet(viewsets.ReadOnlyModelViewSet):
         return PropertyFeaturePublicService.get_feature_queryset(filters=filters, search=search, ordering=ordering)
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+        filters = {
+            'group': request.query_params.get('group'),
+            'min_property_count': request.query_params.get('min_property_count'),
+        }
+        filters = {k: v for k, v in filters.items() if v is not None}
+        search = request.query_params.get('search')
+        ordering = request.query_params.get('ordering')
 
-        serializer = self.get_serializer(queryset, many=True)
+        data = PropertyFeaturePublicService.get_feature_list_data(filters=filters, search=search, ordering=ordering)
+        page = self.paginate_queryset(data)
+        if page is not None:
+            return self.get_paginated_response(page)
+
         return APIResponse.success(
             message=FEATURE_SUCCESS['feature_list_success'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK,
         )
 
     def retrieve(self, request, *args, **kwargs):
-        feature = PropertyFeaturePublicService.get_feature_by_public_id(kwargs.get('public_id'))
-        if not feature:
+        feature_data = PropertyFeaturePublicService.get_feature_detail_by_public_id_data(kwargs.get('public_id'))
+        if not feature_data:
             return APIResponse.error(
                 message=FEATURE_ERRORS['feature_not_found'],
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = self.get_serializer(feature)
         return APIResponse.success(
             message=FEATURE_SUCCESS['feature_retrieved'],
-            data=serializer.data,
+            data=feature_data,
             status_code=status.HTTP_200_OK,
         )
 
     @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
     def get_by_public_id(self, request, public_id=None):
-        feature = PropertyFeaturePublicService.get_feature_by_public_id(public_id)
-        if not feature:
+        feature_data = PropertyFeaturePublicService.get_feature_detail_by_public_id_data(public_id)
+        if not feature_data:
             return APIResponse.error(
                 message=FEATURE_ERRORS['feature_not_found'],
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = self.get_serializer(feature)
         return APIResponse.success(
             message=FEATURE_SUCCESS['feature_retrieved'],
-            data=serializer.data,
+            data=feature_data,
             status_code=status.HTTP_200_OK,
         )

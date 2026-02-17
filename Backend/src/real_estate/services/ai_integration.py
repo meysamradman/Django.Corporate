@@ -4,7 +4,7 @@ from django.utils.text import slugify
 
 from src.real_estate.models import Property, PropertyType, PropertyState
 from src.core.models import Province, City
-from src.real_estate.utils.cache import PropertyCacheManager
+from src.real_estate.utils.cache_admin import PropertyCacheManager
 from src.real_estate.messages.messages import PROPERTY_ERRORS
 from src.ai.messages.messages import AI_SUCCESS, AI_ERRORS
 

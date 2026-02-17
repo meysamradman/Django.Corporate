@@ -1,6 +1,13 @@
+from django.core.cache import cache
 from django.db.models import Count, Q
 
 from src.real_estate.models.feature import PropertyFeature
+from src.real_estate.serializers.public.taxonomy_serializer import PropertyFeaturePublicSerializer
+from src.real_estate.utils.cache_public import FeaturePublicCacheKeys
+from src.real_estate.utils.cache_ttl import (
+    PUBLIC_TAXONOMY_DETAIL_TTL,
+    PUBLIC_TAXONOMY_LIST_TTL,
+)
 
 
 class PropertyFeaturePublicService:
@@ -65,3 +72,30 @@ class PropertyFeaturePublicService:
     @staticmethod
     def get_feature_by_public_id(public_id):
         return PropertyFeaturePublicService._base_queryset().filter(public_id=public_id).first()
+
+    @staticmethod
+    def get_feature_list_data(filters=None, search=None, ordering=None):
+        cache_key = FeaturePublicCacheKeys.list(filters=filters, search=search, ordering=ordering)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = PropertyFeaturePublicService.get_feature_queryset(filters=filters, search=search, ordering=ordering)
+        data = PropertyFeaturePublicSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_LIST_TTL)
+        return data
+
+    @staticmethod
+    def get_feature_detail_by_public_id_data(public_id):
+        cache_key = FeaturePublicCacheKeys.detail_public_id(public_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        feature = PropertyFeaturePublicService.get_feature_by_public_id(public_id)
+        if not feature:
+            return None
+
+        data = PropertyFeaturePublicSerializer(feature).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_DETAIL_TTL)
+        return data

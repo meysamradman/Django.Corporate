@@ -23,46 +23,47 @@ class PropertyLabelPublicViewSet(viewsets.ReadOnlyModelViewSet):
         return PropertyLabelPublicService.get_label_queryset(filters=filters, search=search, ordering=ordering)
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+        filters = {'min_property_count': request.query_params.get('min_property_count')}
+        filters = {k: v for k, v in filters.items() if v is not None}
+        search = request.query_params.get('search')
+        ordering = request.query_params.get('ordering')
 
-        serializer = self.get_serializer(queryset, many=True)
+        data = PropertyLabelPublicService.get_label_list_data(filters=filters, search=search, ordering=ordering)
+        page = self.paginate_queryset(data)
+        if page is not None:
+            return self.get_paginated_response(page)
+
         return APIResponse.success(
             message=LABEL_SUCCESS['label_list_success'],
-            data=serializer.data,
+            data=data,
             status_code=status.HTTP_200_OK,
         )
 
     def retrieve(self, request, *args, **kwargs):
-        label = PropertyLabelPublicService.get_label_by_slug(kwargs.get('slug'))
-        if not label:
+        label_data = PropertyLabelPublicService.get_label_detail_by_slug_data(kwargs.get('slug'))
+        if not label_data:
             return APIResponse.error(
                 message=LABEL_ERRORS['label_not_found'],
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = self.get_serializer(label)
         return APIResponse.success(
             message=LABEL_SUCCESS['label_retrieved'],
-            data=serializer.data,
+            data=label_data,
             status_code=status.HTTP_200_OK,
         )
 
     @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
     def get_by_public_id(self, request, public_id=None):
-        label = PropertyLabelPublicService.get_label_by_public_id(public_id)
-        if not label:
+        label_data = PropertyLabelPublicService.get_label_detail_by_public_id_data(public_id)
+        if not label_data:
             return APIResponse.error(
                 message=LABEL_ERRORS['label_not_found'],
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = self.get_serializer(label)
         return APIResponse.success(
             message=LABEL_SUCCESS['label_retrieved'],
-            data=serializer.data,
+            data=label_data,
             status_code=status.HTTP_200_OK,
         )

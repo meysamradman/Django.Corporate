@@ -1,8 +1,19 @@
 from datetime import datetime
+from django.core.cache import cache
 from django.db.models import Count, Q
 
 from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.messages.messages import AGENT_ERRORS
+from src.real_estate.serializers.public.agent_serializer import (
+    PropertyAgentPublicDetailSerializer,
+    PropertyAgentPublicListSerializer,
+)
+from src.real_estate.utils.cache_public import AgentPublicCacheKeys
+from src.real_estate.utils.cache_ttl import (
+    PUBLIC_AGENT_DETAIL_TTL,
+    PUBLIC_AGENT_LIST_TTL,
+    PUBLIC_AGENT_STATS_TTL,
+)
 
 
 class PropertyAgentPublicService:
@@ -237,3 +248,80 @@ class PropertyAgentPublicService:
                 queryset = queryset.filter(rating__gte=min_rating)
         
         return queryset.order_by('-rating', '-total_sales').distinct()
+
+    @staticmethod
+    def get_agent_list_data(filters=None, search=None, ordering=None):
+        cache_key = AgentPublicCacheKeys.list(filters=filters, search=search, ordering=ordering)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = PropertyAgentPublicService.get_agent_queryset(filters=filters, search=search, ordering=ordering)
+        data = PropertyAgentPublicListSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_AGENT_LIST_TTL)
+        return data
+
+    @staticmethod
+    def get_agent_detail_by_slug_data(slug):
+        cache_key = AgentPublicCacheKeys.detail_slug(slug)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        agent = PropertyAgentPublicService.get_agent_by_slug(slug)
+        if not agent:
+            return None
+
+        data = PropertyAgentPublicDetailSerializer(agent).data
+        cache.set(cache_key, data, PUBLIC_AGENT_DETAIL_TTL)
+        return data
+
+    @staticmethod
+    def get_featured_agents_data(limit=6):
+        cache_key = AgentPublicCacheKeys.featured(limit)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = PropertyAgentPublicService.get_featured_agents(limit=limit)
+        data = PropertyAgentPublicListSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_AGENT_LIST_TTL)
+        return data
+
+    @staticmethod
+    def get_top_rated_agents_data(limit=10):
+        cache_key = AgentPublicCacheKeys.top_rated(limit)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = PropertyAgentPublicService.get_top_rated_agents(limit=limit)
+        data = PropertyAgentPublicListSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_AGENT_LIST_TTL)
+        return data
+
+    @staticmethod
+    def get_agents_by_agency_data(agency_id, limit=None):
+        cache_key = AgentPublicCacheKeys.by_agency(agency_id, limit)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        queryset = PropertyAgentPublicService.get_agents_by_agency(agency_id=agency_id, limit=limit)
+        data = PropertyAgentPublicListSerializer(queryset, many=True).data
+        cache.set(cache_key, data, PUBLIC_AGENT_LIST_TTL)
+        return data
+
+    @staticmethod
+    def get_agent_statistics_data(agent_id):
+        cache_key = AgentPublicCacheKeys.statistics(agent_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        stats = PropertyAgentPublicService.get_agent_statistics(agent_id)
+        if stats is None:
+            return None
+
+        cache.set(cache_key, stats, PUBLIC_AGENT_STATS_TTL)
+        return stats

@@ -6,7 +6,13 @@ from datetime import datetime
 
 from src.real_estate.models.type import PropertyType
 from src.real_estate.models.property import Property
-from src.real_estate.utils.cache import TypeCacheKeys, TypeCacheManager
+from src.real_estate.utils.cache_admin import TypeCacheKeys, TypeCacheManager
+from src.real_estate.utils.cache_ttl import (
+    ADMIN_TYPE_POPULAR_TTL,
+    ADMIN_TYPE_ROOTS_TTL,
+    ADMIN_TYPE_STATS_TTL,
+    ADMIN_TYPE_TREE_TTL,
+)
 from src.real_estate.messages import TYPE_ERRORS
 from src.media.models.media import ImageMedia
 
@@ -62,7 +68,7 @@ class PropertyTypeAdminService:
                     'id', 'public_id', 'title', 'slug', 'property_count'
                 )
             )
-            cache.set(cache_key, root_types, 300)
+            cache.set(cache_key, root_types, ADMIN_TYPE_ROOTS_TTL)
         
         return root_types
 
@@ -93,7 +99,7 @@ class PropertyTypeAdminService:
             ).filter(is_active=True)
             
             tree_data = build_tree(root_nodes)
-            cache.set(cache_key, tree_data, 900)
+            cache.set(cache_key, tree_data, ADMIN_TYPE_TREE_TTL)
         
         return tree_data
 
@@ -211,7 +217,7 @@ class PropertyTypeAdminService:
                     'id', 'public_id', 'title', 'slug', 'property_count'
                 )
             )
-            cache.set(cache_key, popular, 600)
+            cache.set(cache_key, popular, ADMIN_TYPE_POPULAR_TTL)
         
         return popular
     
@@ -301,6 +307,6 @@ class PropertyTypeAdminService:
                 'root_types': root_types,
                 'max_depth': max_depth
             }
-            cache.set(cache_key, stats, 300)
+            cache.set(cache_key, stats, ADMIN_TYPE_STATS_TTL)
         
         return stats

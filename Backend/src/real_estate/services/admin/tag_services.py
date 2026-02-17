@@ -6,7 +6,8 @@ from django.utils.text import slugify
 from datetime import datetime
 from src.real_estate.models.tag import PropertyTag
 from src.real_estate.models.property import Property
-from src.real_estate.utils.cache import PropertyTagCacheManager, PropertyTagCacheKeys
+from src.real_estate.utils.cache_admin import PropertyTagCacheManager, PropertyTagCacheKeys
+from src.real_estate.utils.cache_ttl import ADMIN_TAG_DETAIL_TTL, ADMIN_TAG_POPULAR_TTL
 from src.real_estate.messages.messages import TAG_ERRORS
 
 class PropertyTagAdminService:
@@ -63,7 +64,7 @@ class PropertyTagAdminService:
             tag = PropertyTag.objects.annotate(
                 property_count=Count('properties', distinct=True)
             ).get(id=tag_id)
-            cache.set(cache_key, True, 3600)
+            cache.set(cache_key, True, ADMIN_TAG_DETAIL_TTL)
             return tag
         except PropertyTag.DoesNotExist:
             return None
@@ -167,7 +168,7 @@ class PropertyTagAdminService:
                     'id', 'public_id', 'title', 'slug', 'property_count'
                 )
             )
-            cache.set(cache_key, tags, 3600)
+            cache.set(cache_key, tags, ADMIN_TAG_POPULAR_TTL)
         
         return tags
 
