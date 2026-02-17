@@ -345,6 +345,7 @@ CACHES = {
             },
             'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
             'SERIALIZER': 'django_redis.serializers.json.JSONSerializer',
+            'IGNORE_EXCEPTIONS': True,
         },
         'KEY_PREFIX': 'webtalik',
         'VERSION': 1,
@@ -485,6 +486,11 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'INFO',
             'propagate': True,
+        },
+        'django_redis': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
         },
         'src.media.services.media_services': {
             'handlers': ['media_console'],

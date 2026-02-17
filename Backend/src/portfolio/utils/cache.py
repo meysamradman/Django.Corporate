@@ -65,11 +65,11 @@ class CategoryCacheKeys:
     
     @staticmethod
     def statistics():
-        return "category_statistics"
+        return "portfolio_category_statistics"
     
     @staticmethod
     def popular(limit):
-        return f"popular_categories_{limit}"
+        return f"portfolio_popular_categories_{limit}"
     
     @staticmethod
     def list_admin(params):
@@ -117,7 +117,7 @@ class TagCacheKeys:
     
     @staticmethod
     def popular():
-        return "popular_tags"
+        return "portfolio_popular_tags"
     
     @staticmethod
     def all_keys(tag_ids=None):

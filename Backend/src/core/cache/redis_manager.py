@@ -14,6 +14,7 @@ except ImportError:
 class RedisManager:
     
     def __init__(self, cache_alias: str = 'default'):
+        self._cache_alias = cache_alias
         self._cache = caches[cache_alias]
         self.default_timeout = getattr(settings, 'CACHE_TTL', CacheTTL.DEFAULT)
     
