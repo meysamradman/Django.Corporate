@@ -6,6 +6,7 @@ from .tag_services import PropertyTagPublicService
 from .feature_services import PropertyFeaturePublicService
 from .agent_services import PropertyAgentPublicService
 from .agency_services import RealEstateAgencyPublicService
+from .floor_plan_services import FloorPlanPublicService
 
 __all__ = [
     'PropertyStatePublicService',
@@ -16,4 +17,5 @@ __all__ = [
     'PropertyFeaturePublicService',
     'PropertyAgentPublicService',
     'RealEstateAgencyPublicService',
+    'FloorPlanPublicService',
 ]

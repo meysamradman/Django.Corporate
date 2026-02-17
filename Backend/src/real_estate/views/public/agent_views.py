@@ -85,6 +85,40 @@ class PropertyAgentPublicViewSet(viewsets.ReadOnlyModelViewSet):
             data=agent_data,
             status_code=status.HTTP_200_OK
         )
+
+    @action(detail=False, methods=['get'], url_path='id/(?P<agent_id>[^/.]+)')
+    def get_by_id(self, request, agent_id=None):
+
+        agent_data = PropertyAgentPublicService.get_agent_detail_by_id_data(agent_id)
+
+        if not agent_data:
+            return APIResponse.error(
+                message=AGENT_ERRORS["agent_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        return APIResponse.success(
+            message=AGENT_SUCCESS["agent_retrieved"],
+            data=agent_data,
+            status_code=status.HTTP_200_OK
+        )
+
+    @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
+    def get_by_public_id(self, request, public_id=None):
+
+        agent_data = PropertyAgentPublicService.get_agent_detail_by_public_id_data(public_id)
+
+        if not agent_data:
+            return APIResponse.error(
+                message=AGENT_ERRORS["agent_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        return APIResponse.success(
+            message=AGENT_SUCCESS["agent_retrieved"],
+            data=agent_data,
+            status_code=status.HTTP_200_OK
+        )
     
     @action(detail=False, methods=['get'], url_path='featured')
     def featured(self, request):

@@ -267,6 +267,36 @@ class PropertyAgentPublicService:
         return data
 
     @staticmethod
+    def get_agent_detail_by_id_data(agent_id):
+        cache_key = AgentPublicCacheKeys.detail_id(agent_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        agent = PropertyAgentPublicService.get_agent_by_id(agent_id)
+        if not agent:
+            return None
+
+        data = PropertyAgentPublicDetailSerializer(agent).data
+        cache.set(cache_key, data, PUBLIC_AGENT_DETAIL_TTL)
+        return data
+
+    @staticmethod
+    def get_agent_detail_by_public_id_data(public_id):
+        cache_key = AgentPublicCacheKeys.detail_public_id(public_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        agent = PropertyAgentPublicService.get_agent_by_public_id(public_id)
+        if not agent:
+            return None
+
+        data = PropertyAgentPublicDetailSerializer(agent).data
+        cache.set(cache_key, data, PUBLIC_AGENT_DETAIL_TTL)
+        return data
+
+    @staticmethod
     def get_featured_agents_data(limit=6):
         cache_key = AgentPublicCacheKeys.featured(limit)
         cached_data = cache.get(cache_key)

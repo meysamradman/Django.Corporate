@@ -66,6 +66,10 @@ class PropertyLabelPublicService:
         return PropertyLabelPublicService._base_queryset().filter(slug=slug).first()
 
     @staticmethod
+    def get_label_by_id(label_id):
+        return PropertyLabelPublicService._base_queryset().filter(id=label_id).first()
+
+    @staticmethod
     def get_label_by_public_id(public_id):
         return PropertyLabelPublicService._base_queryset().filter(public_id=public_id).first()
 
@@ -89,6 +93,21 @@ class PropertyLabelPublicService:
             return cached_data
 
         label = PropertyLabelPublicService.get_label_by_slug(slug)
+        if not label:
+            return None
+
+        data = PropertyLabelPublicSerializer(label).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_DETAIL_TTL)
+        return data
+
+    @staticmethod
+    def get_label_detail_by_id_data(label_id):
+        cache_key = LabelPublicCacheKeys.detail_id(label_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        label = PropertyLabelPublicService.get_label_by_id(label_id)
         if not label:
             return None
 

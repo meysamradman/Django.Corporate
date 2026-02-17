@@ -58,6 +58,21 @@ class PropertyTypePublicViewSet(viewsets.ReadOnlyModelViewSet):
             status_code=status.HTTP_200_OK,
         )
 
+    @action(detail=False, methods=['get'], url_path='id/(?P<type_id>[^/.]+)')
+    def get_by_id(self, request, type_id=None):
+        type_data = PropertyTypePublicService.get_type_detail_by_id_data(type_id)
+        if not type_data:
+            return APIResponse.error(
+                message=TYPE_ERRORS['type_not_found'],
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+
+        return APIResponse.success(
+            message=TYPE_SUCCESS['type_retrieved'],
+            data=type_data,
+            status_code=status.HTTP_200_OK,
+        )
+
     @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
     def get_by_public_id(self, request, public_id=None):
         type_data = PropertyTypePublicService.get_type_detail_by_public_id_data(public_id)

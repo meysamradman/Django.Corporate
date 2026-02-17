@@ -52,6 +52,21 @@ class PropertyTagPublicViewSet(viewsets.ReadOnlyModelViewSet):
             status_code=status.HTTP_200_OK,
         )
 
+    @action(detail=False, methods=['get'], url_path='id/(?P<tag_id>[^/.]+)')
+    def get_by_id(self, request, tag_id=None):
+        tag_data = PropertyTagPublicService.get_tag_detail_by_id_data(tag_id)
+        if not tag_data:
+            return APIResponse.error(
+                message=TAG_ERRORS['tag_not_found'],
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+
+        return APIResponse.success(
+            message=TAG_SUCCESS['tag_retrieved'],
+            data=tag_data,
+            status_code=status.HTTP_200_OK,
+        )
+
     @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
     def get_by_public_id(self, request, public_id=None):
         tag_data = PropertyTagPublicService.get_tag_detail_by_public_id_data(public_id)

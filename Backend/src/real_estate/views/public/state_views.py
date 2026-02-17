@@ -73,6 +73,21 @@ class PropertyStatePublicViewSet(viewsets.ReadOnlyModelViewSet):
             status_code=status.HTTP_200_OK,
         )
 
+    @action(detail=False, methods=['get'], url_path='id/(?P<state_id>[^/.]+)')
+    def get_by_id(self, request, state_id=None):
+        state_data = PropertyStatePublicService.get_state_detail_by_id_data(state_id)
+        if not state_data:
+            return APIResponse.error(
+                message=STATE_ERRORS['state_not_found'],
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+
+        return APIResponse.success(
+            message=STATE_SUCCESS['state_retrieved'],
+            data=state_data,
+            status_code=status.HTTP_200_OK,
+        )
+
     @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
     def get_by_public_id(self, request, public_id=None):
         state_data = PropertyStatePublicService.get_state_detail_by_public_id_data(public_id)

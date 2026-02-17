@@ -52,6 +52,21 @@ class PropertyLabelPublicViewSet(viewsets.ReadOnlyModelViewSet):
             status_code=status.HTTP_200_OK,
         )
 
+    @action(detail=False, methods=['get'], url_path='id/(?P<label_id>[^/.]+)')
+    def get_by_id(self, request, label_id=None):
+        label_data = PropertyLabelPublicService.get_label_detail_by_id_data(label_id)
+        if not label_data:
+            return APIResponse.error(
+                message=LABEL_ERRORS['label_not_found'],
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+
+        return APIResponse.success(
+            message=LABEL_SUCCESS['label_retrieved'],
+            data=label_data,
+            status_code=status.HTTP_200_OK,
+        )
+
     @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
     def get_by_public_id(self, request, public_id=None):
         label_data = PropertyLabelPublicService.get_label_detail_by_public_id_data(public_id)

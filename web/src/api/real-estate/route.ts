@@ -1,6 +1,7 @@
 import { fetchApi } from "@/core/config/fetch";
 import {
     Property,
+    FloorPlan,
     PropertyType,
     PropertyState,
     PropertyLabel,
@@ -23,13 +24,38 @@ export const realEstateApi = {
         return toPaginatedResponse<Property>(response, params?.size || 10);
     },
 
-    getPropertyDetail: async (slugOrId: string | number): Promise<Property> => {
-        const response = await fetchApi.get<Property>(`/real-estate/properties/${slugOrId}/`);
+    getPropertyByNumericId: async (id: string | number): Promise<Property> => {
+        const response = await fetchApi.get<Property>(`/real-estate/properties/id/${id}/`);
+        return response.data;
+    },
+
+    getPropertyBySlug: async (slug: string): Promise<Property> => {
+        const response = await fetchApi.get<Property>(`/real-estate/properties/${slug}/`);
+        return response.data;
+    },
+
+    getPropertyByPublicId: async (publicId: string): Promise<Property> => {
+        const response = await fetchApi.get<Property>(`/real-estate/properties/p/${publicId}/`);
         return response.data;
     },
 
     getPropertyStatuses: async (): Promise<PropertyStatusOption[]> => {
         const response = await fetchApi.get<PropertyStatusOption[]>('/real-estate/properties/statuses/');
+        return response.data;
+    },
+
+    getFloorPlans: async (params?: RealEstateTaxonomyListParams & { property_id?: number | string }): Promise<PaginatedResponse<FloorPlan>> => {
+        const response = await fetchApi.get<FloorPlan[]>(withQuery('/real-estate/floor-plans/', params as Record<string, unknown>));
+        return toPaginatedResponse<FloorPlan>(response, params?.size || 50);
+    },
+
+    getFloorPlanByNumericId: async (id: string | number): Promise<FloorPlan> => {
+        const response = await fetchApi.get<FloorPlan>(`/real-estate/floor-plans/id/${id}/`);
+        return response.data;
+    },
+
+    getFloorPlanBySlug: async (slug: string): Promise<FloorPlan> => {
+        const response = await fetchApi.get<FloorPlan>(`/real-estate/floor-plans/${slug}/`);
         return response.data;
     },
 

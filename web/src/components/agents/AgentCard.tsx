@@ -50,6 +50,7 @@ export default function AgentCard({ agent, className }: AgentCardProps) {
   const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
 
   const socialLinks = agent.social_links || {};
+  const agentPath = `/agents/${agent.id}/${encodeURIComponent(agent.slug)}`;
 
   const socialIcons = [
     { key: "facebook", Icon: Facebook, url: socialLinks.facebook, color: "text-blue-600" },
@@ -199,7 +200,7 @@ export default function AgentCard({ agent, className }: AgentCardProps) {
 
         {/* View Listings Button */}
         <Button asChild size="sm" className="shrink-0">
-          <Link href={`/agents/${agent.slug}`}>مشاهده آگهی‌ها</Link>
+          <Link href={agentPath}>مشاهده آگهی‌ها</Link>
         </Button>
       </div>
     </div>

@@ -126,6 +126,10 @@ class PropertyPublicService:
         return Property.objects.for_detail().published().active().filter(slug=slug).first()
 
     @staticmethod
+    def get_property_by_id(property_id):
+        return Property.objects.for_detail().published().active().filter(id=property_id).first()
+
+    @staticmethod
     def get_property_by_public_id(public_id):
         return Property.objects.for_detail().published().active().filter(public_id=public_id).first()
 
@@ -173,6 +177,21 @@ class PropertyPublicService:
             return cached_data
 
         property_obj = PropertyPublicService.get_property_by_slug(slug)
+        if not property_obj:
+            return None
+
+        data = PropertyPublicDetailSerializer(property_obj).data
+        cache.set(cache_key, data, PUBLIC_PROPERTY_DETAIL_TTL)
+        return data
+
+    @staticmethod
+    def get_property_detail_by_id_data(property_id):
+        cache_key = PropertyPublicCacheKeys.detail_id(property_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        property_obj = PropertyPublicService.get_property_by_id(property_id)
         if not property_obj:
             return None
 

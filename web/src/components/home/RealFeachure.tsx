@@ -37,6 +37,8 @@ export default function RealFeachure({ properties = [] }: RealFeachureProps) {
         return parts.join('، ') || property.neighborhood || '';
     };
 
+    const getPropertyCanonicalPath = (property: Property): string => `/real-estate/${property.id}/${encodeURIComponent(property.slug)}`;
+
     return (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
 
@@ -48,7 +50,7 @@ export default function RealFeachure({ properties = [] }: RealFeachureProps) {
                 const footerLeft = hasData && property ? formatPrice(property) : '';
                 const footerRight = hasData && property ? (property.property_type?.name || property.state?.name || '') : '';
 
-                const slugOrId = hasData && property ? (property.slug || property.id) : null;
+                const propertyPath = hasData && property ? getPropertyCanonicalPath(property) : null;
 
                 const content = (
                     <Card className="p-0 gap-0">
@@ -77,10 +79,10 @@ export default function RealFeachure({ properties = [] }: RealFeachureProps) {
                     </Card>
                 );
 
-                return hasData && slugOrId ? (
+                return hasData && propertyPath ? (
                     <Link
-                        key={String(slugOrId)}
-                        href={`/real-estate/${slugOrId}`}
+                        key={String(property.id)}
+                        href={propertyPath}
                         className="block"
                         aria-label={title || "جزئیات ملک"}
                     >

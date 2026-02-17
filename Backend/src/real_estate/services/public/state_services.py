@@ -74,6 +74,10 @@ class PropertyStatePublicService:
         return PropertyStatePublicService._base_queryset().filter(slug=slug).first()
 
     @staticmethod
+    def get_state_by_id(state_id):
+        return PropertyStatePublicService._base_queryset().filter(id=state_id).first()
+
+    @staticmethod
     def get_state_by_public_id(public_id):
         return PropertyStatePublicService._base_queryset().filter(public_id=public_id).first()
 
@@ -103,6 +107,21 @@ class PropertyStatePublicService:
             return cached_data
 
         state = PropertyStatePublicService.get_state_by_slug(slug)
+        if not state:
+            return None
+
+        data = PropertyStatePublicSerializer(state).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_DETAIL_TTL)
+        return data
+
+    @staticmethod
+    def get_state_detail_by_id_data(state_id):
+        cache_key = StatePublicCacheKeys.detail_id(state_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        state = PropertyStatePublicService.get_state_by_id(state_id)
         if not state:
             return None
 

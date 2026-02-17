@@ -16,6 +16,10 @@ class PropertyPublicCacheKeys:
         return f"public:real_estate:property:detail:slug:{slug}"
 
     @staticmethod
+    def detail_id(property_id):
+        return f"public:real_estate:property:detail:id:{property_id}"
+
+    @staticmethod
     def detail_public_id(public_id):
         return f"public:real_estate:property:detail:public_id:{public_id}"
 
@@ -41,6 +45,10 @@ class TypePublicCacheKeys:
     @staticmethod
     def detail_slug(slug):
         return f"public:real_estate:type:detail:slug:{slug}"
+
+    @staticmethod
+    def detail_id(type_id):
+        return f"public:real_estate:type:detail:id:{type_id}"
 
     @staticmethod
     def detail_public_id(public_id):
@@ -74,6 +82,10 @@ class StatePublicCacheKeys:
         return f"public:real_estate:state:detail:slug:{slug}"
 
     @staticmethod
+    def detail_id(state_id):
+        return f"public:real_estate:state:detail:id:{state_id}"
+
+    @staticmethod
     def detail_public_id(public_id):
         return f"public:real_estate:state:detail:public_id:{public_id}"
 
@@ -95,6 +107,10 @@ class TagPublicCacheKeys:
     @staticmethod
     def detail_slug(slug):
         return f"public:real_estate:tag:detail:slug:{slug}"
+
+    @staticmethod
+    def detail_id(tag_id):
+        return f"public:real_estate:tag:detail:id:{tag_id}"
 
     @staticmethod
     def detail_public_id(public_id):
@@ -119,6 +135,10 @@ class FeaturePublicCacheKeys:
     def detail_public_id(public_id):
         return f"public:real_estate:feature:detail:public_id:{public_id}"
 
+    @staticmethod
+    def detail_id(feature_id):
+        return f"public:real_estate:feature:detail:id:{feature_id}"
+
 class LabelPublicCacheKeys:
 
     @staticmethod
@@ -133,6 +153,10 @@ class LabelPublicCacheKeys:
     @staticmethod
     def detail_slug(slug):
         return f"public:real_estate:label:detail:slug:{slug}"
+
+    @staticmethod
+    def detail_id(label_id):
+        return f"public:real_estate:label:detail:id:{label_id}"
 
     @staticmethod
     def detail_public_id(public_id):
@@ -152,6 +176,10 @@ class AgentPublicCacheKeys:
     @staticmethod
     def detail_slug(slug):
         return f"public:real_estate:agent:detail:slug:{slug}"
+
+    @staticmethod
+    def detail_id(agent_id):
+        return f"public:real_estate:agent:detail:id:{agent_id}"
 
     @staticmethod
     def detail_public_id(public_id):
@@ -189,6 +217,10 @@ class AgencyPublicCacheKeys:
         return f"public:real_estate:agency:detail:slug:{slug}"
 
     @staticmethod
+    def detail_id(agency_id):
+        return f"public:real_estate:agency:detail:id:{agency_id}"
+
+    @staticmethod
     def detail_public_id(public_id):
         return f"public:real_estate:agency:detail:public_id:{public_id}"
 
@@ -215,3 +247,26 @@ class AgencyPublicCacheKeys:
     @staticmethod
     def with_agents(slug):
         return f"public:real_estate:agency:with_agents:{slug}"
+
+class FloorPlanPublicCacheKeys:
+
+    @staticmethod
+    def list(filters=None, search=None, ordering=None):
+        payload = {
+            'filters': filters or {},
+            'search': search,
+            'ordering': ordering,
+        }
+        return f"public:real_estate:floor_plan:list:{hash_payload(payload)}"
+
+    @staticmethod
+    def detail_slug(slug):
+        return f"public:real_estate:floor_plan:detail:slug:{slug}"
+
+    @staticmethod
+    def detail_id(floor_plan_id):
+        return f"public:real_estate:floor_plan:detail:id:{floor_plan_id}"
+
+    @staticmethod
+    def detail_public_id(public_id):
+        return f"public:real_estate:floor_plan:detail:public_id:{public_id}"

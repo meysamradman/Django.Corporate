@@ -58,6 +58,21 @@ class PropertyFeaturePublicViewSet(viewsets.ReadOnlyModelViewSet):
             status_code=status.HTTP_200_OK,
         )
 
+    @action(detail=False, methods=['get'], url_path='id/(?P<feature_id>[^/.]+)')
+    def get_by_id(self, request, feature_id=None):
+        feature_data = PropertyFeaturePublicService.get_feature_detail_by_id_data(feature_id)
+        if not feature_data:
+            return APIResponse.error(
+                message=FEATURE_ERRORS['feature_not_found'],
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+
+        return APIResponse.success(
+            message=FEATURE_SUCCESS['feature_retrieved'],
+            data=feature_data,
+            status_code=status.HTTP_200_OK,
+        )
+
     @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
     def get_by_public_id(self, request, public_id=None):
         feature_data = PropertyFeaturePublicService.get_feature_detail_by_public_id_data(public_id)

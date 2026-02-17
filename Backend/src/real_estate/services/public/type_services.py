@@ -74,6 +74,10 @@ class PropertyTypePublicService:
         return PropertyTypePublicService._base_queryset().filter(slug=slug).first()
 
     @staticmethod
+    def get_type_by_id(type_id):
+        return PropertyTypePublicService._base_queryset().filter(id=type_id).first()
+
+    @staticmethod
     def get_type_by_public_id(public_id):
         return PropertyTypePublicService._base_queryset().filter(public_id=public_id).first()
 
@@ -109,6 +113,21 @@ class PropertyTypePublicService:
             return cached_data
 
         property_type = PropertyTypePublicService.get_type_by_slug(slug)
+        if not property_type:
+            return None
+
+        data = PropertyTypePublicSerializer(property_type).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_DETAIL_TTL)
+        return data
+
+    @staticmethod
+    def get_type_detail_by_id_data(type_id):
+        cache_key = TypePublicCacheKeys.detail_id(type_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        property_type = PropertyTypePublicService.get_type_by_id(type_id)
         if not property_type:
             return None
 

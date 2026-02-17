@@ -37,6 +37,7 @@ type AgencyCardProps = {
  */
 export default function AgencyCard({ agency, className }: AgencyCardProps) {
   const logo = agency.logo || agency.profile_picture || "/images/agency-placeholder.jpg";
+  const agencyPath = `/agencies/${agency.id}/${encodeURIComponent(agency.slug)}`;
 
   // Calculate star rating
   const fullStars = Math.floor(agency.rating);
@@ -189,7 +190,7 @@ export default function AgencyCard({ agency, className }: AgencyCardProps) {
 
         {/* View Listings Button */}
         <Button asChild size="sm" className="shrink-0">
-          <Link href={`/agencies/${agency.slug}`}>مشاهده آگهی‌ها</Link>
+          <Link href={agencyPath}>مشاهده آگهی‌ها</Link>
         </Button>
       </div>
     </div>

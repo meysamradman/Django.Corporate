@@ -49,6 +49,16 @@ export const agentApi = {
     return response.data;
   },
 
+  async getAgentByNumericId(id: string | number): Promise<Agent> {
+    const response = await fetchApi.get<Agent>(`/real-estate/agents/id/${id}/`);
+    return response.data;
+  },
+
+  async getAgentByPublicId(publicId: string): Promise<Agent> {
+    const response = await fetchApi.get<Agent>(`/real-estate/agents/p/${publicId}/`);
+    return response.data;
+  },
+
   /**
    * Get featured agents (top rated, verified)
    */
@@ -96,6 +106,16 @@ export const agencyApi = {
    */
   async getAgencyBySlug(slug: string): Promise<Agency> {
     const response = await fetchApi.get<Agency>(`/real-estate/agencies/${slug}/`);
+    return response.data;
+  },
+
+  async getAgencyByNumericId(id: string | number): Promise<Agency> {
+    const response = await fetchApi.get<Agency>(`/real-estate/agencies/id/${id}/`);
+    return response.data;
+  },
+
+  async getAgencyByPublicId(publicId: string): Promise<Agency> {
+    const response = await fetchApi.get<Agency>(`/real-estate/agencies/p/${publicId}/`);
     return response.data;
   },
 

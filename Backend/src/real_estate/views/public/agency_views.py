@@ -87,6 +87,40 @@ class RealEstateAgencyPublicViewSet(viewsets.ReadOnlyModelViewSet):
             data=agency_data,
             status_code=status.HTTP_200_OK
         )
+
+    @action(detail=False, methods=['get'], url_path='id/(?P<agency_id>[^/.]+)')
+    def get_by_id(self, request, agency_id=None):
+
+        agency_data = RealEstateAgencyPublicService.get_agency_detail_by_id_data(agency_id)
+
+        if not agency_data:
+            return APIResponse.error(
+                message=AGENCY_ERRORS["agency_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        return APIResponse.success(
+            message=AGENCY_SUCCESS["agency_retrieved"],
+            data=agency_data,
+            status_code=status.HTTP_200_OK
+        )
+
+    @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
+    def get_by_public_id(self, request, public_id=None):
+
+        agency_data = RealEstateAgencyPublicService.get_agency_detail_by_public_id_data(public_id)
+
+        if not agency_data:
+            return APIResponse.error(
+                message=AGENCY_ERRORS["agency_not_found"],
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        return APIResponse.success(
+            message=AGENCY_SUCCESS["agency_retrieved"],
+            data=agency_data,
+            status_code=status.HTTP_200_OK
+        )
     
     @action(detail=False, methods=['get'], url_path='featured')
     def featured(self, request):

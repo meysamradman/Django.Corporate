@@ -309,6 +309,36 @@ class RealEstateAgencyPublicService:
         return data
 
     @staticmethod
+    def get_agency_detail_by_id_data(agency_id):
+        cache_key = AgencyPublicCacheKeys.detail_id(agency_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        agency = RealEstateAgencyPublicService.get_agency_by_id(agency_id)
+        if not agency:
+            return None
+
+        data = RealEstateAgencyPublicDetailSerializer(agency).data
+        cache.set(cache_key, data, PUBLIC_AGENCY_DETAIL_TTL)
+        return data
+
+    @staticmethod
+    def get_agency_detail_by_public_id_data(public_id):
+        cache_key = AgencyPublicCacheKeys.detail_public_id(public_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        agency = RealEstateAgencyPublicService.get_agency_by_public_id(public_id)
+        if not agency:
+            return None
+
+        data = RealEstateAgencyPublicDetailSerializer(agency).data
+        cache.set(cache_key, data, PUBLIC_AGENCY_DETAIL_TTL)
+        return data
+
+    @staticmethod
     def get_featured_agencies_data(limit=6):
         cache_key = AgencyPublicCacheKeys.featured(limit)
         cached_data = cache.get(cache_key)

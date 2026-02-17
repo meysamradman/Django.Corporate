@@ -73,6 +73,10 @@ class PropertyFeaturePublicService:
         return PropertyFeaturePublicService._base_queryset().filter(public_id=public_id).first()
 
     @staticmethod
+    def get_feature_by_id(feature_id):
+        return PropertyFeaturePublicService._base_queryset().filter(id=feature_id).first()
+
+    @staticmethod
     def get_feature_list_data(filters=None, search=None, ordering=None):
         cache_key = FeaturePublicCacheKeys.list(filters=filters, search=search, ordering=ordering)
         cached_data = cache.get(cache_key)
@@ -92,6 +96,21 @@ class PropertyFeaturePublicService:
             return cached_data
 
         feature = PropertyFeaturePublicService.get_feature_by_public_id(public_id)
+        if not feature:
+            return None
+
+        data = PropertyFeaturePublicSerializer(feature).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_DETAIL_TTL)
+        return data
+
+    @staticmethod
+    def get_feature_detail_by_id_data(feature_id):
+        cache_key = FeaturePublicCacheKeys.detail_id(feature_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        feature = PropertyFeaturePublicService.get_feature_by_id(feature_id)
         if not feature:
             return None
 

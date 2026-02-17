@@ -72,6 +72,10 @@ class PropertyTagPublicService:
         return PropertyTagPublicService._base_queryset().filter(slug=slug).first()
 
     @staticmethod
+    def get_tag_by_id(tag_id):
+        return PropertyTagPublicService._base_queryset().filter(id=tag_id).first()
+
+    @staticmethod
     def get_tag_by_public_id(public_id):
         return PropertyTagPublicService._base_queryset().filter(public_id=public_id).first()
 
@@ -99,6 +103,21 @@ class PropertyTagPublicService:
             return cached_data
 
         tag = PropertyTagPublicService.get_tag_by_slug(slug)
+        if not tag:
+            return None
+
+        data = PropertyTagPublicSerializer(tag).data
+        cache.set(cache_key, data, PUBLIC_TAXONOMY_DETAIL_TTL)
+        return data
+
+    @staticmethod
+    def get_tag_detail_by_id_data(tag_id):
+        cache_key = TagPublicCacheKeys.detail_id(tag_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        tag = PropertyTagPublicService.get_tag_by_id(tag_id)
         if not tag:
             return None
 

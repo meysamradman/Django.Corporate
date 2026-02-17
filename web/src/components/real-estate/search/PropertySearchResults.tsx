@@ -40,6 +40,8 @@ const getPropertyImageUrl = (property: Property): string | null => {
   return mediaImage;
 };
 
+const getPropertyCanonicalPath = (property: Property): string => `/real-estate/${property.id}/${encodeURIComponent(property.slug)}`;
+
 const buildPageHref = (filters: PropertySearchFilters, page: number): string => {
   const params = filtersToSearchParams(filters, { page });
   const query = params.toString();
@@ -99,12 +101,12 @@ export default function PropertySearchResults({
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {properties.map((property) => {
-            const slugOrId = property.slug || property.id;
+            const propertyPath = getPropertyCanonicalPath(property);
             const imageUrl = getPropertyImageUrl(property);
 
             return (
               <article key={property.id} className="rounded-lg border bg-card overflow-hidden flex flex-col">
-                <Link href={`/real-estate/${slugOrId}`} className="block">
+                <Link href={propertyPath} className="block">
                   {imageUrl ? (
                     <img
                       src={imageUrl}
@@ -132,7 +134,7 @@ export default function PropertySearchResults({
                   <div className="mt-auto flex items-center justify-between gap-2 pt-1">
                     <span className="font-semibold text-primary">{toPriceLabel(property)}</span>
                     <Button asChild variant="outline" size="sm">
-                      <Link href={`/real-estate/${slugOrId}`}>مشاهده</Link>
+                      <Link href={propertyPath}>مشاهده</Link>
                     </Button>
                   </div>
                 </div>
