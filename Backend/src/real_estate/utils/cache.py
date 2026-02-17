@@ -47,6 +47,11 @@ class PropertyCacheKeys:
     def statistics() -> str:
         
         return CacheKeyBuilder.property_statistics()
+
+    @staticmethod
+    def statistics_seo_report() -> str:
+        
+        return f"{CacheKeyBuilder.property_statistics()}:seo_report"
     
     @staticmethod
     def all_keys(property_id: int) -> list[str]:
@@ -93,7 +98,11 @@ class PropertyCacheManager:
     @staticmethod
     def invalidate_statistics() -> int:
         
-        return CacheService.clear_property_statistics()
+        keys = [
+            PropertyCacheKeys.statistics(),
+            PropertyCacheKeys.statistics_seo_report(),
+        ]
+        return CacheService.delete_many(keys)
     
     @staticmethod
     def invalidate_all() -> int:

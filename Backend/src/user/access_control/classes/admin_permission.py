@@ -489,7 +489,25 @@ class AdminPermissionCache:
     @staticmethod
     def clear_all_admin_cache():
         try:
-            cache.clear()
+            patterns = [
+                "admin:perms:*",
+                "admin:roles:*",
+                "admin:info:*",
+                "admin:profile:*",
+                "user:perms:*",
+                "user:modules:*",
+                "user:mod:perms:*",
+                "perm:display:*",
+                "admin_simple_perms_*",
+            ]
+
+            for pattern in patterns:
+                try:
+                    cache.delete_pattern(pattern)
+                except Exception:
+                    continue
+
+            UserCacheManager.invalidate_permission_map()
         except Exception:
             pass
 

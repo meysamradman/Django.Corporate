@@ -1,11 +1,10 @@
 from django.db import models
-from django.core.cache import cache
 from django.core.validators import MinLengthValidator
 
 from src.core.models.base import BaseModel
 from src.media.models.media import ImageMedia
 from src.page.models.seo import SEOMixin
-from src.page.utils.cache import PageCacheKeys, PageCacheManager
+from src.page.utils.cache import PageCacheManager
 
 class AboutPage(BaseModel, SEOMixin):
 
@@ -82,16 +81,12 @@ class AboutPage(BaseModel, SEOMixin):
     
     @classmethod
     def get_page(cls):
-        cache_key = PageCacheKeys.about_page()
-        page = cache.get(cache_key)
-        if page is None:
-            page = cls.objects.select_related('featured_image').first()
-            if not page:
-                page = cls.objects.create(
-                    title="About Us",
-                    content="About page content"
-                )
-            cache.set(cache_key, page, 3600)  # 1 hour cache
+        page = cls.objects.select_related('featured_image').first()
+        if not page:
+            page = cls.objects.create(
+                title="About Us",
+                content="About page content"
+            )
         return page
     
     def generate_structured_data(self):

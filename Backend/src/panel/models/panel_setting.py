@@ -51,10 +51,17 @@ class PanelSettings(BaseModel):
     @classmethod
     def get_settings(cls):
         cache_key = PanelCacheKeys.panel_settings()
-        settings = cache.get(cache_key)
-        if settings is None:
-            settings = cls.objects.select_related('logo', 'favicon').first()
-            if not settings:
-                settings = cls.objects.create()
-            cache.set(cache_key, settings, 3600)
+        settings_id = cache.get(cache_key)
+
+        if settings_id is not None:
+            settings = cls.objects.select_related('logo', 'favicon').filter(id=settings_id).first()
+            if settings is not None:
+                return settings
+            cache.delete(cache_key)
+
+        settings = cls.objects.select_related('logo', 'favicon').first()
+        if not settings:
+            settings = cls.objects.create()
+
+        cache.set(cache_key, settings.id, 3600)
         return settings

@@ -21,7 +21,7 @@ class PropertyStatisticsService:
     def get_statistics(cls):
         cache_key = PropertyCacheKeys.statistics()
         cached_stats = cache.get(cache_key)
-        if cached_stats:
+        if cached_stats is not None:
             return cached_stats
         
         stats = {

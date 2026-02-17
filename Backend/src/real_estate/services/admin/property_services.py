@@ -250,6 +250,11 @@ class PropertyAdminService:
                 )
         
         logger.info(f"🏆 [PropertyService][Create] Complete - Property ID: {property_obj.id}")
+
+        PropertyCacheManager.invalidate_property(property_obj.id)
+        PropertyCacheManager.invalidate_list()
+        PropertyCacheManager.invalidate_statistics()
+
         return property_obj
     
     @staticmethod
@@ -392,6 +397,7 @@ class PropertyAdminService:
         
         PropertyCacheManager.invalidate_property(property_id)
         PropertyCacheManager.invalidate_list()
+        PropertyCacheManager.invalidate_statistics()
         
         logger.info(f"✅ [PropertyService][Update] Complete for ID: {property_id}")
         
@@ -409,6 +415,7 @@ class PropertyAdminService:
         
         PropertyCacheManager.invalidate_property(property_id)
         PropertyCacheManager.invalidate_list()
+        PropertyCacheManager.invalidate_statistics()
         
         return True
     
@@ -429,6 +436,7 @@ class PropertyAdminService:
             for prop_id in property_ids:
                 PropertyCacheManager.invalidate_property(prop_id)
             PropertyCacheManager.invalidate_list()
+            PropertyCacheManager.invalidate_statistics()
         
         return deleted_count
     
@@ -456,6 +464,7 @@ class PropertyAdminService:
             for prop_id in property_ids:
                 PropertyCacheManager.invalidate_property(prop_id)
             PropertyCacheManager.invalidate_list()
+            PropertyCacheManager.invalidate_statistics()
         
         return True
     
@@ -479,9 +488,9 @@ class PropertyAdminService:
     
     @staticmethod
     def get_seo_report():
-        cache_key = f"{PropertyCacheKeys.statistics()}:seo_report"
+        cache_key = PropertyCacheKeys.statistics_seo_report()
         cached_report = cache.get(cache_key)
-        if cached_report:
+        if cached_report is not None:
             return cached_report
         
         total = Property.objects.count()
@@ -558,6 +567,8 @@ class PropertyAdminStatusService:
         property_obj.save(update_fields=['is_published', 'published_at', 'updated_at'])
         
         PropertyCacheManager.invalidate_property(property_id)
+        PropertyCacheManager.invalidate_list()
+        PropertyCacheManager.invalidate_statistics()
         
         return {
             'property': property_obj,
@@ -575,6 +586,8 @@ class PropertyAdminStatusService:
         property_obj.save(update_fields=['is_published', 'updated_at'])
         
         PropertyCacheManager.invalidate_property(property_id)
+        PropertyCacheManager.invalidate_list()
+        PropertyCacheManager.invalidate_statistics()
         
         return property_obj
     
@@ -590,6 +603,7 @@ class PropertyAdminStatusService:
         
         PropertyCacheManager.invalidate_property(property_id)
         PropertyCacheManager.invalidate_list()
+        PropertyCacheManager.invalidate_statistics()
         
         return property_obj
 
@@ -652,5 +666,6 @@ class PropertyAdminStatusService:
         property_obj.refresh_from_db()
         PropertyCacheManager.invalidate_property(property_obj.id)
         PropertyCacheManager.invalidate_list()
+        PropertyCacheManager.invalidate_statistics()
         return property_obj
 

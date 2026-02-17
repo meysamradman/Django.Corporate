@@ -18,7 +18,7 @@ class ContentStatsService:
     
     @classmethod
     def get_monthly_trend(cls) -> dict:
-        cache_key = 'analytics:content_trend'
+        cache_key = AnalyticsCacheKeys.content_trend()
         data = cache.get(cache_key)
         if not data:
             data = cls._calculate_monthly_trend()
@@ -160,4 +160,5 @@ class ContentStatsService:
     @classmethod
     def clear_cache(cls):
         AnalyticsCacheManager.invalidate_content()
+        AnalyticsCacheManager.invalidate_content_trend()
 

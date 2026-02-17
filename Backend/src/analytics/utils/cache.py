@@ -46,6 +46,22 @@ class AnalyticsCacheKeys:
     @staticmethod
     def activity_log():
         return "admin_stats_activity_log"
+
+    @staticmethod
+    def traffic_dashboard(site_id: str = "default"):
+        return f"analytics:dashboard:{site_id}"
+
+    @staticmethod
+    def monthly_stats():
+        return "analytics:monthly_stats"
+
+    @staticmethod
+    def content_trend():
+        return "analytics:content_trend"
+
+    @staticmethod
+    def traffic_dashboard_pattern():
+        return "analytics:dashboard:*"
     
     @staticmethod
     def time_based_stats(stat_type, days):
@@ -112,6 +128,22 @@ class AnalyticsCacheManager:
     @staticmethod
     def invalidate_activity_log():
         return CacheService.delete(AnalyticsCacheKeys.activity_log())
+
+    @staticmethod
+    def invalidate_traffic_dashboard(site_id: str = "default"):
+        return CacheService.delete(AnalyticsCacheKeys.traffic_dashboard(site_id))
+
+    @staticmethod
+    def invalidate_all_traffic_dashboards():
+        return CacheService.delete_pattern(AnalyticsCacheKeys.traffic_dashboard_pattern())
+
+    @staticmethod
+    def invalidate_monthly_stats():
+        return CacheService.delete(AnalyticsCacheKeys.monthly_stats())
+
+    @staticmethod
+    def invalidate_content_trend():
+        return CacheService.delete(AnalyticsCacheKeys.content_trend())
     
     @staticmethod
     def invalidate_time_based(stat_type, days):

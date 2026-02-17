@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.core.cache import cache
 
 from src.ai.models.ai_provider import AIProvider
+from src.ai.utils.cache import AICacheKeys
 
 
 class AICapabilityModelManager(models.Manager):
@@ -15,7 +16,7 @@ class AICapabilityModelManager(models.Manager):
         if not capability:
             return None
 
-        cache_key = f"active_capability_model_{capability}"
+        cache_key = AICacheKeys.active_capability_model(capability)
         model_id = cache.get(cache_key)
         if model_id is not None:
             try:
@@ -122,4 +123,4 @@ class AICapabilityModel(models.Model):
 
         super().save(*args, **kwargs)
 
-        cache.delete(f"active_capability_model_{self.capability}")
+        cache.delete(AICacheKeys.active_capability_model(self.capability))

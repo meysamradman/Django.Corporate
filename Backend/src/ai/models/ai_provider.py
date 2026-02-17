@@ -270,7 +270,7 @@ class AIModelManager(models.Manager):
         import logging
         logger = logging.getLogger(__name__)
 
-        cache_key = f"active_model_{provider_slug}_{capability or 'any'}"
+        cache_key = AICacheKeys.active_provider_model(provider_slug, capability)
         cached_model_id = cache.get(cache_key)
 
         if cached_model_id is not None:
@@ -487,11 +487,11 @@ class AIModel(BaseModel, CacheMixin):
             AICacheManager.invalidate_models()
 
             # New provider-level cache
-            cache.delete(f"active_model_{self.provider.slug}")
+            cache.delete(AICacheKeys.active_provider_model(self.provider.slug))
             
             # Legacy per-capability cache keys (safe to clear)
             for capability in self.capabilities:
-                cache.delete(f"active_model_{self.provider.slug}_{capability}")
+                cache.delete(AICacheKeys.active_provider_model(self.provider.slug, capability))
     
     def increment_usage(self):
         self.total_requests += 1

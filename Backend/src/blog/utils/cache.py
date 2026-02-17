@@ -101,7 +101,7 @@ class CategoryCacheManager:
         all_keys.extend(CategoryCacheKeys.all_popular_keys())
         if all_keys:
             cache.delete_many(all_keys)
-        return CacheService.delete_pattern("*blog_category_list_admin:*")
+        return CacheService.delete_pattern("blog_category_list_admin:*")
     
     @staticmethod
     def invalidate_popular():

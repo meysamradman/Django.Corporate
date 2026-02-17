@@ -9,6 +9,7 @@ from src.ai.models import AIProvider, AICapabilityModel
 from src.ai.messages.messages import AI_ERRORS, AI_SUCCESS
 from src.user.access_control import ai_permission, PermissionRequiredMixin
 from src.ai.providers.capabilities import get_default_model, get_available_models as get_capability_models, get_provider_capabilities, supports_feature
+from src.ai.utils.cache import AICacheKeys
 
 
 class AIModelManagementViewSet(PermissionRequiredMixin, viewsets.ViewSet):
@@ -289,7 +290,7 @@ class AIModelManagementViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             },
         )
 
-        cache.delete(f'active_capability_model_{capability}')
+        cache.delete(AICacheKeys.active_capability_model(capability))
 
         return APIResponse.success(
             message=AI_SUCCESS.get("provider_selected"),

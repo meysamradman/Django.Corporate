@@ -10,6 +10,7 @@ from src.core.responses.response import APIResponse
 from src.analytics.models import DailyStats, PageView
 from src.analytics.messages import ANALYTICS_SUCCESS, ANALYTICS_ERRORS
 from src.user.access_control import analytics_permission
+from src.analytics.utils.cache import AnalyticsCacheKeys, AnalyticsCacheManager
 
 class PageViewsAnalyticsView(APIView):
     permission_classes = [analytics_permission]
@@ -18,7 +19,7 @@ class PageViewsAnalyticsView(APIView):
         from src.analytics.services.stats import WebsiteTrafficService
         
         site_id = request.query_params.get('site_id', 'default')
-        cache_key = f'analytics:dashboard:{site_id}'
+        cache_key = AnalyticsCacheKeys.traffic_dashboard(site_id)
         data = cache.get(cache_key)
         
         if not data:
@@ -35,7 +36,7 @@ class MonthlyStatsAnalyticsView(APIView):
     permission_classes = [analytics_permission]
     
     def get(self, request):
-        cache_key = 'analytics:monthly_stats'
+        cache_key = AnalyticsCacheKeys.monthly_stats()
         data = cache.get(cache_key)
         
         if not data:
@@ -126,8 +127,10 @@ class ClearAnalyticsView(APIView):
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
-            cache.delete('analytics:dashboard')
-            cache.delete('analytics:monthly_stats')
+            AnalyticsCacheManager.invalidate_all_traffic_dashboards()
+            AnalyticsCacheManager.invalidate_monthly_stats()
+            AnalyticsCacheManager.invalidate_content_trend()
+            AnalyticsCacheManager.invalidate_all()
             
             return APIResponse.success(
                 message=f'با موفقیت {deleted_count} بازدید و {deleted_daily_stats} آمار روزانه پاک شد',

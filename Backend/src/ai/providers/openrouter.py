@@ -19,14 +19,7 @@ class OpenRouterModelCache:
     def clear_all():
         try:
             AICacheManager.invalidate_models_by_provider('openrouter')
-            cache.delete_many([
-                AICacheKeys.provider_models('openrouter', 'all'),
-                AICacheKeys.provider_models('openrouter', 'google'),
-                AICacheKeys.provider_models('openrouter', 'openai'),
-                AICacheKeys.provider_models('openrouter', 'anthropic'),
-                AICacheKeys.provider_models('openrouter', 'meta'),
-                AICacheKeys.provider_models('openrouter', 'mistral'),
-            ])
+            cache.delete_pattern(AICacheKeys.provider_models_pattern('openrouter'))
             return True
         except Exception:
             return False

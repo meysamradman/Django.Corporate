@@ -21,9 +21,12 @@ def get_contact_form_field(field_id=None, public_id=None, field_key=None):
         cache_key = None
     
     if cache_key:
-        field = cache.get(cache_key)
-        if field is not None:
-            return field
+        cached_field_id = cache.get(cache_key)
+        if cached_field_id is not None:
+            field = ContactFormField.objects.filter(id=cached_field_id).first()
+            if field is not None:
+                return field
+            cache.delete(cache_key)
     
     try:
         if field_id:
@@ -36,7 +39,7 @@ def get_contact_form_field(field_id=None, public_id=None, field_key=None):
             raise ValidationError(FORM_FIELD_ERRORS['field_id_required'])
         
         if cache_key:
-            cache.set(cache_key, field, 3600)
+            cache.set(cache_key, field.id, 3600)
         
         return field
     except ContactFormField.DoesNotExist:

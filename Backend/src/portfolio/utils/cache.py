@@ -101,7 +101,7 @@ class CategoryCacheManager:
         all_keys.extend(CategoryCacheKeys.all_popular_keys())
         if all_keys:
             cache.delete_many(all_keys)
-        return CacheService.delete_pattern("*portfolio_category_list_admin:*")
+        return CacheService.delete_pattern("portfolio_category_list_admin:*")
     
     @staticmethod
     def invalidate_popular():
@@ -151,7 +151,7 @@ class OptionCacheKeys:
     
     @staticmethod
     def popular():
-        return "popular_options"
+        return "portfolio_popular_options"
     
     @staticmethod
     def all_keys(option_ids=None):
