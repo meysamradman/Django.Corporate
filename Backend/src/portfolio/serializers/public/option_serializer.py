@@ -7,6 +7,6 @@ class PortfolioOptionPublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioOption
         fields = [
-            'public_id', 'name', 'slug', 'description', 
+            'id', 'public_id', 'name', 'slug', 'description', 
             'portfolio_count', 'created_at'
         ]

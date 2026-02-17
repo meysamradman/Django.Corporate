@@ -51,8 +51,18 @@ export const blogApi = {
     return toPaginatedResponse<BlogCategory>(response, params?.size || 20);
   },
 
+  getCategoryByNumericId: async (id: string | number): Promise<BlogCategory> => {
+    const response = await fetchApi.get<BlogCategory>(`/blog-category/id/${id}/`);
+    return response.data;
+  },
+
   getTags: async (params?: BlogTagListParams): Promise<PaginatedResponse<BlogTag>> => {
     const response = await fetchApi.get<BlogTag[]>(withQuery("/blog-tag/", params as Record<string, unknown>));
     return toPaginatedResponse<BlogTag>(response, params?.size || 20);
+  },
+
+  getTagByNumericId: async (id: string | number): Promise<BlogTag> => {
+    const response = await fetchApi.get<BlogTag>(`/blog-tag/id/${id}/`);
+    return response.data;
   },
 };

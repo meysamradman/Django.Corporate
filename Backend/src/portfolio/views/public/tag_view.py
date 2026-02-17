@@ -66,6 +66,29 @@ class PortfolioTagPublicViewSet(viewsets.ReadOnlyModelViewSet):
             status_code=status.HTTP_404_NOT_FOUND,
         )
 
+    @action(detail=False, methods=['get'], url_path='id/(?P<tag_id>[^/.]+)')
+    def get_by_id(self, request, tag_id=None):
+        try:
+            parsed_id = int(tag_id)
+        except (TypeError, ValueError):
+            return APIResponse.error(
+                message=TAG_ERRORS['tag_not_found'],
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+
+        tag_data = PortfolioTagPublicService.get_tag_detail_by_id_data(parsed_id)
+        if tag_data:
+            return APIResponse.success(
+                message=TAG_SUCCESS['tag_retrieved'],
+                data=tag_data,
+                status_code=status.HTTP_200_OK,
+            )
+
+        return APIResponse.error(
+            message=TAG_ERRORS['tag_not_found'],
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
     @action(detail=False, methods=['get'])
     def popular(self, request):
         limit = self._parse_positive_int(request.query_params.get('limit'), default=10, max_value=50)

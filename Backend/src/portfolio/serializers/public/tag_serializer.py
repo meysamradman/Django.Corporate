@@ -7,6 +7,6 @@ class PortfolioTagPublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioTag
         fields = [
-            'public_id', 'name', 'slug', 'description', 
+            'id', 'public_id', 'name', 'slug', 'description', 
             'portfolio_count', 'created_at'
         ]

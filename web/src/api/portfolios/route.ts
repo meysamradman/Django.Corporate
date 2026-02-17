@@ -21,9 +21,19 @@ export const portfolioApi = {
     return response.data;
   },
 
+  getPortfolioByNumericId: async (id: string | number): Promise<Portfolio> => {
+    const response = await fetchApi.get<Portfolio>(`/portfolio/id/${id}/`);
+    return response.data;
+  },
+
   getCategories: async (params?: PortfolioCategoryListParams): Promise<PaginatedResponse<PortfolioCategory>> => {
     const response = await fetchApi.get<PortfolioCategory[]>(withQuery("/portfolio-category/", params as Record<string, unknown>));
     return toPaginatedResponse<PortfolioCategory>(response, params?.size || 20);
+  },
+
+  getCategoryByNumericId: async (id: string | number): Promise<PortfolioCategory> => {
+    const response = await fetchApi.get<PortfolioCategory>(`/portfolio-category/id/${id}/`);
+    return response.data;
   },
 
   getTags: async (params?: PortfolioTagListParams): Promise<PaginatedResponse<PortfolioTag>> => {
@@ -31,8 +41,18 @@ export const portfolioApi = {
     return toPaginatedResponse<PortfolioTag>(response, params?.size || 20);
   },
 
+  getTagByNumericId: async (id: string | number): Promise<PortfolioTag> => {
+    const response = await fetchApi.get<PortfolioTag>(`/portfolio-tag/id/${id}/`);
+    return response.data;
+  },
+
   getOptions: async (params?: PortfolioOptionListParams): Promise<PaginatedResponse<PortfolioOption>> => {
     const response = await fetchApi.get<PortfolioOption[]>(withQuery("/portfolio-option/", params as Record<string, unknown>));
     return toPaginatedResponse<PortfolioOption>(response, params?.size || 20);
+  },
+
+  getOptionByNumericId: async (id: string | number): Promise<PortfolioOption> => {
+    const response = await fetchApi.get<PortfolioOption>(`/portfolio-option/id/${id}/`);
+    return response.data;
   },
 };

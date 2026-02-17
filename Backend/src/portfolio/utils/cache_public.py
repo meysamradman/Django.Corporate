@@ -20,6 +20,10 @@ class PortfolioPublicCacheKeys:
         return f"public:portfolio:detail:public_id:{public_id}"
 
     @staticmethod
+    def detail_id(portfolio_id):
+        return f"public:portfolio:detail:id:{portfolio_id}"
+
+    @staticmethod
     def featured(limit):
         return f"public:portfolio:featured:{limit}"
 
@@ -54,6 +58,10 @@ class PortfolioCategoryPublicCacheKeys:
     def detail_public_id(public_id):
         return f"public:portfolio:category:detail:public_id:{public_id}"
 
+    @staticmethod
+    def detail_id(category_id):
+        return f"public:portfolio:category:detail:id:{category_id}"
+
 class PortfolioTagPublicCacheKeys:
 
     @staticmethod
@@ -72,6 +80,10 @@ class PortfolioTagPublicCacheKeys:
     @staticmethod
     def detail_public_id(public_id):
         return f"public:portfolio:tag:detail:public_id:{public_id}"
+
+    @staticmethod
+    def detail_id(tag_id):
+        return f"public:portfolio:tag:detail:id:{tag_id}"
 
     @staticmethod
     def popular(limit):
@@ -95,6 +107,10 @@ class PortfolioOptionPublicCacheKeys:
     @staticmethod
     def detail_public_id(public_id):
         return f"public:portfolio:option:detail:public_id:{public_id}"
+
+    @staticmethod
+    def detail_id(option_id):
+        return f"public:portfolio:option:detail:id:{option_id}"
 
     @staticmethod
     def by_name(name, limit):

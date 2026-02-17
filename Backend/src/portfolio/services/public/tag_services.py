@@ -79,6 +79,12 @@ class PortfolioTagPublicService:
         return PortfolioTagPublicService._base_queryset().filter(
             public_id=public_id,
         ).first()
+
+    @staticmethod
+    def get_tag_by_id(tag_id):
+        return PortfolioTagPublicService._base_queryset().filter(
+            id=tag_id,
+        ).first()
     
     @staticmethod
     def get_popular_tags(limit=10):
@@ -120,6 +126,21 @@ class PortfolioTagPublicService:
             return cached_data
 
         tag = PortfolioTagPublicService.get_tag_by_public_id(public_id)
+        if not tag:
+            return None
+
+        data = dict(PortfolioTagPublicSerializer(tag).data)
+        cache.set(cache_key, data, PortfolioTagPublicService.DETAIL_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_tag_detail_by_id_data(tag_id):
+        cache_key = PortfolioTagPublicCacheKeys.detail_id(tag_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        tag = PortfolioTagPublicService.get_tag_by_id(tag_id)
         if not tag:
             return None
 

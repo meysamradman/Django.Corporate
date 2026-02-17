@@ -80,6 +80,12 @@ class PortfolioOptionPublicService:
         return PortfolioOptionPublicService._base_queryset().filter(
             public_id=public_id,
         ).first()
+
+    @staticmethod
+    def get_option_by_id(option_id):
+        return PortfolioOptionPublicService._base_queryset().filter(
+            id=option_id,
+        ).first()
     
     @staticmethod
     def get_options_by_name(name, limit=10):
@@ -122,6 +128,21 @@ class PortfolioOptionPublicService:
             return cached_data
 
         option = PortfolioOptionPublicService.get_option_by_public_id(public_id)
+        if not option:
+            return None
+
+        data = dict(PortfolioOptionPublicSerializer(option).data)
+        cache.set(cache_key, data, PortfolioOptionPublicService.DETAIL_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_option_detail_by_id_data(option_id):
+        cache_key = PortfolioOptionPublicCacheKeys.detail_id(option_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        option = PortfolioOptionPublicService.get_option_by_id(option_id)
         if not option:
             return None
 

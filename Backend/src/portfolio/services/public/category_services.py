@@ -85,6 +85,12 @@ class PortfolioCategoryPublicService:
         return PortfolioCategoryPublicService._base_queryset().filter(
             public_id=public_id,
         ).select_related('image').first()
+
+    @staticmethod
+    def get_category_by_id(category_id):
+        return PortfolioCategoryPublicService._base_queryset().filter(
+            id=category_id,
+        ).select_related('image').first()
     
     @staticmethod
     def get_tree_data():
@@ -216,6 +222,21 @@ class PortfolioCategoryPublicService:
             return cached_data
 
         category = PortfolioCategoryPublicService.get_category_by_public_id(public_id)
+        if not category:
+            return None
+
+        data = PortfolioCategoryPublicService._serialize_category(category)
+        cache.set(cache_key, data, PortfolioCategoryPublicService.DETAIL_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_category_detail_by_id_data(category_id):
+        cache_key = PortfolioCategoryPublicCacheKeys.detail_id(category_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        category = PortfolioCategoryPublicService.get_category_by_id(category_id)
         if not category:
             return None
 

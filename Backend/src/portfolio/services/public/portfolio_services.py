@@ -83,6 +83,13 @@ class PortfolioPublicService:
             public_id=public_id,
         ).for_detail().first()
         return portfolio
+
+    @staticmethod
+    def get_portfolio_by_id(portfolio_id):
+        portfolio = Portfolio.objects.active().published().filter(
+            id=portfolio_id,
+        ).for_detail().first()
+        return portfolio
     
     @staticmethod
     def get_featured_portfolios(limit=6):
@@ -136,6 +143,21 @@ class PortfolioPublicService:
             return cached_data
 
         portfolio = PortfolioPublicService.get_portfolio_by_public_id(public_id)
+        if not portfolio:
+            return None
+
+        data = dict(PortfolioPublicDetailSerializer(portfolio).data)
+        cache.set(cache_key, data, PortfolioPublicService.DETAIL_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_portfolio_detail_by_id_data(portfolio_id):
+        cache_key = PortfolioPublicCacheKeys.detail_id(portfolio_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        portfolio = PortfolioPublicService.get_portfolio_by_id(portfolio_id)
         if not portfolio:
             return None
 

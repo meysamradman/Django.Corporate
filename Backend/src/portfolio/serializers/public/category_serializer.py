@@ -7,7 +7,7 @@ class PortfolioCategorySimplePublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioCategory
         fields = [
-            'public_id', 'name', 'slug', 'created_at',
+            'id', 'public_id', 'name', 'slug', 'created_at',
         ]
 
 class PortfolioCategoryPublicSerializer(serializers.ModelSerializer):
@@ -40,6 +40,6 @@ class PortfolioCategoryPublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioCategory
         fields = [
-            'public_id', 'name', 'slug', 'description', 'is_public', 'is_active', 
+            'id', 'public_id', 'name', 'slug', 'description', 'is_public', 'is_active', 
             'children', 'parent', 'image', 'portfolio_count', 'created_at',
         ]

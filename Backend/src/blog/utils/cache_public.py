@@ -58,6 +58,10 @@ class BlogCategoryPublicCacheKeys:
     def detail_public_id(public_id):
         return f"public:blog:category:detail:public_id:{public_id}"
 
+    @staticmethod
+    def detail_id(category_id):
+        return f"public:blog:category:detail:id:{category_id}"
+
 class BlogTagPublicCacheKeys:
 
     @staticmethod
@@ -76,6 +80,10 @@ class BlogTagPublicCacheKeys:
     @staticmethod
     def detail_public_id(public_id):
         return f"public:blog:tag:detail:public_id:{public_id}"
+
+    @staticmethod
+    def detail_id(tag_id):
+        return f"public:blog:tag:detail:id:{tag_id}"
 
     @staticmethod
     def popular(limit):

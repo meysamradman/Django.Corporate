@@ -85,6 +85,12 @@ class BlogCategoryPublicService:
         return BlogCategoryPublicService._base_queryset().filter(
             public_id=public_id,
         ).select_related('image').first()
+
+    @staticmethod
+    def get_category_by_id(category_id):
+        return BlogCategoryPublicService._base_queryset().filter(
+            id=category_id,
+        ).select_related('image').first()
     
     @staticmethod
     def get_tree_data():
@@ -216,6 +222,21 @@ class BlogCategoryPublicService:
             return cached_data
 
         category = BlogCategoryPublicService.get_category_by_public_id(public_id)
+        if not category:
+            return None
+
+        data = BlogCategoryPublicService._serialize_category(category)
+        cache.set(cache_key, data, BlogCategoryPublicService.DETAIL_CACHE_TTL)
+        return data
+
+    @staticmethod
+    def get_category_detail_by_id_data(category_id):
+        cache_key = BlogCategoryPublicCacheKeys.detail_id(category_id)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        category = BlogCategoryPublicService.get_category_by_id(category_id)
         if not category:
             return None
 

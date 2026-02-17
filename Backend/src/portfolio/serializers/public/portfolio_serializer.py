@@ -14,7 +14,7 @@ class PortfolioPublicListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Portfolio
         fields = [
-            'public_id', 'title', 'slug', 'short_description',
+            'id', 'public_id', 'title', 'slug', 'short_description',
             'main_image_url', 'categories', 'is_featured', 'created_at',
         ]
     
@@ -84,7 +84,7 @@ class PortfolioPublicDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Portfolio
         fields = [
-            'public_id', 'title', 'slug',
+            'id', 'public_id', 'title', 'slug',
             'short_description', 'description',
             'media', 'categories', 'tags', 'options',
             'seo_data', 'created_at',
