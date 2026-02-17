@@ -33,7 +33,7 @@ class PortfolioCacheKeys:
     
     @staticmethod
     def seo_report():
-        return CacheKeyBuilder.portfolio_seo()
+        return f"{CacheKeyBuilder.portfolio_seo()}:report"
     
     @staticmethod
     def all_keys(portfolio_id):
@@ -52,6 +52,10 @@ class PortfolioCacheManager:
     @staticmethod
     def invalidate_all_lists():
         return CacheService.clear_portfolio_lists()
+
+    @staticmethod
+    def invalidate_seo_report():
+        return CacheService.delete(PortfolioCacheKeys.seo_report())
 
 class CategoryCacheKeys:
     

@@ -33,7 +33,7 @@ class BlogCacheKeys:
     
     @staticmethod
     def seo_report():
-        return "blog:seo_report"
+        return "blog:seo:report"
     
     @staticmethod
     def all_keys(blog_id):
@@ -52,6 +52,10 @@ class BlogCacheManager:
     @staticmethod
     def invalidate_all_lists():
         return CacheService.clear_blog_lists()
+
+    @staticmethod
+    def invalidate_seo_report():
+        return CacheService.delete(BlogCacheKeys.seo_report())
 
 class CategoryCacheKeys:
     

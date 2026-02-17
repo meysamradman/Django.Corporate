@@ -4,11 +4,11 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
-from django.core.cache import cache
 from django.db.models import Q
 from django.http import HttpResponse
 from django.conf import settings
 from src.blog.models.blog import Blog
+from src.blog.services.admin.blog_services import BlogExportRateLimitService
 from src.blog.services.admin.excel_export_service import BlogExcelExportService
 from src.blog.services.admin.pdf_list_export_service import BlogPDFListExportService
 from src.blog.filters.admin.blog_filters import BlogAdminFilter
@@ -64,14 +64,16 @@ class BlogExportView(PermissionRequiredMixin, APIView):
         if not getattr(request.user, 'is_admin_full', False):
             export_rate_limit = settings.BLOG_EXPORT_RATE_LIMIT
             export_rate_window = settings.BLOG_EXPORT_RATE_LIMIT_WINDOW
-            cache_key = f"blog_export_limit_{request.user.id}"
-            export_count = cache.get(cache_key, 0)
-            if export_count >= export_rate_limit:
+            allowed = BlogExportRateLimitService.check_and_increment(
+                user_id=request.user.id,
+                limit=export_rate_limit,
+                window_seconds=export_rate_window,
+            )
+            if not allowed:
                 return APIResponse.error(
                     message=BLOG_ERRORS["blog_export_limit_exceeded"],
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS
                 )
-            cache.set(cache_key, export_count + 1, export_rate_window)
         
         try:
             queryset = Blog.objects.prefetch_related(

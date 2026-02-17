@@ -4,11 +4,11 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
-from django.core.cache import cache
 from django.db.models import Q
 from django.http import HttpResponse
 from django.conf import settings
 from src.portfolio.models.portfolio import Portfolio
+from src.portfolio.services.admin.portfolio_services import PortfolioExportRateLimitService
 from src.portfolio.services.admin.excel_export_service import PortfolioExcelExportService
 from src.portfolio.services.admin.pdf_list_export_service import PortfolioPDFListExportService
 from src.portfolio.filters.admin.portfolio_filters import PortfolioAdminFilter
@@ -64,14 +64,16 @@ class PortfolioExportView(PermissionRequiredMixin, APIView):
         if not getattr(request.user, 'is_admin_full', False):
             export_rate_limit = settings.PORTFOLIO_EXPORT_RATE_LIMIT
             export_rate_window = settings.PORTFOLIO_EXPORT_RATE_LIMIT_WINDOW
-            cache_key = f"portfolio_export_limit_{request.user.id}"
-            export_count = cache.get(cache_key, 0)
-            if export_count >= export_rate_limit:
+            allowed = PortfolioExportRateLimitService.check_and_increment(
+                user_id=request.user.id,
+                limit=export_rate_limit,
+                window_seconds=export_rate_window,
+            )
+            if not allowed:
                 return APIResponse.error(
                     message=PORTFOLIO_ERRORS["portfolio_export_limit_exceeded"],
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS
                 )
-            cache.set(cache_key, export_count + 1, export_rate_window)
         
         try:
             queryset = Portfolio.objects.prefetch_related(

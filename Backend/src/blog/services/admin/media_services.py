@@ -329,6 +329,8 @@ class BlogAdminMediaService:
                         blog.save(update_fields=['og_image'])
                 
                 BlogCacheManager.invalidate_blog(blog_id)
+                BlogCacheManager.invalidate_all_lists()
+                BlogCacheManager.invalidate_seo_report()
         
         return {
             'created_count': created_count,
@@ -480,6 +482,8 @@ class BlogAdminMediaService:
                 )
             
             BlogCacheManager.invalidate_blog(blog_id)
+            BlogCacheManager.invalidate_all_lists()
+            BlogCacheManager.invalidate_seo_report()
         
         return {
             'removed_count': len(media_to_remove),
@@ -524,6 +528,8 @@ class BlogAdminMediaService:
                     raise ValidationError(BLOG_ERRORS["media_image_not_found"])
 
             BlogCacheManager.invalidate_blog(blog_id)
+            BlogCacheManager.invalidate_all_lists()
+            BlogCacheManager.invalidate_seo_report()
             return True
     
     @staticmethod

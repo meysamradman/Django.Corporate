@@ -204,6 +204,10 @@ class PortfolioAdminService:
                     document_ids=document_ids,
                     created_by=created_by
                 )
+
+        PortfolioCacheManager.invalidate_portfolio(portfolio.id)
+        PortfolioCacheManager.invalidate_all_lists()
+        PortfolioCacheManager.invalidate_seo_report()
         
         return portfolio
 
@@ -297,6 +301,8 @@ class PortfolioAdminService:
                 )
                 
         PortfolioCacheManager.invalidate_portfolio(portfolio.id)
+        PortfolioCacheManager.invalidate_all_lists()
+        PortfolioCacheManager.invalidate_seo_report()
         portfolio.refresh_from_db()
         return portfolio
 
@@ -325,6 +331,10 @@ class PortfolioAdminService:
         if not portfolio.og_image:
             portfolio.og_image = portfolio_image.image
             portfolio.save(update_fields=['og_image'])
+
+        PortfolioCacheManager.invalidate_portfolio(portfolio_id)
+        PortfolioCacheManager.invalidate_all_lists()
+        PortfolioCacheManager.invalidate_seo_report()
         
         return portfolio_image
     
@@ -337,6 +347,9 @@ class PortfolioAdminService:
             status=new_status,
             updated_at=timezone.now()
         )
+        PortfolioCacheManager.invalidate_portfolios(portfolio_ids)
+        PortfolioCacheManager.invalidate_all_lists()
+        PortfolioCacheManager.invalidate_seo_report()
         return True
     
     @staticmethod
@@ -354,6 +367,10 @@ class PortfolioAdminService:
                 portfolio.og_description = portfolio.meta_description
             
             portfolio.save()
+
+        PortfolioCacheManager.invalidate_portfolios(list(portfolios.values_list('id', flat=True)))
+        PortfolioCacheManager.invalidate_all_lists()
+        PortfolioCacheManager.invalidate_seo_report()
         
         return True
     
@@ -361,7 +378,7 @@ class PortfolioAdminService:
     def get_seo_report():
         cache_key = PortfolioCacheKeys.seo_report()
         cached_report = cache.get(cache_key)
-        if cached_report:
+        if cached_report is not None:
             return cached_report
         
         total = Portfolio.objects.count()
@@ -422,6 +439,10 @@ class PortfolioAdminService:
         media_ids = list(portfolio_medias.values_list('image_id', flat=True))
         
         portfolio.delete()
+
+        PortfolioCacheManager.invalidate_portfolio(portfolio_id)
+        PortfolioCacheManager.invalidate_all_lists()
+        PortfolioCacheManager.invalidate_seo_report()
         
         return True
     
@@ -440,8 +461,22 @@ class PortfolioAdminService:
             portfolios.delete()
             
             PortfolioCacheManager.invalidate_portfolios(portfolio_ids)
+            PortfolioCacheManager.invalidate_all_lists()
+            PortfolioCacheManager.invalidate_seo_report()
         
         return deleted_count
+
+
+class PortfolioExportRateLimitService:
+
+    @staticmethod
+    def check_and_increment(user_id, limit, window_seconds):
+        cache_key = f"portfolio_export_limit_{user_id}"
+        export_count = cache.get(cache_key, 0)
+        if export_count >= limit:
+            return False
+        cache.set(cache_key, export_count + 1, window_seconds)
+        return True
 
 class PortfolioAdminStatusService:
     
@@ -457,6 +492,9 @@ class PortfolioAdminStatusService:
 
         portfolio.status = new_status
         portfolio.save(update_fields=['status', 'updated_at'])
+        PortfolioCacheManager.invalidate_portfolio(portfolio_id)
+        PortfolioCacheManager.invalidate_all_lists()
+        PortfolioCacheManager.invalidate_seo_report()
         return portfolio
     
     @staticmethod
@@ -476,6 +514,10 @@ class PortfolioAdminStatusService:
         
         portfolio.status = 'published'
         portfolio.save(update_fields=['status', 'updated_at'])
+
+        PortfolioCacheManager.invalidate_portfolio(portfolio_id)
+        PortfolioCacheManager.invalidate_all_lists()
+        PortfolioCacheManager.invalidate_seo_report()
         
         return {
             'portfolio': portfolio,
@@ -517,6 +559,10 @@ class PortfolioAdminSEOService:
             for field, value in updates.items():
                 setattr(portfolio, field, value)
             portfolio.save()
+
+            PortfolioCacheManager.invalidate_portfolio(portfolio_id)
+            PortfolioCacheManager.invalidate_all_lists()
+            PortfolioCacheManager.invalidate_seo_report()
         
         return portfolio
     

@@ -192,7 +192,11 @@ class BlogAdminService:
                     media_ids=media_ids,
                     created_by=created_by
                 )
-        
+
+        BlogCacheManager.invalidate_blog(blog.id)
+        BlogCacheManager.invalidate_all_lists()
+        BlogCacheManager.invalidate_seo_report()
+
         return blog
 
     @staticmethod
@@ -265,6 +269,8 @@ class BlogAdminService:
                 )
                 
         BlogCacheManager.invalidate_blog(blog.id)
+        BlogCacheManager.invalidate_all_lists()
+        BlogCacheManager.invalidate_seo_report()
         blog.refresh_from_db()
         return blog
 
@@ -293,6 +299,10 @@ class BlogAdminService:
         if not blog.og_image:
             blog.og_image = blog_image.image
             blog.save(update_fields=['og_image'])
+
+        BlogCacheManager.invalidate_blog(blog_id)
+        BlogCacheManager.invalidate_all_lists()
+        BlogCacheManager.invalidate_seo_report()
         
         return blog_image
     
@@ -305,6 +315,9 @@ class BlogAdminService:
             status=new_status,
             updated_at=timezone.now()
         )
+        BlogCacheManager.invalidate_blogs(blog_ids)
+        BlogCacheManager.invalidate_all_lists()
+        BlogCacheManager.invalidate_seo_report()
         return True
     
     @staticmethod
@@ -322,6 +335,10 @@ class BlogAdminService:
                 blog.og_description = blog.meta_description
             
             blog.save()
+
+        BlogCacheManager.invalidate_blogs(list(blogs.values_list('id', flat=True)))
+        BlogCacheManager.invalidate_all_lists()
+        BlogCacheManager.invalidate_seo_report()
         
         return True
     
@@ -329,7 +346,7 @@ class BlogAdminService:
     def get_seo_report():
         cache_key = BlogCacheKeys.seo_report()
         cached_report = cache.get(cache_key)
-        if cached_report:
+        if cached_report is not None:
             return cached_report
         
         total = Blog.objects.count()
@@ -390,6 +407,10 @@ class BlogAdminService:
         media_ids = list(blog_medias.values_list('image_id', flat=True))
         
         blog.delete()
+
+        BlogCacheManager.invalidate_blog(blog_id)
+        BlogCacheManager.invalidate_all_lists()
+        BlogCacheManager.invalidate_seo_report()
         
         return True
     
@@ -408,8 +429,22 @@ class BlogAdminService:
             blogs.delete()
             
             BlogCacheManager.invalidate_blogs(blog_ids)
+            BlogCacheManager.invalidate_all_lists()
+            BlogCacheManager.invalidate_seo_report()
         
         return deleted_count
+
+
+class BlogExportRateLimitService:
+
+    @staticmethod
+    def check_and_increment(user_id, limit, window_seconds):
+        cache_key = f"blog_export_limit_{user_id}"
+        export_count = cache.get(cache_key, 0)
+        if export_count >= limit:
+            return False
+        cache.set(cache_key, export_count + 1, window_seconds)
+        return True
 
 class BlogAdminStatusService:
     
@@ -425,6 +460,9 @@ class BlogAdminStatusService:
 
         blog.status = new_status
         blog.save(update_fields=['status', 'updated_at'])
+        BlogCacheManager.invalidate_blog(blog_id)
+        BlogCacheManager.invalidate_all_lists()
+        BlogCacheManager.invalidate_seo_report()
         return blog
     
     @staticmethod
@@ -444,6 +482,10 @@ class BlogAdminStatusService:
         
         blog.status = 'published'
         blog.save(update_fields=['status', 'updated_at'])
+
+        BlogCacheManager.invalidate_blog(blog_id)
+        BlogCacheManager.invalidate_all_lists()
+        BlogCacheManager.invalidate_seo_report()
         
         return {
             'blog': blog,
@@ -485,6 +527,10 @@ class BlogAdminSEOService:
             for field, value in updates.items():
                 setattr(blog, field, value)
             blog.save()
+
+            BlogCacheManager.invalidate_blog(blog_id)
+            BlogCacheManager.invalidate_all_lists()
+            BlogCacheManager.invalidate_seo_report()
         
         return blog
     

@@ -6,7 +6,6 @@ from django.core.exceptions import ValidationError
 from src.core.responses.response import APIResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Count
-from django.core.cache import cache
 from django.utils import timezone
 from django.conf import settings
 

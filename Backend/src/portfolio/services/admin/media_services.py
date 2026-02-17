@@ -349,6 +349,8 @@ class PortfolioAdminMediaService:
                         portfolio.save(update_fields=['og_image'])
                 
                 PortfolioCacheManager.invalidate_portfolio(portfolio_id)
+                PortfolioCacheManager.invalidate_all_lists()
+                PortfolioCacheManager.invalidate_seo_report()
         
         return {
             'created_count': created_count,
@@ -439,6 +441,8 @@ class PortfolioAdminMediaService:
                 )
 
             PortfolioCacheManager.invalidate_portfolio(portfolio_id)
+            PortfolioCacheManager.invalidate_all_lists()
+            PortfolioCacheManager.invalidate_seo_report()
             
         logger.info(f"✅ [PortfolioMedia][Sync] Completed successfully for Portfolio: {portfolio_id}")
         return True
@@ -480,6 +484,8 @@ class PortfolioAdminMediaService:
                     raise ValidationError(PORTFOLIO_ERRORS["media_image_not_found"])
 
             PortfolioCacheManager.invalidate_portfolio(portfolio_id)
+            PortfolioCacheManager.invalidate_all_lists()
+            PortfolioCacheManager.invalidate_seo_report()
             return True
     
     @staticmethod
