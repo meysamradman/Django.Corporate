@@ -1,6 +1,4 @@
 
-from .base import STANDARD_CONSTRAINTS, JSON_OUTPUT_TEMPLATE, SEO_GUIDELINES
-
 CONTENT_PROMPT = (
     "Please write a professional and SEO-optimized content in Persian (Farsi) language.\n"
     "Topic: {topic}\n\n"
