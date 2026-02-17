@@ -4,3 +4,6 @@ class AnalyticsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'src.analytics'
     verbose_name = 'Analytics'
+
+    def ready(self):
+        from . import signals

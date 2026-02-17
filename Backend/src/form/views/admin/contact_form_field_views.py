@@ -4,7 +4,6 @@ from rest_framework.permissions import AllowAny
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.exceptions import ValidationError
-from django.core.cache import cache
 
 from src.core.responses.response import APIResponse
 from src.core.pagination import StandardLimitPagination
@@ -21,10 +20,11 @@ from src.form.services.admin.contact_form_field_service import (
     update_contact_form_field,
     delete_contact_form_field,
     get_active_fields_for_platform,
+    get_active_fields_for_platform_data,
 )
 from src.form.messages.messages import FORM_FIELD_SUCCESS, FORM_FIELD_ERRORS
 from src.user.access_control import PermissionRequiredMixin
-from src.form.utils.cache import FormCacheKeys, FormCacheManager
+from src.form.utils.cache import FormCacheManager
 from src.core.utils.validation_helpers import extract_validation_message
 
 class ContactFormFieldViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
@@ -220,21 +220,7 @@ class ContactFormFieldViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             )
         
         try:
-            cache_key = FormCacheKeys.fields_for_platform(platform)
-            cached_data = cache.get(cache_key)
-            
-            if cached_data is not None:
-                return APIResponse.success(
-                    data=cached_data,
-                    status_code=status.HTTP_200_OK
-                )
-            
-            fields = get_active_fields_for_platform(platform)
-            serializer = self.get_serializer(fields, many=True)
-            serialized_data = serializer.data
-            
-            cache.set(cache_key, serialized_data, 300)
-            
+            serialized_data = get_active_fields_for_platform_data(platform, self.get_serializer_class())
             return APIResponse.success(
                 data=serialized_data,
                 status_code=status.HTTP_200_OK

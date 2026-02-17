@@ -13,7 +13,7 @@ __all__ = [
     'UserStatsService',
     'ContentStatsService',
     'EmailStatsService',
-    'ticket_stats_service',
+    'TicketStatsService',
     'SystemStatsService',
     'WebsiteTrafficService',
 ]

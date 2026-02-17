@@ -6,6 +6,7 @@ from django.core.cache import cache
 from .base import BaseProvider
 from .capabilities import get_default_model, get_available_models
 from src.ai.utils.cache import AICacheKeys
+from src.ai.utils.cache_ttl import AICacheTTL
 from src.ai.messages.messages import AI_ERRORS, AI_SYSTEM_MESSAGES, DEEPSEEK_SYSTEM_MESSAGES
 from src.ai.prompts.content import get_content_prompt, get_seo_prompt
 from src.ai.prompts.chat import get_chat_system_message
@@ -102,7 +103,7 @@ class GroqProvider(BaseProvider):
                 models.sort(key=lambda x: x['context_length'], reverse=True)
                 
                 if use_cache:
-                    cache.set(cache_key, models, 6 * 60 * 60)
+                    cache.set(cache_key, models, AICacheTTL.PROVIDER_CATALOG)
                 
                 return models
         except httpx.HTTPStatusError as e:

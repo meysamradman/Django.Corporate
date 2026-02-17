@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.db.models import Count, Q
 import json
 from src.core.cache import CacheService
+from src.analytics.utils.cache import AnalyticsCacheManager
 from .models import PageView, DailyStats
 
 ANALYTICS_QUEUE = "analytics:queue"  # Redis List
@@ -57,6 +58,8 @@ def process_views():
                 PageView.objects.bulk_create(visits, batch_size=500, ignore_conflicts=True)
                 
                 _sync_module_statistics(visits)
+                AnalyticsCacheManager.invalidate_all_traffic_dashboards()
+                AnalyticsCacheManager.invalidate_monthly_stats()
                 
             except Exception as e:
                 return f"Error saving visits: {e}"
@@ -301,6 +304,8 @@ def calculate_daily():
                     'top_countries': top_countries
                 }
             )
+    AnalyticsCacheManager.invalidate_all_traffic_dashboards()
+    AnalyticsCacheManager.invalidate_monthly_stats()
     return f"Daily stats calculated for {len(site_ids)} sites on {yesterday}"
 
 @shared_task(name="analytics.tasks.capture_market_snapshots")

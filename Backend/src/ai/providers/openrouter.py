@@ -8,6 +8,7 @@ from .base import BaseProvider
 from .capabilities import get_default_model
 from src.ai.messages.messages import AI_ERRORS, IMAGE_ERRORS, CONTENT_ERRORS, CHAT_ERRORS
 from src.ai.utils.cache import AICacheKeys, AICacheManager
+from src.ai.utils.cache_ttl import AICacheTTL
 from src.ai.prompts.content import get_content_prompt, get_seo_prompt
 from src.ai.prompts.chat import get_chat_system_message
 from src.ai.prompts.image import get_image_prompt, enhance_image_prompt, get_negative_prompt
@@ -198,7 +199,7 @@ class OpenRouterProvider(BaseProvider):
                 models.sort(key=lambda x: (x['context_length'], x['name']), reverse=True)
                 
                 if use_cache:
-                    cache.set(cache_key, models, 21600)
+                    cache.set(cache_key, models, AICacheTTL.PROVIDER_CATALOG)
                 
                 return models
         except httpx.HTTPStatusError as e:

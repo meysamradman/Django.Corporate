@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from src.settings.models import SocialMedia
 from src.settings.messages.messages import SETTINGS_ERRORS
+from src.settings.utils.cache import SettingsCacheManager
 
 def get_social_medias(filters=None, ordering=None):
     queryset = SocialMedia.objects.all()
@@ -17,7 +18,10 @@ def get_social_medias(filters=None, ordering=None):
     return queryset
 
 def create_social_media(validated_data):
-    return SocialMedia.objects.create(**validated_data)
+    instance = SocialMedia.objects.create(**validated_data)
+    SettingsCacheManager.invalidate_social_media()
+    SettingsCacheManager.invalidate_contact_public()
+    return instance
 
 def get_social_media_by_id(social_media_id):
     try:
@@ -30,7 +34,11 @@ def update_social_media(instance, validated_data):
         setattr(instance, field, value)
     
     instance.save()
+    SettingsCacheManager.invalidate_social_media()
+    SettingsCacheManager.invalidate_contact_public()
     return instance
 
 def delete_social_media(instance):
     instance.delete()
+    SettingsCacheManager.invalidate_social_media()
+    SettingsCacheManager.invalidate_contact_public()

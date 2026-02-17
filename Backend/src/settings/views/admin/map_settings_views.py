@@ -8,6 +8,7 @@ from src.settings.models.map_settings import MapSettings
 from src.settings.serializers.admin.map_settings_serializer import MapSettingsSerializer
 from src.settings.messages.messages import SETTINGS_ERRORS
 from src.user.access_control import PermissionRequiredMixin
+from src.settings.utils.cache import SettingsCacheManager
 
 class MapSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     queryset = MapSettings.objects.all()
@@ -39,6 +40,7 @@ class MapSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         serializer = self.get_serializer(settings, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            SettingsCacheManager.invalidate_contact_public()
             return APIResponse.success(data=serializer.data)
         return APIResponse.error(errors=serializer.errors)
 

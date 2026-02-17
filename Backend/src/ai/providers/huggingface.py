@@ -8,6 +8,7 @@ from .base import BaseProvider
 from .capabilities import get_default_model
 from src.ai.messages.messages import AI_ERRORS
 from src.ai.utils.cache import AICacheKeys
+from src.ai.utils.cache_ttl import AICacheTTL
 from src.ai.prompts.content import get_content_prompt, get_seo_prompt
 from src.ai.prompts.chat import get_chat_system_message
 from src.ai.prompts.image import get_image_prompt, enhance_image_prompt, get_negative_prompt
@@ -110,7 +111,7 @@ class HuggingFaceProvider(BaseProvider):
                 if models:
                     logger.info(f"[HuggingFace] Router returned {len(models)} {capability} models")
                     if use_cache:
-                        cache.set(cache_key, models, 6 * 60 * 60)
+                        cache.set(cache_key, models, AICacheTTL.PROVIDER_CATALOG)
                     return models
 
                 # If router has no image models for this key/capability, fallback to Hub catalog below.
@@ -176,7 +177,7 @@ class HuggingFaceProvider(BaseProvider):
             logger.info(f"[HuggingFace] Successfully fetched {len(models)} models from API")
             
             if use_cache:
-                cache.set(cache_key, models, 6 * 60 * 60)
+                cache.set(cache_key, models, AICacheTTL.PROVIDER_CATALOG)
             
             return models
             

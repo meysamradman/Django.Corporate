@@ -1,11 +1,12 @@
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
-from django.core.cache import cache
 from django.template.loader import render_to_string
 
+from src.core.cache import CacheService
 from src.email.messages.messages import EMAIL_TEXT
 from src.email.models.email_message import EmailMessage
 from src.email.utils.cache import EmailCacheKeys
+from src.email.utils.cache_ttl import EmailCacheTTL
 
 class EmailService:
     
@@ -111,7 +112,7 @@ class EmailService:
     @staticmethod
     def get_statistics():
         cache_key = EmailCacheKeys.stats()
-        cached_stats = cache.get(cache_key)
+        cached_stats = CacheService.get(cache_key)
         if cached_stats is not None:
             return cached_stats
         
@@ -123,5 +124,5 @@ class EmailService:
             'archived': EmailMessage.objects.filter(status='archived').count(),
         }
         
-        cache.set(cache_key, stats, 300)
+        CacheService.set(cache_key, stats, EmailCacheTTL.STATS)
         return stats

@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from src.settings.models import ContactEmail
 from src.settings.messages.messages import SETTINGS_ERRORS
+from src.settings.utils.cache import SettingsCacheManager
 
 def get_contact_emails(filters=None, ordering=None):
     queryset = ContactEmail.objects.all()
@@ -17,7 +18,10 @@ def get_contact_emails(filters=None, ordering=None):
     return queryset
 
 def create_contact_email(validated_data):
-    return ContactEmail.objects.create(**validated_data)
+    instance = ContactEmail.objects.create(**validated_data)
+    SettingsCacheManager.invalidate_contact_emails()
+    SettingsCacheManager.invalidate_contact_public()
+    return instance
 
 def get_contact_email_by_id(email_id):
     try:
@@ -30,7 +34,11 @@ def update_contact_email(instance, validated_data):
         setattr(instance, field, value)
     
     instance.save()
+    SettingsCacheManager.invalidate_contact_emails()
+    SettingsCacheManager.invalidate_contact_public()
     return instance
 
 def delete_contact_email(instance):
     instance.delete()
+    SettingsCacheManager.invalidate_contact_emails()
+    SettingsCacheManager.invalidate_contact_public()

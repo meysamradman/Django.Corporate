@@ -1,0 +1,6 @@
+class AICacheTTL:
+    PROVIDER = 300
+    MODEL = 300
+    SETTINGS = 300
+    ACTIVE_MODEL = 300
+    PROVIDER_CATALOG = 6 * 60 * 60

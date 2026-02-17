@@ -5,6 +5,7 @@ from django.core.validators import URLValidator
 from src.core.models.base import BaseModel
 from src.media.models.media import ImageMedia
 from src.settings.utils.cache import SettingsCacheKeys, SettingsCacheManager
+from src.settings.utils import cache_ttl
 
 class GeneralSettings(BaseModel):
 
@@ -97,5 +98,5 @@ class GeneralSettings(BaseModel):
                 copyright_text="All rights reserved"
             )
 
-        cache.set(SettingsCacheKeys.general_settings_model_pk(), settings.pk, 3600)
+        cache.set(SettingsCacheKeys.general_settings_model_pk(), settings.pk, cache_ttl.SINGLETON_MODEL_PK_TTL)
         return settings

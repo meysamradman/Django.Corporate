@@ -7,7 +7,8 @@ from src.core.cache import CacheService
 from src.settings.messages.messages import SETTINGS_ERRORS, SETTINGS_SUCCESS
 from src.settings.serializers.public.footer_serializer import PublicFooterSectionSerializer
 from src.settings.services.public.footer_service import get_public_footer_sections
-from src.settings.utils.cache import SettingsCacheKeys
+from src.settings.utils.cache_public import SettingsPublicCacheKeys
+from src.settings.utils import cache_ttl
 
 
 class PublicFooterView(APIView):
@@ -15,7 +16,7 @@ class PublicFooterView(APIView):
 
     def get(self, request):
         try:
-            cached_data = CacheService.get(SettingsCacheKeys.footer_public())
+            cached_data = CacheService.get(SettingsPublicCacheKeys.footer())
             if cached_data is None:
                 sections = list(get_public_footer_sections())
                 serializer = PublicFooterSectionSerializer(
@@ -24,7 +25,7 @@ class PublicFooterView(APIView):
                     context={'request': request},
                 )
                 cached_data = serializer.data
-                CacheService.set(SettingsCacheKeys.footer_public(), cached_data, 900)
+                CacheService.set(SettingsPublicCacheKeys.footer(), cached_data, cache_ttl.PUBLIC_FOOTER_TTL)
 
             return APIResponse.success(
                 message=SETTINGS_SUCCESS['settings_retrieved'],

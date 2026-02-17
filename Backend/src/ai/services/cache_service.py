@@ -1,12 +1,10 @@
 from src.core.cache import CacheService
 from typing import List, Dict, Any, Optional
 from src.ai.utils.cache import AICacheKeys, AICacheManager
+from src.ai.utils.cache_ttl import AICacheTTL
 
 class AICacheService:
-    
-    PROVIDER_TTL = 300
-    MODEL_TTL = 300
-    SETTINGS_TTL = 300
+
     
     PREFIX_PROVIDER = "ai_provider"
     PREFIX_MODEL = "ai_model"
@@ -24,7 +22,7 @@ class AICacheService:
     
     @classmethod
     def set_provider(cls, slug: str, data: Any):
-        CacheService.set(AICacheKeys.provider(slug), data, cls.PROVIDER_TTL)
+        CacheService.set(AICacheKeys.provider(slug), data, AICacheTTL.PROVIDER)
     
     @classmethod
     def get_active_providers(cls):
@@ -32,7 +30,7 @@ class AICacheService:
     
     @classmethod
     def set_active_providers(cls, data: List):
-        CacheService.set(AICacheKeys.providers_active(), data, cls.PROVIDER_TTL)
+        CacheService.set(AICacheKeys.providers_active(), data, AICacheTTL.PROVIDER)
     
     @classmethod
     def clear_provider(cls, slug: str):
@@ -48,7 +46,7 @@ class AICacheService:
     
     @classmethod
     def set_models_by_provider(cls, provider_slug: str, capability: Optional[str], data: List):
-        CacheService.set(AICacheKeys.models_by_provider(provider_slug, capability), data, cls.MODEL_TTL)
+        CacheService.set(AICacheKeys.models_by_provider(provider_slug, capability), data, AICacheTTL.MODEL)
     
     @classmethod
     def get_models_by_capability(cls, capability: str):
@@ -56,7 +54,7 @@ class AICacheService:
     
     @classmethod
     def set_models_by_capability(cls, capability: str, data: List):
-        CacheService.set(AICacheKeys.models_by_capability(capability), data, cls.MODEL_TTL)
+        CacheService.set(AICacheKeys.models_by_capability(capability), data, AICacheTTL.MODEL)
     
     @classmethod
     def get_models_bulk(cls, provider_slugs: List[str]):
@@ -64,7 +62,7 @@ class AICacheService:
     
     @classmethod
     def set_models_bulk(cls, provider_slugs: List[str], data: Dict):
-        CacheService.set(AICacheKeys.models_bulk(provider_slugs), data, cls.MODEL_TTL)
+        CacheService.set(AICacheKeys.models_bulk(provider_slugs), data, AICacheTTL.MODEL)
     
     @classmethod
     def clear_all_models(cls):
@@ -76,7 +74,7 @@ class AICacheService:
     
     @classmethod
     def set_admin_settings(cls, admin_id: int, provider_id: int, data: Any):
-        CacheService.set(AICacheKeys.admin_settings(admin_id, provider_id), data, cls.SETTINGS_TTL)
+        CacheService.set(AICacheKeys.admin_settings(admin_id, provider_id), data, AICacheTTL.SETTINGS)
     
     @classmethod
     def clear_admin_settings(cls, admin_id: int):

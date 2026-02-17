@@ -1,84 +1,54 @@
-from src.core.cache import CacheService
+from src.settings.utils.cache_admin import SettingsAdminCacheKeys, SettingsCacheManager
+from src.settings.utils.cache_public import SettingsPublicCacheKeys
+
 
 class SettingsCacheKeys:
-    
+
     @staticmethod
     def general_settings():
-        return "settings_general"
+        return SettingsAdminCacheKeys.general_settings()
 
     @staticmethod
     def general_settings_model_pk():
-        return "settings_general_model_pk"
-    
+        return SettingsAdminCacheKeys.general_settings_model_pk()
+
+    @staticmethod
+    def footer_about_model_pk():
+        return SettingsAdminCacheKeys.footer_about_model_pk()
+
     @staticmethod
     def contact_phones():
-        return "settings_contact_phones"
-    
+        return SettingsAdminCacheKeys.contact_phones()
+
     @staticmethod
     def contact_mobiles():
-        return "settings_contact_mobiles"
-    
+        return SettingsAdminCacheKeys.contact_mobiles()
+
     @staticmethod
     def contact_emails():
-        return "settings_contact_emails"
-    
+        return SettingsAdminCacheKeys.contact_emails()
+
     @staticmethod
     def social_media():
-        return "settings_social_media"
+        return SettingsAdminCacheKeys.social_media()
 
     @staticmethod
     def footer_public():
-        return "settings_footer_public"
+        return SettingsPublicCacheKeys.footer()
 
     @staticmethod
     def footer_about_public():
-        return "settings_footer_about_public"
-    
+        return SettingsPublicCacheKeys.footer_about()
+
     @staticmethod
     def all_keys():
-        return [
-            SettingsCacheKeys.general_settings(),
-            SettingsCacheKeys.general_settings_model_pk(),
-            SettingsCacheKeys.contact_phones(),
-            SettingsCacheKeys.contact_mobiles(),
-            SettingsCacheKeys.contact_emails(),
-            SettingsCacheKeys.social_media(),
-            SettingsCacheKeys.footer_public(),
-            SettingsCacheKeys.footer_about_public(),
-        ]
+        return SettingsAdminCacheKeys.all_keys() + SettingsPublicCacheKeys.all_keys()
 
-class SettingsCacheManager:
-    
-    @staticmethod
-    def invalidate_general_settings():
-        CacheService.delete(SettingsCacheKeys.general_settings())
-        return CacheService.delete(SettingsCacheKeys.general_settings_model_pk())
-    
-    @staticmethod
-    def invalidate_contact_phones():
-        return CacheService.delete(SettingsCacheKeys.contact_phones())
-    
-    @staticmethod
-    def invalidate_contact_mobiles():
-        return CacheService.delete(SettingsCacheKeys.contact_mobiles())
-    
-    @staticmethod
-    def invalidate_contact_emails():
-        return CacheService.delete(SettingsCacheKeys.contact_emails())
-    
-    @staticmethod
-    def invalidate_social_media():
-        return CacheService.delete(SettingsCacheKeys.social_media())
 
-    @staticmethod
-    def invalidate_footer_public():
-        return CacheService.delete(SettingsCacheKeys.footer_public())
-
-    @staticmethod
-    def invalidate_footer_about_public():
-        return CacheService.delete(SettingsCacheKeys.footer_about_public())
-    
-    @staticmethod
-    def invalidate_all():
-        return CacheService.delete_many(SettingsCacheKeys.all_keys())
+__all__ = [
+    'SettingsCacheKeys',
+    'SettingsCacheManager',
+    'SettingsAdminCacheKeys',
+    'SettingsPublicCacheKeys',
+]
 

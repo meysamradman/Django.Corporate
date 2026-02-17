@@ -1,6 +1,5 @@
 from rest_framework import viewsets, status
 from django.core.exceptions import ValidationError
-from django.core.cache import cache
 
 from src.core.responses.response import APIResponse
 from src.page.models import TermsPage
@@ -9,12 +8,12 @@ from src.page.serializers.admin import (
     TermsPageUpdateSerializer,
 )
 from src.page.services.admin.terms_page_service import (
-    get_terms_page,
+    get_terms_page_data,
     update_terms_page,
 )
 from src.page.messages.messages import TERMS_PAGE_SUCCESS, TERMS_PAGE_ERRORS
 from src.user.access_control import PermissionRequiredMixin
-from src.page.utils.cache import PageCacheKeys, PageCacheManager
+from src.page.utils.cache import PageCacheManager
 from src.core.utils.validation_helpers import extract_validation_message
 
 class TermsPageViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
@@ -39,22 +38,7 @@ class TermsPageViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         try:
-            cache_key = PageCacheKeys.terms_page()
-            cached_data = cache.get(cache_key)
-            
-            if cached_data is not None:
-                return APIResponse.success(
-                    message=TERMS_PAGE_SUCCESS['terms_page_retrieved'],
-                    data=cached_data,
-                    status_code=status.HTTP_200_OK
-                )
-            
-            page = get_terms_page()
-            serializer = self.get_serializer(page)
-            serialized_data = serializer.data
-            
-            cache.set(cache_key, serialized_data, 300)
-            
+            serialized_data = get_terms_page_data(self.get_serializer_class())
             return APIResponse.success(
                 message=TERMS_PAGE_SUCCESS['terms_page_retrieved'],
                 data=serialized_data,

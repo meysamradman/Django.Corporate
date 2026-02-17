@@ -1,14 +1,7 @@
-from src.core.cache import CacheService
+from src.panel.utils.cache_admin import PanelCacheKeys, PanelCacheManager
 
-class PanelCacheKeys:
-    
-    @staticmethod
-    def panel_settings():
-        return "panel_settings"
-
-class PanelCacheManager:
-    
-    @staticmethod
-    def invalidate_panel_settings():
-        return CacheService.delete(PanelCacheKeys.panel_settings())
+__all__ = [
+    'PanelCacheKeys',
+    'PanelCacheManager',
+]
 

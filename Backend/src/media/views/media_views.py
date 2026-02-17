@@ -1,5 +1,4 @@
 import logging
-from datetime import datetime
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models.deletion import ProtectedError
@@ -58,25 +57,21 @@ class MediaAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         date_to = request.query_params.get('date_to')
         is_active = request.query_params.get('is_active')
 
-        all_media = MediaAdminService.get_filtered_media_list(
+        all_media_data = MediaAdminService.get_filtered_media_list_data(
             search=search_term,
             file_type=file_type,
             is_active=is_active,
             date_from=date_from,
             date_to=date_to
         )
-        
-        all_media.sort(key=lambda x: x.created_at, reverse=True)
-        
-        page = self.paginate_queryset(all_media)
+
+        page = self.paginate_queryset(all_media_data)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        
-        serializer = self.get_serializer(all_media, many=True)
+            return self.get_paginated_response(page)
+
         return APIResponse.success(
             message=MEDIA_SUCCESS["media_list_success"],
-            data=serializer.data
+            data=all_media_data
         )
 
     def create(self, request, *args, **kwargs):
@@ -159,22 +154,11 @@ class MediaAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         media_id = kwargs.get("pk")
 
-        media = None
-        for model in [ImageMedia, VideoMedia, AudioMedia, DocumentMedia]:
-            try:
-                if model in [VideoMedia, AudioMedia, DocumentMedia]:
-                    media = model.objects.select_related('cover_image').get(id=media_id)
-                else:
-                    media = model.objects.get(id=media_id)
-                break
-            except model.DoesNotExist:
-                continue
-        
-        if media:
-            serializer = self.get_serializer(media)
+        media_data = MediaAdminService.get_media_detail_data(media_id)
+        if media_data:
             return APIResponse.success(
                 message=MEDIA_SUCCESS["media_retrieved"],
-                data=serializer.data
+                data=media_data
             )
         else:
             return APIResponse.error(
@@ -348,100 +332,32 @@ class MediaPublicViewSet(viewsets.ReadOnlyModelViewSet):
         file_type = request.query_params.get('file_type')
         date_from = request.query_params.get('date_from')
         date_to = request.query_params.get('date_to')
-        
-        if not file_type or file_type == 'all':
-            image_qs = ImageMedia.objects.filter(is_active=True).only('id', 'public_id', 'title', 'file', 'file_size', 'mime_type', 'alt_text', 'is_active', 'created_at', 'updated_at')
-            video_qs = VideoMedia.objects.select_related('cover_image').filter(is_active=True).only('id', 'public_id', 'title', 'file', 'file_size', 'mime_type', 'alt_text', 'is_active', 'created_at', 'updated_at', 'duration', 'cover_image__id', 'cover_image__file', 'cover_image__title')
-            audio_qs = AudioMedia.objects.select_related('cover_image').filter(is_active=True).only('id', 'public_id', 'title', 'file', 'file_size', 'mime_type', 'alt_text', 'is_active', 'created_at', 'updated_at', 'duration', 'cover_image__id', 'cover_image__file', 'cover_image__title')
-            document_qs = DocumentMedia.objects.select_related('cover_image').filter(is_active=True).only('id', 'public_id', 'title', 'file', 'file_size', 'mime_type', 'alt_text', 'is_active', 'created_at', 'updated_at', 'cover_image__id', 'cover_image__file', 'cover_image__title')
-        elif file_type == 'image':
-            image_qs = ImageMedia.objects.filter(is_active=True).only('id', 'public_id', 'title', 'file', 'file_size', 'mime_type', 'alt_text', 'is_active', 'created_at', 'updated_at')
-            video_qs = VideoMedia.objects.none()
-            audio_qs = AudioMedia.objects.none()
-            document_qs = DocumentMedia.objects.none()
-        elif file_type == 'video':
-            image_qs = ImageMedia.objects.none()
-            video_qs = VideoMedia.objects.select_related('cover_image').filter(is_active=True).only('id', 'public_id', 'title', 'file', 'file_size', 'mime_type', 'alt_text', 'is_active', 'created_at', 'updated_at', 'duration', 'cover_image__id', 'cover_image__file', 'cover_image__title')
-            audio_qs = AudioMedia.objects.none()
-            document_qs = DocumentMedia.objects.none()
-        elif file_type == 'audio':
-            image_qs = ImageMedia.objects.none()
-            video_qs = VideoMedia.objects.none()
-            audio_qs = AudioMedia.objects.select_related('cover_image').filter(is_active=True).only('id', 'public_id', 'title', 'file', 'file_size', 'mime_type', 'alt_text', 'is_active', 'created_at', 'updated_at', 'duration', 'cover_image__id', 'cover_image__file', 'cover_image__title')
-            document_qs = DocumentMedia.objects.none()
-        elif file_type in ['document', 'pdf']:
-            image_qs = ImageMedia.objects.none()
-            video_qs = VideoMedia.objects.none()
-            audio_qs = AudioMedia.objects.none()
-            document_qs = DocumentMedia.objects.select_related('cover_image').filter(is_active=True).only('id', 'public_id', 'title', 'file', 'file_size', 'mime_type', 'alt_text', 'is_active', 'created_at', 'updated_at', 'cover_image__id', 'cover_image__file', 'cover_image__title')
-        else:
-            image_qs = ImageMedia.objects.none()
-            video_qs = VideoMedia.objects.none()
-            audio_qs = AudioMedia.objects.none()
-            document_qs = DocumentMedia.objects.none()
-        
-        if search_term:
-            image_qs = image_qs.filter(title__icontains=search_term)
-            video_qs = video_qs.filter(title__icontains=search_term)
-            audio_qs = audio_qs.filter(title__icontains=search_term)
-            document_qs = document_qs.filter(title__icontains=search_term)
-        
-        if date_from:
-            try:
-                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
-                image_qs = image_qs.filter(created_at__date__gte=date_from_obj)
-                video_qs = video_qs.filter(created_at__date__gte=date_from_obj)
-                audio_qs = audio_qs.filter(created_at__date__gte=date_from_obj)
-                document_qs = document_qs.filter(created_at__date__gte=date_from_obj)
-            except ValueError:
-                pass
-        
-        if date_to:
-            try:
-                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
-                image_qs = image_qs.filter(created_at__date__lte=date_to_obj)
-                video_qs = video_qs.filter(created_at__date__lte=date_to_obj)
-                audio_qs = audio_qs.filter(created_at__date__lte=date_to_obj)
-                document_qs = document_qs.filter(created_at__date__lte=date_to_obj)
-            except ValueError:
-                pass
-        
-        all_media = []
-        
-        if not file_type or file_type == 'all':
-            all_media = list(image_qs) + list(video_qs) + list(audio_qs) + list(document_qs)
-        elif file_type == 'image':
-            all_media = list(image_qs)
-        elif file_type == 'video':
-            all_media = list(video_qs)
-        elif file_type == 'audio':
-            all_media = list(audio_qs)
-        elif file_type in ['document', 'pdf']:
-            all_media = list(document_qs)
-        
-        all_media.sort(key=lambda x: x.created_at, reverse=True)
-        
-        page = self.paginate_queryset(all_media)
+
+        all_media_data = MediaPublicService.get_filtered_media_list_data(
+            search=search_term,
+            file_type=file_type,
+            date_from=date_from,
+            date_to=date_to,
+        )
+
+        page = self.paginate_queryset(all_media_data)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        
-        serializer = self.get_serializer(all_media, many=True)
+            return self.get_paginated_response(page)
+
         return APIResponse.success(
             message=MEDIA_SUCCESS["media_list_success"],
-            data=serializer.data
+            data=all_media_data
         )
 
     def retrieve(self, request, *args, **kwargs):
         public_id = kwargs.get("pk")
         media_type = request.query_params.get('type', 'image')
-        
-        media = MediaPublicService.get_media_by_public_id_and_type(public_id, media_type)
-        if media:
-            serializer = self.get_serializer(media)
+
+        media_data = MediaPublicService.get_media_by_public_id_and_type_data(public_id, media_type)
+        if media_data:
             return APIResponse.success(
                 message=MEDIA_SUCCESS["media_retrieved"],
-                data=serializer.data
+                data=media_data
             )
 
         return APIResponse.error(
@@ -453,19 +369,17 @@ class MediaPublicViewSet(viewsets.ReadOnlyModelViewSet):
     def by_type(self, request):
         media_type = request.query_params.get('type', 'image')
         is_active = request.query_params.get('is_active', 'true').lower() == 'true'
-        
-        media_list = MediaPublicService.get_all_media_by_type(media_type, is_active)
-        
-        if media_list:
-            page = self.paginate_queryset(media_list)
+
+        media_list_data = MediaPublicService.get_all_media_by_type_data(media_type, is_active)
+
+        if media_list_data:
+            page = self.paginate_queryset(media_list_data)
             if page is not None:
-                serializer = self.get_serializer(page, many=True)
-                return self.get_paginated_response(serializer.data)
-            
-            serializer = self.get_serializer(media_list, many=True)
+                return self.get_paginated_response(page)
+
             return APIResponse.success(
                 message=MEDIA_SUCCESS["media_list_success"],
-                data=serializer.data
+                data=media_list_data
             )
         else:
             return APIResponse.success(

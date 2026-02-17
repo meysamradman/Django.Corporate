@@ -1,9 +1,72 @@
 from django.db.models import Sum, Q, Avg
 from django.utils import timezone
 from datetime import timedelta
+from calendar import monthrange
+from src.core.cache import CacheService
 from src.analytics.models import DailyStats, PageView
+from src.analytics.utils.cache_admin import AnalyticsAdminCacheKeys
+from src.analytics.utils.cache_ttl import AnalyticsCacheTTL
+from src.analytics.services.realtime import OnlineUsersRealtimeService
 
 class WebsiteTrafficService:
+    @classmethod
+    def get_dashboard_stats_data(cls, site_id='default', use_cache: bool = True):
+        cache_key = AnalyticsAdminCacheKeys.traffic_dashboard(site_id)
+        data = CacheService.get(cache_key) if use_cache else None
+        if data is not None:
+            return data
+
+        data = cls.get_dashboard_stats(site_id=site_id)
+        CacheService.set(cache_key, data, timeout=AnalyticsCacheTTL.TRAFFIC_DASHBOARD)
+        return data
+
+    @classmethod
+    def get_monthly_stats_data(cls, use_cache: bool = True):
+        cache_key = AnalyticsAdminCacheKeys.monthly_stats()
+        data = CacheService.get(cache_key) if use_cache else None
+        if data is not None:
+            return data
+
+        now = timezone.now()
+        monthly_data = []
+
+        for i in range(5, -1, -1):
+            target_date = now - timedelta(days=30 * i)
+            month_start = target_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+            last_day = monthrange(month_start.year, month_start.month)[1]
+            month_end = month_start.replace(day=last_day, hour=23, minute=59, second=59)
+
+            month_stats = DailyStats.objects.filter(
+                date__gte=month_start.date(),
+                date__lte=month_end.date()
+            ).aggregate(
+                desktop=Sum('desktop_visits'),
+                mobile=Sum('mobile_visits'),
+            )
+
+            gregorian_month = month_start.month
+            approximate_jalali_month = ((gregorian_month + 1) % 12) + 1
+
+            persian_month_names = [
+                'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+                'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
+            ]
+
+            month_name = persian_month_names[approximate_jalali_month - 1] if 1 <= approximate_jalali_month <= 12 else 'نامشخص'
+
+            monthly_data.append({
+                'month': month_name,
+                'desktop': month_stats['desktop'] or 0,
+                'mobile': month_stats['mobile'] or 0,
+            })
+
+        data = {
+            'monthly_stats': monthly_data
+        }
+        CacheService.set(cache_key, data, timeout=AnalyticsCacheTTL.TRAFFIC_MONTHLY)
+        return data
+
     @classmethod
     def get_dashboard_stats(cls, site_id='default'):
         
@@ -69,6 +132,7 @@ class WebsiteTrafficService:
         top_countries = recent_daily.top_countries if recent_daily else {}
 
         return {
+            'online_users_now': OnlineUsersRealtimeService.get_online_users(site_id=site_id),
             'today': {
                 'total': today_total,
                 'unique': today_unique,

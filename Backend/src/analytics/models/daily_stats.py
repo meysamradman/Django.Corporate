@@ -2,7 +2,7 @@ from django.db import models
 
 class DailyStats(models.Model):
     
-    date = models.DateField(unique=True, db_index=True)
+    date = models.DateField(db_index=True)
     
     total_visits = models.PositiveIntegerField(default=0)
     unique_visitors = models.PositiveIntegerField(default=0)
@@ -27,3 +27,6 @@ class DailyStats(models.Model):
     class Meta:
         db_table = 'analytics_daily_stats'
         ordering = ['-date']
+        constraints = [
+            models.UniqueConstraint(fields=['date', 'site_id'], name='analytics_daily_stats_date_site_uniq')
+        ]

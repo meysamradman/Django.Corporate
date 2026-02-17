@@ -1,20 +1,20 @@
 from django.apps import apps
-from django.core.cache import cache
 from django.utils import timezone
 from django.db.models import Count
+from src.core.cache import CacheService
 from src.analytics.utils.cache import AnalyticsCacheKeys, AnalyticsCacheManager
+from src.analytics.utils.cache_ttl import AnalyticsCacheTTL
 
 class TicketStatsService:
-    CACHE_TIMEOUT = 300
     REQUIRED_PERMISSION = 'analytics.tickets.read'
     
     @classmethod
-    def get_stats(cls) -> dict:
+    def get_stats(cls, use_cache: bool = True) -> dict:
         cache_key = AnalyticsCacheKeys.tickets()
-        data = cache.get(cache_key)
-        if not data:
+        data = CacheService.get(cache_key) if use_cache else None
+        if data is None:
             data = cls._calculate_stats()
-            cache.set(cache_key, data, cls.CACHE_TIMEOUT)
+            CacheService.set(cache_key, data, timeout=AnalyticsCacheTTL.ADMIN_STATS)
         return data
     
     @classmethod

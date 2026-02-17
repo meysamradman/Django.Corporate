@@ -1,11 +1,18 @@
 from django.core.cache import cache
 from typing import Optional
 
+from src.user.utils.cache import UserCacheKeys
+from src.user.utils.cache_ttl import (
+    USER_ADMIN_PERMISSION_CHECK_SUPERADMIN_TTL,
+    USER_ADMIN_PERMISSION_CHECK_READ_TTL,
+    USER_ADMIN_PERMISSION_CHECK_WRITE_TTL,
+)
+
 class PermissionCacheStrategy:
     
-    SUPER_ADMIN_TIMEOUT = 600
-    READ_TIMEOUT = 300
-    WRITE_TIMEOUT = 60
+    SUPER_ADMIN_TIMEOUT = USER_ADMIN_PERMISSION_CHECK_SUPERADMIN_TTL
+    READ_TIMEOUT = USER_ADMIN_PERMISSION_CHECK_READ_TTL
+    WRITE_TIMEOUT = USER_ADMIN_PERMISSION_CHECK_WRITE_TTL
     
     @classmethod
     def get_cache_timeout(cls, user, method: str) -> int:
@@ -20,7 +27,7 @@ class PermissionCacheStrategy:
     @classmethod
     def invalidate_user_cache(cls, user_id: int):
         patterns = [
-            f"perm_{user_id}_*",
+            UserCacheKeys.admin_perm_pattern(user_id),
             f"admin_perm_{user_id}_*",
         ]
         for pattern in patterns:

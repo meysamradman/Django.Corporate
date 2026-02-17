@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from src.core.responses.response import APIResponse
 from src.page.messages.messages import TERMS_PAGE_ERRORS, TERMS_PAGE_SUCCESS
 from src.page.serializers.public.terms_page_serializer import PublicTermsPageSerializer
-from src.page.services.public.terms_page_service import get_public_terms_page
+from src.page.services.public.terms_page_service import get_public_terms_page, get_public_terms_page_data
 
 
 class PublicTermsPageView(APIView):
@@ -21,10 +21,9 @@ class PublicTermsPageView(APIView):
                     status_code=status.HTTP_404_NOT_FOUND,
                 )
 
-            serializer = PublicTermsPageSerializer(page)
             return APIResponse.success(
                 message=TERMS_PAGE_SUCCESS['terms_page_retrieved'],
-                data=serializer.data,
+                data=get_public_terms_page_data(PublicTermsPageSerializer),
                 status_code=status.HTTP_200_OK,
             )
         except ValidationError:

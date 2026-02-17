@@ -1,5 +1,4 @@
 import os
-from django.core.cache import cache
 from django.utils import timezone
 from django.db import connection
 from django.db.models import Sum, Count
@@ -7,18 +6,18 @@ from src.core.cache import CacheService
 from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentMedia
 from src.analytics.messages.messages import ANALYTICS_ERRORS
 from src.analytics.utils.cache import AnalyticsCacheKeys, AnalyticsCacheManager
+from src.analytics.utils.cache_ttl import AnalyticsCacheTTL
 
 class SystemStatsService:
-    CACHE_TIMEOUT = 600
     REQUIRED_PERMISSION = 'analytics.system.read'
 
     @classmethod
-    def get_stats(cls) -> dict:
+    def get_stats(cls, use_cache: bool = True) -> dict:
         cache_key = AnalyticsCacheKeys.system()
-        data = cache.get(cache_key)
-        if not data:
+        data = CacheService.get(cache_key) if use_cache else None
+        if data is None:
             data = cls._calculate_stats()
-            cache.set(cache_key, data, cls.CACHE_TIMEOUT)
+            CacheService.set(cache_key, data, timeout=AnalyticsCacheTTL.SYSTEM_STATS)
         return data
 
     @classmethod
@@ -126,22 +125,35 @@ class SystemStatsService:
                 
                 if vendor == 'postgresql':
                     cursor.execute("""
-                        SELECT pg_size_pretty(pg_database_size(%s)), pg_database_size(%s);
-
+                        SELECT pg_size_pretty(pg_database_size(%s)), pg_database_size(%s)
+                    """, [db_name, db_name])
+                    row = cursor.fetchone()
+                    if row:
+                        size_bytes = int(row[1] or 0)
+                        return {
+                            'size_formatted': row[0],
+                            'size_bytes': size_bytes,
+                            'size_mb': round(size_bytes / (1024 * 1024), 2),
+                            'size_gb': round(size_bytes / (1024 * 1024 * 1024), 2),
+                            'vendor': 'postgresql',
+                        }
+                elif vendor == 'mysql':
+                    cursor.execute("""
                         SELECT 
                             ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS size_mb,
                             ROUND(SUM(data_length + index_length) / 1024 / 1024 / 1024, 2) AS size_gb,
                             SUM(data_length + index_length) AS size_bytes
-                        FROM information_schema.tables 
-                        WHERE table_schema = %s
-                    """, [db_name])
+                        FROM information_schema.tables
+                        WHERE table_schema = DATABASE()
+                    """)
                     row = cursor.fetchone()
                     if row:
+                        size_bytes = int(row[2] or 0)
                         return {
-                            'size_formatted': f"{row[0]} MB",
-                            'size_bytes': int(row[2] or 0),
-                            'size_mb': row[0] or 0,
-                            'size_gb': row[1] or 0,
+                            'size_formatted': cls._format_bytes(size_bytes),
+                            'size_bytes': size_bytes,
+                            'size_mb': float(row[0] or 0),
+                            'size_gb': float(row[1] or 0),
                             'vendor': 'mysql',
                         }
                 elif vendor == 'sqlite':

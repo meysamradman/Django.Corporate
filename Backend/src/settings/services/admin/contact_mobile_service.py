@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from src.settings.models import ContactMobile
 from src.settings.messages.messages import SETTINGS_ERRORS
+from src.settings.utils.cache import SettingsCacheManager
 
 def get_contact_mobiles(filters=None, ordering=None):
     queryset = ContactMobile.objects.all()
@@ -17,7 +18,10 @@ def get_contact_mobiles(filters=None, ordering=None):
     return queryset
 
 def create_contact_mobile(validated_data):
-    return ContactMobile.objects.create(**validated_data)
+    instance = ContactMobile.objects.create(**validated_data)
+    SettingsCacheManager.invalidate_contact_mobiles()
+    SettingsCacheManager.invalidate_contact_public()
+    return instance
 
 def get_contact_mobile_by_id(mobile_id):
     try:
@@ -30,7 +34,11 @@ def update_contact_mobile(instance, validated_data):
         setattr(instance, field, value)
     
     instance.save()
+    SettingsCacheManager.invalidate_contact_mobiles()
+    SettingsCacheManager.invalidate_contact_public()
     return instance
 
 def delete_contact_mobile(instance):
     instance.delete()
+    SettingsCacheManager.invalidate_contact_mobiles()
+    SettingsCacheManager.invalidate_contact_public()

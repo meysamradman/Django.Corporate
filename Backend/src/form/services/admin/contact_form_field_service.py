@@ -1,10 +1,12 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.core.cache import cache
+from src.core.cache import CacheService
 
 from src.form.models import ContactFormField
 from src.form.messages.messages import FORM_FIELD_ERRORS
 from src.form.utils.cache import FormCacheKeys, FormCacheManager
+from src.form.utils.cache_admin import FormAdminCacheKeys
+from src.form.utils.cache_ttl import FormCacheTTL
 
 def get_contact_form_fields(is_active=None):
     queryset = ContactFormField.objects.all()
@@ -14,19 +16,19 @@ def get_contact_form_fields(is_active=None):
 
 def get_contact_form_field(field_id=None, public_id=None, field_key=None):
     if field_id:
-        cache_key = FormCacheKeys.field_by_id(field_id)
+        cache_key = FormAdminCacheKeys.field_by_id(field_id)
     elif field_key:
-        cache_key = FormCacheKeys.field_by_key(field_key)
+        cache_key = FormAdminCacheKeys.field_by_key(field_key)
     else:
         cache_key = None
     
     if cache_key:
-        cached_field_id = cache.get(cache_key)
+        cached_field_id = CacheService.get(cache_key)
         if cached_field_id is not None:
             field = ContactFormField.objects.filter(id=cached_field_id).first()
             if field is not None:
                 return field
-            cache.delete(cache_key)
+            CacheService.delete(cache_key)
     
     try:
         if field_id:
@@ -39,7 +41,7 @@ def get_contact_form_field(field_id=None, public_id=None, field_key=None):
             raise ValidationError(FORM_FIELD_ERRORS['field_id_required'])
         
         if cache_key:
-            cache.set(cache_key, field.id, 3600)
+            CacheService.set(cache_key, field.id, FormCacheTTL.FIELD_LOOKUP)
         
         return field
     except ContactFormField.DoesNotExist:
@@ -53,6 +55,18 @@ def get_active_fields_for_platform(platform):
         is_active=True,
         platforms__contains=[platform]
     ).order_by('order', 'field_key')
+
+
+def get_active_fields_for_platform_data(platform, serializer_class):
+    cache_key = FormAdminCacheKeys.fields_for_platform(platform)
+    cached_data = CacheService.get(cache_key)
+    if cached_data is not None:
+        return cached_data
+
+    fields = get_active_fields_for_platform(platform)
+    serialized_data = serializer_class(fields, many=True).data
+    CacheService.set(cache_key, serialized_data, FormCacheTTL.ADMIN_PLATFORM_FIELDS)
+    return serialized_data
 
 @transaction.atomic
 def create_contact_form_field(validated_data):

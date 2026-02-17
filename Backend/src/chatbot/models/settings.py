@@ -1,7 +1,9 @@
 from django.db import models
-from django.core.cache import cache
+from src.core.cache import CacheService
 from src.core.models import BaseModel
-from src.chatbot.utils.cache import ChatbotCacheKeys, ChatbotCacheManager
+from src.chatbot.utils.cache import ChatbotCacheManager
+from src.chatbot.utils.cache_public import ChatbotPublicCacheKeys
+from src.chatbot.utils.cache_ttl import ChatbotCacheTTL
 from src.chatbot.messages.messages import CHATBOT_DEFAULTS
 
 class ChatbotSettings(BaseModel):
@@ -51,8 +53,8 @@ class ChatbotSettings(BaseModel):
     
     @classmethod
     def get_settings(cls):
-        cache_key = ChatbotCacheKeys.public_settings_id()
-        settings_id = cache.get(cache_key)
+        cache_key = ChatbotPublicCacheKeys.settings_id()
+        settings_id = CacheService.get(cache_key)
         if settings_id:
             settings = cls.objects.filter(id=settings_id).first()
             if settings:
@@ -65,5 +67,5 @@ class ChatbotSettings(BaseModel):
                 default_message=CHATBOT_DEFAULTS['default_message'],
             )
 
-        cache.set(cache_key, settings.id, 3600)
+        CacheService.set(cache_key, settings.id, ChatbotCacheTTL.PUBLIC_SETTINGS_ID)
         return settings

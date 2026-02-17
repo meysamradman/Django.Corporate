@@ -1,10 +1,10 @@
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from django.core.cache import cache
 import importlib
 import inspect
 
 from src.core.responses.response import APIResponse
+from src.core.cache import CacheService
 from src.ai.models import AIProvider, AICapabilityModel
 from src.ai.messages.messages import AI_ERRORS, AI_SUCCESS
 from src.user.access_control import ai_permission, PermissionRequiredMixin
@@ -290,7 +290,7 @@ class AIModelManagementViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             },
         )
 
-        cache.delete(AICacheKeys.active_capability_model(capability))
+        CacheService.delete(AICacheKeys.active_capability_model(capability))
 
         return APIResponse.success(
             message=AI_SUCCESS.get("provider_selected"),

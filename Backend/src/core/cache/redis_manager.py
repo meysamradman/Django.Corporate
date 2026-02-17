@@ -189,6 +189,33 @@ class RedisManager:
         except Exception:
             return None
 
+    def zadd(self, key: str, mapping: dict[str, float]) -> Optional[int]:
+        try:
+            client = self.get_redis_client()
+            if not client:
+                return None
+            return client.zadd(key, mapping)
+        except Exception:
+            return None
+
+    def zcard(self, key: str) -> int:
+        try:
+            client = self.get_redis_client()
+            if not client:
+                return 0
+            return int(client.zcard(key) or 0)
+        except Exception:
+            return 0
+
+    def zremrangebyscore(self, key: str, min_score: float, max_score: float) -> int:
+        try:
+            client = self.get_redis_client()
+            if not client:
+                return 0
+            return int(client.zremrangebyscore(key, min_score, max_score) or 0)
+        except Exception:
+            return 0
+
 class SessionRedisManager(RedisManager):
     
     def __init__(self):
@@ -398,6 +425,18 @@ class CacheService:
     def get_redis_info(cls, section: Optional[str] = None) -> Optional[dict]:
         
         return cls.get_default_manager().get_redis_info(section)
+
+    @classmethod
+    def zadd(cls, key: str, mapping: dict[str, float]) -> Optional[int]:
+        return cls.get_default_manager().zadd(key, mapping)
+
+    @classmethod
+    def zcard(cls, key: str) -> int:
+        return cls.get_default_manager().zcard(key)
+
+    @classmethod
+    def zremrangebyscore(cls, key: str, min_score: float, max_score: float) -> int:
+        return cls.get_default_manager().zremrangebyscore(key, min_score, max_score)
 
     @classmethod
     def clear_property_cache(cls, property_id: int) -> int:

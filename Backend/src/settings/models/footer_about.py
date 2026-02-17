@@ -3,6 +3,8 @@ from django.core.cache import cache
 from django.utils.translation import gettext_lazy as _
 
 from src.core.models import BaseModel
+from src.settings.utils.cache import SettingsCacheKeys, SettingsCacheManager
+from src.settings.utils import cache_ttl
 
 
 class FooterAbout(BaseModel):
@@ -24,10 +26,13 @@ class FooterAbout(BaseModel):
             self.pk = existing.pk
             self.public_id = existing.public_id
         super().save(*args, **kwargs)
+        SettingsCacheManager.invalidate_footer_about_model_pk()
+        SettingsCacheManager.invalidate_footer_about_public()
+        SettingsCacheManager.invalidate_footer_public()
 
     @classmethod
     def get_settings(cls):
-        cache_key = "settings_footer_about_pk"
+        cache_key = SettingsCacheKeys.footer_about_model_pk()
         model_pk = cache.get(cache_key)
 
         if model_pk:
@@ -39,5 +44,5 @@ class FooterAbout(BaseModel):
         if not obj:
             obj = cls.objects.create(title="درباره ما", text="")
 
-        cache.set(cache_key, obj.pk, 3600)
+        cache.set(cache_key, obj.pk, cache_ttl.SINGLETON_MODEL_PK_TTL)
         return obj

@@ -11,6 +11,7 @@ import hashlib
 
 from src.core.models.base import BaseModel
 from src.ai.utils.cache import AICacheKeys, AICacheManager
+from src.ai.utils.cache_ttl import AICacheTTL
 from src.ai.messages.messages import AI_ERRORS
 
 class EncryptedAPIKeyMixin:
@@ -296,7 +297,7 @@ class AIModelManager(models.Manager):
         if capability:
             for model in queryset:
                 if model.capabilities and capability in model.capabilities:
-                    cache.set(cache_key, model.id, 300)
+                    cache.set(cache_key, model.id, AICacheTTL.ACTIVE_MODEL)
                     return model
             logger.info(
                 "[AIModel] No active model for provider=%s with capability=%s",
@@ -307,7 +308,7 @@ class AIModelManager(models.Manager):
 
         model = queryset.first()
         if model:
-            cache.set(cache_key, model.id, 300)
+            cache.set(cache_key, model.id, AICacheTTL.ACTIVE_MODEL)
         return model
     
     def deactivate_other_models(self, provider_id: int, capability: str, exclude_id: int = None):

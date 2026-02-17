@@ -1,7 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.decorators import action
-from django.core.cache import cache
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from datetime import timedelta
@@ -11,6 +10,7 @@ from src.analytics.models import DailyStats, PageView
 from src.analytics.messages import ANALYTICS_SUCCESS, ANALYTICS_ERRORS
 from src.user.access_control import analytics_permission
 from src.analytics.utils.cache import AnalyticsCacheKeys, AnalyticsCacheManager
+from src.analytics.utils.cache_shared import should_bypass_cache
 
 class PageViewsAnalyticsView(APIView):
     permission_classes = [analytics_permission]
@@ -19,12 +19,8 @@ class PageViewsAnalyticsView(APIView):
         from src.analytics.services.stats import WebsiteTrafficService
         
         site_id = request.query_params.get('site_id', 'default')
-        cache_key = AnalyticsCacheKeys.traffic_dashboard(site_id)
-        data = cache.get(cache_key)
-        
-        if not data:
-            data = WebsiteTrafficService.get_dashboard_stats(site_id=site_id)
-            cache.set(cache_key, data, timeout=300)
+        use_cache = not should_bypass_cache(request)
+        data = WebsiteTrafficService.get_dashboard_stats_data(site_id=site_id, use_cache=use_cache)
         
         return APIResponse.success(
             message=ANALYTICS_SUCCESS['stats_retrieved'],
@@ -36,54 +32,10 @@ class MonthlyStatsAnalyticsView(APIView):
     permission_classes = [analytics_permission]
     
     def get(self, request):
-        cache_key = AnalyticsCacheKeys.monthly_stats()
-        data = cache.get(cache_key)
-        
-        if not data:
-            from datetime import datetime
-            from calendar import monthrange
-            
-            now = timezone.now()
-            monthly_data = []
-            
-            for i in range(5, -1, -1):
-                target_date = now - timedelta(days=30 * i)
-                month_start = target_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-                
-                last_day = monthrange(month_start.year, month_start.month)[1]
-                month_end = month_start.replace(day=last_day, hour=23, minute=59, second=59)
-                
-                month_stats = DailyStats.objects.filter(
-                    date__gte=month_start.date(),
-                    date__lte=month_end.date()
-                ).aggregate(
-                    desktop=Sum('desktop_visits'),
-                    mobile=Sum('mobile_visits'),
-                )
-                
-                gregorian_month = month_start.month
-                gregorian_year = month_start.year
-                
-                approximate_jalali_month = ((gregorian_month + 1) % 12) + 1
-                
-                persian_month_names = [
-                    'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
-                    'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
-                ]
-                
-                month_name = persian_month_names[approximate_jalali_month - 1] if 1 <= approximate_jalali_month <= 12 else 'نامشخص'
-                
-                monthly_data.append({
-                    'month': month_name,
-                    'desktop': month_stats['desktop'] or 0,
-                    'mobile': month_stats['mobile'] or 0,
-                })
-            
-            data = {
-                'monthly_stats': monthly_data
-            }
-            
-            cache.set(cache_key, data, timeout=600)  # Cache for 10 minutes
+        from src.analytics.services.stats import WebsiteTrafficService
+
+        use_cache = not should_bypass_cache(request)
+        data = WebsiteTrafficService.get_monthly_stats_data(use_cache=use_cache)
         
         return APIResponse.success(
             message=ANALYTICS_SUCCESS['stats_retrieved'],

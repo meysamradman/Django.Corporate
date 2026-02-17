@@ -6,9 +6,7 @@ class PanelSettingsService:
     
     @staticmethod
     def get_panel_settings():
-
-        instance, _ = PanelSettings.objects.select_related('logo', 'favicon').get_or_create()
-        return instance
+        return PanelSettings.get_settings()
     
     @staticmethod
     def update_panel_settings(instance, validated_data, remove_logo=False, remove_favicon=False):

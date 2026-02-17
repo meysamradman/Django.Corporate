@@ -13,6 +13,11 @@ from django.http import Http404
 from django.core.exceptions import ValidationError
 from src.user.models import User, AdminProfile, AdminUserRole
 from src.user.utils.cache import UserCacheKeys
+from src.user.utils.cache_ttl import (
+    USER_PERMISSION_DISPLAY_NAME_TTL,
+    USER_ADMIN_PROFILE_CACHE_TTL,
+    USER_SUPERADMIN_PROFILE_CACHE_TTL,
+)
 from django.core.cache import cache
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -63,7 +68,7 @@ class AdminProfileView(APIView):
                     permission_data['permissions']
                 )
             
-            cache_ttl = 1800 if user.is_superuser else 300
+            cache_ttl = USER_SUPERADMIN_PROFILE_CACHE_TTL if user.is_superuser else USER_ADMIN_PROFILE_CACHE_TTL
             cache.set(cache_key, response_data, cache_ttl)
             
             return APIResponse.success(message=AUTH_SUCCESS["auth_retrieved_successfully"], data=response_data)
@@ -138,7 +143,7 @@ class AdminProfileView(APIView):
             
             if not display_name:
                 display_name = " ".join(codename.split('_')).title()
-                cache.set(cache_key, display_name, 86400)
+                cache.set(cache_key, display_name, USER_PERMISSION_DISPLAY_NAME_TTL)
             
             categories[category].append({
                 'code': perm,

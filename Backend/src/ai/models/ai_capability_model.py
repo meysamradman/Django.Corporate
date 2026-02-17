@@ -6,10 +6,11 @@ from django.core.cache import cache
 
 from src.ai.models.ai_provider import AIProvider
 from src.ai.utils.cache import AICacheKeys
+from src.ai.utils.cache_ttl import AICacheTTL
 
 
 class AICapabilityModelManager(models.Manager):
-    CACHE_TIMEOUT = 300  # 5 minutes
+    CACHE_TIMEOUT = AICacheTTL.ACTIVE_MODEL
 
     def get_active(self, capability: str):
         capability = (capability or '').strip().lower()

@@ -1,6 +1,5 @@
 from rest_framework import viewsets, status
 from django.core.exceptions import ValidationError
-from django.core.cache import cache
 
 from src.core.responses.response import APIResponse
 from src.page.models import AboutPage
@@ -9,12 +8,12 @@ from src.page.serializers.admin import (
     AboutPageUpdateSerializer,
 )
 from src.page.services.admin.about_page_service import (
-    get_about_page,
+    get_about_page_data,
     update_about_page,
 )
 from src.page.messages.messages import ABOUT_PAGE_SUCCESS, ABOUT_PAGE_ERRORS
 from src.user.access_control import PermissionRequiredMixin
-from src.page.utils.cache import PageCacheKeys, PageCacheManager
+from src.page.utils.cache import PageCacheManager
 from src.core.utils.validation_helpers import extract_validation_message
 
 class AboutPageViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
@@ -39,22 +38,7 @@ class AboutPageViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         try:
-            cache_key = PageCacheKeys.about_page()
-            cached_data = cache.get(cache_key)
-            
-            if cached_data is not None:
-                return APIResponse.success(
-                    message=ABOUT_PAGE_SUCCESS['about_page_retrieved'],
-                    data=cached_data,
-                    status_code=status.HTTP_200_OK
-                )
-            
-            page = get_about_page()
-            serializer = self.get_serializer(page)
-            serialized_data = serializer.data
-            
-            cache.set(cache_key, serialized_data, 300)
-            
+            serialized_data = get_about_page_data(self.get_serializer_class())
             return APIResponse.success(
                 message=ABOUT_PAGE_SUCCESS['about_page_retrieved'],
                 data=serialized_data,

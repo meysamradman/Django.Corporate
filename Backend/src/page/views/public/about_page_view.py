@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from src.core.responses.response import APIResponse
 from src.page.messages.messages import ABOUT_PAGE_ERRORS, ABOUT_PAGE_SUCCESS
 from src.page.serializers.public.about_page_serializer import PublicAboutPageSerializer
-from src.page.services.public.about_page_service import get_public_about_page
+from src.page.services.public.about_page_service import get_public_about_page, get_public_about_page_data
 
 
 class PublicAboutPageView(APIView):
@@ -21,10 +21,9 @@ class PublicAboutPageView(APIView):
                     status_code=status.HTTP_404_NOT_FOUND,
                 )
 
-            serializer = PublicAboutPageSerializer(page)
             return APIResponse.success(
                 message=ABOUT_PAGE_SUCCESS['about_page_retrieved'],
-                data=serializer.data,
+                data=get_public_about_page_data(PublicAboutPageSerializer),
                 status_code=status.HTTP_200_OK,
             )
         except ValidationError:

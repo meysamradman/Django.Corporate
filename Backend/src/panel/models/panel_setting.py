@@ -1,8 +1,9 @@
 from django.db import models
-from django.core.cache import cache
 from src.core.models.base import BaseModel
+from src.core.cache import CacheService
 from src.media.models.media import ImageMedia
 from src.panel.utils.cache import PanelCacheKeys, PanelCacheManager
+from src.panel.utils.cache_ttl import ADMIN_PANEL_SETTINGS_TTL
 
 class PanelSettings(BaseModel):
     panel_title = models.CharField(
@@ -51,17 +52,17 @@ class PanelSettings(BaseModel):
     @classmethod
     def get_settings(cls):
         cache_key = PanelCacheKeys.panel_settings()
-        settings_id = cache.get(cache_key)
+        settings_id = CacheService.get(cache_key)
 
         if settings_id is not None:
             settings = cls.objects.select_related('logo', 'favicon').filter(id=settings_id).first()
             if settings is not None:
                 return settings
-            cache.delete(cache_key)
+            CacheService.delete(cache_key)
 
         settings = cls.objects.select_related('logo', 'favicon').first()
         if not settings:
             settings = cls.objects.create()
 
-        cache.set(cache_key, settings.id, 3600)
+        CacheService.set(cache_key, settings.id, timeout=ADMIN_PANEL_SETTINGS_TTL)
         return settings

@@ -1,4 +1,7 @@
-from .cache import PanelCacheKeys, PanelCacheManager
+from .cache_admin import PanelCacheKeys, PanelCacheManager
 
-__all__ = ['PanelCacheKeys', 'PanelCacheManager']
+__all__ = [
+	'PanelCacheKeys',
+	'PanelCacheManager',
+]
 

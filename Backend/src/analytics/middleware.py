@@ -3,6 +3,7 @@ import json
 from django.utils.deprecation import MiddlewareMixin
 from src.core.cache import CacheService
 from .services.tracking import TrackingService
+from .services.realtime import OnlineUsersRealtimeService
 from .utils.geoip import get_country_from_ip
 
 class AnalyticsMiddleware(MiddlewareMixin):
@@ -87,6 +88,10 @@ class AnalyticsMiddleware(MiddlewareMixin):
             
             CacheService.list_push(self.ANALYTICS_QUEUE, json.dumps(visit_data), side='left')
             CacheService.list_trim(self.ANALYTICS_QUEUE, 0, 9999)
+            OnlineUsersRealtimeService.touch_session(
+                session_id=request.session.session_key,
+                site_id=site_id,
+            )
             
         except Exception as e:
             pass

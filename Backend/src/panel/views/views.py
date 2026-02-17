@@ -17,6 +17,7 @@ from src.panel.serializers import PanelSettingsSerializer
 from src.core.responses.response import APIResponse
 from src.panel.messages.messages import PANEL_SUCCESS, PANEL_ERRORS
 from src.panel.utils.cache import PanelCacheKeys, PanelCacheManager
+from src.panel.utils.cache_ttl import ADMIN_DB_EXPORT_RATE_LIMIT_TTL
 from src.core.utils.validation_helpers import extract_validation_message
 
 class AdminPanelSettingsViewSet(viewsets.ViewSet):
@@ -114,17 +115,17 @@ class AdminPanelSettingsViewSet(viewsets.ViewSet):
     def download_database_export(self, request):
         
         if not getattr(request.user, 'is_admin_full', False):
-            from django.core.cache import cache
             export_rate_limit = settings.DATABASE_EXPORT_RATE_LIMIT
             export_rate_window = settings.DATABASE_EXPORT_RATE_LIMIT_WINDOW
-            cache_key = f"database_export_limit_{request.user.id}"
+            cache_key = PanelCacheKeys.export_rate_limit(request.user.id)
             export_count = cache.get(cache_key, 0)
             if export_count >= export_rate_limit:
                 return APIResponse.error(
                     message='Database export rate limit exceeded. Please try again later.',
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS
                 )
-            cache.set(cache_key, export_count + 1, export_rate_window)
+            cache_ttl = min(export_rate_window, ADMIN_DB_EXPORT_RATE_LIMIT_TTL)
+            cache.set(cache_key, export_count + 1, cache_ttl)
         
         try:
             buffer = export_database_to_sql()

@@ -1,8 +1,8 @@
 from rest_framework import viewsets, status
 from django.core.exceptions import ValidationError
-from django.core.cache import cache
 
 from src.core.responses.response import APIResponse
+from src.core.cache import CacheService
 from src.settings.models import GeneralSettings
 from src.settings.serializers.admin.general_settings_serializer import GeneralSettingsSerializer
 from src.settings.services.admin.general_settings_service import (
@@ -12,6 +12,7 @@ from src.settings.services.admin.general_settings_service import (
 from src.settings.messages.messages import SETTINGS_SUCCESS, SETTINGS_ERRORS
 from src.user.access_control import PermissionRequiredMixin
 from src.settings.utils.cache import SettingsCacheKeys, SettingsCacheManager
+from src.settings.utils import cache_ttl
 from src.core.utils.validation_helpers import extract_validation_message
 
 class GeneralSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
@@ -32,7 +33,7 @@ class GeneralSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         try:
             cache_key = SettingsCacheKeys.general_settings()
-            cached_data = cache.get(cache_key)
+            cached_data = CacheService.get(cache_key)
             
             if cached_data is not None:
                 return APIResponse.success(
@@ -45,7 +46,7 @@ class GeneralSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             serializer = self.get_serializer(settings)
             serialized_data = serializer.data
             
-            cache.set(cache_key, serialized_data, 300)
+            CacheService.set(cache_key, serialized_data, cache_ttl.ADMIN_GENERAL_SETTINGS_TTL)
             
             return APIResponse.success(
                 message=SETTINGS_SUCCESS['settings_retrieved'],
@@ -77,7 +78,7 @@ class GeneralSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         try:
             cache_key = SettingsCacheKeys.general_settings()
-            cached_data = cache.get(cache_key)
+            cached_data = CacheService.get(cache_key)
             
             if cached_data is not None:
                 return APIResponse.success(
@@ -90,7 +91,7 @@ class GeneralSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             serializer = self.get_serializer(settings)
             serialized_data = serializer.data
             
-            cache.set(cache_key, serialized_data, 300)
+            CacheService.set(cache_key, serialized_data, cache_ttl.ADMIN_GENERAL_SETTINGS_TTL)
             
             return APIResponse.success(
                 message=SETTINGS_SUCCESS['settings_retrieved'],

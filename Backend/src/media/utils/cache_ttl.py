@@ -1,0 +1,6 @@
+class MediaCacheTTL:
+    PUBLIC_LIST = 120
+    PUBLIC_DETAIL = 300
+    PUBLIC_BY_TYPE = 120
+    ADMIN_LIST = 30
+    ADMIN_DETAIL = 60

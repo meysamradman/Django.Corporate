@@ -4,6 +4,7 @@ from rest_framework import status
 from django.core.cache import cache
 from src.core.responses.response import APIResponse
 from src.user.utils.cache import UserCacheKeys
+from src.user.utils.cache_ttl import USER_PERMISSION_MAP_TTL
 from .registry import PermissionRegistry
 from .validator import PermissionValidator
 from .config import BASE_ADMIN_PERMISSIONS
@@ -17,7 +18,7 @@ def get_permission_map(request):
         all_permissions = cache.get(cache_key_all_perms)
         if all_permissions is None:
             all_permissions = PermissionRegistry.export_for_frontend()
-            cache.set(cache_key_all_perms, all_permissions, 3600)
+            cache.set(cache_key_all_perms, all_permissions, USER_PERMISSION_MAP_TTL)
         
         is_authenticated = request.user and request.user.is_authenticated
         

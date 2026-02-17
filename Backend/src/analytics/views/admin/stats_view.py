@@ -15,6 +15,7 @@ from src.analytics.services.stats import (
     EmailStatsService,
     SystemStatsService
 )
+from src.analytics.utils.cache_shared import should_bypass_cache
 
 class AdminStatsViewSet(viewsets.ViewSet):
     permission_classes = [analytics_any_permission]
@@ -41,11 +42,12 @@ class AdminStatsViewSet(viewsets.ViewSet):
     def dashboard(self, request):
         
         clear_cache = request.query_params.get('clear_cache', '').lower() == 'true'
+        use_cache = not should_bypass_cache(request)
         
         if clear_cache:
             DashboardStatsService.clear_cache()
         
-        data = DashboardStatsService.get_stats()
+        data = DashboardStatsService.get_stats(use_cache=use_cache)
         return APIResponse.success(
             data=data,
             message=ANALYTICS_SUCCESS["dashboard_retrieved"]
@@ -53,7 +55,8 @@ class AdminStatsViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'])
     def users_stats(self, request):
-        data = UserStatsService.get_stats()
+        use_cache = not should_bypass_cache(request)
+        data = UserStatsService.get_stats(use_cache=use_cache)
         return APIResponse.success(
             data=data,
             message=ANALYTICS_SUCCESS["users_stats_retrieved"]
@@ -61,7 +64,8 @@ class AdminStatsViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'])
     def admins_stats(self, request):
-        data = AdminStatsService.get_stats()
+        use_cache = not should_bypass_cache(request)
+        data = AdminStatsService.get_stats(use_cache=use_cache)
         return APIResponse.success(
             data=data,
             message=ANALYTICS_SUCCESS["admins_stats_retrieved"]
@@ -69,7 +73,8 @@ class AdminStatsViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'])
     def content_stats(self, request):
-        data = ContentStatsService.get_stats()
+        use_cache = not should_bypass_cache(request)
+        data = ContentStatsService.get_stats(use_cache=use_cache)
         return APIResponse.success(
             data=data,
             message=ANALYTICS_SUCCESS["content_stats_retrieved"]
@@ -77,7 +82,8 @@ class AdminStatsViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'])
     def content_trend(self, request):
-        data = ContentStatsService.get_monthly_trend()
+        use_cache = not should_bypass_cache(request)
+        data = ContentStatsService.get_monthly_trend(use_cache=use_cache)
         return APIResponse.success(
             data=data,
             message=ANALYTICS_SUCCESS["content_stats_retrieved"]
@@ -87,8 +93,9 @@ class AdminStatsViewSet(viewsets.ViewSet):
     def tickets_stats(self, request):
         if request.query_params.get('clear_cache', '').lower() == 'true':
             TicketStatsService.clear_cache()
+        use_cache = not should_bypass_cache(request)
         
-        data = TicketStatsService.get_stats()
+        data = TicketStatsService.get_stats(use_cache=use_cache)
         return APIResponse.success(
             data=data,
             message=ANALYTICS_SUCCESS["tickets_stats_retrieved"]
@@ -98,8 +105,9 @@ class AdminStatsViewSet(viewsets.ViewSet):
     def emails_stats(self, request):
         if request.query_params.get('clear_cache', '').lower() == 'true':
             EmailStatsService.clear_cache()
+        use_cache = not should_bypass_cache(request)
         
-        data = EmailStatsService.get_stats()
+        data = EmailStatsService.get_stats(use_cache=use_cache)
         return APIResponse.success(
             data=data,
             message=ANALYTICS_SUCCESS["emails_stats_retrieved"]
@@ -109,8 +117,9 @@ class AdminStatsViewSet(viewsets.ViewSet):
     def system_stats(self, request):
         if request.query_params.get('clear_cache', '').lower() == 'true':
             SystemStatsService.clear_cache()
+        use_cache = not should_bypass_cache(request)
         
-        data = SystemStatsService.get_stats()
+        data = SystemStatsService.get_stats(use_cache=use_cache)
         return APIResponse.success(
             data=data,
             message=ANALYTICS_SUCCESS["system_stats_retrieved"]

@@ -7,13 +7,14 @@ from src.user.messages import AUTH_ERRORS
 from src.user.access_control.definitions.config import BASE_ADMIN_PERMISSIONS
 from src.user.access_control.definitions.module_mappings import MODULE_MAPPINGS
 from src.user.utils.cache import UserCacheKeys, UserCacheManager
+from src.user.utils.cache_ttl import USER_ADMIN_PERMISSION_CHECK_READ_TTL
 from src.user.models import AdminUserRole
 from src.user.access_control.definitions import PermissionValidator, PermissionRegistry
 from src.user.access_control.core.cache_strategy import PermissionCacheStrategy
 
 class AdminRolePermission(permissions.BasePermission):
     message = AUTH_ERRORS["admin_permission_required"]
-    cache_timeout = 300
+    cache_timeout = USER_ADMIN_PERMISSION_CHECK_READ_TTL
     
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
@@ -457,26 +458,31 @@ class AdminPermissionCache:
             methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
             
             cache_keys_to_clear = []
+            view_names = [
+                'AdminManagementView',
+                'AdminRoleView',
+                'AdminPermissionView',
+                'AdminProfileView',
+                'UserManagementView',
+            ]
             
             for method in methods:
-                cache_keys_to_clear.extend([
-                    f"admin_perm_{user_id}_{method}_AdminManagementView",
-                    f"admin_perm_{user_id}_{method}_AdminRoleView",
-                    f"admin_perm_{user_id}_{method}_AdminPermissionView",
-                    f"admin_perm_{user_id}_{method}_AdminProfileView",
-                    f"admin_perm_{user_id}_{method}_UserManagementView",
-                ])
+                cache_keys_to_clear.extend(
+                    [UserCacheKeys.admin_perm_check(user_id, method, view_name) for view_name in view_names]
+                )
             
             cache_keys_to_clear.extend([
-                f"admin_permissions_{user_id}",
-                f"admin_roles_{user_id}",
-                f"admin_info_{user_id}",
-                f"user_permissions_{user_id}",
-                f"user_modules_actions_{user_id}",
-                f"admin_perms_{user_id}",
-                f"admin_simple_perms_{user_id}",
-                f"admin_profile_{user_id}_super",
-                f"admin_profile_{user_id}_regular",
+                UserCacheKeys.admin_permissions(user_id),
+                UserCacheKeys.admin_roles(user_id),
+                UserCacheKeys.admin_info(user_id),
+                UserCacheKeys.user_permissions(user_id),
+                UserCacheKeys.user_modules_actions(user_id),
+                UserCacheKeys.admin_perms(user_id),
+                UserCacheKeys.admin_simple_perms(user_id),
+                UserCacheKeys.admin_profile(user_id, 'super'),
+                UserCacheKeys.admin_profile(user_id, 'regular'),
+                UserCacheKeys.admin_profile_legacy(user_id, 'super'),
+                UserCacheKeys.admin_profile_legacy(user_id, 'regular'),
             ])
             
             cache.delete_many(cache_keys_to_clear)
@@ -490,15 +496,16 @@ class AdminPermissionCache:
     def clear_all_admin_cache():
         try:
             patterns = [
-                "admin:perms:*",
-                "admin:roles:*",
-                "admin:info:*",
-                "admin:profile:*",
-                "user:perms:*",
-                "user:modules:*",
-                "user:mod:perms:*",
+                UserCacheKeys.admin_perm_pattern(),
+                UserCacheKeys.admin_roles_pattern(),
+                UserCacheKeys.admin_info_pattern(),
+                UserCacheKeys.admin_profile_pattern(),
+                UserCacheKeys.user_permissions_pattern(),
+                UserCacheKeys.user_modules_actions_pattern(),
+                UserCacheKeys.user_module_perms_pattern(),
                 "perm:display:*",
-                "admin_simple_perms_*",
+                UserCacheKeys.admin_simple_perms_pattern(),
+                UserCacheKeys.admin_profile_legacy_pattern(),
             ]
 
             for pattern in patterns:

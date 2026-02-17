@@ -1,28 +1,29 @@
 from django.apps import apps
-from django.core.cache import cache
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.db.models import Q, Sum, Count, Avg
+from src.core.cache import CacheService
 from src.analytics.utils.cache import AnalyticsCacheKeys, AnalyticsCacheManager
+from src.analytics.utils.cache_ttl import AnalyticsCacheTTL
+from src.analytics.services.realtime import OnlineUsersRealtimeService
 
 User = get_user_model()
 
 class DashboardStatsService:
-    CACHE_TIMEOUT = 300
-    
     @classmethod
-    def get_stats(cls) -> dict:
+    def get_stats(cls, use_cache: bool = True) -> dict:
         cache_key = AnalyticsCacheKeys.dashboard()
-        data = cache.get(cache_key)
-        if not data:
+        data = CacheService.get(cache_key) if use_cache else None
+        if data is None:
             data = cls._calculate_stats()
-            cache.set(cache_key, data, cls.CACHE_TIMEOUT)
+            CacheService.set(cache_key, data, timeout=AnalyticsCacheTTL.ADMIN_STATS)
         return data
     
     @classmethod
     def _calculate_stats(cls) -> dict:
         stats = {
             'generated_at': timezone.now().isoformat(),
+            'online_users_now': OnlineUsersRealtimeService.get_online_users(),
         }
         
         stats['total_users'] = User.objects.filter(

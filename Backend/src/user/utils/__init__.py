@@ -5,6 +5,7 @@ from .phone_validator import validate_phone_number, validate_phone_number_option
 from .otp_validator import validate_otp, generate_otp, get_otp_expiry_time, get_otp_length
 from .password_validator import validate_login_password, validate_register_password
 from .jwt_tokens import generate_jwt_tokens, blacklist_jwt_token, is_jwt_token_blacklisted
+from .cache import UserCacheKeys, UserCacheManager, UserPublicCacheKeys
 
 __all__ = [
     'validate_identifier',
@@ -21,5 +22,8 @@ __all__ = [
     'validate_register_password',
     'generate_jwt_tokens',
     'blacklist_jwt_token',
-    'is_jwt_token_blacklisted'
+    'is_jwt_token_blacklisted',
+    'UserCacheKeys',
+    'UserCacheManager',
+    'UserPublicCacheKeys',
 ]

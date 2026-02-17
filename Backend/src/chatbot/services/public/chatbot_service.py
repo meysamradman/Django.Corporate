@@ -1,26 +1,26 @@
 import re
 from typing import Optional, Dict, List
-from django.core.cache import cache
+from src.core.cache import CacheService
 
 from src.chatbot.models.faq import FAQ
 from src.chatbot.models.settings import ChatbotSettings
-from src.chatbot.utils.cache import ChatbotCacheKeys, ChatbotCacheManager
+from src.chatbot.utils.cache_public import ChatbotPublicCacheKeys, ChatbotPublicCacheManager
+from src.chatbot.utils.cache_admin import ChatbotAdminCacheManager
+from src.chatbot.utils.cache_ttl import ChatbotCacheTTL
 
 
 class RuleBasedChatService:
-    CACHE_TIMEOUT = 3600
-
     @classmethod
     def _get_cached_faqs(cls) -> List[Dict]:
-        cache_key = ChatbotCacheKeys.public_faqs_active()
-        faqs = cache.get(cache_key)
+        cache_key = ChatbotPublicCacheKeys.faqs_active()
+        faqs = CacheService.get(cache_key)
         if faqs is None:
             faqs = list(
                 FAQ.objects.filter(is_active=True)
                 .order_by('order')
                 .values('id', 'question', 'answer', 'keywords', 'patterns')
             )
-            cache.set(cache_key, faqs, cls.CACHE_TIMEOUT)
+            CacheService.set(cache_key, faqs, ChatbotCacheTTL.PUBLIC_FAQS)
         return faqs
 
     @classmethod
@@ -74,7 +74,9 @@ class RuleBasedChatService:
 
     @classmethod
     def clear_cache(cls):
-        ChatbotCacheManager.invalidate_all()
+        ChatbotAdminCacheManager.invalidate_all()
+        ChatbotPublicCacheManager.invalidate_faqs()
+        ChatbotPublicCacheManager.invalidate_settings()
 
 
 __all__ = [

@@ -5,10 +5,11 @@ from .registry import PermissionRegistry, Permission
 from .config import BASE_ADMIN_PERMISSIONS
 from .module_mappings import MODULE_MAPPINGS
 from src.user.utils.cache import UserCacheKeys, UserCacheManager
+from src.user.utils.cache_ttl import USER_PERMISSION_CACHE_TTL
 from src.user.models import AdminUserRole
 
 class PermissionValidator:
-    CACHE_TIMEOUT = 300
+    CACHE_TIMEOUT = USER_PERMISSION_CACHE_TTL
     
     @staticmethod
     def _get_cache_key(user) -> Optional[int]:
@@ -211,11 +212,11 @@ class PermissionValidator:
         if not has_any_role:
             if is_superadmin:
                 all_perms = list(PermissionRegistry.get_all().keys())
-                cache.set(cache_key, all_perms, 300)
+                cache.set(cache_key, all_perms, PermissionValidator.CACHE_TIMEOUT)
                 return all_perms
             else:
                 base_perms = list(BASE_ADMIN_PERMISSIONS.keys())
-                cache.set(cache_key, base_perms, 300)
+                cache.set(cache_key, base_perms, PermissionValidator.CACHE_TIMEOUT)
                 return base_perms
         
         base_perms = list(BASE_ADMIN_PERMISSIONS.keys())
@@ -223,7 +224,7 @@ class PermissionValidator:
             if base_perm not in granted:
                 granted.append(base_perm)
         
-        cache.set(cache_key, granted, 300)
+        cache.set(cache_key, granted, PermissionValidator.CACHE_TIMEOUT)
         return granted
 
     @staticmethod

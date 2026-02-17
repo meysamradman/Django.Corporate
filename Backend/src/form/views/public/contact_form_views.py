@@ -15,7 +15,7 @@ from src.form.serializers.public import (
     PublicContactFormSubmissionCreateSerializer,
 )
 from src.form.services.public import (
-    get_public_contact_form_fields,
+    get_public_contact_form_fields_data,
     create_public_contact_form_submission,
 )
 
@@ -33,11 +33,9 @@ class PublicContactFormFieldsView(APIView):
             )
 
         try:
-            fields = get_public_contact_form_fields(platform)
-            serializer = PublicContactFormFieldSerializer(fields, many=True)
             return APIResponse.success(
                 message=FORM_FIELD_SUCCESS['platform_fields_retrieved'],
-                data=serializer.data,
+                data=get_public_contact_form_fields_data(platform),
                 status_code=status.HTTP_200_OK,
             )
         except ValidationError:

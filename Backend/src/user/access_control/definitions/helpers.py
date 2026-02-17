@@ -1,10 +1,15 @@
 from django.core.cache import cache
 from typing import Dict, List, Set, Any
 from src.user.utils.cache import UserCacheKeys, UserCacheManager
+from src.user.utils.cache_ttl import (
+    USER_PERMISSION_CACHE_TTL,
+    USER_SIMPLE_PERMISSIONS_TTL,
+    USER_PERMISSION_DISPLAY_NAME_TTL,
+)
 
 class PermissionHelper:
     
-    CACHE_TIMEOUT = 300
+    CACHE_TIMEOUT = USER_PERMISSION_CACHE_TTL
     
     MODULE_MAP = {
         'user': 'user_management',
@@ -149,7 +154,7 @@ class PermissionHelper:
             'has_permissions': permissions_count > 0
         }
             
-        cache.set(cache_key, result, 600)
+        cache.set(cache_key, result, USER_SIMPLE_PERMISSIONS_TTL)
         return result
         
     @classmethod
@@ -269,15 +274,17 @@ class PermissionHelper:
     @classmethod
     def clear_user_cache(cls, user_id: int) -> None:
         cache_keys = [
-            f"admin_perms_{user_id}",
-            f"admin_simple_perms_{user_id}",
-            f"admin_permissions_{user_id}",
-            f"admin_roles_{user_id}",
-            f"admin_info_{user_id}",
-            f"user_permissions_{user_id}",
-            f"user_modules_actions_{user_id}",
-            f"admin_profile_{user_id}_super",
-            f"admin_profile_{user_id}_regular",
+            UserCacheKeys.admin_perms(user_id),
+            UserCacheKeys.admin_simple_perms(user_id),
+            UserCacheKeys.admin_permissions(user_id),
+            UserCacheKeys.admin_roles(user_id),
+            UserCacheKeys.admin_info(user_id),
+            UserCacheKeys.user_permissions(user_id),
+            UserCacheKeys.user_modules_actions(user_id),
+            UserCacheKeys.admin_profile(user_id, 'super'),
+            UserCacheKeys.admin_profile(user_id, 'regular'),
+            UserCacheKeys.admin_profile_legacy(user_id, 'super'),
+            UserCacheKeys.admin_profile_legacy(user_id, 'regular'),
         ]
         cache.delete_many(cache_keys)
         
@@ -309,7 +316,7 @@ class PermissionHelper:
             
             if not display_name:
                 display_name = " ".join(codename.split('_')).title()
-                cache.set(cache_key, display_name, 86400)
+                cache.set(cache_key, display_name, USER_PERMISSION_DISPLAY_NAME_TTL)
             
             categories[category].append({
                 'code': perm,

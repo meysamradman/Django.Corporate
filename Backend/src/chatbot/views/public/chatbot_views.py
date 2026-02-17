@@ -1,11 +1,13 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
-from django.core.cache import cache
 
 from src.core.responses.response import APIResponse
+from src.core.cache import CacheService
 from src.chatbot.services.public.chatbot_service import RuleBasedChatService
 from src.chatbot.models.faq import FAQ
+from src.chatbot.utils.cache_shared import rate_limit_key
+from src.chatbot.utils.cache_ttl import ChatbotCacheTTL
 from src.chatbot.messages.messages import CHATBOT_SUCCESS, CHATBOT_ERRORS
 
 
@@ -13,11 +15,11 @@ class PublicChatbotViewSet(viewsets.ViewSet):
     permission_classes = [AllowAny]
 
     def _rate_limit_check(self, ip_address: str, limit: int) -> bool:
-        cache_key = f"chatbot:rate_limit:{ip_address}"
-        requests = cache.get(cache_key, 0)
+        cache_key = rate_limit_key(ip_address)
+        requests = CacheService.get(cache_key, 0)
         if requests >= limit:
             return False
-        cache.set(cache_key, requests + 1, 60)
+        CacheService.set(cache_key, requests + 1, ChatbotCacheTTL.RATE_LIMIT_WINDOW)
         return True
 
     def _get_client_ip(self, request):
