@@ -3,7 +3,6 @@ from django.dispatch import receiver
 
 from src.analytics.utils.cache_admin import AnalyticsAdminCacheManager
 
-
 APP_INVALIDATION_MAP = {
     'user': (
         AnalyticsAdminCacheManager.invalidate_dashboard,
@@ -47,7 +46,6 @@ APP_INVALIDATION_MAP = {
     ),
 }
 
-
 def _invalidate_by_app_label(app_label: str) -> None:
     handlers = APP_INVALIDATION_MAP.get(app_label)
     if not handlers:
@@ -56,12 +54,10 @@ def _invalidate_by_app_label(app_label: str) -> None:
     for invalidate in handlers:
         invalidate()
 
-
 @receiver(post_save, dispatch_uid='analytics_admin_stats_invalidation_on_save')
 def invalidate_admin_stats_cache_on_save(sender, **kwargs):
     app_label = sender._meta.app_label
     _invalidate_by_app_label(app_label)
-
 
 @receiver(post_delete, dispatch_uid='analytics_admin_stats_invalidation_on_delete')
 def invalidate_admin_stats_cache_on_delete(sender, **kwargs):

@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from src.settings.models import FooterAbout
 
-
 class FooterAboutSerializer(serializers.ModelSerializer):
     class Meta:
         model = FooterAbout

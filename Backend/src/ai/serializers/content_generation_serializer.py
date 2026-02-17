@@ -59,8 +59,7 @@ class AIContentGenerationRequestSerializer(serializers.Serializer):
     )
     
     def validate_destination(self, value):
-        """Normalize destination value and validate."""
-        # Normalize 'none' or empty to 'direct'
+
         if not value or value.strip().lower() in ['none', '']:
             return 'direct'
         

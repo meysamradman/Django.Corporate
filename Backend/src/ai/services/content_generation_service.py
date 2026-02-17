@@ -16,7 +16,7 @@ class AIContentGenerationService:
     
     @classmethod
     def get_provider(cls, provider_name: Optional[str], admin=None, model_name: Optional[str] = None):
-        """Returns tuple: (provider_instance, provider_model, model_name)"""
+
         logger.info(f"[ContentService] get_provider called: provider_name={provider_name}, model_name={model_name}")
         
         provider_name = (provider_name or '').strip().lower() or None
@@ -75,7 +75,6 @@ class AIContentGenerationService:
                     is_active=True
                 )
 
-                # Scenario: source is selected by admin (personal/shared) via use_shared_api.
                 api_key = settings.get_api_key()
                     
             except AdminProviderSettings.DoesNotExist:

@@ -73,7 +73,7 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='available-providers')
     def available_providers(self, request):
-        """Returns providers that support content generation with their hardcoded models."""
+
         is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
         
         try:
@@ -81,7 +81,6 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             
             result = []
             for provider in providers_qs:
-                # Product rule: capabilities.py is source of truth for capability support
                 if not supports_feature(provider.slug, 'content'):
                     continue
                     
@@ -128,7 +127,6 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Product rule: content panel model options should follow hardcoded capabilities.py first.
             static_models = get_capability_models('openrouter', 'content') or []
             if static_models == 'dynamic':
                 static_models = []
@@ -201,7 +199,6 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Product rule: content panel model options should follow hardcoded capabilities.py first.
             static_models = provider.get_static_models('content') or []
             if static_models:
                 data = [
@@ -270,7 +267,6 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Product rule: content panel model options should follow hardcoded capabilities.py first.
             static_models = provider.get_static_models('content') or []
             if static_models:
                 data = [
@@ -354,21 +350,11 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     
     @action(detail=False, methods=['post'], url_path='generate')
     def generate_content(self, request):
-        """
-        Generate AI content with optional destination saving.
-        
-        View Layer Responsibility:
-        - Validate request (Serializer)
-        - Call business logic (Service)
-        - Handle destination saving
-        - Handle exceptions
-        - Return formatted response (APIResponse)
-        """
+
         import logging
         logger = logging.getLogger(__name__)
         logger.info(f"[ContentView] generate_content called with data: {request.data}")
         
-        # --- 1. Validation (Serializer Layer) ---
         serializer = AIContentGenerationRequestSerializer(data=request.data)
         if not serializer.is_valid():
             logger.warning(f"[ContentView] Validation failed: {serializer.errors}")
@@ -384,7 +370,6 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
         logger.info(f"[ContentView] Validated data: topic={validated_data.get('topic')}, provider={validated_data.get('provider_name')}, model={validated_data.get('model_id')}")
         
         try:
-            # --- 2. Business Logic (Service Layer) ---
             logger.info(f"[ContentView] Calling service...")
             content_data = AIContentGenerationService.generate_content(
                 topic=validated_data['topic'],
@@ -397,7 +382,6 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             )
             logger.info(f"[ContentView] Service returned successfully")
             
-            # --- 3. Destination Handler (optional) ---
             try:
                 destination_result = ContentDestinationHandler.save_to_destination(
                     content_data=content_data,
@@ -411,7 +395,6 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
-            # --- 4. Success Response ---
             response_data = {
                 'content': content_data,
                 'destination': destination_result,
@@ -430,14 +413,12 @@ class AIContentGenerationViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             )
             
         except ValueError as e:
-            # Service raises ValueError for business logic errors
             logger.error(f"[ContentView] ValueError: {str(e)}")
             return APIResponse.error(
                     message=extract_validation_message(e, AI_ERRORS["validation_error"]),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
-            # Parse provider API errors
             logger.error(f"[ContentView] Exception: {type(e).__name__}: {str(e)}", exc_info=True)
             final_msg, status_code = map_ai_exception(e, AI_ERRORS["content_generation_failed"])
 

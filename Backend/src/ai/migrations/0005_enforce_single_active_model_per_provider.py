@@ -1,11 +1,9 @@
 from django.db import migrations, models
 from django.db.models import Q
 
-
 def normalize_active_models(apps, schema_editor):
     AIModel = apps.get_model('ai', 'AIModel')
 
-    # For each provider, keep the most recently updated active model (fallback to highest id)
     provider_ids = (
         AIModel.objects.filter(is_active=True)
         .values_list('provider_id', flat=True)
@@ -27,7 +25,6 @@ def normalize_active_models(apps, schema_editor):
             active_qs.exclude(id=keep.id)
             .update(is_active=False)
         )
-
 
 class Migration(migrations.Migration):
 

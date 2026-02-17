@@ -3,7 +3,6 @@ from django.core.cache import cache
 from src.core.cache import CacheKeyBuilder, CacheService
 from src.portfolio.utils.cache_shared import hash_payload
 
-
 class PortfolioCacheKeys:
 
     @staticmethod
@@ -42,7 +41,6 @@ class PortfolioCacheKeys:
     def all_keys(portfolio_id):
         return CacheKeyBuilder.portfolio_all_keys(portfolio_id)
 
-
 class PortfolioCacheManager:
 
     @staticmethod
@@ -70,7 +68,6 @@ class PortfolioCacheManager:
     @staticmethod
     def invalidate_seo_report():
         return CacheService.delete(PortfolioCacheKeys.seo_report())
-
 
 class CategoryCacheKeys:
 
@@ -108,7 +105,6 @@ class CategoryCacheKeys:
             limits = [5, 10, 15, 20]
         return [CategoryCacheKeys.popular(limit) for limit in limits]
 
-
 class CategoryCacheManager:
 
     @staticmethod
@@ -127,7 +123,6 @@ class CategoryCacheManager:
         if popular_keys:
             cache.delete_many(popular_keys)
 
-
 class TagCacheKeys:
 
     @staticmethod
@@ -144,7 +139,6 @@ class TagCacheKeys:
         if tag_ids:
             keys.extend([TagCacheKeys.tag(tid) for tid in tag_ids])
         return keys
-
 
 class TagCacheManager:
 
@@ -166,7 +160,6 @@ class TagCacheManager:
         cache.delete(TagCacheKeys.popular())
         CacheService.delete_pattern("public:portfolio:tag:*")
 
-
 class OptionCacheKeys:
 
     @staticmethod
@@ -183,7 +176,6 @@ class OptionCacheKeys:
         if option_ids:
             keys.extend([OptionCacheKeys.option(oid) for oid in option_ids])
         return keys
-
 
 class OptionCacheManager:
 

@@ -1,6 +1,5 @@
 from src.blog.utils.cache_shared import hash_payload
 
-
 class BlogPublicCacheKeys:
 
     @staticmethod
@@ -28,7 +27,6 @@ class BlogPublicCacheKeys:
     def related(blog_slug, limit):
         return f"public:blog:related:{blog_slug}:{limit}"
 
-
 class BlogCategoryPublicCacheKeys:
 
     @staticmethod
@@ -55,7 +53,6 @@ class BlogCategoryPublicCacheKeys:
     @staticmethod
     def detail_public_id(public_id):
         return f"public:blog:category:detail:public_id:{public_id}"
-
 
 class BlogTagPublicCacheKeys:
 

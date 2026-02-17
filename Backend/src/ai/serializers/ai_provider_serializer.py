@@ -138,21 +138,12 @@ class AIProviderCreateUpdateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(IMAGE_ERRORS['provider_name_duplicate'])
         return value
 
-
-# AIModel serializers removed as we don't use AIModel table anymore.
-# Logic is now handled via AICapabilityModel and hardcoded providers.
-
 class AIModelDetailSerializer(serializers.Serializer):
-    """
-    Placeholder serializer if needed, but logic is gone.
-    """
+
     pass
 
-
 class AIModelCreateUpdateSerializer(serializers.Serializer):
-    """
-    Placeholder serializer if needed.
-    """
+
     pass
 
 class AdminProviderSettingsSerializer(serializers.ModelSerializer):

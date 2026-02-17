@@ -6,7 +6,6 @@ import { notifyApiError, showSuccess } from "@/core/toast";
 import { msg } from "@/core/messages";
 import type { BlogTagDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
-
 interface UseBlogTagListActionsParams {
   setRowSelection: Dispatch<SetStateAction<Record<string, boolean>>>;
 }

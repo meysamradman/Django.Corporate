@@ -2,7 +2,6 @@ from rest_framework import status
 
 from src.ai.messages.messages import AI_ERRORS
 
-
 _DIRECT_STATUS_MAP = {
     AI_ERRORS["generic_api_key_invalid"]: status.HTTP_401_UNAUTHORIZED,
     AI_ERRORS["api_key_invalid"]: status.HTTP_401_UNAUTHORIZED,
@@ -23,7 +22,6 @@ _DIRECT_STATUS_MAP = {
     AI_ERRORS["invalid_json"]: status.HTTP_400_BAD_REQUEST,
     AI_ERRORS["json_parse_error"]: status.HTTP_400_BAD_REQUEST,
 }
-
 
 def map_ai_exception(exception: Exception, fallback_message: str, domain: str = "generic") -> tuple[str, int]:
     raw_message = str(exception).strip()

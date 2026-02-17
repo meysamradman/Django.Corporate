@@ -56,7 +56,6 @@ def get_active_fields_for_platform(platform):
         platforms__contains=[platform]
     ).order_by('order', 'field_key')
 
-
 def get_active_fields_for_platform_data(platform, serializer_class):
     cache_key = FormAdminCacheKeys.fields_for_platform(platform)
     cached_data = CacheService.get(cache_key)

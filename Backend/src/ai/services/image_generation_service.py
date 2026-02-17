@@ -113,7 +113,6 @@ class AIImageGenerationService:
                 ).first()
 
                 if settings:
-                    # Scenario: admin-selected source is enforced by settings.get_api_key().
                     api_key = settings.get_api_key()
                 else:
                     is_super = getattr(admin, 'is_superuser', False) or getattr(admin, 'is_admin_full', False)

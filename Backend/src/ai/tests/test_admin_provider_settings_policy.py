@@ -8,7 +8,6 @@ from src.ai.models import AIProvider, AdminProviderSettings
 from src.ai.views.ai_provider_views import AIProviderViewSet, AdminProviderSettingsViewSet
 from src.user.models.roles import AdminRole, AdminUserRole
 
-
 class AdminProviderSettingsPolicyTest(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -75,7 +74,6 @@ class AdminProviderSettingsPolicyTest(TestCase):
             is_active=True,
         )
 
-        # Scenario: when shared is selected, source must be shared key.
         key = setting.get_api_key()
         self.assertEqual(key, 'shared-key-allowed-123')
 
@@ -114,7 +112,6 @@ class AdminProviderSettingsPolicyTest(TestCase):
 
         key = setting.get_api_key()
         self.assertEqual(key, 'shared-key-denied-123')
-
 
 class AISettingsEndpointPermissionTest(TestCase):
     @classmethod

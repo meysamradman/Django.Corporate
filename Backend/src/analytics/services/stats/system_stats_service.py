@@ -126,19 +126,7 @@ class SystemStatsService:
                 if vendor == 'postgresql':
                     cursor.execute("""
                         SELECT pg_size_pretty(pg_database_size(%s)), pg_database_size(%s)
-                    """, [db_name, db_name])
-                    row = cursor.fetchone()
-                    if row:
-                        size_bytes = int(row[1] or 0)
-                        return {
-                            'size_formatted': row[0],
-                            'size_bytes': size_bytes,
-                            'size_mb': round(size_bytes / (1024 * 1024), 2),
-                            'size_gb': round(size_bytes / (1024 * 1024 * 1024), 2),
-                            'vendor': 'postgresql',
-                        }
-                elif vendor == 'mysql':
-                    cursor.execute("""
+
                         SELECT 
                             ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS size_mb,
                             ROUND(SUM(data_length + index_length) / 1024 / 1024 / 1024, 2) AS size_gb,

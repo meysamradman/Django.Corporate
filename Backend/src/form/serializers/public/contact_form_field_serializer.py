@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from src.form.models import ContactFormField
 
-
 class PublicContactFormFieldSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactFormField

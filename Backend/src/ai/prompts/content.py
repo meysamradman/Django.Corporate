@@ -1,20 +1,5 @@
-"""
-Content Generation Prompts
-===========================
-Prompts for content and SEO content generation
-
-These prompts are used by all providers (Gemini, DeepSeek, Groq, OpenAI, ...)
-Super Admin can modify these prompts from the admin panel.
-
-IMPORTANT: Prompts are written in ENGLISH, but instruct the AI to generate content in PERSIAN/FARSI.
-"""
 
 from .base import STANDARD_CONSTRAINTS, JSON_OUTPUT_TEMPLATE, SEO_GUIDELINES
-
-
-# =============================================================================
-# Content Generation Prompts (Simple Content)
-# =============================================================================
 
 CONTENT_PROMPT = (
     "Please write a professional and SEO-optimized content in Persian (Farsi) language.\n"
@@ -28,11 +13,6 @@ CONTENT_PROMPT = (
     "IMPORTANT: Write the entire content in Persian (Farsi) language.\n"
     "Output as plain text without special formatting."
 )
-
-
-# =============================================================================
-# SEO Content Generation Prompts (Full SEO with JSON)
-# =============================================================================
 
 SEO_PROMPT = (
     "Please write a professional and fully SEO-optimized blog content in Persian (Farsi) language for the following topic:\n\n"
@@ -68,32 +48,10 @@ SEO_PROMPT = (
     "- Write all content in Persian (Farsi) language."
 )
 
-
-# =============================================================================
-# Helper Functions
-# =============================================================================
-
 def get_content_prompt(provider: str = None) -> str:
-    """
-    Get content generation prompt
-    
-    Args:
-        provider: Provider name (not used - for compatibility)
-    
-    Returns:
-        prompt string
-    """
+
     return CONTENT_PROMPT
 
-
 def get_seo_prompt(provider: str = None) -> str:
-    """
-    Get SEO content generation prompt
-    
-    Args:
-        provider: Provider name (not used - for compatibility)
-    
-    Returns:
-        prompt string
-    """
+
     return SEO_PROMPT

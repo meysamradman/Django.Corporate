@@ -1,7 +1,6 @@
 from src.core.cache import CacheService
 from src.analytics.utils.cache_shared import compose_analytics_key
 
-
 class AnalyticsAdminCacheKeys:
     @staticmethod
     def dashboard():
@@ -93,7 +92,6 @@ class AnalyticsAdminCacheKeys:
             AnalyticsAdminCacheKeys.content_trend(),
             AnalyticsAdminCacheKeys.online_users(),
         ]
-
 
 class AnalyticsAdminCacheManager:
     @staticmethod

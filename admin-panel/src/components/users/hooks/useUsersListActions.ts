@@ -6,7 +6,6 @@ import { notifyApiError, showSuccess } from "@/core/toast";
 import { msg } from "@/core/messages";
 import type { UserDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
-
 interface UseUsersListActionsParams {
   setRowSelection: Dispatch<SetStateAction<Record<string, boolean>>>;
 }

@@ -25,7 +25,6 @@ class OpenAIProvider(BaseProvider):
         return 'openai'
     
     async def generate_image(self, prompt: str, **kwargs) -> BytesIO:
-        # Use model from config or kwargs, fall back to image_model
         model_to_use = self.config.get('model') or kwargs.get('model') or self.image_model
         url = f"{self.BASE_URL}/images/generations"
         
@@ -39,8 +38,6 @@ class OpenAIProvider(BaseProvider):
         style = kwargs.get('style', 'realistic')
         n = kwargs.get('n', 1)
         
-        # Use centralized image prompt enhancement from prompts module
-        # For DALL-E, enhance based on quality level
         enhanced_prompt = enhance_image_prompt(prompt, style=style, add_quality=(quality == 'hd'))
         
         payload = {
@@ -76,7 +73,6 @@ class OpenAIProvider(BaseProvider):
             raise Exception(AI_ERRORS["image_generation_failed"])
     
     async def generate_content(self, prompt: str, **kwargs) -> str:
-        # Use model from config or kwargs, fall back to content_model
         model_to_use = self.config.get('model') or kwargs.get('model') or self.content_model
         url = f"{self.BASE_URL}/chat/completions"
         
@@ -88,7 +84,6 @@ class OpenAIProvider(BaseProvider):
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         
-        # دریافت prompt از ماژول prompts
         content_prompt_template = get_content_prompt(provider='openai')
         full_prompt = content_prompt_template.format(
             topic=prompt,
@@ -129,7 +124,6 @@ class OpenAIProvider(BaseProvider):
         
         keywords_str = f", {', '.join(keywords)}" if keywords else ""
         
-        # دریافت prompt از ماژول prompts
         seo_prompt_template = get_seo_prompt(provider='openai')
         seo_prompt = seo_prompt_template.format(
             topic=topic,

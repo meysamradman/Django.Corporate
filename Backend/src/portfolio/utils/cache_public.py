@@ -1,6 +1,5 @@
 from src.portfolio.utils.cache_shared import hash_payload
 
-
 class PortfolioPublicCacheKeys:
 
     @staticmethod
@@ -27,7 +26,6 @@ class PortfolioPublicCacheKeys:
     @staticmethod
     def related(portfolio_slug, limit):
         return f"public:portfolio:related:{portfolio_slug}:{limit}"
-
 
 class PortfolioCategoryPublicCacheKeys:
 
@@ -56,7 +54,6 @@ class PortfolioCategoryPublicCacheKeys:
     def detail_public_id(public_id):
         return f"public:portfolio:category:detail:public_id:{public_id}"
 
-
 class PortfolioTagPublicCacheKeys:
 
     @staticmethod
@@ -79,7 +76,6 @@ class PortfolioTagPublicCacheKeys:
     @staticmethod
     def popular(limit):
         return f"public:portfolio:tag:popular:{limit}"
-
 
 class PortfolioOptionPublicCacheKeys:
 

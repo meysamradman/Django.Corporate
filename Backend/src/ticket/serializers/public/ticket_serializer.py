@@ -5,7 +5,6 @@ from src.user.serializers.user.user_public_serializer import UserPublicSerialize
 from src.user.serializers.admin.admin_profile_serializer import AdminProfileSerializer
 from src.ticket.serializers.public.ticket_message_serializer import TicketMessageSerializer
 
-
 class TicketListSerializer(serializers.ModelSerializer):
     user = UserPublicSerializer(read_only=True)
     assigned_admin = AdminProfileSerializer(read_only=True)
@@ -38,7 +37,6 @@ class TicketListSerializer(serializers.ModelSerializer):
         if hasattr(obj, 'unread_messages_count'):
             return obj.unread_messages_count
         return obj.messages.filter(is_read=False, sender_type='user').count()
-
 
 class TicketDetailSerializer(serializers.ModelSerializer):
     user = UserPublicSerializer(read_only=True)
@@ -81,7 +79,6 @@ class TicketDetailSerializer(serializers.ModelSerializer):
             return obj.unread_messages_count
         return obj.messages.filter(is_read=False, sender_type='user').count()
 
-
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
@@ -100,7 +97,6 @@ class TicketSerializer(serializers.ModelSerializer):
             'is_active',
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at', 'last_replied_at']
-
 
 __all__ = [
     'TicketSerializer',

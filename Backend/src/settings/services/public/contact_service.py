@@ -6,7 +6,6 @@ from src.settings.models import (
     MapSettings,
 )
 
-
 def get_public_contact_payload():
     phones = ContactPhone.objects.filter(is_active=True).order_by('order', '-created_at')
     mobiles = ContactMobile.objects.filter(is_active=True).order_by('order', '-created_at')

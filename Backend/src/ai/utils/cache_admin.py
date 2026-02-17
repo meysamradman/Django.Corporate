@@ -2,7 +2,6 @@ from src.core.cache import CacheKeyBuilder, CacheService
 
 from .cache_shared import hash_sorted_slugs
 
-
 class AICacheAdminKeys:
     @staticmethod
     def provider(slug: str):
@@ -64,7 +63,6 @@ class AICacheAdminKeys:
         if admin_id:
             return f"ai:provider:settings:{admin_id}:*"
         return "ai:provider:settings:*"
-
 
 class AICacheAdminManager:
     @staticmethod

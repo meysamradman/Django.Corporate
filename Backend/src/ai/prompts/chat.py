@@ -1,19 +1,5 @@
-"""
-Chat Prompts & System Messages
-================================
-Prompts for AI chat and system messages
-
-These messages define the AI's personality and response style.
-IMPORTANT: Prompts are in ENGLISH, but instruct AI to respond in PERSIAN/FARSI.
-"""
-
-
-# =============================================================================
-# System Messages (Define AI Personality)
-# =============================================================================
 
 CHAT_PROMPTS = {
-    # General assistant
     "general_assistant": {
         "system": (
             "You are a helpful and intelligent assistant who responds in Persian (Farsi) language. "
@@ -28,7 +14,6 @@ CHAT_PROMPTS = {
         "description": "General assistant for various questions"
     },
     
-    # Content and SEO expert
     "content_expert": {
         "system": (
             "You are a professional content writer and SEO expert. "
@@ -43,7 +28,6 @@ CHAT_PROMPTS = {
         "description": "Content and SEO expert"
     },
     
-    # Technical advisor
     "technical_advisor": {
         "system": (
             "You are a technical consultant specializing in web design, programming, and technology. "
@@ -58,7 +42,6 @@ CHAT_PROMPTS = {
         "description": "Technical consultant for programming and web design"
     },
     
-    # Business advisor
     "business_advisor": {
         "system": (
             "You are a business and digital marketing consultant. "
@@ -73,7 +56,6 @@ CHAT_PROMPTS = {
         "description": "Business and marketing consultant"
     },
     
-    # Default
     "default": {
         "system": (
             "You are an intelligent assistant who responds in Persian (Farsi) language. "
@@ -84,35 +66,13 @@ CHAT_PROMPTS = {
     }
 }
 
-
-# =============================================================================
-# Helper Functions
-# =============================================================================
-
 def get_chat_system_message(persona: str = "default", provider: str = None) -> str:
-    """
-    Get system message for chat
-    
-    Args:
-        persona: Persona type (general_assistant, content_expert, ...)
-        provider: Provider name (not used here - for compatibility)
-    
-    Returns:
-        system message string
-    """
-    # Simply return the requested persona prompt
-    # Provider-specific customization should happen in the provider itself, not here
+
     prompt_data = CHAT_PROMPTS.get(persona, CHAT_PROMPTS["default"])
     return prompt_data["system"]
 
-
 def get_available_personas() -> dict:
-    """
-    Get list of all available personas
-    
-    Returns:
-        dict with key: persona name, value: description
-    """
+
     return {
         key: value["description"]
         for key, value in CHAT_PROMPTS.items()

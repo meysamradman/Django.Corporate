@@ -3,7 +3,6 @@ from src.core.cache import CacheService
 
 from .cache_shared import compose_email_key
 
-
 class EmailCacheAdminKeys:
     @staticmethod
     def message(message_id: int):
@@ -20,7 +19,6 @@ class EmailCacheAdminKeys:
     @staticmethod
     def legacy_stats():
         return compose_email_key("email", "stats")
-
 
 class EmailCacheAdminManager:
     @staticmethod

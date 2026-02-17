@@ -7,7 +7,6 @@ import { realEstateApi } from "@/api/real-estate";
 import type { PropertyState } from "@/types/real_estate/state/realEstateState";
 import type { PropertyStateDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
-
 interface UsePropertyStateListActionsParams {
   setRowSelection: Dispatch<SetStateAction<Record<string, boolean>>>;
 }

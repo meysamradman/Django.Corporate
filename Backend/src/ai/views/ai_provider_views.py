@@ -106,7 +106,6 @@ class AIProviderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
         capability = request.query_params.get('capability')
         
-        # Get all active providers ordered by sort_order
         providers = AIProvider.objects.filter(is_active=True).order_by('sort_order')
         serializer = AIProviderListSerializer(providers, many=True, context={'request': request})
         
@@ -114,7 +113,6 @@ class AIProviderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
         for provider_data in serializer.data:
             provider_slug = provider_data['slug']
 
-            # Product rule: capabilities.py is source of truth for provider capabilities.
             if capability:
                 if not supports_feature(provider_slug, capability):
                     continue

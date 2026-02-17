@@ -8,7 +8,6 @@ from src.page.messages.messages import TERMS_PAGE_ERRORS, TERMS_PAGE_SUCCESS
 from src.page.serializers.public.terms_page_serializer import PublicTermsPageSerializer
 from src.page.services.public.terms_page_service import get_public_terms_page, get_public_terms_page_data
 
-
 class PublicTermsPageView(APIView):
     permission_classes = [AllowAny]
 

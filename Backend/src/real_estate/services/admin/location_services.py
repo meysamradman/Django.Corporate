@@ -3,7 +3,6 @@ from django.db.models import Count, Q
 from src.core.models import Province, City
 from src.real_estate.models.location import CityRegion
 
-
 class RealEstateLocationAdminService:
     @staticmethod
     def get_provinces_queryset():

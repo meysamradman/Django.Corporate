@@ -13,7 +13,6 @@ import { usePdfExport } from '@/components/blogs/hooks/usePdfExport';
 import { usePrintView } from '@/components/blogs/hooks/usePrintView';
 import type { BlogDeleteConfirmState } from '@/types/shared/deleteConfirm';
 
-
 interface UseBlogListActionsParams {
   data: Blog[];
   totalCount: number;

@@ -2,7 +2,6 @@ from src.core.cache import CacheService
 
 from .cache_shared import normalize_platform
 
-
 class FormAdminCacheKeys:
     @staticmethod
     def fields_for_platform(platform: str):
@@ -23,7 +22,6 @@ class FormAdminCacheKeys:
     @staticmethod
     def field_by_id(field_id: int):
         return f"admin:form:field:id:{field_id}"
-
 
 class FormAdminCacheManager:
     @staticmethod

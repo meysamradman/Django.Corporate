@@ -8,10 +8,7 @@ export const PROPERTY_FORM_FIELD_MAP: Record<string, string> = {
   main_image: 'main_image_id',
 };
 
-// Map backend error keys to frontend field names for property (real estate)
 export function normalizePropertyErrorKey(key: string): string {
-  // Add mapping logic if backend keys differ from frontend field names
-  // Example: 'property_type_id' => 'property_type'
   if (key.endsWith('_id')) return key.replace('_id', '');
   return key;
 }

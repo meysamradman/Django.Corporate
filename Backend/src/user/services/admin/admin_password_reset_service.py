@@ -9,7 +9,6 @@ from src.user.models import User
 from src.user.services.admin.admin_session_service import AdminSessionService
 from src.user.services.otp_service import OTPService
 
-
 class AdminPasswordResetService:
     TOKEN_TTL_SECONDS = getattr(settings, 'ADMIN_PASSWORD_RESET_TOKEN_TTL', 600)
     CAPTCHA_VERIFIED_TTL_SECONDS = getattr(settings, 'ADMIN_PASSWORD_RESET_CAPTCHA_VERIFIED_TTL', 600)

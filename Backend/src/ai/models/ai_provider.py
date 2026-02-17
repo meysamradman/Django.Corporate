@@ -242,10 +242,7 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
     
     @classmethod
     def get_active_providers(cls):
-        """
-        Get active providers - don't cache Django model objects
-        to avoid JSON serialization issues with Redis
-        """
+
         providers = list(
             cls.objects.filter(is_active=True)
             .order_by('sort_order')
@@ -255,10 +252,7 @@ class AIProvider(BaseModel, EncryptedAPIKeyMixin, CacheMixin):
     
     @classmethod
     def get_provider_by_slug(cls, slug: str):
-        """
-        Get provider by slug - don't cache the Django model object
-        to avoid JSON serialization issues with Redis
-        """
+
         try:
             provider = cls.objects.get(slug=slug, is_active=True)
             return provider
@@ -475,7 +469,6 @@ class AIModel(BaseModel, CacheMixin):
                 pass
         
         if self.is_active and self.provider_id:
-            # Enforce a single active model per provider.
             AIModel.objects.filter(
                 provider_id=self.provider_id,
                 is_active=True,
@@ -487,10 +480,8 @@ class AIModel(BaseModel, CacheMixin):
             AICacheManager.invalidate_models_by_provider(self.provider.slug)
             AICacheManager.invalidate_models()
 
-            # New provider-level cache
             cache.delete(AICacheKeys.active_provider_model(self.provider.slug))
             
-            # Legacy per-capability cache keys (safe to clear)
             for capability in self.capabilities:
                 cache.delete(AICacheKeys.active_provider_model(self.provider.slug, capability))
     
@@ -562,7 +553,6 @@ class AIModel(BaseModel, CacheMixin):
     
     @classmethod
     def get_models_by_provider(cls, provider_slug: str, capability: str | None = None):
-        # Don't cache Django model objects to avoid JSON serialization issues
         query = cls.objects.filter(
             provider__slug=provider_slug,
             provider__is_active=True,
@@ -578,9 +568,7 @@ class AIModel(BaseModel, CacheMixin):
     
     @classmethod
     def get_active_models_bulk(cls, provider_slugs: list[str]):
-        """
-        Get active models for multiple providers - don't cache to avoid JSON serialization issues
-        """
+
         models = (
             cls.objects.filter(
                 provider__slug__in=provider_slugs,
@@ -713,7 +701,6 @@ class AdminProviderSettings(BaseModel, EncryptedAPIKeyMixin):
         return self.decrypt_key(self.personal_api_key)
     
     def get_api_key(self) -> str:
-        # Scenario: switch decides source. shared key value is managed by super admin only.
         is_super = getattr(self.admin, 'is_superuser', False) or getattr(self.admin, 'is_admin_full', False)
 
         if self.use_shared_api:

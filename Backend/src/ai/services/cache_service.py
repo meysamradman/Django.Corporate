@@ -5,7 +5,6 @@ from src.ai.utils.cache_ttl import AICacheTTL
 
 class AICacheService:
 
-    
     PREFIX_PROVIDER = "ai_provider"
     PREFIX_MODEL = "ai_model"
     PREFIX_SETTINGS = "ai_settings"

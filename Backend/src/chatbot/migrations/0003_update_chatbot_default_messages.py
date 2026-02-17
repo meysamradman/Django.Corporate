@@ -1,6 +1,5 @@
 from django.db import migrations, models
 
-
 def migrate_legacy_chatbot_messages(apps, schema_editor):
     ChatbotSettings = apps.get_model('chatbot', 'ChatbotSettings')
 
@@ -12,7 +11,6 @@ def migrate_legacy_chatbot_messages(apps, schema_editor):
 
     ChatbotSettings.objects.filter(welcome_message=legacy_welcome).update(welcome_message=new_welcome)
     ChatbotSettings.objects.filter(default_message=legacy_default).update(default_message=new_default)
-
 
 class Migration(migrations.Migration):
 

@@ -1,7 +1,6 @@
 from src.core.cache import CacheService
 from src.settings.utils.cache_public import SettingsPublicCacheKeys
 
-
 class SettingsAdminCacheKeys:
 
     @staticmethod
@@ -43,7 +42,6 @@ class SettingsAdminCacheKeys:
             SettingsAdminCacheKeys.contact_emails(),
             SettingsAdminCacheKeys.social_media(),
         ]
-
 
 class SettingsCacheManager:
 

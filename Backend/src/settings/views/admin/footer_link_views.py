@@ -6,7 +6,6 @@ from src.settings.models import FooterLink
 from src.settings.serializers.admin.footer_link_serializer import FooterLinkSerializer
 from src.settings.utils.cache import SettingsCacheManager
 
-
 class FooterLinkViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     queryset = FooterLink.objects.select_related('section').all()
     serializer_class = FooterLinkSerializer

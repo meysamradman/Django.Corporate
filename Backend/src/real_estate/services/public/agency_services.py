@@ -17,10 +17,8 @@ from src.real_estate.utils.cache_ttl import (
     PUBLIC_AGENCY_WITH_AGENTS_TTL,
 )
 
-
 class RealEstateAgencyPublicService:
-    """سرویس عمومی برای آژانس‌های املاک"""
-    
+
     ALLOWED_ORDERING_FIELDS = {
         'rating',
         'total_reviews',
@@ -30,7 +28,7 @@ class RealEstateAgencyPublicService:
 
     @staticmethod
     def _parse_int(value):
-        """تبدیل به عدد صحیح"""
+
         try:
             return int(value)
         except (TypeError, ValueError):
@@ -38,7 +36,7 @@ class RealEstateAgencyPublicService:
 
     @staticmethod
     def _parse_float(value):
-        """تبدیل به عدد اعشاری"""
+
         try:
             return float(value)
         except (TypeError, ValueError):
@@ -46,7 +44,7 @@ class RealEstateAgencyPublicService:
 
     @staticmethod
     def _parse_bool(value):
-        """تبدیل به boolean"""
+
         if value is None:
             return None
         if isinstance(value, bool):
@@ -57,7 +55,7 @@ class RealEstateAgencyPublicService:
 
     @staticmethod
     def _normalize_ordering(ordering):
-        """نرمال‌سازی فیلد مرتب‌سازی"""
+
         if not ordering:
             return ('-rating', 'name')
 
@@ -72,7 +70,7 @@ class RealEstateAgencyPublicService:
 
     @staticmethod
     def _base_queryset():
-        """QuerySet پایه برای آژانس‌های فعال"""
+
         return RealEstateAgency.objects.filter(
             is_active=True
         ).select_related(
@@ -102,36 +100,30 @@ class RealEstateAgencyPublicService:
 
     @staticmethod
     def get_agency_queryset(filters=None, search=None, ordering=None):
-        """دریافت لیست آژانس‌ها با فیلترها"""
+
         queryset = RealEstateAgencyPublicService._base_queryset()
 
         if filters:
-            # فیلتر بر اساس استان
             province_id = RealEstateAgencyPublicService._parse_int(filters.get('province_id'))
             if province_id is not None:
                 queryset = queryset.filter(province_id=province_id)
 
-            # فیلتر بر اساس شهر
             city_id = RealEstateAgencyPublicService._parse_int(filters.get('city_id'))
             if city_id is not None:
                 queryset = queryset.filter(city_id=city_id)
 
-            # فیلتر بر اساس حداقل امتیاز
             min_rating = RealEstateAgencyPublicService._parse_float(filters.get('min_rating'))
             if min_rating is not None:
                 queryset = queryset.filter(rating__gte=min_rating)
 
-            # فیلتر بر اساس حداقل تعداد مشاورین
             min_agents = RealEstateAgencyPublicService._parse_int(filters.get('min_agents'))
             if min_agents is not None:
                 queryset = queryset.filter(agent_count__gte=min_agents)
 
-            # فیلتر بر اساس حداقل تعداد املاک
             min_properties = RealEstateAgencyPublicService._parse_int(filters.get('min_properties'))
             if min_properties is not None:
                 queryset = queryset.filter(property_count__gte=min_properties)
 
-        # جستجو در نام، توضیحات و آدرس
         if search:
             queryset = queryset.filter(
                 Q(name__icontains=search) |
@@ -140,13 +132,12 @@ class RealEstateAgencyPublicService:
                 Q(license_number__icontains=search)
             )
 
-        # مرتب‌سازی
         queryset = queryset.order_by(*RealEstateAgencyPublicService._normalize_ordering(ordering))
         return queryset.distinct()
 
     @staticmethod
     def get_agency_by_slug(slug):
-        """دریافت آژانس با slug"""
+
         try:
             return RealEstateAgencyPublicService._base_queryset().get(slug=slug)
         except RealEstateAgency.DoesNotExist:
@@ -154,7 +145,7 @@ class RealEstateAgencyPublicService:
 
     @staticmethod
     def get_agency_by_public_id(public_id):
-        """دریافت آژانس با public_id"""
+
         try:
             return RealEstateAgencyPublicService._base_queryset().get(public_id=public_id)
         except RealEstateAgency.DoesNotExist:
@@ -162,7 +153,7 @@ class RealEstateAgencyPublicService:
 
     @staticmethod
     def get_agency_by_id(agency_id):
-        """دریافت آژانس با id"""
+
         try:
             return RealEstateAgencyPublicService._base_queryset().get(id=agency_id)
         except RealEstateAgency.DoesNotExist:
@@ -170,19 +161,19 @@ class RealEstateAgencyPublicService:
 
     @staticmethod
     def get_featured_agencies(limit=6):
-        """دریافت آژانس‌های برجسته (با امتیاز بالا)"""
+
         return RealEstateAgencyPublicService._base_queryset().order_by('-rating', '-total_reviews')[:limit]
 
     @staticmethod
     def get_top_rated_agencies(limit=10):
-        """دریافت آژانس‌ها با بالاترین امتیاز"""
+
         return RealEstateAgencyPublicService._base_queryset().filter(
             rating__gte=4.0
         ).order_by('-rating', '-total_reviews')[:limit]
 
     @staticmethod
     def get_agencies_by_city(city_id, limit=None):
-        """دریافت آژانس‌های یک شهر"""
+
         queryset = RealEstateAgencyPublicService._base_queryset().filter(
             city_id=city_id
         ).order_by('-rating', 'name')
@@ -194,7 +185,7 @@ class RealEstateAgencyPublicService:
 
     @staticmethod
     def get_agencies_by_province(province_id, limit=None):
-        """دریافت آژانس‌های یک استان"""
+
         queryset = RealEstateAgencyPublicService._base_queryset().filter(
             province_id=province_id
         ).order_by('-rating', 'name')
@@ -206,15 +197,13 @@ class RealEstateAgencyPublicService:
 
     @staticmethod
     def get_agency_with_agents(slug_or_id):
-        """دریافت آژانس با لیست مشاورین"""
+
         try:
-            # Try by slug first
             if isinstance(slug_or_id, str):
                 agency = RealEstateAgencyPublicService._base_queryset().prefetch_related(
                     'agents__user__admin_profile'
                 ).get(slug=slug_or_id)
             else:
-                # Try by ID
                 agency = RealEstateAgencyPublicService._base_queryset().prefetch_related(
                     'agents__user__admin_profile'
                 ).get(id=slug_or_id)
@@ -230,7 +219,7 @@ class RealEstateAgencyPublicService:
 
     @staticmethod
     def get_agency_statistics(agency_id):
-        """دریافت آمار یک آژانس"""
+
         from django.db.models import Sum, Avg
         
         try:
@@ -238,7 +227,6 @@ class RealEstateAgencyPublicService:
         except RealEstateAgency.DoesNotExist:
             return None
         
-        # آمار مشاورین
         agents_stats = agency.agents.filter(is_active=True).aggregate(
             total_agents=Count('id'),
             verified_agents=Count('id', filter=Q(is_verified=True)),
@@ -246,7 +234,6 @@ class RealEstateAgencyPublicService:
             total_sales_by_agents=Sum('total_sales'),
         )
         
-        # آمار املاک
         properties_stats = agency.properties.filter(
             is_active=True, is_published=True
         ).aggregate(
@@ -265,7 +252,7 @@ class RealEstateAgencyPublicService:
 
     @staticmethod
     def search_agencies(query, filters=None):
-        """جستجوی پیشرفته آژانس‌ها"""
+
         queryset = RealEstateAgencyPublicService._base_queryset()
         
         if query:
@@ -291,9 +278,7 @@ class RealEstateAgencyPublicService:
 
     @staticmethod
     def get_nearby_agencies(latitude, longitude, radius_km=10, limit=10):
-        """دریافت آژانس‌های نزدیک (در صورت وجود مختصات جغرافیایی)"""
-        # این متد می‌تواند در آینده با استفاده از GeoDjango پیاده‌سازی شود
-        # فعلاً یک پیاده‌سازی ساده برگشت می‌دهیم
+
         return RealEstateAgencyPublicService._base_queryset().order_by('-rating')[:limit]
 
     @staticmethod

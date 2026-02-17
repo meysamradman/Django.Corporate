@@ -28,16 +28,7 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     
     @action(detail=False, methods=['post'], url_path='send-message')
     def send_message(self, request):
-        """
-        Send a message to AI chat.
-        
-        View Layer Responsibility:
-        - Validate request (Serializer)
-        - Call business logic (Service)
-        - Handle exceptions
-        - Return formatted response (APIResponse)
-        """
-        # --- 1. Validation (Serializer Layer) ---
+
         serializer = AIChatRequestSerializer(data=request.data)
         if not serializer.is_valid():
             return APIResponse.error(
@@ -49,7 +40,6 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
         validated_data = serializer.validated_data
         
         try:
-            # Prepare conversation history
             conversation_history = None
             if validated_data.get('conversation_history'):
                 conversation_history = [
@@ -60,7 +50,6 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             provider_name = validated_data.get('provider_name')
             model_id = validated_data.get('model_id')
             
-            # --- 2. Business Logic (Service Layer) ---
             chat_data = AIChatService.chat(
                 message=validated_data['message'],
                 provider_name=provider_name,
@@ -73,10 +62,8 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                 admin=request.user,
             )
             
-            # --- 3. Response Serialization ---
             response_serializer = AIChatResponseSerializer(chat_data)
             
-            # --- 4. Success Response ---
             return APIResponse.success(
                 message=AI_SUCCESS["message_sent"],
                 data=response_serializer.data,
@@ -84,7 +71,6 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             )
             
         except ValueError as e:
-            # Service raises ValueError for business logic errors
             return APIResponse.error(
                 message=extract_validation_message(e, AI_ERRORS["validation_error"]),
                 status_code=status.HTTP_400_BAD_REQUEST
@@ -126,7 +112,7 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='available-providers')
     def available_providers(self, request):
-        """Returns providers that support chat with their hardcoded models."""
+
         is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
         
         try:
@@ -134,7 +120,6 @@ class AIChatViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             
             result = []
             for provider in providers_qs:
-                # Check if provider supports chat
                 if not provider.supports_capability('chat'):
                     continue
                 

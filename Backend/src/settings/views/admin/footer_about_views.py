@@ -6,7 +6,6 @@ from src.settings.models import FooterAbout
 from src.settings.serializers.admin.footer_about_serializer import FooterAboutSerializer
 from src.settings.utils.cache import SettingsCacheManager
 
-
 class FooterAboutViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     queryset = FooterAbout.objects.all()
     serializer_class = FooterAboutSerializer

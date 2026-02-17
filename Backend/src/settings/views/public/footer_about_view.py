@@ -10,7 +10,6 @@ from src.settings.services.public.footer_about_service import get_public_footer_
 from src.settings.utils.cache_public import SettingsPublicCacheKeys
 from src.settings.utils import cache_ttl
 
-
 class PublicFooterAboutView(APIView):
     permission_classes = [AllowAny]
 

@@ -3,7 +3,6 @@ def compose_analytics_key(resource: str, identifier: str | int | None = None) ->
         return f"admin:analytics:{resource}"
     return f"admin:analytics:{resource}:{identifier}"
 
-
 def should_bypass_cache(request) -> bool:
     if request is None:
         return False

@@ -1,13 +1,8 @@
 from rest_framework import serializers
 from src.real_estate.models.state import PropertyState
 
-
 class PropertyStatePublicSerializer(serializers.ModelSerializer):
-    """
-    Public serializer for PropertyState
-    Returns minimal data for website display
-    """
-    
+
     name = serializers.CharField(source='title', read_only=True)
     property_count = serializers.IntegerField(read_only=True)
     image_url = serializers.SerializerMethodField()
@@ -25,13 +20,10 @@ class PropertyStatePublicSerializer(serializers.ModelSerializer):
             pass
         return None
 
-
 class PropertyStatePublicListSerializer(PropertyStatePublicSerializer):
-    """List serializer for PropertyState - same as detail for now"""
+
     pass
 
-
 class PropertyStatePublicDetailSerializer(PropertyStatePublicSerializer):
-    """Detail serializer for PropertyState with extra info"""
 
     pass

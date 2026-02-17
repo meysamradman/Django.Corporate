@@ -1,6 +1,5 @@
 from src.user.utils.cache_shared import hash_payload
 
-
 class UserPublicCacheKeys:
 
     @staticmethod

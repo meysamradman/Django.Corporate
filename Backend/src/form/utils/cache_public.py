@@ -2,7 +2,6 @@ from src.core.cache import CacheService
 
 from .cache_shared import normalize_platform
 
-
 class FormPublicCacheKeys:
     @staticmethod
     def fields_for_platform(platform: str):
@@ -11,7 +10,6 @@ class FormPublicCacheKeys:
     @staticmethod
     def fields_pattern():
         return "public:form:fields:*"
-
 
 class FormPublicCacheManager:
     @staticmethod

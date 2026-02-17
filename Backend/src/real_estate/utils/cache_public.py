@@ -1,6 +1,5 @@
 from src.real_estate.utils.cache_shared import hash_payload
 
-
 class PropertyPublicCacheKeys:
 
     @staticmethod
@@ -27,7 +26,6 @@ class PropertyPublicCacheKeys:
     @staticmethod
     def related(slug, limit):
         return f"public:real_estate:property:related:{slug}:{limit}"
-
 
 class TypePublicCacheKeys:
 
@@ -60,7 +58,6 @@ class TypePublicCacheKeys:
     def popular(limit):
         return f"public:real_estate:type:popular:{limit}"
 
-
 class StatePublicCacheKeys:
 
     @staticmethod
@@ -83,7 +80,6 @@ class StatePublicCacheKeys:
     @staticmethod
     def featured(limit):
         return f"public:real_estate:state:featured:{limit}"
-
 
 class TagPublicCacheKeys:
 
@@ -108,7 +104,6 @@ class TagPublicCacheKeys:
     def popular(limit):
         return f"public:real_estate:tag:popular:{limit}"
 
-
 class FeaturePublicCacheKeys:
 
     @staticmethod
@@ -123,7 +118,6 @@ class FeaturePublicCacheKeys:
     @staticmethod
     def detail_public_id(public_id):
         return f"public:real_estate:feature:detail:public_id:{public_id}"
-
 
 class LabelPublicCacheKeys:
 
@@ -143,7 +137,6 @@ class LabelPublicCacheKeys:
     @staticmethod
     def detail_public_id(public_id):
         return f"public:real_estate:label:detail:public_id:{public_id}"
-
 
 class AgentPublicCacheKeys:
 
@@ -179,7 +172,6 @@ class AgentPublicCacheKeys:
     @staticmethod
     def statistics(agent_id):
         return f"public:real_estate:agent:statistics:{agent_id}"
-
 
 class AgencyPublicCacheKeys:
 

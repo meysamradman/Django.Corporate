@@ -3,7 +3,6 @@ from src.core.cache import CacheService
 from .cache_public import PagePublicCacheManager
 from .cache_shared import compose_page_key
 
-
 class PageAdminCacheKeys:
     @staticmethod
     def about_page():
@@ -12,7 +11,6 @@ class PageAdminCacheKeys:
     @staticmethod
     def terms_page():
         return compose_page_key("admin", "terms")
-
 
 class PageAdminCacheManager:
     @staticmethod

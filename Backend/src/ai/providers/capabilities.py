@@ -10,12 +10,10 @@ PROVIDER_CAPABILITIES = {
         'models': {
             'chat': [
                 'gpt-5.2',
-                # Latest 2026 Series
                 'gpt-5',
                 'gpt-5-mini',
                 'o4-mini',
                 'o3-mini',
-                # Legacy / 2025 Series
                 'o1',
                 'gpt-4o', 
                 'gpt-4o-mini'
@@ -249,8 +247,6 @@ class ProviderAvailabilityManager:
             'huggingface': 'Hugging Face',
         }
         
-        # Product rule (2026-02): no DB-managed per-provider model rows.
-        # Available providers come from active AIProvider rows filtered by static capability flags.
         providers_list = list(
             AIProvider.objects.filter(is_active=True).order_by('sort_order', 'display_name').values('id', 'slug')
         )
@@ -272,8 +268,6 @@ class ProviderAvailabilityManager:
     
     @staticmethod
     def _get_api_based_providers(capability: str) -> list:
-        # Kept for backwards compatibility with older callers.
-        # With provider-only selection, API-based vs static providers are treated the same.
         api_based_map = {
             'chat': ['openrouter', 'groq', 'huggingface'],
             'content': ['openrouter', 'groq', 'huggingface'],

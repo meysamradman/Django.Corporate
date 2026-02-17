@@ -10,7 +10,6 @@ from src.chatbot.utils.cache_shared import rate_limit_key
 from src.chatbot.utils.cache_ttl import ChatbotCacheTTL
 from src.chatbot.messages.messages import CHATBOT_SUCCESS, CHATBOT_ERRORS
 
-
 class PublicChatbotViewSet(viewsets.ViewSet):
     permission_classes = [AllowAny]
 
@@ -125,7 +124,6 @@ class PublicChatbotViewSet(viewsets.ViewSet):
                 message=CHATBOT_ERRORS['server_error'],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
 
 __all__ = [
     'PublicChatbotViewSet',

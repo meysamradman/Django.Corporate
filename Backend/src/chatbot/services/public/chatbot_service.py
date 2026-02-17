@@ -8,7 +8,6 @@ from src.chatbot.utils.cache_public import ChatbotPublicCacheKeys, ChatbotPublic
 from src.chatbot.utils.cache_admin import ChatbotAdminCacheManager
 from src.chatbot.utils.cache_ttl import ChatbotCacheTTL
 
-
 class RuleBasedChatService:
     @classmethod
     def _get_cached_faqs(cls) -> List[Dict]:
@@ -77,7 +76,6 @@ class RuleBasedChatService:
         ChatbotAdminCacheManager.invalidate_all()
         ChatbotPublicCacheManager.invalidate_faqs()
         ChatbotPublicCacheManager.invalidate_settings()
-
 
 __all__ = [
     'RuleBasedChatService',

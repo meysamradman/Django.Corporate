@@ -1,7 +1,6 @@
 from django.core.exceptions import ValidationError
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
-
 def extract_validation_message(error: ValidationError, fallback: str) -> str:
     if hasattr(error, 'messages') and error.messages:
         return str(error.messages[0])
@@ -10,7 +9,6 @@ def extract_validation_message(error: ValidationError, fallback: str) -> str:
         if first_key and error.message_dict[first_key]:
             return str(error.message_dict[first_key][0])
     return str(error) if str(error) else fallback
-
 
 def normalize_validation_error(error) -> dict:
     if isinstance(error, DRFValidationError):

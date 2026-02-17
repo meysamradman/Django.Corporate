@@ -111,7 +111,7 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='available')
     def available_providers(self, request):
-        """Returns providers that support image generation with their hardcoded models."""
+
         try:
             is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
             
@@ -119,7 +119,6 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
             
             result = []
             for provider in providers_qs:
-                # Check if provider supports image
                 if not provider.supports_capability('image'):
                     continue
                     
@@ -157,7 +156,6 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Product rule: image panel model options should follow hardcoded capabilities.py first.
             static_models = provider.get_static_models('image') or []
             if static_models:
                 data = [
@@ -232,7 +230,6 @@ class AIImageProviderViewSet(viewsets.ModelViewSet):
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Product rule: image panel model options should follow hardcoded capabilities.py first.
             static_models = provider.get_static_models('image') or []
             if static_models:
                 data = [
@@ -415,7 +412,6 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
             provider = None
             active_model = None
 
-            # If provider is not specified, use the single active capability mapping.
             if not provider_name:
                 active_model = AICapabilityModel.objects.get_active('image')
                 if not active_model:
@@ -445,8 +441,6 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
                         status_code=status.HTTP_400_BAD_REQUEST
                     )
 
-                # Determine model ID (Check request override -> active -> default)
-                # Allow user to override model via request.data['model'] or ['model_id']
                 requested_model = data.get('model') or data.get('model_id')
                 
                 if requested_model:
@@ -459,7 +453,6 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
                         model_id = active_model.model_id
                         model_display_name = active_model.display_name or active_model.model_id
                     else:
-                        # On-the-fly provider selection (Default fallback)
                         model_id = get_default_model(provider.slug, 'image')
                         if not model_id and provider.capabilities:
                             model_id = provider.capabilities.get('image', {}).get('default_model')
@@ -476,7 +469,6 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
                             )
                         model_display_name = model_id
 
-                # Permission Check
                 is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
                 has_access = False
                 
@@ -495,7 +487,6 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
                         status_code=status.HTTP_403_FORBIDDEN
                     )
 
-            
             start_time = time.time()
             
             if save_to_db:
@@ -571,8 +562,6 @@ class AIImageGenerationViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='models')
     def available_models(self, request):
-        # Legacy endpoint kept to avoid breaking older clients.
-        # Model selection is no longer supported.
         return APIResponse.success(
             message=AI_SUCCESS.get("models_list_retrieved"),
             data=[]

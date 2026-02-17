@@ -2,9 +2,8 @@ from rest_framework import serializers
 from src.real_estate.models.agent import PropertyAgent
 from src.real_estate.serializers.public.agency_serializer import RealEstateAgencyPublicBriefSerializer
 
-
 class PropertyAgentPublicListSerializer(serializers.ModelSerializer):
-    """Public list serializer for property agents"""
+
     user_name = serializers.SerializerMethodField()
     first_name = serializers.SerializerMethodField()
     last_name = serializers.SerializerMethodField()
@@ -87,9 +86,8 @@ class PropertyAgentPublicListSerializer(serializers.ModelSerializer):
             pass
         return None
 
-
 class PropertyAgentPublicDetailSerializer(PropertyAgentPublicListSerializer):
-    """Public detail serializer for property agents"""
+
     agency = RealEstateAgencyPublicBriefSerializer(read_only=True)
     social_media = serializers.SerializerMethodField()
     social_links = serializers.SerializerMethodField()

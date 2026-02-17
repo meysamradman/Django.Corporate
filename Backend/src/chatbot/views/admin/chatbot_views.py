@@ -8,7 +8,6 @@ from src.chatbot.serializers.admin import FAQSerializer, FAQListSerializer, Chat
 from src.chatbot.messages.messages import CHATBOT_SUCCESS, CHATBOT_ERRORS
 from src.user.access_control import PermissionRequiredMixin
 
-
 class AdminFAQViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     serializer_class = FAQSerializer
 
@@ -89,7 +88,6 @@ class AdminFAQViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             status_code=status.HTTP_200_OK
         )
 
-
 class AdminChatbotSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     serializer_class = ChatbotSettingsSerializer
 
@@ -147,7 +145,6 @@ class AdminChatbotSettingsViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )
-
 
 __all__ = [
     'AdminFAQViewSet',

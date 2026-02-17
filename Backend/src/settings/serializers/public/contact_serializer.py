@@ -8,7 +8,6 @@ from src.settings.models import (
     MapSettings,
 )
 
-
 class PublicContactPhoneSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactPhone
@@ -17,7 +16,6 @@ class PublicContactPhoneSerializer(serializers.ModelSerializer):
             'label',
             'order',
         ]
-
 
 class PublicContactMobileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -28,7 +26,6 @@ class PublicContactMobileSerializer(serializers.ModelSerializer):
             'order',
         ]
 
-
 class PublicContactEmailSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactEmail
@@ -37,7 +34,6 @@ class PublicContactEmailSerializer(serializers.ModelSerializer):
             'label',
             'order',
         ]
-
 
 class PublicSocialMediaSerializer(serializers.ModelSerializer):
     icon_url = serializers.SerializerMethodField()
@@ -56,7 +52,6 @@ class PublicSocialMediaSerializer(serializers.ModelSerializer):
             return obj.icon.file.url
         return None
 
-
 class PublicMapSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = MapSettings
@@ -64,7 +59,6 @@ class PublicMapSettingsSerializer(serializers.ModelSerializer):
             'provider',
             'configs',
         ]
-
 
 class PublicContactSettingsSerializer(serializers.Serializer):
     phones = PublicContactPhoneSerializer(many=True)

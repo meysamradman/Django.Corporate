@@ -15,13 +15,11 @@ from src.real_estate.utils.cache_admin import PropertyCacheManager, TypeCacheMan
 from src.user.services.admin_performance_service import AdminPerformanceService
 from src.user.models.admin_profile import AdminProfile
 
-
 @receiver(post_save, sender=Property)
 def invalidate_property_cache_on_save(sender, instance, **kwargs):
     if instance.pk:
         PropertyCacheManager.invalidate_property(instance.pk)
         PropertyCacheManager.invalidate_list()
-
 
 @receiver(post_delete, sender=Property)
 def invalidate_property_cache_on_delete(sender, instance, **kwargs):
@@ -29,16 +27,13 @@ def invalidate_property_cache_on_delete(sender, instance, **kwargs):
         PropertyCacheManager.invalidate_property(instance.pk)
         PropertyCacheManager.invalidate_list()
 
-
 @receiver(post_save, sender=PropertyType)
 def invalidate_type_cache_on_save(sender, **kwargs):
     TypeCacheManager.invalidate_all()
 
-
 @receiver(post_delete, sender=PropertyType)
 def invalidate_type_cache_on_delete(sender, **kwargs):
     TypeCacheManager.invalidate_all()
-
 
 @receiver([post_save, post_delete], sender=PropertyState)
 @receiver([post_save, post_delete], sender=PropertyTag)

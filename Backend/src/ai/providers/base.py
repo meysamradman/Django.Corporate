@@ -220,7 +220,7 @@ class BaseProvider(ABC):
         }
     
     async def close(self):
-        """Properly close the async HTTP client."""
+
         try:
             if hasattr(self, 'client') and self.client and not self.client.is_closed:
                 await self.client.aclose()
@@ -228,8 +228,6 @@ class BaseProvider(ABC):
             pass
     
     def __del__(self):
-        """Cleanup resources on deletion - avoid closing async client here."""
-        # Note: We should NOT close async resources in __del__
-        # Async clients should be explicitly closed using context managers or close() method
+
         pass
 

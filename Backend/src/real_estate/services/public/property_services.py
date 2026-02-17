@@ -16,7 +16,6 @@ from src.real_estate.utils.cache_ttl import (
     PUBLIC_PROPERTY_RELATED_TTL,
 )
 
-
 class PropertyPublicService:
     ALLOWED_ORDERING_FIELDS = {
         'created_at',

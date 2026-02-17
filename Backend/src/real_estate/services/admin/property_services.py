@@ -57,7 +57,6 @@ class PropertyYearService:
             'total_choices': Property.get_year_max() - Property.YEAR_MIN + 1
         }
 
-
 class PropertyExportRateLimitService:
 
     @staticmethod

@@ -19,7 +19,6 @@ from src.form.services.public import (
     create_public_contact_form_submission,
 )
 
-
 class PublicContactFormFieldsView(APIView):
     permission_classes = [AllowAny]
 
@@ -48,7 +47,6 @@ class PublicContactFormFieldsView(APIView):
                 message=FORM_FIELD_ERRORS['platform_fields_failed'],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
 
 class PublicContactFormSubmissionView(APIView):
     permission_classes = [AllowAny]

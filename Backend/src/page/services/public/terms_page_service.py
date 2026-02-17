@@ -3,10 +3,8 @@ from src.page.services.terms_page_service import get_terms_page
 from src.page.utils.cache_public import PagePublicCacheKeys
 from src.page.utils.cache_ttl import PageCacheTTL
 
-
 def get_public_terms_page():
     return get_terms_page()
-
 
 def get_public_terms_page_data(serializer_class):
     cache_key = PagePublicCacheKeys.terms_page()

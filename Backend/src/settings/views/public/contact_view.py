@@ -10,7 +10,6 @@ from src.settings.services.public.contact_service import get_public_contact_payl
 from src.settings.utils.cache_public import SettingsPublicCacheKeys
 from src.settings.utils import cache_ttl
 
-
 class PublicContactView(APIView):
     permission_classes = [AllowAny]
 

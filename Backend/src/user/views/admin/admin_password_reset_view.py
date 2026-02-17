@@ -19,7 +19,6 @@ from src.user.serializers.admin.admin_password_reset_serializer import (
 )
 from src.user.services.admin.admin_password_reset_service import AdminPasswordResetService
 
-
 @method_decorator(csrf_exempt, name='dispatch')
 class AdminPasswordResetRequestOTPView(APIView):
     authentication_classes = []
@@ -67,7 +66,6 @@ class AdminPasswordResetRequestOTPView(APIView):
                 status_code=400,
             )
 
-
 @method_decorator(csrf_exempt, name='dispatch')
 class AdminPasswordResetVerifyOTPView(APIView):
     authentication_classes = []
@@ -109,7 +107,6 @@ class AdminPasswordResetVerifyOTPView(APIView):
                 message=AUTH_ERRORS.get("otp_invalid"),
                 status_code=400,
             )
-
 
 @method_decorator(csrf_exempt, name='dispatch')
 class AdminPasswordResetConfirmView(APIView):

@@ -467,7 +467,6 @@ class PortfolioAdminService:
         
         return deleted_count
 
-
 class PortfolioExportRateLimitService:
 
     @staticmethod

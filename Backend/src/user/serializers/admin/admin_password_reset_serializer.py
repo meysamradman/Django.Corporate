@@ -7,7 +7,6 @@ from src.user.utils.password_validator import validate_register_password
 from src.user.utils.otp_validator import validate_otp
 from src.core.utils.validation_helpers import extract_validation_message
 
-
 class AdminPasswordResetRequestSerializer(serializers.Serializer):
     mobile = serializers.CharField(required=True)
     captcha_id = serializers.CharField(required=False, allow_blank=True)
@@ -21,7 +20,6 @@ class AdminPasswordResetRequestSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 extract_validation_message(e, AUTH_ERRORS.get("auth_invalid_mobile"))
             )
-
 
 class AdminPasswordResetVerifySerializer(serializers.Serializer):
     mobile = serializers.CharField(required=True)
@@ -44,7 +42,6 @@ class AdminPasswordResetVerifySerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 extract_validation_message(e, AUTH_ERRORS.get("otp_invalid"))
             )
-
 
 class AdminPasswordResetConfirmSerializer(serializers.Serializer):
     mobile = serializers.CharField(required=True)

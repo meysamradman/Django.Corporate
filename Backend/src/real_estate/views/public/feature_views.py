@@ -8,7 +8,6 @@ from src.real_estate.messages.messages import FEATURE_ERRORS, FEATURE_SUCCESS
 from src.real_estate.serializers.public.taxonomy_serializer import PropertyFeaturePublicSerializer
 from src.real_estate.services.public.feature_services import PropertyFeaturePublicService
 
-
 class PropertyFeaturePublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     pagination_class = StandardLimitPagination

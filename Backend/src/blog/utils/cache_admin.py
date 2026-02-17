@@ -3,7 +3,6 @@ from django.core.cache import cache
 from src.core.cache import CacheKeyBuilder, CacheService
 from src.blog.utils.cache_shared import hash_payload
 
-
 class BlogCacheKeys:
 
     @staticmethod
@@ -42,7 +41,6 @@ class BlogCacheKeys:
     def all_keys(blog_id):
         return CacheKeyBuilder.blog_all_keys(blog_id)
 
-
 class BlogCacheManager:
 
     @staticmethod
@@ -67,7 +65,6 @@ class BlogCacheManager:
     @staticmethod
     def invalidate_seo_report():
         return CacheService.delete(BlogCacheKeys.seo_report())
-
 
 class CategoryCacheKeys:
 
@@ -106,7 +103,6 @@ class CategoryCacheKeys:
             limits = [5, 10, 15, 20]
         return [CategoryCacheKeys.popular(limit) for limit in limits]
 
-
 class CategoryCacheManager:
 
     @staticmethod
@@ -125,7 +121,6 @@ class CategoryCacheManager:
         if popular_keys:
             cache.delete_many(popular_keys)
 
-
 class TagCacheKeys:
 
     @staticmethod
@@ -142,7 +137,6 @@ class TagCacheKeys:
         if tag_ids:
             keys.extend([TagCacheKeys.tag(tid) for tid in tag_ids])
         return keys
-
 
 class TagCacheManager:
 

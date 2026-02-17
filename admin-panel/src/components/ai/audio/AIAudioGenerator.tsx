@@ -93,7 +93,6 @@ export function AIAudioGenerator({
                 setAvailableProviders(accessibleProviders);
 
                 if (!selectedProvider && accessibleProviders.length > 0) {
-                     // Smart default
                     const activeSlug = (activeResponse as any)?.data?.audio?.provider_slug;
                     const activeProvider = activeSlug 
                         ? accessibleProviders.find(p => (p.slug === activeSlug || p.provider_name === activeSlug))
@@ -111,7 +110,6 @@ export function AIAudioGenerator({
             showError(error);
             setSupportedProviders([]);
             setAvailableProviders([]);
-            // Don't clear selectedProvider immediately if it was set by saved pref, let it be handled above
         } finally {
             setLoadingProviders(false);
         }

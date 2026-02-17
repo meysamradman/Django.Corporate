@@ -3,7 +3,6 @@ from django.utils import timezone
 
 from src.ticket.models.statistics import TicketStatistics
 
-
 class TicketStatsService:
     @staticmethod
     def _get_today_stats():

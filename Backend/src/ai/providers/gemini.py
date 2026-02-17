@@ -26,7 +26,6 @@ class GeminiProvider(BaseProvider):
         raise NotImplementedError(AI_ERRORS["gemini_not_implemented"])
     
     async def generate_content(self, prompt: str, **kwargs) -> str:
-        # Use model from config or kwargs, fall back to self.model
         model_to_use = self.config.get('model') or kwargs.get('model') or self.model
         url = f"{self.BASE_URL}/models/{model_to_use}:generateContent"
         params = {'key': self.api_key}
@@ -35,7 +34,6 @@ class GeminiProvider(BaseProvider):
         tone = kwargs.get('tone', 'professional')
         language = kwargs.get('language', 'fa')
         
-        # دریافت prompt از ماژول prompts
         content_prompt_template = get_content_prompt(provider='gemini')
         full_prompt = content_prompt_template.format(
             topic=prompt,
@@ -80,7 +78,6 @@ class GeminiProvider(BaseProvider):
         
         keywords_str = f", {', '.join(keywords)}" if keywords else ""
         
-        # دریافت prompt از ماژول prompts
         seo_prompt_template = get_seo_prompt(provider='gemini')
         seo_prompt = seo_prompt_template.format(
             topic=topic,
@@ -129,12 +126,10 @@ class GeminiProvider(BaseProvider):
             raise Exception(AI_ERRORS["content_generation_failed"])
     
     async def chat(self, message: str, conversation_history: Optional[list] = None, **kwargs) -> str:
-        # Use model from config or kwargs, fall back to self.model
         model_to_use = self.config.get('model') or kwargs.get('model') or self.model
         url = f"{self.BASE_URL}/models/{model_to_use}:generateContent"
         params = {'key': self.api_key}
         
-        # Get system message based on persona
         persona = kwargs.get('persona', 'default')
         system_message = get_chat_system_message(persona=persona, provider='gemini')
         

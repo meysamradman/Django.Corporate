@@ -4,7 +4,6 @@ from django.db import models
 from src.core.models.base import BaseModel
 from src.media.models.media import ImageMedia
 
-
 class RealEstateAgencySocialMedia(BaseModel):
     agency = models.ForeignKey(
         'real_estate.RealEstateAgency',

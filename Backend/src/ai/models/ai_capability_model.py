@@ -8,7 +8,6 @@ from src.ai.models.ai_provider import AIProvider
 from src.ai.utils.cache import AICacheKeys
 from src.ai.utils.cache_ttl import AICacheTTL
 
-
 class AICapabilityModelManager(models.Manager):
     CACHE_TIMEOUT = AICacheTTL.ACTIVE_MODEL
 
@@ -34,7 +33,6 @@ class AICapabilityModelManager(models.Manager):
         if model:
             cache.set(cache_key, model.id, self.CACHE_TIMEOUT)
         return model
-
 
 class AICapabilityModel(models.Model):
     CAPABILITY_CHOICES = [

@@ -50,7 +50,6 @@ class AIAudioGenerationService:
                     provider=provider,
                     is_active=True
                 )
-                # Scenario: use_shared_api switch controls source for admin user.
                 return settings.get_api_key(), provider.config or {}
             except AdminProviderSettings.DoesNotExist:
                 is_super = getattr(admin, 'is_superuser', False) or getattr(admin, 'is_admin_full', False)

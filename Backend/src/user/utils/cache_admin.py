@@ -4,7 +4,6 @@ from typing import Optional
 from src.core.cache import CacheKeyBuilder, CacheService
 from src.user.utils.cache_shared import hash_payload
 
-
 class UserCacheKeys:
 
     @staticmethod
@@ -137,7 +136,6 @@ class UserCacheKeys:
     @staticmethod
     def admin_profile_legacy_pattern():
         return 'admin_profile_*'
-
 
 class UserCacheManager:
 

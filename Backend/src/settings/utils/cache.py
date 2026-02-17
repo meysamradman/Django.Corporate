@@ -1,7 +1,6 @@
 from src.settings.utils.cache_admin import SettingsAdminCacheKeys, SettingsCacheManager
 from src.settings.utils.cache_public import SettingsPublicCacheKeys
 
-
 class SettingsCacheKeys:
 
     @staticmethod
@@ -43,7 +42,6 @@ class SettingsCacheKeys:
     @staticmethod
     def all_keys():
         return SettingsAdminCacheKeys.all_keys() + SettingsPublicCacheKeys.all_keys()
-
 
 __all__ = [
     'SettingsCacheKeys',

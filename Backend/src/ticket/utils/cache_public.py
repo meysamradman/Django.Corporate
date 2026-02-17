@@ -1,6 +1,5 @@
 from src.ticket.utils.cache_shared import hash_payload
 
-
 class TicketPublicCacheKeys:
 
     @staticmethod

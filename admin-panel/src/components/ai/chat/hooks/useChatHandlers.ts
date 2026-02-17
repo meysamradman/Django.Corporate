@@ -81,7 +81,6 @@ export function useChatHandlers({
         } catch (error: any) {
             removeLastUserMessage(currentMessage);
 
-            // showError will extract backend message when available (e.g. capability mismatch)
             showError(error);
         } finally {
             setSending(false);

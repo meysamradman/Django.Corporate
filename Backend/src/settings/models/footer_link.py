@@ -4,7 +4,6 @@ from django.utils.translation import gettext_lazy as _
 from src.core.models import BaseModel
 from src.settings.models.footer_section import FooterSection
 
-
 class FooterLink(BaseModel):
     section = models.ForeignKey(
         FooterSection,

@@ -12,9 +12,7 @@ class AIChatService:
     
     @classmethod
     def get_provider(cls, provider_name: Optional[str], admin=None, model_name: Optional[str] = None):
-        """
-        Returns tuple: (provider_instance, provider_model, model_name)
-        """
+
         import logging
         logger = logging.getLogger(__name__)
 
@@ -79,7 +77,6 @@ class AIChatService:
             ).first()
 
             if settings:
-                # Scenario: admin can switch between personal/shared source, shared value is managed by super admin.
                 try:
                     api_key = settings.get_api_key()
                 except ValidationError as exc:
@@ -136,7 +133,6 @@ class AIChatService:
                     )
                 )
             finally:
-                # Properly close the async client
                 try:
                     loop.run_until_complete(provider_instance.close())
                 except Exception:

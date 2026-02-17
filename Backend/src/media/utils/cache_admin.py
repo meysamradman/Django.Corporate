@@ -3,7 +3,6 @@ from src.core.cache import CacheService
 from .cache_public import MediaPublicCacheManager
 from .cache_shared import compose_media_key
 
-
 class MediaAdminCacheKeys:
     @staticmethod
     def media_list(filters_hash: str):
@@ -12,7 +11,6 @@ class MediaAdminCacheKeys:
     @staticmethod
     def media_detail(media_id: int):
         return compose_media_key("admin", "detail", media_id)
-
 
 class MediaAdminCacheManager:
     @staticmethod

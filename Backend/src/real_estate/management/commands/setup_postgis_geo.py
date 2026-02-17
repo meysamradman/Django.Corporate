@@ -4,7 +4,6 @@ from django.db import connection
 from src.real_estate.models.property import Property
 from src.real_estate.services.admin.property_geo_services import PropertyGeoService
 
-
 class Command(BaseCommand):
     help = "Setup optional PostGIS optimizations for real estate geo queries (location_point + GIST index)."
 
@@ -34,12 +33,7 @@ class Command(BaseCommand):
                         ELSE NULL
                     END
                 ) STORED
-                """
-            )
-            self.stdout.write(self.style.SUCCESS("location_point column is ready."))
 
-            cursor.execute(
-                f"""
                 CREATE INDEX IF NOT EXISTS idx_{table_name}_location_point_gist
                 ON {quoted_table}
                 USING GIST (location_point)

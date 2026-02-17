@@ -15,18 +15,8 @@ from src.real_estate.serializers.public.agent_serializer import (
 from src.real_estate.services.public.agency_services import RealEstateAgencyPublicService
 from src.real_estate.messages.messages import AGENCY_SUCCESS, AGENCY_ERRORS
 
-
 class RealEstateAgencyPublicViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    Public API for Real Estate Agencies
-    
-    list: Get paginated list of active agencies
-    retrieve: Get single agency by slug
-    featured: Get featured/top rated agencies
-    top_rated: Get top rated agencies
-    by_city: Get agencies by city
-    by_province: Get agencies by province
-    """
+
     permission_classes = [AllowAny]
     pagination_class = StandardLimitPagination
     lookup_field = 'slug'
@@ -58,7 +48,7 @@ class RealEstateAgencyPublicViewSet(viewsets.ReadOnlyModelViewSet):
         return RealEstateAgencyPublicListSerializer
     
     def list(self, request, *args, **kwargs):
-        """لیست آژانس‌های فعال"""
+
         filters = {
             'province_id': request.query_params.get('province_id'),
             'city_id': request.query_params.get('city_id'),
@@ -82,7 +72,7 @@ class RealEstateAgencyPublicViewSet(viewsets.ReadOnlyModelViewSet):
         )
     
     def retrieve(self, request, *args, **kwargs):
-        """دریافت جزئیات آژانس با slug"""
+
         slug = kwargs.get('slug')
         agency_data = RealEstateAgencyPublicService.get_agency_detail_by_slug_data(slug)
         
@@ -100,7 +90,7 @@ class RealEstateAgencyPublicViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='featured')
     def featured(self, request):
-        """دریافت آژانس‌های برجسته (با امتیاز بالا)"""
+
         limit = self._parse_positive_int(request.query_params.get('limit'), default=6, max_value=50)
         data = RealEstateAgencyPublicService.get_featured_agencies_data(limit=limit)
 
@@ -112,7 +102,7 @@ class RealEstateAgencyPublicViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='top-rated')
     def top_rated(self, request):
-        """دریافت آژانس‌ها با بالاترین امتیاز"""
+
         limit = self._parse_positive_int(request.query_params.get('limit'), default=10, max_value=50)
         data = RealEstateAgencyPublicService.get_top_rated_agencies_data(limit=limit)
 
@@ -124,7 +114,7 @@ class RealEstateAgencyPublicViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='by-city/(?P<city_id>[^/.]+)')
     def by_city(self, request, city_id=None):
-        """دریافت آژانس‌های یک شهر"""
+
         limit = request.query_params.get('limit')
         limit = self._parse_positive_int(limit, default=None, max_value=100, allow_none=True)
 
@@ -138,7 +128,7 @@ class RealEstateAgencyPublicViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='by-province/(?P<province_id>[^/.]+)')
     def by_province(self, request, province_id=None):
-        """دریافت آژانس‌های یک استان"""
+
         limit = request.query_params.get('limit')
         limit = self._parse_positive_int(limit, default=None, max_value=100, allow_none=True)
 
@@ -152,7 +142,7 @@ class RealEstateAgencyPublicViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=True, methods=['get'], url_path='statistics')
     def statistics(self, request, slug=None):
-        """دریافت آمار آژانس"""
+
         agency = RealEstateAgencyPublicService.get_agency_by_slug(slug)
         
         if not agency:
@@ -177,7 +167,7 @@ class RealEstateAgencyPublicViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=True, methods=['get'], url_path='with-agents')
     def with_agents(self, request, slug=None):
-        """دریافت آژانس با لیست کامل مشاورین"""
+
         agency_data = RealEstateAgencyPublicService.get_agency_with_agents_data(slug)
         
         if not agency_data:

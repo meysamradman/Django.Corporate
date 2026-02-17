@@ -12,17 +12,8 @@ from src.real_estate.serializers.public.agent_serializer import (
 from src.real_estate.services.public.agent_services import PropertyAgentPublicService
 from src.real_estate.messages.messages import AGENT_SUCCESS, AGENT_ERRORS
 
-
 class PropertyAgentPublicViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    Public API for Property Agents
-    
-    list: Get paginated list of active agents
-    retrieve: Get single agent by slug
-    featured: Get featured/top rated agents
-    top_rated: Get top rated agents
-    search: Advanced search for agents
-    """
+
     permission_classes = [AllowAny]
     pagination_class = StandardLimitPagination
     lookup_field = 'slug'
@@ -55,7 +46,7 @@ class PropertyAgentPublicViewSet(viewsets.ReadOnlyModelViewSet):
         return PropertyAgentPublicListSerializer
     
     def list(self, request, *args, **kwargs):
-        """لیست مشاورین فعال"""
+
         filters = {
             'agency_id': request.query_params.get('agency_id'),
             'is_verified': request.query_params.get('is_verified'),
@@ -79,7 +70,7 @@ class PropertyAgentPublicViewSet(viewsets.ReadOnlyModelViewSet):
         )
     
     def retrieve(self, request, *args, **kwargs):
-        """دریافت جزئیات مشاور با slug"""
+
         slug = kwargs.get('slug')
         agent_data = PropertyAgentPublicService.get_agent_detail_by_slug_data(slug)
         
@@ -97,7 +88,7 @@ class PropertyAgentPublicViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='featured')
     def featured(self, request):
-        """دریافت مشاورین برجسته (تایید شده با امتیاز بالا)"""
+
         limit = self._parse_positive_int(request.query_params.get('limit'), default=6, max_value=50)
         data = PropertyAgentPublicService.get_featured_agents_data(limit=limit)
 
@@ -109,7 +100,7 @@ class PropertyAgentPublicViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='top-rated')
     def top_rated(self, request):
-        """دریافت مشاورین با بالاترین امتیاز"""
+
         limit = self._parse_positive_int(request.query_params.get('limit'), default=10, max_value=50)
         data = PropertyAgentPublicService.get_top_rated_agents_data(limit=limit)
 
@@ -121,7 +112,7 @@ class PropertyAgentPublicViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='by-agency/(?P<agency_id>[^/.]+)')
     def by_agency(self, request, agency_id=None):
-        """دریافت مشاورین یک آژانس"""
+
         limit = request.query_params.get('limit')
         limit = self._parse_positive_int(limit, default=None, max_value=100, allow_none=True)
 
@@ -135,7 +126,7 @@ class PropertyAgentPublicViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=True, methods=['get'], url_path='statistics')
     def statistics(self, request, slug=None):
-        """دریافت آمار مشاور"""
+
         agent = PropertyAgentPublicService.get_agent_by_slug(slug)
         
         if not agent:

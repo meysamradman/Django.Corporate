@@ -3,7 +3,6 @@ from rest_framework import serializers
 from src.panel.models import PanelSettings
 from src.settings.models import GeneralSettings, Slider
 
-
 class PublicLogoSerializer(serializers.ModelSerializer):
     logo_url = serializers.SerializerMethodField()
 
@@ -23,7 +22,6 @@ class PublicLogoSerializer(serializers.ModelSerializer):
             return panel_settings.logo.file.url
 
         return None
-
 
 class PublicSliderSerializer(serializers.ModelSerializer):
     media_type = serializers.SerializerMethodField()

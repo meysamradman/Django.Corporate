@@ -47,7 +47,6 @@ export default function AIModelsPage() {
               {rows.map((row) => (
                 <div key={row.capability} className="flex flex-col sm:flex-row sm:items-center justify-between border rounded-lg p-5 gap-4">
                   
-                  {/* Left: Icon & Title */}
                   <div className="flex items-center gap-3 min-w-37.5 sm:min-w-45">
                     <span className="text-2xl">{row.icon}</span>
                     <div>
@@ -62,10 +61,8 @@ export default function AIModelsPage() {
                     </div>
                   </div>
 
-                  {/* Right: Provider Select & Model Select */}
                   <div className="flex flex-col sm:flex-row items-center gap-3 flex-1 justify-end max-w-2xl w-full">
                     
-                    {/* Provider Select */}
                     <div className="w-full sm:w-1/2">
                       <Select
                         dir="rtl"
@@ -92,7 +89,6 @@ export default function AIModelsPage() {
                       </Select>
                     </div>
 
-                    {/* Model Display/Select */}
                     <div className="w-full sm:w-1/2">
                         {row.allowedModels.length === 0 ? (
                           <div className="px-3 py-2 text-sm text-font-s border rounded-md bg-surface-s">

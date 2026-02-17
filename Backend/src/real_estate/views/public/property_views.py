@@ -12,7 +12,6 @@ from src.real_estate.serializers.public.property_serializer import (
 )
 from src.real_estate.services.public.property_services import PropertyPublicService
 
-
 class PropertyPublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     lookup_field = 'slug'

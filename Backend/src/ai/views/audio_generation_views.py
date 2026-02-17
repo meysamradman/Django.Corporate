@@ -33,7 +33,7 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
     
     @action(detail=False, methods=['get'], url_path='available-providers')
     def available_providers(self, request):
-        """Returns providers that support audio generation with their hardcoded models."""
+
         is_super = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_admin_full', False)
         
         try:
@@ -41,7 +41,6 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
             
             result = []
             for provider in providers_qs:
-                # Check if provider supports audio
                 if not provider.supports_capability('audio'):
                     continue
                     
@@ -173,7 +172,6 @@ class AIAudioGenerationRequestViewSet(PermissionRequiredMixin, viewsets.ViewSet)
                 )
             
         except NotImplementedError as e:
-            # e.g. provider.text_to_speech not implemented
             logger.warning(
                 "AI audio generation not supported by provider",
                 extra={

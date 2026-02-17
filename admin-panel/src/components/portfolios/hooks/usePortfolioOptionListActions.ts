@@ -6,7 +6,6 @@ import { notifyApiError, showSuccess } from "@/core/toast";
 import { msg } from "@/core/messages";
 import type { PortfolioOptionDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
-
 interface UsePortfolioOptionListActionsParams {
   setRowSelection: Dispatch<SetStateAction<Record<string, boolean>>>;
 }

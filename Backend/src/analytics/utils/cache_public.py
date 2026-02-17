@@ -11,7 +11,6 @@ class AnalyticsPublicCacheKeys:
     def traffic_dashboard_pattern() -> str:
         return "public:analytics:traffic:dashboard:*"
 
-
 class AnalyticsPublicCacheManager:
     @staticmethod
     def invalidate_traffic_dashboard(site_id: str = "default") -> bool:

@@ -2,7 +2,6 @@ from src.core.cache import CacheService
 
 from .cache_shared import compose_media_key
 
-
 class MediaPublicCacheKeys:
     @staticmethod
     def media_list(filters_hash: str):
@@ -15,7 +14,6 @@ class MediaPublicCacheKeys:
     @staticmethod
     def media_by_type(media_type: str, is_active: bool):
         return compose_media_key("public", "by_type", f"{media_type}:{str(is_active).lower()}")
-
 
 class MediaPublicCacheManager:
     @staticmethod

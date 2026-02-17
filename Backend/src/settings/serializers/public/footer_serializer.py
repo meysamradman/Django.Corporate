@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from src.settings.models import FooterSection, FooterLink
 
-
 class PublicFooterLinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = FooterLink
@@ -11,7 +10,6 @@ class PublicFooterLinkSerializer(serializers.ModelSerializer):
             'href',
             'order',
         ]
-
 
 class PublicFooterSectionSerializer(serializers.ModelSerializer):
     links = serializers.SerializerMethodField()

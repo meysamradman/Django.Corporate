@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from src.settings.models import FooterSection
 
-
 class FooterSectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = FooterSection

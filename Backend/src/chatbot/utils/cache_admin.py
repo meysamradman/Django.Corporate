@@ -2,7 +2,6 @@ from src.core.cache import CacheService
 
 from .cache_public import ChatbotPublicCacheManager
 
-
 class ChatbotAdminCacheKeys:
     @staticmethod
     def faq_list():
@@ -11,7 +10,6 @@ class ChatbotAdminCacheKeys:
     @staticmethod
     def settings():
         return "admin:chatbot:settings"
-
 
 class ChatbotAdminCacheManager:
     @staticmethod

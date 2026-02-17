@@ -1,6 +1,5 @@
 from src.core.cache import CacheService
 
-
 class ChatbotPublicCacheKeys:
     @staticmethod
     def faqs_active():
@@ -17,7 +16,6 @@ class ChatbotPublicCacheKeys:
     @staticmethod
     def settings_legacy():
         return "chatbot:settings"
-
 
 class ChatbotPublicCacheManager:
     @staticmethod

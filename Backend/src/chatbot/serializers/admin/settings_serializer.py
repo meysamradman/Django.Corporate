@@ -3,7 +3,6 @@ from rest_framework import serializers
 from src.chatbot.models.settings import ChatbotSettings
 from src.chatbot.messages.messages import CHATBOT_ERRORS
 
-
 class ChatbotSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChatbotSettings
@@ -16,7 +15,6 @@ class ChatbotSettingsSerializer(serializers.ModelSerializer):
         if value > 100:
             raise serializers.ValidationError(CHATBOT_ERRORS['rate_limit_max'])
         return value
-
 
 __all__ = [
     'ChatbotSettingsSerializer',

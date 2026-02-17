@@ -10,7 +10,6 @@ from src.real_estate.utils.cache_ttl import (
     PUBLIC_TAXONOMY_POPULAR_TTL,
 )
 
-
 class PropertyTagPublicService:
     ALLOWED_ORDERING_FIELDS = {'title', 'created_at', 'property_count'}
 

@@ -1,7 +1,6 @@
 from src.core.cache import CacheService
 from src.analytics.utils.cache import AnalyticsCacheManager, AnalyticsCacheKeys
 
-
 class TicketCacheKeys:
 
     @staticmethod
@@ -26,7 +25,6 @@ class TicketCacheKeys:
             TicketCacheKeys.ticket(ticket_id),
             TicketCacheKeys.messages(ticket_id),
         ]
-
 
 class TicketCacheManager:
 

@@ -1,6 +1,5 @@
 from src.core.cache import CacheService
 
-
 class PanelCacheKeys:
 
     @staticmethod
@@ -10,7 +9,6 @@ class PanelCacheKeys:
     @staticmethod
     def export_rate_limit(user_id):
         return f"admin:panel:db_export:rate_limit:{user_id}"
-
 
 class PanelCacheManager:
 

@@ -6,7 +6,6 @@ from src.core.models import BaseModel
 from src.settings.utils.cache import SettingsCacheKeys, SettingsCacheManager
 from src.settings.utils import cache_ttl
 
-
 class FooterAbout(BaseModel):
     title = models.CharField(_("title"), max_length=120, default="درباره ما")
     text = models.TextField(_("text"), blank=True)
@@ -20,7 +19,6 @@ class FooterAbout(BaseModel):
         return self.title
 
     def save(self, *args, **kwargs):
-        # Singleton behavior: keep exactly one record.
         if not self.pk and FooterAbout.objects.exists():
             existing = FooterAbout.objects.first()
             self.pk = existing.pk

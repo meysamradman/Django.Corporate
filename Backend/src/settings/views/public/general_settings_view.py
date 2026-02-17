@@ -14,7 +14,6 @@ from src.settings.services.public.general_settings_service import (
 from src.settings.utils.cache_public import SettingsPublicCacheKeys
 from src.settings.utils import cache_ttl
 
-
 class PublicGeneralSettingsView(APIView):
     permission_classes = [AllowAny]
 

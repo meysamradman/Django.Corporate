@@ -16,7 +16,6 @@ from src.settings.services.public.branding_service import (
 from src.settings.utils.cache_public import SettingsPublicCacheKeys
 from src.settings.utils import cache_ttl
 
-
 class PublicLogoView(APIView):
     permission_classes = [AllowAny]
 
@@ -41,7 +40,6 @@ class PublicLogoView(APIView):
                 message=SETTINGS_ERRORS['settings_retrieve_failed'],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
 
 class PublicSliderListView(APIView):
     permission_classes = [AllowAny]

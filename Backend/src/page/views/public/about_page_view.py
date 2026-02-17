@@ -8,7 +8,6 @@ from src.page.messages.messages import ABOUT_PAGE_ERRORS, ABOUT_PAGE_SUCCESS
 from src.page.serializers.public.about_page_serializer import PublicAboutPageSerializer
 from src.page.services.public.about_page_service import get_public_about_page, get_public_about_page_data
 
-
 class PublicAboutPageView(APIView):
     permission_classes = [AllowAny]
 

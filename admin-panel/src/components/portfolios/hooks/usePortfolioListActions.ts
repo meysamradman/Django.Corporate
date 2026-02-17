@@ -13,7 +13,6 @@ import { usePortfolioPdfExport } from '@/components/portfolios/hooks/usePortfoli
 import { usePortfolioPrintView } from '@/components/portfolios/hooks/usePortfolioPrintView';
 import type { PortfolioDeleteConfirmState } from '@/types/shared/deleteConfirm';
 
-
 interface UsePortfolioListActionsParams {
   data: Portfolio[];
   totalCount: number;

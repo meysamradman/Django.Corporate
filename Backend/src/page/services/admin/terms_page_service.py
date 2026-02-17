@@ -6,7 +6,6 @@ from src.page.services.terms_page_service import (
 from src.page.utils.cache_admin import PageAdminCacheKeys
 from src.page.utils.cache_ttl import PageCacheTTL
 
-
 def get_terms_page_data(serializer_class):
     cache_key = PageAdminCacheKeys.terms_page()
     cached_data = CacheService.get(cache_key)

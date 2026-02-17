@@ -28,10 +28,6 @@ export function ModelSelector({
     const [, setError] = useState(false);
     const [fetchedKey, setFetchedKey] = useState<string | null>(null);
 
-    // Providers that support dynamic model fetching
-    // const DYNAMIC_PROVIDERS = ['openrouter', 'huggingface'];
-    // const isDynamic = DYNAMIC_PROVIDERS.includes(providerSlug.toLowerCase());
-
     useEffect(() => {
         const provider = String(providerSlug || '').toLowerCase().trim();
         const nextKey = provider && capability ? `${provider}:${capability}` : null;
@@ -41,7 +37,6 @@ export function ModelSelector({
         }
     }, [providerSlug, capability, fetchedKey]);
 
-    // Use a unified model type for display
     interface NormalizedModel {
         id: string; // The distinct identifier
         display: string; // The display name
@@ -57,9 +52,6 @@ export function ModelSelector({
         }
 
         const norm = models.map(m => {
-            // Handle different model shapes from API/Type definitions
-            // AIModelList -> id is number, model_id is string, name is string
-            // Dynamic logic (openrouter) -> id is string
             const idVal = (m as any).model_id || (m as any).id;
             const nameVal = m.name || (m as any).display_name || String(idVal);
             
@@ -87,19 +79,13 @@ export function ModelSelector({
             setFetchedKey(nextKey);
         } catch (e) {
             console.error('[ModelSelector] Error fetching:', e);
-            // Silently fail for standard providers if they don't support listing
              setModels([]);
         } finally {
             setLoading(false);
         }
     };
 
-    // If no models available (and not loading), we display a 'Default' state instead of hiding
-    // This prevents UI jumping.
-    // if ((!models || models.length === 0) && !loading) return null;
-
     const disabled = loading || (normalizedModels.length === 0 && !loading);
-    // console.log('[ModelSelector] Render state:', { providerSlug, modelsLen: models.length, loading, disabled, selectedModel });
 
     return (
         <div className={cn("animate-in fade-in slide-in-from-top-1 duration-200", className)}>

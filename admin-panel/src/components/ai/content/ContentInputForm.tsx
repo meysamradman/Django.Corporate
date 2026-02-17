@@ -72,7 +72,6 @@ export function ContentInputForm({
             }
         >
             <div className="space-y-6">
-                {/* Mobile/Compact View for Provider Selection */}
                 <div className="block md:hidden space-y-3">
                      <Label className="flex items-center gap-2 text-base font-medium">
                         انتخاب Provider

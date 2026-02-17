@@ -13,7 +13,6 @@ import { usePropertyPdfExport } from '@/components/real-estate/hooks/useProperty
 import { usePropertyPrintView } from '@/components/real-estate/hooks/usePropertyPrintView';
 import type { PropertyDeleteConfirmState } from '@/types/shared/deleteConfirm';
 
-
 interface UsePropertyListActionsParams {
   data: Property[];
   totalCount: number;

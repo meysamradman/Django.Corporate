@@ -38,7 +38,6 @@ class DeepSeekProvider(BaseProvider):
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         
-        # دریافت prompt از ماژول prompts
         content_prompt_template = get_content_prompt(provider='deepseek')
         full_prompt = content_prompt_template.format(
             topic=prompt,

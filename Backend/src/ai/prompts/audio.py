@@ -1,22 +1,4 @@
-"""
-Audio/Podcast Generation Prompts
-==================================
-Prompts for audio and podcast content generation
 
-IMPORTANT: Prompts are in ENGLISH, but instruct AI to generate content in PERSIAN/FARSI.
-
-Key points:
-- Podcasts need a script that should be conversational and natural
-- Should include intro, main content, outro
-- Speaking style should be friendly and engaging
-"""
-
-
-# =============================================================================
-# Podcast Script Generation Prompts
-# =============================================================================
-
-# Full podcast with intro and outro
 PODCAST_PROMPT = (
     "Please write a complete podcast script in Persian (Farsi) language for the following topic:\n\n"
     "Topic: {topic}\n"
@@ -46,7 +28,6 @@ PODCAST_PROMPT = (
     "}}"
 )
 
-# Simple audio content (without intro/outro)
 AUDIO_SIMPLE_PROMPT = (
     "Please write an audio text in Persian (Farsi) language for the following topic:\n\n"
     "Topic: {topic}\n"
@@ -61,7 +42,6 @@ AUDIO_SIMPLE_PROMPT = (
     "Return only the text, without JSON format."
 )
 
-# Interview script
 INTERVIEW_PROMPT = (
     "Please write an interview script (conversation) in Persian (Farsi) language about the following topic:\n\n"
     "Topic: {topic}\n"
@@ -83,16 +63,8 @@ INTERVIEW_PROMPT = (
     "}}"
 )
 
-
-# =============================================================================
-# Audio Generation Settings
-# =============================================================================
-
-# Word count estimation based on time
-# Average: 150 words = 1 minute (in Persian)
 WORDS_PER_MINUTE = 150
 
-# Voice settings (for TTS - Text to Speech)
 VOICE_SETTINGS = {
     "default": {
         "language": "fa-IR",  # Persian (Iran)
@@ -111,22 +83,8 @@ VOICE_SETTINGS = {
     },
 }
 
-
-# =============================================================================
-# Helper Functions
-# =============================================================================
-
 def get_audio_prompt(prompt_type: str = "podcast", provider: str = None) -> str:
-    """
-    Get audio content generation prompt
-    
-    Args:
-        prompt_type: Prompt type (podcast, audio_simple, interview)
-        provider: Provider name (not used - for compatibility)
-    
-    Returns:
-        prompt string
-    """
+
     if prompt_type == "audio_simple":
         return AUDIO_SIMPLE_PROMPT
     elif prompt_type == "interview":
@@ -134,28 +92,10 @@ def get_audio_prompt(prompt_type: str = "podcast", provider: str = None) -> str:
     else:
         return PODCAST_PROMPT  # default
 
-
 def calculate_word_count(duration_minutes: int) -> int:
-    """
-    Calculate required word count for specified duration
-    
-    Args:
-        duration_minutes: Duration in minutes
-    
-    Returns:
-        Approximate word count
-    """
+
     return duration_minutes * WORDS_PER_MINUTE
 
-
 def estimate_duration(word_count: int) -> float:
-    """
-    تخمین مدت زمان بر اساس تعداد کلمه
-    
-    Args:
-        word_count: تعداد کلمه
-    
-    Returns:
-        مدت زمان به دقیقه
-    """
+
     return round(word_count / WORDS_PER_MINUTE, 1)

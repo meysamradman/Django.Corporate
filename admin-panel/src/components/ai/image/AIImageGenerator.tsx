@@ -61,7 +61,6 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
         try {
             setLoadingProviders(true);
             
-            // Fetch both available and active to set smart default
             const [response, activeResponse] = await Promise.all([
                 aiApi.image.getAvailableProviders('image'),
                 aiApi.models.getActiveCapabilities().catch(() => ({ data: null })) // Fail gracefully
@@ -86,7 +85,6 @@ export function AIImageGenerator({ onImageGenerated, onSelectGenerated, onNaviga
                 setAvailableProviders(providers);
 
                 if (!selectedProvider && providers.length > 0) {
-                    // Try to match active capability first
                     const activeSlug = (activeResponse as any)?.data?.image?.provider_slug;
                     const activeProvider = activeSlug 
                         ? providers.find(p => p.slug === activeSlug || p.provider_name === activeSlug)

@@ -6,7 +6,6 @@ import { notifyApiError, showSuccess } from "@/core/toast";
 import { msg } from "@/core/messages";
 import type { PortfolioTagDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
-
 interface UsePortfolioTagListActionsParams {
   setRowSelection: Dispatch<SetStateAction<Record<string, boolean>>>;
 }

@@ -22,9 +22,6 @@ class GroqProvider(BaseProvider):
         cfg = config or {}
         selected_model = cfg.get('model')
 
-        # Back-compat + service-driven behavior:
-        # - New capability-based services pass the resolved model in `config['model']`.
-        # - Existing configs may still provide capability-specific keys.
         self.chat_model = (
             cfg.get('chat_model')
             or selected_model
@@ -138,7 +135,6 @@ class GroqProvider(BaseProvider):
         word_count = kwargs.get('word_count', 500)
         tone = kwargs.get('tone', 'professional')
         
-        # دریافت prompt از ماژول prompts
         content_prompt_template = get_content_prompt(provider='groq')
         full_prompt = content_prompt_template.format(
             topic=prompt,

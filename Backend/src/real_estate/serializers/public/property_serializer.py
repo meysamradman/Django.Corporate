@@ -9,7 +9,6 @@ from src.real_estate.models.type import PropertyType
 from src.real_estate.models.agent import PropertyAgent
 from src.media.serializers.media_serializer import MediaPublicSerializer, MediaCoverSerializer
 
-
 class PropertyTypeNestedPublicSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='title', read_only=True)
 
@@ -17,7 +16,6 @@ class PropertyTypeNestedPublicSerializer(serializers.ModelSerializer):
         model = PropertyType
         fields = ['id', 'public_id', 'name', 'slug']
         read_only_fields = fields
-
 
 class PropertyStateNestedPublicSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='title', read_only=True)
@@ -27,7 +25,6 @@ class PropertyStateNestedPublicSerializer(serializers.ModelSerializer):
         fields = ['id', 'public_id', 'name', 'slug', 'usage_type']
         read_only_fields = fields
 
-
 class PropertyLabelNestedPublicSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='title', read_only=True)
 
@@ -36,7 +33,6 @@ class PropertyLabelNestedPublicSerializer(serializers.ModelSerializer):
         fields = ['id', 'public_id', 'name', 'slug']
         read_only_fields = fields
 
-
 class PropertyTagNestedPublicSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='title', read_only=True)
 
@@ -44,7 +40,6 @@ class PropertyTagNestedPublicSerializer(serializers.ModelSerializer):
         model = PropertyTag
         fields = ['id', 'public_id', 'name', 'slug']
         read_only_fields = fields
-
 
 class PropertyFeatureNestedPublicSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='title', read_only=True)
@@ -57,7 +52,6 @@ class PropertyFeatureNestedPublicSerializer(serializers.ModelSerializer):
 
     def get_slug(self, obj):
         return str(getattr(obj, 'public_id', ''))
-
 
 class PropertyAgentNestedPublicSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(read_only=True)
@@ -101,7 +95,6 @@ class PropertyAgentNestedPublicSerializer(serializers.ModelSerializer):
             return obj.get_public_url()
         except Exception:
             return None
-
 
 class PropertyPublicListSerializer(serializers.ModelSerializer):
     property_type = PropertyTypeNestedPublicSerializer(read_only=True)
@@ -185,7 +178,6 @@ class PropertyPublicListSerializer(serializers.ModelSerializer):
     def get_district_name(self, obj):
         region = getattr(obj, 'region', None)
         return region.name if region else None
-
 
 class PropertyPublicDetailSerializer(PropertyPublicListSerializer):
     media = serializers.SerializerMethodField()

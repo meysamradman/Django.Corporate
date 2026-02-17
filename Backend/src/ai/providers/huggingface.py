@@ -60,8 +60,6 @@ class HuggingFaceProvider(BaseProvider):
                 return cached_models
         
         try:
-            # For dynamic capabilities, use Hugging Face Router metadata first.
-            # This avoids listing Hub models that are not runnable for the key/provider.
             if capability in ('chat', 'content', 'image'):
                 url = f"{HuggingFaceProvider.ROUTER_V1_BASE_URL}/models"
                 headers = {}
@@ -114,12 +112,10 @@ class HuggingFaceProvider(BaseProvider):
                         cache.set(cache_key, models, AICacheTTL.PROVIDER_CATALOG)
                     return models
 
-                # If router has no image models for this key/capability, fallback to Hub catalog below.
                 logger.info(f"[HuggingFace] Router returned 0 {capability} models; falling back to Hub API")
             
             url = "https://huggingface.co/api/models"
             
-            # ✅ دریافت مدل‌های پرطرفدار
             params = {
                 'sort': 'downloads',
                 'direction': '-1',
@@ -152,12 +148,10 @@ class HuggingFaceProvider(BaseProvider):
                 model_id = model.get('id', '')
                 task = model.get('pipeline_tag', '')
                 
-                # ✅ فیلتر task
                 if task_filter:
                     if task != task_filter:
                         continue
                 
-                # ✅ فقط مدل‌هایی که inference status دارن
                 inference_status = model.get('inference', 'cold')
                 if inference_status not in ['warm', 'hot']:
                     logger.debug(f"[HuggingFace] Skipping {model_id} - inference={inference_status}")
@@ -186,7 +180,6 @@ class HuggingFaceProvider(BaseProvider):
             return []
     
     async def generate_image(self, prompt: str, **kwargs) -> BytesIO:
-        # Use model from config (set by service) or fall back to image_model
         model_to_use = self.config.get('model') or kwargs.get('model') or self.image_model
         router_base = self.ROUTER_V1_BASE_URL
         if router_base.endswith('/v1'):
@@ -218,10 +211,8 @@ class HuggingFaceProvider(BaseProvider):
             num_inference_steps = kwargs.get('num_inference_steps', 50)
             guidance_scale = kwargs.get('guidance_scale', 7.5)
         
-        # Use centralized image prompt enhancement from prompts module
         enhanced_prompt = enhance_image_prompt(prompt, style=style, add_quality=(quality == 'hd'))
         
-        # Get negative prompt from prompts module
         negative_prompt = kwargs.get('negative_prompt') or get_negative_prompt(provider='huggingface')
         
         payload = {
@@ -334,7 +325,6 @@ class HuggingFaceProvider(BaseProvider):
         
         keywords_str = f", {', '.join(keywords)}" if keywords else ""
         
-        # Use centralized SEO prompt from prompts module
         seo_prompt_template = get_seo_prompt(provider='huggingface')
         seo_prompt = seo_prompt_template.format(
             topic=topic,
@@ -395,15 +385,11 @@ class HuggingFaceProvider(BaseProvider):
             raise Exception(AI_ERRORS["content_generation_failed"].format(error=str(e)))
     
     async def chat(self, message: str, conversation_history: Optional[List[Dict[str, str]]] = None, **kwargs) -> str:
-        # Use model from config (set by service) or fall back to content_model
         model_to_use = self.config.get('model') or kwargs.get('model') or self.content_model
 
-        # Get system message based on persona
         persona = kwargs.get('persona', 'default')
         system_message = kwargs.get('system_message') or get_chat_system_message(persona=persona, provider='huggingface')
 
-        # If an image is provided, keep using the HF inference task endpoint for now.
-        # (Router chat is OpenAI-compatible, but multimodal support varies by model.)
         if kwargs.get('image'):
             url = f"{self.BASE_URL}/models/{model_to_use}"
             headers = {
@@ -452,7 +438,6 @@ class HuggingFaceProvider(BaseProvider):
             }
 
             messages: List[Dict[str, Any]] = []
-            # Always add system message
             messages.append({"role": "system", "content": system_message})
 
             if conversation_history:
@@ -477,7 +462,6 @@ class HuggingFaceProvider(BaseProvider):
             
             data = response.json()
 
-            # Router OpenAI-compatible response
             if isinstance(data, dict) and 'choices' in data:
                 try:
                     content = data['choices'][0]['message'].get('content', '')
@@ -486,7 +470,6 @@ class HuggingFaceProvider(BaseProvider):
                 except Exception:
                     pass
 
-            # HF inference (text-generation) response
             if isinstance(data, list) and len(data) > 0:
                 generated_text = data[0].get('generated_text', '')
                 if generated_text:

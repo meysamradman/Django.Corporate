@@ -4,7 +4,6 @@ from src.core.cache import CacheService
 from src.analytics.utils.cache_admin import AnalyticsAdminCacheKeys
 from src.analytics.utils.cache_ttl import AnalyticsCacheTTL
 
-
 class OnlineUsersRealtimeService:
     @classmethod
     def touch_session(cls, session_id: str, site_id: str = "default") -> None:

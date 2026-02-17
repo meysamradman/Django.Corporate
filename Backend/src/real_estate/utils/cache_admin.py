@@ -2,7 +2,6 @@ from django.core.cache import cache
 
 from src.core.cache import CacheKeyBuilder, CacheService, CacheTTL
 
-
 class PropertyCacheKeys:
 
     @staticmethod
@@ -48,7 +47,6 @@ class PropertyCacheKeys:
     @staticmethod
     def all_keys(property_id: int) -> list[str]:
         return CacheKeyBuilder.property_all_keys(property_id)
-
 
 class PropertyCacheManager:
 
@@ -116,7 +114,6 @@ class PropertyCacheManager:
 
         return deleted
 
-
 class PropertyTagCacheKeys:
 
     NAMESPACE = "admin:real_estate:property:tag"
@@ -135,7 +132,6 @@ class PropertyTagCacheKeys:
         if tag_ids:
             keys.extend([PropertyTagCacheKeys.tag(tid) for tid in tag_ids])
         return keys
-
 
 class PropertyTagCacheManager:
 
@@ -162,7 +158,6 @@ class PropertyTagCacheManager:
         deleted = CacheService.delete_pattern(pattern)
         deleted += CacheService.delete_pattern("public:real_estate:tag:*")
         return deleted
-
 
 class TypeCacheKeys:
 
@@ -203,7 +198,6 @@ class TypeCacheKeys:
         if type_ids:
             keys.extend([TypeCacheKeys.type_detail(tid) for tid in type_ids])
         return keys
-
 
 class TypeCacheManager:
 

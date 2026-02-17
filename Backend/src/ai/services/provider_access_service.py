@@ -1,6 +1,5 @@
 from src.ai.models import AIProvider, AdminProviderSettings
 
-
 class ProviderAccessService:
     @staticmethod
     def can_admin_access_provider(user, provider: AIProvider, is_super: bool | None = None) -> bool:

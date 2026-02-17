@@ -229,8 +229,14 @@ REST_FRAMEWORK = {
 }
 CORS_ALLOWED_ORIGINS = env_list(
     'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:5173,http://localhost:4173,http://localhost:3000',
+    default='',
 )
+
+if DEBUG and not CORS_ALLOWED_ORIGINS:
+    CORS_ALLOWED_ORIGINS = [
+        'http://localhost:5173',
+        'http://localhost:3000',
+    ]
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = list(default_headers) + [
@@ -250,8 +256,14 @@ CORS_ALLOW_METHODS = [
 
 CSRF_TRUSTED_ORIGINS = env_list(
     'CSRF_TRUSTED_ORIGINS',
-    default='http://localhost:5173,http://localhost:4173,http://localhost:3000',
+    default='',
 )
+
+if DEBUG and not CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS = [
+        'http://localhost:5173',
+        'http://localhost:3000',
+    ]
 
 AUTH_COOKIE_NAME = 'auth_token'
 REFRESH_COOKIE_NAME = 'refresh_token'

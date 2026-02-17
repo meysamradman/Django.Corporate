@@ -2,9 +2,8 @@ from rest_framework import serializers
 
 from src.real_estate.models.agency import RealEstateAgency
 
-
 class RealEstateAgencyPublicBriefSerializer(serializers.ModelSerializer):
-    """Brief agency info for use in agent serializers"""
+
     province_name = serializers.CharField(source='province.name', read_only=True, allow_null=True)
     city_name = serializers.CharField(source='city.name', read_only=True, allow_null=True)
     logo = serializers.SerializerMethodField()
@@ -33,9 +32,8 @@ class RealEstateAgencyPublicBriefSerializer(serializers.ModelSerializer):
             pass
         return None
 
-
 class RealEstateAgencyPublicListSerializer(serializers.ModelSerializer):
-    """Public list serializer for real estate agencies"""
+
     province_name = serializers.CharField(source='province.name', read_only=True, allow_null=True)
     city_name = serializers.CharField(source='city.name', read_only=True, allow_null=True)
     logo = serializers.SerializerMethodField()
@@ -76,9 +74,8 @@ class RealEstateAgencyPublicListSerializer(serializers.ModelSerializer):
             pass
         return None
 
-
 class RealEstateAgencyPublicDetailSerializer(RealEstateAgencyPublicListSerializer):
-    """Public detail serializer for real estate agencies"""
+
     agents = serializers.SerializerMethodField()
     social_media = serializers.SerializerMethodField()
     social_links = serializers.SerializerMethodField()

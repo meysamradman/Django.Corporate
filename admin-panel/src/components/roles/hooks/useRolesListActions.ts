@@ -5,7 +5,6 @@ import type { Role } from "@/types/auth/permission";
 import { showWarning } from "@/core/toast";
 import type { RoleDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
-
 interface UseRolesListActionsParams {
   data: Role[];
   setRowSelection: Dispatch<SetStateAction<Record<string, boolean>>>;

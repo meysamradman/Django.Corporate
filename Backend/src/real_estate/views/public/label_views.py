@@ -8,7 +8,6 @@ from src.real_estate.messages.messages import LABEL_ERRORS, LABEL_SUCCESS
 from src.real_estate.serializers.public.taxonomy_serializer import PropertyLabelPublicSerializer
 from src.real_estate.services.public.label_services import PropertyLabelPublicService
 
-
 class PropertyLabelPublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     pagination_class = StandardLimitPagination

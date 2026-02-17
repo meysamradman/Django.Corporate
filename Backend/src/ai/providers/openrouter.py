@@ -40,9 +40,6 @@ class OpenRouterProvider(BaseProvider):
         cfg = config or {}
         selected_model = cfg.get('model')
 
-        # Back-compat + service-driven behavior:
-        # - New capability-based services pass the resolved model in `config['model']`.
-        # - Existing configs may still provide capability-specific keys.
         self.chat_model = (
             cfg.get('chat_model')
             or selected_model
@@ -74,12 +71,9 @@ class OpenRouterProvider(BaseProvider):
             "Content-Type": "application/json",
         }
         
-        # Use HTTP-Referer from config or environment variable
-        # This is important for security and proper tracking in production
         if self.http_referer:
             headers["HTTP-Referer"] = self.http_referer
         else:
-            # Get from environment variable or use default
             default_referer = os.getenv('FRONTEND_URL', 'http://localhost:3000')
             headers["HTTP-Referer"] = default_referer
         
@@ -222,7 +216,6 @@ class OpenRouterProvider(BaseProvider):
         if not any(img_model in self.image_model.lower() for img_model in ['dall-e', 'stability', 'flux', 'midjourney']):
             raise NotImplementedError(IMAGE_ERRORS["model_no_image_capability"])
 
-        # OpenRouter exposes OpenAI-compatible endpoints; image generation is via /images/generations.
         url = f"{self.BASE_URL}/images/generations"
 
         headers = self._get_headers()
@@ -234,7 +227,6 @@ class OpenRouterProvider(BaseProvider):
 
         model_id = self.image_model
         
-        # Use centralized image prompt enhancement from prompts module
         enhanced_prompt = enhance_image_prompt(prompt, style=style, add_quality=(quality == 'hd'))
 
         payload = {
@@ -297,11 +289,9 @@ class OpenRouterProvider(BaseProvider):
             ):
                 raise Exception(IMAGE_ERRORS["model_not_found"])
 
-            # Do not leak raw upstream error details in admin-panel toasts.
             raise Exception(IMAGE_ERRORS["image_generation_failed_simple"])
 
         except Exception as e:
-            # Preserve already-localized messages; otherwise use a safe Persian fallback.
             msg = str(e).strip()
             if msg in IMAGE_ERRORS.values():
                 raise Exception(msg)
@@ -378,7 +368,6 @@ class OpenRouterProvider(BaseProvider):
         
         keywords_str = f", {', '.join(keywords)}" if keywords else ""
         
-        # دریافت prompt از ماژول prompts
         seo_prompt_template = get_seo_prompt(provider='openrouter')
         seo_prompt = seo_prompt_template.format(
             topic=topic,

@@ -45,11 +45,9 @@ export function ActiveProvidersBar() {
     const name = (p.name || '').toLowerCase();
     const display = (p.display_name || '').toLowerCase();
 
-    // direct map lookups
     let s = settingsMap[slug] || settingsMap[name] || settingsMap[display];
     if (s) return s;
 
-    // fallback: search array for loose match
     if (mySettings && Array.isArray(mySettings)) {
       s = (mySettings as any[]).find((item: any) => {
         const ps = (item.provider_slug || '').toString();
@@ -63,12 +61,10 @@ export function ActiveProvidersBar() {
 
   const detectSource = (s: any) => {
     if (!s) return 'none';
-    // Prefer personal if personal config or personal API key exists
     if (s.api_config && s.api_config.personal && s.api_config.personal.configured) return 'personal';
     if (s.personal_api_key_value) return 'personal';
     if (s.has_personal_api) return 'personal';
 
-    // Then respect explicit current_source from backend
     if (s.api_config && s.api_config.current_source) return s.api_config.current_source;
 
     if (s.use_shared_api) return 'shared';
@@ -76,7 +72,6 @@ export function ActiveProvidersBar() {
     return 'none';
   };
 
-  // Build provider state once to avoid repeated lookups
   const providerStates = activeProviders.map((p: any) => {
     const s = findSetting(p);
     const source = detectSource(s);
@@ -85,8 +80,6 @@ export function ActiveProvidersBar() {
 
   const personalActiveCount = providerStates.filter((ps: any) => ps.source === 'personal').length;
   const sharedActiveCount = providerStates.filter((ps: any) => ps.source === 'shared').length;
-
-  // production: no console debug logs
 
   return (
     <DropdownMenu>

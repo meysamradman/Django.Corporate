@@ -11,16 +11,7 @@ from src.user.access_control import ai_permission, PermissionRequiredMixin
 from src.ai.providers.capabilities import get_default_model, get_available_models as get_capability_models, get_provider_capabilities, supports_feature
 from src.ai.utils.cache import AICacheKeys
 
-
 class AIModelManagementViewSet(PermissionRequiredMixin, viewsets.ViewSet):
-    """Capability-based AI configuration.
-
-    Product rule (2026-02): Admin selects PROVIDER per capability.
-    Model selection is not exposed; backend resolves a default model_id.
-
-    Frontend compatibility:
-    - POST select-model exists but delegates to select-provider.
-    """
 
     permission_classes = [ai_permission]
     permission_map = {
@@ -62,13 +53,9 @@ class AIModelManagementViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             data=result,
         )
 
-
     @action(detail=False, methods=['get'], url_path='browse-models')
     def browse_models(self, request):
-        """
-        Dynamically fetch available models from providers that support listings (e.g. OpenRouter/HuggingFace).
-        Also returns static hardcoded models for standard providers if requested.
-        """
+
         provider_slug = request.query_params.get('provider')
         capability = request.query_params.get('capability')
         task_filter = request.query_params.get('task_filter')
@@ -84,7 +71,6 @@ class AIModelManagementViewSet(PermissionRequiredMixin, viewsets.ViewSet):
             if not supports_feature(provider_slug, capability):
                 return APIResponse.success(data=[])
 
-            # Product rule: capabilities.py is the primary source of selectable models.
             static_models = get_capability_models(provider_slug, capability) or []
             if static_models == 'dynamic':
                 static_models = []
@@ -101,7 +87,6 @@ class AIModelManagementViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                 ]
                 return APIResponse.success(data=static_data)
 
-            # Unified dynamic model browsing for all providers.
             try:
                 provider = AIProvider.objects.get(slug=provider_slug, is_active=True)
             except AIProvider.DoesNotExist:
@@ -118,7 +103,6 @@ class AIModelManagementViewSet(PermissionRequiredMixin, viewsets.ViewSet):
                 if dynamic is not None:
                     return APIResponse.success(data=dynamic)
 
-        # Fallback: Return static models if available for the provider
         if provider_slug:
             try:
                 static_models = get_capability_models(provider_slug, capability) or []

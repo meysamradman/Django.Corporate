@@ -52,7 +52,6 @@ export function useChatProviders({ hasAIPermission = false, userAuthenticated = 
                     : (response.data as any)?.data || [];
                 setAvailableProviders(providersData);
 
-                // Auto-select migration (gemini -> google) or default
                 if (providersData.length > 0) {
                     setSelectedProvider(prev => {
                         if (prev === 'gemini') {

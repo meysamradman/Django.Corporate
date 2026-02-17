@@ -78,7 +78,6 @@ export function AIContentGenerator({ onNavigateToSettings }: AIContentGeneratorP
                 setAvailableProviders(providersData);
 
                 if (!selectedProvider && providersData.length > 0) {
-                    // Smart default: active provider first
                     const activeSlug = (activeResponse as any)?.data?.content?.provider_slug;
                     const activeProvider = activeSlug 
                         ? providersData.find((p: any) => p.slug === activeSlug || p.provider_name === activeSlug)

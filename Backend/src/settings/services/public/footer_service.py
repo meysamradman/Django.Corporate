@@ -1,6 +1,5 @@
 from src.settings.models import FooterSection
 
-
 def get_public_footer_sections():
     return (
         FooterSection.objects.filter(is_active=True)

@@ -3,7 +3,6 @@ from rest_framework import serializers
 from src.media.serializers.media_serializer import ImageMediaSerializer
 from src.real_estate.models.floor_plan import RealEstateFloorPlan
 
-
 class FloorPlanPublicListSerializer(serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
 

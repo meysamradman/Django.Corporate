@@ -1,9 +1,7 @@
 from src.settings.models import GeneralSettings, Slider
 
-
 def get_public_logo_settings() -> GeneralSettings:
     return GeneralSettings.get_settings()
-
 
 def get_public_active_sliders():
     return (

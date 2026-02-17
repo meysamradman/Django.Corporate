@@ -3,7 +3,6 @@ from django.utils.translation import gettext_lazy as _
 
 from src.core.models import BaseModel
 
-
 class FooterSection(BaseModel):
     title = models.CharField(_("title"), max_length=120)
     order = models.PositiveIntegerField(_("order"), default=0)

@@ -15,10 +15,8 @@ from src.real_estate.utils.cache_ttl import (
     PUBLIC_AGENT_STATS_TTL,
 )
 
-
 class PropertyAgentPublicService:
-    """سرویس عمومی برای مشاورین املاک"""
-    
+
     ALLOWED_ORDERING_FIELDS = {
         'rating',
         'total_sales',
@@ -28,7 +26,7 @@ class PropertyAgentPublicService:
 
     @staticmethod
     def _parse_int(value):
-        """تبدیل به عدد صحیح"""
+
         try:
             return int(value)
         except (TypeError, ValueError):
@@ -36,7 +34,7 @@ class PropertyAgentPublicService:
 
     @staticmethod
     def _parse_float(value):
-        """تبدیل به عدد اعشاری"""
+
         try:
             return float(value)
         except (TypeError, ValueError):
@@ -44,7 +42,7 @@ class PropertyAgentPublicService:
 
     @staticmethod
     def _parse_bool(value):
-        """تبدیل به boolean"""
+
         if value is None:
             return None
         if isinstance(value, bool):
@@ -55,7 +53,7 @@ class PropertyAgentPublicService:
 
     @staticmethod
     def _normalize_ordering(ordering):
-        """نرمال‌سازی فیلد مرتب‌سازی"""
+
         if not ordering:
             return ('-rating', '-total_sales')
 
@@ -70,7 +68,7 @@ class PropertyAgentPublicService:
 
     @staticmethod
     def _base_queryset():
-        """QuerySet پایه برای مشاورین فعال"""
+
         return PropertyAgent.objects.filter(
             is_active=True
         ).select_related(
@@ -97,41 +95,34 @@ class PropertyAgentPublicService:
 
     @staticmethod
     def get_agent_queryset(filters=None, search=None, ordering=None):
-        """دریافت لیست مشاورین با فیلترها"""
+
         queryset = PropertyAgentPublicService._base_queryset()
 
         if filters:
-            # فیلتر بر اساس agency
             agency_id = PropertyAgentPublicService._parse_int(filters.get('agency_id'))
             if agency_id is not None:
                 queryset = queryset.filter(agency_id=agency_id)
 
-            # فیلتر بر اساس تایید شده بودن
             is_verified = PropertyAgentPublicService._parse_bool(filters.get('is_verified'))
             if is_verified is not None:
                 queryset = queryset.filter(is_verified=is_verified)
 
-            # فیلتر بر اساس تخصص
             specialization = filters.get('specialization')
             if specialization:
                 queryset = queryset.filter(specialization__icontains=specialization)
 
-            # فیلتر بر اساس حداقل امتیاز
             min_rating = PropertyAgentPublicService._parse_float(filters.get('min_rating'))
             if min_rating is not None:
                 queryset = queryset.filter(rating__gte=min_rating)
 
-            # فیلتر بر اساس شهر (از طریق user profile)
             city_id = PropertyAgentPublicService._parse_int(filters.get('city_id'))
             if city_id is not None:
                 queryset = queryset.filter(user__admin_profile__city_id=city_id)
 
-            # فیلتر بر اساس استان (از طریق user profile)
             province_id = PropertyAgentPublicService._parse_int(filters.get('province_id'))
             if province_id is not None:
                 queryset = queryset.filter(user__admin_profile__province_id=province_id)
 
-        # جستجو در نام، بیوگرافی و تخصص
         if search:
             queryset = queryset.filter(
                 Q(user__admin_profile__first_name__icontains=search) |
@@ -140,13 +131,12 @@ class PropertyAgentPublicService:
                 Q(bio__icontains=search)
             )
 
-        # مرتب‌سازی
         queryset = queryset.order_by(*PropertyAgentPublicService._normalize_ordering(ordering))
         return queryset.distinct()
 
     @staticmethod
     def get_agent_by_slug(slug):
-        """دریافت مشاور با slug"""
+
         try:
             return PropertyAgentPublicService._base_queryset().get(slug=slug)
         except PropertyAgent.DoesNotExist:
@@ -154,7 +144,7 @@ class PropertyAgentPublicService:
 
     @staticmethod
     def get_agent_by_public_id(public_id):
-        """دریافت مشاور با public_id"""
+
         try:
             return PropertyAgentPublicService._base_queryset().get(public_id=public_id)
         except PropertyAgent.DoesNotExist:
@@ -162,7 +152,7 @@ class PropertyAgentPublicService:
 
     @staticmethod
     def get_agent_by_id(agent_id):
-        """دریافت مشاور با id"""
+
         try:
             return PropertyAgentPublicService._base_queryset().get(id=agent_id)
         except PropertyAgent.DoesNotExist:
@@ -170,14 +160,14 @@ class PropertyAgentPublicService:
 
     @staticmethod
     def get_featured_agents(limit=6):
-        """دریافت مشاورین برجسته (تایید شده و با امتیاز بالا)"""
+
         return PropertyAgentPublicService._base_queryset().filter(
             is_verified=True
         ).order_by('-rating', '-total_sales', '-total_reviews')[:limit]
 
     @staticmethod
     def get_top_rated_agents(limit=10):
-        """دریافت مشاورین با بالاترین امتیاز"""
+
         return PropertyAgentPublicService._base_queryset().filter(
             is_verified=True,
             rating__gte=4.0
@@ -185,7 +175,7 @@ class PropertyAgentPublicService:
 
     @staticmethod
     def get_agents_by_agency(agency_id, limit=None):
-        """دریافت مشاورین یک آژانس"""
+
         queryset = PropertyAgentPublicService._base_queryset().filter(
             agency_id=agency_id
         ).order_by('-rating', '-total_sales')
@@ -197,7 +187,7 @@ class PropertyAgentPublicService:
 
     @staticmethod
     def get_agent_statistics(agent_id):
-        """دریافت آمار یک مشاور"""
+
         from django.db.models import Sum, Avg
         from src.real_estate.models.statistics import AgentStatistics
         
@@ -226,7 +216,7 @@ class PropertyAgentPublicService:
 
     @staticmethod
     def search_agents(query, filters=None):
-        """جستجوی پیشرفته مشاورین"""
+
         queryset = PropertyAgentPublicService._base_queryset()
         
         if query:

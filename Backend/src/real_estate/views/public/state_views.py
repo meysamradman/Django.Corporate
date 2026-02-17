@@ -11,7 +11,6 @@ from src.real_estate.serializers.public.state_serializer import (
     PropertyStatePublicDetailSerializer,
 )
 
-
 class PropertyStatePublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     pagination_class = StandardLimitPagination

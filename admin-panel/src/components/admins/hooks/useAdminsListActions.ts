@@ -5,7 +5,6 @@ import { notifyApiError, showSuccess } from "@/core/toast";
 import { msg } from "@/core/messages";
 import type { AdminDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
-
 export function useAdminsListActions() {
   const queryClient = useQueryClient();
 

@@ -8,7 +8,6 @@ from src.real_estate.messages.messages import TAG_ERRORS, TAG_SUCCESS
 from src.real_estate.serializers.public.taxonomy_serializer import PropertyTagPublicSerializer
 from src.real_estate.services.public.tag_services import PropertyTagPublicService
 
-
 class PropertyTagPublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     pagination_class = StandardLimitPagination
