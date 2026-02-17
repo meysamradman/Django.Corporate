@@ -72,23 +72,139 @@ class PropertyGeoService:
         try:
             with connection.cursor() as cursor:
                 cursor.execute(
+                    """
+                    SELECT EXISTS (
+                        SELECT 1
+                        FROM information_schema.columns
+                        WHERE table_name = %s
+                          AND column_name = 'location_point'
+                    )
+                    """,
+                    [table_name],
+                )
+                row = cursor.fetchone()
+                cls._location_point_available = bool(row and row[0])
+        except Exception:
+            cls._location_point_available = False
 
+        return cls._location_point_available
+
+    @classmethod
+    def _search_nearby_basic(
+        cls,
+        latitude: float,
+        longitude: float,
+        radius_km: float,
+        limit: int,
+        queryset: QuerySet,
+    ) -> QuerySet:
+        lat_delta = radius_km / 111.0
+        cos_lat = abs(math.cos(math.radians(latitude)))
+        lon_delta = radius_km / (111.0 * max(cos_lat, 1e-6))
+
+        return queryset.filter(
+            latitude__gte=latitude - lat_delta,
+            latitude__lte=latitude + lat_delta,
+            longitude__gte=longitude - lon_delta,
+            longitude__lte=longitude + lon_delta
+        )[:limit]
+
+    @classmethod
+    def _search_nearby_postgis(
+        cls,
+        latitude: float,
+        longitude: float,
+        radius_km: float,
+        limit: int,
+        queryset: QuerySet,
+    ) -> QuerySet:
+        radius_m = float(radius_km) * 1000.0
+        reference_lng = float(longitude)
+        reference_lat = float(latitude)
+        point_expr = cls._location_point_expr_sql()
+
+        queryset = queryset.filter(latitude__isnull=False, longitude__isnull=False)
+
+        dwithin_sql = RawSQL(
+            f"""
             ST_DWithin(
                 ({point_expr})::geography,
                 ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography,
                 %s
             )
+            """,
+            (reference_lng, reference_lat, radius_m),
+        )
 
+        distance_sql = RawSQL(
+            f"""
             ST_DistanceSphere(
                 ({point_expr}),
                 ST_SetSRID(ST_MakePoint(%s, %s), 4326)
             )
+            """,
+            (reference_lng, reference_lat),
+        )
 
+        return queryset.annotate(_within=dwithin_sql, _distance_m=distance_sql).filter(_within=True).order_by('_distance_m')[:limit]
+
+    @classmethod
+    def _search_in_polygon_basic(
+        cls,
+        polygon: List[Tuple[float, float]],
+        limit: int,
+        queryset: QuerySet,
+    ) -> QuerySet:
+        lats = [coord[0] for coord in polygon]
+        lons = [coord[1] for coord in polygon]
+
+        return queryset.filter(
+            latitude__gte=min(lats),
+            latitude__lte=max(lats),
+            longitude__gte=min(lons),
+            longitude__lte=max(lons)
+        )[:limit]
+
+    @classmethod
+    def _search_in_polygon_postgis(
+        cls,
+        polygon: List[Tuple[float, float]],
+        limit: int,
+        queryset: QuerySet,
+    ) -> QuerySet:
+        ring = list(polygon)
+        if ring and ring[0] != ring[-1]:
+            ring.append(ring[0])
+
+        polygon_wkt = "POLYGON((" + ", ".join(f"{float(lon)} {float(lat)}" for lat, lon in ring) + "))"
+        point_expr = cls._location_point_expr_sql()
+
+        inside_sql = RawSQL(
+            f"""
             ST_Intersects(
                 ST_GeomFromText(%s, 4326),
                 ({point_expr})
             )
+            """,
+            (polygon_wkt,),
+        )
 
+        return queryset.filter(latitude__isnull=False, longitude__isnull=False).annotate(_inside=inside_sql).filter(_inside=True)[:limit]
+
+    @classmethod
+    def _search_in_bbox_postgis(
+        cls,
+        min_lat: float,
+        max_lat: float,
+        min_lon: float,
+        max_lon: float,
+        limit: int,
+        queryset: QuerySet,
+    ) -> QuerySet:
+        point_expr = cls._location_point_expr_sql()
+
+        bbox_sql = RawSQL(
+            f"""
             ST_Intersects(
                 ({point_expr}),
                 ST_MakeEnvelope(%s, %s, %s, %s, 4326)
