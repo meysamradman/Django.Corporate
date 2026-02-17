@@ -3,6 +3,7 @@ import Slider from "@/components/home/Slider";
 import State from "@/components/home/State";
 import RealFeachure from "@/components/home/RealFeachure";
 import Types from "@/components/home/Types";
+import PropertyHeroSearch from "@/components/real-estate/search/PropertyHeroSearch";
 import { realEstateApi } from "@/api/real-estate/route";
 import { brandingApi } from "@/api/settings/branding";
 import type { HomeSliderItem } from "@/types/settings/branding";
@@ -14,23 +15,54 @@ export default async function HomePage() {
   // Server-side data fetching (parallel) for faster and SEO-friendly Home.
   // Keep Slider as a client component (interactive), but pass server-fetched data.
 
-  const [slides, states, featured, types]: [
+  const [slides, states, featured, types, allStates, allTypes, statuses]: [
     HomeSliderItem[],
     PropertyState[],
     Property[],
-    PropertyType[]
+    PropertyType[],
+    PropertyState[],
+    PropertyType[],
+    Array<{ value: string; label: string }>
   ] = await Promise.all([
     brandingApi.getSliders().then((r) => (Array.isArray(r) ? r : [])).catch(() => []),
     realEstateApi.getStates({ size: 3 }).then((r) => (Array.isArray(r?.data) ? r.data.slice(0, 3) : [])).catch(() => []),
     realEstateApi.getFeaturedProperties(4).then((r) => (Array.isArray(r) ? r : [])).catch(() => []),
     realEstateApi.getTypes({ size: 4 }).then((r) => (Array.isArray(r?.data) ? r.data.slice(0, 4) : [])).catch(() => []),
+    realEstateApi.getStates({ page: 1, size: 100 }).then((r) => (Array.isArray(r?.data) ? r.data : [])).catch(() => []),
+    realEstateApi.getTypes({ page: 1, size: 100 }).then((r) => (Array.isArray(r?.data) ? r.data : [])).catch(() => []),
+    realEstateApi.getPropertyStatuses().catch(() => []),
   ]);
+
+  const typeOptions = allTypes.map((item) => ({
+    id: item.id,
+    value: String(item.id),
+    title: item.name,
+  }));
+
+  const stateOptions = allStates.map((item) => ({
+    id: item.id,
+    value: String(item.id),
+    title: item.title || item.name,
+  }));
+
+  const statusOptions = statuses.map((item, index) => ({
+    id: index + 1,
+    value: item.value,
+    title: item.label,
+  }));
 
   return (
     <>
       <section>
         <Slider slidesData={slides} />
       </section>
+
+      {/* Hero Search Bar */}
+      <PropertyHeroSearch
+        typeOptions={typeOptions}
+        stateOptions={stateOptions}
+        statusOptions={statusOptions}
+      />
 
       <section className="bg-bg py-12 md:py-16">
         <div className="container mr-auto ml-auto">
