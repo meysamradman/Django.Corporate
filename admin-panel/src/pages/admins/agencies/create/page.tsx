@@ -218,6 +218,7 @@ export default function AdminsAgenciesCreatePage() {
 
             <TabbedPageLayout
                 title="افزودن آژانس"
+                showHeader={false}
                 activeTab={activeTab}
                 onTabChange={handleTabChange}
                 onSave={handleSubmit}

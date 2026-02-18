@@ -53,7 +53,7 @@ export function RealEstateAgency({ agency, hasAgentOrCreator }: RealEstateAgency
                     <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => navigate(`/admins/agencies/${agency?.id}/view`)}
+                        onClick={() => navigate(`/admins/agencies/${agency?.id}/edit`)}
                         className="size-10 rounded-2xl text-blue-1/40 hover:text-blue-1 hover:bg-blue-1/10 border border-br/60 bg-wt transition-all shadow-3xs"
                     >
                         <ArrowUpRight className="size-5" />

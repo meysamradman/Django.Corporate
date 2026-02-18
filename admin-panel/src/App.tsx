@@ -22,7 +22,6 @@ import AgentsEditPage from './pages/agents/[id]/edit/page';
 import AgentsMePage from './pages/agents/me/edit/page';
 import AdminsAgenciesPage from './pages/admins/agencies/page';
 import AdminsAgenciesCreatePage from './pages/admins/agencies/create/page';
-import AdminsAgenciesViewPage from './pages/admins/agencies/[id]/view/page';
 import AdminsAgenciesEditPage from './pages/admins/agencies/[id]/edit/page';
 import UsersPage from './pages/users/page';
 import UsersCreatePage from './pages/users/create/page';
@@ -89,6 +88,11 @@ function AgentViewRedirect() {
   return <Navigate to={`/agents/${id}/edit`} replace />;
 }
 
+function AgencyViewRedirect() {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={`/admins/agencies/${id}/edit`} replace />;
+}
+
 function App() {
   return (
     <QueryProvider>
@@ -117,7 +121,7 @@ function App() {
                       <Route path="agencies">
                         <Route index element={<AdminsAgenciesPage />} />
                         <Route path="create" element={<AdminsAgenciesCreatePage />} />
-                        <Route path=":id/view" element={<AdminsAgenciesViewPage />} />
+                        <Route path=":id/view" element={<AgencyViewRedirect />} />
                         <Route path=":id/edit" element={<AdminsAgenciesEditPage />} />
                       </Route>
                       <Route path="me/edit" element={<AdminsMePage />} />

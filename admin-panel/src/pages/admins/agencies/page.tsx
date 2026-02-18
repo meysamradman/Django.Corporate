@@ -74,14 +74,6 @@ export default function AdminsAgenciesPage() {
     const agencyActions: CardItemAction<any>[] = [];
 
     agencyActions.push({
-      label: "مشاهده",
-      icon: <Search className="h-4 w-4" />,
-      onClick: (agency: any) => {
-        navigate(`/admins/agencies/${agency.id}/view`);
-      },
-    });
-
-    agencyActions.push({
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (agency: any) => {
@@ -128,7 +120,6 @@ export default function AdminsAgenciesPage() {
   return (
     <CardListLayout
       title="مدیریت آژانس‌ها"
-      description="لیست آژانس‌های همکار"
       headerActions={
         <ProtectedButton
           size="sm"
@@ -251,7 +242,7 @@ export default function AdminsAgenciesPage() {
                 </>
               }
               onClick={(agency) => {
-                navigate(`/admins/agencies/${agency.id}/view`);
+                navigate(`/admins/agencies/${agency.id}/edit`);
               }}
             />
           );

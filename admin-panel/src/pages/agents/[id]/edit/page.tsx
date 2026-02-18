@@ -1,6 +1,5 @@
 import { lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { useAuth } from "@/core/auth/AuthContext";
 import { Button } from "@/components/elements/Button";
@@ -31,7 +30,6 @@ export default function EditAgentPage() {
   if (!agentId) {
     return (
       <div className="space-y-6">
-        <PageHeader title="ویرایش مشاور املاک" />
         <div className="text-center py-8">
           <p className="text-destructive">شناسه مشاور یافت نشد</p>
         </div>
@@ -45,7 +43,6 @@ export default function EditAgentPage() {
   if (isLoading && !user) {
     return (
       <div className="space-y-6">
-        <PageHeader title="ویرایش مشاور املاک" />
         <EditFormSkeleton />
       </div>
     );
@@ -54,7 +51,6 @@ export default function EditAgentPage() {
   if (!isSelfRoute && !canManageAgents) {
     return (
       <div className="space-y-6">
-        <PageHeader title="ویرایش مشاور املاک" />
         <div className="border p-6 text-center space-y-4">
           <p className="text-destructive">شما فقط می‌توانید پروفایل خود را ویرایش کنید.</p>
           <Button onClick={() => navigate("/agents/me/edit")}>پروفایل من</Button>
@@ -65,8 +61,6 @@ export default function EditAgentPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="ویرایش مشاور املاک" />
-
       <Suspense fallback={<EditFormSkeleton />}>
         <EditAdminForm adminId={agentId} />
       </Suspense>

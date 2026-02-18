@@ -20,6 +20,7 @@ import { AGENCY_FIELD_MAP, extractMappedAgencyFieldErrors } from '@/components/r
 import { Alert, AlertDescription } from "@/components/elements/Alert";
 import type { SocialMediaItem } from "@/types/shared/socialMedia";
 import { SocialMediaArrayEditor } from "@/components/shared/SocialMediaArrayEditor";
+import { AgencyProfileHeader } from "@/components/real-estate/agencies/profile/AgencyProfileHeader";
 
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
@@ -154,7 +155,7 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
             robots_meta: agencyData.robots_meta || "",
         });
 
-        setSelectedProfilePicture((agencyData as any).profile_picture || null);
+        setSelectedProfilePicture((agencyData as any).profile_picture || (agencyData as any).logo || null);
         setSocialMediaItems((agencyData as any).social_media || []);
     }, [agencyData, form]);
 
@@ -347,6 +348,13 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                     <AlertDescription>{formAlert}</AlertDescription>
                 </Alert>
             ) : null}
+
+            <AgencyProfileHeader
+                agency={agencyData}
+                selectedLogo={selectedProfilePicture}
+                onLogoChange={setSelectedProfilePicture}
+                agencyId={agencyId}
+            />
 
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <TabsList>

@@ -104,7 +104,6 @@ export default function AgentsPage() {
       },
       isDisabled: (admin: AdminWithProfile) => {
         if (!currentUserId) return true;
-        const isOwnProfile = currentUserId === admin.id;
         return !isSuperAdmin && !isOwnProfile;
       },
     });
@@ -177,7 +176,6 @@ export default function AgentsPage() {
   return (
     <CardListLayout
       title="مدیریت مشاورین املاک"
-      description="لیست مشاورین املاک فعال در سیستم"
       headerActions={isSuperAdmin && (
         <Button size="sm" asChild>
           <Link to="/admins/create">

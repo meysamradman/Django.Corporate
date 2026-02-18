@@ -1,6 +1,5 @@
 import { lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { useAuth } from "@/core/auth/AuthContext";
 import { Button } from "@/components/elements/Button";
@@ -31,7 +30,6 @@ export default function EditAdminPage() {
   if (!adminId) {
     return (
       <div className="space-y-6">
-        <PageHeader title="ویرایش ادمین" />
         <div className="text-center py-8">
           <p className="text-destructive">شناسه ادمین یافت نشد</p>
         </div>
@@ -45,7 +43,6 @@ export default function EditAdminPage() {
   if (isLoading && !user) {
     return (
       <div className="space-y-6">
-        <PageHeader title="ویرایش ادمین" />
         <EditFormSkeleton />
       </div>
     );
@@ -54,7 +51,6 @@ export default function EditAdminPage() {
   if (!isSelfRoute && !canManageAdmins) {
     return (
       <div className="space-y-6">
-        <PageHeader title="ویرایش ادمین" />
         <div className="border p-6 text-center space-y-4">
           <p className="text-destructive">شما فقط می‌توانید پروفایل خود را مشاهده یا ویرایش کنید.</p>
           <Button onClick={() => navigate("/admins/me/edit")}>پروفایل من</Button>
@@ -65,8 +61,6 @@ export default function EditAdminPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="ویرایش ادمین" />
-
       <Suspense fallback={<EditFormSkeleton />}>
         <EditAdminForm adminId={adminId} />
       </Suspense>

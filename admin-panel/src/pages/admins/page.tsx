@@ -160,7 +160,6 @@ export default function AdminsPage() {
   return (
     <CardListLayout
       title="مدیریت ادمین‌ها"
-      description="لیست ادمین‌های سیستم"
       headerActions={isSuperAdmin && (
         <Button size="sm" asChild>
           <Link to="/admins/create">

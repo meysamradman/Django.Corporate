@@ -17,6 +17,7 @@ export interface TabbedPageTab {
 export interface TabbedPageLayoutProps {
     title: string;
     description?: string;
+    showHeader?: boolean;
     activeTab: string;
     onTabChange: (value: string) => void;
     tabs: TabbedPageTab[];
@@ -36,6 +37,7 @@ export interface TabbedPageLayoutProps {
 export function TabbedPageLayout({
     title,
     description,
+    showHeader = true,
     activeTab,
     onTabChange,
     tabs,
@@ -50,7 +52,7 @@ export function TabbedPageLayout({
 
     return (
         <div className="space-y-6 pb-28 relative">
-            <PageHeader title={title} description={description} />
+            {showHeader ? <PageHeader title={title} description={description} /> : null}
 
             <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
                 <TabsList>

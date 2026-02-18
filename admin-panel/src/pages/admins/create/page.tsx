@@ -314,6 +314,7 @@ export default function CreateAdminPage() {
             <TabbedPageLayout
                 title="افزودن ادمین"
                 description="ایجاد ادمین جدید در سیستم"
+                showHeader={false}
                 activeTab={activeTab}
                 onTabChange={handleTabChange}
                 tabs={tabs}

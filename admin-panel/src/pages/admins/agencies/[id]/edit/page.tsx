@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { useAuth } from "@/core/auth/AuthContext";
 import { Button } from "@/components/elements/Button";
-import { List } from "lucide-react";
 
 const EditFormSkeleton = () => (
   <div className="space-y-6">
@@ -31,9 +30,6 @@ export default function AdminsAgenciesEditPage() {
   if (!agencyId) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="page-title">ویرایش آژانس</h1>
-        </div>
         <div className="text-center py-8">
           <p className="text-destructive">شناسه آژانس یافت نشد</p>
         </div>
@@ -45,18 +41,7 @@ export default function AdminsAgenciesEditPage() {
 
   if (isLoading && !user) {
     return (
-      <div className="space-y-6 pb-28 relative">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="page-title">ویرایش آژانس</h1>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" disabled>
-              <List className="h-4 w-4" />
-              نمایش لیست
-            </Button>
-          </div>
-        </div>
+      <div className="space-y-6">
         <EditFormSkeleton />
       </div>
     );
@@ -65,9 +50,6 @@ export default function AdminsAgenciesEditPage() {
   if (!canManageAgencies) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="page-title">ویرایش آژانس</h1>
-        </div>
         <div className="border p-6 text-center space-y-4">
           <p className="text-destructive">شما مجوز ویرایش آژانس را ندارید.</p>
           <Button onClick={() => navigate("/admins/agencies")}>بازگشت به لیست</Button>
@@ -77,22 +59,7 @@ export default function AdminsAgenciesEditPage() {
   }
 
   return (
-    <div className="space-y-6 pb-28 relative">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="page-title">ویرایش آژانس</h1>
-        </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline"
-            onClick={() => navigate("/admins/agencies")}
-          >
-            <List className="h-4 w-4" />
-            نمایش لیست
-          </Button>
-        </div>
-      </div>
-
+    <div className="space-y-6">
       <Suspense fallback={<EditFormSkeleton />}>
         <EditAgencyForm agencyId={agencyId} />
       </Suspense>

@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { useAuth } from "@/core/auth/AuthContext";
 
@@ -34,7 +33,6 @@ export default function MyAdminProfilePage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="پروفایل من" description="مدیریت پروفایل شخصی و تنظیمات حساب کاربری" />
         <EditFormSkeleton />
       </div>
     );
@@ -46,8 +44,6 @@ export default function MyAdminProfilePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="پروفایل من" description="مدیریت پروفایل شخصی و تنظیمات حساب کاربری" />
-      
       <Suspense fallback={<EditFormSkeleton />}>
         <EditAdminForm adminId="me" />
       </Suspense>
