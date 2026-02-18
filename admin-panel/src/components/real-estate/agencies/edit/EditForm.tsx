@@ -5,7 +5,7 @@ import { useFormState } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { notifyApiError, showSuccess } from '@/core/toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { AlertCircle, Building2, Search, Loader2, Save, Share2, UserCircle } from "lucide-react";
+import { AlertCircle, Building2, Search, Loader2, Save, Share2, UserCircle, Mail, Phone, MapPin, Clock, Star, CheckCircle2, XCircle } from "lucide-react";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { realEstateApi } from "@/api/real-estate";
 import { msg } from '@/core/messages';
@@ -21,6 +21,9 @@ import { Alert, AlertDescription } from "@/components/elements/Alert";
 import type { SocialMediaItem } from "@/types/shared/socialMedia";
 import { SocialMediaArrayEditor } from "@/components/shared/SocialMediaArrayEditor";
 import { AgencyProfileHeader } from "@/components/real-estate/agencies/profile/AgencyProfileHeader";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Switch } from "@/components/elements/Switch";
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
 
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
@@ -340,6 +343,13 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
         );
     }
 
+    const currentName = form.watch("name") || agencyData.name || "وارد نشده";
+    const currentPhone = form.watch("phone") || agencyData.phone || "وارد نشده";
+    const currentEmail = form.watch("email") || agencyData.email || "وارد نشده";
+    const currentCity = agencyData.city_name || "وارد نشده";
+    const currentRating = String(form.watch("rating") ?? agencyData.rating ?? "-");
+    const currentIsActive = (form.watch("is_active") ?? agencyData.is_active) === true;
+
     return (
         <>
             {formAlert ? (
@@ -356,66 +366,165 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                 agencyId={agencyId}
             />
 
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                <TabsList>
-                    <TabsTrigger value="account">
-                        <Building2 className="h-4 w-4" />
-                        اطلاعات پایه
-                    </TabsTrigger>
-                    <TabsTrigger value="profile">
-                        <UserCircle className="h-4 w-4" />
-                        پروفایل
-                    </TabsTrigger>
-                    <TabsTrigger value="seo">
-                        <Search className="h-4 w-4" />
-                        سئو
-                    </TabsTrigger>
-                    <TabsTrigger value="social">
-                        <Share2 className="h-4 w-4" />
-                        شبکه‌های اجتماعی
-                    </TabsTrigger>
-                </TabsList>
+            <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
+                <div className="lg:col-span-2 space-y-6 lg:sticky lg:top-6 h-fit transition-all duration-300">
+                    <CardWithIcon
+                        icon={Building2}
+                        title="اطلاعات آژانس"
+                        iconBgColor="bg-blue"
+                        iconColor="stroke-blue-2"
+                        cardBorderColor="border-b-blue-1"
+                        className="border-0 shadow-md hover:shadow-xl transition-all duration-300 relative overflow-hidden bg-linear-to-br from-card via-card to-muted/30 before:absolute before:right-0 before:top-0 before:h-full before:w-1 before:bg-linear-to-b before:from-blue-1 before:via-blue-1 before:to-blue-1"
+                        contentClassName="pt-4 pb-4"
+                    >
+                        <div className="space-y-5">
+                            <div className="space-y-0 [&>div:not(:last-child)]:border-b">
+                                <div className="flex items-center justify-between gap-3 py-3">
+                                    <div className="flex items-center gap-2">
+                                        <Building2 className="w-4 h-4 text-font-s shrink-0" />
+                                        <label>نام آژانس:</label>
+                                    </div>
+                                    <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
+                                        <span className="text-font-p">{currentName}</span>
+                                    </div>
+                                </div>
 
-                <TabsContent value="account" className="mt-0">
-                    <Suspense fallback={<TabContentSkeleton />}>
-                        <BaseInfoTab
-                            form={form}
-                            editMode={editMode}
-                            agencyData={agencyData}
-                            handleInputChange={handleInputChange}
-                        />
-                    </Suspense>
-                </TabsContent>
+                                <div className="flex items-center justify-between gap-3 py-3">
+                                    <div className="flex items-center gap-2">
+                                        <Phone className="w-4 h-4 text-font-s shrink-0" />
+                                        <label>تلفن:</label>
+                                    </div>
+                                    <p className="text-font-p text-left">{currentPhone}</p>
+                                </div>
 
-                <TabsContent value="profile" className="mt-0">
-                    <Suspense fallback={<TabContentSkeleton />}>
-                        <ProfileTab
-                            form={form}
-                            selectedMedia={selectedProfilePicture}
-                            setSelectedMedia={setSelectedProfilePicture}
-                            editMode={editMode}
-                        />
-                    </Suspense>
-                </TabsContent>
+                                <div className="flex items-center justify-between gap-3 py-3">
+                                    <div className="flex items-center gap-2">
+                                        <Mail className="w-4 h-4 text-font-s shrink-0" />
+                                        <label>ایمیل:</label>
+                                    </div>
+                                    <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
+                                        <span className="text-font-p break-all">{currentEmail}</span>
+                                    </div>
+                                </div>
 
-                <TabsContent value="seo" className="mt-0">
-                    <Suspense fallback={<TabContentSkeleton />}>
-                        <SEOTab
-                            form={form}
-                            editMode={editMode}
-                        />
-                    </Suspense>
-                </TabsContent>
+                                <div className="flex items-center justify-between gap-3 py-3">
+                                    <div className="flex items-center gap-2">
+                                        <MapPin className="w-4 h-4 text-font-s shrink-0" />
+                                        <label>شهر:</label>
+                                    </div>
+                                    <p className="text-font-p text-left">{currentCity}</p>
+                                </div>
 
-                <TabsContent value="social" className="mt-0">
-                    <div className="rounded-lg border p-6">
-                        <SocialMediaArrayEditor
-                            items={socialMediaItems}
-                            onChange={setSocialMediaItems}
-                        />
-                    </div>
-                </TabsContent>
-            </Tabs>
+                                <div className="flex items-center justify-between gap-3 py-3">
+                                    <div className="flex items-center gap-2">
+                                        <Star className="w-4 h-4 text-font-s shrink-0" />
+                                        <label>رتبه:</label>
+                                    </div>
+                                    <p className="text-font-p text-left">{currentRating}</p>
+                                </div>
+
+                                {agencyData.created_at ? (
+                                    <div className="flex items-center justify-between gap-3 py-3">
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="w-4 h-4 text-font-s shrink-0" />
+                                            <label>تاریخ ایجاد:</label>
+                                        </div>
+                                        <p className="text-font-p text-left">{new Date(agencyData.created_at).toLocaleDateString("fa-IR")}</p>
+                                    </div>
+                                ) : null}
+
+                                <div className="py-4 space-y-3">
+                                    <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-md">
+                                        <Item variant="default" size="default" className="py-3">
+                                            <ItemContent>
+                                                <ItemTitle className="text-green-2 text-sm font-bold">وضعیت فعال</ItemTitle>
+                                                <ItemDescription className="text-xs">نمایش آژانس در لیست و امکان استفاده.</ItemDescription>
+                                            </ItemContent>
+                                            <ItemActions>
+                                                <Switch
+                                                    checked={currentIsActive}
+                                                    onCheckedChange={(checked) => handleInputChange("is_active", checked)}
+                                                    disabled={isSaving}
+                                                />
+                                            </ItemActions>
+                                        </Item>
+                                    </div>
+
+                                    <div>
+                                        <span className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs ${currentIsActive ? "bg-green text-green-1" : "bg-yellow text-yellow-1"}`}>
+                                            {currentIsActive ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+                                            {currentIsActive ? "فعال" : "غیرفعال"}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </CardWithIcon>
+                </div>
+
+                <div className="lg:col-span-4">
+                    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+                        <TabsList>
+                            <TabsTrigger value="account">
+                                <Building2 className="h-4 w-4" />
+                                اطلاعات پایه
+                            </TabsTrigger>
+                            <TabsTrigger value="profile">
+                                <UserCircle className="h-4 w-4" />
+                                پروفایل
+                            </TabsTrigger>
+                            <TabsTrigger value="seo">
+                                <Search className="h-4 w-4" />
+                                سئو
+                            </TabsTrigger>
+                            <TabsTrigger value="social">
+                                <Share2 className="h-4 w-4" />
+                                شبکه‌های اجتماعی
+                            </TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="account" className="mt-0">
+                            <Suspense fallback={<TabContentSkeleton />}>
+                                <BaseInfoTab
+                                    form={form}
+                                    editMode={editMode}
+                                    agencyData={agencyData}
+                                    handleInputChange={handleInputChange}
+                                />
+                            </Suspense>
+                        </TabsContent>
+
+                        <TabsContent value="profile" className="mt-0">
+                            <Suspense fallback={<TabContentSkeleton />}>
+                                <ProfileTab
+                                    form={form}
+                                    selectedMedia={selectedProfilePicture}
+                                    setSelectedMedia={setSelectedProfilePicture}
+                                    editMode={editMode}
+                                />
+                            </Suspense>
+                        </TabsContent>
+
+                        <TabsContent value="seo" className="mt-0">
+                            <Suspense fallback={<TabContentSkeleton />}>
+                                <SEOTab
+                                    form={form}
+                                    editMode={editMode}
+                                />
+                            </Suspense>
+                        </TabsContent>
+
+                        <TabsContent value="social" className="mt-0">
+                            <div className="rounded-lg border p-6">
+                                <SocialMediaArrayEditor
+                                    items={socialMediaItems}
+                                    onChange={setSocialMediaItems}
+                                />
+                            </div>
+                        </TabsContent>
+                    </Tabs>
+                </div>
+            </div>
 
             <MediaLibraryModal
                 isOpen={isMediaModalOpen}

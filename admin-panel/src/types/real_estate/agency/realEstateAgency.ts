@@ -16,6 +16,19 @@ export interface RealEstateAgency {
   city: number;
   city_name?: string;
   address: string;
+  profile_picture?: {
+    id: number;
+    file_url: string;
+    title?: string;
+    media_type?: string;
+    alt_text?: string;
+    is_active?: boolean;
+    public_id?: string;
+    created_at?: string;
+    created_by?: number;
+    updated_at?: string;
+    updated_by?: number;
+  } | null;
   logo?: {
     id: number;
     file_url: string;

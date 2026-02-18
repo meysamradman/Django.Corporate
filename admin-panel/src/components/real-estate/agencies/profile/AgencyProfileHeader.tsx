@@ -16,7 +16,7 @@ interface AgencyProfileHeaderProps {
 export function AgencyProfileHeader({ agency, selectedLogo, onLogoChange, agencyId }: AgencyProfileHeaderProps) {
     const queryClient = useQueryClient();
 
-    const currentLogo: Media | null = selectedLogo || agency?.logo || null;
+    const currentLogo: Media | null = selectedLogo || agency?.profile_picture || agency?.logo || null;
 
     const handleLogoSelect = async (selectedMedia: Media | null) => {
         const logoId = selectedMedia?.id || null;
@@ -27,39 +27,24 @@ export function AgencyProfileHeader({ agency, selectedLogo, onLogoChange, agency
         }
 
         try {
-            const updateData: any = {
-                name: agency.name,
-                phone: agency.phone,
-                email: agency.email || null,
-                website: agency.website || null,
-                license_number: agency.license_number || null,
-                license_expire_date: agency.license_expire_date || null,
-                city: agency.city || null,
-                province: agency.province || null,
-                description: agency.description || null,
-                address: agency.address || null,
-                is_active: agency.is_active,
-                is_verified: agency.is_verified,
-                rating: agency.rating || 0,
-                total_reviews: agency.total_reviews || 0,
-                logo_id: logoId,
-            };
-
-            const updatedAgency = await realEstateApi.updateAgency(targetAgencyId, updateData);
+            const updatedAgency = await realEstateApi.partialUpdateAgency(targetAgencyId, {
+                profile_picture: logoId,
+            } as any);
 
             if (!updatedAgency) {
                 return;
             }
 
-            const queryKeyForInvalidate = agencyId || String(agency?.id);
+            const queryKeyForInvalidate = String(targetAgencyId);
 
             if (onLogoChange) {
-                const updatedLogo: Media | null = (updatedAgency.logo as unknown as Media) ?? null;
+                const updatedLogo: Media | null = ((updatedAgency as any).profile_picture as Media) ?? ((updatedAgency as any).logo as Media) ?? null;
                 onLogoChange(updatedLogo);
             }
 
             await queryClient.setQueryData(['agency', queryKeyForInvalidate], updatedAgency);
             await queryClient.invalidateQueries({ queryKey: ['agency', queryKeyForInvalidate] });
+            await queryClient.refetchQueries({ queryKey: ['agency', queryKeyForInvalidate] });
             await queryClient.invalidateQueries({ queryKey: ['agencies'] });
 
             if (logoId) {

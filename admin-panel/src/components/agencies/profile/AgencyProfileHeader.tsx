@@ -19,7 +19,7 @@ interface AgencyProfileHeaderProps {
     agencyId?: string;
 }
 
-export function AgencyProfileHeader({ agency, formData, onLogoChange }: AgencyProfileHeaderProps) {
+export function AgencyProfileHeader({ agency, formData, onLogoChange, agencyId }: AgencyProfileHeaderProps) {
     const queryClient = useQueryClient();
     const [isSaving, setIsSaving] = useState(false);
     
@@ -41,15 +41,18 @@ export function AgencyProfileHeader({ agency, formData, onLogoChange }: AgencyPr
             const updateData: any = {
                 logo: logoId,
             };
-            
-            await realEstateApi.updateAgency(agency.id, updateData);
+
+            const targetAgencyId = agencyId && !isNaN(Number(agencyId)) ? Number(agencyId) : agency.id;
+            await realEstateApi.partialUpdateAgency(targetAgencyId, updateData);
 
             if (onLogoChange) {
                 onLogoChange(selectedMedia);
             }
 
-            await queryClient.invalidateQueries({ queryKey: ['agency', String(agency.id)] });
-            await queryClient.refetchQueries({ queryKey: ['agency', String(agency.id)] });
+            const queryKeyForInvalidate = agencyId || String(agency.id);
+            await queryClient.invalidateQueries({ queryKey: ['agency', queryKeyForInvalidate] });
+            await queryClient.refetchQueries({ queryKey: ['agency', queryKeyForInvalidate] });
+            await queryClient.invalidateQueries({ queryKey: ['agencies'] });
 
             if (logoId) {
                 showSuccess("لوگو با موفقیت به‌روزرسانی شد");
