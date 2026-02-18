@@ -71,7 +71,9 @@ html body[data-scroll-locked] {
     margin: 0;
     padding: 0;
   }
-
+.font-peyda {
+  font-feature-settings: "ss01";
+}
   body {
     background-color: var(--bg);
     font-feature-settings: "rlig" 1, "calt" 1;

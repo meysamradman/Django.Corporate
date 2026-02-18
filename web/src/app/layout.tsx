@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import "@/app/globals.css";
-import {fontPersian} from '@/core/styles/fonts';
+import {fontPeyda} from '@/core/fonts/persian';
 
 export default function RootLayout({
     children,
@@ -8,7 +8,7 @@ export default function RootLayout({
     children: ReactNode;
 }) {
     return (
-        <html lang="fa" dir="rtl" className={fontPersian.className} suppressHydrationWarning>
+        <html lang="fa" dir="rtl" className={fontPeyda.className} suppressHydrationWarning>
             <body className="bg-bg">
                 {children}
             </body>
