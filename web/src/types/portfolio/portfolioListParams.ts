@@ -4,6 +4,8 @@ export interface PortfolioListParams {
   size?: number;
   order_by?: string;
   order_desc?: boolean;
+  category_slug?: string;
+  tag_slug?: string;
   status?: string;
   is_featured?: string | boolean;
   is_public?: string | boolean;

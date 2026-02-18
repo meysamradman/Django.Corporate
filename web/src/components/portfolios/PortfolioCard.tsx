@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { CalendarDays } from "lucide-react";
@@ -5,10 +7,12 @@ import { CalendarDays } from "lucide-react";
 import { Badge } from "@/components/elements/Badge";
 import { formatDate } from "@/core/utils/format";
 import { portfolioMedia } from "@/core/utils/media";
+import { buildPortfolioListHref } from "@/components/portfolios/query";
 import type { Portfolio } from "@/types/portfolio/portfolio";
 
 type PortfolioCardProps = {
   portfolio: Portfolio;
+  priorityImage?: boolean;
 };
 
 type PortfolioWithMainImageUrl = Portfolio & {
@@ -23,7 +27,7 @@ const getCanonicalPortfolioId = (portfolio: Portfolio): string | number => {
   return portfolio.public_id;
 };
 
-export default function PortfolioCard({ portfolio }: PortfolioCardProps) {
+export default function PortfolioCard({ portfolio, priorityImage = false }: PortfolioCardProps) {
   const portfolioData = portfolio as PortfolioWithMainImageUrl;
   const canonicalId = getCanonicalPortfolioId(portfolio);
 
@@ -40,15 +44,23 @@ export default function PortfolioCard({ portfolio }: PortfolioCardProps) {
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          priority={priorityImage}
+          loading={priorityImage ? "eager" : "lazy"}
         />
       </div>
 
       <div className="space-y-4 p-5">
         <div className="flex flex-wrap items-center gap-2">
           {portfolio.categories?.slice(0, 2).map((category) => (
-            <Badge key={category.public_id} variant="gray">
-              {category.name}
-            </Badge>
+            <Link
+              key={category.public_id}
+              href={buildPortfolioListHref({ page: 1, category_slug: category.slug })}
+              prefetch={false}
+              className="inline-flex"
+              aria-label={`نمایش نمونه‌کارهای دسته ${category.name}`}
+            >
+              <Badge variant="gray">{category.name}</Badge>
+            </Link>
           ))}
 
           {portfolio.is_featured && <Badge>ویژه</Badge>}
