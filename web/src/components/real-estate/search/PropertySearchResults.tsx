@@ -13,7 +13,7 @@ import {
 
 import type { Property } from "@/types/real-estate/property";
 import type { PropertySearchFilters } from "@/types/real-estate/searchFilters";
-import { filtersToSearchParams } from "@/components/real-estate/search/filters";
+import { filtersToHref } from "@/components/real-estate/search/filters";
 
 type PropertySearchResultsProps = {
   properties: Property[];
@@ -40,12 +40,10 @@ const getPropertyImageUrl = (property: Property): string | null => {
   return mediaImage;
 };
 
-const getPropertyCanonicalPath = (property: Property): string => `/real-estate/${property.id}/${encodeURIComponent(property.slug)}`;
+const getPropertyCanonicalPath = (property: Property): string => `/properties/id/${property.id}/${encodeURIComponent(property.slug)}`;
 
 const buildPageHref = (filters: PropertySearchFilters, page: number): string => {
-  const params = filtersToSearchParams(filters, { page });
-  const query = params.toString();
-  return query ? `/real-estate?${query}` : "/real-estate";
+  return filtersToHref(filters, { page });
 };
 
 const buildPageItems = (currentPage: number, totalPages: number): (number | "ellipsis")[] => {

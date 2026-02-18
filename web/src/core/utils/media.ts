@@ -21,6 +21,9 @@ export const MEDIA_DEFAULT_IMAGES = {
   blog: {
     post: '/images/profile-banner.png',
   },
+  portfolio: {
+    item: '/images/profile-banner.png',
+  },
   user: {
     avatar: '/images/default_profile.png',
   },
@@ -181,6 +184,15 @@ export const blogMedia = {
   getPostImage: (
     image?: { url?: string; file_url?: string; file?: string } | string | null,
     fallback: string = MEDIA_DEFAULT_IMAGES.blog.post
+  ): string => {
+    return getImageUrl(image, fallback);
+  },
+};
+
+export const portfolioMedia = {
+  getItemImage: (
+    image?: { url?: string; file_url?: string; file?: string } | string | null,
+    fallback: string = MEDIA_DEFAULT_IMAGES.portfolio.item
   ): string => {
     return getImageUrl(image, fallback);
   },

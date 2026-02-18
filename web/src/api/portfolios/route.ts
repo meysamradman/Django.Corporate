@@ -12,7 +12,24 @@ import { toPaginatedResponse, withQuery } from "@/api/shared";
 
 export const portfolioApi = {
   getPortfolioList: async (params?: PortfolioListParams): Promise<PaginatedResponse<Portfolio>> => {
-    const response = await fetchApi.get<Portfolio[]>(withQuery("/portfolio/", params as Record<string, unknown>));
+    const limit = params?.size;
+    const offset = params?.page && params?.size ? (params.page - 1) * params.size : undefined;
+    const ordering = params?.order_by
+      ? `${params.order_desc ? "-" : ""}${params.order_by}`
+      : undefined;
+
+    const queryParams = {
+      ...params,
+      limit,
+      offset,
+      ordering,
+      page: undefined,
+      size: undefined,
+      order_by: undefined,
+      order_desc: undefined,
+    } as Record<string, unknown>;
+
+    const response = await fetchApi.get<Portfolio[]>(withQuery("/portfolio/", queryParams));
     return toPaginatedResponse<Portfolio>(response, params?.size || 10);
   },
 
@@ -23,6 +40,11 @@ export const portfolioApi = {
 
   getPortfolioByNumericId: async (id: string | number): Promise<Portfolio> => {
     const response = await fetchApi.get<Portfolio>(`/portfolio/id/${id}/`);
+    return response.data;
+  },
+
+  getPortfolioByPublicId: async (publicId: string): Promise<Portfolio> => {
+    const response = await fetchApi.get<Portfolio>(`/portfolio/p/${publicId}/`);
     return response.data;
   },
 

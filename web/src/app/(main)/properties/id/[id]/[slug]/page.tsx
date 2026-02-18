@@ -18,7 +18,7 @@ type PageProps = {
   params: Promise<{ id: string; slug: string }>;
 };
 
-const getCanonicalPropertyPath = (id: string | number, slug: string) => `/real-estate/${id}/${encodeURIComponent(slug)}`;
+const getCanonicalPropertyPath = (id: string | number, slug: string) => `/properties/id/${id}/${encodeURIComponent(slug)}`;
 
 export default async function PropertyDetailPage({ params }: PageProps) {
   const { id } = await params;

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { realEstateApi } from "@/api/real-estate/route";
 import {
-  filtersToSearchParams,
+  filtersToHref,
   toPropertyListApiParams,
 } from "@/components/real-estate/search/filters";
 import type { Property } from "@/types/real-estate/property";
@@ -61,9 +61,7 @@ export function usePropertySearch({
       requestIdRef.current = requestId;
       setIsLoading(true);
 
-      const params = filtersToSearchParams(filters);
-      const query = params.toString();
-      router.replace(query ? `/real-estate?${query}` : "/real-estate", { scroll: false });
+      router.replace(filtersToHref(filters), { scroll: false });
 
       try {
         const response = await realEstateApi.getProperties(toPropertyListApiParams(filters));

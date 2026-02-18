@@ -42,9 +42,132 @@ const toOrderDesc = (value: string | string[] | undefined): boolean => {
   return raw !== "false" && raw !== "0";
 };
 
+const normalizeSegment = (value: string): string =>
+  value.trim().replace(/\s+/g, "-").toLowerCase();
+
+const denormalizeSegment = (value: string): string =>
+  value.trim().replace(/-/g, " ");
+
+export const toSortValue = (filters: PropertySearchFilters): string => {
+  if (filters.order_by === "published_at" && filters.order_desc) return "latest";
+  if (filters.order_by === "created_at" && filters.order_desc) return "created_desc";
+  if (filters.order_by === "price" && filters.order_desc) return "price_desc";
+  if (filters.order_by === "price" && !filters.order_desc) return "price_asc";
+  if (filters.order_by === "built_area" && filters.order_desc) return "area_desc";
+  if (filters.order_by === "views_count" && filters.order_desc) return "views_desc";
+  if (filters.order_by === "favorites_count" && filters.order_desc) return "favorites_desc";
+  if (filters.order_by === "updated_at" && filters.order_desc) return "updated_desc";
+  return "created_desc";
+};
+
+export const fromSortValue = (sortValue: string): { order_by: string; order_desc: boolean } => {
+  const map: Record<string, { order_by: string; order_desc: boolean }> = {
+    latest: { order_by: "published_at", order_desc: true },
+    created_desc: { order_by: "created_at", order_desc: true },
+    price_desc: { order_by: "price", order_desc: true },
+    price_asc: { order_by: "price", order_desc: false },
+    area_desc: { order_by: "built_area", order_desc: true },
+    views_desc: { order_by: "views_count", order_desc: true },
+    favorites_desc: { order_by: "favorites_count", order_desc: true },
+    updated_desc: { order_by: "updated_at", order_desc: true },
+  };
+
+  return map[sortValue] || map.created_desc;
+};
+
+const resolveSort = (searchParams: Record<string, string | string[] | undefined>) => {
+  const sort = toSingle(searchParams.sort).trim();
+  if (sort) {
+    return fromSortValue(sort);
+  }
+
+  return {
+    order_by: toOrderBy(searchParams.order_by),
+    order_desc: toOrderDesc(searchParams.order_desc),
+  };
+};
+
+export const filtersFromSeoSegments = (
+  dealType?: string,
+  city?: string
+): Partial<PropertySearchFilters> => {
+  const normalizedDealType = (dealType || "").trim().toLowerCase();
+  const normalizedCity = (city || "").trim();
+
+  if (!normalizedDealType) {
+    return {};
+  }
+
+  if (normalizedDealType === "buy" || normalizedDealType === "rent") {
+    return { state_slug: normalizedDealType };
+  }
+
+  if (normalizedDealType.startsWith("buy-") || normalizedDealType.startsWith("rent-")) {
+    const [stateSlug, ...typeParts] = normalizedDealType.split("-");
+    const typeSlug = typeParts.join("-");
+
+    const result: Partial<PropertySearchFilters> = {
+      state_slug: stateSlug,
+      type_slug: typeSlug,
+    };
+
+    if (normalizedCity) {
+      result.search = denormalizeSegment(decodeURIComponent(normalizedCity));
+    }
+
+    return result;
+  }
+
+  return {};
+};
+
+const resolveSeoPathMode = (filters: PropertySearchFilters): "properties" | "state" | "state-type" | "state-type-city" => {
+  const stateSlug = (filters.state_slug || "").trim().toLowerCase();
+  const typeSlug = (filters.type_slug || "").trim().toLowerCase();
+  const search = (filters.search || "").trim();
+
+  if (!["buy", "rent"].includes(stateSlug)) {
+    return "properties";
+  }
+
+  if (!typeSlug) {
+    return "state";
+  }
+
+  if (search) {
+    return "state-type-city";
+  }
+
+  return "state-type";
+};
+
+export const resolvePropertySearchPath = (filters: PropertySearchFilters): string => {
+  const stateSlug = (filters.state_slug || "").trim().toLowerCase();
+  const typeSlug = (filters.type_slug || "").trim().toLowerCase();
+  const citySegment = normalizeSegment(filters.search || "");
+
+  const mode = resolveSeoPathMode(filters);
+
+  if (mode === "state") {
+    return `/properties/${stateSlug}`;
+  }
+
+  if (mode === "state-type") {
+    return `/properties/${stateSlug}-${typeSlug}`;
+  }
+
+  if (mode === "state-type-city") {
+    return `/properties/${stateSlug}-${typeSlug}/${citySegment}`;
+  }
+
+  return "/properties";
+};
+
 export const resolvePropertySearchFilters = (
   searchParams: Record<string, string | string[] | undefined>
 ): PropertySearchFilters => {
+  const sortConfig = resolveSort(searchParams);
+
   return {
     search: toSingle(searchParams.search).trim(),
     status: toSingle(searchParams.status).trim(),
@@ -70,8 +193,8 @@ export const resolvePropertySearchFilters = (
     label_slug: toSingle(searchParams.label_slug).trim(),
     label_public_id: toSingle(searchParams.label_public_id).trim(),
     feature_public_id: toSingle(searchParams.feature_public_id).trim(),
-    order_by: toOrderBy(searchParams.order_by),
-    order_desc: toOrderDesc(searchParams.order_desc),
+    order_by: sortConfig.order_by,
+    order_desc: sortConfig.order_desc,
     page: toPage(searchParams.page),
   };
 };
@@ -115,8 +238,13 @@ export const filtersToSearchParams = (
 ): URLSearchParams => {
   const next = { ...filters, ...(overrides || {}) };
   const params = new URLSearchParams();
+  const mode = resolveSeoPathMode(next);
 
-  if (next.search) params.set("search", next.search);
+  const isStateEncoded = mode === "state" || mode === "state-type" || mode === "state-type-city";
+  const isTypeEncoded = mode === "state-type" || mode === "state-type-city";
+  const isSearchEncoded = mode === "state-type-city";
+
+  if (next.search && !isSearchEncoded) params.set("search", next.search);
   if (next.status) params.set("status", next.status);
   if (next.is_featured !== null) params.set("is_featured", next.is_featured ? "true" : "false");
   if (next.is_public !== null) params.set("is_public", next.is_public ? "true" : "false");
@@ -134,15 +262,25 @@ export const filtersToSearchParams = (
   if (next.bathrooms) params.set("bathrooms", String(next.bathrooms));
   if (next.created_after) params.set("created_after", next.created_after);
   if (next.created_before) params.set("created_before", next.created_before);
-  if (next.type_slug) params.set("type_slug", next.type_slug);
-  if (next.state_slug) params.set("state_slug", next.state_slug);
+  if (next.type_slug && !isTypeEncoded) params.set("type_slug", next.type_slug);
+  if (next.state_slug && !isStateEncoded) params.set("state_slug", next.state_slug);
   if (next.tag_slug) params.set("tag_slug", next.tag_slug);
   if (next.label_slug) params.set("label_slug", next.label_slug);
   if (next.label_public_id) params.set("label_public_id", next.label_public_id);
   if (next.feature_public_id) params.set("feature_public_id", next.feature_public_id);
-  if (next.order_by) params.set("order_by", next.order_by);
-  params.set("order_desc", next.order_desc ? "true" : "false");
+  params.set("sort", toSortValue(next));
   if (next.page > 1) params.set("page", String(next.page));
 
   return params;
+};
+
+export const filtersToHref = (
+  filters: PropertySearchFilters,
+  overrides?: Partial<PropertySearchFilters>
+): string => {
+  const next = { ...filters, ...(overrides || {}) };
+  const path = resolvePropertySearchPath(next);
+  const params = filtersToSearchParams(next);
+  const query = params.toString();
+  return query ? `${path}?${query}` : path;
 };

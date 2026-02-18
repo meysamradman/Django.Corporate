@@ -82,7 +82,7 @@ export default function PropertyAgentSticky({
                   {name}
                 </div>
                 <a
-                  href="/real-estate"
+                  href="/properties"
                   className="text-xs font-black text-blue-1 hover:underline"
                 >
                   مشاهده آگهی‌ها

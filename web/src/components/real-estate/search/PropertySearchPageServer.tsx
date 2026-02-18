@@ -1,19 +1,14 @@
 import { realEstateApi } from "@/api/real-estate/route";
 import PropertySearchClient from "@/components/real-estate/search/PropertySearchClient";
-import {
-  resolvePropertySearchFilters,
-  toPropertyListApiParams,
-} from "@/components/real-estate/search/filters";
+import { toPropertyListApiParams } from "@/components/real-estate/search/filters";
 import { resolvePaginatedData } from "@/core/utils/pagination";
+import type { PropertySearchFilters } from "@/types/real-estate/searchFilters";
 
-type PageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+type PropertySearchPageServerProps = {
+  filters: PropertySearchFilters;
 };
 
-export default async function RealEstatePage({ searchParams }: PageProps) {
-  const params = await searchParams;
-  const filters = resolvePropertySearchFilters(params);
-
+export default async function PropertySearchPageServer({ filters }: PropertySearchPageServerProps) {
   const [propertiesResponse, typesResponse, statesResponse, labelsResponse, tagsResponse, featuresResponse, statusesResponse] = await Promise.all([
     realEstateApi.getProperties(toPropertyListApiParams(filters)).catch(() => null),
     realEstateApi.getTypes({ page: 1, size: 100 }).catch(() => null),

@@ -3,6 +3,7 @@
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { NativeSelect, NativeSelectOption } from "@/components/elements/NativeSelect";
+import { fromSortValue, toSortValue } from "@/components/real-estate/search/filters";
 import type { PropertySearchFilters } from "@/types/real-estate/searchFilters";
 
 export type SidebarOption = {
@@ -25,33 +26,6 @@ type PropertySearchSidebarProps = {
 };
 
 const cardClassName = "rounded-md border bg-card p-3 space-y-3";
-
-const toSortValue = (filters: PropertySearchFilters): string => {
-  if (filters.order_by === "published_at" && filters.order_desc) return "latest";
-  if (filters.order_by === "created_at" && filters.order_desc) return "created_desc";
-  if (filters.order_by === "price" && filters.order_desc) return "price_desc";
-  if (filters.order_by === "price" && !filters.order_desc) return "price_asc";
-  if (filters.order_by === "built_area" && filters.order_desc) return "area_desc";
-  if (filters.order_by === "views_count" && filters.order_desc) return "views_desc";
-  if (filters.order_by === "favorites_count" && filters.order_desc) return "favorites_desc";
-  if (filters.order_by === "updated_at" && filters.order_desc) return "updated_desc";
-  return "created_desc";
-};
-
-const toSortConfig = (sortValue: string): { order_by: string; order_desc: boolean } => {
-  const map: Record<string, { order_by: string; order_desc: boolean }> = {
-    latest: { order_by: "published_at", order_desc: true },
-    created_desc: { order_by: "created_at", order_desc: true },
-    price_desc: { order_by: "price", order_desc: true },
-    price_asc: { order_by: "price", order_desc: false },
-    area_desc: { order_by: "built_area", order_desc: true },
-    views_desc: { order_by: "views_count", order_desc: true },
-    favorites_desc: { order_by: "favorites_count", order_desc: true },
-    updated_desc: { order_by: "updated_at", order_desc: true },
-  };
-
-  return map[sortValue] || map.created_desc;
-};
 
 const toBoolString = (value: boolean | null): string => {
   if (value === null) return "";
@@ -378,7 +352,7 @@ export default function PropertySearchSidebar({
           <NativeSelect
             value={sortValue}
             onChange={(event) => {
-              const sortConfig = toSortConfig(event.target.value);
+              const sortConfig = fromSortValue(event.target.value);
               update({
                 order_by: sortConfig.order_by,
                 order_desc: sortConfig.order_desc,

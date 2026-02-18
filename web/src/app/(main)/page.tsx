@@ -87,7 +87,7 @@ export default async function HomePage() {
             </div>
 
             <Button asChild className="shrink-0">
-              <Link href="/real-estate">مشاهده همه</Link>
+              <Link href="/properties">مشاهده همه</Link>
             </Button>
           </div>
 

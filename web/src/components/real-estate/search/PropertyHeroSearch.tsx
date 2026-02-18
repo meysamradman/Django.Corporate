@@ -36,7 +36,7 @@ type PropertyHeroSearchProps = {
  * - Client-side interactivity with instant state updates
  * - Keyboard support (Enter key triggers search)
  * - Responsive design (mobile-first grid layout)
- * - Navigates to /real-estate with query parameters when search is triggered
+ * - Navigates to /properties with query parameters when search is triggered
  * - SSR-friendly: options are fetched on server and passed as props
  * 
  * @example
@@ -79,7 +79,8 @@ export default function PropertyHeroSearch({
       params.set("status", status);
     }
 
-    router.push(`/real-estate?${params.toString()}`);
+    const query = params.toString();
+    router.push(query ? `/properties?${query}` : "/properties");
   };
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
