@@ -1,17 +1,18 @@
 import { Avatar, AvatarFallback } from "@/components/elements/Avatar";
 import { Badge } from "@/components/elements/Badge";
 import { Card, CardContent } from "@/components/elements/Card";
-import { AtSign, Instagram, Languages, Linkedin, Mail, MapPin, MessageCircle, Phone, Send, Shield, Smartphone } from "lucide-react";
+import { AtSign, Instagram, Linkedin, Mail, MapPin, MessageCircle, Phone, Send, Smartphone } from "lucide-react";
 
 export function InfoSidebar() {
+  const roleLabel = "مدیر محتوا";
+  const accountTypeLabel = "مشاور املاک";
+
   const infoRows = [
     { icon: AtSign, label: "نام کاربری", value: "barakat_admin" },
     { icon: Mail, label: "ایمیل", value: "admin@example.com" },
     { icon: Smartphone, label: "موبایل", value: "09124707989" },
     { icon: Phone, label: "تلفن", value: "02112345678" },
-    { icon: Shield, label: "کد ملی", value: "0012345678" },
     { icon: MapPin, label: "موقعیت", value: "تهران، تهران" },
-    { icon: Languages, label: "زبان", value: "فارسی" },
   ] as const;
 
   return (
@@ -46,10 +47,12 @@ export function InfoSidebar() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="blue">ادمین سیستم</Badge>
-          <Badge variant="green">استاف</Badge>
-          <Badge variant="gray">فعال</Badge>
+        <div className="rounded-xl border border-br bg-card-2 p-3">
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <Badge variant="blue">نقش: {roleLabel}</Badge>
+            <Badge variant="teal">نوع حساب: {accountTypeLabel}</Badge>
+            <Badge variant="green">وضعیت: فعال</Badge>
+          </div>
         </div>
 
         <div className="rounded-xl border border-br bg-card-2 p-3 space-y-1.5">
