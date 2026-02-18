@@ -421,16 +421,74 @@ export function ProfileTabs() {
     }));
   }
 
+  const tabMeta: Record<string, { icon: typeof UserCircle; iconWrap: string; iconColor: string; count: number }> = {
+    "admin-info": {
+      icon: UserCircle,
+      iconWrap: "bg-blue/15 border-blue/30",
+      iconColor: "text-blue-2",
+      count: 5,
+    },
+    consultant: {
+      icon: Users,
+      iconWrap: "bg-green/15 border-green/30",
+      iconColor: "text-green-2",
+      count: 2,
+    },
+    properties: {
+      icon: Share2,
+      iconWrap: "bg-indigo/15 border-indigo/30",
+      iconColor: "text-indigo-2",
+      count: savedForm.isConsultant ? savedForm.consultantProperties.length : savedForm.adminProperties.length,
+    },
+    permissions: {
+      icon: ShieldCheck,
+      iconWrap: "bg-purple/15 border-purple/30",
+      iconColor: "text-purple-2",
+      count: effectivePermissionIds.length,
+    },
+    security: {
+      icon: LockKeyhole,
+      iconWrap: "bg-yellow/15 border-yellow/30",
+      iconColor: "text-yellow-2",
+      count: 1,
+    },
+    social: {
+      icon: Share2,
+      iconWrap: "bg-pink/15 border-pink/30",
+      iconColor: "text-pink-2",
+      count: savedForm.socialMedia.length,
+    },
+  };
+
   return (
+
     <div className="space-y-4">
       <Tabs defaultValue="admin-info" className="w-full">
-      <TabsList>
-        {PROFILE_OVERVIEW_TABS.map((tab) => (
-          <TabsTrigger key={tab.value} value={tab.value}>
-            {tab.label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+        <TabsList className="no-scrollbar mb-6 flex w-full items-center justify-start gap-8 overflow-x-auto border-b border-br px-2">
+          {PROFILE_OVERVIEW_TABS.map((tab) => {
+            const meta = tabMeta[tab.value as keyof typeof tabMeta] ?? tabMeta["admin-info"];
+            const TabIcon = meta.icon;
+
+            return (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="group relative flex min-w-max items-center gap-2 py-4 text-sm font-medium text-font-s transition-all hover:text-font-p data-[state=active]:text-primary data-[state=active]:font-semibold"
+              >
+                <TabIcon className="size-4.5 opacity-70 transition-all group-hover:opacity-100 group-data-[state=active]:opacity-100 group-data-[state=active]:text-primary" />
+                <span>{tab.label}</span>
+                
+                {meta.count > 0 && (
+                  <span className="ms-1 flex size-5 items-center justify-center rounded-full bg-br/50 text-[10px] text-font-s font-medium transition-colors group-data-[state=active]:bg-primary/10 group-data-[state=active]:text-primary">
+                    {meta.count}
+                  </span>
+                )}
+
+                <span className="absolute inset-x-0 -bottom-px h-0.5 scale-x-0 bg-primary transition-transform duration-300 ease-out group-data-[state=active]:scale-x-100" />
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
 
         <TabsContent value="admin-info" className="space-y-4">
           <CardWithIcon
