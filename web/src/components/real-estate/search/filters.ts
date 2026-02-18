@@ -2,6 +2,7 @@ import type { RealEstateListParams } from "@/types/real-estate/realEstateListPar
 import type { PropertySearchFilters } from "@/types/real-estate/searchFilters";
 
 export const PROPERTY_PAGE_SIZE = 9;
+const DEFAULT_SORT_VALUE = "created_desc";
 
 const toSingle = (value: string | string[] | undefined): string => {
   if (Array.isArray(value)) return value[0] || "";
@@ -57,7 +58,7 @@ export const toSortValue = (filters: PropertySearchFilters): string => {
   if (filters.order_by === "views_count" && filters.order_desc) return "views_desc";
   if (filters.order_by === "favorites_count" && filters.order_desc) return "favorites_desc";
   if (filters.order_by === "updated_at" && filters.order_desc) return "updated_desc";
-  return "created_desc";
+  return DEFAULT_SORT_VALUE;
 };
 
 export const fromSortValue = (sortValue: string): { order_by: string; order_desc: boolean } => {
@@ -268,7 +269,8 @@ export const filtersToSearchParams = (
   if (next.label_slug) params.set("label_slug", next.label_slug);
   if (next.label_public_id) params.set("label_public_id", next.label_public_id);
   if (next.feature_public_id) params.set("feature_public_id", next.feature_public_id);
-  params.set("sort", toSortValue(next));
+  const sortValue = toSortValue(next);
+  if (sortValue !== DEFAULT_SORT_VALUE) params.set("sort", sortValue);
   if (next.page > 1) params.set("page", String(next.page));
 
   return params;

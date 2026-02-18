@@ -1,6 +1,6 @@
 import { notFound, permanentRedirect } from "next/navigation";
 
-import { agencyApi } from "@/api/real-estate/agent";
+import { agencyApi } from "@/api/real-estate/agency";
 
 type PageProps = {
   params: Promise<{ id: string }>;

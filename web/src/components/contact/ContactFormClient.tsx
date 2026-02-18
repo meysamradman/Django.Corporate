@@ -3,7 +3,7 @@
 import React from "react";
 import { useForm, type ControllerRenderProps } from "react-hook-form";
 import { ApiError } from "@/types/api/apiError";
-import { publicContactFormApi } from "@/api/form/publicContactForm";
+import { publicContactFormApi } from "@/api/form/route";
 import type { PublicContactFormField } from "@/types/form/contactForm";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";

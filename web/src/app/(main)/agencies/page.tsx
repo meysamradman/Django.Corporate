@@ -1,5 +1,5 @@
 import AgencyCard from "@/components/agencies/AgencyCard";
-import { agencyApi } from "@/api/real-estate/agent";
+import { agencyApi } from "@/api/real-estate/agency";
 import type { Agency } from "@/types/real-estate/agent";
 import { resolvePaginatedData } from "@/core/utils/pagination";
 
