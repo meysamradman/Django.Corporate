@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { CalendarDays } from "lucide-react";
@@ -5,10 +7,12 @@ import { CalendarDays } from "lucide-react";
 import { Badge } from "@/components/elements/Badge";
 import { formatDate } from "@/core/utils/format";
 import { blogMedia } from "@/core/utils/media";
+import { buildBlogListHref } from "@/components/blogs/query";
 import type { Blog } from "@/types/blog/blog";
 
 type BlogCardProps = {
   blog: Blog;
+  priorityImage?: boolean;
 };
 
 type BlogWithMainImageUrl = Blog & {
@@ -23,7 +27,7 @@ const getCanonicalBlogId = (blog: Blog): string | number => {
   return blog.public_id;
 };
 
-export default function BlogCard({ blog }: BlogCardProps) {
+export default function BlogCard({ blog, priorityImage = false }: BlogCardProps) {
   const blogData = blog as BlogWithMainImageUrl;
   const canonicalId = getCanonicalBlogId(blog);
 
@@ -40,15 +44,23 @@ export default function BlogCard({ blog }: BlogCardProps) {
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          priority={priorityImage}
+          loading={priorityImage ? "eager" : "lazy"}
         />
       </div>
 
       <div className="space-y-4 p-5">
         <div className="flex flex-wrap items-center gap-2">
           {blog.categories?.slice(0, 2).map((category) => (
-            <Badge key={category.public_id} variant="gray">
-              {category.name}
-            </Badge>
+            <Link
+              key={category.public_id}
+              href={buildBlogListHref({ page: 1, category_slug: category.slug })}
+              prefetch={false}
+              className="inline-flex"
+              aria-label={`نمایش مطالب دسته ${category.name}`}
+            >
+              <Badge variant="gray">{category.name}</Badge>
+            </Link>
           ))}
 
           {blog.is_featured && <Badge>ویژه</Badge>}

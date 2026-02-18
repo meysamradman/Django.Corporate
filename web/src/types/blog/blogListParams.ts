@@ -10,5 +10,9 @@ export interface BlogListParams {
   is_public?: string | boolean;
   is_active?: string | boolean;
   categories__in?: string;
+  category_slug?: string;
+  tag_slug?: string;
+  created_after?: string;
+  created_before?: string;
 }
 

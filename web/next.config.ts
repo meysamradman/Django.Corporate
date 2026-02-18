@@ -59,8 +59,14 @@ const nextConfig: NextConfig = {
 
   async rewrites() {
     return [
-      { source: '/api/:path*',   destination: `${backendOrigin}/api/:path*/` },
-      { source: '/media/:path*', destination: `${backendOrigin}/media/:path*` },
+      {
+        source: '/api/:path*',
+        destination: `${backendOrigin}/api/:path*/`,
+      },
+      {
+        source: '/media/:path*',
+        destination: `${backendOrigin}/media/:path*`,
+      },
     ]
   },
 

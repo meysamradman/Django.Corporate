@@ -16,35 +16,45 @@ interface MainLayoutProps {
     children: React.ReactNode;
 }
 
-export default async function MainLayout({ children }: MainLayoutProps) {
-    // Server-side fetch for shared layout data (SSR-first website).
-    // Keep layout resilient: any endpoint failure falls back to null.
+function HeaderFallback() {
+    return <div className="h-16 md:h-20" />;
+}
+
+async function HeaderSlot() {
     let logo: SiteLogo | null = null;
+    try {
+        logo = await brandingApi.getLogo();
+    } catch {
+        logo = null;
+    }
+
+    return <Header logo={logo} />;
+}
+
+function FooterFallback() {
+    return <div className="h-20" />;
+}
+
+async function FooterSlot() {
     let generalSettings: PublicGeneralSettings | null = null;
     let footerAbout: FooterAboutItem | null = null;
     let footerSections: FooterSectionItem[] = [];
     let chatbotSettings: PublicChatbotSettings | null = null;
 
     const results = await Promise.allSettled([
-        brandingApi.getLogo(),
         generalSettingsApi.getPublic(),
         footerApi.getAbout(),
         footerApi.getPublic(),
         chatbotApi.getSettings(),
     ]);
 
-    if (results[0].status === 'fulfilled') logo = results[0].value;
-    if (results[1].status === 'fulfilled') generalSettings = results[1].value;
-    if (results[2].status === 'fulfilled') footerAbout = results[2].value;
-    if (results[3].status === 'fulfilled') footerSections = results[3].value;
-    if (results[4].status === 'fulfilled') chatbotSettings = results[4].value;
+    if (results[0].status === 'fulfilled') generalSettings = results[0].value;
+    if (results[1].status === 'fulfilled') footerAbout = results[1].value;
+    if (results[2].status === 'fulfilled') footerSections = results[2].value;
+    if (results[3].status === 'fulfilled') chatbotSettings = results[3].value;
 
     return (
-        <div className="flex flex-col min-h-screen bg-bg">
-            <Header logo={logo} />
-            <main className="flex-1">
-                {children}
-            </main>
+        <>
             <ChatbotWidget initialSettings={chatbotSettings} />
             <Footer generalSettings={generalSettings} about={footerAbout} sections={footerSections} />
             <Suspense fallback={<div className="bg-cprt h-20" />}>
@@ -52,6 +62,22 @@ export default async function MainLayout({ children }: MainLayoutProps) {
                     text={generalSettings?.copyright_text}
                     link={generalSettings?.copyright_link}
                 />
+            </Suspense>
+        </>
+    );
+}
+
+export default function MainLayout({ children }: MainLayoutProps) {
+    return (
+        <div className="flex flex-col min-h-screen bg-bg">
+            <Suspense fallback={<HeaderFallback />}>
+                <HeaderSlot />
+            </Suspense>
+
+            <main className="flex-1">{children}</main>
+
+            <Suspense fallback={<FooterFallback />}>
+                <FooterSlot />
             </Suspense>
         </div>
     );

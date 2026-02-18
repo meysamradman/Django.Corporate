@@ -6,7 +6,7 @@
 export const MEDIA_FILE_ROOT = '/media/' as const;
 
 // 2) Route for MEDIA API endpoints (relative to API base url)
-// If your env.API_BASE_URL already contains '/api', this becomes '/api/media/'.
+// Note: our fetch wrapper automatically prefixes non-`/api/*` paths with `/api`.
 export const MEDIA_API_ROUTE = '/media/' as const;
 
 // Default fallback images used across the UI (only for display, not backend paths)
