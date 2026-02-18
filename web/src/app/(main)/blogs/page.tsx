@@ -2,27 +2,18 @@ import { blogApi } from "@/api/blogs/route";
 import BlogList from "@/components/blogs/BlogList";
 import BlogPagination from "@/components/blogs/BlogPagination";
 import { resolvePaginatedData } from "@/core/utils/pagination";
+import { resolveBlogListQuery, toBlogListApiParams } from "@/components/blogs/query";
 
 type PageProps = {
 	searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-const BLOGS_PAGE_SIZE = 9;
-
 export default async function BlogsPage({ searchParams }: PageProps) {
 	const params = await searchParams;
-
-	const pageParam = typeof params.page === "string" ? Number(params.page) : 1;
-	const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
-	const search = typeof params.search === "string" ? params.search : undefined;
+	const { page, search } = resolveBlogListQuery(params);
 
 	const response = await blogApi
-		.getBlogList({
-			page,
-			size: BLOGS_PAGE_SIZE,
-			search,
-			ordering: "-created_at",
-		})
+		.getBlogList(toBlogListApiParams({ page, search }))
 		.catch(() => null);
 
 	const { items: blogs, pagination } = resolvePaginatedData(response, page);

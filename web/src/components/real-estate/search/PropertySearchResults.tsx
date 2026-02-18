@@ -14,6 +14,7 @@ import {
 import type { Property } from "@/types/real-estate/property";
 import type { PropertySearchFilters } from "@/types/real-estate/searchFilters";
 import { filtersToHref } from "@/components/real-estate/search/filters";
+import { buildPaginationItems } from "@/core/utils/paginationLinks";
 
 type PropertySearchResultsProps = {
   properties: Property[];
@@ -46,27 +47,6 @@ const buildPageHref = (filters: PropertySearchFilters, page: number): string => 
   return filtersToHref(filters, { page });
 };
 
-const buildPageItems = (currentPage: number, totalPages: number): (number | "ellipsis")[] => {
-  if (totalPages <= 7) {
-    return Array.from({ length: totalPages }, (_, index) => index + 1);
-  }
-
-  const pages = new Set<number>([1, totalPages, currentPage, currentPage - 1, currentPage + 1]);
-  const validPages = Array.from(pages)
-    .filter((page) => page >= 1 && page <= totalPages)
-    .sort((a, b) => a - b);
-
-  const result: (number | "ellipsis")[] = [];
-  for (let index = 0; index < validPages.length; index += 1) {
-    const page = validPages[index];
-    const previous = validPages[index - 1];
-    if (previous && page - previous > 1) result.push("ellipsis");
-    result.push(page);
-  }
-
-  return result;
-};
-
 export default function PropertySearchResults({
   properties,
   totalCount,
@@ -76,7 +56,7 @@ export default function PropertySearchResults({
   isLoading = false,
   onPageChange,
 }: PropertySearchResultsProps) {
-  const pageItems = buildPageItems(currentPage, totalPages);
+  const pageItems = buildPaginationItems(currentPage, totalPages);
   const handlePageClick = (page: number) => (event: React.MouseEvent<HTMLAnchorElement>) => {
     if (!onPageChange) return;
     event.preventDefault();

@@ -7,29 +7,13 @@ import {
   PaginationPrevious,
   PaginationEllipsis,
 } from "@/components/elements/Pagination";
+import { getVisiblePages } from "@/core/utils/paginationLinks";
+import { buildBlogListHref } from "@/components/blogs/query";
 
 type BlogPaginationProps = {
   currentPage: number;
   totalPages: number;
   search?: string;
-};
-
-const MAX_VISIBLE_PAGES = 5;
-
-const getVisiblePages = (currentPage: number, totalPages: number): number[] => {
-  if (totalPages <= MAX_VISIBLE_PAGES) {
-    return Array.from({ length: totalPages }, (_, index) => index + 1);
-  }
-
-  const half = Math.floor(MAX_VISIBLE_PAGES / 2);
-  let start = Math.max(1, currentPage - half);
-  let end = Math.min(totalPages, start + MAX_VISIBLE_PAGES - 1);
-
-  if (end - start + 1 < MAX_VISIBLE_PAGES) {
-    start = Math.max(1, end - MAX_VISIBLE_PAGES + 1);
-  }
-
-  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
 };
 
 export default function BlogPagination({ currentPage, totalPages, search }: BlogPaginationProps) {
@@ -39,16 +23,7 @@ export default function BlogPagination({ currentPage, totalPages, search }: Blog
 
   const pages = getVisiblePages(currentPage, totalPages);
 
-  const buildHref = (page: number): string => {
-    const params = new URLSearchParams();
-
-    if (search) {
-      params.set("search", search);
-    }
-
-    params.set("page", String(page));
-    return `/blogs?${params.toString()}`;
-  };
+  const buildHref = (page: number): string => buildBlogListHref({ page, search });
 
   return (
     <Pagination>

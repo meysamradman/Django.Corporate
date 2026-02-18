@@ -2,28 +2,18 @@ import { portfolioApi } from "@/api/portfolios/route";
 import PortfolioList from "@/components/portfolios/PortfolioList";
 import PortfolioPagination from "@/components/portfolios/PortfolioPagination";
 import { resolvePaginatedData } from "@/core/utils/pagination";
+import { resolvePortfolioListQuery, toPortfolioListApiParams } from "@/components/portfolios/query";
 
 type PageProps = {
 	searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-const PORTFOLIOS_PAGE_SIZE = 9;
-
 export default async function PortfoliosPage({ searchParams }: PageProps) {
 	const params = await searchParams;
-
-	const pageParam = typeof params.page === "string" ? Number(params.page) : 1;
-	const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
-	const search = typeof params.search === "string" ? params.search : undefined;
+	const { page, search } = resolvePortfolioListQuery(params);
 
 	const response = await portfolioApi
-		.getPortfolioList({
-			page,
-			size: PORTFOLIOS_PAGE_SIZE,
-			search,
-			order_by: "created_at",
-			order_desc: true,
-		})
+		.getPortfolioList(toPortfolioListApiParams({ page, search }))
 		.catch(() => null);
 
 	const { items: portfolios, pagination } = resolvePaginatedData(response, page);
