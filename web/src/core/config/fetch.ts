@@ -1,13 +1,20 @@
 import { ApiResponse } from '@/types/api/apiResponse';
 import { ApiError } from '@/types/api/apiError';
-import { env } from '@/core/config/environment';
 import { getNetworkError } from '@/core/messages/errors';
 
 type RequestOptions = {
   headers?: Record<string, string>;
   timeout?: number;
   cache?: RequestCache;
+  next?: {
+    revalidate?: number;
+    tags?: string[];
+  };
 };
+
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+type ExtendedRequestInit = RequestInit & { next?: RequestOptions['next'] };
 
 const joinUrl = (base: string, path: string): string => {
   const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
@@ -18,50 +25,79 @@ const joinUrl = (base: string, path: string): string => {
 const resolveApiUrl = (url: string): string => {
   if (/^https?:\/\//i.test(url)) return url;
 
-  const apiBase = env.API_BASE_URL;
   const cleanUrl = url.startsWith('/') ? url : `/${url}`;
 
-  if (/^https?:\/\//i.test(apiBase)) {
-    return joinUrl(apiBase, cleanUrl);
-  }
+  // Always call backend APIs through the Next rewrite (`/api/*`) on the client.
+  // On the server, call the backend origin directly to avoid relative-fetch pitfalls.
+  const apiPath = cleanUrl === '/api' || cleanUrl.startsWith('/api/') ? cleanUrl : `/api${cleanUrl}`;
 
-  const cleanBase = apiBase.startsWith('/') ? apiBase : `/${apiBase}`;
-
-  // On the server, relative URLs may fail; use internal origin directly.
   if (typeof window === 'undefined') {
-    return joinUrl(joinUrl(env.API_INTERNAL_ORIGIN, cleanBase), cleanUrl);
+    const origin = process.env.API_INTERNAL_ORIGIN?.trim().replace(/\/$/, '');
+    if (!origin) {
+      throw new Error('API_INTERNAL_ORIGIN is required for server-side fetch.');
+    }
+    return joinUrl(origin, apiPath);
   }
 
-  return joinUrl(cleanBase, cleanUrl);
+  // Client-side: keep it relative so Next rewrites can proxy it.
+  return apiPath;
 };
 
 async function request<T>(
   url: string,
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET',
-  body?: any,
+  method: HttpMethod = 'GET',
+  body?: unknown,
   options?: RequestOptions
 ): Promise<ApiResponse<T>> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), options?.timeout || 30000);
 
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     'Accept': 'application/json',
     ...options?.headers,
   };
 
-  const fetchOptions: RequestInit = {
+  const fetchOptions: ExtendedRequestInit = {
     method,
     headers,
     signal: controller.signal,
-    cache: options?.cache || 'no-store',
   };
 
-  if (body) {
+  // Next.js 16:
+  // - For GET requests on the server, forcing `no-store` will make the route block navigation.
+  // - For mutations, always default to `no-store`.
+  // - Allow callers to override with `options.cache` / `options.next`.
+  const isServer = typeof window === 'undefined';
+
+  if (options?.next) {
+    fetchOptions.next = options.next;
+  }
+
+  if (options?.cache) {
+    fetchOptions.cache = options.cache;
+  } else if (method !== 'GET') {
+    fetchOptions.cache = 'no-store';
+  } else if (!isServer) {
+    // Client-side defaults: keep responses fresh unless explicitly cached.
+    fetchOptions.cache = 'no-store';
+  } else {
+    // Server-side GET defaults:
+    // Make it cacheable + short-lived ISR by default to avoid "Blocking Route" warnings
+    // while keeping public data reasonably fresh.
+    fetchOptions.cache = 'force-cache';
+
+    if (!fetchOptions.next) {
+      fetchOptions.next = { revalidate: 60 };
+    } else if (typeof fetchOptions.next.revalidate !== 'number') {
+      fetchOptions.next = { ...fetchOptions.next, revalidate: 60 };
+    }
+  }
+
+  if (body !== undefined) {
     if (body instanceof FormData) {
-      delete headers['Content-Type'];
       fetchOptions.body = body;
     } else {
+      headers['Content-Type'] = 'application/json';
       fetchOptions.body = JSON.stringify(body);
     }
   }
@@ -134,9 +170,9 @@ async function request<T>(
 }
 
 export const fetchApi = {
-  get: <T>(url: string, options?: any) => request<T>(url, 'GET', undefined, options),
-  post: <T>(url: string, body?: any, options?: any) => request<T>(url, 'POST', body, options),
-  put: <T>(url: string, body?: any, options?: any) => request<T>(url, 'PUT', body, options),
-  patch: <T>(url: string, body?: any, options?: any) => request<T>(url, 'PATCH', body, options),
-  delete: <T>(url: string, options?: any) => request<T>(url, 'DELETE', undefined, options),
+  get: <T>(url: string, options?: RequestOptions) => request<T>(url, 'GET', undefined, options),
+  post: <T>(url: string, body?: unknown, options?: RequestOptions) => request<T>(url, 'POST', body, options),
+  put: <T>(url: string, body?: unknown, options?: RequestOptions) => request<T>(url, 'PUT', body, options),
+  patch: <T>(url: string, body?: unknown, options?: RequestOptions) => request<T>(url, 'PATCH', body, options),
+  delete: <T>(url: string, options?: RequestOptions) => request<T>(url, 'DELETE', undefined, options),
 };

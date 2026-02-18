@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import Slider from "@/components/home/Slider";
 import State from "@/components/home/State";
 import RealFeachure from "@/components/home/RealFeachure";
@@ -54,7 +54,9 @@ export default async function HomePage() {
   return (
     <>
       <section>
-        <Slider slidesData={slides} />
+        <Suspense fallback={<div className="relative w-full h-[80vh] bg-bg" />}>
+          <Slider slidesData={slides} />
+        </Suspense>
       </section>
 
       {/* Hero Search Bar */}

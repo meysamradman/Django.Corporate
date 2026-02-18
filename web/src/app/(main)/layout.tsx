@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Header } from "@/components/layout/Header/Header";
 import Footer from "@/components/layout/Footer/Footer";
 import CopyRight from "@/components/layout/Footer/CopyRight";
@@ -47,10 +47,12 @@ export default async function MainLayout({ children }: MainLayoutProps) {
             </main>
             <ChatbotWidget initialSettings={chatbotSettings} />
             <Footer generalSettings={generalSettings} about={footerAbout} sections={footerSections} />
-            <CopyRight
-                text={generalSettings?.copyright_text}
-                link={generalSettings?.copyright_link}
-            />
+            <Suspense fallback={<div className="bg-cprt h-20" />}>
+                <CopyRight
+                    text={generalSettings?.copyright_text}
+                    link={generalSettings?.copyright_link}
+                />
+            </Suspense>
         </div>
     );
 }

@@ -1,56 +1,67 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next'
 
-const backendOrigin = process.env.API_INTERNAL_ORIGIN?.trim();
-
-if (!backendOrigin) {
-  throw new Error("🚨 CONFIGURATION ERROR: API_INTERNAL_ORIGIN is required in environment.");
+const rawOrigin = process.env.API_INTERNAL_ORIGIN?.trim()
+if (!rawOrigin) {
+  throw new Error('🚨 API_INTERNAL_ORIGIN is required in .env.local')
 }
 
-let normalizedBackendOrigin: string;
-let backendHostname: string;
+let backendHostname: string
+let backendProtocol: 'http' | 'https'
+let backendOrigin: string
 
 try {
-  const parsed = new URL(backendOrigin);
-  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    throw new Error('API_INTERNAL_ORIGIN must use http or https protocol.');
-  }
-  parsed.pathname = '';
-  parsed.search = '';
-  parsed.hash = '';
-  normalizedBackendOrigin = parsed.toString().replace(/\/$/, '');
-  backendHostname = parsed.hostname;
+  const parsed = new URL(rawOrigin)
+  backendHostname = parsed.hostname
+  backendProtocol = parsed.protocol === 'https:' ? 'https' : 'http'
+  backendOrigin   = rawOrigin.replace(/\/$/, '')
 } catch {
-  throw new Error("🚨 CONFIGURATION ERROR: API_INTERNAL_ORIGIN must be a valid absolute URL.");
+  throw new Error('🚨 API_INTERNAL_ORIGIN باید URL معتبر باشه — مثل http://localhost:8000')
 }
 
 const nextConfig: NextConfig = {
+
+  poweredByHeader: false,
+  reactStrictMode: true,
+  cacheComponents: true,
+  reactCompiler: false,
+  turbopack: {},
+
+  experimental: {
+    turbopackFileSystemCacheForDev: true,
+    optimizePackageImports: ['lucide-react', 'date-fns'],
+
+    // ✅ درست — داخل experimental
+    serverActions: {
+      allowedOrigins: [
+        process.env.NEXT_PUBLIC_SITE_URL?.replace(/^https?:\/\//, '') || 'localhost:3000',
+      ],
+    },
+  },
+
   images: {
     remotePatterns: [
       {
         protocol: 'http',
         hostname: 'localhost',
-        port: '8000',
+        port:     '8000',
         pathname: '/media/**',
       },
       {
-        protocol: 'https',
+        protocol: backendProtocol,
         hostname: backendHostname,
         pathname: '/media/**',
       },
     ],
+    minimumCacheTTL: 60 * 60 * 24,
+    qualities:       [75, 90],
+    formats:         ['image/avif', 'image/webp'],
   },
 
   async rewrites() {
     return [
-      {
-        source: '/api/:path*',
-        destination: `${normalizedBackendOrigin}/api/:path*/`,
-      },
-      {
-        source: '/media/:path*',
-        destination: `${normalizedBackendOrigin}/media/:path*`,
-      },
-    ];
+      { source: '/api/:path*',   destination: `${backendOrigin}/api/:path*/` },
+      { source: '/media/:path*', destination: `${backendOrigin}/media/:path*` },
+    ]
   },
 
   async headers() {
@@ -59,12 +70,18 @@ const nextConfig: NextConfig = {
         source: '/api/:path*',
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'X-XSS-Protection', value: '1; mode=block' },
+          { key: 'X-Frame-Options',        value: 'DENY' },
+          { key: 'X-XSS-Protection',       value: '1; mode=block' },
         ],
       },
-    ];
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        ],
+      },
+    ]
   },
-};
+}
 
-export default nextConfig;
+export default nextConfig
