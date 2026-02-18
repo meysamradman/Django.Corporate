@@ -64,6 +64,11 @@ export const realEstateApi = {
         return toPaginatedResponse<PropertyType>(response, params?.size || 50);
     },
 
+    getTypeBySlug: async (slug: string): Promise<PropertyType> => {
+        const response = await fetchApi.get<PropertyType>(`/real-estate/types/${encodeURIComponent(slug)}/`);
+        return response.data;
+    },
+
     getStates: async (params?: RealEstateTaxonomyListParams): Promise<PaginatedResponse<PropertyState>> => {
         const limit = params?.size;
         const offset = params?.page && params?.size ? (params.page - 1) * params.size : undefined;
@@ -77,6 +82,11 @@ export const realEstateApi = {
 
         const response = await fetchApi.get<PropertyState[]>(withQuery('/real-estate/states/', queryParams));
         return toPaginatedResponse<PropertyState>(response, limit || 50);
+    },
+
+    getStateBySlug: async (slug: string): Promise<PropertyState> => {
+        const response = await fetchApi.get<PropertyState>(`/real-estate/states/${encodeURIComponent(slug)}/`);
+        return response.data;
     },
 
     getLabels: async (params?: RealEstateTaxonomyListParams): Promise<PaginatedResponse<PropertyLabel>> => {

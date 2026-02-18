@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 
 import { realEstateApi } from "@/api/real-estate/route";
 import {
@@ -26,8 +25,6 @@ export function usePropertySearch({
   initialTotalPages,
   initialCurrentPage,
 }: UsePropertySearchParams) {
-  const router = useRouter();
-
   const [filters, setFilters] = React.useState<PropertySearchFilters>(initialFilters);
   const [properties, setProperties] = React.useState<Property[]>(initialProperties);
   const [totalCount, setTotalCount] = React.useState(initialTotalCount);
@@ -37,6 +34,27 @@ export function usePropertySearch({
 
   const requestIdRef = React.useRef(0);
   const initializedRef = React.useRef(false);
+
+  const replaceUrl = React.useCallback((url: string) => {
+    if (typeof window === "undefined") return;
+
+    const currentPath = window.location.pathname;
+    const currentSearch = window.location.search;
+    const currentUrl = `${currentPath}${currentSearch}`;
+
+    let decodedNextUrl: string;
+    try {
+      decodedNextUrl = decodeURI(url);
+    } catch {
+      decodedNextUrl = url;
+    }
+
+    const normalizedCurrent = currentUrl.replace(/\/$/, "");
+    const normalizedNext = decodedNextUrl.replace(/\/$/, "");
+
+    if (normalizedCurrent === normalizedNext) return;
+    window.history.replaceState(window.history.state, "", url);
+  }, []);
 
   const onFiltersChange = React.useCallback((updates: Partial<PropertySearchFilters>) => {
     setFilters((previous) => ({ ...previous, ...updates }));
@@ -61,7 +79,7 @@ export function usePropertySearch({
       requestIdRef.current = requestId;
       setIsLoading(true);
 
-      router.replace(filtersToHref(filters), { scroll: false });
+      replaceUrl(filtersToHref(filters));
 
       try {
         const response = await realEstateApi.getProperties(toPropertyListApiParams(filters));
@@ -85,7 +103,7 @@ export function usePropertySearch({
     }, 350);
 
     return () => clearTimeout(timer);
-  }, [filters, router]);
+  }, [filters, replaceUrl]);
 
   return {
     filters,

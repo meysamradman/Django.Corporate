@@ -28,12 +28,14 @@ export default async function PropertySearchPageServer({ filters }: PropertySear
     id: item.id,
     value: String(item.id),
     title: item.name,
+    slug: item.slug,
   }));
 
   const stateOptions = (statesResponse?.data ?? []).map((item) => ({
     id: item.id,
     value: String(item.id),
     title: item.title || item.name,
+    slug: item.slug,
   }));
 
   const labelOptions = (labelsResponse?.data ?? []).map((item) => ({

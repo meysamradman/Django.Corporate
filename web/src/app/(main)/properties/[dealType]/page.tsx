@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import PropertySearchPageServer from "@/components/real-estate/search/PropertySearchPageServer";
+import PropertySearchPageFallback from "@/components/real-estate/search/PropertySearchPageFallback";
 import { filtersFromSeoSegments, resolvePropertySearchFilters } from "@/components/real-estate/search/filters";
 
 type PageProps = {
@@ -8,7 +10,7 @@ type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default async function PropertiesDealTypePage({ params, searchParams }: PageProps) {
+async function PropertiesDealTypePageBody({ params, searchParams }: PageProps) {
   const routeParams = await params;
   const query = await searchParams;
 
@@ -23,4 +25,12 @@ export default async function PropertiesDealTypePage({ params, searchParams }: P
   };
 
   return <PropertySearchPageServer filters={filters} />;
+}
+
+export default function PropertiesDealTypePage({ params, searchParams }: PageProps) {
+  return (
+    <Suspense fallback={<PropertySearchPageFallback />}>
+      <PropertiesDealTypePageBody params={params} searchParams={searchParams} />
+    </Suspense>
+  );
 }

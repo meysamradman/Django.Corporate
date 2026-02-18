@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardFooter } from "@/components/elements/Card";
 import type { PropertyState } from "@/types/real-estate/property";
 import { realEstateMedia } from "@/core/utils/media";
@@ -48,21 +49,23 @@ export default function State({ states = [] }: StateProps) {
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((state) => (
-        <Card key={state.id} className="">
-          <CardContent className="">
-            <div className="relative h-40 md:h-56">
-              <img
-                src={realEstateMedia.getStateImage(state.image_url)}
-                alt={state.name || state.title || 'state'}
-                className="h-full w-full object-cover"
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col items-center text-center gap-5">
-            <h3 className="">{state.name || state.title || '-'}</h3>
-            <p className="">{formatUsageType(state.usage_type)}</p>
-          </CardFooter>
-        </Card>
+        <Link key={state.id} href={`/properties/state/${encodeURIComponent(state.slug)}`}>
+          <Card className="">
+            <CardContent className="">
+              <div className="relative h-40 md:h-56">
+                <img
+                  src={realEstateMedia.getStateImage(state.image_url)}
+                  alt={state.name || state.title || 'state'}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col items-center text-center gap-5">
+              <h3 className="">{state.name || state.title || '-'}</h3>
+              <p className="">{formatUsageType(state.usage_type)}</p>
+            </CardFooter>
+          </Card>
+        </Link>
       ))}
     </div>
   );

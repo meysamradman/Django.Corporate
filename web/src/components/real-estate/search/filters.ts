@@ -49,6 +49,23 @@ const normalizeSegment = (value: string): string =>
 const denormalizeSegment = (value: string): string =>
   value.trim().replace(/-/g, " ");
 
+const looksPercentEncoded = (value: string): boolean => /%[0-9A-Fa-f]{2}/.test(value);
+
+const safeDecodeURIComponent = (value: string): string => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
+
+export const normalizeTaxonomySlug = (value: string | null | undefined): string => {
+  const trimmed = (value || "").trim();
+  if (!trimmed) return "";
+  if (!looksPercentEncoded(trimmed)) return trimmed;
+  return safeDecodeURIComponent(trimmed).trim();
+};
+
 export const toSortValue = (filters: PropertySearchFilters): string => {
   if (filters.order_by === "published_at" && filters.order_desc) return "latest";
   if (filters.order_by === "created_at" && filters.order_desc) return "created_desc";
@@ -92,7 +109,7 @@ export const filtersFromSeoSegments = (
   dealType?: string,
   city?: string
 ): Partial<PropertySearchFilters> => {
-  const normalizedDealType = (dealType || "").trim().toLowerCase();
+  const normalizedDealType = normalizeTaxonomySlug(dealType).toLowerCase();
   const normalizedCity = (city || "").trim();
 
   if (!normalizedDealType) {
@@ -119,45 +136,55 @@ export const filtersFromSeoSegments = (
     return result;
   }
 
-  return {};
+  return { state_slug: normalizedDealType };
 };
 
-const resolveSeoPathMode = (filters: PropertySearchFilters): "properties" | "state" | "state-type" | "state-type-city" => {
-  const stateSlug = (filters.state_slug || "").trim().toLowerCase();
-  const typeSlug = (filters.type_slug || "").trim().toLowerCase();
+const resolveSeoPathMode = (
+  filters: PropertySearchFilters
+): "properties" | "state-taxonomy" | "type-taxonomy" | "legacy-state-type" | "legacy-state-type-city" => {
+  const stateSlug = normalizeTaxonomySlug(filters.state_slug).toLowerCase();
+  const typeSlug = normalizeTaxonomySlug(filters.type_slug).toLowerCase();
   const search = (filters.search || "").trim();
 
-  if (!["buy", "rent"].includes(stateSlug)) {
-    return "properties";
+  if (stateSlug && !typeSlug) {
+    return "state-taxonomy";
   }
 
-  if (!typeSlug) {
-    return "state";
+  if (!stateSlug && typeSlug) {
+    return "type-taxonomy";
   }
 
-  if (search) {
-    return "state-type-city";
+  if (stateSlug && typeSlug && search) {
+    return "legacy-state-type-city";
   }
 
-  return "state-type";
+  if (stateSlug && typeSlug) {
+    return "legacy-state-type";
+  }
+
+  return "properties";
 };
 
 export const resolvePropertySearchPath = (filters: PropertySearchFilters): string => {
-  const stateSlug = (filters.state_slug || "").trim().toLowerCase();
-  const typeSlug = (filters.type_slug || "").trim().toLowerCase();
+  const stateSlug = normalizeTaxonomySlug(filters.state_slug).toLowerCase();
+  const typeSlug = normalizeTaxonomySlug(filters.type_slug).toLowerCase();
   const citySegment = normalizeSegment(filters.search || "");
 
   const mode = resolveSeoPathMode(filters);
 
-  if (mode === "state") {
-    return `/properties/${stateSlug}`;
+  if (mode === "state-taxonomy") {
+    return `/properties/state/${encodeURIComponent(stateSlug)}`;
   }
 
-  if (mode === "state-type") {
+  if (mode === "type-taxonomy") {
+    return `/properties/type/${encodeURIComponent(typeSlug)}`;
+  }
+
+  if (mode === "legacy-state-type") {
     return `/properties/${stateSlug}-${typeSlug}`;
   }
 
-  if (mode === "state-type-city") {
+  if (mode === "legacy-state-type-city") {
     return `/properties/${stateSlug}-${typeSlug}/${citySegment}`;
   }
 
@@ -188,12 +215,12 @@ export const resolvePropertySearchFilters = (
     bathrooms: toOptionalNumber(searchParams.bathrooms),
     created_after: toSingle(searchParams.created_after).trim(),
     created_before: toSingle(searchParams.created_before).trim(),
-    type_slug: toSingle(searchParams.type_slug).trim(),
-    state_slug: toSingle(searchParams.state_slug).trim(),
-    tag_slug: toSingle(searchParams.tag_slug).trim(),
-    label_slug: toSingle(searchParams.label_slug).trim(),
-    label_public_id: toSingle(searchParams.label_public_id).trim(),
-    feature_public_id: toSingle(searchParams.feature_public_id).trim(),
+    type_slug: normalizeTaxonomySlug(toSingle(searchParams.type_slug)),
+    state_slug: normalizeTaxonomySlug(toSingle(searchParams.state_slug)),
+    tag_slug: normalizeTaxonomySlug(toSingle(searchParams.tag_slug)),
+    label_slug: normalizeTaxonomySlug(toSingle(searchParams.label_slug)),
+    label_public_id: normalizeTaxonomySlug(toSingle(searchParams.label_public_id)),
+    feature_public_id: normalizeTaxonomySlug(toSingle(searchParams.feature_public_id)),
     order_by: sortConfig.order_by,
     order_desc: sortConfig.order_desc,
     page: toPage(searchParams.page),
@@ -241,17 +268,17 @@ export const filtersToSearchParams = (
   const params = new URLSearchParams();
   const mode = resolveSeoPathMode(next);
 
-  const isStateEncoded = mode === "state" || mode === "state-type" || mode === "state-type-city";
-  const isTypeEncoded = mode === "state-type" || mode === "state-type-city";
-  const isSearchEncoded = mode === "state-type-city";
+  const isStateEncoded = mode === "state-taxonomy" || mode === "legacy-state-type" || mode === "legacy-state-type-city";
+  const isTypeEncoded = mode === "type-taxonomy" || mode === "legacy-state-type" || mode === "legacy-state-type-city";
+  const isSearchEncoded = mode === "legacy-state-type-city";
 
   if (next.search && !isSearchEncoded) params.set("search", next.search);
   if (next.status) params.set("status", next.status);
   if (next.is_featured !== null) params.set("is_featured", next.is_featured ? "true" : "false");
   if (next.is_public !== null) params.set("is_public", next.is_public ? "true" : "false");
   if (next.is_active !== null) params.set("is_active", next.is_active ? "true" : "false");
-  if (next.property_type) params.set("property_type", String(next.property_type));
-  if (next.state) params.set("state", String(next.state));
+  if (next.property_type && !isTypeEncoded) params.set("property_type", String(next.property_type));
+  if (next.state && !isStateEncoded) params.set("state", String(next.state));
   if (next.city) params.set("city", String(next.city));
   if (next.province) params.set("province", String(next.province));
   if (next.region) params.set("region", String(next.region));

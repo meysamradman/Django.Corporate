@@ -10,6 +10,7 @@ export type SidebarOption = {
   id: number;
   value: string;
   title: string;
+  slug?: string;
 };
 
 type PropertySearchSidebarProps = {
@@ -58,6 +59,14 @@ export default function PropertySearchSidebar({
   onReset,
 }: PropertySearchSidebarProps) {
   const sortValue = toSortValue(filters);
+  const selectedTypeValue =
+    filters.property_type !== null
+      ? String(filters.property_type)
+      : typeOptions.find((item) => item.slug === filters.type_slug)?.value || "";
+  const selectedStateValue =
+    filters.state !== null
+      ? String(filters.state)
+      : stateOptions.find((item) => item.slug === filters.state_slug)?.value || "";
 
   const update = (updates: Partial<PropertySearchFilters>) => {
     onFiltersChange({ ...updates, page: 1 });
@@ -103,8 +112,15 @@ export default function PropertySearchSidebar({
         <div className="space-y-2">
           <label className="text-sm text-font-s">نوع ملک</label>
           <NativeSelect
-            value={filters.property_type ? String(filters.property_type) : ""}
-            onChange={(event) => update({ property_type: toNumberOrNull(event.target.value) })}
+            value={selectedTypeValue}
+            onChange={(event) => {
+              const value = event.target.value;
+              const selected = typeOptions.find((item) => item.value === value);
+              update({
+                property_type: toNumberOrNull(value),
+                type_slug: selected?.slug || "",
+              });
+            }}
           >
             <NativeSelectOption value="">همه</NativeSelectOption>
             {typeOptions.map((item) => (
@@ -118,8 +134,15 @@ export default function PropertySearchSidebar({
         <div className="space-y-2">
           <label className="text-sm text-font-s">نوع معامله</label>
           <NativeSelect
-            value={filters.state ? String(filters.state) : ""}
-            onChange={(event) => update({ state: toNumberOrNull(event.target.value) })}
+            value={selectedStateValue}
+            onChange={(event) => {
+              const value = event.target.value;
+              const selected = stateOptions.find((item) => item.value === value);
+              update({
+                state: toNumberOrNull(value),
+                state_slug: selected?.slug || "",
+              });
+            }}
           >
             <NativeSelectOption value="">همه</NativeSelectOption>
             {stateOptions.map((item) => (
@@ -373,11 +396,19 @@ export default function PropertySearchSidebar({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-2">
             <label className="text-sm text-font-s">اسلاگ نوع (پیشرفته)</label>
-            <Input value={filters.type_slug} onChange={(event) => update({ type_slug: event.target.value })} placeholder="type_slug" />
+            <Input
+              value={filters.type_slug}
+              onChange={(event) => update({ type_slug: event.target.value, property_type: null })}
+              placeholder="type_slug"
+            />
           </div>
           <div className="space-y-2">
             <label className="text-sm text-font-s">اسلاگ وضعیت (پیشرفته)</label>
-            <Input value={filters.state_slug} onChange={(event) => update({ state_slug: event.target.value })} placeholder="state_slug" />
+            <Input
+              value={filters.state_slug}
+              onChange={(event) => update({ state_slug: event.target.value, state: null })}
+              placeholder="state_slug"
+            />
           </div>
         </div>
       </div>
