@@ -72,6 +72,7 @@ import PropertyLabelsPage from './pages/real-estate/labels/page';
 import PropertyFeaturesPage from './pages/real-estate/features/page';
 import PropertyTagsPage from './pages/real-estate/tags/page';
 import RealEstateStatisticsPage from './pages/real-estate/statistics/page';
+import StaticProfilePage from './pages/static/profile/page';
 
 function AgentRedirectView() {
   const { id } = useParams<{ id: string }>();
@@ -196,6 +197,9 @@ function App() {
                     <Route path="ticket" element={<TicketPage />} />
                     <Route path="chatbot" element={<ChatbotPage />} />
                     <Route path="form-builder" element={<FormBuilderPage />} />
+                    <Route path="static">
+                      <Route path="profile" element={<StaticProfilePage />} />
+                    </Route>
                     <Route path="page">
                       <Route path="about" element={<PageAbout />} />
                       <Route path="terms" element={<PageTerms />} />
