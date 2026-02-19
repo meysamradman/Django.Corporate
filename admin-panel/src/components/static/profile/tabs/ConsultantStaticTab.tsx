@@ -1,27 +1,20 @@
-import type { ReactNode } from "react";
 import { Badge } from "@/components/elements/Badge";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Input } from "@/components/elements/Input";
+import { BadgeCheck, FileBadge, Calendar, Briefcase, Building, FileText, CheckCircle2 } from "lucide-react";
+import { InfoItem } from "@/components/static/profile/InfoItem";
 import { Label } from "@/components/elements/Label";
-import { Switch } from "@/components/elements/Switch";
-import { Textarea } from "@/components/elements/Textarea";
-import { BadgeCheck } from "lucide-react";
 
 interface ConsultantStaticTabProps {
-  isEditMode: boolean;
   isConsultant: boolean;
-  licenseNumber: string;
-  licenseExpireDate: string;
-  specialization: string;
-  agencyName: string;
-  consultantBio: string;
+  licenseNumber?: string;
+  licenseExpireDate?: string;
+  specialization?: string;
+  agencyName?: string;
+  consultantBio?: string;
   isVerified: boolean;
-  onChange: (field: string, value: string | boolean) => void;
-  titleExtra?: ReactNode;
 }
 
 export function ConsultantStaticTab({
-  isEditMode,
   isConsultant,
   licenseNumber,
   licenseExpireDate,
@@ -29,8 +22,6 @@ export function ConsultantStaticTab({
   agencyName,
   consultantBio,
   isVerified,
-  onChange,
-  titleExtra,
 }: ConsultantStaticTabProps) {
   return (
     <CardWithIcon
@@ -40,100 +31,51 @@ export function ConsultantStaticTab({
       iconColor="stroke-teal-2"
       cardBorderColor="border-b-teal-1"
       className="gap-0"
-      titleExtra={titleExtra}
     >
-      <div className="space-y-4">
-        <div className="rounded-xl border border-br bg-card-2 p-3 flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-font-p">حالت مشاور</p>
-            <p className="text-xs text-font-s">در صورت فعال بودن، اطلاعات حرفه‌ای مشاور نمایش و ویرایش می‌شود.</p>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between p-4 bg-card-2/50 rounded-xl border border-br/60">
+          <div className="space-y-1.5">
+            <p className="text-sm font-semibold text-font-p">وضعیت حساب مشاور</p>
+            <p className="text-xs text-font-s/80">
+              {isConsultant 
+                ? "حساب کاربری به عنوان مشاور فعال است." 
+                : "این کاربر در حال حاضر تنها دسترسی ادمین معمولی دارد."}
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant={isConsultant ? "green" : "gray"}>{isConsultant ? "فعال" : "غیرفعال"}</Badge>
-            <Switch
-              checked={isConsultant}
-              disabled={!isEditMode}
-              onCheckedChange={(checked) => onChange("isConsultant", checked)}
-            />
-          </div>
+          <Badge variant={isConsultant ? "teal" : "gray"} className="px-3 py-1.5 h-auto text-xs font-medium">
+            {isConsultant ? "فعال" : "غیرفعال"}
+          </Badge>
         </div>
 
-        {!isConsultant ? (
-          <div className="rounded-xl border border-dashed border-br p-4 text-sm text-font-s">
-            این کاربر در حالت ادمین معمولی است و پروفایل مشاور برای او فعال نشده است.
-          </div>
-        ) : (
+        {isConsultant && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="consultant-license-number">شماره پروانه کسب</Label>
-                <Input
-                  id="consultant-license-number"
-                  value={licenseNumber}
-                  disabled={!isEditMode}
-                  onChange={(e) => onChange("consultantLicenseNumber", e.target.value)}
-                  placeholder="مثال: 12345"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="consultant-license-expire">تاریخ انقضای پروانه</Label>
-                <Input
-                  id="consultant-license-expire"
-                  value={licenseExpireDate}
-                  disabled={!isEditMode}
-                  onChange={(e) => onChange("consultantLicenseExpireDate", e.target.value)}
-                  placeholder="1405/12/30"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <InfoItem label="شماره پروانه کسب" value={licenseNumber} dir="ltr" icon={FileBadge} />
+              <InfoItem label="تاریخ انقضا پروانه" value={licenseExpireDate} dir="ltr" icon={Calendar} />
+              <InfoItem label="تخصص" value={specialization} icon={Briefcase} />
+              <InfoItem label="نام آژانس" value={agencyName} icon={Building} />
+              
+              <div className="group relative flex items-start gap-4 rounded-xl border border-br/60 bg-card p-4 transition-all duration-300 hover:border-primary/20 hover:bg-card-2/50 hover:shadow-sm">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/5 text-primary ring-1 ring-primary/10 transition-colors group-hover:bg-primary/10">
+                     <CheckCircle2 className="size-5" />
+                  </div>
+                  <div className="flex flex-1 flex-col justify-center gap-1.5 min-w-0">
+                      <span className="text-xs font-medium text-font-s/80 select-none group-hover:text-primary/80 transition-colors">وضعیت تایید</span>
+                      <Badge variant={isVerified ? "blue" : "orange"} className="w-fit text-[11px] px-2 h-6">
+                          {isVerified ? "تایید شده" : "در انتظار بررسی"}
+                      </Badge>
+                  </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="consultant-specialization">تخصص</Label>
-                <Input
-                  id="consultant-specialization"
-                  value={specialization}
-                  disabled={!isEditMode}
-                  onChange={(e) => onChange("consultantSpecialization", e.target.value)}
-                  placeholder="مثال: مسکونی و اداری"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="consultant-agency">آژانس همکار</Label>
-                <Input
-                  id="consultant-agency"
-                  value={agencyName}
-                  disabled={!isEditMode}
-                  onChange={(e) => onChange("consultantAgencyName", e.target.value)}
-                  placeholder="نام آژانس (اختیاری)"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="consultant-bio">بیوگرافی مشاور</Label>
-              <Textarea
-                id="consultant-bio"
-                rows={4}
-                value={consultantBio}
-                disabled={!isEditMode}
-                onChange={(e) => onChange("consultantBio", e.target.value)}
-                placeholder="تجربه و سوابق حرفه‌ای مشاور..."
-              />
-            </div>
-
-            <div className="rounded-xl border border-br bg-card-2 p-3 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-font-p">تایید مشاور</p>
-                <p className="text-xs text-font-s">نمایش نشان مشاور تایید شده در پروفایل</p>
-              </div>
-              <Switch
-                checked={isVerified}
-                disabled={!isEditMode}
-                onCheckedChange={(checked) => onChange("consultantIsVerified", checked)}
-              />
+            <div className="grid grid-cols-1 gap-2">
+                <Label className="flex items-center gap-2 text-xs font-medium text-font-s">
+                   <FileText className="size-3.5" />
+                   بیوگرافی مشاور
+                 </Label>
+                <p className="text-sm font-medium text-font-p bg-card-2/50 p-4 rounded-xl border border-br/60 leading-relaxed min-h-[80px]">
+                  {consultantBio || "---"}
+                </p>
             </div>
           </>
         )}

@@ -2,55 +2,6 @@ export const PROFILE_OVERVIEW_TABS = [
   { value: "admin-info", label: "اطلاعات ادمین" },
   { value: "consultant", label: "مشاور" },
   { value: "properties", label: "املاک" },
-  { value: "permissions", label: "دسترسی‌ها" },
-  { value: "security", label: "امنیت" },
-  { value: "social", label: "شبکه‌های اجتماعی" },
-] as const;
-
-export const ADMIN_ROLE_OPTIONS = [
-  { value: "none", label: "بدون نقش" },
-  { value: "content_manager", label: "مدیر محتوا" },
-  { value: "media_manager", label: "مدیر مدیا" },
-  { value: "property_manager", label: "مدیر املاک" },
-] as const;
-
-export const ADMIN_ROLE_LIST = [
-  {
-    value: "none",
-    label: "بدون نقش",
-    description: "ادمین فقط دسترسی‌های دستی انتخاب‌شده را دارد.",
-    isProtected: false,
-    permissionIds: [] as number[],
-  },
-  {
-    value: "content_manager",
-    label: "مدیر محتوا",
-    description: "مدیریت محتوای پنل و ویرایش اطلاعات مرتبط.",
-    isProtected: false,
-    permissionIds: [1, 2] as number[],
-  },
-  {
-    value: "media_manager",
-    label: "مدیر مدیا",
-    description: "مدیریت فایل‌ها، ایجاد و حذف مدیا در پنل.",
-    isProtected: false,
-    permissionIds: [3, 4, 5] as number[],
-  },
-  {
-    value: "property_manager",
-    label: "مدیر املاک",
-    description: "دسترسی به مدیریت داده‌های عملیاتی املاک.",
-    isProtected: true,
-    permissionIds: [1, 3] as number[],
-  },
-] as const;
-
-export const ADMIN_PERMISSION_ITEMS = [
-  { id: 1, title: "مشاهده ادمین", codename: "view_admin", module: "admins", action: "read" },
-  { id: 2, title: "ویرایش ادمین", codename: "change_admin", module: "admins", action: "update" },
-  { id: 3, title: "مشاهده مدیا", codename: "view_media", module: "media", action: "read" },
-  { id: 4, title: "ایجاد مدیا", codename: "add_media", module: "media", action: "create" },
-  { id: 5, title: "حذف مدیا", codename: "delete_media", module: "media", action: "delete" },
 ] as const;
 
 export const FAVORITE_ITEMS = [
