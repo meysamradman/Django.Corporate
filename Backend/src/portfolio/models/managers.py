@@ -40,7 +40,7 @@ class PortfolioQuerySet(models.QuerySet):
     def for_public_listing(self):
         from src.portfolio.models.media import PortfolioImage
         return self.published().select_related('og_image').prefetch_related(
-            'categories__image',
+            'categories',
             Prefetch(
                 'images',
                 queryset=PortfolioImage.objects.filter(is_main=True).select_related('image'),

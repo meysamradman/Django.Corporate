@@ -40,7 +40,7 @@ class BlogQuerySet(models.QuerySet):
     def for_public_listing(self):
         from src.blog.models.media import BlogImage
         return self.published().select_related('og_image').prefetch_related(
-            'categories__image',
+            'categories',
             Prefetch(
                 'images',
                 queryset=BlogImage.objects.filter(is_main=True).select_related('image'),

@@ -150,6 +150,9 @@ class PropertyPublicListSerializer(serializers.ModelSerializer):
         if main_details:
             return main_details
 
+        if hasattr(obj, 'all_images') and not getattr(obj, 'all_images', []):
+            return None
+
         image_relation = self._get_prefetched_main_image(obj)
         if image_relation is None:
             image_relation = obj.images.select_related('image').order_by('-is_main', 'order', 'created_at').first()

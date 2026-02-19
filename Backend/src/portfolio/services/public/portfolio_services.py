@@ -42,7 +42,7 @@ class PortfolioPublicService:
 
     @staticmethod
     def get_portfolio_queryset(filters=None, search=None, ordering=None):
-        queryset = Portfolio.objects.active().published().for_public_listing().prefetch_related('options')
+        queryset = Portfolio.objects.active().published().for_public_listing()
         
         if filters:
             if filters.get('category_slug'):
@@ -95,7 +95,7 @@ class PortfolioPublicService:
     def get_featured_portfolios(limit=6):
         portfolios = Portfolio.objects.active().published().filter(
             is_featured=True
-        ).for_public_listing().prefetch_related('options').order_by('-created_at')[:limit]
+        ).for_public_listing().order_by('-created_at')[:limit]
         return portfolios
     
     @staticmethod
@@ -105,7 +105,7 @@ class PortfolioPublicService:
             categories__id__in=category_ids
         ).exclude(
             id=portfolio.id
-        ).for_public_listing().prefetch_related('options').distinct().order_by('-created_at')[:limit]
+        ).for_public_listing().distinct().order_by('-created_at')[:limit]
         return portfolios
 
     @staticmethod

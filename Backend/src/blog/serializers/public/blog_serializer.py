@@ -19,8 +19,12 @@ class BlogPublicListSerializer(serializers.ModelSerializer):
     
     def get_main_image_url(self, obj):
         try:
-            if hasattr(obj, 'main_image_media') and obj.main_image_media:
-                main_image = obj.main_image_media[0]
+            if hasattr(obj, 'main_image_media'):
+                prefetched_main_images = getattr(obj, 'main_image_media', [])
+                if prefetched_main_images:
+                    main_image = prefetched_main_images[0]
+                else:
+                    main_image = None
             else:
                 main_image = obj.images.select_related('image').filter(is_main=True).first()
             if main_image and main_image.image:
