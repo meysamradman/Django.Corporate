@@ -256,7 +256,7 @@ class PropertyAdminFilter(django_filters.FilterSet):
     
     search = django_filters.CharFilter(
         method='filter_search',
-        help_text="Search in title, description, address, and SEO fields"
+        help_text="Essential search (title/location/slug)"
     )
     
     has_main_image = django_filters.BooleanFilter(
@@ -329,16 +329,12 @@ class PropertyAdminFilter(django_filters.FilterSet):
         return queryset
     
     def filter_search(self, queryset, name, value):
-        if not value:
+        value = (value or '').strip()
+        if not value or len(value) < 2:
             return queryset
 
         base_queryset = queryset.search(value)
-        taxonomy_queryset = queryset.filter(
-            Q(labels__title__icontains=value) |
-            Q(tags__title__icontains=value)
-        )
-
-        return (base_queryset | taxonomy_queryset).distinct()
+        return base_queryset
     
     def filter_has_main_image(self, queryset, name, value):
         if value:

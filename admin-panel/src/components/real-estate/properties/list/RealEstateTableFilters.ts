@@ -22,6 +22,7 @@ export const getPropertyFilterConfig = (
   propertyTypeOptions: CategoryItem[] = [],
   stateOptions: { label: string; value: string }[] = [],
   cityOptions: { label: string; value: string }[] = [],
+  agentOptions: { label: string; value: string }[] = [],
   statusOptions: { label: string; value: string }[] = []
 ): FilterConfig[] => [
     {
@@ -79,6 +80,16 @@ export const getPropertyFilterConfig = (
       type: "faceted",
       options: cityOptions,
       placeholder: "شهر",
+      showSearch: true,
+      multiSelect: true,
+      isAdvanced: true,
+    },
+    {
+      columnId: "agent",
+      title: "مشاور",
+      type: "faceted",
+      options: agentOptions,
+      placeholder: "مشاور",
       showSearch: true,
       multiSelect: true,
       isAdvanced: true,

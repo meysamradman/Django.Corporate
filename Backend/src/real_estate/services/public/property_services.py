@@ -116,7 +116,8 @@ class PropertyPublicService:
                 if slug_value:
                     queryset = queryset.filter(**{orm_field: slug_value})
 
-        if search:
+        search = (search or '').strip()
+        if len(search) >= 2:
             queryset = queryset.search(search)
 
         return queryset.order_by(*PropertyPublicService._normalize_ordering(ordering)).distinct()

@@ -60,6 +60,7 @@ class PropertyQuerySet(models.QuerySet):
             'state',
             'agent',
             'agent__user',
+            'agent__user__admin_profile',
             'agent__agency',
             'agency',
             'city',
@@ -72,34 +73,48 @@ class PropertyQuerySet(models.QuerySet):
             Prefetch('tags', queryset=PropertyTag.objects.all()),
             Prefetch('features', queryset=PropertyFeature.objects.all()),
             Prefetch(
-                'agent__user__admin_profile',
-                queryset=AdminProfile.objects.only('id', 'first_name', 'last_name', 'profile_picture_id')
-            ),
-            Prefetch(
                 'images',
                 queryset=PropertyImage.objects.select_related('image')
                     .filter(is_main=True)
-                    .only('id', 'image_id', 'is_main', 'order', 'property_id'),
+                    .only(
+                        'id', 'image_id', 'is_main', 'order', 'property_id',
+                        'image__id', 'image__file', 'image__title', 'image__alt_text'
+                    ),
                 to_attr='main_image_prefetch'
             ),
             Prefetch(
                 'videos',
                 queryset=PropertyVideo.objects.select_related('video', 'cover_image', 'video__cover_image')
-                    .only('id', 'video_id', 'cover_image_id', 'video__cover_image_id', 'property_id')
+                    .only(
+                        'id', 'video_id', 'cover_image_id', 'video__cover_image_id', 'property_id',
+                        'video__id', 'video__title', 'video__file',
+                        'cover_image__id', 'cover_image__file',
+                        'video__cover_image__id', 'video__cover_image__file'
+                    )
                     .order_by('order', 'created_at'),
                 to_attr='primary_video_prefetch'
             ),
             Prefetch(
                 'audios',
                 queryset=PropertyAudio.objects.select_related('audio', 'cover_image', 'audio__cover_image')
-                    .only('id', 'audio_id', 'cover_image_id', 'audio__cover_image_id', 'property_id')
+                    .only(
+                        'id', 'audio_id', 'cover_image_id', 'audio__cover_image_id', 'property_id',
+                        'audio__id', 'audio__title', 'audio__file',
+                        'cover_image__id', 'cover_image__file',
+                        'audio__cover_image__id', 'audio__cover_image__file'
+                    )
                     .order_by('order', 'created_at'),
                 to_attr='primary_audio_prefetch'
             ),
             Prefetch(
                 'documents',
                 queryset=PropertyDocument.objects.select_related('document', 'cover_image', 'document__cover_image')
-                    .only('id', 'document_id', 'cover_image_id', 'document__cover_image_id', 'title', 'property_id')
+                    .only(
+                        'id', 'document_id', 'cover_image_id', 'document__cover_image_id', 'title', 'property_id',
+                        'document__id', 'document__title', 'document__file',
+                        'cover_image__id', 'cover_image__file',
+                        'document__cover_image__id', 'document__cover_image__file'
+                    )
                     .order_by('order', 'created_at'),
                 to_attr='primary_document_prefetch'
             ),
@@ -133,7 +148,7 @@ class PropertyQuerySet(models.QuerySet):
             'search_vector'
         ).only(
             'id', 'public_id', 'title', 'slug', 'short_description',
-            'is_published', 'is_featured', 'is_public', 'is_active',
+            'is_published', 'is_featured', 'is_public', 'is_active', 'status',
             'property_type_id', 'state_id', 'agent_id', 'agency_id',
             'city_id', 'region_id', 'province_id', 'neighborhood',
             'price', 'sale_price', 'pre_sale_price', 'price_per_sqm',
@@ -142,7 +157,7 @@ class PropertyQuerySet(models.QuerySet):
             'bedrooms', 'bathrooms', 'kitchens', 'living_rooms',
             'year_built', 'build_years', 'floors_in_building', 'floor_number',
             'parking_spaces', 'storage_rooms', 'document_type', 'has_document',
-            'views_count', 'favorites_count', 'inquiries_count',
+            'views_count', 'web_views_count', 'app_views_count', 'favorites_count', 'inquiries_count',
             'published_at', 'created_at', 'updated_at',
             'meta_title', 'meta_description', # ✅ Kept for serializer
             'og_image_id', # ✅ Needed for SQL join, must be in only()
@@ -216,7 +231,8 @@ class PropertyQuerySet(models.QuerySet):
         )
     
     def search(self, query):
-        if not query:
+        query = (query or '').strip()
+        if not query or len(query) < 2:
             return self
 
         search_query = SearchQuery(query, search_type='websearch', config='english')
@@ -226,10 +242,11 @@ class PropertyQuerySet(models.QuerySet):
         ).filter(
             Q(search_vector=search_query) |
             Q(city__name__icontains=query) |
+            Q(province__name__icontains=query) |
             Q(region__name__icontains=query) |
             Q(neighborhood__icontains=query) |
             Q(slug__icontains=query)
-        ).distinct().order_by('-search_rank', '-created_at')
+        ).distinct()
     
     def featured(self):
         return self.filter(is_featured=True)

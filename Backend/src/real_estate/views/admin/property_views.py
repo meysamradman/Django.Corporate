@@ -66,18 +66,8 @@ class PropertyFinalizeDealSerializer(serializers.Serializer):
 
 class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = PropertyAdminFilter
-    search_fields = [
-        'title', 
-        'neighborhood',
-        'city__name', 
-        'region__name',
-        'agency__name',
-        'agent__user__admin_profile__first_name',
-        'agent__user__admin_profile__last_name',
-        'slug'
-    ]
     ordering_fields = ['created_at', 'updated_at', 'title', 'price', 'published_at', 'views_count']
     ordering = ['-created_at']
     pagination_class = StandardLimitPagination

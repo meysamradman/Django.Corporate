@@ -110,7 +110,7 @@ function DataTableFilters<TClientFilters extends Record<string, unknown>>({
   return (
     <>
       {filterConfig.map((filter) => {
-        const isNonColumnFilter = ['category', 'property_type', 'date_from', 'date_to', 'date_range', 'date_range_dropdown'].includes(filter.columnId);
+        const isNonColumnFilter = ['category', 'property_type', 'agent', 'date_from', 'date_to', 'date_range', 'date_range_dropdown'].includes(filter.columnId);
         const column = isNonColumnFilter ? null : table.getColumn(filter.columnId);
 
         if (!column && !isNonColumnFilter) return null;

@@ -43,6 +43,7 @@ export function usePropertyListTableState({ navigate }: UsePropertyListTableStat
   const [stateOptions, setStateOptions] = useState<{ label: string; value: string }[]>([]);
 
   const [cityOptions, setCityOptions] = useState<{ label: string; value: string }[]>([]);
+  const [agentOptions, setAgentOptions] = useState<{ label: string; value: string }[]>([]);
   const [statusOptions, setStatusOptions] = useState<{ label: string; value: string }[]>([]);
 
   const [pagination, setPagination] = useState<TablePaginationState>(() => {
@@ -94,6 +95,9 @@ export function usePropertyListTableState({ navigate }: UsePropertyListTableStat
       const city = urlParams.get('city');
       if (city) filters.city = parseInt(city);
 
+      const agent = urlParams.get('agent');
+      if (agent) filters.agent = agent;
+
       const status = urlParams.get('status');
       if (status) filters.status = status;
 
@@ -130,6 +134,9 @@ export function usePropertyListTableState({ navigate }: UsePropertyListTableStat
       const city = urlParams.get('city');
       if (city) filters.city = parseInt(city);
 
+      const agent = urlParams.get('agent');
+      if (agent) filters.agent = agent;
+
       filters.status = parseStringParam(urlParams, 'status');
 
       Object.assign(filters, parseDateRange(urlParams));
@@ -141,10 +148,11 @@ export function usePropertyListTableState({ navigate }: UsePropertyListTableStat
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const [typesResponse, statesResponse, citiesResponse] = await Promise.all([
+        const [typesResponse, statesResponse, citiesResponse, agentsResponse] = await Promise.all([
           realEstateApi.getTypes({ page: 1, size: 1000, is_active: true }),
           realEstateApi.getStates({ page: 1, size: 1000, is_active: true }),
           realEstateApi.getCitiesWithProperties(),
+          realEstateApi.getAgents({ page: 1, size: 1000, is_active: true }),
         ]);
 
         setPropertyTypes(typesResponse.data);
@@ -157,6 +165,13 @@ export function usePropertyListTableState({ navigate }: UsePropertyListTableStat
           label: `${city.name} (${(city as any).property_count || 0} ملک)`,
           value: city.id.toString()
         })));
+
+        setAgentOptions(
+          agentsResponse.data.map((agent) => ({
+            label: agent.full_name || `${agent.first_name || ''} ${agent.last_name || ''}`.trim() || `مشاور #${agent.id}`,
+            value: agent.id.toString(),
+          }))
+        );
 
         const fieldOptions = await realEstateApi.getFieldOptions();
         if (fieldOptions.status) {
@@ -205,6 +220,26 @@ export function usePropertyListTableState({ navigate }: UsePropertyListTableStat
           url.searchParams.delete('status');
         }
         updateUrl(url);
+      },
+      agent: (value, updateUrl) => {
+        const agentValue = value
+          ? Array.isArray(value)
+            ? value.map(v => String(v)).join(',')
+            : String(value)
+          : undefined;
+        setClientFilters(prev => ({
+          ...prev,
+          agent: agentValue as string | undefined
+        }));
+        setPagination(prev => ({ ...prev, pageIndex: 0 }));
+
+        const url = new URL(window.location.href);
+        if (agentValue && agentValue !== '') {
+          url.searchParams.set('agent', agentValue);
+        } else {
+          url.searchParams.delete('agent');
+        }
+        updateUrl(url);
       }
     }
   );
@@ -214,6 +249,7 @@ export function usePropertyListTableState({ navigate }: UsePropertyListTableStat
     propertyTypeOptions,
     stateOptions,
     cityOptions,
+    agentOptions,
     statusOptions
   );
 

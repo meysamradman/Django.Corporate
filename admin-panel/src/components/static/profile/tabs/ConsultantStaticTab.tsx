@@ -68,15 +68,7 @@ export function ConsultantStaticTab({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-2">
-                <Label className="flex items-center gap-2 text-xs font-medium text-font-s">
-                   <FileText className="size-3.5" />
-                   بیوگرافی مشاور
-                 </Label>
-                <p className="text-sm font-medium text-font-p bg-card-2/50 p-4 rounded-xl border border-br/60 leading-relaxed min-h-[80px]">
-                  {consultantBio || "---"}
-                </p>
-            </div>
+
           </>
         )}
       </div>

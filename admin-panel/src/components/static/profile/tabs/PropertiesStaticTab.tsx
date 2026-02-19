@@ -39,40 +39,10 @@ export function PropertiesStaticTab({
     return acc + (isNaN(num) ? 0 : num);
   }, 0).toFixed(1);
 
+
   return (
     <div className="space-y-6">
-      {/* Statistics Section (Dashboard View) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard
-          title="کل املاک ثبت‌شده"
-          value={total}
-          icon={Home}
-          trend="+5%"
-          color="text-blue-2 bg-blue/10 border-blue/20"
-        />
-        <StatCard
-          title="ملک‌های فعال"
-          value={active}
-          icon={Activity}
-          trend="+12%"
-          color="text-green-2 bg-green/10 border-green/20"
-        />
-        <StatCard
-          title="در انتظار تایید"
-          value={pending}
-          icon={Clock}
-          trend="-2%"
-          color="text-yellow-2 bg-yellow/10 border-yellow/20"
-        />
-        <StatCard
-          title="ارزش تقریبی (م)"
-          value={totalValue}
-          icon={DollarSign}
-          trend="+8%"
-          color="text-purple-2 bg-purple/10 border-purple/20"
-        />
-      </div>
-
+      
       <CardWithIcon
         icon={Building2}
         title={isConsultant ? "آخرین املاک ثبت‌شده توسط مشاور" : "آخرین املاک ثبت‌شده توسط ادمین"}

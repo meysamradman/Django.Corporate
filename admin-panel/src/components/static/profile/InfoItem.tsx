@@ -11,6 +11,8 @@ interface InfoItemProps {
 }
 
 export function InfoItem({ label, value, dir = "rtl", className, valueClassName, icon: Icon }: InfoItemProps) {
+  const hasValue = value !== null && value !== undefined && (typeof value !== "string" || value.trim() !== "")
+
   return (
     <div className={cn(
       "group relative flex items-start gap-4 rounded-xl border border-br/60 bg-card p-4 transition-all duration-300 hover:border-primary/20 hover:bg-card-2/50 hover:shadow-sm",
@@ -32,7 +34,7 @@ export function InfoItem({ label, value, dir = "rtl", className, valueClassName,
             valueClassName
           )}
         >
-          {value || "---"}
+          {hasValue ? value : "---"}
         </p>
       </div>
       
