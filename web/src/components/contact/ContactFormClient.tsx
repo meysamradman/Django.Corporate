@@ -8,19 +8,51 @@ import type { PublicContactFormField } from "@/types/form/contactForm";
 import { Button } from "@/components/elements/custom/button";
 import { Input } from "@/components/elements/input";
 import { Textarea } from "@/components/elements/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/select";
 
 type DynamicFormValues = Record<string, any> & {
   __hp?: string;
 };
 
-function NativeSelect({ className, children, ...props }: React.ComponentProps<"select">) {
+const EMPTY_SELECT_VALUE = "__empty__";
+
+function NativeSelect({ className, children, value, defaultValue, onChange, ...props }: React.ComponentProps<"select">) {
+  const optionElements = React.Children.toArray(children).filter(React.isValidElement) as React.ReactElement<
+    React.ComponentProps<"option">
+  >[];
+  const mappedValue = value === "" ? EMPTY_SELECT_VALUE : (value as string | undefined);
+  const mappedDefaultValue = defaultValue === "" ? EMPTY_SELECT_VALUE : (defaultValue as string | undefined);
+  const placeholderOption = optionElements.find((option) => String(option.props.value ?? "") === "");
+
   return (
-    <select
-      className={`w-full rounded-md border border-br bg-wt px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 ${className ?? ""}`}
-      {...props}
+    <Select
+      value={mappedValue}
+      defaultValue={mappedValue === undefined ? mappedDefaultValue : undefined}
+      onValueChange={(nextValue) => {
+        const normalizedValue = nextValue === EMPTY_SELECT_VALUE ? "" : nextValue;
+        onChange?.({ target: { value: normalizedValue } } as React.ChangeEvent<HTMLSelectElement>);
+      }}
+      disabled={props.disabled}
     >
-      {children}
-    </select>
+      <SelectTrigger
+      id={props.id}
+      className={`w-full rounded-md border border-br bg-wt px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 ${className ?? ""}`}
+      >
+        <SelectValue placeholder={placeholderOption?.props.children as React.ReactNode} />
+      </SelectTrigger>
+      <SelectContent>
+        {optionElements.map((option, index) => {
+          const optionValue = String(option.props.value ?? "");
+          const mappedOptionValue = optionValue === "" ? EMPTY_SELECT_VALUE : optionValue;
+
+          return (
+            <SelectItem key={`${mappedOptionValue}-${index}`} value={mappedOptionValue} disabled={option.props.disabled}>
+              {option.props.children}
+            </SelectItem>
+          );
+        })}
+      </SelectContent>
+    </Select>
   );
 }
 
