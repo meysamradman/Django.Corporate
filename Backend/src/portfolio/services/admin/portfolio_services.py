@@ -18,6 +18,42 @@ from src.media.models.media import ImageMedia, VideoMedia, AudioMedia, DocumentM
 from src.portfolio.messages.messages import PORTFOLIO_ERRORS
 
 class PortfolioAdminService:
+
+    @staticmethod
+    def _normalize_query_params(query_params):
+        if hasattr(query_params, 'lists'):
+            normalized = {}
+            for key, values in sorted(query_params.lists()):
+                if not values:
+                    normalized[key] = None
+                elif len(values) == 1:
+                    normalized[key] = values[0]
+                else:
+                    normalized[key] = values
+            return normalized
+
+        if isinstance(query_params, dict):
+            return {key: query_params[key] for key in sorted(query_params.keys())}
+
+        return {}
+
+    @staticmethod
+    def get_list_cache_key(user_id, query_params):
+        payload = {
+            'user_id': user_id,
+            'query_params': PortfolioAdminService._normalize_query_params(query_params),
+        }
+        return PortfolioCacheKeys.list_admin(payload)
+
+    @staticmethod
+    def get_cached_list_payload(user_id, query_params):
+        cache_key = PortfolioAdminService.get_list_cache_key(user_id, query_params)
+        return PortfolioCacheManager.get(cache_key)
+
+    @staticmethod
+    def set_cached_list_payload(user_id, query_params, payload):
+        cache_key = PortfolioAdminService.get_list_cache_key(user_id, query_params)
+        PortfolioCacheManager.set(cache_key, payload, timeout=cache_ttl.ADMIN_LIST_TTL)
     
     @staticmethod
     def get_portfolio_queryset(filters=None, search=None, order_by=None, order_desc=None, date_from=None, date_to=None):

@@ -8,6 +8,7 @@ from src.real_estate.models.type import PropertyType
 from src.real_estate.models.property import Property
 from src.real_estate.utils.cache_admin import TypeCacheKeys, TypeCacheManager
 from src.real_estate.utils.cache_ttl import (
+    ADMIN_TAXONOMY_LIST_TTL,
     ADMIN_TYPE_POPULAR_TTL,
     ADMIN_TYPE_ROOTS_TTL,
     ADMIN_TYPE_STATS_TTL,
@@ -17,6 +18,42 @@ from src.real_estate.messages import TYPE_ERRORS
 from src.media.models.media import ImageMedia
 
 class PropertyTypeAdminService:
+
+    @staticmethod
+    def _normalize_query_params(query_params):
+        if hasattr(query_params, 'lists'):
+            normalized = {}
+            for key, values in sorted(query_params.lists()):
+                if not values:
+                    normalized[key] = None
+                elif len(values) == 1:
+                    normalized[key] = values[0]
+                else:
+                    normalized[key] = values
+            return normalized
+
+        if isinstance(query_params, dict):
+            return {key: query_params[key] for key in sorted(query_params.keys())}
+
+        return {}
+
+    @staticmethod
+    def get_list_cache_key(user_id, query_params):
+        payload = {
+            'user_id': user_id,
+            'query_params': PropertyTypeAdminService._normalize_query_params(query_params),
+        }
+        return TypeCacheKeys.list_admin(payload)
+
+    @staticmethod
+    def get_cached_list_payload(user_id, query_params):
+        cache_key = PropertyTypeAdminService.get_list_cache_key(user_id, query_params)
+        return cache.get(cache_key)
+
+    @staticmethod
+    def set_cached_list_payload(user_id, query_params, payload):
+        cache_key = PropertyTypeAdminService.get_list_cache_key(user_id, query_params)
+        cache.set(cache_key, payload, ADMIN_TAXONOMY_LIST_TTL)
     
     @staticmethod
     def get_tree_queryset():

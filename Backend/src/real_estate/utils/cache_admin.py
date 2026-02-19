@@ -1,6 +1,7 @@
 from django.core.cache import cache
 
 from src.core.cache import CacheKeyBuilder, CacheService, CacheTTL
+from src.real_estate.utils.cache_shared import hash_payload
 
 class PropertyCacheKeys:
 
@@ -186,6 +187,10 @@ class TypeCacheKeys:
     @staticmethod
     def statistics() -> str:
         return f"{TypeCacheKeys.NAMESPACE}:statistics"
+
+    @staticmethod
+    def list_admin(params: dict) -> str:
+        return f"{TypeCacheKeys.NAMESPACE}:list:{hash_payload(params)}"
 
     @staticmethod
     def all_keys(type_ids: list[int] | None = None) -> list[str]:

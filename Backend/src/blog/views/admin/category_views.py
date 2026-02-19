@@ -1,4 +1,5 @@
 from rest_framework import viewsets, status, filters
+from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from django_filters.rest_framework import DjangoFilterBackend
@@ -70,18 +71,38 @@ class BlogCategoryAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_200_OK
             )
 
+        user_id = getattr(request.user, 'id', None)
+        cached_payload = BlogCategoryAdminService.get_cached_list_payload(
+            user_id=user_id,
+            query_params=request.query_params,
+        )
+        if cached_payload is not None:
+            return Response(cached_payload, status=status.HTTP_200_OK)
+
         queryset = self.filter_queryset(BlogCategoryAdminService.get_tree_queryset())
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = BlogCategoryAdminListSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            response = self.get_paginated_response(serializer.data)
+            BlogCategoryAdminService.set_cached_list_payload(
+                user_id=user_id,
+                query_params=request.query_params,
+                payload=response.data,
+            )
+            return response
         
         serializer = BlogCategoryAdminListSerializer(queryset, many=True)
-        return APIResponse.success(
+        response = APIResponse.success(
             message=CATEGORY_SUCCESS["category_list_success"],
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )
+        BlogCategoryAdminService.set_cached_list_payload(
+            user_id=user_id,
+            query_params=request.query_params,
+            payload=response.data,
+        )
+        return response
     
     @staticmethod
     def _parse_bool(value):

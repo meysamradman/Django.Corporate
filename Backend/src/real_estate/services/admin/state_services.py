@@ -2,11 +2,54 @@ from datetime import datetime
 from django.db.models import Count
 from django.db import transaction
 from django.core.exceptions import ValidationError
+from src.core.cache import CacheService
 from src.real_estate.models.state import PropertyState
 from src.real_estate.messages.messages import STATE_ERRORS
 from src.media.models.media import ImageMedia
+from src.real_estate.utils.cache_shared import hash_payload
+from src.real_estate.utils.cache_ttl import ADMIN_TAXONOMY_LIST_TTL
 
 class PropertyStateAdminService:
+
+    @staticmethod
+    def _normalize_query_params(query_params):
+        if hasattr(query_params, 'lists'):
+            normalized = {}
+            for key, values in sorted(query_params.lists()):
+                if not values:
+                    normalized[key] = None
+                elif len(values) == 1:
+                    normalized[key] = values[0]
+                else:
+                    normalized[key] = values
+            return normalized
+
+        if isinstance(query_params, dict):
+            return {key: query_params[key] for key in sorted(query_params.keys())}
+
+        return {}
+
+    @staticmethod
+    def get_list_cache_key(user_id, query_params):
+        payload = {
+            'user_id': user_id,
+            'query_params': PropertyStateAdminService._normalize_query_params(query_params),
+        }
+        return f"admin:real_estate:state:list:{hash_payload(payload)}"
+
+    @staticmethod
+    def get_cached_list_payload(user_id, query_params):
+        cache_key = PropertyStateAdminService.get_list_cache_key(user_id, query_params)
+        return CacheService.get(cache_key)
+
+    @staticmethod
+    def set_cached_list_payload(user_id, query_params, payload):
+        cache_key = PropertyStateAdminService.get_list_cache_key(user_id, query_params)
+        CacheService.set(cache_key, payload, timeout=ADMIN_TAXONOMY_LIST_TTL)
+
+    @staticmethod
+    def invalidate_list_cache():
+        return CacheService.delete_pattern("admin:real_estate:state:list:*")
     
     @staticmethod
     def get_state_queryset(filters=None, search=None, date_from=None, date_to=None):
@@ -61,6 +104,7 @@ class PropertyStateAdminService:
                     state_obj.save(update_fields=['image', 'updated_at'])
                 except ImageMedia.DoesNotExist:
                     pass
+            PropertyStateAdminService.invalidate_list_cache()
         return state_obj
     
     @staticmethod
@@ -87,6 +131,8 @@ class PropertyStateAdminService:
                     state_obj.image = None
 
             state_obj.save()
+
+        PropertyStateAdminService.invalidate_list_cache()
         
         return state_obj
     
@@ -99,6 +145,7 @@ class PropertyStateAdminService:
 
         with transaction.atomic():
             state_obj.delete()
+        PropertyStateAdminService.invalidate_list_cache()
     
     @staticmethod
     def bulk_delete_states(state_ids):
@@ -120,6 +167,8 @@ class PropertyStateAdminService:
             
             deleted_count = states.count()
             states.delete()
+
+        PropertyStateAdminService.invalidate_list_cache()
         
         return deleted_count
 

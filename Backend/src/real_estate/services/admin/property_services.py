@@ -12,6 +12,7 @@ from src.real_estate.models.property import Property
 from src.real_estate.models.media import PropertyImage, PropertyVideo, PropertyAudio, PropertyDocument
 from src.real_estate.utils.cache_admin import PropertyCacheManager, PropertyCacheKeys
 from src.real_estate.utils.cache_ttl import (
+    ADMIN_PROPERTY_LIST_TTL,
     ADMIN_PROPERTY_SEO_REPORT_TTL,
     ADMIN_PROPERTY_YEAR_CHOICES_TTL,
 )
@@ -69,6 +70,42 @@ class PropertyExportRateLimitService:
         return True
 
 class PropertyAdminService:
+
+    @staticmethod
+    def _normalize_query_params(query_params):
+        if hasattr(query_params, 'lists'):
+            normalized = {}
+            for key, values in sorted(query_params.lists()):
+                if not values:
+                    normalized[key] = None
+                elif len(values) == 1:
+                    normalized[key] = values[0]
+                else:
+                    normalized[key] = values
+            return normalized
+
+        if isinstance(query_params, dict):
+            return {key: query_params[key] for key in sorted(query_params.keys())}
+
+        return {}
+
+    @staticmethod
+    def get_list_cache_key(user_id, query_params):
+        payload = {
+            'user_id': user_id,
+            'query_params': PropertyAdminService._normalize_query_params(query_params),
+        }
+        return PropertyCacheKeys.list_admin(payload)
+
+    @staticmethod
+    def get_cached_list_payload(user_id, query_params):
+        cache_key = PropertyAdminService.get_list_cache_key(user_id, query_params)
+        return PropertyCacheManager.get(cache_key)
+
+    @staticmethod
+    def set_cached_list_payload(user_id, query_params, payload):
+        cache_key = PropertyAdminService.get_list_cache_key(user_id, query_params)
+        PropertyCacheManager.set(cache_key, payload, timeout=ADMIN_PROPERTY_LIST_TTL)
     
     @staticmethod
     def get_property_queryset(filters=None, search=None, order_by=None, order_desc=None, date_from=None, date_to=None):

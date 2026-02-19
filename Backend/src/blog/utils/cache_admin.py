@@ -44,6 +44,18 @@ class BlogCacheKeys:
 class BlogCacheManager:
 
     @staticmethod
+    def get(key, default=None):
+        return CacheService.get(key, default)
+
+    @staticmethod
+    def set(key, value, timeout=None):
+        return CacheService.set(key, value, timeout)
+
+    @staticmethod
+    def delete(key):
+        return CacheService.delete(key)
+
+    @staticmethod
     def invalidate_blog(blog_id):
         deleted = CacheService.clear_blog_cache(blog_id)
         deleted += CacheService.delete_pattern("public:blog:detail:*")

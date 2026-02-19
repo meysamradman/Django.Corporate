@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status, filters
 from rest_framework import serializers
+from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from django.core.exceptions import ValidationError
@@ -155,19 +156,39 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             return PropertyAdminDetailSerializer
     
     def list(self, request, *args, **kwargs):
+        user_id = getattr(request.user, 'id', None)
+        cached_payload = PropertyAdminService.get_cached_list_payload(
+            user_id=user_id,
+            query_params=request.query_params,
+        )
+        if cached_payload is not None:
+            return Response(cached_payload, status=status.HTTP_200_OK)
+
         queryset = self.filter_queryset(self.get_queryset())
         
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            response = self.get_paginated_response(serializer.data)
+            PropertyAdminService.set_cached_list_payload(
+                user_id=user_id,
+                query_params=request.query_params,
+                payload=response.data,
+            )
+            return response
         
         serializer = self.get_serializer(queryset, many=True)
-        return APIResponse.success(
+        response = APIResponse.success(
             message=PROPERTY_SUCCESS["property_list_success"],
             data=serializer.data,
             status_code=status.HTTP_200_OK
         )
+        PropertyAdminService.set_cached_list_payload(
+            user_id=user_id,
+            query_params=request.query_params,
+            payload=response.data,
+        )
+        return response
     
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()

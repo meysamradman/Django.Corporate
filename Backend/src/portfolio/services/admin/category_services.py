@@ -15,6 +15,42 @@ from src.media.models.media import ImageMedia
 class PortfolioCategoryAdminService:
 
     @staticmethod
+    def _normalize_query_params(query_params):
+        if hasattr(query_params, 'lists'):
+            normalized = {}
+            for key, values in sorted(query_params.lists()):
+                if not values:
+                    normalized[key] = None
+                elif len(values) == 1:
+                    normalized[key] = values[0]
+                else:
+                    normalized[key] = values
+            return normalized
+
+        if isinstance(query_params, dict):
+            return {key: query_params[key] for key in sorted(query_params.keys())}
+
+        return {}
+
+    @staticmethod
+    def get_list_cache_key(user_id, query_params):
+        payload = {
+            'user_id': user_id,
+            'query_params': PortfolioCategoryAdminService._normalize_query_params(query_params),
+        }
+        return CategoryCacheKeys.list_admin(payload)
+
+    @staticmethod
+    def get_cached_list_payload(user_id, query_params):
+        cache_key = PortfolioCategoryAdminService.get_list_cache_key(user_id, query_params)
+        return cache.get(cache_key)
+
+    @staticmethod
+    def set_cached_list_payload(user_id, query_params, payload):
+        cache_key = PortfolioCategoryAdminService.get_list_cache_key(user_id, query_params)
+        cache.set(cache_key, payload, cache_ttl.ADMIN_LIST_TTL)
+
+    @staticmethod
     def _with_portfolio_count(queryset):
         through_model = Portfolio.categories.through
         portfolio_count_subquery = through_model.objects.filter(

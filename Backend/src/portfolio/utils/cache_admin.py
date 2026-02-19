@@ -44,6 +44,18 @@ class PortfolioCacheKeys:
 class PortfolioCacheManager:
 
     @staticmethod
+    def get(key, default=None):
+        return CacheService.get(key, default)
+
+    @staticmethod
+    def set(key, value, timeout=None):
+        return CacheService.set(key, value, timeout)
+
+    @staticmethod
+    def delete(key):
+        return CacheService.delete(key)
+
+    @staticmethod
     def invalidate_portfolio(portfolio_id):
         deleted = CacheService.clear_portfolio_cache(portfolio_id)
         deleted += CacheService.delete_pattern("public:portfolio:detail:*")
