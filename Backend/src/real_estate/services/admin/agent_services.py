@@ -1,5 +1,6 @@
 from datetime import datetime
-from django.db.models import Count, Prefetch, Q
+from django.db.models import Count, Q, OuterRef, Subquery, IntegerField
+from django.db.models.functions import Coalesce
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
@@ -9,6 +10,22 @@ from src.real_estate.models.property import Property
 from src.real_estate.messages.messages import AGENT_ERRORS, AGENT_DEFAULTS
 
 class PropertyAgentAdminService:
+    @staticmethod
+    def _with_property_count_subquery(queryset):
+        property_count_subquery = Property.objects.filter(
+            agent_id=OuterRef('pk')
+        ).values('agent_id').annotate(
+            c=Count('id')
+        ).values('c')[:1]
+
+        return queryset.annotate(
+            property_count=Coalesce(
+                Subquery(property_count_subquery, output_field=IntegerField()),
+                0,
+                output_field=IntegerField(),
+            )
+        )
+
     @staticmethod
     def _sync_social_media(agent, social_media_items):
         if social_media_items is None:
@@ -64,12 +81,13 @@ class PropertyAgentAdminService:
         queryset = PropertyAgent.objects.select_related(
             'user',
             'user__admin_profile',
+            'user__admin_profile__profile_picture',
+            'profile_picture',
             'user__admin_profile__city',
             'user__admin_profile__province',
             'agency'
-        ).annotate(
-            property_count=Count('properties', distinct=True)
         )
+        queryset = PropertyAgentAdminService._with_property_count_subquery(queryset)
         
         if filters:
             if filters.get('is_active') is not None:
@@ -109,15 +127,17 @@ class PropertyAgentAdminService:
     @staticmethod
     def get_agent_by_id(agent_id):
         try:
-            return PropertyAgent.objects.select_related(
+            queryset = PropertyAgent.objects.select_related(
                 'user',
                 'user__admin_profile',
+                'user__admin_profile__profile_picture',
+                'profile_picture',
                 'user__admin_profile__city',
                 'user__admin_profile__province',
                 'agency'
-            ).annotate(
-                property_count=Count('properties', distinct=True)
-            ).get(id=agent_id)
+            )
+            queryset = PropertyAgentAdminService._with_property_count_subquery(queryset)
+            return queryset.get(id=agent_id)
         except PropertyAgent.DoesNotExist:
             return None
     

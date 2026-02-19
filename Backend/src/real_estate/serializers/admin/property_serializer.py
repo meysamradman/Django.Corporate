@@ -154,12 +154,6 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
     state = PropertyStateSimpleAdminSerializer(read_only=True)
     agent = PropertyAgentSimpleAdminSerializer(read_only=True)
     agency = RealEstateAgencySimpleAdminSerializer(read_only=True)
-    labels = PropertyLabelSimpleAdminSerializer(many=True, read_only=True)
-    
-    media_count = serializers.SerializerMethodField()
-    labels_count = serializers.IntegerField(read_only=True)
-    tags_count = serializers.IntegerField(read_only=True)
-    features_count = serializers.IntegerField(read_only=True)
     
     seo_status = serializers.SerializerMethodField()
     city_name = serializers.SerializerMethodField()
@@ -172,10 +166,8 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'public_id', 'title', 'slug', 'short_description',
             'is_published', 'is_featured', 'is_public', 'is_active', 'status', # ✅ Status added
-            'main_image', 'primary_video', 'primary_audio', 'primary_document',
+            'main_image',
             'property_type', 'state', 'agent', 'agency',
-            'labels', 'labels_count', 'tags_count', 'features_count', 
-            'images_count', 'videos_count', 'audios_count', 'documents_count', 'media_count',
             'seo_status', 'city_name', 'province_name', 'district_name', 'region_name',
             'price', 'sale_price', 'pre_sale_price', 'price_per_sqm',
             'monthly_rent', 'rent_amount', 'mortgage_amount',
@@ -188,18 +180,6 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
             'published_at', 'created_at', 'updated_at', # ✅ همیشه در انتها
         ]
 
-    images_count = serializers.IntegerField(source='total_images_count', read_only=True)
-    videos_count = serializers.IntegerField(source='total_videos_count', read_only=True)
-    audios_count = serializers.IntegerField(source='total_audios_count', read_only=True)
-    documents_count = serializers.IntegerField(source='total_docs_count', read_only=True)
-
-    primary_video = serializers.SerializerMethodField()
-    primary_audio = serializers.SerializerMethodField()
-    primary_document = serializers.SerializerMethodField()
-
-    def get_media_count(self, obj):
-        return getattr(obj, 'total_media_count', 0)
-    
     def get_main_image(self, obj):
         main_images = getattr(obj, 'main_image_prefetch', [])
         if main_images:
@@ -219,42 +199,6 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
                 }
         return None
 
-    def _get_media_preview(self, obj, attr_name, media_field):
-        items = getattr(obj, attr_name, [])
-        if items:
-            item = items[0]
-            media_obj = getattr(item, media_field)
-            if media_obj:
-                cover_url = None
-                try:
-                    if hasattr(item, 'cover_image') and item.cover_image:
-                        cover_url = item.cover_image.file.url
-                    elif hasattr(media_obj, 'cover_image') and media_obj.cover_image:
-                        cover_url = media_obj.cover_image.file.url
-                    elif hasattr(media_obj, 'file'):
-                        cover_url = media_obj.file.url # Fallback
-                except Exception:
-                    pass
-                
-                title = getattr(item, 'title', None) or getattr(media_obj, 'title', None)
-                
-                return {
-                    'id': item.id,
-                    'title': title,
-                    'cover_url': cover_url,
-                    'media_id': media_obj.id
-                }
-        return None
-
-    def get_primary_video(self, obj):
-        return self._get_media_preview(obj, 'primary_video_prefetch', 'video')
-
-    def get_primary_audio(self, obj):
-        return self._get_media_preview(obj, 'primary_audio_prefetch', 'audio')
-
-    def get_primary_document(self, obj):
-        return self._get_media_preview(obj, 'primary_document_prefetch', 'document')
-    
     def get_seo_status(self, obj):
         has_meta_title = bool(obj.meta_title)
         has_meta_description = bool(obj.meta_description)

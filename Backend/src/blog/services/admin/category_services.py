@@ -1,22 +1,40 @@
 from django.db import transaction, models
-from django.db.models import Count
+from django.db.models import Count, OuterRef, Subquery, IntegerField
+from django.db.models.functions import Coalesce
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from datetime import datetime
 
 from src.blog.models.category import BlogCategory
+from src.blog.models.blog import Blog
 from src.blog.utils.cache_admin import CategoryCacheKeys, CategoryCacheManager
 from src.blog.utils import cache_ttl
 from src.blog.messages.messages import CATEGORY_ERRORS
 from src.media.models.media import ImageMedia
 
 class BlogCategoryAdminService:
+
+    @staticmethod
+    def _with_blog_count(queryset):
+        through_model = Blog.categories.through
+        blog_count_subquery = through_model.objects.filter(
+            blogcategory_id=OuterRef('pk')
+        ).values('blogcategory_id').annotate(
+            c=Count('blog_id', distinct=True)
+        ).values('c')[:1]
+
+        return queryset.annotate(
+            blog_count=Coalesce(
+                Subquery(blog_count_subquery, output_field=IntegerField()),
+                0,
+                output_field=IntegerField()
+            )
+        )
     
     @staticmethod
     def get_tree_queryset():
-        return BlogCategory.objects.select_related('image').annotate(
-            blog_count=Count('blog_categories', distinct=True)
-        ).order_by('path')
+        queryset = BlogCategory.objects.select_related('image').order_by('path')
+        return BlogCategoryAdminService._with_blog_count(queryset)
     
     @staticmethod
     def get_list_queryset(filters=None, order_by='created_at', order_desc=True, date_from=None, date_to=None):
@@ -55,13 +73,8 @@ class BlogCategoryAdminService:
         root_categories = cache.get(cache_key)
         
         if root_categories is None:
-            root_categories = list(
-                BlogCategory.get_root_nodes().annotate(
-                    blog_count=Count('blog_categories', distinct=True)
-                ).values(
-                    'id', 'public_id', 'name', 'slug', 'blog_count'
-                )
-            )
+            root_queryset = BlogCategoryAdminService._with_blog_count(BlogCategory.get_root_nodes())
+            root_categories = list(root_queryset.values('id', 'public_id', 'name', 'slug', 'blog_count'))
             cache.set(cache_key, root_categories, cache_ttl.ADMIN_TAXONOMY_ROOTS_TTL)
         
         return root_categories
@@ -88,9 +101,9 @@ class BlogCategoryAdminService:
                     tree.append(tree_node)
                 return tree
             
-            root_nodes = BlogCategory.get_root_nodes().annotate(
-                blog_count=Count('blog_categories', distinct=True)
-            ).filter(is_active=True)
+            root_nodes = BlogCategoryAdminService._with_blog_count(
+                BlogCategory.get_root_nodes().filter(is_active=True)
+            )
             
             tree_data = build_tree(root_nodes)
             cache.set(cache_key, tree_data, cache_ttl.ADMIN_TAXONOMY_TREE_TTL)
@@ -206,15 +219,10 @@ class BlogCategoryAdminService:
         popular = cache.get(cache_key)
         
         if popular is None:
-            popular = list(
-                BlogCategory.objects.annotate(
-                    blog_count=Count('blog_categories')
-                ).filter(
-                    blog_count__gt=0, is_active=True
-                ).order_by('-blog_count')[:limit].values(
-                    'id', 'public_id', 'name', 'slug', 'blog_count'
-                )
-            )
+            popular_queryset = BlogCategoryAdminService._with_blog_count(
+                BlogCategory.objects.filter(is_active=True)
+            ).filter(blog_count__gt=0).order_by('-blog_count')[:limit]
+            popular = list(popular_queryset.values('id', 'public_id', 'name', 'slug', 'blog_count'))
             cache.set(cache_key, popular, cache_ttl.ADMIN_TAXONOMY_POPULAR_TTL)
         
         return popular

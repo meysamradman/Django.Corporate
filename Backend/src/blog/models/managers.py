@@ -1,5 +1,6 @@
 from django.db import models
-from django.db.models import Prefetch, Count, Q
+from django.db.models import Prefetch, Count, Q, OuterRef, Subquery, IntegerField
+from django.db.models.functions import Coalesce
 
 class BlogQuerySet(models.QuerySet):
     
@@ -18,56 +19,22 @@ class BlogQuerySet(models.QuerySet):
     
     def for_admin_listing(self):
         
-        from src.blog.models.media import BlogImage, BlogVideo, BlogAudio, BlogDocument
-        from django.db.models.functions import Coalesce
+        from src.blog.models.media import BlogImage
         
         return self.select_related('og_image').prefetch_related(
             'categories',
-            'tags',
             Prefetch(
                 'images',
                 queryset=BlogImage.objects.select_related('image')
                     .filter(is_main=True)
-                    .only('id', 'image_id', 'is_main', 'order', 'blog_id'),
+                    .order_by('blog_id', 'order', 'created_at', 'id')
+                    .distinct('blog_id')
+                    .only(
+                        'id', 'image_id', 'is_main', 'order', 'blog_id',
+                        'image__id', 'image__file', 'image__title', 'image__alt_text'
+                    ),
                 to_attr='main_image_prefetch'
             ),
-            Prefetch(
-                'videos',
-                queryset=BlogVideo.objects.select_related('video', 'cover_image', 'video__cover_image')
-                    .only('id', 'video_id', 'cover_image_id', 'video__cover_image_id', 'blog_id')
-                    .order_by('order', 'created_at'),
-                to_attr='primary_video_prefetch'
-            ),
-            Prefetch(
-                'audios',
-                queryset=BlogAudio.objects.select_related('audio', 'cover_image', 'audio__cover_image')
-                    .only('id', 'audio_id', 'cover_image_id', 'audio__cover_image_id', 'blog_id')
-                    .order_by('order', 'created_at'),
-                to_attr='primary_audio_prefetch'
-            ),
-            Prefetch(
-                'documents',
-                queryset=BlogDocument.objects.select_related('document', 'cover_image', 'document__cover_image')
-                    .only('id', 'document_id', 'cover_image_id', 'document__cover_image_id', 'blog_id')
-                    .order_by('order', 'created_at'),
-                to_attr='primary_document_prefetch'
-            ),
-        ).annotate(
-            total_images_count=Count('images', distinct=True),
-            total_videos_count=Count('videos', distinct=True),
-            total_audios_count=Count('audios', distinct=True),
-            total_docs_count=Count('documents', distinct=True),
-            categories_count=Count('categories', distinct=True),
-            tags_count=Count('tags', distinct=True)
-        ).annotate(
-            total_media_count=Coalesce(
-                models.F('total_images_count') + 
-                models.F('total_videos_count') + 
-                models.F('total_audios_count') + 
-                models.F('total_docs_count'),
-                0,
-                output_field=models.PositiveIntegerField()
-            )
         )
     
     def for_public_listing(self):
@@ -206,8 +173,21 @@ class BlogTagQuerySet(models.QuerySet):
         ).order_by('-usage_count')[:limit]
     
     def with_counts(self):
+        from src.blog.models.blog import Blog
+
+        through_model = Blog.tags.through
+        blog_count_subquery = through_model.objects.filter(
+            blogtag_id=OuterRef('pk'),
+            blog__status='published'
+        ).values('blogtag_id').annotate(
+            c=Count('blog_id', distinct=True)
+        ).values('c')[:1]
+
         return self.annotate(
-            blog_count=Count('blog_tags',
-                                filter=Q(blog_tags__status='published'))
+            blog_count=Coalesce(
+                Subquery(blog_count_subquery, output_field=IntegerField()),
+                0,
+                output_field=IntegerField()
+            )
         )
 

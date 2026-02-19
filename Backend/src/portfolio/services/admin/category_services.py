@@ -1,22 +1,40 @@
 from django.db import transaction, models
-from django.db.models import Count
+from django.db.models import Count, OuterRef, Subquery, IntegerField
+from django.db.models.functions import Coalesce
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from datetime import datetime
 
 from src.portfolio.models.category import PortfolioCategory
+from src.portfolio.models.portfolio import Portfolio
 from src.portfolio.utils.cache_admin import CategoryCacheKeys, CategoryCacheManager
 from src.portfolio.utils import cache_ttl
 from src.portfolio.messages.messages import CATEGORY_ERRORS
 from src.media.models.media import ImageMedia
 
 class PortfolioCategoryAdminService:
+
+    @staticmethod
+    def _with_portfolio_count(queryset):
+        through_model = Portfolio.categories.through
+        portfolio_count_subquery = through_model.objects.filter(
+            portfoliocategory_id=OuterRef('pk')
+        ).values('portfoliocategory_id').annotate(
+            c=Count('portfolio_id', distinct=True)
+        ).values('c')[:1]
+
+        return queryset.annotate(
+            portfolio_count=Coalesce(
+                Subquery(portfolio_count_subquery, output_field=IntegerField()),
+                0,
+                output_field=IntegerField()
+            )
+        )
     
     @staticmethod
     def get_tree_queryset():
-        return PortfolioCategory.objects.select_related('image').annotate(
-            portfolio_count=Count('portfolio_categories', distinct=True)
-        ).order_by('path')
+        queryset = PortfolioCategory.objects.select_related('image').order_by('path')
+        return PortfolioCategoryAdminService._with_portfolio_count(queryset)
     
     @staticmethod
     def get_list_queryset(filters=None, order_by='created_at', order_desc=True, date_from=None, date_to=None):
@@ -55,13 +73,8 @@ class PortfolioCategoryAdminService:
         root_categories = cache.get(cache_key)
         
         if root_categories is None:
-            root_categories = list(
-                PortfolioCategory.get_root_nodes().annotate(
-                    portfolio_count=Count('portfolio_categories', distinct=True)
-                ).values(
-                    'id', 'public_id', 'name', 'slug', 'portfolio_count'
-                )
-            )
+            root_queryset = PortfolioCategoryAdminService._with_portfolio_count(PortfolioCategory.get_root_nodes())
+            root_categories = list(root_queryset.values('id', 'public_id', 'name', 'slug', 'portfolio_count'))
             cache.set(cache_key, root_categories, cache_ttl.ADMIN_TAXONOMY_ROOTS_TTL)
         
         return root_categories
@@ -88,9 +101,9 @@ class PortfolioCategoryAdminService:
                     tree.append(tree_node)
                 return tree
             
-            root_nodes = PortfolioCategory.get_root_nodes().annotate(
-                portfolio_count=Count('portfolio_categories', distinct=True)
-            ).filter(is_active=True)
+            root_nodes = PortfolioCategoryAdminService._with_portfolio_count(
+                PortfolioCategory.get_root_nodes().filter(is_active=True)
+            )
             
             tree_data = build_tree(root_nodes)
             cache.set(cache_key, tree_data, cache_ttl.ADMIN_TAXONOMY_TREE_TTL)
@@ -206,15 +219,10 @@ class PortfolioCategoryAdminService:
         popular = cache.get(cache_key)
         
         if popular is None:
-            popular = list(
-                PortfolioCategory.objects.annotate(
-                    portfolio_count=Count('portfolio_categories')
-                ).filter(
-                    portfolio_count__gt=0, is_active=True
-                ).order_by('-portfolio_count')[:limit].values(
-                    'id', 'public_id', 'name', 'slug', 'portfolio_count'
-                )
-            )
+            popular_queryset = PortfolioCategoryAdminService._with_portfolio_count(
+                PortfolioCategory.objects.filter(is_active=True)
+            ).filter(portfolio_count__gt=0).order_by('-portfolio_count')[:limit]
+            popular = list(popular_queryset.values('id', 'public_id', 'name', 'slug', 'portfolio_count'))
             cache.set(cache_key, popular, cache_ttl.ADMIN_TAXONOMY_POPULAR_TTL)
         
         return popular

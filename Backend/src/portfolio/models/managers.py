@@ -1,5 +1,6 @@
 from django.db import models
-from django.db.models import Prefetch, Count, Q
+from django.db.models import Prefetch, Count, Q, OuterRef, Subquery, IntegerField
+from django.db.models.functions import Coalesce
 
 class PortfolioQuerySet(models.QuerySet):
     
@@ -18,56 +19,22 @@ class PortfolioQuerySet(models.QuerySet):
     
     def for_admin_listing(self):
         
-        from src.portfolio.models.media import PortfolioImage, PortfolioVideo, PortfolioAudio, PortfolioDocument
-        from django.db.models.functions import Coalesce
+        from src.portfolio.models.media import PortfolioImage
         
         return self.select_related('og_image').prefetch_related(
             'categories',
-            'tags',
             Prefetch(
                 'images',
                 queryset=PortfolioImage.objects.select_related('image')
                     .filter(is_main=True)
-                    .only('id', 'image_id', 'is_main', 'order', 'portfolio_id'),
+                    .order_by('portfolio_id', 'order', 'created_at', 'id')
+                    .distinct('portfolio_id')
+                    .only(
+                        'id', 'image_id', 'is_main', 'order', 'portfolio_id',
+                        'image__id', 'image__file', 'image__title', 'image__alt_text'
+                    ),
                 to_attr='main_image_prefetch'
             ),
-            Prefetch(
-                'videos',
-                queryset=PortfolioVideo.objects.select_related('video', 'cover_image', 'video__cover_image')
-                    .only('id', 'video_id', 'cover_image_id', 'video__cover_image_id', 'portfolio_id')
-                    .order_by('order', 'created_at'),
-                to_attr='primary_video_prefetch'
-            ),
-            Prefetch(
-                'audios',
-                queryset=PortfolioAudio.objects.select_related('audio', 'cover_image', 'audio__cover_image')
-                    .only('id', 'audio_id', 'cover_image_id', 'audio__cover_image_id', 'portfolio_id')
-                    .order_by('order', 'created_at'),
-                to_attr='primary_audio_prefetch'
-            ),
-            Prefetch(
-                'documents',
-                queryset=PortfolioDocument.objects.select_related('document', 'cover_image', 'document__cover_image')
-                    .only('id', 'document_id', 'cover_image_id', 'document__cover_image_id', 'portfolio_id')
-                    .order_by('order', 'created_at'),
-                to_attr='primary_document_prefetch'
-            ),
-        ).annotate(
-            total_images_count=Count('images', distinct=True),
-            total_videos_count=Count('videos', distinct=True),
-            total_audios_count=Count('audios', distinct=True),
-            total_docs_count=Count('documents', distinct=True),
-            categories_count=Count('categories', distinct=True),
-            tags_count=Count('tags', distinct=True)
-        ).annotate(
-            total_media_count=Coalesce(
-                models.F('total_images_count') + 
-                models.F('total_videos_count') + 
-                models.F('total_audios_count') + 
-                models.F('total_docs_count'),
-                0,
-                output_field=models.PositiveIntegerField()
-            )
         )
 
     def for_public_listing(self):
@@ -220,9 +187,22 @@ class PortfolioTagQuerySet(models.QuerySet):
         ).order_by('-usage_count')[:limit]
     
     def with_counts(self):
+        from src.portfolio.models.portfolio import Portfolio
+
+        through_model = Portfolio.tags.through
+        portfolio_count_subquery = through_model.objects.filter(
+            portfoliotag_id=OuterRef('pk'),
+            portfolio__status='published'
+        ).values('portfoliotag_id').annotate(
+            c=Count('portfolio_id', distinct=True)
+        ).values('c')[:1]
+
         return self.annotate(
-            portfolio_count=Count('portfolio_tags',
-                                filter=Q(portfolio_tags__status='published'))
+            portfolio_count=Coalesce(
+                Subquery(portfolio_count_subquery, output_field=IntegerField()),
+                0,
+                output_field=IntegerField()
+            )
         )
 
 class PortfolioOptionQuerySet(models.QuerySet):
@@ -231,7 +211,20 @@ class PortfolioOptionQuerySet(models.QuerySet):
         return self.filter(is_public=True)
     
     def with_portfolio_counts(self):
+        from src.portfolio.models.portfolio import Portfolio
+
+        through_model = Portfolio.options.through
+        portfolio_count_subquery = through_model.objects.filter(
+            portfoliooption_id=OuterRef('pk'),
+            portfolio__is_public=True
+        ).values('portfoliooption_id').annotate(
+            c=Count('portfolio_id', distinct=True)
+        ).values('c')[:1]
+
         return self.annotate(
-            portfolio_count=Count('portfolio_options',
-                                filter=Q(portfolio_options__is_public=True))
+            portfolio_count=Coalesce(
+                Subquery(portfolio_count_subquery, output_field=IntegerField()),
+                0,
+                output_field=IntegerField()
+            )
         )

@@ -68,14 +68,6 @@ class BlogAdminListSerializer(serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
     categories = BlogCategorySimpleAdminSerializer(many=True, read_only=True)
     
-    images_count = serializers.IntegerField(source='total_images_count', read_only=True)
-    videos_count = serializers.IntegerField(source='total_videos_count', read_only=True)
-    audios_count = serializers.IntegerField(source='total_audios_count', read_only=True)
-    documents_count = serializers.IntegerField(source='total_docs_count', read_only=True)
-    media_count = serializers.IntegerField(source='total_media_count', read_only=True)
-    categories_count = serializers.IntegerField(read_only=True)
-    tags_count = serializers.IntegerField(read_only=True)
-    
     seo_status = serializers.SerializerMethodField()
     
     class Meta:
@@ -83,8 +75,7 @@ class BlogAdminListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'public_id', 'status', 'title', 'slug', 'short_description',
             'is_featured', 'is_public', 'is_active',
-            'main_image', 'categories', 'categories_count', 'tags_count',
-            'images_count', 'videos_count', 'audios_count', 'documents_count', 'media_count',
+            'main_image', 'categories',
             'seo_status',
             'meta_title', 'meta_description',
             'created_at', 'updated_at', # ✅ همیشه در انتها

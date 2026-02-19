@@ -47,96 +47,36 @@ class PropertyQuerySet(models.QuerySet):
     
     def for_admin_listing(self):
         
-        from django.db.models import Prefetch, Count, PositiveIntegerField
-        from django.db.models.functions import Coalesce
-        from src.real_estate.models.media import PropertyImage, PropertyVideo, PropertyAudio, PropertyDocument
-        from src.user.models.admin_profile import AdminProfile
-        from src.real_estate.models.label import PropertyLabel
-        from src.real_estate.models.tag import PropertyTag
-        from src.real_estate.models.feature import PropertyFeature
+        from django.db.models import Prefetch
+        from src.real_estate.models.media import PropertyImage
         
         return self.select_related(
             'property_type',
             'state',
             'agent',
+            'agent__profile_picture',
             'agent__user',
             'agent__user__admin_profile',
-            'agent__agency',
+            'agent__user__admin_profile__profile_picture',
             'agency',
+            'agency__profile_picture',
             'city',
-            'city__province',
             'province',
             'region',
             'og_image', # ✅ Needed for SEO status check
         ).prefetch_related(
-            Prefetch('labels', queryset=PropertyLabel.objects.all()),
-            Prefetch('tags', queryset=PropertyTag.objects.all()),
-            Prefetch('features', queryset=PropertyFeature.objects.all()),
             Prefetch(
                 'images',
                 queryset=PropertyImage.objects.select_related('image')
                     .filter(is_main=True)
+                    .order_by('property_id', 'order', 'created_at', 'id')
+                    .distinct('property_id')
                     .only(
                         'id', 'image_id', 'is_main', 'order', 'property_id',
                         'image__id', 'image__file', 'image__title', 'image__alt_text'
                     ),
                 to_attr='main_image_prefetch'
             ),
-            Prefetch(
-                'videos',
-                queryset=PropertyVideo.objects.select_related('video', 'cover_image', 'video__cover_image')
-                    .only(
-                        'id', 'video_id', 'cover_image_id', 'video__cover_image_id', 'property_id',
-                        'video__id', 'video__title', 'video__file',
-                        'cover_image__id', 'cover_image__file',
-                        'video__cover_image__id', 'video__cover_image__file'
-                    )
-                    .order_by('order', 'created_at'),
-                to_attr='primary_video_prefetch'
-            ),
-            Prefetch(
-                'audios',
-                queryset=PropertyAudio.objects.select_related('audio', 'cover_image', 'audio__cover_image')
-                    .only(
-                        'id', 'audio_id', 'cover_image_id', 'audio__cover_image_id', 'property_id',
-                        'audio__id', 'audio__title', 'audio__file',
-                        'cover_image__id', 'cover_image__file',
-                        'audio__cover_image__id', 'audio__cover_image__file'
-                    )
-                    .order_by('order', 'created_at'),
-                to_attr='primary_audio_prefetch'
-            ),
-            Prefetch(
-                'documents',
-                queryset=PropertyDocument.objects.select_related('document', 'cover_image', 'document__cover_image')
-                    .only(
-                        'id', 'document_id', 'cover_image_id', 'document__cover_image_id', 'title', 'property_id',
-                        'document__id', 'document__title', 'document__file',
-                        'cover_image__id', 'cover_image__file',
-                        'document__cover_image__id', 'document__cover_image__file'
-                    )
-                    .order_by('order', 'created_at'),
-                to_attr='primary_document_prefetch'
-            ),
-
-        ).annotate(
-
-            labels_count=Count('labels', distinct=True),
-            tags_count=Count('tags', distinct=True),
-            features_count=Count('features', distinct=True),
-            total_images_count=Count('images', distinct=True),
-            total_videos_count=Count('videos', distinct=True),
-            total_audios_count=Count('audios', distinct=True),
-            total_docs_count=Count('documents', distinct=True),
-        ).annotate(
-            total_media_count=Coalesce(
-                models.F('total_images_count') + 
-                models.F('total_videos_count') + 
-                models.F('total_audios_count') + 
-                models.F('total_docs_count'),
-                0,
-                output_field=models.PositiveIntegerField()
-            )
         ).defer(
 
             'og_title', 'og_description',
@@ -161,6 +101,18 @@ class PropertyQuerySet(models.QuerySet):
             'published_at', 'created_at', 'updated_at',
             'meta_title', 'meta_description', # ✅ Kept for serializer
             'og_image_id', # ✅ Needed for SQL join, must be in only()
+            'property_type__id', 'property_type__public_id', 'property_type__title', 'property_type__display_order',
+            'state__id', 'state__public_id', 'state__title',
+            'agent__id', 'agent__public_id', 'agent__user_id', 'agent__license_number', 'agent__profile_picture_id',
+            'agent__user__id', 'agent__user__mobile', 'agent__user__email',
+            'agent__user__admin_profile__first_name', 'agent__user__admin_profile__last_name',
+            'agent__profile_picture__id', 'agent__profile_picture__file',
+            'agent__user__admin_profile__id', 'agent__user__admin_profile__profile_picture_id',
+            'agent__user__admin_profile__profile_picture__id', 'agent__user__admin_profile__profile_picture__file',
+            'agency__id', 'agency__public_id', 'agency__name', 'agency__slug', 'agency__phone',
+            'agency__email', 'agency__license_number', 'agency__profile_picture_id',
+            'agency__profile_picture__id', 'agency__profile_picture__file',
+            'city__id', 'city__name', 'province__id', 'province__name', 'region__id', 'region__name',
         )
 
     def for_public_listing(self):
