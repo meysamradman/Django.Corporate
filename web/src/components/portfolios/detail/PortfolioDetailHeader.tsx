@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { CalendarDays } from "lucide-react";
 
-import { Badge } from "@/components/elements/Badge";
+import { Badge } from "@/components/elements/badge";
 import { formatDate } from "@/core/utils/format";
 import { portfolioMedia } from "@/core/utils/media";
 import type { Portfolio } from "@/types/portfolio/portfolio";
@@ -45,7 +45,7 @@ export default function PortfolioDetailHeader({ portfolio }: PortfolioDetailHead
       <div className="space-y-4">
         <div className="flex flex-wrap gap-2">
           {portfolio.categories?.map((category) => (
-            <Badge key={category.public_id} variant="gray">
+            <Badge key={category.public_id} variant="secondary">
               {category.name}
             </Badge>
           ))}

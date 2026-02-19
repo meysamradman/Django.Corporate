@@ -1,6 +1,6 @@
 "use client";
 
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/elements/Tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/elements/custom/tooltip';
 import { cn } from '@/core/utils/cn';
 
 interface TruncatedTextProps {

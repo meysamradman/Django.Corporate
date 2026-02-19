@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Button } from "@/components/elements/Button";
+import { Button } from "@/components/elements/custom/button";
 import {
   Pagination,
   PaginationContent,
@@ -9,7 +9,7 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/elements/Pagination";
+} from "@/components/elements/pagination";
 
 import type { Property } from "@/types/real-estate/property";
 import type { PropertySearchFilters } from "@/types/real-estate/searchFilters";

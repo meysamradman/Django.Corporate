@@ -1,28 +1,28 @@
 "use client";
 
 import React from "react";
-import { useForm, type ControllerRenderProps } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { ApiError } from "@/types/api/apiError";
 import { publicContactFormApi } from "@/api/form/route";
 import type { PublicContactFormField } from "@/types/form/contactForm";
-import { Button } from "@/components/elements/Button";
-import { Input } from "@/components/elements/Input";
-import { Textarea } from "@/components/elements/Textarea";
-import { NativeSelect } from "@/components/elements/NativeSelect";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/elements/Form";
+import { Button } from "@/components/elements/custom/button";
+import { Input } from "@/components/elements/input";
+import { Textarea } from "@/components/elements/textarea";
 
 type DynamicFormValues = Record<string, any> & {
   __hp?: string;
 };
 
-type RHFField = ControllerRenderProps<DynamicFormValues, string>;
+function NativeSelect({ className, children, ...props }: React.ComponentProps<"select">) {
+  return (
+    <select
+      className={`w-full rounded-md border border-br bg-wt px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 ${className ?? ""}`}
+      {...props}
+    >
+      {children}
+    </select>
+  );
+}
 
 const normalizeServerErrors = (errors: unknown): Record<string, string> => {
   if (!errors || typeof errors !== "object") return {};
@@ -207,7 +207,6 @@ export default function ContactFormClient() {
             <span className="font-black"> platforms شامل website</span> بسازید.
           </div>
         ) : (
-          <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               {/* Honeypot */}
               <div className="hidden" aria-hidden="true">
@@ -217,23 +216,22 @@ export default function ContactFormClient() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {fields.map((field) => (
-                  <FormField
+                  <Controller
                     key={field.field_key}
                     control={form.control}
-                    name={field.field_key as any}
+                    name={field.field_key as keyof DynamicFormValues}
                     rules={{
                       required: field.required ? "این فیلد الزامی است" : false,
                     }}
-                    render={(renderProps: { field: RHFField }) => {
-                      const rhfField = renderProps.field;
+                    render={({ field: rhfField, fieldState }) => {
 
                       return (
-                      <FormItem className={field.field_type === "textarea" ? "md:col-span-2" : ""}>
-                        <FormLabel>
+                      <div className={field.field_type === "textarea" ? "md:col-span-2" : ""}>
+                        <label className="text-sm font-medium">
                           {field.label}
                           {field.required ? <span className="text-red-2"> *</span> : null}
-                        </FormLabel>
-                        <FormControl>
+                        </label>
+                        <div className="mt-1.5">
                           <div>
                             {React.cloneElement(renderField(field) as any, {
                               ...rhfField,
@@ -254,9 +252,11 @@ export default function ContactFormClient() {
                               },
                             })}
                           </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                        </div>
+                        {fieldState.error?.message ? (
+                          <p className="mt-1 text-sm text-red-2">{fieldState.error.message}</p>
+                        ) : null}
+                      </div>
                       );
                     }}
                   />
@@ -281,7 +281,6 @@ export default function ContactFormClient() {
                 </Button>
               </div>
             </form>
-          </Form>
         )}
       </div>
     </section>

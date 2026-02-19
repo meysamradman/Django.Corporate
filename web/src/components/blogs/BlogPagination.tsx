@@ -7,7 +7,7 @@ import {
   PaginationNext,
   PaginationPrevious,
   PaginationEllipsis,
-} from "@/components/elements/Pagination";
+} from "@/components/elements/pagination";
 import { getVisiblePages } from "@/core/utils/paginationLinks";
 import { buildBlogListHref } from "@/components/blogs/query";
 

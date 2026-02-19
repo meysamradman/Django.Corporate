@@ -10,10 +10,10 @@ import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-} from "@/components/elements/Popover";
-import { Button } from "@/components/elements/Button";
-import { ScrollArea } from "@/components/elements/ScrollArea";
-import { Input } from "@/components/elements/Input";
+} from "@/components/elements/popover";
+import { Button } from "@/components/elements/custom/button";
+import { ScrollArea } from "@/components/elements/scroll-area";
+import { Input } from "@/components/elements/input";
 import { cn } from "@/core/utils/cn";
 import {
   ArrowLeft,

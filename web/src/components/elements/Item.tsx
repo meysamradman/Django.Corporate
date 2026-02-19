@@ -1,9 +1,9 @@
 import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import { Slot } from "radix-ui"
 
 import { cn } from "@/core/utils/cn"
-import { Separator } from "@/components/elements/Separator"
+import { Separator } from "@/components/elements/separator"
 
 function ItemGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -31,13 +31,13 @@ function ItemSeparator({
 }
 
 const itemVariants = cva(
-  "group/item flex items-center border border-transparent text-sm rounded-md transition-colors [a]:hover:bg-bg/50 [a]:transition-colors duration-100 flex-wrap outline-none focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:ring-[3px] text-right",
+  "group/item flex items-center border border-transparent text-sm rounded-md transition-colors [a]:hover:bg-accent/50 [a]:transition-colors duration-100 flex-wrap outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
   {
     variants: {
       variant: {
         default: "bg-transparent",
-        outline: "border-br",
-        muted: "bg-bg/50",
+        outline: "border-border",
+        muted: "bg-muted/50",
       },
       size: {
         default: "p-4 gap-4 ",
@@ -59,7 +59,7 @@ function Item({
   ...props
 }: React.ComponentProps<"div"> &
   VariantProps<typeof itemVariants> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot : "div"
+  const Comp = asChild ? Slot.Root : "div"
   return (
     <Comp
       data-slot="item"
@@ -77,7 +77,7 @@ const itemMediaVariants = cva(
     variants: {
       variant: {
         default: "bg-transparent",
-        icon: "size-8 border rounded-sm bg-bg [&_svg:not([class*='size-'])]:size-4",
+        icon: "size-8 border rounded-sm bg-muted [&_svg:not([class*='size-'])]:size-4",
         image:
           "size-10 rounded-sm overflow-hidden [&_img]:size-full [&_img]:object-cover",
       },
@@ -108,7 +108,7 @@ function ItemContent({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="item-content"
       className={cn(
-        "flex flex-1 flex-col gap-1 [&+[data-slot=item-content]]:flex-none text-right",
+        "flex flex-1 flex-col gap-1 [&+[data-slot=item-content]]:flex-none",
         className
       )}
       {...props}
@@ -121,7 +121,7 @@ function ItemTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="item-title"
       className={cn(
-        "flex w-fit items-center gap-2 text-sm leading-snug font-medium text-right",
+        "flex w-fit items-center gap-2 text-sm leading-snug font-medium",
         className
       )}
       {...props}
@@ -134,7 +134,7 @@ function ItemDescription({ className, ...props }: React.ComponentProps<"p">) {
     <p
       data-slot="item-description"
       className={cn(
-        "text-font-s line-clamp-2 text-sm leading-normal font-normal text-balance text-right",
+        "text-muted-foreground line-clamp-2 text-sm leading-normal font-normal text-balance",
         "[&>a:hover]:text-primary [&>a]:underline [&>a]:underline-offset-4",
         className
       )}
@@ -191,4 +191,3 @@ export {
   ItemHeader,
   ItemFooter,
 }
-

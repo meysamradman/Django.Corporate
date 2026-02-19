@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardFooter } from "@/components/elements/Card";
+import { Card, CardContent, CardFooter } from "@/components/elements/card";
 import type { PropertyState } from "@/types/real-estate/property";
 import { realEstateMedia } from "@/core/utils/media";
 

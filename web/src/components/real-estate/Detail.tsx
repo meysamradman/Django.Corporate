@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { Card, CardContent, CardFooter } from "@/components/elements/Card";
+import { Card, CardContent, CardFooter } from "@/components/elements/card";
 import {
     CheckCircle2,
     XCircle,
@@ -23,7 +23,7 @@ import {
     FileText,
     Activity
 } from "lucide-react";
-import { TruncatedText } from "@/components/elements/TruncatedText";
+import { TruncatedText } from "@/components/elements/custom/truncatedText";
 
 export default function Detail() {
 

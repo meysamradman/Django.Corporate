@@ -1,6 +1,6 @@
 import { Hash, Info } from "lucide-react";
 
-import { Badge } from "@/components/elements/Badge";
+import { Badge } from "@/components/elements/badge";
 import { formatDate } from "@/core/utils/format";
 import type { Blog } from "@/types/blog/blog";
 
@@ -41,7 +41,7 @@ export default function BlogDetailMeta({ blog }: BlogDetailMetaProps) {
 
           <div className="flex flex-wrap gap-2">
             {blog.tags.map((tag) => (
-              <Badge key={tag.public_id} variant="gray">
+              <Badge key={tag.public_id} variant="secondary">
                 {tag.name}
               </Badge>
             ))}

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { CalendarDays } from "lucide-react";
 
-import { Badge } from "@/components/elements/Badge";
+import { Badge } from "@/components/elements/badge";
 import { formatDate } from "@/core/utils/format";
 import { blogMedia } from "@/core/utils/media";
 import { buildBlogListHref } from "@/components/blogs/query";
@@ -59,7 +59,7 @@ export default function BlogCard({ blog, priorityImage = false }: BlogCardProps)
               className="inline-flex"
               aria-label={`نمایش مطالب دسته ${category.name}`}
             >
-              <Badge variant="gray">{category.name}</Badge>
+              <Badge variant="secondary">{category.name}</Badge>
             </Link>
           ))}
 

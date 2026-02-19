@@ -1,8 +1,7 @@
 "use client";
 
-import { Button } from "@/components/elements/Button";
-import { Input } from "@/components/elements/Input";
-import { NativeSelect, NativeSelectOption } from "@/components/elements/NativeSelect";
+import { Button } from "@/components/elements/custom/button";
+import { Input } from "@/components/elements/input";
 import { fromSortValue, toSortValue } from "@/components/real-estate/search/filters";
 import type { PropertySearchFilters } from "@/types/real-estate/searchFilters";
 
@@ -25,6 +24,21 @@ type PropertySearchSidebarProps = {
   onFiltersChange: (updates: Partial<PropertySearchFilters>) => void;
   onReset: () => void;
 };
+
+function NativeSelect({ className, children, ...props }: React.ComponentProps<"select">) {
+  return (
+    <select
+      className={`w-full rounded-md border border-br bg-wt px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 ${className ?? ""}`}
+      {...props}
+    >
+      {children}
+    </select>
+  );
+}
+
+function NativeSelectOption(props: React.ComponentProps<"option">) {
+  return <option {...props} />;
+}
 
 const cardClassName = "rounded-md border bg-card p-3 space-y-3";
 

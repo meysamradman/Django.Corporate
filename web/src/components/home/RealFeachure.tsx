@@ -1,8 +1,8 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Card, CardContent, CardFooter } from "@/components/elements/Card";
-import { Separator } from "@/components/elements/Separator";
+import { Card, CardContent, CardFooter } from "@/components/elements/card";
+import { Separator } from "@/components/elements/separator";
 import type { Property } from '@/types/real-estate/property';
 import { realEstateMedia } from '@/core/utils/media';
 

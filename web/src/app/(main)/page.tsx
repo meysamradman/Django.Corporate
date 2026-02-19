@@ -9,7 +9,7 @@ import { brandingApi } from "@/api/settings/branding";
 import type { HomeSliderItem } from "@/types/settings/branding";
 import type { Property, PropertyState, PropertyType } from "@/types/real-estate/property";
 import Link from 'next/link';
-import { Button } from '@/components/elements/Button';
+import { Button } from '@/components/elements/custom/button';
 
 export default async function HomePage() {
   // Server-side data fetching (parallel) for faster and SEO-friendly Home.

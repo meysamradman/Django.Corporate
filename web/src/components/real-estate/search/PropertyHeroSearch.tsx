@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
-import { Input } from "@/components/elements/Input";
-import { NativeSelect, NativeSelectOption } from "@/components/elements/NativeSelect";
-import { Button } from "@/components/elements/Button";
+import { Input } from "@/components/elements/input";
+import { Button } from "@/components/elements/custom/button";
 
 /**
  * Option type for Hero Search dropdowns
@@ -25,6 +24,21 @@ type PropertyHeroSearchProps = {
   /** Available property status options (e.g., منتشر شده, پیش‌نویس, ...) */
   statusOptions: HeroSearchOption[];
 };
+
+function NativeSelect({ className, children, ...props }: React.ComponentProps<"select">) {
+  return (
+    <select
+      className={`w-full rounded-md border border-br bg-wt px-3 text-sm shadow-xs outline-none focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 ${className ?? ""}`}
+      {...props}
+    >
+      {children}
+    </select>
+  );
+}
+
+function NativeSelectOption(props: React.ComponentProps<"option">) {
+  return <option {...props} />;
+}
 
 /**
  * PropertyHeroSearch - Hero search bar for real estate properties

@@ -10,8 +10,8 @@ import {
   MessageCircle,
 } from "lucide-react";
 import type { Agent } from "@/types/real-estate/agent";
-import { Button } from "@/components/elements/Button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
+import { Button } from "@/components/elements/custom/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/avatar";
 import { cn } from "@/core/utils/cn";
 
 type AgentCardProps = {

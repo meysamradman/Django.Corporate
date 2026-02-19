@@ -1,6 +1,6 @@
 import { Hash, Info } from "lucide-react";
 
-import { Badge } from "@/components/elements/Badge";
+import { Badge } from "@/components/elements/badge";
 import { formatDate } from "@/core/utils/format";
 import type { Portfolio } from "@/types/portfolio/portfolio";
 
@@ -41,7 +41,7 @@ export default function PortfolioDetailMeta({ portfolio }: PortfolioDetailMetaPr
 
           <div className="flex flex-wrap gap-2">
             {portfolio.tags.map((tag) => (
-              <Badge key={tag.public_id} variant="gray">
+              <Badge key={tag.public_id} variant="secondary">
                 {tag.name}
               </Badge>
             ))}
@@ -55,7 +55,7 @@ export default function PortfolioDetailMeta({ portfolio }: PortfolioDetailMetaPr
 
           <div className="flex flex-wrap gap-2">
             {portfolio.options.map((option) => (
-              <Badge key={option.public_id} variant="gray">
+              <Badge key={option.public_id} variant="secondary">
                 {option.name}
               </Badge>
             ))}

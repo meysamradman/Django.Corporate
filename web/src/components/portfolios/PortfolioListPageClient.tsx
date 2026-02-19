@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { Input } from "@/components/elements/Input";
+import { Input } from "@/components/elements/input";
 import PortfolioList from "@/components/portfolios/PortfolioList";
 import PortfolioPagination from "@/components/portfolios/PortfolioPagination";
 import { portfolioApi } from "@/api/portfolios/route";

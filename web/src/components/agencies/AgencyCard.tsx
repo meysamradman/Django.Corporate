@@ -10,7 +10,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import type { Agency } from "@/types/real-estate/agent";
-import { Button } from "@/components/elements/Button";
+import { Button } from "@/components/elements/custom/button";
 import { cn } from "@/core/utils/cn";
 
 type AgencyCardProps = {

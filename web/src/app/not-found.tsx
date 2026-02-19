@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/elements/Button';
-import { Card, CardContent } from '@/components/elements/Card';
+import { Button } from '@/components/elements/custom/button';
+import { Card, CardContent } from '@/components/elements/card';
 import { Home, ArrowRight } from 'lucide-react';
 
 export default function NotFound() {

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { CalendarDays } from "lucide-react";
 
-import { Badge } from "@/components/elements/Badge";
+import { Badge } from "@/components/elements/badge";
 import { formatDate } from "@/core/utils/format";
 import { portfolioMedia } from "@/core/utils/media";
 import { buildPortfolioListHref } from "@/components/portfolios/query";
@@ -59,7 +59,7 @@ export default function PortfolioCard({ portfolio, priorityImage = false }: Port
               className="inline-flex"
               aria-label={`نمایش نمونه‌کارهای دسته ${category.name}`}
             >
-              <Badge variant="gray">{category.name}</Badge>
+              <Badge variant="secondary">{category.name}</Badge>
             </Link>
           ))}
 

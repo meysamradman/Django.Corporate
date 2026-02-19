@@ -8,8 +8,7 @@ import {
   TriangleAlertIcon,
 } from "lucide-react"
 import { useTheme } from "next-themes"
-import { Toaster as Sonner, type ToasterProps, toast as originalToast } from "sonner"
-import { fontPersian } from "@/core/styles/fonts"
+import { Toaster as Sonner, type ToasterProps } from "sonner"
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme()
@@ -17,7 +16,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
-      className={`toaster group ${fontPersian.variable}`}
+      className="toaster group"
       icons={{
         success: <CircleCheckIcon className="size-4" />,
         info: <InfoIcon className="size-4" />,
@@ -25,25 +24,17 @@ const Toaster = ({ ...props }: ToasterProps) => {
         error: <OctagonXIcon className="size-4" />,
         loading: <Loader2Icon className="size-4 animate-spin" />,
       }}
+      style={
+        {
+          "--normal-bg": "var(--popover)",
+          "--normal-text": "var(--popover-foreground)",
+          "--normal-border": "var(--border)",
+          "--border-radius": "var(--radius)",
+        } as React.CSSProperties
+      }
       {...props}
     />
   )
 }
 
-const toast = {
-  ...originalToast,
-  success: (message: string, options?: any) => 
-    originalToast.success(message, { ...options, className: `toast toast-success ${options?.className || ''}` }),
-  error: (message: string, options?: any) => 
-    originalToast.error(message, { ...options, className: `toast toast-error ${options?.className || ''}` }),
-  warning: (message: string, options?: any) => 
-    originalToast.warning(message, { ...options, className: `toast toast-warning ${options?.className || ''}` }),
-  info: (message: string, options?: any) => 
-    originalToast.info(message, { ...options, className: `toast toast-info ${options?.className || ''}` }),
-  loading: (message: string, options?: any) => 
-    originalToast.loading(message, { ...options, className: `toast toast-loading ${options?.className || ''}` }),
-  promise: <T,>(promise: Promise<T>, messages: any) =>
-    originalToast.promise(promise, messages),
-}
-
-export { Toaster, toast }
+export { Toaster }

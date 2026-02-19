@@ -1,6 +1,6 @@
 import { Map } from "lucide-react";
 
-import { Button } from "@/components/elements/Button";
+import { Button } from "@/components/elements/custom/button";
 import type { Property } from "@/types/real-estate/property";
 
 type PropertyLocationProps = {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { Button } from "@/components/elements/Button";
+import { Button } from "@/components/elements/custom/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/core/utils/cn";
 

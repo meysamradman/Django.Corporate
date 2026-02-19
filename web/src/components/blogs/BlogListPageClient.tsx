@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { Input } from "@/components/elements/Input";
+import { Input } from "@/components/elements/input";
 import BlogList from "@/components/blogs/BlogList";
 import BlogPagination from "@/components/blogs/BlogPagination";
 import { blogApi } from "@/api/blogs/route";
