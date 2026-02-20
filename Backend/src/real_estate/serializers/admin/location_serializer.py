@@ -10,7 +10,7 @@ class RealEstateProvinceSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Province
-        fields = ['id', 'name', 'code', 'country_name', 'cities_count']
+        fields = ['id', 'public_id', 'name', 'code', 'country_name', 'cities_count', 'is_active', 'created_at', 'updated_at']
         read_only_fields = ['id']
     
     def get_cities_count(self, obj):
@@ -22,13 +22,15 @@ class RealEstateCitySerializer(serializers.ModelSerializer):
     province_name = serializers.CharField(source='province.name', read_only=True)
     province_id = serializers.IntegerField(source='province.id', read_only=True)
     has_regions = serializers.SerializerMethodField()
+    property_count = serializers.SerializerMethodField()
     
     class Meta:
         model = City
         fields = [
-            'id', 'name', 'code', 
+            'id', 'public_id', 'name', 'code', 
             'province_id', 'province_name',
-            'has_regions'
+            'has_regions', 'property_count',
+            'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id']
     
@@ -36,18 +38,23 @@ class RealEstateCitySerializer(serializers.ModelSerializer):
         
         return CityRegion.objects.filter(city=obj, is_active=True).exists()
 
+    def get_property_count(self, obj):
+        return getattr(obj, 'property_count', 0)
+
 class RealEstateCityRegionSerializer(serializers.ModelSerializer):
     
     city_name = serializers.CharField(source='city.name', read_only=True)
     city_id = serializers.IntegerField(source='city.id', read_only=True)
+    province_id = serializers.IntegerField(source='city.province.id', read_only=True)
     province_name = serializers.CharField(source='city.province.name', read_only=True)
     
     class Meta:
         model = CityRegion
         fields = [
-            'id', 'code', 'name',
+            'id', 'public_id', 'code', 'name',
             'city_id', 'city_name',
-            'province_name'
+            'province_id', 'province_name',
+            'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id']
 
@@ -63,4 +70,40 @@ class RealEstateCityRegionSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = CityRegion
         fields = ['id', 'code', 'name']
+        read_only_fields = ['id']
+
+
+class RealEstateProvinceCreateUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Province
+        fields = ['id', 'name', 'code']
+        read_only_fields = ['id']
+
+
+class RealEstateCityCreateUpdateSerializer(serializers.ModelSerializer):
+
+    province_id = serializers.PrimaryKeyRelatedField(
+        source='province',
+        queryset=Province.objects.filter(is_active=True),
+        write_only=True,
+    )
+
+    class Meta:
+        model = City
+        fields = ['id', 'name', 'code', 'province_id']
+        read_only_fields = ['id']
+
+
+class RealEstateCityRegionCreateUpdateSerializer(serializers.ModelSerializer):
+
+    city_id = serializers.PrimaryKeyRelatedField(
+        source='city',
+        queryset=City.objects.filter(is_active=True),
+        write_only=True,
+    )
+
+    class Meta:
+        model = CityRegion
+        fields = ['id', 'name', 'code', 'city_id']
         read_only_fields = ['id']

@@ -300,11 +300,30 @@ LOCATION_SUCCESS = {
     "province_list_success": "استان‌ها با موفقیت دریافت شدند.",
     "city_list_success": "شهرها با موفقیت دریافت شدند.",
     "region_list_success": "مناطق شهری با موفقیت دریافت شدند.",
+    "province_created": "استان با موفقیت ایجاد شد.",
+    "province_updated": "استان با موفقیت به‌روزرسانی شد.",
+    "province_deleted": "استان با موفقیت حذف شد.",
+    "city_created": "شهر با موفقیت ایجاد شد.",
+    "city_updated": "شهر با موفقیت به‌روزرسانی شد.",
+    "city_deleted": "شهر با موفقیت حذف شد.",
+    "region_created": "منطقه با موفقیت ایجاد شد.",
+    "region_updated": "منطقه با موفقیت به‌روزرسانی شد.",
+    "region_deleted": "منطقه با موفقیت حذف شد.",
 }
 
 LOCATION_ERRORS = {
     "location_not_authorized": "شما اجازه دسترسی به موقعیت‌های مکانی را ندارید.",
     "province_not_found": "استان یافت نشد.",
     "city_not_found": "شهر یافت نشد.",
+    "region_not_found": "منطقه یافت نشد.",
+    "province_create_failed": "ایجاد استان ناموفق بود.",
+    "province_update_failed": "به‌روزرسانی استان ناموفق بود.",
+    "province_delete_failed": "حذف استان ناموفق بود.",
+    "city_create_failed": "ایجاد شهر ناموفق بود.",
+    "city_update_failed": "به‌روزرسانی شهر ناموفق بود.",
+    "city_delete_failed": "حذف شهر ناموفق بود.",
+    "region_create_failed": "ایجاد منطقه ناموفق بود.",
+    "region_update_failed": "به‌روزرسانی منطقه ناموفق بود.",
+    "region_delete_failed": "حذف منطقه ناموفق بود.",
 }
 

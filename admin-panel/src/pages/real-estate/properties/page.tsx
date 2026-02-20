@@ -61,6 +61,8 @@ export default function PropertyPage() {
     agent: clientFilters.agent,
     status: clientFilters.status as string | undefined,
     city: clientFilters.city,
+    province: clientFilters.province,
+    region: clientFilters.region,
     date_from: clientFilters.date_from,
     date_to: clientFilters.date_to,
   };
@@ -81,6 +83,8 @@ export default function PropertyPage() {
       queryParams.agent,
       queryParams.status,
       queryParams.city,
+      queryParams.province,
+      queryParams.region,
       queryParams.date_from,
       queryParams.date_to,
     ],

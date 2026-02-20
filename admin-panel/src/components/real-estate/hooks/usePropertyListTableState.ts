@@ -42,7 +42,9 @@ export function usePropertyListTableState({ navigate }: UsePropertyListTableStat
   const [_states, setStates] = useState<PropertyState[]>([]);
   const [stateOptions, setStateOptions] = useState<{ label: string; value: string }[]>([]);
 
+  const [provinceOptions, setProvinceOptions] = useState<{ label: string; value: string }[]>([]);
   const [cityOptions, setCityOptions] = useState<{ label: string; value: string }[]>([]);
+  const [regionOptions, setRegionOptions] = useState<{ label: string; value: string }[]>([]);
   const [agentOptions, setAgentOptions] = useState<{ label: string; value: string }[]>([]);
   const [statusOptions, setStatusOptions] = useState<{ label: string; value: string }[]>([]);
 
@@ -95,6 +97,12 @@ export function usePropertyListTableState({ navigate }: UsePropertyListTableStat
       const city = urlParams.get('city');
       if (city) filters.city = parseInt(city);
 
+      const province = urlParams.get('province');
+      if (province) filters.province = parseInt(province);
+
+      const region = urlParams.get('region');
+      if (region) filters.region = parseInt(region);
+
       const agent = urlParams.get('agent');
       if (agent) filters.agent = agent;
 
@@ -134,6 +142,12 @@ export function usePropertyListTableState({ navigate }: UsePropertyListTableStat
       const city = urlParams.get('city');
       if (city) filters.city = parseInt(city);
 
+      const province = urlParams.get('province');
+      if (province) filters.province = parseInt(province);
+
+      const region = urlParams.get('region');
+      if (region) filters.region = parseInt(region);
+
       const agent = urlParams.get('agent');
       if (agent) filters.agent = agent;
 
@@ -148,9 +162,10 @@ export function usePropertyListTableState({ navigate }: UsePropertyListTableStat
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const [typesResponse, statesResponse, citiesResponse, agentsResponse] = await Promise.all([
+        const [typesResponse, statesResponse, provincesResponse, citiesResponse, agentsResponse] = await Promise.all([
           realEstateApi.getTypes({ page: 1, size: 1000, is_active: true }),
           realEstateApi.getStates({ page: 1, size: 1000, is_active: true }),
+          realEstateApi.getProvinces(),
           realEstateApi.getCitiesWithProperties(),
           realEstateApi.getAgents({ page: 1, size: 1000, is_active: true }),
         ]);
@@ -160,6 +175,11 @@ export function usePropertyListTableState({ navigate }: UsePropertyListTableStat
 
         setStates(statesResponse.data);
         setStateOptions(statesResponse.data.map((s: PropertyState) => ({ label: s.title, value: s.id.toString() })));
+
+        setProvinceOptions(provincesResponse.map((province) => ({
+          label: province.name,
+          value: province.id.toString(),
+        })));
 
         setCityOptions(citiesResponse.map(city => ({
           label: `${city.name} (${(city as any).property_count || 0} ملک)`,
@@ -183,6 +203,71 @@ export function usePropertyListTableState({ navigate }: UsePropertyListTableStat
 
     fetchOptions();
   }, []);
+
+  useEffect(() => {
+    const fetchRegions = async () => {
+      try {
+        const selectedCity = clientFilters.city;
+        if (!selectedCity) {
+          setRegionOptions([]);
+          return;
+        }
+
+        const cityId = typeof selectedCity === 'string' ? parseInt(selectedCity, 10) : Number(selectedCity);
+        if (!cityId || Number.isNaN(cityId)) {
+          setRegionOptions([]);
+          return;
+        }
+
+        const regions = await realEstateApi.getCityRegionsByCity(cityId);
+        setRegionOptions(regions.map((region) => ({
+          label: region.name,
+          value: region.id.toString(),
+        })));
+      } catch {
+        setRegionOptions([]);
+      }
+    };
+
+    fetchRegions();
+  }, [clientFilters.city]);
+
+  useEffect(() => {
+    const fetchCitiesByProvince = async () => {
+      try {
+        const selectedProvince = clientFilters.province;
+        const selectedValue = Array.isArray(selectedProvince)
+          ? selectedProvince[0]
+          : selectedProvince;
+
+        if (!selectedValue) {
+          const cities = await realEstateApi.getCitiesWithProperties();
+          setCityOptions(cities.map(city => ({
+            label: `${city.name} (${(city as any).property_count || 0} ملک)`,
+            value: city.id.toString(),
+          })));
+          return;
+        }
+
+        const provinceId = typeof selectedValue === 'string'
+          ? parseInt(selectedValue, 10)
+          : Number(selectedValue);
+
+        if (!provinceId || Number.isNaN(provinceId)) {
+          return;
+        }
+
+        const cities = await realEstateApi.getCitiesWithProperties(provinceId);
+        setCityOptions(cities.map(city => ({
+          label: `${city.name} (${(city as any).property_count || 0} ملک)`,
+          value: city.id.toString(),
+        })));
+      } catch {
+      }
+    };
+
+    fetchCitiesByProvince();
+  }, [clientFilters.province]);
 
   const { handleFilterChange } = useTableFilters<PropertyFilters>(
     setClientFilters,
@@ -221,6 +306,76 @@ export function usePropertyListTableState({ navigate }: UsePropertyListTableStat
         }
         updateUrl(url);
       },
+      province: (value, updateUrl) => {
+        const provinceValue = value
+          ? Array.isArray(value)
+            ? value.map(v => String(v)).join(',')
+            : String(value)
+          : undefined;
+
+        setClientFilters(prev => ({
+          ...prev,
+          province: provinceValue as string | undefined,
+          city: undefined,
+          region: undefined,
+        }));
+        setRegionOptions([]);
+        setPagination(prev => ({ ...prev, pageIndex: 0 }));
+
+        const url = new URL(window.location.href);
+        if (provinceValue && provinceValue !== '') {
+          url.searchParams.set('province', provinceValue);
+        } else {
+          url.searchParams.delete('province');
+        }
+        url.searchParams.delete('city');
+        url.searchParams.delete('region');
+        updateUrl(url);
+      },
+      city: (value, updateUrl) => {
+        const cityValue = value
+          ? Array.isArray(value)
+            ? value.map(v => String(v)).join(',')
+            : String(value)
+          : undefined;
+
+        setClientFilters(prev => ({
+          ...prev,
+          city: cityValue as string | undefined,
+          region: undefined,
+        }));
+        setPagination(prev => ({ ...prev, pageIndex: 0 }));
+
+        const url = new URL(window.location.href);
+        if (cityValue && cityValue !== '') {
+          url.searchParams.set('city', cityValue);
+        } else {
+          url.searchParams.delete('city');
+        }
+        url.searchParams.delete('region');
+        updateUrl(url);
+      },
+      region: (value, updateUrl) => {
+        const regionValue = value
+          ? Array.isArray(value)
+            ? value.map(v => String(v)).join(',')
+            : String(value)
+          : undefined;
+
+        setClientFilters(prev => ({
+          ...prev,
+          region: regionValue as string | undefined,
+        }));
+        setPagination(prev => ({ ...prev, pageIndex: 0 }));
+
+        const url = new URL(window.location.href);
+        if (regionValue && regionValue !== '') {
+          url.searchParams.set('region', regionValue);
+        } else {
+          url.searchParams.delete('region');
+        }
+        updateUrl(url);
+      },
       agent: (value, updateUrl) => {
         const agentValue = value
           ? Array.isArray(value)
@@ -248,7 +403,9 @@ export function usePropertyListTableState({ navigate }: UsePropertyListTableStat
     booleanFilterOptions,
     propertyTypeOptions,
     stateOptions,
+    provinceOptions,
     cityOptions,
+    regionOptions,
     agentOptions,
     statusOptions
   );

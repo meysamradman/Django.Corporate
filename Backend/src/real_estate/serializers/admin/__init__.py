@@ -77,6 +77,9 @@ from .location_serializer import (
     RealEstateCityRegionSerializer,
     RealEstateCitySimpleSerializer,
     RealEstateCityRegionSimpleSerializer,
+    RealEstateProvinceCreateUpdateSerializer,
+    RealEstateCityCreateUpdateSerializer,
+    RealEstateCityRegionCreateUpdateSerializer,
 )
 
 __all__ = [
@@ -140,5 +143,8 @@ __all__ = [
     'RealEstateCityRegionSerializer',
     'RealEstateCitySimpleSerializer',
     'RealEstateCityRegionSimpleSerializer',
+    'RealEstateProvinceCreateUpdateSerializer',
+    'RealEstateCityCreateUpdateSerializer',
+    'RealEstateCityRegionCreateUpdateSerializer',
 ]
 

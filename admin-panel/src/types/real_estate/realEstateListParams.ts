@@ -22,6 +22,7 @@ export interface PropertyListParams {
   agency?: number | string;
   city?: number | string;
   province?: number | string;
+  region?: number | string;
   district?: number | string;
   
   label?: number | string;
@@ -63,6 +64,7 @@ export interface PropertyFilters {
   agency?: number | string;
   city?: number | string;
   province?: number | string;
+  region?: number | string;
   district?: number | string;
   date_range?: { from?: string; to?: string };
   date_from?: string;

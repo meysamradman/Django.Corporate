@@ -186,4 +186,25 @@ export const realEstateRoutes: RouteRule[] = [
     action: "update",
     description: "ویرایش آژانس",
   }),
+  createRule({
+    id: "real-estate-provinces",
+    pattern: /^\/real-estate\/provinces\/?$/,
+    module: 'real_estate.property',
+    action: "read",
+    description: "لیست استان‌ها",
+  }),
+  createRule({
+    id: "real-estate-cities",
+    pattern: /^\/real-estate\/cities\/?$/,
+    module: 'real_estate.property',
+    action: "read",
+    description: "لیست شهرها",
+  }),
+  createRule({
+    id: "real-estate-regions",
+    pattern: /^\/real-estate\/regions\/?$/,
+    module: 'real_estate.property',
+    action: "read",
+    description: "لیست مناطق",
+  }),
 ];

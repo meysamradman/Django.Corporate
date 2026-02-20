@@ -171,6 +171,10 @@ const BASE_MENU_GROUPS: MenuGroupConfig[] = [
           { title: "تگ‌های ملک", isTitle: true },
           { title: "لیست تگ‌ها", url: "/real-estate/tags", icon: Tag, access: { module: "real_estate.tag", allowReadOnly: true } },
           { title: "ایجاد تگ", onClick: () => useGlobalDrawerStore.getState().open(DRAWER_IDS.REAL_ESTATE_TAG_FORM), icon: Plus, access: { module: "real_estate.tag", actions: ["create"] } },
+          { title: "لوکیشن", isTitle: true },
+          { title: "لیست استان‌ها", url: "/real-estate/provinces", icon: MapIcon, access: { module: "real_estate.property", allowReadOnly: true } },
+          { title: "لیست شهرها", url: "/real-estate/cities", icon: MapIcon, access: { module: "real_estate.property", allowReadOnly: true } },
+          { title: "لیست مناطق", url: "/real-estate/regions", icon: MapIcon, access: { module: "real_estate.property", allowReadOnly: true } },
         ],
       },
       {

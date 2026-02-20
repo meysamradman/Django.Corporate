@@ -71,6 +71,9 @@ import PropertyStatesPage from './pages/real-estate/states/page';
 import PropertyLabelsPage from './pages/real-estate/labels/page';
 import PropertyFeaturesPage from './pages/real-estate/features/page';
 import PropertyTagsPage from './pages/real-estate/tags/page';
+import RealEstateProvincesPage from './pages/real-estate/provinces/page';
+import RealEstateCitiesPage from './pages/real-estate/cities/page';
+import RealEstateRegionsPage from './pages/real-estate/regions/page';
 import RealEstateStatisticsPage from './pages/real-estate/statistics/page';
 import StaticProfilePage from './pages/static/profile/page';
 
@@ -218,6 +221,9 @@ function App() {
                       <Route path="labels" element={<PropertyLabelsPage />} />
                       <Route path="features" element={<PropertyFeaturesPage />} />
                       <Route path="tags" element={<PropertyTagsPage />} />
+                      <Route path="provinces" element={<RealEstateProvincesPage />} />
+                      <Route path="cities" element={<RealEstateCitiesPage />} />
+                      <Route path="regions" element={<RealEstateRegionsPage />} />
                     </Route>
 
                   </Route>
