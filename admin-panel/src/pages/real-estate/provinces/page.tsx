@@ -1,13 +1,11 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Edit, Plus, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { realEstateApi } from "@/api/real-estate";
-import { Input } from "@/components/elements/Input";
-import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
 import { showError, showSuccess } from "@/core/toast";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/elements/Dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/elements/AlertDialog";
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from "@/types/shared/pagination";
@@ -18,17 +16,33 @@ import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 import { useProvinceColumns } from "@/components/real-estate/locations/provinces/ProvinceTableColumns";
 import { getProvinceFilterConfig } from "@/components/real-estate/locations/provinces/ProvinceTableFilters";
 import type { RealEstateProvince } from "@/types/real_estate/location";
+import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
+import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then((mod) => ({ default: mod.DataTable })));
 
 export default function RealEstateProvincesPage() {
-  const [createOpen, setCreateOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; isBulk: boolean; id?: number; ids?: number[] }>({
     open: false,
     isBulk: false,
   });
-  const [form, setForm] = useState({ name: "", code: "" });
   const queryClient = useQueryClient();
+  const open = useGlobalDrawerStore((state) => state.open);
+
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      open(DRAWER_IDS.REAL_ESTATE_PROVINCE_FORM, {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["real-estate-provinces-list"] });
+          queryClient.invalidateQueries({ queryKey: ["real-estate-provinces"] });
+        },
+      });
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("action");
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams, open, queryClient]);
 
   const [pagination, setPagination] = useState<TablePaginationState>({ pageIndex: 0, pageSize: 10 });
   const [sorting, setSorting] = useState<SortingState>(() => initSortingFromURL());
@@ -65,21 +79,6 @@ export default function RealEstateProvincesPage() {
   const data = provincesResponse?.data || [];
   const pageCount = provincesResponse?.pagination?.total_pages || 1;
 
-  const createMutation = useMutation({
-    mutationFn: () => realEstateApi.createProvince({
-      name: form.name.trim(),
-      code: form.code.trim(),
-    }),
-    onSuccess: () => {
-      showSuccess("استان با موفقیت ایجاد شد");
-      setCreateOpen(false);
-      setForm({ name: "", code: "" });
-      queryClient.invalidateQueries({ queryKey: ["real-estate-provinces-list"] });
-      queryClient.invalidateQueries({ queryKey: ["real-estate-provinces"] });
-    },
-    onError: (error) => showError(error),
-  });
-
   const deleteMutation = useMutation({
     mutationFn: (id: number) => realEstateApi.deleteProvince(id),
     onSuccess: () => {
@@ -104,21 +103,20 @@ export default function RealEstateProvincesPage() {
     onError: (error) => showError(error),
   });
 
-  const handleCreate = () => {
-    if (!form.name.trim() || !form.code.trim()) {
-      showError("نام و کد استان الزامی است");
-      return;
-    }
-    createMutation.mutate();
-  };
-
   const rowActions: DataTableRowAction<RealEstateProvince>[] = [
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
-      onClick: () => {},
+      onClick: (item) => {
+        open(DRAWER_IDS.REAL_ESTATE_PROVINCE_FORM, {
+          editId: item.id,
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["real-estate-provinces-list"] });
+            queryClient.invalidateQueries({ queryKey: ["real-estate-provinces"] });
+          },
+        });
+      },
       permission: "real_estate.property.update",
-      isDisabled: () => true,
     },
     {
       label: "حذف",
@@ -160,7 +158,14 @@ export default function RealEstateProvincesPage() {
         <ProtectedButton
           permission="real_estate.property.create"
           size="sm"
-          onClick={() => setCreateOpen(true)}
+          onClick={() => {
+            open(DRAWER_IDS.REAL_ESTATE_PROVINCE_FORM, {
+              onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: ["real-estate-provinces-list"] });
+                queryClient.invalidateQueries({ queryKey: ["real-estate-provinces"] });
+              },
+            });
+          }}
         >
           <Plus className="ml-2 size-4" />
           افزودن استان
@@ -189,33 +194,6 @@ export default function RealEstateProvincesPage() {
           filterConfig={filterConfig}
         />
       </Suspense>
-
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>ایجاد استان</DialogTitle>
-            <DialogDescription>نام و کد استان را وارد کنید.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <Input
-              value={form.name}
-              onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-              placeholder="نام استان"
-            />
-            <Input
-              value={form.code}
-              onChange={(e) => setForm((prev) => ({ ...prev, code: e.target.value }))}
-              placeholder="کد استان"
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateOpen(false)}>انصراف</Button>
-            <Button onClick={handleCreate} disabled={createMutation.isPending}>
-              ثبت
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <AlertDialog open={deleteConfirm.open} onOpenChange={(open) => !open && setDeleteConfirm({ open: false, isBulk: false })}>
         <AlertDialogContent>

@@ -13,6 +13,9 @@ const PropertyStateSide = lazy(() => import('@/components/real-estate/states/Pro
 const PropertyLabelSide = lazy(() => import('@/components/real-estate/labels/PropertyLabelSide').then(module => ({ default: module.PropertyLabelSide })));
 const PropertyFeatureSide = lazy(() => import('@/components/real-estate/features/PropertyFeatureSide').then(module => ({ default: module.PropertyFeatureSide })));
 const PropertyTagSide = lazy(() => import('@/components/real-estate/tags/PropertyTagSide').then(module => ({ default: module.PropertyTagSide })));
+const ProvinceSide = lazy(() => import('@/components/real-estate/locations/provinces/ProvinceSide').then(module => ({ default: module.ProvinceSide })));
+const CitySide = lazy(() => import('@/components/real-estate/locations/cities/CitySide').then(module => ({ default: module.CitySide })));
+const RegionSide = lazy(() => import('@/components/real-estate/locations/regions/RegionSide').then(module => ({ default: module.RegionSide })));
 
 const GeneralSettingsSide = lazy(() => import('@/components/settings/GeneralSettingsSide').then(module => ({ default: module.GeneralSettingsSide })));
 const ContactPhoneSide = lazy(() => import('@/components/settings/ContactPhoneSide').then(module => ({ default: module.ContactPhoneSide })));
@@ -38,6 +41,9 @@ const DRAWERS = {
     [DRAWER_IDS.REAL_ESTATE_LABEL_FORM]: PropertyLabelSide,
     [DRAWER_IDS.REAL_ESTATE_FEATURE_FORM]: PropertyFeatureSide,
     [DRAWER_IDS.REAL_ESTATE_TAG_FORM]: PropertyTagSide,
+    [DRAWER_IDS.REAL_ESTATE_PROVINCE_FORM]: ProvinceSide,
+    [DRAWER_IDS.REAL_ESTATE_CITY_FORM]: CitySide,
+    [DRAWER_IDS.REAL_ESTATE_REGION_FORM]: RegionSide,
     [DRAWER_IDS.SETTINGS_GENERAL_FORM]: GeneralSettingsSide,
     [DRAWER_IDS.SETTINGS_PHONE_FORM]: ContactPhoneSide,
     [DRAWER_IDS.SETTINGS_MOBILE_FORM]: ContactMobileSide,

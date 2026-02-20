@@ -9,6 +9,9 @@ export const DRAWER_IDS = {
     REAL_ESTATE_LABEL_FORM: 'REAL_ESTATE_LABEL_FORM',
     REAL_ESTATE_FEATURE_FORM: 'REAL_ESTATE_FEATURE_FORM',
     REAL_ESTATE_TAG_FORM: 'REAL_ESTATE_TAG_FORM',
+    REAL_ESTATE_PROVINCE_FORM: 'REAL_ESTATE_PROVINCE_FORM',
+    REAL_ESTATE_CITY_FORM: 'REAL_ESTATE_CITY_FORM',
+    REAL_ESTATE_REGION_FORM: 'REAL_ESTATE_REGION_FORM',
     SETTINGS_GENERAL_FORM: 'SETTINGS_GENERAL_FORM',
     SETTINGS_PHONE_FORM: 'SETTINGS_PHONE_FORM',
     SETTINGS_MOBILE_FORM: 'SETTINGS_MOBILE_FORM',
@@ -63,6 +66,18 @@ export interface DrawerProps {
         onSuccess?: () => void;
     };
     REAL_ESTATE_TAG_FORM: {
+        editId?: number | null;
+        onSuccess?: () => void;
+    };
+    REAL_ESTATE_PROVINCE_FORM: {
+        editId?: number | null;
+        onSuccess?: () => void;
+    };
+    REAL_ESTATE_CITY_FORM: {
+        editId?: number | null;
+        onSuccess?: () => void;
+    };
+    REAL_ESTATE_REGION_FORM: {
         editId?: number | null;
         onSuccess?: () => void;
     };
