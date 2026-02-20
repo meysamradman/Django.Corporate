@@ -11,7 +11,10 @@
   --divi: rgba(148, 163, 184, 0.32);
   /* Background */
   --radius: 0.625rem;
-  --bg: #f6f8fa;
+  --bg-1: #f6f8fa;
+  --bg-2: #f6f8fa;
+  --bg-3: #f6f8fa;
+  --bg-4: #f6f8fa;
   /* Typography*/
   --font-p: #423f50;
   --font-s: #6b6876;

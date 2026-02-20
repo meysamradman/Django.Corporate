@@ -164,7 +164,7 @@ html body[data-scroll-locked] {
   }
 
   .table-avatar {
-    @apply h-9 w-9 !rounded-md;
+    @apply h-9 w-9 rounded-md!;
   }
 
   .table-cell-wide {
