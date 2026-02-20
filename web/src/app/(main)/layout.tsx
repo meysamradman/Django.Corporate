@@ -26,41 +26,35 @@ async function HeaderSlot() {
     let logo: SiteLogo | null = null;
     let statusOptions: HeaderMenuStatusOption[] = [];
 
-    const toDealSegment = (value: string): string => {
-        const normalized = value.trim().toLowerCase().replace(/[_\s]+/g, '-');
-        if (normalized === 'presale') return 'pre-sale';
-        return normalized;
-    };
-
     try {
         const [logoResult, statusesResult] = await Promise.allSettled([
             brandingApi.getLogo(),
-            realEstateApi.getListingTypes(),
+            realEstateApi.getStates({ page: 1, size: 200 }),
         ]);
 
         if (logoResult.status === 'fulfilled') {
             logo = logoResult.value;
         }
 
-        const listingTypes = statusesResult.status === 'fulfilled' ? statusesResult.value : [];
-        const usageTypeMap = new Map<string, string>();
+        const states = statusesResult.status === 'fulfilled' ? (statusesResult.value?.data ?? []) : [];
+        const usageTypeMap = new Map<string, HeaderMenuStatusOption>();
 
-        (listingTypes ?? []).forEach((item) => {
-            const rawUsageType = (item.value || '').trim();
-            const rawLabel = (item.label || '').trim();
-            const normalizedUsageType = toDealSegment(rawUsageType);
+        states.forEach((item) => {
+            const usageType = (item.usage_type || '').trim().toLowerCase();
+            const slug = (item.slug || '').trim();
+            const label = ((item.name || item.title || item.slug || '') as string).trim();
 
-            if (!rawUsageType || !normalizedUsageType || usageTypeMap.has(normalizedUsageType)) {
+            if (!usageType || !slug || !label || usageTypeMap.has(usageType)) {
                 return;
             }
 
-            usageTypeMap.set(normalizedUsageType, rawLabel || rawUsageType);
+            usageTypeMap.set(usageType, {
+                value: slug,
+                label,
+            });
         });
 
-        const normalizedStatuses = Array.from(usageTypeMap.entries()).map(([value, label]) => ({
-            value,
-            label,
-        }));
+        const normalizedStatuses = Array.from(usageTypeMap.values());
 
         if (normalizedStatuses.length > 0) {
             statusOptions = normalizedStatuses;

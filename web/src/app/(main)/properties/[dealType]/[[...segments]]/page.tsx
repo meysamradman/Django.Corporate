@@ -15,20 +15,14 @@ async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: Page
   const routeParams = await params;
   const query = await searchParams;
 
-  const toDealSegment = (value: string): string => {
-    const normalized = value.trim().toLowerCase().replace(/[_\s]+/g, "-");
-    if (normalized === "presale") return "pre-sale";
-    return normalized;
-  };
-
-  const normalizedDealType = toDealSegment(normalizeTaxonomySlug(routeParams.dealType));
+  const normalizedDealType = normalizeTaxonomySlug(routeParams.dealType).toLowerCase();
   if (!normalizedDealType) {
     notFound();
   }
 
   const availableStatuses = await realEstateApi
-    .getListingTypes()
-    .then((items) => new Set((items || []).map((item) => toDealSegment(item.value || "")).filter(Boolean)))
+    .getStates({ page: 1, size: 200 })
+    .then((response) => new Set((response?.data || []).map((item) => normalizeTaxonomySlug(item.slug || "").toLowerCase()).filter(Boolean)))
     .catch(() => new Set<string>());
 
   if (!availableStatuses.has(normalizedDealType)) {

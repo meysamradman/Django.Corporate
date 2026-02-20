@@ -118,39 +118,19 @@ export const filtersFromSeoSegments = (
     return {};
   }
 
-  if (normalizedDealType === "buy" || normalizedDealType === "rent" || normalizedDealType === "pre-sale" || normalizedDealType === "mortgage") {
-    const result: Partial<PropertySearchFilters> = {
-      state_slug: normalizedDealType,
-      ...(normalizedCity ? { search: denormalizeSegment(safeDecodeURIComponent(normalizedCity)) } : {}),
-    };
+  const result: Partial<PropertySearchFilters> = {
+    state_slug: normalizedDealType,
+  };
 
-    if (normalizedType) {
-      result.type_slug = normalizedType;
-    }
-
-    return result;
+  if (normalizedCity) {
+    result.search = denormalizeSegment(safeDecodeURIComponent(normalizedCity));
   }
 
-  const legacyPrefixes = ["buy", "rent", "pre-sale", "mortgage"];
-  const matchedPrefix = legacyPrefixes.find((prefix) => normalizedDealType.startsWith(`${prefix}-`));
-
-  if (matchedPrefix) {
-    const stateSlug = matchedPrefix;
-    const typeSlug = normalizedDealType.slice(matchedPrefix.length + 1);
-
-    const result: Partial<PropertySearchFilters> = {
-      state_slug: stateSlug,
-      type_slug: typeSlug,
-    };
-
-    if (normalizedCity) {
-      result.search = denormalizeSegment(safeDecodeURIComponent(normalizedCity));
-    }
-
-    return result;
+  if (normalizedType) {
+    result.type_slug = normalizedType;
   }
 
-  return { state_slug: normalizedDealType };
+  return result;
 };
 
 const resolveSeoPathMode = (
