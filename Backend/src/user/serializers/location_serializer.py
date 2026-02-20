@@ -4,7 +4,7 @@ from src.core.models import Province, City
 class ProvinceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Province
-        fields = ['id', 'public_id', 'name', 'code', 'is_active']
+        fields = ['id', 'public_id', 'name', 'code', 'slug', 'is_active']
         read_only_fields = ['public_id']
 
 class ProvinceDetailSerializer(serializers.ModelSerializer):
@@ -12,7 +12,7 @@ class ProvinceDetailSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Province
-        fields = ['id', 'public_id', 'name', 'code', 'is_active', 'cities_count', 'created_at', 'updated_at']
+        fields = ['id', 'public_id', 'name', 'code', 'slug', 'is_active', 'cities_count', 'created_at', 'updated_at']
         read_only_fields = ['public_id']
     
     def get_cities_count(self, obj):
@@ -24,7 +24,7 @@ class CitySerializer(serializers.ModelSerializer):
     
     class Meta:
         model = City
-        fields = ['id', 'public_id', 'name', 'code', 'province_name', 'full_name', 'is_active']
+        fields = ['id', 'public_id', 'name', 'code', 'slug', 'province_name', 'full_name', 'is_active']
         read_only_fields = ['public_id']
 
 class CityDetailSerializer(serializers.ModelSerializer):
@@ -33,17 +33,17 @@ class CityDetailSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = City
-        fields = ['id', 'public_id', 'name', 'code', 'province', 'full_name', 'is_active', 'created_at', 'updated_at']
+        fields = ['id', 'public_id', 'name', 'code', 'slug', 'province', 'full_name', 'is_active', 'created_at', 'updated_at']
         read_only_fields = ['public_id']
 
 class ProvinceCompactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Province
-        fields = ['id', 'name', 'code']
+        fields = ['id', 'name', 'code', 'slug']
 
 class CityCompactSerializer(serializers.ModelSerializer):
     province_name = serializers.CharField(source='province.name', read_only=True)
     
     class Meta:
         model = City
-        fields = ['id', 'name', 'code', 'province_name']
+        fields = ['id', 'name', 'code', 'slug', 'province_name']

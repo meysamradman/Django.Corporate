@@ -20,7 +20,7 @@ export const CitySide: React.FC<CitySideProps> = ({
   editId,
 }) => {
   const isEditMode = !!editId;
-  const [form, setForm] = useState({ name: "", code: "", province_id: "" });
+  const [form, setForm] = useState({ name: "", code: "", slug: "", province_id: "" });
 
   const { data: provinces = [] } = useQuery({
     queryKey: ["real-estate-provinces"],
@@ -40,12 +40,13 @@ export const CitySide: React.FC<CitySideProps> = ({
       setForm({
         name: cityData.name || "",
         code: String(cityData.code || ""),
+        slug: cityData.slug || "",
         province_id: cityData.province_id ? String(cityData.province_id) : "",
       });
       return;
     }
     if (!isEditMode) {
-      setForm({ name: "", code: "", province_id: "" });
+      setForm({ name: "", code: "", slug: "", province_id: "" });
     }
   }, [isOpen, isEditMode, cityData]);
 
@@ -54,6 +55,7 @@ export const CitySide: React.FC<CitySideProps> = ({
       const payload = {
         name: form.name.trim(),
         code: form.code.trim(),
+        slug: form.slug.trim() || undefined,
         province_id: Number(form.province_id),
       };
       if (isEditMode) {
@@ -106,6 +108,14 @@ export const CitySide: React.FC<CitySideProps> = ({
           disabled={isLoading}
           onChange={(e) => setForm((prev) => ({ ...prev, code: e.target.value }))}
           placeholder="کد شهر"
+        />
+        <FormFieldInput
+          label="اسلاگ (اختیاری)"
+          id="city_slug"
+          value={form.slug}
+          disabled={isLoading}
+          onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
+          placeholder="مثال: tehran-city"
         />
         <FormField label="استان" htmlFor="city_province" required>
           <Select

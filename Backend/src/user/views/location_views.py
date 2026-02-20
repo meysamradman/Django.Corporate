@@ -38,7 +38,7 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
         
         if not provinces:
             provinces = list(Province.objects.filter(is_active=True).order_by('name').values(
-                'id', 'public_id', 'name', 'code'
+                'id', 'public_id', 'name', 'code', 'slug'
             ))
             cache.set(cache_key, provinces, USER_LOCATION_PROVINCES_TTL)
         
@@ -126,7 +126,7 @@ class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
             )
         
         provinces = Province.objects.filter(is_active=True).order_by('name').values(
-            'id', 'name', 'code'
+            'id', 'name', 'code', 'slug'
         )
         
         provinces_list = list(provinces)
@@ -266,7 +266,7 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
             province = Province.objects.get(id=province_id, is_active=True)
             
             cities = province.cities.filter(is_active=True).order_by('name').values(
-                'id', 'name'
+                'id', 'name', 'slug'
             )
             
             cities_list = list(cities)

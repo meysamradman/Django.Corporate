@@ -20,7 +20,7 @@ export const RegionSide: React.FC<RegionSideProps> = ({
   editId,
 }) => {
   const isEditMode = !!editId;
-  const [form, setForm] = useState({ name: "", code: "", city_id: "" });
+  const [form, setForm] = useState({ name: "", code: "", slug: "", city_id: "" });
 
   const { data: cities = [] } = useQuery({
     queryKey: ["real-estate-cities-for-regions"],
@@ -40,12 +40,13 @@ export const RegionSide: React.FC<RegionSideProps> = ({
       setForm({
         name: regionData.name || "",
         code: String(regionData.code || ""),
+        slug: regionData.slug || "",
         city_id: regionData.city_id ? String(regionData.city_id) : "",
       });
       return;
     }
     if (!isEditMode) {
-      setForm({ name: "", code: "", city_id: "" });
+      setForm({ name: "", code: "", slug: "", city_id: "" });
     }
   }, [isOpen, isEditMode, regionData]);
 
@@ -54,6 +55,7 @@ export const RegionSide: React.FC<RegionSideProps> = ({
       const payload = {
         name: form.name.trim(),
         code: Number(form.code),
+        slug: form.slug.trim() || undefined,
         city_id: Number(form.city_id),
       };
       if (isEditMode) {
@@ -110,6 +112,14 @@ export const RegionSide: React.FC<RegionSideProps> = ({
           disabled={isLoading}
           onChange={(e) => setForm((prev) => ({ ...prev, code: e.target.value }))}
           placeholder="کد منطقه (عدد)"
+        />
+        <FormFieldInput
+          label="اسلاگ (اختیاری)"
+          id="region_slug"
+          value={form.slug}
+          disabled={isLoading}
+          onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
+          placeholder="مثال: district-1"
         />
         <FormField label="شهر" htmlFor="region_city" required>
           <Select

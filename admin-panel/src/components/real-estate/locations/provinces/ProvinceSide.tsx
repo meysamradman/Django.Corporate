@@ -19,7 +19,7 @@ export const ProvinceSide: React.FC<ProvinceSideProps> = ({
   editId,
 }) => {
   const isEditMode = !!editId;
-  const [form, setForm] = useState({ name: "", code: "" });
+  const [form, setForm] = useState({ name: "", code: "", slug: "" });
 
   const { data: provinceData, isLoading } = useQuery({
     queryKey: ["real-estate-province", editId],
@@ -33,11 +33,12 @@ export const ProvinceSide: React.FC<ProvinceSideProps> = ({
       setForm({
         name: provinceData.name || "",
         code: String(provinceData.code || ""),
+        slug: provinceData.slug || "",
       });
       return;
     }
     if (!isEditMode) {
-      setForm({ name: "", code: "" });
+      setForm({ name: "", code: "", slug: "" });
     }
   }, [isOpen, isEditMode, provinceData]);
 
@@ -46,6 +47,7 @@ export const ProvinceSide: React.FC<ProvinceSideProps> = ({
       const payload = {
         name: form.name.trim(),
         code: form.code.trim(),
+        slug: form.slug.trim() || undefined,
       };
       if (isEditMode) {
         return realEstateApi.updateProvince(editId!, payload);
@@ -97,6 +99,14 @@ export const ProvinceSide: React.FC<ProvinceSideProps> = ({
           disabled={isLoading}
           onChange={(e) => setForm((prev) => ({ ...prev, code: e.target.value }))}
           placeholder="کد استان"
+        />
+        <FormFieldInput
+          label="اسلاگ (اختیاری)"
+          id="province_slug"
+          value={form.slug}
+          disabled={isLoading}
+          onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
+          placeholder="مثال: tehran"
         />
       </div>
     </TaxonomyDrawer>

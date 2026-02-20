@@ -3,6 +3,7 @@ import type { Base } from "@/types/shared/base";
 export interface RealEstateProvince extends Base {
     name: string;
     code: string;
+    slug?: string;
     country_name: string;
     cities_count?: number;
     latitude?: number;
@@ -13,6 +14,7 @@ export interface RealEstateProvince extends Base {
 export interface RealEstateCity extends Base {
     name: string;
     code: string;
+    slug?: string;
     province_id: number;
     province_name: string;
     has_regions?: boolean;
@@ -25,6 +27,7 @@ export interface RealEstateCity extends Base {
 export interface RealEstateCityRegion extends Base {
     name: string;
     code: number;
+    slug?: string;
     city_id: number;
     city_name: string;
     province_id: number;

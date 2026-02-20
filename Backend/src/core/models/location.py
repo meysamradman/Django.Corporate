@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from .base import BaseModel
 
 class Country(BaseModel):
@@ -66,6 +67,14 @@ class Province(BaseModel):
         verbose_name="کد استان",
         help_text="کد یکتای استان"
     )
+    slug = models.CharField(
+        max_length=120,
+        blank=True,
+        default="",
+        db_index=True,
+        verbose_name="اسلاگ استان",
+        help_text="اسلاگ انگلیسی/URL-friendly برای استفاده در وب‌سایت"
+    )
     
     country = models.ForeignKey(
         Country,
@@ -98,10 +107,18 @@ class Province(BaseModel):
         verbose_name = 'استان'
         verbose_name_plural = 'استان‌ها'
         ordering = ['country__name', 'name']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['slug'],
+                condition=~Q(slug=''),
+                name='uq_province_slug_non_empty'
+            ),
+        ]
         indexes = [
             models.Index(fields=['is_active', 'name']),
             models.Index(fields=['country', 'is_active']),
             models.Index(fields=['code']),
+            models.Index(fields=['slug']),
         ]
     
     def __str__(self):
@@ -120,6 +137,14 @@ class City(BaseModel):
         db_index=True,
         verbose_name="کد شهر",
         help_text="کد یکتای شهر در استان"
+    )
+    slug = models.CharField(
+        max_length=140,
+        blank=True,
+        default="",
+        db_index=True,
+        verbose_name="اسلاگ شهر",
+        help_text="اسلاگ انگلیسی/URL-friendly برای استفاده در وب‌سایت"
     )
     
     province = models.ForeignKey(
@@ -154,10 +179,18 @@ class City(BaseModel):
         verbose_name_plural = 'شهرها'
         ordering = ['province__name', 'name']
         unique_together = [('province', 'code')]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['province', 'slug'],
+                condition=~Q(slug=''),
+                name='uq_city_province_slug_non_empty'
+            ),
+        ]
         indexes = [
             models.Index(fields=['province', 'name']),
             models.Index(fields=['is_active', 'province']),
             models.Index(fields=['code']),
+            models.Index(fields=['slug']),
         ]
     
     def __str__(self):

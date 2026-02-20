@@ -16,6 +16,7 @@
 
 import os
 import sys
+import re
 
 # تنظیم encoding برای Windows
 if sys.platform == 'win32':
@@ -35,6 +36,7 @@ try:
     django.setup()
     from src.core.models import City
     from src.real_estate.models.location import CityRegion
+    from scripts.location_slug_shared import canonical_location_slug, ensure_unique_slug
 except ImportError as e:
     print(f"❌ خطا در import Django: {e}")
     print("مطمئن شوید که Django نصب شده و مسیر درست است")
@@ -50,6 +52,92 @@ CITY_REGIONS = {
     'کرج': list(range(1, 5)),      # 1 تا 4
     'اهواز': list(range(1, 6)),    # 1 تا 5
 }
+
+
+PERSIAN_CHAR_MAP = {
+    'آ': 'a', 'ا': 'a', 'أ': 'a', 'إ': 'e', 'ء': '', 'ئ': 'y', 'ؤ': 'o',
+    'ب': 'b', 'پ': 'p', 'ت': 't', 'ث': 's', 'ج': 'j', 'چ': 'ch', 'ح': 'h',
+    'خ': 'kh', 'د': 'd', 'ذ': 'z', 'ر': 'r', 'ز': 'z', 'ژ': 'zh', 'س': 's',
+    'ش': 'sh', 'ص': 's', 'ض': 'z', 'ط': 't', 'ظ': 'z', 'ع': 'a', 'غ': 'gh',
+    'ف': 'f', 'ق': 'gh', 'ک': 'k', 'ك': 'k', 'گ': 'g', 'ل': 'l', 'م': 'm',
+    'ن': 'n', 'و': 'v', 'ه': 'h', 'ة': 'h', 'ی': 'y', 'ي': 'y',
+    '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
+    '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9',
+}
+
+DIGIT_WORD_MAP = {
+    '0': 'zero', '1': 'one', '2': 'two', '3': 'three', '4': 'four',
+    '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine',
+}
+
+ALPHA_DIGIT_TOKEN_MAP = {
+    '0': 'a', '1': 'b', '2': 'c', '3': 'd', '4': 'e',
+    '5': 'f', '6': 'g', '7': 'h', '8': 'i', '9': 'j',
+}
+
+
+def _slugify_fa(text: str) -> str:
+    text = (text or '').strip().lower()
+    if not text:
+        return ''
+
+    out = []
+    for ch in text:
+        if ch in PERSIAN_CHAR_MAP:
+            out.append(PERSIAN_CHAR_MAP[ch])
+        elif 'a' <= ch <= 'z' or '0' <= ch <= '9':
+            out.append(ch)
+        elif ch in {' ', '-', '_', '/', '\\', '،', ',', 'ـ', '‌'}:
+            out.append('-')
+
+    slug = ''.join(out)
+    slug = re.sub(r'[^a-z0-9-]+', '-', slug)
+    slug = re.sub(r'-{2,}', '-', slug).strip('-')
+    return slug
+
+
+def _replace_digits_with_words(value: str) -> str:
+    result = []
+    for ch in str(value or ''):
+        if ch.isdigit():
+            result.append(f"-{DIGIT_WORD_MAP[ch]}-")
+        else:
+            result.append(ch)
+    return ''.join(result)
+
+
+def _slugify_alpha_only(text: str) -> str:
+    base = _slugify_fa(_replace_digits_with_words(text))
+    base = re.sub(r'[^a-z-]+', '-', base)
+    base = re.sub(r'-{2,}', '-', base).strip('-')
+    return base
+
+
+def _code_alpha_token(code: int | str) -> str:
+    digits = re.sub(r'[^0-9]', '', str(code or ''))
+    if not digits:
+        return 'x'
+    return ''.join(ALPHA_DIGIT_TOKEN_MAP[d] for d in digits)
+
+
+def _alpha_suffix(index: int) -> str:
+    letters = 'abcdefghijklmnopqrstuvwxyz'
+    n = max(1, index)
+    out = []
+    while n > 0:
+        n -= 1
+        out.append(letters[n % 26])
+        n //= 26
+    return ''.join(reversed(out))
+
+
+def _build_region_slug_for_city(city: City, region_name: str, region_code: int, region_id: int | None = None) -> str:
+    base = canonical_location_slug(region_name, scope='region') or 'region'
+    qs = CityRegion.objects.filter(city_id=city.id)
+    if region_id is not None:
+        qs = qs.exclude(id=region_id)
+    existing = qs.values_list('slug', flat=True)
+    return ensure_unique_slug(existing, base)
 
 
 def populate_city_regions():
@@ -89,6 +177,12 @@ def populate_city_regions():
                                 try:
                                     region = CityRegion.objects.get(id=existing[0])
                                     region.name = f'منطقه {code}'
+                                    region.slug = _build_region_slug_for_city(
+                                        city=city,
+                                        region_name=region.name,
+                                        region_code=code,
+                                        region_id=region.id,
+                                    )
                                     region.save()
                                     updated_count += 1
                                     print(f'↻ {city_name} - منطقه {code} به‌روزرسانی شد')
@@ -101,6 +195,11 @@ def populate_city_regions():
                                         city=city,
                                         name=f'منطقه {code}',
                                         code=code,
+                                        slug=_build_region_slug_for_city(
+                                            city=city,
+                                            region_name=f'منطقه {code}',
+                                            region_code=code,
+                                        ),
                                         is_active=True
                                     )
                                     created_count += 1

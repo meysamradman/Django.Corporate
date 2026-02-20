@@ -1,6 +1,7 @@
 from django.db import transaction, models
 from src.user.models import AdminRole
 from src.user.access_control.definitions.config import get_all_role_configs
+from src.user.utils.cache_admin import UserCacheManager
 
 LEGACY_ROLE_NAMES = {
     'taxonomy_editor',
@@ -89,6 +90,12 @@ def create_default_admin_roles(force_update=False, verbose=True):
         'total_processed': len(role_configs),
         'results': results
     }
+
+    try:
+        UserCacheManager.invalidate_permissions()
+        UserCacheManager.invalidate_permission_map()
+    except Exception:
+        pass
 
     return summary
 

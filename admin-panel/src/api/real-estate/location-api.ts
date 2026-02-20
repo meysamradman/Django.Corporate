@@ -89,7 +89,7 @@ export const locationApi = {
     return data || [];
   },
 
-  createProvince: async (payload: { name: string; code: string }): Promise<RealEstateProvince> => {
+  createProvince: async (payload: { name: string; code: string; slug?: string }): Promise<RealEstateProvince> => {
     const response = await api.post<RealEstateProvince>('/admin/real-estate-provinces/', payload);
     return extractData<RealEstateProvince>(response);
   },
@@ -99,7 +99,7 @@ export const locationApi = {
     return extractData<RealEstateProvince>(response);
   },
 
-  updateProvince: async (id: number, payload: { name: string; code: string }): Promise<RealEstateProvince> => {
+  updateProvince: async (id: number, payload: { name: string; code: string; slug?: string }): Promise<RealEstateProvince> => {
     const response = await api.put<RealEstateProvince>(`/admin/real-estate-provinces/${id}/`, payload);
     return extractData<RealEstateProvince>(response);
   },
@@ -108,7 +108,7 @@ export const locationApi = {
     await api.delete(`/admin/real-estate-provinces/${id}/`);
   },
 
-  createCity: async (payload: { name: string; code: string; province_id: number }): Promise<RealEstateCity> => {
+  createCity: async (payload: { name: string; code: string; slug?: string; province_id: number }): Promise<RealEstateCity> => {
     const response = await api.post<RealEstateCity>('/admin/real-estate-cities/', payload);
     return extractData<RealEstateCity>(response);
   },
@@ -118,7 +118,7 @@ export const locationApi = {
     return extractData<RealEstateCity>(response);
   },
 
-  updateCity: async (id: number, payload: { name: string; code: string; province_id: number }): Promise<RealEstateCity> => {
+  updateCity: async (id: number, payload: { name: string; code: string; slug?: string; province_id: number }): Promise<RealEstateCity> => {
     const response = await api.put<RealEstateCity>(`/admin/real-estate-cities/${id}/`, payload);
     return extractData<RealEstateCity>(response);
   },
@@ -127,7 +127,7 @@ export const locationApi = {
     await api.delete(`/admin/real-estate-cities/${id}/`);
   },
 
-  createRegion: async (payload: { name: string; code: number; city_id: number }): Promise<RealEstateCityRegion> => {
+  createRegion: async (payload: { name: string; code: number; slug?: string; city_id: number }): Promise<RealEstateCityRegion> => {
     const response = await api.post<RealEstateCityRegion>('/admin/real-estate-city-regions/', payload);
     return extractData<RealEstateCityRegion>(response);
   },
@@ -137,7 +137,7 @@ export const locationApi = {
     return extractData<RealEstateCityRegion>(response);
   },
 
-  updateRegion: async (id: number, payload: { name: string; code: number; city_id: number }): Promise<RealEstateCityRegion> => {
+  updateRegion: async (id: number, payload: { name: string; code: number; slug?: string; city_id: number }): Promise<RealEstateCityRegion> => {
     const response = await api.put<RealEstateCityRegion>(`/admin/real-estate-city-regions/${id}/`, payload);
     return extractData<RealEstateCityRegion>(response);
   },

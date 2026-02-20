@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from src.core.models import BaseModel, City
 
 class CityRegion(BaseModel):
@@ -20,6 +21,14 @@ class CityRegion(BaseModel):
         verbose_name="Region Code",
         help_text="Numeric code: 1، 2، 3، ..."
     )
+    slug = models.CharField(
+        max_length=160,
+        blank=True,
+        default="",
+        db_index=True,
+        verbose_name="Region Slug",
+        help_text="English URL-friendly slug for website filtering"
+    )
 
     class Meta(BaseModel.Meta):
         db_table = 'real_estate_city_regions'
@@ -27,9 +36,17 @@ class CityRegion(BaseModel):
         verbose_name_plural = 'City Regions'
         unique_together = [('city', 'code')]
         ordering = ['city', 'code']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['city', 'slug'],
+                condition=~Q(slug=''),
+                name='uq_city_region_city_slug_non_empty'
+            ),
+        ]
         indexes = [
             models.Index(fields=['city', 'code']),
             models.Index(fields=['is_active', 'city']),
+            models.Index(fields=['slug']),
         ]
 
     def __str__(self):
