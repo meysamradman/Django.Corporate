@@ -3,7 +3,7 @@ import { realEstateApi } from "@/api/real-estate";
 import { TaxonomyDrawer } from "@/components/templates/TaxonomyDrawer";
 import { useRealEstateTaxonomyForm } from "@/components/real-estate/hooks/useRealEstateTaxonomyForm";
 import { propertyStateFormSchema, propertyStateFormDefaults, type PropertyStateFormValues } from "@/components/real-estate/validations/stateSchema";
-import { FormField, FormFieldInput, FormFieldSwitch } from "@/components/shared/FormField";
+import { FormField, FormFieldInput, FormFieldTextarea, FormFieldSwitch } from "@/components/shared/FormField";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 
@@ -92,6 +92,16 @@ export const PropertyStateSide: React.FC<PropertyStateSideProps> = ({
                         error={errors.slug?.message as string}
                         placeholder="نامک یکتا"
                         {...register("slug")}
+                    />
+
+                    <FormFieldTextarea
+                        label="توضیحات کوتاه"
+                        id="short_description"
+                        error={errors.short_description?.message as string}
+                        placeholder="توضیحات کوتاه وضعیت ملک"
+                        rows={3}
+                        maxLength={255}
+                        {...register("short_description")}
                     />
 
                     <FormField

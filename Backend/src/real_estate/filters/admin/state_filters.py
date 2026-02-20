@@ -65,8 +65,7 @@ class PropertyStateAdminFilter(django_filters.FilterSet):
             return queryset
         
         return queryset.filter(
-            Q(title__icontains=value) |
-            Q(description__icontains=value)
+            Q(title__icontains=value)
         )
     
     def filter_usage(self, queryset, name, value):

@@ -36,8 +36,8 @@ class PropertyFeatureAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
     permission_denied_message = FEATURE_ERRORS["feature_not_authorized"]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PropertyFeatureAdminFilter
-    search_fields = ['title', 'group']
-    ordering_fields = ['group', 'created_at', 'title']
+    search_fields = ['title', 'slug', 'group', 'parent__title']
+    ordering_fields = ['group', 'created_at', 'title', 'slug']
     ordering = ['-created_at']
     pagination_class = StandardLimitPagination
     
@@ -89,6 +89,12 @@ class PropertyFeatureAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
             return APIResponse.error(
                 message=FEATURE_ERRORS["feature_exists"],
                 errors={'title': [FEATURE_ERRORS["feature_exists"]]},
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        if 'slug' in error_text:
+            return APIResponse.error(
+                message=FEATURE_ERRORS["feature_slug_exists"],
+                errors={'slug': [FEATURE_ERRORS["feature_slug_exists"]]},
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 

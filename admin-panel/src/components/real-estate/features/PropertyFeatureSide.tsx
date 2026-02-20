@@ -1,9 +1,11 @@
 import React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import { TaxonomyDrawer } from "@/components/templates/TaxonomyDrawer";
 import { useRealEstateTaxonomyForm } from "@/components/real-estate/hooks/useRealEstateTaxonomyForm";
 import { propertyFeatureFormSchema, propertyFeatureFormDefaults, type PropertyFeatureFormValues } from "@/components/real-estate/validations/featureSchema";
-import { FormFieldInput, FormFieldSwitch } from "@/components/shared/FormField";
+import { FormField, FormFieldInput, FormFieldSwitch } from "@/components/shared/FormField";
+import { TreeSelect } from "@/components/elements/TreeSelect";
 import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 
 interface PropertyFeatureSideProps {
@@ -46,7 +48,11 @@ export const PropertyFeatureSide: React.FC<PropertyFeatureSideProps> = ({
         },
         itemLabel: "ویژگی ملک",
         titleFieldName: "title",
-        autoSlug: false, // Features don't have slug in the schema shown
+    });
+
+    const { data: features } = useQuery({
+        queryKey: ["property-features-tree"],
+        queryFn: () => realEstateApi.getFeatures({ size: 200, is_active: true }),
     });
 
     const { register, formState: { errors }, watch, setValue } = form;
@@ -86,12 +92,41 @@ export const PropertyFeatureSide: React.FC<PropertyFeatureSideProps> = ({
                     />
 
                     <FormFieldInput
+                        label="نامک"
+                        id="slug"
+                        required
+                        error={errors.slug?.message as string}
+                        placeholder="نامک یکتا"
+                        {...register("slug")}
+                    />
+
+                    <FormFieldInput
                         label="گروه"
                         id="group"
                         error={errors.group?.message as string}
                         placeholder="نام گروه (اختیاری)"
                         {...register("group")}
                     />
+
+                    <FormField
+                        label="ویژگی والد"
+                        htmlFor="parent_id"
+                        error={errors.parent_id?.message as string}
+                    >
+                        <TreeSelect
+                            data={(features?.data || [])
+                                .filter((feature: any) => Number(feature.id) !== Number(editId || 0))
+                                .map((feature: any) => ({
+                                    ...feature,
+                                    name: feature.name || feature.title || "",
+                                }))}
+                            value={watch("parent_id")?.toString() || null}
+                            onChange={(value) => setValue("parent_id", value ? parseInt(value) : null, { shouldValidate: true })}
+                            placeholder="انتخاب ویژگی والد (اختیاری)"
+                            searchPlaceholder="جستجوی ویژگی..."
+                            emptyText="ویژگی یافت نشد"
+                        />
+                    </FormField>
                 </div>
             </div>
 

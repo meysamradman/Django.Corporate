@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from src.core.models import BaseModel
 from src.real_estate.models.managers import PropertyLabelQuerySet
 
@@ -27,6 +28,13 @@ class PropertyLabel(BaseModel):
         verbose_name = 'Property Label'
         verbose_name_plural = 'Property Labels'
         ordering = ['title']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['slug'],
+                condition=~Q(slug=''),
+                name='uq_property_label_slug_non_empty'
+            ),
+        ]
         indexes = [
             models.Index(fields=['is_active', 'title']),
             models.Index(fields=['slug']),

@@ -49,20 +49,21 @@ class PropertyTagPublicSerializer(serializers.ModelSerializer):
 
 class PropertyFeaturePublicSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='title', read_only=True)
-    slug = serializers.SerializerMethodField()
     property_count = serializers.IntegerField(read_only=True)
     image_url = serializers.SerializerMethodField()
+    parent_id = serializers.IntegerField(source='parent.id', read_only=True)
+    parent_public_id = serializers.UUIDField(source='parent.public_id', read_only=True)
+    parent_name = serializers.CharField(source='parent.title', read_only=True)
+    parent_slug = serializers.CharField(source='parent.slug', read_only=True)
 
     class Meta:
         model = PropertyFeature
         fields = [
             'id', 'public_id', 'name', 'slug', 'group',
+            'parent_id', 'parent_public_id', 'parent_name', 'parent_slug',
             'property_count', 'image_url', 'created_at', 'updated_at',
         ]
         read_only_fields = fields
-
-    def get_slug(self, obj):
-        return str(getattr(obj, 'public_id', ''))
 
     def get_image_url(self, obj):
         image = getattr(obj, 'image', None)

@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from src.core.models import BaseModel
 from src.real_estate.models.managers import PropertyFeatureQuerySet
 from src.media.models.media import ImageMedia
@@ -19,6 +20,25 @@ class PropertyFeature(BaseModel):
         verbose_name="Group",
         help_text="Feature group (e.g., Interior, Exterior, Amenities, Security)"
     )
+    slug = models.SlugField(
+        max_length=120,
+        allow_unicode=True,
+        blank=True,
+        default='',
+        db_index=True,
+        verbose_name="URL Slug",
+        help_text="URL-friendly identifier for the feature"
+    )
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='children',
+        db_index=True,
+        verbose_name="Parent Feature",
+        help_text="Optional parent feature (max one nesting level)"
+    )
     image = models.ForeignKey(
         ImageMedia,
         on_delete=models.SET_NULL,
@@ -36,8 +56,17 @@ class PropertyFeature(BaseModel):
         verbose_name = 'Property Feature'
         verbose_name_plural = 'Property Features'
         ordering = ['group', 'title']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['slug'],
+                condition=~Q(slug=''),
+                name='uq_property_feature_slug_non_empty'
+            ),
+        ]
         indexes = [
             models.Index(fields=['is_active', 'group', 'title']),
+            models.Index(fields=['slug']),
+            models.Index(fields=['parent']),
         ]
     
     def __str__(self):

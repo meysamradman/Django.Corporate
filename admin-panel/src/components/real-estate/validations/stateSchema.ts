@@ -26,6 +26,12 @@ export const propertyStateFormSchema = z.object({
         .string()
         .min(1, { message: msg.realEstate().validation.stateUsageTypeRequired }),
 
+    short_description: z
+        .string()
+        .max(255, { message: msg.realEstate().validation.shortDescMaxLength })
+        .optional()
+        .or(z.literal("")),
+
     is_active: z
         .boolean()
         .default(true)
@@ -44,6 +50,7 @@ export type PropertyStateFormValues = z.input<typeof propertyStateFormSchema>;
 export const propertyStateFormDefaults: PropertyStateFormValues = {
     title: "",
     slug: "",
+    short_description: "",
     usage_type: "sale",
     is_active: true,
     image_id: null,

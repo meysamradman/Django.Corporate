@@ -66,8 +66,9 @@ class PropertyFeatureAdminFilter(django_filters.FilterSet):
         
         return queryset.filter(
             Q(title__icontains=value) |
-            Q(description__icontains=value) |
-            Q(icon__icontains=value)
+            Q(group__icontains=value) |
+            Q(slug__icontains=value) |
+            Q(parent__title__icontains=value)
         )
     
     def filter_usage(self, queryset, name, value):

@@ -63,7 +63,8 @@ class PropertyStatePublicService:
 
         if search:
             queryset = queryset.filter(
-                Q(title__icontains=search) | Q(slug__icontains=search)
+                Q(title__icontains=search)
+                | Q(slug__icontains=search)
             )
 
         queryset = queryset.order_by(*PropertyStatePublicService._normalize_ordering(ordering))

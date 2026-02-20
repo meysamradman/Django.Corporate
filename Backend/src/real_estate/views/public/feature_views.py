@@ -18,6 +18,9 @@ class PropertyFeaturePublicViewSet(viewsets.ReadOnlyModelViewSet):
         filters = {
             'group': self.request.query_params.get('group'),
             'min_property_count': self.request.query_params.get('min_property_count'),
+            'parent_id': self.request.query_params.get('parent_id'),
+            'parent_public_id': self.request.query_params.get('parent_public_id'),
+            'roots_only': self.request.query_params.get('roots_only'),
         }
         filters = {k: v for k, v in filters.items() if v is not None}
         search = self.request.query_params.get('search')
@@ -28,6 +31,9 @@ class PropertyFeaturePublicViewSet(viewsets.ReadOnlyModelViewSet):
         filters = {
             'group': request.query_params.get('group'),
             'min_property_count': request.query_params.get('min_property_count'),
+            'parent_id': request.query_params.get('parent_id'),
+            'parent_public_id': request.query_params.get('parent_public_id'),
+            'roots_only': request.query_params.get('roots_only'),
         }
         filters = {k: v for k, v in filters.items() if v is not None}
         search = request.query_params.get('search')

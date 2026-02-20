@@ -21,6 +21,13 @@ class PropertyState(BaseModel):
         verbose_name="URL Slug",
         help_text="URL-friendly identifier for the property state"
     )
+    short_description = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        verbose_name="Short Description",
+        help_text="Short summary text for this property state"
+    )
     
     usage_type = models.CharField(
         max_length=20,

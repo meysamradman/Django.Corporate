@@ -103,6 +103,18 @@ export const usePropertyStateColumns = (
       minSize: 100,
     },
     {
+      accessorKey: "short_description",
+      header: () => <div className="table-header-text">توضیحات کوتاه</div>,
+      cell: ({ row }) => (
+        <div className="table-cell-secondary line-clamp-2 max-w-[320px]">
+          {row.original.short_description || "—"}
+        </div>
+      ),
+      enableSorting: false,
+      enableHiding: true,
+      minSize: 220,
+    },
+    {
       accessorKey: "usage_type",
       header: () => <div className="table-header-text">نوع کاربری (سیستمی)</div>,
       cell: ({ row }) => {

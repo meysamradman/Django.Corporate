@@ -12,7 +12,7 @@ class PropertyStateAdminListSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyState
         fields = [
-            'id', 'public_id', 'title', 'slug', 'usage_type',
+            'id', 'public_id', 'title', 'slug', 'short_description', 'usage_type',
             'is_active', 'property_count', 'image_url', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
@@ -32,7 +32,7 @@ class PropertyStateAdminDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyState
         fields = [
-            'id', 'public_id', 'title', 'slug', 'usage_type',
+            'id', 'public_id', 'title', 'slug', 'short_description', 'usage_type',
             'is_active', 'property_count', 'image', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
@@ -47,7 +47,7 @@ class PropertyStateAdminCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PropertyState
-        fields = ['title', 'slug', 'usage_type', 'is_active', 'image_id']
+        fields = ['title', 'slug', 'short_description', 'usage_type', 'is_active', 'image_id']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -85,7 +85,7 @@ class PropertyStateAdminUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PropertyState
-        fields = ['title', 'slug', 'usage_type', 'is_active', 'image_id']
+        fields = ['title', 'slug', 'short_description', 'usage_type', 'is_active', 'image_id']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

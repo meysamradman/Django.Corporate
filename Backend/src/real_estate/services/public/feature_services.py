@@ -30,7 +30,7 @@ class PropertyFeaturePublicService:
     def _base_queryset():
         return PropertyFeature.objects.filter(
             is_active=True,
-        ).select_related('image').annotate(
+        ).select_related('image', 'parent').annotate(
             property_count=Count(
                 'properties',
                 filter=Q(
@@ -51,6 +51,22 @@ class PropertyFeaturePublicService:
             if group:
                 queryset = queryset.filter(group__iexact=group)
 
+            parent_id = filters.get('parent_id')
+            try:
+                parent_id = int(parent_id)
+            except (TypeError, ValueError):
+                parent_id = None
+            if parent_id is not None:
+                queryset = queryset.filter(parent_id=parent_id)
+
+            parent_public_id = filters.get('parent_public_id')
+            if parent_public_id:
+                queryset = queryset.filter(parent__public_id=parent_public_id)
+
+            roots_only = filters.get('roots_only')
+            if str(roots_only).lower() in {'1', 'true', 'yes', 'on'}:
+                queryset = queryset.filter(parent__isnull=True)
+
             min_property_count = filters.get('min_property_count')
             try:
                 min_property_count = int(min_property_count)
@@ -62,7 +78,8 @@ class PropertyFeaturePublicService:
         if search:
             queryset = queryset.filter(
                 Q(title__icontains=search) |
-                Q(group__icontains=search)
+                Q(group__icontains=search) |
+                Q(parent__title__icontains=search)
             )
 
         queryset = queryset.order_by(*PropertyFeaturePublicService._normalize_ordering(ordering))

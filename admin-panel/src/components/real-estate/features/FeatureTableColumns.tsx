@@ -90,6 +90,30 @@ export const usePropertyFeatureColumns = (
       minSize: 200,
     },
     {
+      accessorKey: "slug",
+      header: () => <div className="table-header-text">نامک</div>,
+      cell: ({ row }) => (
+        <div className="table-cell-secondary">
+          {row.original.slug || '-'}
+        </div>
+      ),
+      enableSorting: true,
+      enableHiding: true,
+      minSize: 140,
+    },
+    {
+      accessorKey: "parent_title",
+      header: () => <div className="table-header-text">والد</div>,
+      cell: ({ row }) => (
+        <div className="table-cell-secondary">
+          {row.original.parent_title || '-'}
+        </div>
+      ),
+      enableSorting: false,
+      enableHiding: true,
+      minSize: 140,
+    },
+    {
       accessorKey: "property_count",
       header: () => <div className="table-header-text">تعداد ملک</div>,
       cell: ({ row }) => (

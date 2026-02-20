@@ -4,6 +4,7 @@ import type { Media } from "@/types/shared/media";
 export interface PropertyState extends Base {
   title: string;
   slug: string;
+  short_description?: string;
   usage_type: string;
   is_active: boolean;
   property_count?: number;

@@ -229,6 +229,7 @@ LABEL_ERRORS = {
     "label_update_failed": "به‌روزرسانی برچسب ملک ناموفق بود.",
     "label_delete_failed": "حذف برچسب ملک ناموفق بود.",
     "label_exists": "این برچسب قبلاً ثبت شده است.",
+    "label_slug_exists": "این اسلاگ برچسب قبلاً ثبت شده است.",
 }
 
 FEATURE_SUCCESS = {
@@ -246,6 +247,9 @@ FEATURE_ERRORS = {
     "feature_update_failed": "به‌روزرسانی ویژگی ملک ناموفق بود.",
     "feature_delete_failed": "حذف ویژگی ملک ناموفق بود.",
     "feature_exists": "این ویژگی قبلاً ثبت شده است.",
+    "feature_slug_exists": "این اسلاگ ویژگی قبلاً ثبت شده است.",
+    "feature_parent_self": "ویژگی نمی‌تواند والد خودش باشد.",
+    "feature_parent_two_levels_only": "ساختار ویژگی فقط دو سطحی است (والد و یک سطح فرزند).",
 }
 
 TAG_SUCCESS = {
