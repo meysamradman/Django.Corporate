@@ -25,7 +25,7 @@ export default async function PropertySearchPageServer({ filters }: PropertySear
     realEstateApi.getTypes({ page: 1, size: 100 }).catch(() => null),
     realEstateApi.getStates({ page: 1, size: 100 }).catch(() => null),
     realEstateApi.getProvinces({ page: 1, size: 100 }).catch(() => null),
-    realEstateApi.getCities({ page: 1, size: 400 }).catch(() => null),
+    realEstateApi.getCities({ page: 1, size: 2000 }).catch(() => null),
     realEstateApi.getRegions({ page: 1, size: 800 }).catch(() => null),
     realEstateApi.getLabels({ page: 1, size: 100 }).catch(() => null),
     realEstateApi.getTags({ page: 1, size: 100 }).catch(() => null),

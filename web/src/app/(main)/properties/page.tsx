@@ -1,9 +1,10 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
+import { realEstateApi } from "@/api/real-estate/route";
 import PropertySearchPageServer from "@/components/real-estate/search/PropertySearchPageServer";
 import PropertySearchPageFallback from "@/components/real-estate/search/PropertySearchPageFallback";
-import { filtersToSearchParams, resolvePropertySearchFilters, resolvePropertySearchPath } from "@/components/real-estate/search/filters";
+import { filtersToSearchParams, resolvePropertySearchFilters, resolvePropertySearchPath, toSeoLocationSegment } from "@/components/real-estate/search/filters";
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -12,6 +13,41 @@ type PageProps = {
 async function PropertiesPageBody({ searchParams }: PageProps) {
   const params = await searchParams;
   const filters = resolvePropertySearchFilters(params);
+
+  const toSeoSegment = (value: string): string => toSeoLocationSegment(value);
+
+  if (filters.city !== null) {
+    const cityById = await realEstateApi.getCityById(filters.city).catch(() => null);
+    if (cityById?.name) {
+      filters.city_slug = toSeoSegment(cityById.name);
+      if (typeof cityById.province_id === "number") {
+        filters.province = cityById.province_id;
+      }
+      if (cityById.province_name) {
+        filters.province_slug = toSeoSegment(cityById.province_name);
+      }
+    }
+  }
+
+  if (filters.city === null && filters.province !== null) {
+    const provinceById = await realEstateApi.getProvinceById(filters.province).catch(() => null);
+    if (provinceById?.name) {
+      filters.province_slug = toSeoSegment(provinceById.name);
+    }
+  }
+
+  if (!filters.state_slug && filters.state !== null) {
+    const resolvedById = await realEstateApi
+      .getStates({ page: 1, size: 200 })
+      .then((response) => (response?.data || []).find((item) => item.id === filters.state))
+      .catch(() => null);
+
+    if (resolvedById?.slug) {
+      filters.state_slug = String(resolvedById.slug).trim();
+      filters.state = null;
+    }
+  }
+
   const canonicalPath = resolvePropertySearchPath(filters);
   const canonicalQuery = filtersToSearchParams(filters).toString();
   const canonicalUrl = canonicalQuery ? `${canonicalPath}?${canonicalQuery}` : canonicalPath;

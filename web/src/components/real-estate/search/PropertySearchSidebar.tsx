@@ -1,10 +1,11 @@
 "use client";
 
 import React from "react";
+import { realEstateApi } from "@/api/real-estate/route";
 import { Button } from "@/components/elements/custom/button";
 import { Input } from "@/components/elements/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/select";
-import { fromSortValue, toSortValue } from "@/components/real-estate/search/filters";
+import { fromSortValue, toSeoLocationSegment, toSortValue } from "@/components/real-estate/search/filters";
 import type { PropertySearchFilters } from "@/types/real-estate/searchFilters";
 
 export type SidebarOption = {
@@ -113,6 +114,81 @@ export default function PropertySearchSidebar({
   onFiltersChange,
   onReset,
 }: PropertySearchSidebarProps) {
+  const [dynamicCityOptions, setDynamicCityOptions] = React.useState<SidebarOption[]>(cityOptions);
+  const [dynamicRegionOptions, setDynamicRegionOptions] = React.useState<SidebarOption[]>(regionOptions);
+
+  React.useEffect(() => {
+    setDynamicCityOptions(cityOptions);
+  }, [cityOptions]);
+
+  React.useEffect(() => {
+    setDynamicRegionOptions(regionOptions);
+  }, [regionOptions]);
+
+  React.useEffect(() => {
+    let ignore = false;
+
+    if (filters.province === null) {
+      setDynamicCityOptions(cityOptions);
+      return () => {
+        ignore = true;
+      };
+    }
+
+    realEstateApi
+      .getCities({ province_id: filters.province, page: 1, size: 500 })
+      .then((response) => {
+        if (ignore) return;
+        const nextOptions = (response?.data ?? []).map((item) => ({
+          id: item.id,
+          value: String(item.id),
+          title: item.name,
+          provinceId: item.province_id,
+        }));
+        setDynamicCityOptions(nextOptions);
+      })
+      .catch(() => {
+        if (ignore) return;
+        setDynamicCityOptions([]);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [filters.province, cityOptions]);
+
+  React.useEffect(() => {
+    let ignore = false;
+
+    if (filters.city === null) {
+      setDynamicRegionOptions([]);
+      return () => {
+        ignore = true;
+      };
+    }
+
+    realEstateApi
+      .getRegions({ city_id: filters.city, page: 1, size: 500 })
+      .then((response) => {
+        if (ignore) return;
+        const nextOptions = (response?.data ?? []).map((item) => ({
+          id: item.id,
+          value: String(item.id),
+          title: item.name,
+          cityId: item.city_id,
+        }));
+        setDynamicRegionOptions(nextOptions);
+      })
+      .catch(() => {
+        if (ignore) return;
+        setDynamicRegionOptions([]);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [filters.city, regionOptions]);
+
   const sortValue = toSortValue(filters);
   const selectedTypeValue =
     filters.property_type !== null
@@ -125,15 +201,15 @@ export default function PropertySearchSidebar({
   const selectedProvinceValue = filters.province !== null ? String(filters.province) : "";
   const availableCityOptions =
     filters.province !== null
-      ? cityOptions.filter((item) => item.provinceId === filters.province)
-      : cityOptions;
+      ? dynamicCityOptions.filter((item) => item.provinceId === filters.province)
+      : dynamicCityOptions;
   const selectedCityValue =
     filters.city !== null && availableCityOptions.some((item) => item.value === String(filters.city))
       ? String(filters.city)
       : "";
   const availableRegionOptions =
     filters.city !== null
-      ? regionOptions.filter((item) => item.cityId === filters.city)
+      ? dynamicRegionOptions.filter((item) => item.cityId === filters.city)
       : [];
   const selectedRegionValue =
     filters.region !== null && availableRegionOptions.some((item) => item.value === String(filters.region))
@@ -188,9 +264,11 @@ export default function PropertySearchSidebar({
             onChange={(event) => {
               const value = event.target.value;
               const selected = typeOptions.find((item) => item.value === value);
+              const nextTypeSlug = selected?.slug || "";
+              const nextTypeId = toNumberOrNull(value);
               update({
-                property_type: toNumberOrNull(value),
-                type_slug: selected?.slug || "",
+                property_type: nextTypeId,
+                type_slug: nextTypeSlug,
               });
             }}
           >
@@ -235,10 +313,13 @@ export default function PropertySearchSidebar({
               value={selectedProvinceValue}
               onChange={(event) => {
                 const provinceValue = toNumberOrNull(event.target.value);
+                const selectedProvince = provinceOptions.find((item) => item.value === event.target.value);
                 update({
                   province: provinceValue,
                   city: null,
                   region: null,
+                  province_slug: selectedProvince?.title ? toSeoLocationSegment(selectedProvince.title) : "",
+                  city_slug: "",
                 });
               }}
             >
@@ -252,7 +333,18 @@ export default function PropertySearchSidebar({
           </div>
           <div className="space-y-2">
             <label className="text-sm text-font-s">شهر</label>
-            <NativeSelect value={selectedCityValue} onChange={(event) => update({ city: toNumberOrNull(event.target.value), region: null })}>
+            <NativeSelect
+              value={selectedCityValue}
+              onChange={(event) => {
+                const cityId = toNumberOrNull(event.target.value);
+                const selectedCity = availableCityOptions.find((item) => item.value === event.target.value);
+                update({
+                  city: cityId,
+                  region: null,
+                  city_slug: selectedCity?.title ? toSeoLocationSegment(selectedCity.title) : "",
+                });
+              }}
+            >
               <NativeSelectOption value="">همه شهرها</NativeSelectOption>
               {availableCityOptions.map((item) => (
                 <NativeSelectOption key={item.id} value={item.value}>

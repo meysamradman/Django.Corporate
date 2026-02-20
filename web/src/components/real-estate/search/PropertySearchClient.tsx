@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+
 import PropertySearchResults from "@/components/real-estate/search/PropertySearchResults";
 import PropertySearchSidebar, {
   type SidebarOption,
@@ -28,7 +30,9 @@ type PropertySearchClientProps = {
   statusOptions: SidebarOption[];
 };
 
-const DEFAULT_FILTERS: PropertySearchFilters = resolvePropertySearchFilters({});
+const buildResetFilters = (_source: PropertySearchFilters): PropertySearchFilters => ({
+  ...resolvePropertySearchFilters({}),
+});
 
 export default function PropertySearchClient({
   initialFilters,
@@ -64,6 +68,8 @@ export default function PropertySearchClient({
     initialCurrentPage,
   });
 
+  const resetFilters = React.useMemo(() => buildResetFilters(initialFilters), [initialFilters]);
+
   return (
     <main className="container mr-auto ml-auto py-10 md:py-12">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
@@ -82,7 +88,7 @@ export default function PropertySearchClient({
               featureOptions={featureOptions}
               statusOptions={statusOptions}
               onFiltersChange={onFiltersChange}
-              onReset={() => onReset(DEFAULT_FILTERS)}
+              onReset={() => onReset(resetFilters)}
             />
           </div>
         </div>

@@ -49,6 +49,8 @@ const normalizeSegment = (value: string): string =>
 const denormalizeSegment = (value: string): string =>
   value.trim().replace(/-/g, " ");
 
+export const toSeoLocationSegment = (value: string): string => normalizeSegment(value);
+
 const looksPercentEncoded = (value: string): boolean => /%[0-9A-Fa-f]{2}/.test(value);
 
 const safeDecodeURIComponent = (value: string): string => {
@@ -107,23 +109,22 @@ const resolveSort = (searchParams: Record<string, string | string[] | undefined>
 
 export const filtersFromSeoSegments = (
   dealType?: string,
-  city?: string,
+  location?: string,
   type?: string
 ): Partial<PropertySearchFilters> => {
   const normalizedDealType = normalizeTaxonomySlug(dealType);
-  const normalizedCity = (city || "").trim();
+  const normalizedLocation = (location || "").trim();
   const normalizedType = normalizeTaxonomySlug(type);
 
-  if (!normalizedDealType) {
-    return {};
+  const result: Partial<PropertySearchFilters> = {};
+
+  if (normalizedDealType) {
+    result.state_slug = normalizedDealType;
   }
 
-  const result: Partial<PropertySearchFilters> = {
-    state_slug: normalizedDealType,
-  };
-
-  if (normalizedCity) {
-    result.search = denormalizeSegment(safeDecodeURIComponent(normalizedCity));
+  if (normalizedLocation) {
+    const decoded = denormalizeSegment(safeDecodeURIComponent(normalizedLocation));
+    result.city_slug = toSeoLocationSegment(decoded);
   }
 
   if (normalizedType) {
@@ -135,17 +136,25 @@ export const filtersFromSeoSegments = (
 
 const resolveSeoPathMode = (
   filters: PropertySearchFilters
-): "properties" | "status" | "status-type" | "status-city" | "status-city-type" => {
+):
+  | "properties"
+  | "status"
+  | "status-type"
+  | "status-location"
+  | "status-location-type"
+  | "location"
+  | "location-type"
+  | "type" => {
   const stateSlug = normalizeTaxonomySlug(filters.state_slug);
   const typeSlug = normalizeTaxonomySlug(filters.type_slug);
-  const search = (filters.search || "").trim();
+  const locationSlug = normalizeTaxonomySlug(filters.city_slug) || normalizeTaxonomySlug(filters.province_slug);
 
-  if (stateSlug && search && typeSlug) {
-    return "status-city-type";
+  if (stateSlug && locationSlug && typeSlug) {
+    return "status-location-type";
   }
 
-  if (stateSlug && search) {
-    return "status-city";
+  if (stateSlug && locationSlug) {
+    return "status-location";
   }
 
   if (stateSlug && typeSlug) {
@@ -156,13 +165,25 @@ const resolveSeoPathMode = (
     return "status";
   }
 
+  if (locationSlug && typeSlug) {
+    return "location-type";
+  }
+
+  if (locationSlug && !typeSlug) {
+    return "location";
+  }
+
+  if (!locationSlug && typeSlug) {
+    return "type";
+  }
+
   return "properties";
 };
 
 export const resolvePropertySearchPath = (filters: PropertySearchFilters): string => {
   const stateSlug = normalizeTaxonomySlug(filters.state_slug);
   const typeSlug = normalizeTaxonomySlug(filters.type_slug);
-  const citySegment = normalizeSegment(filters.search || "");
+  const locationSegment = normalizeTaxonomySlug(filters.city_slug) || normalizeTaxonomySlug(filters.province_slug);
 
   const mode = resolveSeoPathMode(filters);
 
@@ -170,16 +191,28 @@ export const resolvePropertySearchPath = (filters: PropertySearchFilters): strin
     return `/properties/${encodeURIComponent(stateSlug)}`;
   }
 
-  if (mode === "status-city") {
-    return `/properties/${encodeURIComponent(stateSlug)}/${encodeURIComponent(citySegment)}`;
+  if (mode === "status-location") {
+    return `/properties/${encodeURIComponent(stateSlug)}/${encodeURIComponent(locationSegment)}`;
   }
 
   if (mode === "status-type") {
     return `/properties/${encodeURIComponent(stateSlug)}/${encodeURIComponent(typeSlug)}`;
   }
 
-  if (mode === "status-city-type") {
-    return `/properties/${encodeURIComponent(stateSlug)}/${encodeURIComponent(citySegment)}/${encodeURIComponent(typeSlug)}`;
+  if (mode === "status-location-type") {
+    return `/properties/${encodeURIComponent(stateSlug)}/${encodeURIComponent(locationSegment)}/${encodeURIComponent(typeSlug)}`;
+  }
+
+  if (mode === "location") {
+    return `/properties/${encodeURIComponent(locationSegment)}`;
+  }
+
+  if (mode === "location-type") {
+    return `/properties/${encodeURIComponent(locationSegment)}/${encodeURIComponent(typeSlug)}`;
+  }
+
+  if (mode === "type") {
+    return `/properties/${encodeURIComponent(typeSlug)}`;
   }
 
   return "/properties";
@@ -204,6 +237,8 @@ export const resolvePropertySearchFilters = (
     state: resolvedStateSlug ? null : resolvedState,
     city: toOptionalNumber(searchParams.city),
     province: toOptionalNumber(searchParams.province),
+    city_slug: normalizeTaxonomySlug(toSingle(searchParams.city_slug)),
+    province_slug: normalizeTaxonomySlug(toSingle(searchParams.province_slug)),
     region: toOptionalNumber(searchParams.region),
     min_price: toOptionalNumber(searchParams.min_price),
     max_price: toOptionalNumber(searchParams.max_price),
@@ -266,24 +301,19 @@ export const filtersToSearchParams = (
   const params = new URLSearchParams();
   const mode = resolveSeoPathMode(next);
 
-  const isStateEncoded =
-    mode === "status" ||
-    mode === "status-city" ||
-    mode === "status-city-type";
-  const isTypeEncoded =
-    mode === "status-type" ||
-    mode === "status-city-type";
-  const isSearchEncoded = mode === "status-city" || mode === "status-city-type";
+  const isStateEncoded = mode === "status" || mode.startsWith("status-");
+  const isTypeEncoded = mode === "type" || mode.endsWith("type");
+  const isLocationEncoded = mode === "location" || mode === "location-type" || mode === "status-location" || mode === "status-location-type";
 
-  if (next.search && !isSearchEncoded) params.set("search", next.search);
+  if (next.search) params.set("search", next.search);
   if (next.status) params.set("status", next.status);
   if (next.is_featured !== null) params.set("is_featured", next.is_featured ? "true" : "false");
   if (next.is_public !== null) params.set("is_public", next.is_public ? "true" : "false");
   if (next.is_active !== null) params.set("is_active", next.is_active ? "true" : "false");
   if (next.property_type && !isTypeEncoded && !next.type_slug) params.set("property_type", String(next.property_type));
   if (next.state && !isStateEncoded && !next.state_slug) params.set("state", String(next.state));
-  if (next.city) params.set("city", String(next.city));
-  if (next.province) params.set("province", String(next.province));
+  if (next.city && !isLocationEncoded) params.set("city", String(next.city));
+  if (next.province && !isLocationEncoded) params.set("province", String(next.province));
   if (next.region) params.set("region", String(next.region));
   if (next.min_price) params.set("min_price", String(next.min_price));
   if (next.max_price) params.set("max_price", String(next.max_price));

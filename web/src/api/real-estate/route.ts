@@ -66,18 +66,58 @@ export const realEstateApi = {
     },
 
     getProvinces: async (params?: { page?: number; size?: number; search?: string }): Promise<PaginatedResponse<ProvinceCompact>> => {
-        const response = await fetchApi.get<ProvinceCompact[]>(withQuery('/real-estate/provinces/', params as Record<string, unknown>));
-        return toPaginatedResponse<ProvinceCompact>(response, params?.size || 100);
+        const limit = params?.size;
+        const offset = params?.page && params?.size ? (params.page - 1) * params.size : undefined;
+        const queryParams = {
+            ...params,
+            limit,
+            offset,
+            page: undefined,
+            size: undefined,
+        } as Record<string, unknown>;
+
+        const response = await fetchApi.get<ProvinceCompact[]>(withQuery('/real-estate/provinces/', queryParams));
+        return toPaginatedResponse<ProvinceCompact>(response, limit || 100);
+    },
+
+    getProvinceById: async (id: string | number): Promise<ProvinceCompact> => {
+        const response = await fetchApi.get<ProvinceCompact>(`/real-estate/provinces/${id}/`);
+        return response.data;
     },
 
     getCities: async (params?: { page?: number; size?: number; search?: string; province_id?: number | string }): Promise<PaginatedResponse<CityCompact & { province_id?: number }>> => {
-        const response = await fetchApi.get<(CityCompact & { province_id?: number })[]>(withQuery('/real-estate/cities/', params as Record<string, unknown>));
-        return toPaginatedResponse<CityCompact & { province_id?: number }>(response, params?.size || 300);
+        const limit = params?.size;
+        const offset = params?.page && params?.size ? (params.page - 1) * params.size : undefined;
+        const queryParams = {
+            ...params,
+            limit,
+            offset,
+            page: undefined,
+            size: undefined,
+        } as Record<string, unknown>;
+
+        const response = await fetchApi.get<(CityCompact & { province_id?: number })[]>(withQuery('/real-estate/cities/', queryParams));
+        return toPaginatedResponse<CityCompact & { province_id?: number }>(response, limit || 300);
+    },
+
+    getCityById: async (id: string | number): Promise<CityCompact & { province_id?: number }> => {
+        const response = await fetchApi.get<CityCompact & { province_id?: number }>(`/real-estate/cities/${id}/`);
+        return response.data;
     },
 
     getRegions: async (params?: { page?: number; size?: number; search?: string; province_id?: number | string; city_id?: number | string }): Promise<PaginatedResponse<RegionCompact>> => {
-        const response = await fetchApi.get<RegionCompact[]>(withQuery('/real-estate/regions/', params as Record<string, unknown>));
-        return toPaginatedResponse<RegionCompact>(response, params?.size || 600);
+        const limit = params?.size;
+        const offset = params?.page && params?.size ? (params.page - 1) * params.size : undefined;
+        const queryParams = {
+            ...params,
+            limit,
+            offset,
+            page: undefined,
+            size: undefined,
+        } as Record<string, unknown>;
+
+        const response = await fetchApi.get<RegionCompact[]>(withQuery('/real-estate/regions/', queryParams));
+        return toPaginatedResponse<RegionCompact>(response, limit || 600);
     },
 
     getTypeBySlug: async (slug: string): Promise<PropertyType> => {

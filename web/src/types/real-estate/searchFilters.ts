@@ -8,6 +8,8 @@ export type PropertySearchFilters = {
   state: number | null;
   city: number | null;
   province: number | null;
+  city_slug: string;
+  province_slug: string;
   region: number | null;
   min_price: number | null;
   max_price: number | null;
