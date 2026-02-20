@@ -69,6 +69,17 @@ export const useProvinceColumns = (
       minSize: 150,
     },
     {
+      accessorKey: "is_active",
+      header: () => <div className="table-header-text">فعال</div>,
+      cell: ({ row }) => (
+        <div className="table-badge-container">
+          {row.original.is_active ? <Badge variant="green">فعال</Badge> : <Badge variant="red">غیرفعال</Badge>}
+        </div>
+      ),
+      enableSorting: true,
+      minSize: 120,
+    },
+    {
       id: "actions",
       cell: ({ row }) => <DataTableRowActions row={row} actions={actions} />,
       enableSorting: false,

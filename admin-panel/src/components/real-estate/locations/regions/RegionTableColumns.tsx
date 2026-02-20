@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { RealEstateCityRegion } from "@/types/real_estate/location";
 import { Checkbox } from "@/components/elements/Checkbox";
+import { Badge } from "@/components/elements/Badge";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
 import type { DataTableRowAction } from "@/types/shared/table";
 import { formatDate } from "@/core/utils/commonFormat";
@@ -62,6 +63,17 @@ export const useRegionColumns = (
       cell: ({ row }) => <div className="table-date-cell">{formatDate((row.original as any).created_at)}</div>,
       enableSorting: true,
       minSize: 150,
+    },
+    {
+      accessorKey: "is_active",
+      header: () => <div className="table-header-text">فعال</div>,
+      cell: ({ row }) => (
+        <div className="table-badge-container">
+          {row.original.is_active ? <Badge variant="green">فعال</Badge> : <Badge variant="red">غیرفعال</Badge>}
+        </div>
+      ),
+      enableSorting: true,
+      minSize: 120,
     },
     {
       id: "actions",

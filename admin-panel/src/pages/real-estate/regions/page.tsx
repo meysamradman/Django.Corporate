@@ -55,12 +55,27 @@ export default function RealEstateRegionsPage() {
     staleTime: 60_000,
   });
 
+  const booleanFilterOptions = [
+    { label: "بله", value: true },
+    { label: "خیر", value: false },
+  ];
+
+  const isActiveFilter =
+    typeof clientFilters.is_active === "boolean"
+      ? clientFilters.is_active
+      : clientFilters.is_active === "true"
+        ? true
+        : clientFilters.is_active === "false"
+          ? false
+          : undefined;
+
   const queryParams = {
     search: searchValue,
     page: pagination.pageIndex + 1,
     size: pagination.pageSize,
     order_by: sorting.length > 0 ? sorting[0].id : "created_at",
     order_desc: sorting.length > 0 ? sorting[0].desc : true,
+    is_active: isActiveFilter,
     city_id: clientFilters.city_id ? Number(clientFilters.city_id) : undefined,
     date_from: clientFilters.date_from as string | undefined,
     date_to: clientFilters.date_to as string | undefined,
@@ -74,6 +89,7 @@ export default function RealEstateRegionsPage() {
       queryParams.size,
       queryParams.order_by,
       queryParams.order_desc,
+      queryParams.is_active,
       queryParams.city_id,
       queryParams.date_from,
       queryParams.date_to,
@@ -134,7 +150,7 @@ export default function RealEstateRegionsPage() {
 
   const columns = useRegionColumns(rowActions) as ColumnDef<RealEstateCityRegion>[];
   const cityOptions = cities.map((city) => ({ label: `${city.name} - ${city.province_name}`, value: String(city.id) }));
-  const filterConfig = getRegionFilterConfig(cityOptions);
+  const filterConfig = getRegionFilterConfig(booleanFilterOptions, cityOptions);
 
   const handleDeleteSelected = (selectedIds: (string | number)[]) => {
     setDeleteConfirm({ open: true, isBulk: true, ids: selectedIds.map((id) => Number(id)) });

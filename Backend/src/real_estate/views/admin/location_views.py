@@ -16,6 +16,19 @@ from src.user.access_control import real_estate_permission, PermissionRequiredMi
 from src.real_estate.services.admin import RealEstateLocationAdminService
 from src.real_estate.messages import LOCATION_SUCCESS, LOCATION_ERRORS
 
+
+def _parse_bool_param(value, default=True):
+    if value is None or value == '':
+        return default
+    if isinstance(value, bool):
+        return value
+    normalized = str(value).lower()
+    if normalized in ('1', 'true', 'yes', 'on'):
+        return True
+    if normalized in ('0', 'false', 'no', 'off'):
+        return False
+    return default
+
 class RealEstateProvinceViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     queryset = RealEstateLocationAdminService.get_provinces_queryset()
@@ -38,20 +51,13 @@ class RealEstateProvinceViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             return RealEstateProvinceCreateUpdateSerializer
         return RealEstateProvinceSerializer
 
-    @staticmethod
-    def _parse_bool(value, default=True):
-        if value is None:
-            return default
-        if isinstance(value, bool):
-            return value
-        return str(value).lower() in ('1', 'true', 'yes', 'on')
-
     def get_queryset(self):
         search = self.request.query_params.get('search')
         date_from = self.request.query_params.get('date_from')
         date_to = self.request.query_params.get('date_to')
         order_by = self.request.query_params.get('order_by', 'created_at')
-        order_desc = self._parse_bool(self.request.query_params.get('order_desc'), True)
+        order_desc = _parse_bool_param(self.request.query_params.get('order_desc'), True)
+        is_active = _parse_bool_param(self.request.query_params.get('is_active'), True)
 
         return RealEstateLocationAdminService.get_provinces_queryset(
             search=search,
@@ -59,6 +65,7 @@ class RealEstateProvinceViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             date_to=date_to,
             order_by=order_by,
             order_desc=order_desc,
+            is_active=is_active,
         )
     
     def list(self, request, *args, **kwargs):
@@ -138,12 +145,13 @@ class RealEstateCityViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     
     def get_queryset(self):
         province_id = self.request.query_params.get('province_id')
-        has_properties = self.request.query_params.get('has_properties', 'false').lower() == 'true'
+        has_properties = _parse_bool_param(self.request.query_params.get('has_properties'), False)
         search = self.request.query_params.get('search')
         date_from = self.request.query_params.get('date_from')
         date_to = self.request.query_params.get('date_to')
         order_by = self.request.query_params.get('order_by', 'created_at')
-        order_desc = str(self.request.query_params.get('order_desc', 'true')).lower() in ('1', 'true', 'yes', 'on')
+        order_desc = _parse_bool_param(self.request.query_params.get('order_desc'), True)
+        is_active = _parse_bool_param(self.request.query_params.get('is_active'), True)
         return RealEstateLocationAdminService.get_cities_queryset(
             province_id=province_id,
             has_properties=has_properties,
@@ -152,10 +160,11 @@ class RealEstateCityViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             date_to=date_to,
             order_by=order_by,
             order_desc=order_desc,
+            is_active=is_active,
         )
     
     def list(self, request, *args, **kwargs):
-        has_properties = request.query_params.get('has_properties', 'false').lower() == 'true'
+        has_properties = _parse_bool_param(request.query_params.get('has_properties'), False)
         
         queryset = self.get_queryset()
 
@@ -248,7 +257,8 @@ class RealEstateCityRegionViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
         date_from = self.request.query_params.get('date_from')
         date_to = self.request.query_params.get('date_to')
         order_by = self.request.query_params.get('order_by', 'created_at')
-        order_desc = str(self.request.query_params.get('order_desc', 'true')).lower() in ('1', 'true', 'yes', 'on')
+        order_desc = _parse_bool_param(self.request.query_params.get('order_desc'), True)
+        is_active = _parse_bool_param(self.request.query_params.get('is_active'), True)
         return RealEstateLocationAdminService.get_city_regions_queryset(
             city_id=city_id,
             search=search,
@@ -256,6 +266,7 @@ class RealEstateCityRegionViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
             date_to=date_to,
             order_by=order_by,
             order_desc=order_desc,
+            is_active=is_active,
         )
 
     def list(self, request, *args, **kwargs):

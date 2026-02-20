@@ -4,6 +4,7 @@ export interface RealEstateProvince extends Base {
     name: string;
     code: string;
     country_name: string;
+    cities_count?: number;
     latitude?: number;
     longitude?: number;
     is_active: boolean;
@@ -14,6 +15,8 @@ export interface RealEstateCity extends Base {
     code: string;
     province_id: number;
     province_name: string;
+    has_regions?: boolean;
+    property_count?: number;
     latitude?: number;
     longitude?: number;
     is_active: boolean;

@@ -9,6 +9,7 @@ type LocationListParams = {
   size?: number;
   order_by?: string;
   order_desc?: boolean;
+  is_active?: boolean;
   date_from?: string;
   date_to?: string;
   province_id?: number;
@@ -18,7 +19,7 @@ type LocationListParams = {
 
 const fetchPaginatedLocation = async <T>(url: string, params?: LocationListParams): Promise<PaginatedResponse<T>> => {
   const fullUrl = buildListUrl(url, params as any, {
-    booleanKeys: new Set(['order_desc', 'has_properties']),
+    booleanKeys: new Set(['order_desc', 'has_properties', 'is_active']),
   });
   const response = await api.get<T[]>(fullUrl);
   return toPaginatedResponse<T>(response, params as any);

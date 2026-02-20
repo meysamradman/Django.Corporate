@@ -5,8 +5,11 @@ from src.real_estate.models.location import CityRegion
 
 class RealEstateLocationAdminService:
     @staticmethod
-    def get_provinces_queryset(search=None, date_from=None, date_to=None, order_by='created_at', order_desc=True):
-        queryset = Province.objects.filter(is_active=True).select_related('country')
+    def get_provinces_queryset(search=None, date_from=None, date_to=None, order_by='created_at', order_desc=True, is_active=True):
+        queryset = Province.objects.select_related('country')
+
+        if is_active is not None:
+            queryset = queryset.filter(is_active=is_active)
 
         if search:
             queryset = queryset.filter(Q(name__icontains=search) | Q(code__icontains=search))
@@ -34,8 +37,12 @@ class RealEstateLocationAdminService:
         date_to=None,
         order_by='created_at',
         order_desc=True,
+        is_active=True,
     ):
-        queryset = City.objects.filter(is_active=True).select_related('province', 'province__country')
+        queryset = City.objects.select_related('province', 'province__country')
+
+        if is_active is not None:
+            queryset = queryset.filter(is_active=is_active)
 
         if province_id:
             queryset = queryset.filter(province_id=province_id)
@@ -81,8 +88,12 @@ class RealEstateLocationAdminService:
         date_to=None,
         order_by='created_at',
         order_desc=True,
+        is_active=True,
     ):
-        queryset = CityRegion.objects.filter(is_active=True).select_related('city', 'city__province')
+        queryset = CityRegion.objects.select_related('city', 'city__province')
+
+        if is_active is not None:
+            queryset = queryset.filter(is_active=is_active)
         if city_id:
             queryset = queryset.filter(city_id=city_id)
 
