@@ -12,6 +12,8 @@ export type SidebarOption = {
   value: string;
   title: string;
   slug?: string;
+  provinceId?: number;
+  cityId?: number;
 };
 
 type PropertySearchSidebarProps = {
@@ -19,6 +21,9 @@ type PropertySearchSidebarProps = {
   isLoading?: boolean;
   typeOptions: SidebarOption[];
   stateOptions: SidebarOption[];
+  provinceOptions: SidebarOption[];
+  cityOptions: SidebarOption[];
+  regionOptions: SidebarOption[];
   labelOptions: SidebarOption[];
   tagOptions: SidebarOption[];
   featureOptions: SidebarOption[];
@@ -98,6 +103,9 @@ export default function PropertySearchSidebar({
   isLoading = false,
   typeOptions,
   stateOptions,
+  provinceOptions,
+  cityOptions,
+  regionOptions,
   labelOptions,
   tagOptions,
   featureOptions,
@@ -114,6 +122,23 @@ export default function PropertySearchSidebar({
     filters.state !== null
       ? String(filters.state)
       : stateOptions.find((item) => item.slug === filters.state_slug)?.value || "";
+  const selectedProvinceValue = filters.province !== null ? String(filters.province) : "";
+  const availableCityOptions =
+    filters.province !== null
+      ? cityOptions.filter((item) => item.provinceId === filters.province)
+      : cityOptions;
+  const selectedCityValue =
+    filters.city !== null && availableCityOptions.some((item) => item.value === String(filters.city))
+      ? String(filters.city)
+      : "";
+  const availableRegionOptions =
+    filters.city !== null
+      ? regionOptions.filter((item) => item.cityId === filters.city)
+      : [];
+  const selectedRegionValue =
+    filters.region !== null && availableRegionOptions.some((item) => item.value === String(filters.region))
+      ? String(filters.region)
+      : "";
 
   const update = (updates: Partial<PropertySearchFilters>) => {
     onFiltersChange({ ...updates, page: 1 });
@@ -205,34 +230,51 @@ export default function PropertySearchSidebar({
         <h3 className="text-sm font-semibold">موقعیت</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="space-y-2">
-            <label className="text-sm text-font-s">استان (ID)</label>
-            <Input
-              type="number"
-              min={0}
-              value={filters.province ?? ""}
-              onChange={(event) => update({ province: toNumberOrNull(event.target.value) })}
-              placeholder="province"
-            />
+            <label className="text-sm text-font-s">استان</label>
+            <NativeSelect
+              value={selectedProvinceValue}
+              onChange={(event) => {
+                const provinceValue = toNumberOrNull(event.target.value);
+                update({
+                  province: provinceValue,
+                  city: null,
+                  region: null,
+                });
+              }}
+            >
+              <NativeSelectOption value="">همه استان‌ها</NativeSelectOption>
+              {provinceOptions.map((item) => (
+                <NativeSelectOption key={item.id} value={item.value}>
+                  {item.title}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-font-s">شهر (ID)</label>
-            <Input
-              type="number"
-              min={0}
-              value={filters.city ?? ""}
-              onChange={(event) => update({ city: toNumberOrNull(event.target.value) })}
-              placeholder="city"
-            />
+            <label className="text-sm text-font-s">شهر</label>
+            <NativeSelect value={selectedCityValue} onChange={(event) => update({ city: toNumberOrNull(event.target.value), region: null })}>
+              <NativeSelectOption value="">همه شهرها</NativeSelectOption>
+              {availableCityOptions.map((item) => (
+                <NativeSelectOption key={item.id} value={item.value}>
+                  {item.title}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-font-s">منطقه (ID)</label>
-            <Input
-              type="number"
-              min={0}
-              value={filters.region ?? ""}
+            <label className="text-sm text-font-s">منطقه</label>
+            <NativeSelect
+              value={selectedRegionValue}
               onChange={(event) => update({ region: toNumberOrNull(event.target.value) })}
-              placeholder="region"
-            />
+              disabled={filters.city === null}
+            >
+              <NativeSelectOption value="">همه مناطق</NativeSelectOption>
+              {availableRegionOptions.map((item) => (
+                <NativeSelectOption key={item.id} value={item.value}>
+                  {item.title}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
           </div>
         </div>
       </div>
@@ -442,11 +484,11 @@ export default function PropertySearchSidebar({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-2">
-            <label className="text-sm text-font-s">اسلاگ نوع (پیشرفته)</label>
+            <label className="text-sm text-font-s">اسلاگ نوع (SEO)</label>
             <Input
               value={filters.type_slug}
               onChange={(event) => update({ type_slug: event.target.value, property_type: null })}
-              placeholder="type_slug"
+              placeholder="type"
             />
           </div>
           <div className="space-y-2">

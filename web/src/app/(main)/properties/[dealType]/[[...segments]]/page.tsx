@@ -15,7 +15,8 @@ async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: Page
   const routeParams = await params;
   const query = await searchParams;
 
-  const normalizedDealType = normalizeTaxonomySlug(routeParams.dealType).toLowerCase();
+  const normalizedDealType = normalizeTaxonomySlug(routeParams.dealType);
+  const normalizedDealTypeKey = normalizedDealType.toLowerCase();
   if (!normalizedDealType) {
     notFound();
   }
@@ -25,7 +26,12 @@ async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: Page
     .then((response) => new Set((response?.data || []).map((item) => normalizeTaxonomySlug(item.slug || "").toLowerCase()).filter(Boolean)))
     .catch(() => new Set<string>());
 
-  if (!availableStatuses.has(normalizedDealType)) {
+  const availableTypes = await realEstateApi
+    .getTypes({ page: 1, size: 300 })
+    .then((response) => new Set((response?.data || []).map((item) => normalizeTaxonomySlug(item.slug || "").toLowerCase()).filter(Boolean)))
+    .catch(() => new Set<string>());
+
+  if (!availableStatuses.has(normalizedDealTypeKey)) {
     notFound();
   }
 
@@ -34,8 +40,20 @@ async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: Page
     notFound();
   }
 
-  const citySegment = segments[0] || "";
-  const typeSegment = segments[1] || "";
+  let citySegment = "";
+  let typeSegment = "";
+
+  if (segments.length === 1) {
+    const singleSegment = normalizeTaxonomySlug(segments[0]);
+    if (availableTypes.has(singleSegment.toLowerCase())) {
+      typeSegment = singleSegment;
+    } else {
+      citySegment = segments[0];
+    }
+  } else {
+    citySegment = segments[0] || "";
+    typeSegment = segments[1] || "";
+  }
 
   const pathFilters = filtersFromSeoSegments(normalizedDealType, citySegment, typeSegment);
   if (!pathFilters.state_slug) {

@@ -110,9 +110,9 @@ export const filtersFromSeoSegments = (
   city?: string,
   type?: string
 ): Partial<PropertySearchFilters> => {
-  const normalizedDealType = normalizeTaxonomySlug(dealType).toLowerCase();
+  const normalizedDealType = normalizeTaxonomySlug(dealType);
   const normalizedCity = (city || "").trim();
-  const normalizedType = normalizeTaxonomySlug(type).toLowerCase();
+  const normalizedType = normalizeTaxonomySlug(type);
 
   if (!normalizedDealType) {
     return {};
@@ -135,9 +135,9 @@ export const filtersFromSeoSegments = (
 
 const resolveSeoPathMode = (
   filters: PropertySearchFilters
-): "properties" | "status" | "status-city" | "status-city-type" => {
-  const stateSlug = normalizeTaxonomySlug(filters.state_slug).toLowerCase();
-  const typeSlug = normalizeTaxonomySlug(filters.type_slug).toLowerCase();
+): "properties" | "status" | "status-type" | "status-city" | "status-city-type" => {
+  const stateSlug = normalizeTaxonomySlug(filters.state_slug);
+  const typeSlug = normalizeTaxonomySlug(filters.type_slug);
   const search = (filters.search || "").trim();
 
   if (stateSlug && search && typeSlug) {
@@ -148,6 +148,10 @@ const resolveSeoPathMode = (
     return "status-city";
   }
 
+  if (stateSlug && typeSlug) {
+    return "status-type";
+  }
+
   if (stateSlug && !typeSlug) {
     return "status";
   }
@@ -156,8 +160,8 @@ const resolveSeoPathMode = (
 };
 
 export const resolvePropertySearchPath = (filters: PropertySearchFilters): string => {
-  const stateSlug = normalizeTaxonomySlug(filters.state_slug).toLowerCase();
-  const typeSlug = normalizeTaxonomySlug(filters.type_slug).toLowerCase();
+  const stateSlug = normalizeTaxonomySlug(filters.state_slug);
+  const typeSlug = normalizeTaxonomySlug(filters.type_slug);
   const citySegment = normalizeSegment(filters.search || "");
 
   const mode = resolveSeoPathMode(filters);
@@ -168,6 +172,10 @@ export const resolvePropertySearchPath = (filters: PropertySearchFilters): strin
 
   if (mode === "status-city") {
     return `/properties/${encodeURIComponent(stateSlug)}/${encodeURIComponent(citySegment)}`;
+  }
+
+  if (mode === "status-type") {
+    return `/properties/${encodeURIComponent(stateSlug)}/${encodeURIComponent(typeSlug)}`;
   }
 
   if (mode === "status-city-type") {
@@ -181,6 +189,10 @@ export const resolvePropertySearchFilters = (
   searchParams: Record<string, string | string[] | undefined>
 ): PropertySearchFilters => {
   const sortConfig = resolveSort(searchParams);
+  const resolvedTypeSlug = normalizeTaxonomySlug(toSingle(searchParams.type_slug || searchParams.type));
+  const resolvedStateSlug = normalizeTaxonomySlug(toSingle(searchParams.state_slug));
+  const resolvedPropertyType = toOptionalNumber(searchParams.property_type);
+  const resolvedState = toOptionalNumber(searchParams.state);
 
   return {
     search: toSingle(searchParams.search).trim(),
@@ -188,8 +200,8 @@ export const resolvePropertySearchFilters = (
     is_featured: toOptionalBoolean(searchParams.is_featured),
     is_public: toOptionalBoolean(searchParams.is_public),
     is_active: toOptionalBoolean(searchParams.is_active),
-    property_type: toOptionalNumber(searchParams.property_type),
-    state: toOptionalNumber(searchParams.state),
+    property_type: resolvedTypeSlug ? null : resolvedPropertyType,
+    state: resolvedStateSlug ? null : resolvedState,
     city: toOptionalNumber(searchParams.city),
     province: toOptionalNumber(searchParams.province),
     region: toOptionalNumber(searchParams.region),
@@ -197,13 +209,13 @@ export const resolvePropertySearchFilters = (
     max_price: toOptionalNumber(searchParams.max_price),
     min_area: toOptionalNumber(searchParams.min_area),
     max_area: toOptionalNumber(searchParams.max_area),
-    bedrooms: toOptionalNumber(searchParams.bedrooms),
+    bedrooms: toOptionalNumber(searchParams.rooms ?? searchParams.bedrooms),
     bathrooms: toOptionalNumber(searchParams.bathrooms),
     created_after: toSingle(searchParams.created_after).trim(),
     created_before: toSingle(searchParams.created_before).trim(),
-    type_slug: normalizeTaxonomySlug(toSingle(searchParams.type_slug)),
-    state_slug: normalizeTaxonomySlug(toSingle(searchParams.state_slug)),
-    tag_slug: normalizeTaxonomySlug(toSingle(searchParams.tag_slug)),
+    type_slug: resolvedTypeSlug,
+    state_slug: resolvedStateSlug,
+    tag_slug: normalizeTaxonomySlug(toSingle(searchParams.tag ?? searchParams.tag_slug)),
     label_slug: normalizeTaxonomySlug(toSingle(searchParams.label_slug)),
     label_public_id: normalizeTaxonomySlug(toSingle(searchParams.label_public_id)),
     feature_public_id: normalizeTaxonomySlug(toSingle(searchParams.feature_public_id)),
@@ -221,8 +233,8 @@ export const toPropertyListApiParams = (
   is_featured: filters.is_featured ?? undefined,
   is_public: filters.is_public ?? undefined,
   is_active: filters.is_active ?? undefined,
-  property_type: filters.property_type || undefined,
-  state: filters.state || undefined,
+  property_type: filters.type_slug ? undefined : filters.property_type || undefined,
+  state: filters.state_slug ? undefined : filters.state || undefined,
   city: filters.city || undefined,
   province: filters.province || undefined,
   region: filters.region || undefined,
@@ -259,6 +271,7 @@ export const filtersToSearchParams = (
     mode === "status-city" ||
     mode === "status-city-type";
   const isTypeEncoded =
+    mode === "status-type" ||
     mode === "status-city-type";
   const isSearchEncoded = mode === "status-city" || mode === "status-city-type";
 
@@ -267,8 +280,8 @@ export const filtersToSearchParams = (
   if (next.is_featured !== null) params.set("is_featured", next.is_featured ? "true" : "false");
   if (next.is_public !== null) params.set("is_public", next.is_public ? "true" : "false");
   if (next.is_active !== null) params.set("is_active", next.is_active ? "true" : "false");
-  if (next.property_type && !isTypeEncoded) params.set("property_type", String(next.property_type));
-  if (next.state && !isStateEncoded) params.set("state", String(next.state));
+  if (next.property_type && !isTypeEncoded && !next.type_slug) params.set("property_type", String(next.property_type));
+  if (next.state && !isStateEncoded && !next.state_slug) params.set("state", String(next.state));
   if (next.city) params.set("city", String(next.city));
   if (next.province) params.set("province", String(next.province));
   if (next.region) params.set("region", String(next.region));
@@ -276,13 +289,13 @@ export const filtersToSearchParams = (
   if (next.max_price) params.set("max_price", String(next.max_price));
   if (next.min_area) params.set("min_area", String(next.min_area));
   if (next.max_area) params.set("max_area", String(next.max_area));
-  if (next.bedrooms) params.set("bedrooms", String(next.bedrooms));
+  if (next.bedrooms) params.set("rooms", String(next.bedrooms));
   if (next.bathrooms) params.set("bathrooms", String(next.bathrooms));
   if (next.created_after) params.set("created_after", next.created_after);
   if (next.created_before) params.set("created_before", next.created_before);
-  if (next.type_slug && !isTypeEncoded) params.set("type_slug", next.type_slug);
+  if (next.type_slug && !isTypeEncoded) params.set("type", next.type_slug);
   if (next.state_slug && !isStateEncoded) params.set("state_slug", next.state_slug);
-  if (next.tag_slug) params.set("tag_slug", next.tag_slug);
+  if (next.tag_slug) params.set("tag", next.tag_slug);
   if (next.label_slug) params.set("label_slug", next.label_slug);
   if (next.label_public_id) params.set("label_public_id", next.label_public_id);
   if (next.feature_public_id) params.set("feature_public_id", next.feature_public_id);

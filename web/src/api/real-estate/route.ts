@@ -11,6 +11,7 @@ import {
 } from "@/types/real-estate/property";
 import { RealEstateListParams, RealEstateTaxonomyListParams } from "@/types/real-estate/realEstateListParams";
 import { PaginatedResponse } from "@/types/shared/pagination";
+import { CityCompact, ProvinceCompact, RegionCompact } from "@/types/shared/location";
 import { withQuery, toPaginatedResponse } from "@/api/shared";
 
 export const realEstateApi = {
@@ -62,6 +63,21 @@ export const realEstateApi = {
     getTypes: async (params?: RealEstateTaxonomyListParams): Promise<PaginatedResponse<PropertyType>> => {
         const response = await fetchApi.get<PropertyType[]>(withQuery('/real-estate/types/', params as Record<string, unknown>));
         return toPaginatedResponse<PropertyType>(response, params?.size || 50);
+    },
+
+    getProvinces: async (params?: { page?: number; size?: number; search?: string }): Promise<PaginatedResponse<ProvinceCompact>> => {
+        const response = await fetchApi.get<ProvinceCompact[]>(withQuery('/real-estate/provinces/', params as Record<string, unknown>));
+        return toPaginatedResponse<ProvinceCompact>(response, params?.size || 100);
+    },
+
+    getCities: async (params?: { page?: number; size?: number; search?: string; province_id?: number | string }): Promise<PaginatedResponse<CityCompact & { province_id?: number }>> => {
+        const response = await fetchApi.get<(CityCompact & { province_id?: number })[]>(withQuery('/real-estate/cities/', params as Record<string, unknown>));
+        return toPaginatedResponse<CityCompact & { province_id?: number }>(response, params?.size || 300);
+    },
+
+    getRegions: async (params?: { page?: number; size?: number; search?: string; province_id?: number | string; city_id?: number | string }): Promise<PaginatedResponse<RegionCompact>> => {
+        const response = await fetchApi.get<RegionCompact[]>(withQuery('/real-estate/regions/', params as Record<string, unknown>));
+        return toPaginatedResponse<RegionCompact>(response, params?.size || 600);
     },
 
     getTypeBySlug: async (slug: string): Promise<PropertyType> => {

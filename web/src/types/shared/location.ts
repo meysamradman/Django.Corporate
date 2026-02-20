@@ -46,3 +46,12 @@ export interface CityCompact {
     code: string;
     province_name: string;
 }
+
+export interface RegionCompact {
+    id: number;
+    name: string;
+    code: string;
+    city_id: number;
+    city_name: string;
+    province_name: string;
+}

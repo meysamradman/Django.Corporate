@@ -270,3 +270,45 @@ class FloorPlanPublicCacheKeys:
     @staticmethod
     def detail_public_id(public_id):
         return f"public:real_estate:floor_plan:detail:public_id:{public_id}"
+
+
+class LocationPublicCacheKeys:
+
+    @staticmethod
+    def province_list(filters=None, search=None, ordering=None):
+        payload = {
+            'filters': filters or {},
+            'search': search,
+            'ordering': ordering,
+        }
+        return f"public:real_estate:location:province:list:{hash_payload(payload)}"
+
+    @staticmethod
+    def city_list(filters=None, search=None, ordering=None):
+        payload = {
+            'filters': filters or {},
+            'search': search,
+            'ordering': ordering,
+        }
+        return f"public:real_estate:location:city:list:{hash_payload(payload)}"
+
+    @staticmethod
+    def province_detail(province_id):
+        return f"public:real_estate:location:province:detail:id:{province_id}"
+
+    @staticmethod
+    def city_detail(city_id):
+        return f"public:real_estate:location:city:detail:id:{city_id}"
+
+    @staticmethod
+    def region_list(filters=None, search=None, ordering=None):
+        payload = {
+            'filters': filters or {},
+            'search': search,
+            'ordering': ordering,
+        }
+        return f"public:real_estate:location:region:list:{hash_payload(payload)}"
+
+    @staticmethod
+    def region_detail(region_id):
+        return f"public:real_estate:location:region:detail:id:{region_id}"

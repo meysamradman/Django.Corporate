@@ -9,10 +9,24 @@ type PropertySearchPageServerProps = {
 };
 
 export default async function PropertySearchPageServer({ filters }: PropertySearchPageServerProps) {
-  const [propertiesResponse, typesResponse, statesResponse, labelsResponse, tagsResponse, featuresResponse, statusesResponse] = await Promise.all([
+  const [
+    propertiesResponse,
+    typesResponse,
+    statesResponse,
+    provincesResponse,
+    citiesResponse,
+    regionsResponse,
+    labelsResponse,
+    tagsResponse,
+    featuresResponse,
+    statusesResponse,
+  ] = await Promise.all([
     realEstateApi.getProperties(toPropertyListApiParams(filters)).catch(() => null),
     realEstateApi.getTypes({ page: 1, size: 100 }).catch(() => null),
     realEstateApi.getStates({ page: 1, size: 100 }).catch(() => null),
+    realEstateApi.getProvinces({ page: 1, size: 100 }).catch(() => null),
+    realEstateApi.getCities({ page: 1, size: 400 }).catch(() => null),
+    realEstateApi.getRegions({ page: 1, size: 800 }).catch(() => null),
     realEstateApi.getLabels({ page: 1, size: 100 }).catch(() => null),
     realEstateApi.getTags({ page: 1, size: 100 }).catch(() => null),
     realEstateApi.getFeatures({ page: 1, size: 200 }).catch(() => null),
@@ -44,6 +58,26 @@ export default async function PropertySearchPageServer({ filters }: PropertySear
     title: item.name,
   }));
 
+  const provinceOptions = (provincesResponse?.data ?? []).map((item) => ({
+    id: item.id,
+    value: String(item.id),
+    title: item.name,
+  }));
+
+  const cityOptions = (citiesResponse?.data ?? []).map((item) => ({
+    id: item.id,
+    value: String(item.id),
+    title: item.name,
+    provinceId: item.province_id,
+  }));
+
+  const regionOptions = (regionsResponse?.data ?? []).map((item) => ({
+    id: item.id,
+    value: String(item.id),
+    title: item.name,
+    cityId: item.city_id,
+  }));
+
   const tagOptions = (tagsResponse?.data ?? []).map((item) => ({
     id: item.id,
     value: item.slug,
@@ -71,6 +105,9 @@ export default async function PropertySearchPageServer({ filters }: PropertySear
       initialCurrentPage={currentPage}
       typeOptions={typeOptions}
       stateOptions={stateOptions}
+      provinceOptions={provinceOptions}
+      cityOptions={cityOptions}
+      regionOptions={regionOptions}
       labelOptions={labelOptions}
       tagOptions={tagOptions}
       featureOptions={featureOptions}

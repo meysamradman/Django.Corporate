@@ -19,6 +19,9 @@ type PropertySearchClientProps = {
   initialCurrentPage: number;
   typeOptions: SidebarOption[];
   stateOptions: SidebarOption[];
+  provinceOptions: SidebarOption[];
+  cityOptions: SidebarOption[];
+  regionOptions: SidebarOption[];
   labelOptions: SidebarOption[];
   tagOptions: SidebarOption[];
   featureOptions: SidebarOption[];
@@ -35,6 +38,9 @@ export default function PropertySearchClient({
   initialCurrentPage,
   typeOptions,
   stateOptions,
+  provinceOptions,
+  cityOptions,
+  regionOptions,
   labelOptions,
   tagOptions,
   featureOptions,
@@ -68,6 +74,9 @@ export default function PropertySearchClient({
               isLoading={isLoading}
               typeOptions={typeOptions}
               stateOptions={stateOptions}
+              provinceOptions={provinceOptions}
+              cityOptions={cityOptions}
+              regionOptions={regionOptions}
               labelOptions={labelOptions}
               tagOptions={tagOptions}
               featureOptions={featureOptions}
