@@ -1,0 +1,6187 @@
+[
+  {
+    "code": "01",
+    "name_fa": "مرکزی",
+    "slug_en": "markazi",
+    "cities": [
+      {
+        "name_fa": "اراک",
+        "slug_en": "arak"
+      },
+      {
+        "name_fa": "کارچان",
+        "slug_en": "karechan"
+      },
+      {
+        "name_fa": "ساروق",
+        "slug_en": "saruq"
+      },
+      {
+        "name_fa": "داودآباد",
+        "slug_en": "davdabad"
+      },
+      {
+        "name_fa": "آشتیان",
+        "slug_en": "ashtian"
+      },
+      {
+        "name_fa": "تفرش",
+        "slug_en": "tafresh"
+      },
+      {
+        "name_fa": "خمین",
+        "slug_en": "khomein"
+      },
+      {
+        "name_fa": "قورچی باشی",
+        "slug_en": "qurechi-bashi"
+      },
+      {
+        "name_fa": "دلیجان",
+        "slug_en": "dlijan"
+      },
+      {
+        "name_fa": "نراق",
+        "slug_en": "nraq"
+      },
+      {
+        "name_fa": "ساوه",
+        "slug_en": "savh"
+      },
+      {
+        "name_fa": "غرق آباد",
+        "slug_en": "gherq-abad"
+      },
+      {
+        "name_fa": "نوبران",
+        "slug_en": "nubran"
+      },
+      {
+        "name_fa": "آوه",
+        "slug_en": "avh"
+      },
+      {
+        "name_fa": "آستانه",
+        "slug_en": "astanh"
+      },
+      {
+        "name_fa": "شازند",
+        "slug_en": "shazend"
+      },
+      {
+        "name_fa": "مهاجران",
+        "slug_en": "mhajran"
+      },
+      {
+        "name_fa": "هندودر",
+        "slug_en": "hendudar"
+      },
+      {
+        "name_fa": "توره",
+        "slug_en": "turh"
+      },
+      {
+        "name_fa": "شهباز",
+        "slug_en": "shbaz"
+      },
+      {
+        "name_fa": "محلات",
+        "slug_en": "mahalat"
+      },
+      {
+        "name_fa": "نیمور",
+        "slug_en": "nimur"
+      },
+      {
+        "name_fa": "زاویه",
+        "slug_en": "zavie"
+      },
+      {
+        "name_fa": "مامونیه",
+        "slug_en": "mamunih"
+      },
+      {
+        "name_fa": "خشکرود",
+        "slug_en": "khoshkrud"
+      },
+      {
+        "name_fa": "پرندک",
+        "slug_en": "parandak"
+      },
+      {
+        "name_fa": "رازقان",
+        "slug_en": "razeghan"
+      },
+      {
+        "name_fa": "کمیجان",
+        "slug_en": "kmijan"
+      },
+      {
+        "name_fa": "میلاجرد",
+        "slug_en": "milajerd"
+      },
+      {
+        "name_fa": "جاورسیان",
+        "slug_en": "javersian"
+      },
+      {
+        "name_fa": "خنداب",
+        "slug_en": "khendab"
+      },
+      {
+        "name_fa": "فرمهین",
+        "slug_en": "fermhin"
+      },
+      {
+        "name_fa": "خنجین",
+        "slug_en": "khenjin"
+      },
+      {
+        "name_fa": "تلخاب",
+        "slug_en": "telkhab"
+      }
+    ]
+  },
+  {
+    "code": "02",
+    "name_fa": "گیلان",
+    "slug_en": "gilan",
+    "cities": [
+      {
+        "name_fa": "آستارا",
+        "slug_en": "astara"
+      },
+      {
+        "name_fa": "لوندویل",
+        "slug_en": "lundoil"
+      },
+      {
+        "name_fa": "کیاشهر",
+        "slug_en": "kiashahr"
+      },
+      {
+        "name_fa": "آستانه اشرفیه",
+        "slug_en": "astanh-ashaherfih"
+      },
+      {
+        "name_fa": "بندرانزلی",
+        "slug_en": "bandar-anzali"
+      },
+      {
+        "name_fa": "هشتپر تالش",
+        "slug_en": "talesh"
+      },
+      {
+        "name_fa": "لیسار",
+        "slug_en": "lisar"
+      },
+      {
+        "name_fa": "اسالم",
+        "slug_en": "asalm"
+      },
+      {
+        "name_fa": "حویق",
+        "slug_en": "hoiq"
+      },
+      {
+        "name_fa": "چوبر",
+        "slug_en": "chubr"
+      },
+      {
+        "name_fa": "پیربازار",
+        "slug_en": "pirbazar"
+      },
+      {
+        "name_fa": "خشکبیجار",
+        "slug_en": "khoshkebijar"
+      },
+      {
+        "name_fa": "کوچصفهان",
+        "slug_en": "kuchesfhan"
+      },
+      {
+        "name_fa": "لشت نشاء",
+        "slug_en": "lashtnesha"
+      },
+      {
+        "name_fa": "رشت",
+        "slug_en": "rasht"
+      },
+      {
+        "name_fa": "سنگر",
+        "slug_en": "sengr"
+      },
+      {
+        "name_fa": "لولمان",
+        "slug_en": "lulman"
+      },
+      {
+        "name_fa": "لوشان",
+        "slug_en": "lushan"
+      },
+      {
+        "name_fa": "رودبار",
+        "slug_en": "rudbar"
+      },
+      {
+        "name_fa": "منجیل",
+        "slug_en": "menjil"
+      },
+      {
+        "name_fa": "جیرنده",
+        "slug_en": "jirendh"
+      },
+      {
+        "name_fa": "رستم آباد",
+        "slug_en": "restm-abad"
+      },
+      {
+        "name_fa": "توتکابن",
+        "slug_en": "tutkaban"
+      },
+      {
+        "name_fa": "بره سر",
+        "slug_en": "barehsar"
+      },
+      {
+        "name_fa": "چابکسر",
+        "slug_en": "chabeksar"
+      },
+      {
+        "name_fa": "رحیم آباد",
+        "slug_en": "rhim-abad"
+      },
+      {
+        "name_fa": "رودسر",
+        "slug_en": "rudesar"
+      },
+      {
+        "name_fa": "کلاچای",
+        "slug_en": "klachai"
+      },
+      {
+        "name_fa": "واجارگاه",
+        "slug_en": "uajargah"
+      },
+      {
+        "name_fa": "طاهر گوراب",
+        "slug_en": "tahr-gurab"
+      },
+      {
+        "name_fa": "ضیابر",
+        "slug_en": "ziabr"
+      },
+      {
+        "name_fa": "صومعه سرا",
+        "slug_en": "sumah-sra"
+      },
+      {
+        "name_fa": "مرجقل",
+        "slug_en": "tolam-shahr"
+      },
+      {
+        "name_fa": "گوراب زرمیخ",
+        "slug_en": "gurab-zermikh"
+      },
+      {
+        "name_fa": "فومن",
+        "slug_en": "fumn"
+      },
+      {
+        "name_fa": "ماسوله",
+        "slug_en": "masulh"
+      },
+      {
+        "name_fa": "ماکلوان",
+        "slug_en": "makluan"
+      },
+      {
+        "name_fa": "کومله",
+        "slug_en": "kumelh"
+      },
+      {
+        "name_fa": "لنگرود",
+        "slug_en": "lengrud"
+      },
+      {
+        "name_fa": "چاف و چمخاله",
+        "slug_en": "chaf-u-chemkhalh"
+      },
+      {
+        "name_fa": "شلمان",
+        "slug_en": "shelman"
+      },
+      {
+        "name_fa": "اطاقور",
+        "slug_en": "ataqur"
+      },
+      {
+        "name_fa": "لاهیجان",
+        "slug_en": "lahijan"
+      },
+      {
+        "name_fa": "رودبنه",
+        "slug_en": "rudebnh"
+      },
+      {
+        "name_fa": "شفت",
+        "slug_en": "sheft"
+      },
+      {
+        "name_fa": "احمد سرگوراب",
+        "slug_en": "ahemd-sergurab"
+      },
+      {
+        "name_fa": "املش",
+        "slug_en": "amelsh"
+      },
+      {
+        "name_fa": "رانکوه",
+        "slug_en": "rankuh"
+      },
+      {
+        "name_fa": "پره سر",
+        "slug_en": "pareh-sar"
+      },
+      {
+        "name_fa": "رضوانشهر",
+        "slug_en": "rzuaneshahr"
+      },
+      {
+        "name_fa": "سیاهکل",
+        "slug_en": "siahekl"
+      },
+      {
+        "name_fa": "دیلمان",
+        "slug_en": "dilman"
+      },
+      {
+        "name_fa": "ماسال",
+        "slug_en": "masal"
+      },
+      {
+        "name_fa": "بازار جمعه",
+        "slug_en": "bazar-jmah"
+      },
+      {
+        "name_fa": "چوکام",
+        "slug_en": "chukam"
+      },
+      {
+        "name_fa": "خمام",
+        "slug_en": "khmam"
+      }
+    ]
+  },
+  {
+    "code": "03",
+    "name_fa": "مازندران",
+    "slug_en": "mazandaran",
+    "cities": [
+      {
+        "name_fa": "رینه",
+        "slug_en": "rinh"
+      },
+      {
+        "name_fa": "آمل",
+        "slug_en": "aml"
+      },
+      {
+        "name_fa": "گزنک",
+        "slug_en": "geznk"
+      },
+      {
+        "name_fa": "دابودشت",
+        "slug_en": "dabudesht"
+      },
+      {
+        "name_fa": "امامزاده عبدالله",
+        "slug_en": "amamzadh-abdalelh"
+      },
+      {
+        "name_fa": "بابکان",
+        "slug_en": "babkan"
+      },
+      {
+        "name_fa": "امیرکلا",
+        "slug_en": "amirekla"
+      },
+      {
+        "name_fa": "بابل",
+        "slug_en": "babl"
+      },
+      {
+        "name_fa": "خوش رودپی",
+        "slug_en": "khosh-rudpi"
+      },
+      {
+        "name_fa": "گلوگاه",
+        "slug_en": "glugah"
+      },
+      {
+        "name_fa": "مرزیکلا",
+        "slug_en": "merzikla"
+      },
+      {
+        "name_fa": "زرگر",
+        "slug_en": "zergr"
+      },
+      {
+        "name_fa": "گتاب",
+        "slug_en": "gtab"
+      },
+      {
+        "name_fa": "بهشهر",
+        "slug_en": "behshahr"
+      },
+      {
+        "name_fa": "رستمکلا",
+        "slug_en": "rostamkola"
+      },
+      {
+        "name_fa": "خلیل شهر",
+        "slug_en": "khlil-shahr"
+      },
+      {
+        "name_fa": "شیرود",
+        "slug_en": "shirud"
+      },
+      {
+        "name_fa": "تنکابن",
+        "slug_en": "tonkabon"
+      },
+      {
+        "name_fa": "خرم آباد",
+        "slug_en": "khorramabad"
+      },
+      {
+        "name_fa": "نشتارود",
+        "slug_en": "neshtarud"
+      },
+      {
+        "name_fa": "دالخانی",
+        "slug_en": "dalekhani"
+      },
+      {
+        "name_fa": "رامسر",
+        "slug_en": "ramesar"
+      },
+      {
+        "name_fa": "کتالم و سادات شهر",
+        "slug_en": "ktalm-u-sadat-shahr"
+      },
+      {
+        "name_fa": "اکند",
+        "slug_en": "akend"
+      },
+      {
+        "name_fa": "ساری",
+        "slug_en": "sari"
+      },
+      {
+        "name_fa": "کیاسر",
+        "slug_en": "kiasar"
+      },
+      {
+        "name_fa": "فریم",
+        "slug_en": "frim"
+      },
+      {
+        "name_fa": "پایین هولار",
+        "slug_en": "pain-hular"
+      },
+      {
+        "name_fa": "فرح آباد",
+        "slug_en": "frh-abad"
+      },
+      {
+        "name_fa": "آلاشت",
+        "slug_en": "alasht"
+      },
+      {
+        "name_fa": "پل سفید",
+        "slug_en": "pol-sefid"
+      },
+      {
+        "name_fa": "زیرآب",
+        "slug_en": "zirab"
+      },
+      {
+        "name_fa": "قایم شهر",
+        "slug_en": "ghaim-shahr"
+      },
+      {
+        "name_fa": "ارطه",
+        "slug_en": "areth"
+      },
+      {
+        "name_fa": "نور",
+        "slug_en": "nur"
+      },
+      {
+        "name_fa": "رویان",
+        "slug_en": "roian"
+      },
+      {
+        "name_fa": "چمستان",
+        "slug_en": "chemstan"
+      },
+      {
+        "name_fa": "بلده",
+        "slug_en": "beldh"
+      },
+      {
+        "name_fa": "ایزدشهر",
+        "slug_en": "aizedshahr"
+      },
+      {
+        "name_fa": "نوشهر",
+        "slug_en": "nushahr"
+      },
+      {
+        "name_fa": "پول",
+        "slug_en": "pul"
+      },
+      {
+        "name_fa": "کجور",
+        "slug_en": "kjur"
+      },
+      {
+        "name_fa": "بابلسر",
+        "slug_en": "babelsar"
+      },
+      {
+        "name_fa": "بهنمیر",
+        "slug_en": "behnmir"
+      },
+      {
+        "name_fa": "هادی شهر",
+        "slug_en": "hadi-shahr"
+      },
+      {
+        "name_fa": "محمودآباد",
+        "slug_en": "mehmudabad"
+      },
+      {
+        "name_fa": "سرخرود",
+        "slug_en": "sorkhrud"
+      },
+      {
+        "name_fa": "نکا",
+        "slug_en": "nka"
+      },
+      {
+        "name_fa": "چالوس",
+        "slug_en": "chalus"
+      },
+      {
+        "name_fa": "مرزن آباد",
+        "slug_en": "merzn-abad"
+      },
+      {
+        "name_fa": "هچیرود",
+        "slug_en": "hechirud"
+      },
+      {
+        "name_fa": "جویبار",
+        "slug_en": "joibar"
+      },
+      {
+        "name_fa": "کوهی خیل",
+        "slug_en": "kuhi-khil"
+      },
+      {
+        "name_fa": "آستانه سرا",
+        "slug_en": "astaneh-ye-sara"
+      },
+      {
+        "name_fa": "فریدونکنار",
+        "slug_en": "friduneknar"
+      },
+      {
+        "name_fa": "سلمان شهر",
+        "slug_en": "selman-shahr"
+      },
+      {
+        "name_fa": "عباس آباد",
+        "slug_en": "abas-abad"
+      },
+      {
+        "name_fa": "کلارآباد",
+        "slug_en": "klarabad"
+      },
+      {
+        "name_fa": "سورک",
+        "slug_en": "surk"
+      },
+      {
+        "name_fa": "طبقده",
+        "slug_en": "tabaqdeh"
+      },
+      {
+        "name_fa": "کیاکلا",
+        "slug_en": "kiakla"
+      },
+      {
+        "name_fa": "شیرگاه",
+        "slug_en": "shirgah"
+      },
+      {
+        "name_fa": "کلاردشت",
+        "slug_en": "kelardasht"
+      }
+    ]
+  },
+  {
+    "code": "04",
+    "name_fa": "آذربایجان شرقی",
+    "slug_en": "east-azerbaijan",
+    "cities": [
+      {
+        "name_fa": "اهر",
+        "slug_en": "ahr"
+      },
+      {
+        "name_fa": "اسفهلان",
+        "slug_en": "asefhlan"
+      },
+      {
+        "name_fa": "لاهیجان",
+        "slug_en": "lahijan"
+      },
+      {
+        "name_fa": "خسروشاه",
+        "slug_en": "khesrushah"
+      },
+      {
+        "name_fa": "باسمنج",
+        "slug_en": "basemnj"
+      },
+      {
+        "name_fa": "تبریز",
+        "slug_en": "tabriz"
+      },
+      {
+        "name_fa": "سردرود",
+        "slug_en": "serdrud"
+      },
+      {
+        "name_fa": "تبریز1",
+        "slug_en": "tebriz1"
+      },
+      {
+        "name_fa": "تبریز2",
+        "slug_en": "tebriz2"
+      },
+      {
+        "name_fa": "تبریز3",
+        "slug_en": "tebriz3"
+      },
+      {
+        "name_fa": "تبریز4",
+        "slug_en": "tebriz4"
+      },
+      {
+        "name_fa": "تبریز5",
+        "slug_en": "tebriz5"
+      },
+      {
+        "name_fa": "تبریز6",
+        "slug_en": "tebriz6"
+      },
+      {
+        "name_fa": "تبریز7",
+        "slug_en": "tebriz7"
+      },
+      {
+        "name_fa": "تبریز8",
+        "slug_en": "tebriz8"
+      },
+      {
+        "name_fa": "مهربان",
+        "slug_en": "mehrban"
+      },
+      {
+        "name_fa": "سراب",
+        "slug_en": "srab"
+      },
+      {
+        "name_fa": "شربیان",
+        "slug_en": "shaherbian"
+      },
+      {
+        "name_fa": "دوزدوزان",
+        "slug_en": "duzduzan"
+      },
+      {
+        "name_fa": "مراغه",
+        "slug_en": "mragh"
+      },
+      {
+        "name_fa": "خداجوخراجو",
+        "slug_en": "khdajukhraju"
+      },
+      {
+        "name_fa": "دیزج حسین بیگ",
+        "slug_en": "dizj-hsin-big"
+      },
+      {
+        "name_fa": "زنوز",
+        "slug_en": "znuz"
+      },
+      {
+        "name_fa": "مرند",
+        "slug_en": "mernd"
+      },
+      {
+        "name_fa": "کشکسرای",
+        "slug_en": "keshksrai"
+      },
+      {
+        "name_fa": "یامچی",
+        "slug_en": "yamechi"
+      },
+      {
+        "name_fa": "بناب مرند",
+        "slug_en": "bnab-mernd"
+      },
+      {
+        "name_fa": "میانه",
+        "slug_en": "mianh"
+      },
+      {
+        "name_fa": "ترکمانچای",
+        "slug_en": "terkmanchai"
+      },
+      {
+        "name_fa": "آقکند",
+        "slug_en": "aqeknd"
+      },
+      {
+        "name_fa": "ترک",
+        "slug_en": "trk"
+      },
+      {
+        "name_fa": "اچاچی",
+        "slug_en": "achachi"
+      },
+      {
+        "name_fa": "هشترود",
+        "slug_en": "heshtrud"
+      },
+      {
+        "name_fa": "نظرکهریزی",
+        "slug_en": "nazarkahrizi"
+      },
+      {
+        "name_fa": "بناب",
+        "slug_en": "bnab"
+      },
+      {
+        "name_fa": "خوشه مهر",
+        "slug_en": "khosh-mehr"
+      },
+      {
+        "name_fa": "کردکندی",
+        "slug_en": "kerdkndi"
+      },
+      {
+        "name_fa": "بستان آباد",
+        "slug_en": "bestan-abad"
+      },
+      {
+        "name_fa": "تیکمه داش",
+        "slug_en": "tikemeh-dash"
+      },
+      {
+        "name_fa": "تسوج",
+        "slug_en": "tsuj"
+      },
+      {
+        "name_fa": "خامنه",
+        "slug_en": "khamenh"
+      },
+      {
+        "name_fa": "شبستر",
+        "slug_en": "shabestar"
+      },
+      {
+        "name_fa": "شرفخانه",
+        "slug_en": "shaherfkhanh"
+      },
+      {
+        "name_fa": "صوفیان",
+        "slug_en": "sufian"
+      },
+      {
+        "name_fa": "شندآباد",
+        "slug_en": "shendabad"
+      },
+      {
+        "name_fa": "سیس",
+        "slug_en": "sis"
+      },
+      {
+        "name_fa": "وایقان",
+        "slug_en": "uaighan"
+      },
+      {
+        "name_fa": "کوزه کنان",
+        "slug_en": "kuzh-knan"
+      },
+      {
+        "name_fa": "داریان",
+        "slug_en": "darian"
+      },
+      {
+        "name_fa": "علیشاه",
+        "slug_en": "alishah"
+      },
+      {
+        "name_fa": "کلیبر",
+        "slug_en": "klibr"
+      },
+      {
+        "name_fa": "آبش احمد",
+        "slug_en": "abesh-ahemd"
+      },
+      {
+        "name_fa": "هریس",
+        "slug_en": "hris"
+      },
+      {
+        "name_fa": "خواجه",
+        "slug_en": "khoajh"
+      },
+      {
+        "name_fa": "زرنق",
+        "slug_en": "zernq"
+      },
+      {
+        "name_fa": "بخشایش",
+        "slug_en": "bakhshayesh"
+      },
+      {
+        "name_fa": "کلوانق",
+        "slug_en": "kluanq"
+      },
+      {
+        "name_fa": "اربطان",
+        "slug_en": "arebtan"
+      },
+      {
+        "name_fa": "جلفا",
+        "slug_en": "jelfa"
+      },
+      {
+        "name_fa": "هادیشهر",
+        "slug_en": "hadishahr"
+      },
+      {
+        "name_fa": "سیه رود",
+        "slug_en": "siah-rud"
+      },
+      {
+        "name_fa": "ملکان",
+        "slug_en": "melkan"
+      },
+      {
+        "name_fa": "مبارک شهر",
+        "slug_en": "mobarak-shahr"
+      },
+      {
+        "name_fa": "آذرشهر",
+        "slug_en": "azershahr"
+      },
+      {
+        "name_fa": "گوگان",
+        "slug_en": "gugan"
+      },
+      {
+        "name_fa": "ممقان",
+        "slug_en": "memghan"
+      },
+      {
+        "name_fa": "تیمورلو",
+        "slug_en": "timurlu"
+      },
+      {
+        "name_fa": "اسکو",
+        "slug_en": "asku"
+      },
+      {
+        "name_fa": "ایلخچی",
+        "slug_en": "ilkhchi"
+      },
+      {
+        "name_fa": "سهند",
+        "slug_en": "shend"
+      },
+      {
+        "name_fa": "قره آغاج",
+        "slug_en": "qrh-aghaj"
+      },
+      {
+        "name_fa": "ورزقان",
+        "slug_en": "urezghan"
+      },
+      {
+        "name_fa": "خاروانا",
+        "slug_en": "kharuana"
+      },
+      {
+        "name_fa": "عجب شیر",
+        "slug_en": "ajab-shir-railway-station"
+      },
+      {
+        "name_fa": "جوان قلعه",
+        "slug_en": "juan-qlah"
+      },
+      {
+        "name_fa": "خمارلو",
+        "slug_en": "khmarlu"
+      },
+      {
+        "name_fa": "عاشقلو",
+        "slug_en": "aasheqlu"
+      },
+      {
+        "name_fa": "لاریجان",
+        "slug_en": "larijan"
+      },
+      {
+        "name_fa": "هوراند",
+        "slug_en": "hurand"
+      },
+      {
+        "name_fa": "لیلان",
+        "slug_en": "lilan"
+      }
+    ]
+  },
+  {
+    "code": "05",
+    "name_fa": "آذربایجان غربی",
+    "slug_en": "west-azerbaijan",
+    "cities": [
+      {
+        "name_fa": "ارومیه",
+        "slug_en": "urmia"
+      },
+      {
+        "name_fa": "قوشچی",
+        "slug_en": "qushechi"
+      },
+      {
+        "name_fa": "نوشین",
+        "slug_en": "nushin"
+      },
+      {
+        "name_fa": "سیلوانه",
+        "slug_en": "siluanh"
+      },
+      {
+        "name_fa": "سرو",
+        "slug_en": "sru"
+      },
+      {
+        "name_fa": "پیرانشهر",
+        "slug_en": "piraneshahr"
+      },
+      {
+        "name_fa": "لاجان",
+        "slug_en": "lajan"
+      },
+      {
+        "name_fa": "خوی",
+        "slug_en": "khoi"
+      },
+      {
+        "name_fa": "فیرورق",
+        "slug_en": "firurq"
+      },
+      {
+        "name_fa": "دیزج دیز",
+        "slug_en": "dizj-diz"
+      },
+      {
+        "name_fa": "قطور",
+        "slug_en": "qtur"
+      },
+      {
+        "name_fa": "ایواوغلی",
+        "slug_en": "aiuaveghli"
+      },
+      {
+        "name_fa": "زرآباد",
+        "slug_en": "zrabad"
+      },
+      {
+        "name_fa": "سردشت",
+        "slug_en": "sardasht"
+      },
+      {
+        "name_fa": "ربط",
+        "slug_en": "rbt"
+      },
+      {
+        "name_fa": "نلاس",
+        "slug_en": "nlas"
+      },
+      {
+        "name_fa": "تازه شهر",
+        "slug_en": "tazeh-shahr"
+      },
+      {
+        "name_fa": "سلماس",
+        "slug_en": "selmas"
+      },
+      {
+        "name_fa": "ماکو",
+        "slug_en": "maku"
+      },
+      {
+        "name_fa": "بازرگان",
+        "slug_en": "bazergan"
+      },
+      {
+        "name_fa": "مهاباد",
+        "slug_en": "mhabad"
+      },
+      {
+        "name_fa": "خلیفان",
+        "slug_en": "khlifan"
+      },
+      {
+        "name_fa": "گوگ تپه",
+        "slug_en": "gug-tappeh"
+      },
+      {
+        "name_fa": "بکتاش",
+        "slug_en": "bektash"
+      },
+      {
+        "name_fa": "میاندوآب",
+        "slug_en": "mianduab"
+      },
+      {
+        "name_fa": "محمدیار",
+        "slug_en": "mehmdiar"
+      },
+      {
+        "name_fa": "نقده",
+        "slug_en": "neqdh"
+      },
+      {
+        "name_fa": "بوکان",
+        "slug_en": "bukan"
+      },
+      {
+        "name_fa": "سیمینه",
+        "slug_en": "siminh"
+      },
+      {
+        "name_fa": "شاهین دژ",
+        "slug_en": "bank-melli-iran"
+      },
+      {
+        "name_fa": "کشاورز",
+        "slug_en": "keshavrz"
+      },
+      {
+        "name_fa": "محمودآباد",
+        "slug_en": "mehmudabad"
+      },
+      {
+        "name_fa": "تکاب",
+        "slug_en": "tkab"
+      },
+      {
+        "name_fa": "تخت سلیمان",
+        "slug_en": "takht-e-soleyman"
+      },
+      {
+        "name_fa": "اشنویه",
+        "slug_en": "ashnoih"
+      },
+      {
+        "name_fa": "نالوس",
+        "slug_en": "nalus"
+      },
+      {
+        "name_fa": "سیه چشمه",
+        "slug_en": "siah-cheshmeh"
+      },
+      {
+        "name_fa": "آواجیق",
+        "slug_en": "avajiq"
+      },
+      {
+        "name_fa": "پلدشت",
+        "slug_en": "peldsht"
+      },
+      {
+        "name_fa": "نازک علیا",
+        "slug_en": "nazk-alia"
+      },
+      {
+        "name_fa": "قره ضیاءالدین",
+        "slug_en": "qrh-ziaaldin"
+      },
+      {
+        "name_fa": "حاجیلار",
+        "slug_en": "hajilar"
+      },
+      {
+        "name_fa": "شوط",
+        "slug_en": "shut"
+      },
+      {
+        "name_fa": "مرگنلر",
+        "slug_en": "mergnlr"
+      },
+      {
+        "name_fa": "یولاگلدی",
+        "slug_en": "yulageldi"
+      },
+      {
+        "name_fa": "چهاربرج",
+        "slug_en": "chharebrj"
+      },
+      {
+        "name_fa": "باروق",
+        "slug_en": "baruq"
+      },
+      {
+        "name_fa": "میرآباد",
+        "slug_en": "mirabad"
+      }
+    ]
+  },
+  {
+    "code": "06",
+    "name_fa": "کرمانشاه",
+    "slug_en": "kermanshah",
+    "cities": [
+      {
+        "name_fa": "اسلام آبادغرب",
+        "slug_en": "aslam-abadeghrb"
+      },
+      {
+        "name_fa": "حمیل",
+        "slug_en": "hmil"
+      },
+      {
+        "name_fa": "کرمانشاه",
+        "slug_en": "kermanshah"
+      },
+      {
+        "name_fa": "رباط",
+        "slug_en": "rbat"
+      },
+      {
+        "name_fa": "هلشی",
+        "slug_en": "helshi"
+      },
+      {
+        "name_fa": "کوزران",
+        "slug_en": "kuzran"
+      },
+      {
+        "name_fa": "قلعه",
+        "slug_en": "qlah"
+      },
+      {
+        "name_fa": "پاوه",
+        "slug_en": "pavh"
+      },
+      {
+        "name_fa": "نودشه",
+        "slug_en": "nudesh"
+      },
+      {
+        "name_fa": "نوسود",
+        "slug_en": "nusud"
+      },
+      {
+        "name_fa": "باینگان",
+        "slug_en": "baingan"
+      },
+      {
+        "name_fa": "بانوره",
+        "slug_en": "banurh"
+      },
+      {
+        "name_fa": "سرپل ذهاب",
+        "slug_en": "sarpol-zahab"
+      },
+      {
+        "name_fa": "سنقر",
+        "slug_en": "senqr"
+      },
+      {
+        "name_fa": "سطر",
+        "slug_en": "str"
+      },
+      {
+        "name_fa": "قصرشیرین",
+        "slug_en": "supermarket"
+      },
+      {
+        "name_fa": "سومار",
+        "slug_en": "sumar"
+      },
+      {
+        "name_fa": "کنگاور",
+        "slug_en": "kengavr"
+      },
+      {
+        "name_fa": "گودین",
+        "slug_en": "gudin"
+      },
+      {
+        "name_fa": "گیلانغرب",
+        "slug_en": "gilan-e-gharb"
+      },
+      {
+        "name_fa": "سرمست",
+        "slug_en": "sarmast"
+      },
+      {
+        "name_fa": "جوانرود",
+        "slug_en": "juanrud"
+      },
+      {
+        "name_fa": "شروینه",
+        "slug_en": "shahroinh"
+      },
+      {
+        "name_fa": "صحنه",
+        "slug_en": "shenh"
+      },
+      {
+        "name_fa": "دینور",
+        "slug_en": "dinur"
+      },
+      {
+        "name_fa": "هرسین",
+        "slug_en": "hersin"
+      },
+      {
+        "name_fa": "بیستون",
+        "slug_en": "bistun"
+      },
+      {
+        "name_fa": "تازه آباد",
+        "slug_en": "tazh-abad"
+      },
+      {
+        "name_fa": "ازگله",
+        "slug_en": "azeglh"
+      },
+      {
+        "name_fa": "میرآباد",
+        "slug_en": "mirabad"
+      },
+      {
+        "name_fa": "کرند",
+        "slug_en": "kernd"
+      },
+      {
+        "name_fa": "گهواره",
+        "slug_en": "ghuarh"
+      },
+      {
+        "name_fa": "ریجاب",
+        "slug_en": "rijab"
+      },
+      {
+        "name_fa": "شاهو",
+        "slug_en": "shahu"
+      },
+      {
+        "name_fa": "روانسر",
+        "slug_en": "ruanesar"
+      }
+    ]
+  },
+  {
+    "code": "07",
+    "name_fa": "خوزستان",
+    "slug_en": "khuzestan",
+    "cities": [
+      {
+        "name_fa": "اروندکنار",
+        "slug_en": "arunedknar"
+      },
+      {
+        "name_fa": "آبادان",
+        "slug_en": "abadan"
+      },
+      {
+        "name_fa": "چویبده",
+        "slug_en": "choibedh"
+      },
+      {
+        "name_fa": "اندیمشک",
+        "slug_en": "andimeshk"
+      },
+      {
+        "name_fa": "حسینیه",
+        "slug_en": "hsinih"
+      },
+      {
+        "name_fa": "آزادی",
+        "slug_en": "azadi"
+      },
+      {
+        "name_fa": "چم گلک",
+        "slug_en": "chamgolak"
+      },
+      {
+        "name_fa": "بیدروبه",
+        "slug_en": "bidrubh"
+      },
+      {
+        "name_fa": "اهواز",
+        "slug_en": "ahvaz"
+      },
+      {
+        "name_fa": "اهواز1",
+        "slug_en": "ahuaz1"
+      },
+      {
+        "name_fa": "اهواز2",
+        "slug_en": "ahuaz2"
+      },
+      {
+        "name_fa": "اهواز3",
+        "slug_en": "ahuaz3"
+      },
+      {
+        "name_fa": "اهواز4",
+        "slug_en": "ahuaz4"
+      },
+      {
+        "name_fa": "اهواز5",
+        "slug_en": "ahuaz5"
+      },
+      {
+        "name_fa": "اهواز6",
+        "slug_en": "ahuaz6"
+      },
+      {
+        "name_fa": "اهواز7",
+        "slug_en": "ahuaz7"
+      },
+      {
+        "name_fa": "اهواز8",
+        "slug_en": "ahuaz8"
+      },
+      {
+        "name_fa": "الهایی",
+        "slug_en": "elhaei"
+      },
+      {
+        "name_fa": "ایذه",
+        "slug_en": "aizh"
+      },
+      {
+        "name_fa": "بندرامام خمینی",
+        "slug_en": "bandar-imam-khomeini"
+      },
+      {
+        "name_fa": "بندرماهشهر",
+        "slug_en": "bandar-mahshahr"
+      },
+      {
+        "name_fa": "چمران",
+        "slug_en": "chemran"
+      },
+      {
+        "name_fa": "بهبهان",
+        "slug_en": "behbhan"
+      },
+      {
+        "name_fa": "سردشت",
+        "slug_en": "sardasht"
+      },
+      {
+        "name_fa": "منصوریه",
+        "slug_en": "mensurih"
+      },
+      {
+        "name_fa": "تشان",
+        "slug_en": "teshan"
+      },
+      {
+        "name_fa": "خرمشهر",
+        "slug_en": "khorramshahr"
+      },
+      {
+        "name_fa": "مینوشهر",
+        "slug_en": "minushahr"
+      },
+      {
+        "name_fa": "مقاومت",
+        "slug_en": "meghavmt"
+      },
+      {
+        "name_fa": "دزفول",
+        "slug_en": "dezful"
+      },
+      {
+        "name_fa": "حمزه",
+        "slug_en": "hemzh"
+      },
+      {
+        "name_fa": "شمس آباد",
+        "slug_en": "shems-abad"
+      },
+      {
+        "name_fa": "سالند",
+        "slug_en": "salend"
+      },
+      {
+        "name_fa": "شهر امام",
+        "slug_en": "shahr-amam"
+      },
+      {
+        "name_fa": "صفی آباد",
+        "slug_en": "sfi-abad"
+      },
+      {
+        "name_fa": "میانرود",
+        "slug_en": "mianrud"
+      },
+      {
+        "name_fa": "چغامیش",
+        "slug_en": "cheghamish"
+      },
+      {
+        "name_fa": "سیاه منصور",
+        "slug_en": "siah-mensur"
+      },
+      {
+        "name_fa": "شهیون",
+        "slug_en": "shiun"
+      },
+      {
+        "name_fa": "منتظران",
+        "slug_en": "mentzran"
+      },
+      {
+        "name_fa": "جندی شاپور",
+        "slug_en": "jendi-shapur"
+      },
+      {
+        "name_fa": "بستان",
+        "slug_en": "bestan"
+      },
+      {
+        "name_fa": "سوسنگرد",
+        "slug_en": "sousangerd"
+      },
+      {
+        "name_fa": "کوت سیدنعیم",
+        "slug_en": "kut-sidnaim"
+      },
+      {
+        "name_fa": "ابوحمیظه",
+        "slug_en": "abuhmizh"
+      },
+      {
+        "name_fa": "باوج",
+        "slug_en": "bavj"
+      },
+      {
+        "name_fa": "رامهرمز",
+        "slug_en": "ramhormoz"
+      },
+      {
+        "name_fa": "سلطان آباد",
+        "slug_en": "seltan-abad"
+      },
+      {
+        "name_fa": "رود زرد ماشین",
+        "slug_en": "rud-zard-e-mashin"
+      },
+      {
+        "name_fa": "شادگان",
+        "slug_en": "shadgan"
+      },
+      {
+        "name_fa": "دارخوین",
+        "slug_en": "darekhoin"
+      },
+      {
+        "name_fa": "خنافره",
+        "slug_en": "khnaferh"
+      },
+      {
+        "name_fa": "شوشتر",
+        "slug_en": "shushetr"
+      },
+      {
+        "name_fa": "شرافت",
+        "slug_en": "shahraft"
+      },
+      {
+        "name_fa": "گوریه",
+        "slug_en": "gurih"
+      },
+      {
+        "name_fa": "سرداران",
+        "slug_en": "serdaran"
+      },
+      {
+        "name_fa": "عرب حسن",
+        "slug_en": "arab-hasan"
+      },
+      {
+        "name_fa": "مسجدسلیمان",
+        "slug_en": "masjed-soleyman"
+      },
+      {
+        "name_fa": "گلگیر",
+        "slug_en": "gelgir"
+      },
+      {
+        "name_fa": "عنبر",
+        "slug_en": "anebr"
+      },
+      {
+        "name_fa": "شوش",
+        "slug_en": "shush"
+      },
+      {
+        "name_fa": "حر",
+        "slug_en": "hr"
+      },
+      {
+        "name_fa": "فتح المبین",
+        "slug_en": "fth-alembin"
+      },
+      {
+        "name_fa": "باغ ملک",
+        "slug_en": "bagh-malek"
+      },
+      {
+        "name_fa": "قلعه تل",
+        "slug_en": "qlah-tl"
+      },
+      {
+        "name_fa": "میداود",
+        "slug_en": "midavd"
+      },
+      {
+        "name_fa": "امیدیه",
+        "slug_en": "amidih"
+      },
+      {
+        "name_fa": "جایزان",
+        "slug_en": "jaizan"
+      },
+      {
+        "name_fa": "میانکوه",
+        "slug_en": "miankuh"
+      },
+      {
+        "name_fa": "تراز",
+        "slug_en": "traz"
+      },
+      {
+        "name_fa": "لالی",
+        "slug_en": "lali"
+      },
+      {
+        "name_fa": "هندیجان",
+        "slug_en": "hendijan"
+      },
+      {
+        "name_fa": "زهره",
+        "slug_en": "zherh"
+      },
+      {
+        "name_fa": "رامشیر",
+        "slug_en": "rameshir"
+      },
+      {
+        "name_fa": "مشراگه",
+        "slug_en": "meshahragh"
+      },
+      {
+        "name_fa": "گتوند",
+        "slug_en": "gtund"
+      },
+      {
+        "name_fa": "ترکالکی",
+        "slug_en": "terkalki"
+      },
+      {
+        "name_fa": "صالح شهر",
+        "slug_en": "saleh-shahr"
+      },
+      {
+        "name_fa": "سماله",
+        "slug_en": "smalh"
+      },
+      {
+        "name_fa": "جنت مکان",
+        "slug_en": "jannat-makan"
+      },
+      {
+        "name_fa": "قلعه خواجه",
+        "slug_en": "qlah-khoajh"
+      },
+      {
+        "name_fa": "آبژدان",
+        "slug_en": "abezhdan"
+      },
+      {
+        "name_fa": "زاووت",
+        "slug_en": "zavut"
+      },
+      {
+        "name_fa": "هفتگل",
+        "slug_en": "heftgl"
+      },
+      {
+        "name_fa": "هویزه",
+        "slug_en": "hoizh"
+      },
+      {
+        "name_fa": "رفیع",
+        "slug_en": "rfia"
+      },
+      {
+        "name_fa": "ملاثانی",
+        "slug_en": "mlasani"
+      },
+      {
+        "name_fa": "ویس",
+        "slug_en": "ois"
+      },
+      {
+        "name_fa": "شیبان",
+        "slug_en": "shiban"
+      },
+      {
+        "name_fa": "حمیدیه",
+        "slug_en": "hmidih"
+      },
+      {
+        "name_fa": "آغاجاری",
+        "slug_en": "aghajari"
+      },
+      {
+        "name_fa": "جولکی",
+        "slug_en": "julki"
+      },
+      {
+        "name_fa": "کوت عبداله",
+        "slug_en": "kut-abdalh"
+      },
+      {
+        "name_fa": "شاوور",
+        "slug_en": "shavur"
+      },
+      {
+        "name_fa": "الوان",
+        "slug_en": "aluan"
+      },
+      {
+        "name_fa": "دهدز",
+        "slug_en": "dehdz"
+      },
+      {
+        "name_fa": "صیدون",
+        "slug_en": "sidun"
+      }
+    ]
+  },
+  {
+    "code": "08",
+    "name_fa": "فارس",
+    "slug_en": "fars",
+    "cities": [
+      {
+        "name_fa": "آباده",
+        "slug_en": "abadh"
+      },
+      {
+        "name_fa": "صغاد",
+        "slug_en": "seghad"
+      },
+      {
+        "name_fa": "بهمن",
+        "slug_en": "behmn"
+      },
+      {
+        "name_fa": "ایزدخواست",
+        "slug_en": "aizedkhoast"
+      },
+      {
+        "name_fa": "سورمق",
+        "slug_en": "suremq"
+      },
+      {
+        "name_fa": "استهبان",
+        "slug_en": "asethban"
+      },
+      {
+        "name_fa": "رونیز",
+        "slug_en": "runiz"
+      },
+      {
+        "name_fa": "ایج",
+        "slug_en": "aij"
+      },
+      {
+        "name_fa": "اقلید",
+        "slug_en": "aqlid"
+      },
+      {
+        "name_fa": "دژکرد",
+        "slug_en": "dezhkord"
+      },
+      {
+        "name_fa": "حسن اباد",
+        "slug_en": "hsn-abad"
+      },
+      {
+        "name_fa": "سده",
+        "slug_en": "sdh"
+      },
+      {
+        "name_fa": "جهرم",
+        "slug_en": "jehrm"
+      },
+      {
+        "name_fa": "قطب آباد",
+        "slug_en": "qtb-abad"
+      },
+      {
+        "name_fa": "دوزه",
+        "slug_en": "duzh"
+      },
+      {
+        "name_fa": "پاسخن",
+        "slug_en": "pasekhn"
+      },
+      {
+        "name_fa": "داراب",
+        "slug_en": "darab"
+      },
+      {
+        "name_fa": "فدامی",
+        "slug_en": "fdami"
+      },
+      {
+        "name_fa": "دوبرجی",
+        "slug_en": "duberji"
+      },
+      {
+        "name_fa": "جنت شهر",
+        "slug_en": "jannat-shahr"
+      },
+      {
+        "name_fa": "رستاق",
+        "slug_en": "restaq"
+      },
+      {
+        "name_fa": "اردکان",
+        "slug_en": "aredkan"
+      },
+      {
+        "name_fa": "هماشهر",
+        "slug_en": "hmashahr"
+      },
+      {
+        "name_fa": "شیراز",
+        "slug_en": "shiraz"
+      },
+      {
+        "name_fa": "شیراز1",
+        "slug_en": "shiraz1"
+      },
+      {
+        "name_fa": "شیراز2",
+        "slug_en": "shiraz2"
+      },
+      {
+        "name_fa": "شیراز3",
+        "slug_en": "shiraz3"
+      },
+      {
+        "name_fa": "شیراز4",
+        "slug_en": "shiraz4"
+      },
+      {
+        "name_fa": "شیراز5",
+        "slug_en": "shiraz5"
+      },
+      {
+        "name_fa": "شیراز6",
+        "slug_en": "shiraz6"
+      },
+      {
+        "name_fa": "شهرصدرا",
+        "slug_en": "bank-melli-iran"
+      },
+      {
+        "name_fa": "خانه زنیان",
+        "slug_en": "khaneh-zenyan"
+      },
+      {
+        "name_fa": "داریان",
+        "slug_en": "darian"
+      },
+      {
+        "name_fa": "شیراز7",
+        "slug_en": "shiraz7"
+      },
+      {
+        "name_fa": "شیراز8",
+        "slug_en": "shiraz8"
+      },
+      {
+        "name_fa": "فسا",
+        "slug_en": "fsa"
+      },
+      {
+        "name_fa": "زاهدشهر",
+        "slug_en": "zahedshahr"
+      },
+      {
+        "name_fa": "ششده",
+        "slug_en": "sheshdeh"
+      },
+      {
+        "name_fa": "نوبندگان",
+        "slug_en": "nubendgan"
+      },
+      {
+        "name_fa": "قره بلاغ",
+        "slug_en": "qarahbolagh"
+      },
+      {
+        "name_fa": "میانشهر",
+        "slug_en": "mianeshahr"
+      },
+      {
+        "name_fa": "فیروزآباد",
+        "slug_en": "firuzabad"
+      },
+      {
+        "name_fa": "میمند",
+        "slug_en": "mimend"
+      },
+      {
+        "name_fa": "کازرون",
+        "slug_en": "kazrun"
+      },
+      {
+        "name_fa": "خشت",
+        "slug_en": "khesht"
+      },
+      {
+        "name_fa": "کنارتخته",
+        "slug_en": "konartakhteh"
+      },
+      {
+        "name_fa": "بالاده",
+        "slug_en": "baladh"
+      },
+      {
+        "name_fa": "لار",
+        "slug_en": "lar"
+      },
+      {
+        "name_fa": "لطیفی",
+        "slug_en": "ltifi"
+      },
+      {
+        "name_fa": "بنارویه",
+        "slug_en": "bnaroih"
+      },
+      {
+        "name_fa": "بیرم",
+        "slug_en": "birm"
+      },
+      {
+        "name_fa": "خور",
+        "slug_en": "khor"
+      },
+      {
+        "name_fa": "عماد شهر",
+        "slug_en": "amad-shahr"
+      },
+      {
+        "name_fa": "دهکویه",
+        "slug_en": "dehkoih"
+      },
+      {
+        "name_fa": "فتح آباد",
+        "slug_en": "fth-abad"
+      },
+      {
+        "name_fa": "مرودشت",
+        "slug_en": "mrudesht"
+      },
+      {
+        "name_fa": "رامجرد",
+        "slug_en": "ramejrd"
+      },
+      {
+        "name_fa": "سیدان",
+        "slug_en": "sidan"
+      },
+      {
+        "name_fa": "کامفیروز",
+        "slug_en": "kamfiruz"
+      },
+      {
+        "name_fa": "خانیمن",
+        "slug_en": "khanimn"
+      },
+      {
+        "name_fa": "فاروق",
+        "slug_en": "faruq"
+      },
+      {
+        "name_fa": "زنگی آباد",
+        "slug_en": "zengi-abad"
+      },
+      {
+        "name_fa": "نورآباد",
+        "slug_en": "nurabad"
+      },
+      {
+        "name_fa": "خومه زار",
+        "slug_en": "khomeh-zar"
+      },
+      {
+        "name_fa": "بابامنیر",
+        "slug_en": "babamnir"
+      },
+      {
+        "name_fa": "نی ریز",
+        "slug_en": "ni-riz"
+      },
+      {
+        "name_fa": "قطرویه",
+        "slug_en": "qetroih"
+      },
+      {
+        "name_fa": "مشکان",
+        "slug_en": "meshkan"
+      },
+      {
+        "name_fa": "خیرگو",
+        "slug_en": "khirgu"
+      },
+      {
+        "name_fa": "لامرد",
+        "slug_en": "lamerd"
+      },
+      {
+        "name_fa": "اشکنان",
+        "slug_en": "asheknan"
+      },
+      {
+        "name_fa": "اهل",
+        "slug_en": "ahl"
+      },
+      {
+        "name_fa": "علامرودشت",
+        "slug_en": "alamrudesht"
+      },
+      {
+        "name_fa": "چاه ورز",
+        "slug_en": "chah-urz"
+      },
+      {
+        "name_fa": "بوانات",
+        "slug_en": "buanat"
+      },
+      {
+        "name_fa": "مزایجان",
+        "slug_en": "mzaijan"
+      },
+      {
+        "name_fa": "ارسنجان",
+        "slug_en": "aresnjan"
+      },
+      {
+        "name_fa": "صفاشهر",
+        "slug_en": "sfashahr"
+      },
+      {
+        "name_fa": "قادراباد",
+        "slug_en": "ghadrabad"
+      },
+      {
+        "name_fa": "حاجی آباد",
+        "slug_en": "haji-abad"
+      },
+      {
+        "name_fa": "شهرپیر",
+        "slug_en": "shaherpir"
+      },
+      {
+        "name_fa": "دبیران",
+        "slug_en": "dbiran"
+      },
+      {
+        "name_fa": "قیر",
+        "slug_en": "qir"
+      },
+      {
+        "name_fa": "امام شهر",
+        "slug_en": "amam-shahr"
+      },
+      {
+        "name_fa": "مبارک آباددیز",
+        "slug_en": "mbark-abaddiz"
+      },
+      {
+        "name_fa": "کارزین فتح آباد",
+        "slug_en": "karzin-fth-abad"
+      },
+      {
+        "name_fa": "افزر",
+        "slug_en": "afezr"
+      },
+      {
+        "name_fa": "مهر",
+        "slug_en": "mehr"
+      },
+      {
+        "name_fa": "گله دار",
+        "slug_en": "galeh-dar"
+      },
+      {
+        "name_fa": "وراوی",
+        "slug_en": "uravi"
+      },
+      {
+        "name_fa": "اسیر",
+        "slug_en": "asir"
+      },
+      {
+        "name_fa": "خوزی",
+        "slug_en": "khozi"
+      },
+      {
+        "name_fa": "فال",
+        "slug_en": "fal"
+      },
+      {
+        "name_fa": "فراشبند",
+        "slug_en": "frashebnd"
+      },
+      {
+        "name_fa": "دهرم",
+        "slug_en": "dehrm"
+      },
+      {
+        "name_fa": "نوجین",
+        "slug_en": "nujin"
+      },
+      {
+        "name_fa": "سعادت شهر",
+        "slug_en": "saadat-shahr"
+      },
+      {
+        "name_fa": "مادرسلیمان",
+        "slug_en": "madersoleiman"
+      },
+      {
+        "name_fa": "خنج",
+        "slug_en": "khenj"
+      },
+      {
+        "name_fa": "محمله",
+        "slug_en": "mahmeleh"
+      },
+      {
+        "name_fa": "سروستان",
+        "slug_en": "srustan"
+      },
+      {
+        "name_fa": "کوهنجان",
+        "slug_en": "kuhenjan"
+      },
+      {
+        "name_fa": "مصیری",
+        "slug_en": "msiri"
+      },
+      {
+        "name_fa": "کوپن",
+        "slug_en": "kupn"
+      },
+      {
+        "name_fa": "گراش",
+        "slug_en": "grash"
+      },
+      {
+        "name_fa": "ارد",
+        "slug_en": "ard"
+      },
+      {
+        "name_fa": "اکبرآباد",
+        "slug_en": "akebrabad"
+      },
+      {
+        "name_fa": "مظفری",
+        "slug_en": "mezfri"
+      },
+      {
+        "name_fa": "کوار",
+        "slug_en": "kuar"
+      },
+      {
+        "name_fa": "طسوج",
+        "slug_en": "tsuj"
+      },
+      {
+        "name_fa": "خرامه",
+        "slug_en": "khrameh"
+      },
+      {
+        "name_fa": "سلطان شهر",
+        "slug_en": "seltan-shahr"
+      },
+      {
+        "name_fa": "معزآبادجابری",
+        "slug_en": "mazabadjabri"
+      },
+      {
+        "name_fa": "خیراباد",
+        "slug_en": "khirabad"
+      },
+      {
+        "name_fa": "رحمت آباد",
+        "slug_en": "rehmt-abad"
+      },
+      {
+        "name_fa": "زرقان",
+        "slug_en": "zerghan"
+      },
+      {
+        "name_fa": "لپویی",
+        "slug_en": "lapui"
+      },
+      {
+        "name_fa": "بیضا",
+        "slug_en": "biza"
+      },
+      {
+        "name_fa": "توجردی",
+        "slug_en": "tujerdi"
+      },
+      {
+        "name_fa": "باغ صفا",
+        "slug_en": "bagh-safa"
+      },
+      {
+        "name_fa": "حسامی",
+        "slug_en": "hsami"
+      },
+      {
+        "name_fa": "کره ای",
+        "slug_en": "krh-ai"
+      },
+      {
+        "name_fa": "قایمیه",
+        "slug_en": "ghaimih"
+      },
+      {
+        "name_fa": "نودان",
+        "slug_en": "nudan"
+      },
+      {
+        "name_fa": "خاوران",
+        "slug_en": "khavran"
+      },
+      {
+        "name_fa": "باب انار",
+        "slug_en": "bab-anar"
+      },
+      {
+        "name_fa": "خواجه جمالی",
+        "slug_en": "khoajh-jmali"
+      },
+      {
+        "name_fa": "تم شولی",
+        "slug_en": "tom-shuli"
+      },
+      {
+        "name_fa": "آباده طشک",
+        "slug_en": "abadh-teshk"
+      },
+      {
+        "name_fa": "کوره",
+        "slug_en": "kurh"
+      },
+      {
+        "name_fa": "اوز",
+        "slug_en": "avz"
+      },
+      {
+        "name_fa": "جویم",
+        "slug_en": "joim"
+      }
+    ]
+  },
+  {
+    "code": "09",
+    "name_fa": "کرمان",
+    "slug_en": "kerman",
+    "cities": [
+      {
+        "name_fa": "کشکوییه",
+        "slug_en": "koshkuiyeh"
+      },
+      {
+        "name_fa": "بافت",
+        "slug_en": "baft"
+      },
+      {
+        "name_fa": "بزنجان",
+        "slug_en": "beznjan"
+      },
+      {
+        "name_fa": "دهبکری",
+        "slug_en": "dehbkri"
+      },
+      {
+        "name_fa": "بم",
+        "slug_en": "bm"
+      },
+      {
+        "name_fa": "بروات",
+        "slug_en": "bruat"
+      },
+      {
+        "name_fa": "جیرفت",
+        "slug_en": "jireft"
+      },
+      {
+        "name_fa": "جبالبارز",
+        "slug_en": "jbalbarz"
+      },
+      {
+        "name_fa": "درب بهشت",
+        "slug_en": "darb-e-behesht"
+      },
+      {
+        "name_fa": "بلوک",
+        "slug_en": "bluk"
+      },
+      {
+        "name_fa": "علی آباد",
+        "slug_en": "ali-abad"
+      },
+      {
+        "name_fa": "رفسنجان",
+        "slug_en": "rafsanjan"
+      },
+      {
+        "name_fa": "صفاییه",
+        "slug_en": "safayyeh"
+      },
+      {
+        "name_fa": "مس سرچشمه",
+        "slug_en": "mes-e-sarcheshmeh"
+      },
+      {
+        "name_fa": "بهرمان",
+        "slug_en": "behrman"
+      },
+      {
+        "name_fa": "جوادیه الهیه",
+        "slug_en": "juadih-alhih"
+      },
+      {
+        "name_fa": "زرند",
+        "slug_en": "zernd"
+      },
+      {
+        "name_fa": "خانوک",
+        "slug_en": "khanuk"
+      },
+      {
+        "name_fa": "ریحان",
+        "slug_en": "rihan"
+      },
+      {
+        "name_fa": "یزدان شهر",
+        "slug_en": "yezdan-shahr"
+      },
+      {
+        "name_fa": "سیریز",
+        "slug_en": "siriz"
+      },
+      {
+        "name_fa": "سیرجان",
+        "slug_en": "sirjan"
+      },
+      {
+        "name_fa": "زیدآباد",
+        "slug_en": "zidabad"
+      },
+      {
+        "name_fa": "نجف شهر",
+        "slug_en": "najafshahr"
+      },
+      {
+        "name_fa": "پاریز",
+        "slug_en": "pariz"
+      },
+      {
+        "name_fa": "هماشهر",
+        "slug_en": "hmashahr"
+      },
+      {
+        "name_fa": "خواجو شهر",
+        "slug_en": "khoaju-shahr"
+      },
+      {
+        "name_fa": "بلورد",
+        "slug_en": "blurd"
+      },
+      {
+        "name_fa": "شهربابک",
+        "slug_en": "shaherbabk"
+      },
+      {
+        "name_fa": "خورسند",
+        "slug_en": "khoresnd"
+      },
+      {
+        "name_fa": "جوزم",
+        "slug_en": "juzm"
+      },
+      {
+        "name_fa": "خاتون آباد",
+        "slug_en": "khatun-abad"
+      },
+      {
+        "name_fa": "دهج",
+        "slug_en": "dhj"
+      },
+      {
+        "name_fa": "راین",
+        "slug_en": "rain"
+      },
+      {
+        "name_fa": "شهداد",
+        "slug_en": "shdad"
+      },
+      {
+        "name_fa": "گلباف",
+        "slug_en": "gelbaf"
+      },
+      {
+        "name_fa": "جوپار",
+        "slug_en": "jupar"
+      },
+      {
+        "name_fa": "ماهان",
+        "slug_en": "mahan"
+      },
+      {
+        "name_fa": "چترود",
+        "slug_en": "chetrud"
+      },
+      {
+        "name_fa": "کرمان",
+        "slug_en": "kerman"
+      },
+      {
+        "name_fa": "باغین",
+        "slug_en": "baghin"
+      },
+      {
+        "name_fa": "محی آباد",
+        "slug_en": "mhi-abad"
+      },
+      {
+        "name_fa": "زنگی آباد",
+        "slug_en": "zengi-abad"
+      },
+      {
+        "name_fa": "کاظم آباد",
+        "slug_en": "kazm-abad"
+      },
+      {
+        "name_fa": "اختیارآباد",
+        "slug_en": "akhtiarabad"
+      },
+      {
+        "name_fa": "اندوهجرد",
+        "slug_en": "anduhejrd"
+      },
+      {
+        "name_fa": "چاه مرید",
+        "slug_en": "chah-mrid"
+      },
+      {
+        "name_fa": "کهنوج",
+        "slug_en": "khnuj"
+      },
+      {
+        "name_fa": "ده کهان",
+        "slug_en": "dh-khan"
+      },
+      {
+        "name_fa": "بردسیر",
+        "slug_en": "berdsir"
+      },
+      {
+        "name_fa": "لاله زار",
+        "slug_en": "lalh-zar"
+      },
+      {
+        "name_fa": "گلزار",
+        "slug_en": "gelzar"
+      },
+      {
+        "name_fa": "نگار",
+        "slug_en": "ngar"
+      },
+      {
+        "name_fa": "دشتکار",
+        "slug_en": "deshtkar"
+      },
+      {
+        "name_fa": "راور",
+        "slug_en": "ravr"
+      },
+      {
+        "name_fa": "هجدک",
+        "slug_en": "hejdk"
+      },
+      {
+        "name_fa": "عنبرآباد",
+        "slug_en": "anebrabad"
+      },
+      {
+        "name_fa": "مردهک",
+        "slug_en": "mardehek"
+      },
+      {
+        "name_fa": "دوساری",
+        "slug_en": "dusari"
+      },
+      {
+        "name_fa": "منوجان",
+        "slug_en": "mnujan"
+      },
+      {
+        "name_fa": "نودژ",
+        "slug_en": "nudezh"
+      },
+      {
+        "name_fa": "کوهبنان",
+        "slug_en": "kuhebnan"
+      },
+      {
+        "name_fa": "کیانشهر",
+        "slug_en": "kianeshahr"
+      },
+      {
+        "name_fa": "رودبار",
+        "slug_en": "rudbar"
+      },
+      {
+        "name_fa": "قلعه گنج",
+        "slug_en": "qaleh-ganj"
+      },
+      {
+        "name_fa": "چاه دادخدا",
+        "slug_en": "chah-dadekhda"
+      },
+      {
+        "name_fa": "رمشک",
+        "slug_en": "rameshk"
+      },
+      {
+        "name_fa": "رحمت آباد",
+        "slug_en": "rehmt-abad"
+      },
+      {
+        "name_fa": "عباس آباد سردار",
+        "slug_en": "abas-abad-serdar"
+      },
+      {
+        "name_fa": "محمدآباد",
+        "slug_en": "mehmdabad"
+      },
+      {
+        "name_fa": "رابر",
+        "slug_en": "rabr"
+      },
+      {
+        "name_fa": "هنزا",
+        "slug_en": "henza"
+      },
+      {
+        "name_fa": "دهنو اسلام آباد",
+        "slug_en": "dehnu-aslam-abad"
+      },
+      {
+        "name_fa": "فهرج",
+        "slug_en": "fehrj"
+      },
+      {
+        "name_fa": "انار",
+        "slug_en": "anar"
+      },
+      {
+        "name_fa": "امین شهر",
+        "slug_en": "amin-shahr"
+      },
+      {
+        "name_fa": "نرماشیر",
+        "slug_en": "nermashir"
+      },
+      {
+        "name_fa": "نظام شهر",
+        "slug_en": "nzam-shahr"
+      },
+      {
+        "name_fa": "پاسفید",
+        "slug_en": "pasefid"
+      },
+      {
+        "name_fa": "فاریاب",
+        "slug_en": "fariab"
+      },
+      {
+        "name_fa": "ارزوییه",
+        "slug_en": "arzuiyeh"
+      },
+      {
+        "name_fa": "گنبکی",
+        "slug_en": "genbki"
+      },
+      {
+        "name_fa": "زهکلوت",
+        "slug_en": "zheklut"
+      }
+    ]
+  },
+  {
+    "code": "10",
+    "name_fa": "خراسان رضوی",
+    "slug_en": "razavi-khorasan",
+    "cities": [
+      {
+        "name_fa": "تایباد",
+        "slug_en": "taibad"
+      },
+      {
+        "name_fa": "کاریز",
+        "slug_en": "kariz"
+      },
+      {
+        "name_fa": "مشهد ریزه",
+        "slug_en": "mashhad-rizeh"
+      },
+      {
+        "name_fa": "نسر",
+        "slug_en": "nsr"
+      },
+      {
+        "name_fa": "تربت حیدریه",
+        "slug_en": "torbat-e-heydarieh"
+      },
+      {
+        "name_fa": "کدکن",
+        "slug_en": "kedkn"
+      },
+      {
+        "name_fa": "بایک",
+        "slug_en": "baik"
+      },
+      {
+        "name_fa": "رباط سنگ",
+        "slug_en": "robat-sang"
+      },
+      {
+        "name_fa": "تربت جام",
+        "slug_en": "torbat-e-jam"
+      },
+      {
+        "name_fa": "احمدآباد صولت",
+        "slug_en": "ahemdabad-sult"
+      },
+      {
+        "name_fa": "نصرآباد",
+        "slug_en": "nesrabad"
+      },
+      {
+        "name_fa": "نیل شهر",
+        "slug_en": "nil-shahr"
+      },
+      {
+        "name_fa": "سمیع آباد",
+        "slug_en": "smia-abad"
+      },
+      {
+        "name_fa": "لطف آباد",
+        "slug_en": "ltf-abad"
+      },
+      {
+        "name_fa": "درگز",
+        "slug_en": "dergz"
+      },
+      {
+        "name_fa": "نوخندان",
+        "slug_en": "nukhendan"
+      },
+      {
+        "name_fa": "چاپشلو",
+        "slug_en": "chapeshlu"
+      },
+      {
+        "name_fa": "سبزوار",
+        "slug_en": "sebzuar"
+      },
+      {
+        "name_fa": "روداب",
+        "slug_en": "rudab"
+      },
+      {
+        "name_fa": "سبزوار1",
+        "slug_en": "sebzuar1"
+      },
+      {
+        "name_fa": "سبزوار2",
+        "slug_en": "sebzuar2"
+      },
+      {
+        "name_fa": "آلماجق",
+        "slug_en": "almajq"
+      },
+      {
+        "name_fa": "شهر کهنه",
+        "slug_en": "shahr-kohne"
+      },
+      {
+        "name_fa": "مزرج",
+        "slug_en": "mezrj"
+      },
+      {
+        "name_fa": "باجگیران",
+        "slug_en": "bajgiran"
+      },
+      {
+        "name_fa": "قوچان",
+        "slug_en": "quchan"
+      },
+      {
+        "name_fa": "فرگ قلعه",
+        "slug_en": "farg-qaleh"
+      },
+      {
+        "name_fa": "کاشمر",
+        "slug_en": "kashemr"
+      },
+      {
+        "name_fa": "بیدخت",
+        "slug_en": "bidekht"
+      },
+      {
+        "name_fa": "کاخک",
+        "slug_en": "kakhk"
+      },
+      {
+        "name_fa": "گناباد",
+        "slug_en": "gnabad"
+      },
+      {
+        "name_fa": "روشناوند",
+        "slug_en": "rushnavend"
+      },
+      {
+        "name_fa": "مشهد",
+        "slug_en": "mashhad"
+      },
+      {
+        "name_fa": "رضویه",
+        "slug_en": "rzoih"
+      },
+      {
+        "name_fa": "ملک آباد",
+        "slug_en": "mlk-abad"
+      },
+      {
+        "name_fa": "مشهد ثامن",
+        "slug_en": "iran-carpet"
+      },
+      {
+        "name_fa": "نیشابور",
+        "slug_en": "nishabur"
+      },
+      {
+        "name_fa": "بار",
+        "slug_en": "bar"
+      },
+      {
+        "name_fa": "چکنه",
+        "slug_en": "cheknh"
+      },
+      {
+        "name_fa": "چناران",
+        "slug_en": "chnaran"
+      },
+      {
+        "name_fa": "رادکان",
+        "slug_en": "radkan"
+      },
+      {
+        "name_fa": "سیدآباد",
+        "slug_en": "sidabad"
+      },
+      {
+        "name_fa": "سده",
+        "slug_en": "sdh"
+      },
+      {
+        "name_fa": "خواف",
+        "slug_en": "khoaf"
+      },
+      {
+        "name_fa": "سنگان",
+        "slug_en": "sengan"
+      },
+      {
+        "name_fa": "قاسم آباد",
+        "slug_en": "ghasm-abad"
+      },
+      {
+        "name_fa": "نشتیفان",
+        "slug_en": "neshtifan"
+      },
+      {
+        "name_fa": "سلامی",
+        "slug_en": "slami"
+      },
+      {
+        "name_fa": "سرخس",
+        "slug_en": "sarakhs"
+      },
+      {
+        "name_fa": "مزدآوند",
+        "slug_en": "mezdavnd"
+      },
+      {
+        "name_fa": "فریمان",
+        "slug_en": "friman"
+      },
+      {
+        "name_fa": "قلندر آباد",
+        "slug_en": "qelndr-abad"
+      },
+      {
+        "name_fa": "فرهادگرد",
+        "slug_en": "farhad-gerd"
+      },
+      {
+        "name_fa": "سفید سنگ",
+        "slug_en": "sefid-sang"
+      },
+      {
+        "name_fa": "بردسکن",
+        "slug_en": "bardaskan"
+      },
+      {
+        "name_fa": "شهرآباد",
+        "slug_en": "shahrabad"
+      },
+      {
+        "name_fa": "انابد",
+        "slug_en": "anabd"
+      },
+      {
+        "name_fa": "رشتخوار",
+        "slug_en": "roshtkhar"
+      },
+      {
+        "name_fa": "جنگل",
+        "slug_en": "jengl"
+      },
+      {
+        "name_fa": "چنار",
+        "slug_en": "chnar"
+      },
+      {
+        "name_fa": "حسن آباد",
+        "slug_en": "hsn-abad"
+      },
+      {
+        "name_fa": "کلات",
+        "slug_en": "klat"
+      },
+      {
+        "name_fa": "شهر زو",
+        "slug_en": "shahr-zu"
+      },
+      {
+        "name_fa": "خلیل آباد",
+        "slug_en": "khlil-abad"
+      },
+      {
+        "name_fa": "کندر",
+        "slug_en": "kendr"
+      },
+      {
+        "name_fa": "فیض آباد",
+        "slug_en": "fiz-abad"
+      },
+      {
+        "name_fa": "شادمهر",
+        "slug_en": "shademehr"
+      },
+      {
+        "name_fa": "بجستان",
+        "slug_en": "bejstan"
+      },
+      {
+        "name_fa": "یونسی",
+        "slug_en": "yunsi"
+      },
+      {
+        "name_fa": "شاندیز",
+        "slug_en": "shandiz"
+      },
+      {
+        "name_fa": "طرقبه",
+        "slug_en": "torghabeh"
+      },
+      {
+        "name_fa": "گرماب",
+        "slug_en": "germab"
+      },
+      {
+        "name_fa": "همت آباد",
+        "slug_en": "hmt-abad"
+      },
+      {
+        "name_fa": "فیروزه",
+        "slug_en": "firuzh"
+      },
+      {
+        "name_fa": "جغتای",
+        "slug_en": "jeghtai"
+      },
+      {
+        "name_fa": "ریواده",
+        "slug_en": "riuadh"
+      },
+      {
+        "name_fa": "دولت آباد",
+        "slug_en": "dult-abad"
+      },
+      {
+        "name_fa": "چخماق",
+        "slug_en": "chekhmaq"
+      },
+      {
+        "name_fa": "نقاب",
+        "slug_en": "neghab"
+      },
+      {
+        "name_fa": "حکم آباد",
+        "slug_en": "hkm-abad"
+      },
+      {
+        "name_fa": "باخرز",
+        "slug_en": "bakherz"
+      },
+      {
+        "name_fa": "قلعه نو علیا",
+        "slug_en": "qlah-nu-alia"
+      },
+      {
+        "name_fa": "سلطان آباد",
+        "slug_en": "seltan-abad"
+      },
+      {
+        "name_fa": "مشکان",
+        "slug_en": "meshkan"
+      },
+      {
+        "name_fa": "نوده انقلاب",
+        "slug_en": "nudh-aneqlab"
+      },
+      {
+        "name_fa": "داورزن",
+        "slug_en": "daverzn"
+      },
+      {
+        "name_fa": "ریوند",
+        "slug_en": "riund"
+      },
+      {
+        "name_fa": "صالح آباد",
+        "slug_en": "salh-abad"
+      },
+      {
+        "name_fa": "جنت آباد",
+        "slug_en": "jnt-abad"
+      },
+      {
+        "name_fa": "ریوش",
+        "slug_en": "riush"
+      },
+      {
+        "name_fa": "درود",
+        "slug_en": "drud"
+      },
+      {
+        "name_fa": "قدمگاه",
+        "slug_en": "qedmgah"
+      },
+      {
+        "name_fa": "خرو",
+        "slug_en": "khru"
+      },
+      {
+        "name_fa": "اسحق آباد",
+        "slug_en": "ashq-abad"
+      },
+      {
+        "name_fa": "شامکان",
+        "slug_en": "shamkan"
+      },
+      {
+        "name_fa": "ششتمد",
+        "slug_en": "sheshtamad"
+      },
+      {
+        "name_fa": "گلمکان",
+        "slug_en": "gelmkan"
+      },
+      {
+        "name_fa": "گلبهار",
+        "slug_en": "gelbhar"
+      },
+      {
+        "name_fa": "عشق آباد",
+        "slug_en": "ashq-abad"
+      }
+    ]
+  },
+  {
+    "code": "11",
+    "name_fa": "اصفهان",
+    "slug_en": "isfahan",
+    "cities": [
+      {
+        "name_fa": "اردستان",
+        "slug_en": "aredstan"
+      },
+      {
+        "name_fa": "زواره",
+        "slug_en": "zuarh"
+      },
+      {
+        "name_fa": "مهاباد",
+        "slug_en": "mhabad"
+      },
+      {
+        "name_fa": "اصفهان",
+        "slug_en": "isfahan"
+      },
+      {
+        "name_fa": "قهجاورستان",
+        "slug_en": "qahjavarestan"
+      },
+      {
+        "name_fa": "بهارستان",
+        "slug_en": "bharestan"
+      },
+      {
+        "name_fa": "زیار",
+        "slug_en": "ziar"
+      },
+      {
+        "name_fa": "خمینی شهر",
+        "slug_en": "khomeini-shahr"
+      },
+      {
+        "name_fa": "درچه",
+        "slug_en": "dorcheh"
+      },
+      {
+        "name_fa": "کوشک",
+        "slug_en": "kushk"
+      },
+      {
+        "name_fa": "اصغرآباد",
+        "slug_en": "aseghrabad"
+      },
+      {
+        "name_fa": "ویست",
+        "slug_en": "oist"
+      },
+      {
+        "name_fa": "خوانسار",
+        "slug_en": "khoansar"
+      },
+      {
+        "name_fa": "سمیرم",
+        "slug_en": "smirm"
+      },
+      {
+        "name_fa": "حنا",
+        "slug_en": "hna"
+      },
+      {
+        "name_fa": "ونک",
+        "slug_en": "unk"
+      },
+      {
+        "name_fa": "کمه",
+        "slug_en": "kmh"
+      },
+      {
+        "name_fa": "بیده",
+        "slug_en": "bidh"
+      },
+      {
+        "name_fa": "فتح آباد",
+        "slug_en": "fth-abad"
+      },
+      {
+        "name_fa": "داران",
+        "slug_en": "daran"
+      },
+      {
+        "name_fa": "دامنه",
+        "slug_en": "damenh"
+      },
+      {
+        "name_fa": "فریدونشهر",
+        "slug_en": "friduneshahr"
+      },
+      {
+        "name_fa": "برف انبار",
+        "slug_en": "brf-anbar"
+      },
+      {
+        "name_fa": "طاد",
+        "slug_en": "tad"
+      },
+      {
+        "name_fa": "بوستان زر",
+        "slug_en": "bustan-zr"
+      },
+      {
+        "name_fa": "فلاورجان",
+        "slug_en": "flaverjan"
+      },
+      {
+        "name_fa": "کلیشاد و سودرجان",
+        "slug_en": "klishad-u-suderjan"
+      },
+      {
+        "name_fa": "قهدریجان",
+        "slug_en": "qehdrijan"
+      },
+      {
+        "name_fa": "پیربکران",
+        "slug_en": "pirebkran"
+      },
+      {
+        "name_fa": "ابریشم",
+        "slug_en": "abrishm"
+      },
+      {
+        "name_fa": "بهاران شهر",
+        "slug_en": "bharan-shahr"
+      },
+      {
+        "name_fa": "اشترجان",
+        "slug_en": "ashetrjan"
+      },
+      {
+        "name_fa": "زازران",
+        "slug_en": "zazran"
+      },
+      {
+        "name_fa": "مینادشت",
+        "slug_en": "minadesht"
+      },
+      {
+        "name_fa": "شهرضا",
+        "slug_en": "shaherza"
+      },
+      {
+        "name_fa": "منظریه",
+        "slug_en": "menzrih"
+      },
+      {
+        "name_fa": "قمصر",
+        "slug_en": "qemsar"
+      },
+      {
+        "name_fa": "کاشان",
+        "slug_en": "kashan"
+      },
+      {
+        "name_fa": "نیاسر",
+        "slug_en": "niasar"
+      },
+      {
+        "name_fa": "جوشقان قالی",
+        "slug_en": "jusheghan-ghali"
+      },
+      {
+        "name_fa": "برزک",
+        "slug_en": "berzk"
+      },
+      {
+        "name_fa": "مشکات",
+        "slug_en": "meshkat"
+      },
+      {
+        "name_fa": "کامو و چوگان",
+        "slug_en": "kamu-u-chugan"
+      },
+      {
+        "name_fa": "گلپایگان",
+        "slug_en": "gelpaigan"
+      },
+      {
+        "name_fa": "گوگد",
+        "slug_en": "gugd"
+      },
+      {
+        "name_fa": "گلشهر",
+        "slug_en": "gelshahr"
+      },
+      {
+        "name_fa": "باغ بهادران",
+        "slug_en": "baq-bahadoran"
+      },
+      {
+        "name_fa": "چمگردان",
+        "slug_en": "chamgordan"
+      },
+      {
+        "name_fa": "زرین شهر",
+        "slug_en": "zrin-shahr"
+      },
+      {
+        "name_fa": "سده لنجان",
+        "slug_en": "sedeh-lanjan"
+      },
+      {
+        "name_fa": "ورنامخواست",
+        "slug_en": "urnamekhoast"
+      },
+      {
+        "name_fa": "چرمهین",
+        "slug_en": "chermhin"
+      },
+      {
+        "name_fa": "فولادشهر",
+        "slug_en": "fuladeshahr"
+      },
+      {
+        "name_fa": "زاینده رود",
+        "slug_en": "zainedh-rud"
+      },
+      {
+        "name_fa": "باغشاد",
+        "slug_en": "bagheshad"
+      },
+      {
+        "name_fa": "انارک",
+        "slug_en": "anark"
+      },
+      {
+        "name_fa": "نایین",
+        "slug_en": "nain"
+      },
+      {
+        "name_fa": "بافران",
+        "slug_en": "bafran"
+      },
+      {
+        "name_fa": "دهق",
+        "slug_en": "dhq"
+      },
+      {
+        "name_fa": "علویجه",
+        "slug_en": "aloijh"
+      },
+      {
+        "name_fa": "نجف آباد",
+        "slug_en": "njf-abad"
+      },
+      {
+        "name_fa": "جوزدان",
+        "slug_en": "juzdan"
+      },
+      {
+        "name_fa": "گلدشت",
+        "slug_en": "goldasht"
+      },
+      {
+        "name_fa": "کهریزسنگ",
+        "slug_en": "khrizesng"
+      },
+      {
+        "name_fa": "بادرود",
+        "slug_en": "badrud"
+      },
+      {
+        "name_fa": "نطنز",
+        "slug_en": "netnz"
+      },
+      {
+        "name_fa": "خالدآباد",
+        "slug_en": "khaldabad"
+      },
+      {
+        "name_fa": "طرق رود",
+        "slug_en": "trq-rud"
+      },
+      {
+        "name_fa": "شاهین شهر",
+        "slug_en": "shahin-shahr"
+      },
+      {
+        "name_fa": "گزبرخوار",
+        "slug_en": "gezbrkhoar"
+      },
+      {
+        "name_fa": "میمه",
+        "slug_en": "mimeh"
+      },
+      {
+        "name_fa": "وزوان",
+        "slug_en": "uzuan"
+      },
+      {
+        "name_fa": "گرگاب",
+        "slug_en": "gergab"
+      },
+      {
+        "name_fa": "لای بید",
+        "slug_en": "lai-bid"
+      },
+      {
+        "name_fa": "مبارکه",
+        "slug_en": "mbarekh"
+      },
+      {
+        "name_fa": "مجلسی",
+        "slug_en": "mejlsi"
+      },
+      {
+        "name_fa": "دیزیچه",
+        "slug_en": "dizichh"
+      },
+      {
+        "name_fa": "طالخونچه",
+        "slug_en": "talkhuncheh"
+      },
+      {
+        "name_fa": "کرکوند",
+        "slug_en": "kerkund"
+      },
+      {
+        "name_fa": "زیباشهر",
+        "slug_en": "zibashahr"
+      },
+      {
+        "name_fa": "ده سرخ",
+        "slug_en": "dh-serkh"
+      },
+      {
+        "name_fa": "آران و بیدگل",
+        "slug_en": "aran-u-bidegl"
+      },
+      {
+        "name_fa": "ابوزیدآباد",
+        "slug_en": "abuzidabad"
+      },
+      {
+        "name_fa": "نوش آباد",
+        "slug_en": "nush-abad"
+      },
+      {
+        "name_fa": "سفید شهر",
+        "slug_en": "sefid-shahr"
+      },
+      {
+        "name_fa": "تیران",
+        "slug_en": "tiran"
+      },
+      {
+        "name_fa": "عسگران",
+        "slug_en": "asegran"
+      },
+      {
+        "name_fa": "رضوانشهر",
+        "slug_en": "rzuaneshahr"
+      },
+      {
+        "name_fa": "چادگان",
+        "slug_en": "chadgan"
+      },
+      {
+        "name_fa": "رزوه",
+        "slug_en": "rzuh"
+      },
+      {
+        "name_fa": "دهاقان",
+        "slug_en": "dhaghan"
+      },
+      {
+        "name_fa": "گلشن",
+        "slug_en": "golshan"
+      },
+      {
+        "name_fa": "حبیب آباد",
+        "slug_en": "hbib-abad"
+      },
+      {
+        "name_fa": "خورزوق",
+        "slug_en": "khorzuq"
+      },
+      {
+        "name_fa": "دستگرد",
+        "slug_en": "dastgerd"
+      },
+      {
+        "name_fa": "دولت آباد",
+        "slug_en": "dult-abad"
+      },
+      {
+        "name_fa": "شاپورآباد",
+        "slug_en": "shapurabad"
+      },
+      {
+        "name_fa": "کمشچه",
+        "slug_en": "komeshcheh"
+      },
+      {
+        "name_fa": "سین",
+        "slug_en": "sin"
+      },
+      {
+        "name_fa": "خور",
+        "slug_en": "khor"
+      },
+      {
+        "name_fa": "فرخی",
+        "slug_en": "ferkhi"
+      },
+      {
+        "name_fa": "جندق",
+        "slug_en": "jendq"
+      },
+      {
+        "name_fa": "بویین و میاندشت",
+        "slug_en": "buin-and-miandasht"
+      },
+      {
+        "name_fa": "افوس",
+        "slug_en": "afus"
+      },
+      {
+        "name_fa": "کوهپایه",
+        "slug_en": "kuhpaih"
+      },
+      {
+        "name_fa": "سجزی",
+        "slug_en": "sejzi"
+      },
+      {
+        "name_fa": "تودشک",
+        "slug_en": "tudeshk"
+      },
+      {
+        "name_fa": "نیک آباد",
+        "slug_en": "nik-abad"
+      },
+      {
+        "name_fa": "حسن اباد",
+        "slug_en": "hsn-abad"
+      },
+      {
+        "name_fa": "محمدآباد",
+        "slug_en": "mehmdabad"
+      },
+      {
+        "name_fa": "نصرآباد",
+        "slug_en": "nesrabad"
+      },
+      {
+        "name_fa": "ورزنه",
+        "slug_en": "ureznh"
+      },
+      {
+        "name_fa": "هرند",
+        "slug_en": "hernd"
+      },
+      {
+        "name_fa": "اژیه",
+        "slug_en": "azhih"
+      }
+    ]
+  },
+  {
+    "code": "12",
+    "name_fa": "سیستان و بلوچستان",
+    "slug_en": "sistan-and-baluchestan",
+    "cities": [
+      {
+        "name_fa": "ایرانشهر",
+        "slug_en": "airaneshahr"
+      },
+      {
+        "name_fa": "بزمان",
+        "slug_en": "bezman"
+      },
+      {
+        "name_fa": "چاه بهار",
+        "slug_en": "chah-bhar"
+      },
+      {
+        "name_fa": "پلان",
+        "slug_en": "plan"
+      },
+      {
+        "name_fa": "خاش",
+        "slug_en": "khash"
+      },
+      {
+        "name_fa": "ده رییس",
+        "slug_en": "deh-raeis"
+      },
+      {
+        "name_fa": "اسماعیل آباد",
+        "slug_en": "asmaail-abad"
+      },
+      {
+        "name_fa": "زابل",
+        "slug_en": "zabl"
+      },
+      {
+        "name_fa": "بنجار",
+        "slug_en": "benjar"
+      },
+      {
+        "name_fa": "زاهدان",
+        "slug_en": "zahedan"
+      },
+      {
+        "name_fa": "نصرت آباد",
+        "slug_en": "nesrt-abad"
+      },
+      {
+        "name_fa": "سرجنگل",
+        "slug_en": "sarjangal"
+      },
+      {
+        "name_fa": "اسفندک",
+        "slug_en": "esfandak"
+      },
+      {
+        "name_fa": "سراوان",
+        "slug_en": "sravan"
+      },
+      {
+        "name_fa": "محمدی",
+        "slug_en": "mehmdi"
+      },
+      {
+        "name_fa": "گشت",
+        "slug_en": "gesht"
+      },
+      {
+        "name_fa": "سیرکان",
+        "slug_en": "sirkan"
+      },
+      {
+        "name_fa": "چانف",
+        "slug_en": "chanf"
+      },
+      {
+        "name_fa": "نیک شهر",
+        "slug_en": "nik-shahr"
+      },
+      {
+        "name_fa": "بنت",
+        "slug_en": "bnt"
+      },
+      {
+        "name_fa": "راسک",
+        "slug_en": "rask"
+      },
+      {
+        "name_fa": "پیشین",
+        "slug_en": "pishin"
+      },
+      {
+        "name_fa": "پارود",
+        "slug_en": "parud"
+      },
+      {
+        "name_fa": "کنارک",
+        "slug_en": "knark"
+      },
+      {
+        "name_fa": "زهک",
+        "slug_en": "zhk"
+      },
+      {
+        "name_fa": "جزینک",
+        "slug_en": "jzink"
+      },
+      {
+        "name_fa": "دوست محمد",
+        "slug_en": "dust-mehmd"
+      },
+      {
+        "name_fa": "قرقری",
+        "slug_en": "qerqri"
+      },
+      {
+        "name_fa": "گلمورتی",
+        "slug_en": "gelmurti"
+      },
+      {
+        "name_fa": "چگرد",
+        "slug_en": "chegrd"
+      },
+      {
+        "name_fa": "مهرستان",
+        "slug_en": "mehrestan"
+      },
+      {
+        "name_fa": "آشار",
+        "slug_en": "ashar"
+      },
+      {
+        "name_fa": "سیب",
+        "slug_en": "sib"
+      },
+      {
+        "name_fa": "سوران",
+        "slug_en": "suran"
+      },
+      {
+        "name_fa": "هیدوچ",
+        "slug_en": "hiduch"
+      },
+      {
+        "name_fa": "ادیمی",
+        "slug_en": "adimi"
+      },
+      {
+        "name_fa": "علی اکبر",
+        "slug_en": "ali-akebr"
+      },
+      {
+        "name_fa": "محمدآباد",
+        "slug_en": "mehmdabad"
+      },
+      {
+        "name_fa": "لادیز",
+        "slug_en": "ladiz"
+      },
+      {
+        "name_fa": "میرجاوه",
+        "slug_en": "mirjavh"
+      },
+      {
+        "name_fa": "ریگ ملک",
+        "slug_en": "rig-malek"
+      },
+      {
+        "name_fa": "قصرقند",
+        "slug_en": "qasr-e-qand"
+      },
+      {
+        "name_fa": "ساربوک",
+        "slug_en": "sarbuk"
+      },
+      {
+        "name_fa": "فنوج",
+        "slug_en": "fnuj"
+      },
+      {
+        "name_fa": "گتیج",
+        "slug_en": "gtij"
+      },
+      {
+        "name_fa": "قاسم آباد",
+        "slug_en": "ghasm-abad"
+      },
+      {
+        "name_fa": "محمدان",
+        "slug_en": "mehmdan"
+      },
+      {
+        "name_fa": "بمپور",
+        "slug_en": "bempur"
+      },
+      {
+        "name_fa": "نوک آباد",
+        "slug_en": "nuk-abad"
+      },
+      {
+        "name_fa": "بریس",
+        "slug_en": "bris"
+      },
+      {
+        "name_fa": "نگور",
+        "slug_en": "ngur"
+      },
+      {
+        "name_fa": "سرباز",
+        "slug_en": "serbaz"
+      },
+      {
+        "name_fa": "جالق",
+        "slug_en": "jalq"
+      },
+      {
+        "name_fa": "اسپکه",
+        "slug_en": "asepkh"
+      },
+      {
+        "name_fa": "زرآباد",
+        "slug_en": "zrabad"
+      }
+    ]
+  },
+  {
+    "code": "13",
+    "name_fa": "کردستان",
+    "slug_en": "kurdistan",
+    "cities": [
+      {
+        "name_fa": "بانه",
+        "slug_en": "banh"
+      },
+      {
+        "name_fa": "آرمرده",
+        "slug_en": "armardeh"
+      },
+      {
+        "name_fa": "کانی سور",
+        "slug_en": "kani-sur"
+      },
+      {
+        "name_fa": "بویین سفلی",
+        "slug_en": "buin-e-sofla"
+      },
+      {
+        "name_fa": "بیجار",
+        "slug_en": "bijar"
+      },
+      {
+        "name_fa": "یاسوکند",
+        "slug_en": "yasukend"
+      },
+      {
+        "name_fa": "بابارشانی",
+        "slug_en": "babareshani"
+      },
+      {
+        "name_fa": "توپ آغاج",
+        "slug_en": "tup-aghaj"
+      },
+      {
+        "name_fa": "پیرتاج",
+        "slug_en": "pirtaj"
+      },
+      {
+        "name_fa": "سقز",
+        "slug_en": "sqz"
+      },
+      {
+        "name_fa": "صاحب",
+        "slug_en": "sahb"
+      },
+      {
+        "name_fa": "سنته",
+        "slug_en": "senth"
+      },
+      {
+        "name_fa": "سنندج",
+        "slug_en": "sanandaj"
+      },
+      {
+        "name_fa": "شویشه",
+        "slug_en": "shoish"
+      },
+      {
+        "name_fa": "حسین آباد",
+        "slug_en": "hsin-abad"
+      },
+      {
+        "name_fa": "مالوجه",
+        "slug_en": "malujh"
+      },
+      {
+        "name_fa": "سریش آباد",
+        "slug_en": "srish-abad"
+      },
+      {
+        "name_fa": "قروه",
+        "slug_en": "qruh"
+      },
+      {
+        "name_fa": "دلبران",
+        "slug_en": "delbran"
+      },
+      {
+        "name_fa": "دزج",
+        "slug_en": "dzj"
+      },
+      {
+        "name_fa": "مریوان",
+        "slug_en": "mriuan"
+      },
+      {
+        "name_fa": "کانی دینار",
+        "slug_en": "kani-dinar"
+      },
+      {
+        "name_fa": "چناره",
+        "slug_en": "chnarh"
+      },
+      {
+        "name_fa": "برده رشه",
+        "slug_en": "berdh-rsh"
+      },
+      {
+        "name_fa": "دیواندره",
+        "slug_en": "diuanedrh"
+      },
+      {
+        "name_fa": "زرینه",
+        "slug_en": "zrinh"
+      },
+      {
+        "name_fa": "هزارکانیان",
+        "slug_en": "hzarkanian"
+      },
+      {
+        "name_fa": "کامیاران",
+        "slug_en": "kamiaran"
+      },
+      {
+        "name_fa": "موچش",
+        "slug_en": "muchesh"
+      },
+      {
+        "name_fa": "سروآباد",
+        "slug_en": "sruabad"
+      },
+      {
+        "name_fa": "اورامان تخت",
+        "slug_en": "avraman-tekht"
+      },
+      {
+        "name_fa": "دهگلان",
+        "slug_en": "dehglan"
+      },
+      {
+        "name_fa": "بلبان آباد",
+        "slug_en": "belban-abad"
+      }
+    ]
+  },
+  {
+    "code": "14",
+    "name_fa": "همدان",
+    "slug_en": "hamedan",
+    "cities": [
+      {
+        "name_fa": "تویسرکان",
+        "slug_en": "toiserkan"
+      },
+      {
+        "name_fa": "سرکان",
+        "slug_en": "serkan"
+      },
+      {
+        "name_fa": "فرسفج",
+        "slug_en": "farasfaj"
+      },
+      {
+        "name_fa": "سامن",
+        "slug_en": "samn"
+      },
+      {
+        "name_fa": "ملایر",
+        "slug_en": "mlair"
+      },
+      {
+        "name_fa": "ازندریان",
+        "slug_en": "azendrian"
+      },
+      {
+        "name_fa": "جوکار",
+        "slug_en": "jukar"
+      },
+      {
+        "name_fa": "زنگنه",
+        "slug_en": "zangeneh"
+      },
+      {
+        "name_fa": "اسلام شهر آق گل",
+        "slug_en": "aslam-shahr-aq-gl"
+      },
+      {
+        "name_fa": "نهاوند",
+        "slug_en": "nhavend"
+      },
+      {
+        "name_fa": "فیروزان",
+        "slug_en": "firuzan"
+      },
+      {
+        "name_fa": "برزول",
+        "slug_en": "berzul"
+      },
+      {
+        "name_fa": "گیان",
+        "slug_en": "gian"
+      },
+      {
+        "name_fa": "مریانج",
+        "slug_en": "mrianj"
+      },
+      {
+        "name_fa": "همدان",
+        "slug_en": "hamedan"
+      },
+      {
+        "name_fa": "جورقان",
+        "slug_en": "jureghan"
+      },
+      {
+        "name_fa": "قهاوند",
+        "slug_en": "qhavend"
+      },
+      {
+        "name_fa": "کبودرآهنگ",
+        "slug_en": "kbudraheng"
+      },
+      {
+        "name_fa": "گل تپه",
+        "slug_en": "gl-tph"
+      },
+      {
+        "name_fa": "شیرین سو",
+        "slug_en": "shirin-su"
+      },
+      {
+        "name_fa": "اسدآباد",
+        "slug_en": "asdabad"
+      },
+      {
+        "name_fa": "آجین",
+        "slug_en": "ajin"
+      },
+      {
+        "name_fa": "پالیز",
+        "slug_en": "paliz"
+      },
+      {
+        "name_fa": "بهار",
+        "slug_en": "bhar"
+      },
+      {
+        "name_fa": "لالجین",
+        "slug_en": "laljin"
+      },
+      {
+        "name_fa": "صالح آباد",
+        "slug_en": "salh-abad"
+      },
+      {
+        "name_fa": "مهاجران",
+        "slug_en": "mhajran"
+      },
+      {
+        "name_fa": "رزن",
+        "slug_en": "rzn"
+      },
+      {
+        "name_fa": "دمق",
+        "slug_en": "dmq"
+      },
+      {
+        "name_fa": "فامنین",
+        "slug_en": "famnin"
+      },
+      {
+        "name_fa": "شاهنجرین",
+        "slug_en": "shahenjrin"
+      },
+      {
+        "name_fa": "قروه درگزین",
+        "slug_en": "qruh-dergzin"
+      },
+      {
+        "name_fa": "کرفس",
+        "slug_en": "kerfs"
+      }
+    ]
+  },
+  {
+    "code": "15",
+    "name_fa": "چهارمحال و بختیاری",
+    "slug_en": "chaharmahal-and-bakhtiari",
+    "cities": [
+      {
+        "name_fa": "بلداجی",
+        "slug_en": "beldaji"
+      },
+      {
+        "name_fa": "بروجن",
+        "slug_en": "brujn"
+      },
+      {
+        "name_fa": "فرادبنه",
+        "slug_en": "fradebnh"
+      },
+      {
+        "name_fa": "گندمان",
+        "slug_en": "gendman"
+      },
+      {
+        "name_fa": "سفیددشت",
+        "slug_en": "sefiddasht"
+      },
+      {
+        "name_fa": "نقنه",
+        "slug_en": "neqnh"
+      },
+      {
+        "name_fa": "شهرکرد",
+        "slug_en": "shahrekord-airport"
+      },
+      {
+        "name_fa": "هفشجان",
+        "slug_en": "hefshjan"
+      },
+      {
+        "name_fa": "سورشجان",
+        "slug_en": "sureshjan"
+      },
+      {
+        "name_fa": "کیان",
+        "slug_en": "kian"
+      },
+      {
+        "name_fa": "طاقانک",
+        "slug_en": "taghank"
+      },
+      {
+        "name_fa": "نافچ",
+        "slug_en": "nafech"
+      },
+      {
+        "name_fa": "سودجان",
+        "slug_en": "sudjan"
+      },
+      {
+        "name_fa": "هارونی",
+        "slug_en": "haruni"
+      },
+      {
+        "name_fa": "جونقان",
+        "slug_en": "juneghan"
+      },
+      {
+        "name_fa": "فارسان",
+        "slug_en": "farsan"
+      },
+      {
+        "name_fa": "بآباحیدر",
+        "slug_en": "babahidr"
+      },
+      {
+        "name_fa": "پردنجان",
+        "slug_en": "pordanjan"
+      },
+      {
+        "name_fa": "گوجان",
+        "slug_en": "gujan"
+      },
+      {
+        "name_fa": "چلیچه",
+        "slug_en": "cholicheh"
+      },
+      {
+        "name_fa": "فیل آباد",
+        "slug_en": "fil-abad"
+      },
+      {
+        "name_fa": "لردگان",
+        "slug_en": "lerdgan"
+      },
+      {
+        "name_fa": "منج",
+        "slug_en": "mnj"
+      },
+      {
+        "name_fa": "سردشت",
+        "slug_en": "sardasht"
+      },
+      {
+        "name_fa": "اردل",
+        "slug_en": "aredl"
+      },
+      {
+        "name_fa": "کاج",
+        "slug_en": "kaj"
+      },
+      {
+        "name_fa": "دشتک",
+        "slug_en": "dashtak"
+      },
+      {
+        "name_fa": "سرخون",
+        "slug_en": "serkhon"
+      },
+      {
+        "name_fa": "چلگرد",
+        "slug_en": "chelgerd"
+      },
+      {
+        "name_fa": "صمصامی",
+        "slug_en": "semsami"
+      },
+      {
+        "name_fa": "بازفت",
+        "slug_en": "bazeft"
+      },
+      {
+        "name_fa": "شلمزار",
+        "slug_en": "shelmzar"
+      },
+      {
+        "name_fa": "ناغان",
+        "slug_en": "naghan"
+      },
+      {
+        "name_fa": "گهرو",
+        "slug_en": "ghru"
+      },
+      {
+        "name_fa": "دستنا",
+        "slug_en": "destna"
+      },
+      {
+        "name_fa": "سامان",
+        "slug_en": "saman"
+      },
+      {
+        "name_fa": "هوره",
+        "slug_en": "hurh"
+      },
+      {
+        "name_fa": "بن",
+        "slug_en": "bn"
+      },
+      {
+        "name_fa": "وردنجان",
+        "slug_en": "urednjan"
+      },
+      {
+        "name_fa": "یان چشمه",
+        "slug_en": "yan-cheshmeh"
+      },
+      {
+        "name_fa": "آلونی",
+        "slug_en": "aluni"
+      },
+      {
+        "name_fa": "مال خلیفه",
+        "slug_en": "mal-khlifh"
+      },
+      {
+        "name_fa": "فرخ شهر",
+        "slug_en": "bank-saderat-iran"
+      }
+    ]
+  },
+  {
+    "code": "16",
+    "name_fa": "لرستان",
+    "slug_en": "lorestan",
+    "cities": [
+      {
+        "name_fa": "تیتکان بزنوید",
+        "slug_en": "titkan-beznoid"
+      },
+      {
+        "name_fa": "الیگودرز",
+        "slug_en": "aliguderz"
+      },
+      {
+        "name_fa": "شول آباد",
+        "slug_en": "shul-abad"
+      },
+      {
+        "name_fa": "چمن سلطان",
+        "slug_en": "chemn-seltan"
+      },
+      {
+        "name_fa": "شاهپوراباد",
+        "slug_en": "shahpurabad"
+      },
+      {
+        "name_fa": "اشترینان",
+        "slug_en": "ashetrinan"
+      },
+      {
+        "name_fa": "بروجرد",
+        "slug_en": "brujerd"
+      },
+      {
+        "name_fa": "بروجرد1",
+        "slug_en": "brujerd1"
+      },
+      {
+        "name_fa": "بروجرد2",
+        "slug_en": "brujerd2"
+      },
+      {
+        "name_fa": "ونایی",
+        "slug_en": "vanai"
+      },
+      {
+        "name_fa": "خرم آباد",
+        "slug_en": "khorramabad"
+      },
+      {
+        "name_fa": "زاغه",
+        "slug_en": "zagh"
+      },
+      {
+        "name_fa": "سپیددشت",
+        "slug_en": "sepiddasht"
+      },
+      {
+        "name_fa": "بیران شهر",
+        "slug_en": "biran-shahr"
+      },
+      {
+        "name_fa": "خرم آباد1",
+        "slug_en": "kherm-abad1"
+      },
+      {
+        "name_fa": "خرم آباد2",
+        "slug_en": "kherm-abad2"
+      },
+      {
+        "name_fa": "خرم آباد3",
+        "slug_en": "kherm-abad3"
+      },
+      {
+        "name_fa": "نورآباد",
+        "slug_en": "nurabad"
+      },
+      {
+        "name_fa": "هفت چشمه",
+        "slug_en": "haft-cheshmeh"
+      },
+      {
+        "name_fa": "برخوردار",
+        "slug_en": "berkhordar"
+      },
+      {
+        "name_fa": "دورود",
+        "slug_en": "durud"
+      },
+      {
+        "name_fa": "چالانچولان",
+        "slug_en": "chalanechulan"
+      },
+      {
+        "name_fa": "کوهدشت",
+        "slug_en": "kuhdasht"
+      },
+      {
+        "name_fa": "گراب",
+        "slug_en": "grab"
+      },
+      {
+        "name_fa": "کوهنانی",
+        "slug_en": "kuhnani"
+      },
+      {
+        "name_fa": "درب گنبد",
+        "slug_en": "darb-e-gonbad"
+      },
+      {
+        "name_fa": "ازنا",
+        "slug_en": "azna"
+      },
+      {
+        "name_fa": "مومن آباد",
+        "slug_en": "mumn-abad"
+      },
+      {
+        "name_fa": "پلدختر",
+        "slug_en": "pol-dokhtar"
+      },
+      {
+        "name_fa": "سراب حمام",
+        "slug_en": "srab-hmam"
+      },
+      {
+        "name_fa": "الشتر",
+        "slug_en": "aleshtar"
+      },
+      {
+        "name_fa": "فیروزآباد",
+        "slug_en": "firuzabad"
+      },
+      {
+        "name_fa": "سراب دوره",
+        "slug_en": "srab-durh"
+      },
+      {
+        "name_fa": "ویسیان",
+        "slug_en": "oisian"
+      },
+      {
+        "name_fa": "چم پلک",
+        "slug_en": "chm-plk"
+      },
+      {
+        "name_fa": "چقابل",
+        "slug_en": "cheghabl"
+      },
+      {
+        "name_fa": "سوری",
+        "slug_en": "suri"
+      },
+      {
+        "name_fa": "معمولان",
+        "slug_en": "mamulan"
+      }
+    ]
+  },
+  {
+    "code": "17",
+    "name_fa": "ایلام",
+    "slug_en": "ilam",
+    "cities": [
+      {
+        "name_fa": "ایلام",
+        "slug_en": "ilam"
+      },
+      {
+        "name_fa": "جعفراباد",
+        "slug_en": "jafrabad"
+      },
+      {
+        "name_fa": "دره شهر",
+        "slug_en": "darreh-shahr"
+      },
+      {
+        "name_fa": "ماژین",
+        "slug_en": "mazhin"
+      },
+      {
+        "name_fa": "دشت عباس",
+        "slug_en": "desht-abas"
+      },
+      {
+        "name_fa": "میمه",
+        "slug_en": "mimeh"
+      },
+      {
+        "name_fa": "دهلران",
+        "slug_en": "dehlran"
+      },
+      {
+        "name_fa": "موسیان",
+        "slug_en": "musian"
+      },
+      {
+        "name_fa": "پهله",
+        "slug_en": "pehlh"
+      },
+      {
+        "name_fa": "سرابله",
+        "slug_en": "srabelh"
+      },
+      {
+        "name_fa": "آسمان آباد",
+        "slug_en": "asman-abad"
+      },
+      {
+        "name_fa": "شباب",
+        "slug_en": "shbab"
+      },
+      {
+        "name_fa": "بلاوه",
+        "slug_en": "blavh"
+      },
+      {
+        "name_fa": "صالح آباد",
+        "slug_en": "salh-abad"
+      },
+      {
+        "name_fa": "مهران",
+        "slug_en": "mehran"
+      },
+      {
+        "name_fa": "آبدانان",
+        "slug_en": "abdanan"
+      },
+      {
+        "name_fa": "سراب باغ",
+        "slug_en": "srab-bagh"
+      },
+      {
+        "name_fa": "مورموری",
+        "slug_en": "murmuri"
+      },
+      {
+        "name_fa": "ایوان",
+        "slug_en": "aiuan"
+      },
+      {
+        "name_fa": "زرنه",
+        "slug_en": "zernh"
+      },
+      {
+        "name_fa": "ارکواز",
+        "slug_en": "arkuaz"
+      },
+      {
+        "name_fa": "دلگشا",
+        "slug_en": "delgosha"
+      },
+      {
+        "name_fa": "مهر",
+        "slug_en": "mehr"
+      },
+      {
+        "name_fa": "لومار",
+        "slug_en": "lumar"
+      },
+      {
+        "name_fa": "بدره",
+        "slug_en": "bedrh"
+      },
+      {
+        "name_fa": "چشمه شیرین",
+        "slug_en": "cheshmeh-shirin"
+      },
+      {
+        "name_fa": "توحید",
+        "slug_en": "tuhid"
+      },
+      {
+        "name_fa": "چوار",
+        "slug_en": "chuar"
+      }
+    ]
+  },
+  {
+    "code": "18",
+    "name_fa": "کهگیلویه و بویراحمد",
+    "slug_en": "kohgiluyeh-and-boyer-ahmad",
+    "cities": [
+      {
+        "name_fa": "سپیدار",
+        "slug_en": "spidar"
+      },
+      {
+        "name_fa": "یاسوج",
+        "slug_en": "yasuj"
+      },
+      {
+        "name_fa": "مادوان",
+        "slug_en": "maduan"
+      },
+      {
+        "name_fa": "چیتاب",
+        "slug_en": "chitab"
+      },
+      {
+        "name_fa": "گراب سفلی",
+        "slug_en": "grab-sefli"
+      },
+      {
+        "name_fa": "دهدشت",
+        "slug_en": "dehdsht"
+      },
+      {
+        "name_fa": "سوق",
+        "slug_en": "suq"
+      },
+      {
+        "name_fa": "قلعه رییسی",
+        "slug_en": "qaleh-raisi"
+      },
+      {
+        "name_fa": "دیشموک",
+        "slug_en": "dishmuk"
+      },
+      {
+        "name_fa": "دوگنبدان",
+        "slug_en": "dugenbdan"
+      },
+      {
+        "name_fa": "سی سخت",
+        "slug_en": "si-sekht"
+      },
+      {
+        "name_fa": "پاتاوه",
+        "slug_en": "patavh"
+      },
+      {
+        "name_fa": "قلعه ممبی",
+        "slug_en": "qlah-membi"
+      },
+      {
+        "name_fa": "سرآسیاب یوسفی",
+        "slug_en": "srasiab-iusfi"
+      },
+      {
+        "name_fa": "لیکک",
+        "slug_en": "likk"
+      },
+      {
+        "name_fa": "چرام",
+        "slug_en": "chram"
+      },
+      {
+        "name_fa": "سرفاریاب",
+        "slug_en": "serfariab"
+      },
+      {
+        "name_fa": "باشت",
+        "slug_en": "basht"
+      },
+      {
+        "name_fa": "بوستان",
+        "slug_en": "bustan"
+      },
+      {
+        "name_fa": "لنده",
+        "slug_en": "lendh"
+      },
+      {
+        "name_fa": "مارگون",
+        "slug_en": "margun"
+      }
+    ]
+  },
+  {
+    "code": "19",
+    "name_fa": "بوشهر",
+    "slug_en": "bushehr",
+    "cities": [
+      {
+        "name_fa": "خارک",
+        "slug_en": "khark"
+      },
+      {
+        "name_fa": "بوشهر",
+        "slug_en": "bushehr"
+      },
+      {
+        "name_fa": "چغادک",
+        "slug_en": "cheghadk"
+      },
+      {
+        "name_fa": "بوشهر1",
+        "slug_en": "bushaher1"
+      },
+      {
+        "name_fa": "بوشهر2",
+        "slug_en": "bushaher2"
+      },
+      {
+        "name_fa": "عالی شهر",
+        "slug_en": "aali-shahr"
+      },
+      {
+        "name_fa": "اهرم",
+        "slug_en": "aherm"
+      },
+      {
+        "name_fa": "دلوار",
+        "slug_en": "dluar"
+      },
+      {
+        "name_fa": "آباد",
+        "slug_en": "abad"
+      },
+      {
+        "name_fa": "سعد آباد",
+        "slug_en": "sad-abad"
+      },
+      {
+        "name_fa": "برازجان",
+        "slug_en": "brazjan"
+      },
+      {
+        "name_fa": "شبانکاره",
+        "slug_en": "shbankarh"
+      },
+      {
+        "name_fa": "آب پخش",
+        "slug_en": "ab-pakhsh"
+      },
+      {
+        "name_fa": "دالکی",
+        "slug_en": "dalki"
+      },
+      {
+        "name_fa": "وحدتیه",
+        "slug_en": "uhedtih"
+      },
+      {
+        "name_fa": "تنگ ارم",
+        "slug_en": "tng-arm"
+      },
+      {
+        "name_fa": "کلمه",
+        "slug_en": "kelmeh"
+      },
+      {
+        "name_fa": "بوشکان",
+        "slug_en": "bushkan"
+      },
+      {
+        "name_fa": "خورموج",
+        "slug_en": "khormuj"
+      },
+      {
+        "name_fa": "شنبه",
+        "slug_en": "shenbh"
+      },
+      {
+        "name_fa": "کاکی",
+        "slug_en": "kaki"
+      },
+      {
+        "name_fa": "بادوله",
+        "slug_en": "badulh"
+      },
+      {
+        "name_fa": "بندردیر",
+        "slug_en": "bandardir"
+      },
+      {
+        "name_fa": "بردخون",
+        "slug_en": "bordekhoon"
+      },
+      {
+        "name_fa": "آبدان",
+        "slug_en": "abdan"
+      },
+      {
+        "name_fa": "بردستان",
+        "slug_en": "bardestan"
+      },
+      {
+        "name_fa": "دوراهک",
+        "slug_en": "durahk"
+      },
+      {
+        "name_fa": "شیرینو",
+        "slug_en": "shirinu"
+      },
+      {
+        "name_fa": "بندرکنگان",
+        "slug_en": "bandarekngan"
+      },
+      {
+        "name_fa": "بنک",
+        "slug_en": "bnk"
+      },
+      {
+        "name_fa": "سیراف",
+        "slug_en": "siraf"
+      },
+      {
+        "name_fa": "بندرریگ",
+        "slug_en": "bandarrig"
+      },
+      {
+        "name_fa": "بندرگناوه",
+        "slug_en": "bandaregnavh"
+      },
+      {
+        "name_fa": "بندردیلم",
+        "slug_en": "bandardilm"
+      },
+      {
+        "name_fa": "امام حسن",
+        "slug_en": "amam-hsn"
+      },
+      {
+        "name_fa": "انارستان",
+        "slug_en": "anarestan"
+      },
+      {
+        "name_fa": "جم",
+        "slug_en": "jm"
+      },
+      {
+        "name_fa": "ریز",
+        "slug_en": "riz"
+      },
+      {
+        "name_fa": "بهارستان",
+        "slug_en": "bharestan"
+      },
+      {
+        "name_fa": "عسلویه",
+        "slug_en": "asloih"
+      },
+      {
+        "name_fa": "نخل تقی",
+        "slug_en": "nakhl-e-taghi"
+      },
+      {
+        "name_fa": "چاه مبارک",
+        "slug_en": "chah-mbark"
+      },
+      {
+        "name_fa": "بیدخون",
+        "slug_en": "bidekhon"
+      }
+    ]
+  },
+  {
+    "code": "20",
+    "name_fa": "زنجان",
+    "slug_en": "zanjan",
+    "cities": [
+      {
+        "name_fa": "ابهر",
+        "slug_en": "abehr"
+      },
+      {
+        "name_fa": "صایین قلعه",
+        "slug_en": "sain-qaleh"
+      },
+      {
+        "name_fa": "هیدج",
+        "slug_en": "hidj"
+      },
+      {
+        "name_fa": "قیدار",
+        "slug_en": "qidar"
+      },
+      {
+        "name_fa": "سهرورد",
+        "slug_en": "shahrurd"
+      },
+      {
+        "name_fa": "گرماب",
+        "slug_en": "germab"
+      },
+      {
+        "name_fa": "سجاس",
+        "slug_en": "sjas"
+      },
+      {
+        "name_fa": "زرین رود",
+        "slug_en": "zrin-rud"
+      },
+      {
+        "name_fa": "کرسف",
+        "slug_en": "kersf"
+      },
+      {
+        "name_fa": "نوربهار",
+        "slug_en": "nurebhar"
+      },
+      {
+        "name_fa": "زنجان",
+        "slug_en": "zenjan"
+      },
+      {
+        "name_fa": "ارمغانخانه",
+        "slug_en": "aremghankhanh"
+      },
+      {
+        "name_fa": "نیک پی",
+        "slug_en": "nik-pi"
+      },
+      {
+        "name_fa": "زرین آباد",
+        "slug_en": "zrin-abad"
+      },
+      {
+        "name_fa": "حلب",
+        "slug_en": "hlb"
+      },
+      {
+        "name_fa": "خرمدره",
+        "slug_en": "khorramdarreh"
+      },
+      {
+        "name_fa": "آب بر",
+        "slug_en": "ab-br"
+      },
+      {
+        "name_fa": "چورزق",
+        "slug_en": "churezq"
+      },
+      {
+        "name_fa": "ماه نشان",
+        "slug_en": "mah-neshan"
+      },
+      {
+        "name_fa": "دندی",
+        "slug_en": "dendi"
+      },
+      {
+        "name_fa": "سلطانیه",
+        "slug_en": "seltanih"
+      }
+    ]
+  },
+  {
+    "code": "21",
+    "name_fa": "سمنان",
+    "slug_en": "semnan",
+    "cities": [
+      {
+        "name_fa": "دامغان",
+        "slug_en": "dameghan"
+      },
+      {
+        "name_fa": "امیریه",
+        "slug_en": "amirih"
+      },
+      {
+        "name_fa": "دیباج",
+        "slug_en": "dibaj"
+      },
+      {
+        "name_fa": "کلاته",
+        "slug_en": "klath"
+      },
+      {
+        "name_fa": "سمنان",
+        "slug_en": "semnan"
+      },
+      {
+        "name_fa": "بسطام",
+        "slug_en": "bestam"
+      },
+      {
+        "name_fa": "مجن",
+        "slug_en": "mjn"
+      },
+      {
+        "name_fa": "شاهرود",
+        "slug_en": "shahrud"
+      },
+      {
+        "name_fa": "کلاته خیج",
+        "slug_en": "kalateh-khij"
+      },
+      {
+        "name_fa": "بیارجمند",
+        "slug_en": "beyarjmand"
+      },
+      {
+        "name_fa": "رودیان",
+        "slug_en": "rudian"
+      },
+      {
+        "name_fa": "ایوانکی",
+        "slug_en": "aiuanki"
+      },
+      {
+        "name_fa": "گرمسار",
+        "slug_en": "germsar"
+      },
+      {
+        "name_fa": "شهمیرزاد",
+        "slug_en": "shmirzad"
+      },
+      {
+        "name_fa": "مهدی شهر",
+        "slug_en": "mehdi-shahr"
+      },
+      {
+        "name_fa": "درجزین",
+        "slug_en": "derjzin"
+      },
+      {
+        "name_fa": "آرادان",
+        "slug_en": "aradan"
+      },
+      {
+        "name_fa": "کهن آباد",
+        "slug_en": "khn-abad"
+      },
+      {
+        "name_fa": "میامی",
+        "slug_en": "miami"
+      },
+      {
+        "name_fa": "رضوان",
+        "slug_en": "rzuan"
+      },
+      {
+        "name_fa": "سرخه",
+        "slug_en": "serkh"
+      }
+    ]
+  },
+  {
+    "code": "22",
+    "name_fa": "یزد",
+    "slug_en": "yazd",
+    "cities": [
+      {
+        "name_fa": "اردکان",
+        "slug_en": "aredkan"
+      },
+      {
+        "name_fa": "احمد آباد",
+        "slug_en": "ahemd-abad"
+      },
+      {
+        "name_fa": "عقدا",
+        "slug_en": "aqda"
+      },
+      {
+        "name_fa": "خرانق",
+        "slug_en": "khranq"
+      },
+      {
+        "name_fa": "بافق",
+        "slug_en": "bafq"
+      },
+      {
+        "name_fa": "تفت",
+        "slug_en": "tft"
+      },
+      {
+        "name_fa": "نیر",
+        "slug_en": "nir"
+      },
+      {
+        "name_fa": "بخ",
+        "slug_en": "bkh"
+      },
+      {
+        "name_fa": "مهریز",
+        "slug_en": "mehriz"
+      },
+      {
+        "name_fa": "یزد",
+        "slug_en": "yazd"
+      },
+      {
+        "name_fa": "یزد_منطقه تاریخی",
+        "slug_en": "yzd-mentqh-tarikhi"
+      },
+      {
+        "name_fa": "شاهدیه",
+        "slug_en": "shahdih"
+      },
+      {
+        "name_fa": "حمیدیا",
+        "slug_en": "hmidia"
+      },
+      {
+        "name_fa": "میبد",
+        "slug_en": "mibd"
+      },
+      {
+        "name_fa": "بفروییه",
+        "slug_en": "bafruiyeh"
+      },
+      {
+        "name_fa": "ندوشن",
+        "slug_en": "ndushn"
+      },
+      {
+        "name_fa": "ابرکوه",
+        "slug_en": "aberkuh"
+      },
+      {
+        "name_fa": "مهردشت",
+        "slug_en": "mehrdasht"
+      },
+      {
+        "name_fa": "اشکذر",
+        "slug_en": "ashekzr"
+      },
+      {
+        "name_fa": "خضرآباد",
+        "slug_en": "khezrabad"
+      },
+      {
+        "name_fa": "مجومرد",
+        "slug_en": "mjumerd"
+      },
+      {
+        "name_fa": "هرات",
+        "slug_en": "hrat"
+      },
+      {
+        "name_fa": "بهاباد",
+        "slug_en": "bhabad"
+      },
+      {
+        "name_fa": "مروست",
+        "slug_en": "mrust"
+      },
+      {
+        "name_fa": "زارچ",
+        "slug_en": "zarech"
+      }
+    ]
+  },
+  {
+    "code": "23",
+    "name_fa": "هرمزگان",
+    "slug_en": "hormozgan",
+    "cities": [
+      {
+        "name_fa": "ابوموسی",
+        "slug_en": "abumusi"
+      },
+      {
+        "name_fa": "بندر عباس",
+        "slug_en": "bandar-abbas"
+      },
+      {
+        "name_fa": "هرمز",
+        "slug_en": "hermz"
+      },
+      {
+        "name_fa": "قلعه قاضی",
+        "slug_en": "qlah-ghazi"
+      },
+      {
+        "name_fa": "تخت",
+        "slug_en": "tekht"
+      },
+      {
+        "name_fa": "فین",
+        "slug_en": "fin"
+      },
+      {
+        "name_fa": "تازیان پایین",
+        "slug_en": "tazian-e-paeen"
+      },
+      {
+        "name_fa": "کنگ",
+        "slug_en": "kng"
+      },
+      {
+        "name_fa": "بندر لنگه",
+        "slug_en": "bandar-lengeh"
+      },
+      {
+        "name_fa": "کیش",
+        "slug_en": "kish"
+      },
+      {
+        "name_fa": "چارک",
+        "slug_en": "chark"
+      },
+      {
+        "name_fa": "لمزان",
+        "slug_en": "lemzan"
+      },
+      {
+        "name_fa": "رمکان",
+        "slug_en": "remkan"
+      },
+      {
+        "name_fa": "لافت",
+        "slug_en": "laft"
+      },
+      {
+        "name_fa": "قشم",
+        "slug_en": "qeshm"
+      },
+      {
+        "name_fa": "سوزا",
+        "slug_en": "suza"
+      },
+      {
+        "name_fa": "درگهان",
+        "slug_en": "derghan"
+      },
+      {
+        "name_fa": "طبل",
+        "slug_en": "tbl"
+      },
+      {
+        "name_fa": "زهوکی",
+        "slug_en": "zhuki"
+      },
+      {
+        "name_fa": "کرگان",
+        "slug_en": "kergan"
+      },
+      {
+        "name_fa": "میناب",
+        "slug_en": "minab"
+      },
+      {
+        "name_fa": "هشتبندی",
+        "slug_en": "hashtbandi"
+      },
+      {
+        "name_fa": "سندرک",
+        "slug_en": "senderk"
+      },
+      {
+        "name_fa": "تیرور",
+        "slug_en": "tirur"
+      },
+      {
+        "name_fa": "بند زرک",
+        "slug_en": "bnd-zrk"
+      },
+      {
+        "name_fa": "بندر جاسک",
+        "slug_en": "bandar-jask"
+      },
+      {
+        "name_fa": "لیردف",
+        "slug_en": "liredf"
+      },
+      {
+        "name_fa": "دهبارز",
+        "slug_en": "dehbarz"
+      },
+      {
+        "name_fa": "بیکاء",
+        "slug_en": "bika"
+      },
+      {
+        "name_fa": "زیارتعلی",
+        "slug_en": "ziartali"
+      },
+      {
+        "name_fa": "بالا شهر",
+        "slug_en": "bala-shahr"
+      },
+      {
+        "name_fa": "حاجی آباد",
+        "slug_en": "haji-abad"
+      },
+      {
+        "name_fa": "سرگز",
+        "slug_en": "sergz"
+      },
+      {
+        "name_fa": "فارغان",
+        "slug_en": "fareghan"
+      },
+      {
+        "name_fa": "بستک",
+        "slug_en": "bestk"
+      },
+      {
+        "name_fa": "جناح",
+        "slug_en": "jnah"
+      },
+      {
+        "name_fa": "هنگوییه",
+        "slug_en": "hengoiih"
+      },
+      {
+        "name_fa": "کوهیچ",
+        "slug_en": "kuhich"
+      },
+      {
+        "name_fa": "خمیر",
+        "slug_en": "khmir"
+      },
+      {
+        "name_fa": "رویدر",
+        "slug_en": "roidr"
+      },
+      {
+        "name_fa": "پل",
+        "slug_en": "pl"
+      },
+      {
+        "name_fa": "پارسیان",
+        "slug_en": "parsian"
+      },
+      {
+        "name_fa": "کوشکنار",
+        "slug_en": "kusheknar"
+      },
+      {
+        "name_fa": "دشتی",
+        "slug_en": "deshti"
+      },
+      {
+        "name_fa": "سیریک",
+        "slug_en": "sirik"
+      },
+      {
+        "name_fa": "گروک",
+        "slug_en": "gruk"
+      },
+      {
+        "name_fa": "کوهستک",
+        "slug_en": "kuhestk"
+      },
+      {
+        "name_fa": "سردشت",
+        "slug_en": "sardasht"
+      },
+      {
+        "name_fa": "گوهران",
+        "slug_en": "guhran"
+      }
+    ]
+  },
+  {
+    "code": "24",
+    "name_fa": "تهران",
+    "slug_en": "tehran",
+    "cities": [
+      {
+        "name_fa": "تهران",
+        "slug_en": "tehran"
+      },
+      {
+        "name_fa": "دماوند",
+        "slug_en": "dmavend"
+      },
+      {
+        "name_fa": "رودهن",
+        "slug_en": "rudehn"
+      },
+      {
+        "name_fa": "کیلان",
+        "slug_en": "kilan"
+      },
+      {
+        "name_fa": "آبسرد",
+        "slug_en": "abesrd"
+      },
+      {
+        "name_fa": "آبعلی",
+        "slug_en": "abali"
+      },
+      {
+        "name_fa": "ری",
+        "slug_en": "ri"
+      },
+      {
+        "name_fa": "حسن آباد",
+        "slug_en": "hsn-abad"
+      },
+      {
+        "name_fa": "باقرشهر",
+        "slug_en": "baqershahr"
+      },
+      {
+        "name_fa": "کهریزک",
+        "slug_en": "khrizk"
+      },
+      {
+        "name_fa": "قیام دشت",
+        "slug_en": "qiam-desht"
+      },
+      {
+        "name_fa": "قلعه نو",
+        "slug_en": "qlah-nu"
+      },
+      {
+        "name_fa": "فشم",
+        "slug_en": "feshm"
+      },
+      {
+        "name_fa": "لواسان",
+        "slug_en": "luasan"
+      },
+      {
+        "name_fa": "تجریش",
+        "slug_en": "tejrish"
+      },
+      {
+        "name_fa": "شمشک",
+        "slug_en": "shemshak"
+      },
+      {
+        "name_fa": "ورامین",
+        "slug_en": "uramin"
+      },
+      {
+        "name_fa": "جوادآباد",
+        "slug_en": "juadabad"
+      },
+      {
+        "name_fa": "شهریار",
+        "slug_en": "shahriar"
+      },
+      {
+        "name_fa": "صباشهر",
+        "slug_en": "sbashahr"
+      },
+      {
+        "name_fa": "وحیدیه",
+        "slug_en": "uhidih"
+      },
+      {
+        "name_fa": "شاهدشهر",
+        "slug_en": "shahedshahr"
+      },
+      {
+        "name_fa": "فردوسیه",
+        "slug_en": "ferdusiah"
+      },
+      {
+        "name_fa": "باغستان",
+        "slug_en": "baghestan"
+      },
+      {
+        "name_fa": "اندیشه",
+        "slug_en": "andish"
+      },
+      {
+        "name_fa": "شهریار1",
+        "slug_en": "shahriar1"
+      },
+      {
+        "name_fa": "شهریار2",
+        "slug_en": "shahriar2"
+      },
+      {
+        "name_fa": "شهریار3",
+        "slug_en": "shahriar3"
+      },
+      {
+        "name_fa": "اسلام شهر6",
+        "slug_en": "aslam-shaher6"
+      },
+      {
+        "name_fa": "اسلامشهر",
+        "slug_en": "aslameshahr"
+      },
+      {
+        "name_fa": "اسلام شهر1",
+        "slug_en": "aslam-shaher1"
+      },
+      {
+        "name_fa": "اسلام شهر2",
+        "slug_en": "aslam-shaher2"
+      },
+      {
+        "name_fa": "چهاردانگه",
+        "slug_en": "chhardanegh"
+      },
+      {
+        "name_fa": "اسلام شهر3",
+        "slug_en": "aslam-shaher3"
+      },
+      {
+        "name_fa": "احمد آباد مستوفی",
+        "slug_en": "ahemd-abad-mestufi"
+      },
+      {
+        "name_fa": "رباطکریم",
+        "slug_en": "rbatekrim"
+      },
+      {
+        "name_fa": "نصیرشهر",
+        "slug_en": "nsireshahr"
+      },
+      {
+        "name_fa": "پرند",
+        "slug_en": "pernd"
+      },
+      {
+        "name_fa": "پاکدشت",
+        "slug_en": "pakdasht"
+      },
+      {
+        "name_fa": "شریف آباد",
+        "slug_en": "shahrif-abad"
+      },
+      {
+        "name_fa": "فرون اباد",
+        "slug_en": "frun-abad"
+      },
+      {
+        "name_fa": "فیروزکوه",
+        "slug_en": "firuzkuh"
+      },
+      {
+        "name_fa": "ارجمند",
+        "slug_en": "arjmand"
+      },
+      {
+        "name_fa": "قدس",
+        "slug_en": "qds"
+      },
+      {
+        "name_fa": "ملارد",
+        "slug_en": "mlard"
+      },
+      {
+        "name_fa": "صفادشت",
+        "slug_en": "sfadesht"
+      },
+      {
+        "name_fa": "پیشوا",
+        "slug_en": "pishua"
+      },
+      {
+        "name_fa": "جلیل اباد",
+        "slug_en": "jlil-abad"
+      },
+      {
+        "name_fa": "نسیم شهر",
+        "slug_en": "nsim-shahr"
+      },
+      {
+        "name_fa": "گلستان",
+        "slug_en": "gelstan"
+      },
+      {
+        "name_fa": "صالحیه",
+        "slug_en": "salhih"
+      },
+      {
+        "name_fa": "سعیداباد",
+        "slug_en": "saidabad"
+      },
+      {
+        "name_fa": "خسرواباد",
+        "slug_en": "khesruabad"
+      },
+      {
+        "name_fa": "بومهن",
+        "slug_en": "boumehen"
+      },
+      {
+        "name_fa": "پردیس",
+        "slug_en": "perdis"
+      },
+      {
+        "name_fa": "قرچک",
+        "slug_en": "qarchak"
+      }
+    ]
+  },
+  {
+    "code": "25",
+    "name_fa": "اردبیل",
+    "slug_en": "ardabil",
+    "cities": [
+      {
+        "name_fa": "اردبیل",
+        "slug_en": "ardabil"
+      },
+      {
+        "name_fa": "هیر",
+        "slug_en": "hir"
+      },
+      {
+        "name_fa": "ثمرین",
+        "slug_en": "semrin"
+      },
+      {
+        "name_fa": "آراللو",
+        "slug_en": "arallu"
+      },
+      {
+        "name_fa": "بیله سوار",
+        "slug_en": "bilh-suar"
+      },
+      {
+        "name_fa": "جعفرآباد",
+        "slug_en": "jafrabad"
+      },
+      {
+        "name_fa": "خلخال",
+        "slug_en": "khelkhal"
+      },
+      {
+        "name_fa": "هشتجین",
+        "slug_en": "hashjin"
+      },
+      {
+        "name_fa": "کلور",
+        "slug_en": "klur"
+      },
+      {
+        "name_fa": "مشگین شهر",
+        "slug_en": "meshgin-shahr"
+      },
+      {
+        "name_fa": "رضی",
+        "slug_en": "rzi"
+      },
+      {
+        "name_fa": "لاهرود",
+        "slug_en": "lahrud"
+      },
+      {
+        "name_fa": "فخراباد",
+        "slug_en": "fekhrabad"
+      },
+      {
+        "name_fa": "مرادلو",
+        "slug_en": "mradlu"
+      },
+      {
+        "name_fa": "قصابه",
+        "slug_en": "qsabh"
+      },
+      {
+        "name_fa": "النی",
+        "slug_en": "alni"
+      },
+      {
+        "name_fa": "گرمی",
+        "slug_en": "germi"
+      },
+      {
+        "name_fa": "زهرا",
+        "slug_en": "zhra"
+      },
+      {
+        "name_fa": "اولتان",
+        "slug_en": "aveltan"
+      },
+      {
+        "name_fa": "پارس آباد",
+        "slug_en": "pars-abad"
+      },
+      {
+        "name_fa": "مغان سر",
+        "slug_en": "meghan-sr"
+      },
+      {
+        "name_fa": "اسلام اباد",
+        "slug_en": "aslam-abad"
+      },
+      {
+        "name_fa": "فیروزآباد",
+        "slug_en": "firuzabad"
+      },
+      {
+        "name_fa": "گیوی",
+        "slug_en": "gioi"
+      },
+      {
+        "name_fa": "نمین",
+        "slug_en": "nmin"
+      },
+      {
+        "name_fa": "آبی بیگلو",
+        "slug_en": "abi-biglu"
+      },
+      {
+        "name_fa": "عنبران",
+        "slug_en": "anebran"
+      },
+      {
+        "name_fa": "نیر",
+        "slug_en": "nir"
+      },
+      {
+        "name_fa": "کوراییم",
+        "slug_en": "kuraiem"
+      },
+      {
+        "name_fa": "سرعین",
+        "slug_en": "srain"
+      },
+      {
+        "name_fa": "اردیموسی",
+        "slug_en": "ardimusi"
+      },
+      {
+        "name_fa": "بران علیا",
+        "slug_en": "bran-alia"
+      },
+      {
+        "name_fa": "اصلاندوز",
+        "slug_en": "aslanduz"
+      },
+      {
+        "name_fa": "زیوه",
+        "slug_en": "ziuh"
+      },
+      {
+        "name_fa": "تازه کندانگوت",
+        "slug_en": "tazh-kendangut"
+      }
+    ]
+  },
+  {
+    "code": "26",
+    "name_fa": "قم",
+    "slug_en": "qom",
+    "cities": [
+      {
+        "name_fa": "قم",
+        "slug_en": "qom"
+      },
+      {
+        "name_fa": "سلفچگان",
+        "slug_en": "salafchegan"
+      },
+      {
+        "name_fa": "دستجرد",
+        "slug_en": "dastjerd"
+      },
+      {
+        "name_fa": "قنوات",
+        "slug_en": "qnuat"
+      },
+      {
+        "name_fa": "قاهان",
+        "slug_en": "ghahan"
+      },
+      {
+        "name_fa": "جعفریه",
+        "slug_en": "jafrih"
+      },
+      {
+        "name_fa": "کهک",
+        "slug_en": "khk"
+      }
+    ]
+  },
+  {
+    "code": "27",
+    "name_fa": "قزوین",
+    "slug_en": "qazvin",
+    "cities": [
+      {
+        "name_fa": "بویین زهرا",
+        "slug_en": "boinzahra"
+      },
+      {
+        "name_fa": "شال",
+        "slug_en": "shal"
+      },
+      {
+        "name_fa": "دانسفهان",
+        "slug_en": "danesfhan"
+      },
+      {
+        "name_fa": "ارداق",
+        "slug_en": "ardaq"
+      },
+      {
+        "name_fa": "سگزآباد",
+        "slug_en": "segzabad"
+      },
+      {
+        "name_fa": "عصمت آباد",
+        "slug_en": "asemt-abad"
+      },
+      {
+        "name_fa": "تاکستان",
+        "slug_en": "takestan"
+      },
+      {
+        "name_fa": "اسفرورین",
+        "slug_en": "asefrurin"
+      },
+      {
+        "name_fa": "ضیاآباد",
+        "slug_en": "ziaabad"
+      },
+      {
+        "name_fa": "خرمدشت",
+        "slug_en": "khorramdasht"
+      },
+      {
+        "name_fa": "نرجه",
+        "slug_en": "nerjh"
+      },
+      {
+        "name_fa": "قزوین",
+        "slug_en": "qazvin"
+      },
+      {
+        "name_fa": "اقبالیه",
+        "slug_en": "aqbalih"
+      },
+      {
+        "name_fa": "محمودآبادنمونه",
+        "slug_en": "mehmudabadnmunh"
+      },
+      {
+        "name_fa": "معلم کلایه",
+        "slug_en": "moalem-kelaye"
+      },
+      {
+        "name_fa": "رازمیان",
+        "slug_en": "razmian"
+      },
+      {
+        "name_fa": "کوهین",
+        "slug_en": "kuhin"
+      },
+      {
+        "name_fa": "سیردان",
+        "slug_en": "sirdan"
+      },
+      {
+        "name_fa": "آبیک",
+        "slug_en": "abik"
+      },
+      {
+        "name_fa": "خاکعلی",
+        "slug_en": "khakali"
+      },
+      {
+        "name_fa": "زیاران",
+        "slug_en": "ziaran"
+      },
+      {
+        "name_fa": "قشلاق",
+        "slug_en": "qeshlaq"
+      },
+      {
+        "name_fa": "الوند",
+        "slug_en": "alund"
+      },
+      {
+        "name_fa": "شریفیه",
+        "slug_en": "shahrifih"
+      },
+      {
+        "name_fa": "محمدیه",
+        "slug_en": "mehmdih"
+      },
+      {
+        "name_fa": "بیدستان",
+        "slug_en": "bidestan"
+      },
+      {
+        "name_fa": "آوج",
+        "slug_en": "avj"
+      },
+      {
+        "name_fa": "آبگرم",
+        "slug_en": "abegrm"
+      }
+    ]
+  },
+  {
+    "code": "28",
+    "name_fa": "گلستان",
+    "slug_en": "golestan",
+    "cities": [
+      {
+        "name_fa": "بندرگز",
+        "slug_en": "bandar-gaz"
+      },
+      {
+        "name_fa": "نوکنده",
+        "slug_en": "nukendh"
+      },
+      {
+        "name_fa": "بندرترکمن",
+        "slug_en": "bandar-torkaman"
+      },
+      {
+        "name_fa": "سیجوال",
+        "slug_en": "sijual"
+      },
+      {
+        "name_fa": "علی آباد",
+        "slug_en": "ali-abad"
+      },
+      {
+        "name_fa": "فاضل آباد",
+        "slug_en": "fazl-abad"
+      },
+      {
+        "name_fa": "مزرعه",
+        "slug_en": "mezrah"
+      },
+      {
+        "name_fa": "سنگدوین",
+        "slug_en": "sengdoin"
+      },
+      {
+        "name_fa": "کردکوی",
+        "slug_en": "kerdkoi"
+      },
+      {
+        "name_fa": "گرگان",
+        "slug_en": "gorgan"
+      },
+      {
+        "name_fa": "جلین",
+        "slug_en": "jlin"
+      },
+      {
+        "name_fa": "سرخنکلاته",
+        "slug_en": "sorkhankalateh"
+      },
+      {
+        "name_fa": "قرق",
+        "slug_en": "qrq"
+      },
+      {
+        "name_fa": "کرند",
+        "slug_en": "kernd"
+      },
+      {
+        "name_fa": "گنبدکاووس",
+        "slug_en": "genbdkavus"
+      },
+      {
+        "name_fa": "اینچه برون",
+        "slug_en": "incheboron"
+      },
+      {
+        "name_fa": "القجر",
+        "slug_en": "aleqjr"
+      },
+      {
+        "name_fa": "مینودشت",
+        "slug_en": "minudesht"
+      },
+      {
+        "name_fa": "دوزین",
+        "slug_en": "duzin"
+      },
+      {
+        "name_fa": "آق قلا",
+        "slug_en": "aq-qla"
+      },
+      {
+        "name_fa": "انبار آلوم",
+        "slug_en": "anbar-alum"
+      },
+      {
+        "name_fa": "کلاله",
+        "slug_en": "klalh"
+      },
+      {
+        "name_fa": "فراغی",
+        "slug_en": "fraghi"
+      },
+      {
+        "name_fa": "آزادشهر",
+        "slug_en": "azadeshahr"
+      },
+      {
+        "name_fa": "نوده خاندوز",
+        "slug_en": "now-deh-khanduz"
+      },
+      {
+        "name_fa": "نگین شهر",
+        "slug_en": "ngin-shahr"
+      },
+      {
+        "name_fa": "خان ببین",
+        "slug_en": "khan-bbin"
+      },
+      {
+        "name_fa": "رامیان",
+        "slug_en": "ramian"
+      },
+      {
+        "name_fa": "دلند",
+        "slug_en": "delnd"
+      },
+      {
+        "name_fa": "تاتار علیا",
+        "slug_en": "tatar-alia"
+      },
+      {
+        "name_fa": "مراوه",
+        "slug_en": "mravh"
+      },
+      {
+        "name_fa": "گلیداغ",
+        "slug_en": "glidagh"
+      },
+      {
+        "name_fa": "گمیش تپه",
+        "slug_en": "gumish-tappe"
+      },
+      {
+        "name_fa": "سیمین شهر",
+        "slug_en": "simin-shahr"
+      },
+      {
+        "name_fa": "ینقاق",
+        "slug_en": "yenghaq"
+      },
+      {
+        "name_fa": "گالیکش",
+        "slug_en": "galikesh"
+      },
+      {
+        "name_fa": "صادق آباد",
+        "slug_en": "sadq-abad"
+      }
+    ]
+  },
+  {
+    "code": "29",
+    "name_fa": "خراسان شمالی",
+    "slug_en": "north-khorasan",
+    "cities": [
+      {
+        "name_fa": "اسفراین",
+        "slug_en": "asefrain"
+      },
+      {
+        "name_fa": "بجنورد",
+        "slug_en": "bojnord"
+      },
+      {
+        "name_fa": "حصارگرمخان",
+        "slug_en": "hsaregrmkhan"
+      },
+      {
+        "name_fa": "بجنورد1",
+        "slug_en": "bejnurd1"
+      },
+      {
+        "name_fa": "بجنورد2",
+        "slug_en": "bejnurd2"
+      },
+      {
+        "name_fa": "چناران شهر",
+        "slug_en": "chnaran-shahr"
+      },
+      {
+        "name_fa": "جاجرم",
+        "slug_en": "jajerm"
+      },
+      {
+        "name_fa": "سنخواست",
+        "slug_en": "senkhoast"
+      },
+      {
+        "name_fa": "شوقان",
+        "slug_en": "shughan"
+      },
+      {
+        "name_fa": "خانلق",
+        "slug_en": "khanelq"
+      },
+      {
+        "name_fa": "شیروان",
+        "slug_en": "shiruan"
+      },
+      {
+        "name_fa": "لوجلی",
+        "slug_en": "lujli"
+      },
+      {
+        "name_fa": "زیارت",
+        "slug_en": "ziart"
+      },
+      {
+        "name_fa": "قوشخانه",
+        "slug_en": "qushekhanh"
+      },
+      {
+        "name_fa": "فاروج",
+        "slug_en": "faruj"
+      },
+      {
+        "name_fa": "تیتکانلو",
+        "slug_en": "titkanlu"
+      },
+      {
+        "name_fa": "آشخانه",
+        "slug_en": "ashekhanh"
+      },
+      {
+        "name_fa": "قاضی",
+        "slug_en": "ghazi"
+      },
+      {
+        "name_fa": "آوا",
+        "slug_en": "ava"
+      },
+      {
+        "name_fa": "ایور",
+        "slug_en": "aiur"
+      },
+      {
+        "name_fa": "گرمه",
+        "slug_en": "germeh"
+      },
+      {
+        "name_fa": "درق",
+        "slug_en": "drq"
+      },
+      {
+        "name_fa": "راز",
+        "slug_en": "raz"
+      },
+      {
+        "name_fa": "غلامان",
+        "slug_en": "ghlaman"
+      },
+      {
+        "name_fa": "یکه سعود",
+        "slug_en": "yekesowut"
+      },
+      {
+        "name_fa": "صفی آباد",
+        "slug_en": "sfi-abad"
+      },
+      {
+        "name_fa": "پیش قلعه",
+        "slug_en": "pish-qaleh"
+      }
+    ]
+  },
+  {
+    "code": "30",
+    "name_fa": "خراسان جنوبی",
+    "slug_en": "south-khorasan",
+    "cities": [
+      {
+        "name_fa": "بیرجند",
+        "slug_en": "birjand"
+      },
+      {
+        "name_fa": "بیرجند1",
+        "slug_en": "birejnd1"
+      },
+      {
+        "name_fa": "بیرجند2",
+        "slug_en": "birejnd2"
+      },
+      {
+        "name_fa": "قهستان",
+        "slug_en": "qehstan"
+      },
+      {
+        "name_fa": "طبس مسینا",
+        "slug_en": "tabas-e-masina"
+      },
+      {
+        "name_fa": "اسدیه",
+        "slug_en": "asdih"
+      },
+      {
+        "name_fa": "گزیک",
+        "slug_en": "gzik"
+      },
+      {
+        "name_fa": "سربیشه",
+        "slug_en": "serbish"
+      },
+      {
+        "name_fa": "مود",
+        "slug_en": "mud"
+      },
+      {
+        "name_fa": "درح",
+        "slug_en": "drh"
+      },
+      {
+        "name_fa": "خضری دشت بیاض",
+        "slug_en": "khezri-dasht-beyaz"
+      },
+      {
+        "name_fa": "قاین",
+        "slug_en": "ghain"
+      },
+      {
+        "name_fa": "اسفدن",
+        "slug_en": "asefdn"
+      },
+      {
+        "name_fa": "آرین شهر",
+        "slug_en": "arin-shahr"
+      },
+      {
+        "name_fa": "نیمبلوک",
+        "slug_en": "nimebluk"
+      },
+      {
+        "name_fa": "نهبندان",
+        "slug_en": "nehbandan"
+      },
+      {
+        "name_fa": "شوسف",
+        "slug_en": "shusf"
+      },
+      {
+        "name_fa": "سرایان",
+        "slug_en": "sraian"
+      },
+      {
+        "name_fa": "آیسک",
+        "slug_en": "aisk"
+      },
+      {
+        "name_fa": "سه قلعه",
+        "slug_en": "se-qaleh"
+      },
+      {
+        "name_fa": "باغستان",
+        "slug_en": "baghestan"
+      },
+      {
+        "name_fa": "اسلامیه",
+        "slug_en": "aslamih"
+      },
+      {
+        "name_fa": "فردوس",
+        "slug_en": "ferdus"
+      },
+      {
+        "name_fa": "بشرویه",
+        "slug_en": "beshahroih"
+      },
+      {
+        "name_fa": "ارسک",
+        "slug_en": "aresk"
+      },
+      {
+        "name_fa": "حاجی آباد",
+        "slug_en": "haji-abad"
+      },
+      {
+        "name_fa": "زهان",
+        "slug_en": "zhan"
+      },
+      {
+        "name_fa": "آبیز",
+        "slug_en": "abiz"
+      },
+      {
+        "name_fa": "ماژان",
+        "slug_en": "mazhan"
+      },
+      {
+        "name_fa": "خوسف",
+        "slug_en": "khosf"
+      },
+      {
+        "name_fa": "طبس",
+        "slug_en": "tbs"
+      },
+      {
+        "name_fa": "عشق آباد",
+        "slug_en": "ashq-abad"
+      },
+      {
+        "name_fa": "دیهوک",
+        "slug_en": "dihuk"
+      }
+    ]
+  },
+  {
+    "code": "31",
+    "name_fa": "البرز",
+    "slug_en": "alborz",
+    "cities": [
+      {
+        "name_fa": "کرج",
+        "slug_en": "karaj"
+      },
+      {
+        "name_fa": "آسارا",
+        "slug_en": "asara"
+      },
+      {
+        "name_fa": "ماهدشت",
+        "slug_en": "mohammad-shahr"
+      },
+      {
+        "name_fa": "کمال شهر",
+        "slug_en": "kmal-shahr"
+      },
+      {
+        "name_fa": "محمد شهر",
+        "slug_en": "mohammad-shahr"
+      },
+      {
+        "name_fa": "گرمدره",
+        "slug_en": "garmdarreh"
+      },
+      {
+        "name_fa": "هشتگرد",
+        "slug_en": "hashtgerd"
+      },
+      {
+        "name_fa": "گلسار",
+        "slug_en": "gelsar"
+      },
+      {
+        "name_fa": "کوهسار",
+        "slug_en": "kuhsar"
+      },
+      {
+        "name_fa": "مهستان",
+        "slug_en": "mehstan"
+      },
+      {
+        "name_fa": "نظرآباد",
+        "slug_en": "nezrabad"
+      },
+      {
+        "name_fa": "تنکمان",
+        "slug_en": "tenkman"
+      },
+      {
+        "name_fa": "طالقان",
+        "slug_en": "taleghan"
+      },
+      {
+        "name_fa": "اشتهارد",
+        "slug_en": "ashethard"
+      },
+      {
+        "name_fa": "پلنگ آباد",
+        "slug_en": "pelng-abad"
+      },
+      {
+        "name_fa": "مشکین دشت",
+        "slug_en": "meshkin-desht"
+      },
+      {
+        "name_fa": "فردیس",
+        "slug_en": "ferdis"
+      },
+      {
+        "name_fa": "چهارباغ",
+        "slug_en": "chharbagh"
+      }
+    ]
+  }
+]

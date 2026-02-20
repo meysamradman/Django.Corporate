@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import argparse
 import subprocess
 import sys
 
@@ -33,11 +34,26 @@ def run_step(step_name: str, script_name: str, args: list[str] | None = None) ->
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description='Populate real-estate location data')
+    parser.add_argument('--slug-language', choices=['en', 'fa'], default='en')
+    parser.add_argument('--include-major-cities', action='store_true')
+    parser.add_argument('--cleanup-stale', action='store_true', help='قبل از import رکوردهای قدیمی/خراب را حذف یا غیرفعال می‌کند')
+    args = parser.parse_args()
+
     print("🚀 شروع ورود کامل لوکیشن املاک (استان، شهر، منطقه، مختصات)")
+    print(f"🔤 حالت اسلاگ انتخابی: {'English' if args.slug_language == 'en' else 'Persian'}")
 
     steps = [
-        ("ورود استان و شهر", "import_iranian_locations.py", ["--app", "real_estate"]),
-        ("ورود مناطق شهرها (تهران و سایر شهرهای بزرگ)", "populate_city_regions.py", []),
+        (
+            "ورود استان و شهر",
+            "import_iranian_locations.py",
+            ["--app", "real_estate", "--slug-language", args.slug_language] + (["--cleanup-stale"] if args.cleanup_stale else []),
+        ),
+        (
+            "ورود مناطق شهرها",
+            "populate_city_regions.py",
+            (["--include-major-cities"] if args.include_major_cities else []) + ["--slug-language", args.slug_language],
+        ),
         ("تکمیل مختصات استان/شهر", "populate_location_coordinates.py", []),
     ]
 

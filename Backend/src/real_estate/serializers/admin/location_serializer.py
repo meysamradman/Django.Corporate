@@ -2,7 +2,7 @@
 from rest_framework import serializers
 from src.core.models import Province, City
 from src.real_estate.models.location import CityRegion
-from scripts.location_slug_shared import (
+from scripts.location.location_slug_shared import (
     ENGLISH_SLUG_PATTERN,
     canonical_location_slug,
     ensure_unique_slug,
