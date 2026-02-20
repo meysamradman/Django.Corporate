@@ -84,6 +84,11 @@ export const realEstateApi = {
         return toPaginatedResponse<PropertyState>(response, limit || 50);
     },
 
+    getListingTypes: async (): Promise<PropertyStatusOption[]> => {
+        const response = await fetchApi.get<PropertyStatusOption[]>('/real-estate/states/usage-types/');
+        return response.data;
+    },
+
     getStateBySlug: async (slug: string): Promise<PropertyState> => {
         const response = await fetchApi.get<PropertyState>(`/real-estate/states/${encodeURIComponent(slug)}/`);
         return response.data;

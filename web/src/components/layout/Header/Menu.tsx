@@ -14,15 +14,14 @@ import {
 
 type MenuVariant = 'transparent' | 'solid';
 
-export type HeaderMenuTypeOption = {
+export type HeaderMenuStatusOption = {
     value: string;
     label: string;
-    slug?: string;
 };
 
 type MenuProps = {
     variant: MenuVariant;
-    typeOptions?: HeaderMenuTypeOption[];
+    statusOptions?: HeaderMenuStatusOption[];
 };
 
 const menuItems = [
@@ -34,9 +33,9 @@ const menuItems = [
     { href: '/contact', label: 'تماس با ما' },
 ];
 
-export function Menu({ variant, typeOptions = [] }: MenuProps) {
+export function Menu({ variant, statusOptions = [] }: MenuProps) {
     const textClass = variant === 'transparent' ? 'text-wt' : 'text-font-p';
-    const safeTypeOptions = typeOptions.filter((item) => item.value).slice(0, 10);
+    const safeStatusOptions = statusOptions.filter((item) => item.value).slice(0, 10);
 
     return (
             <nav className={`hidden lg:flex items-center gap-8 text-sm font-semibold ${textClass}`}>
@@ -50,17 +49,15 @@ export function Menu({ variant, typeOptions = [] }: MenuProps) {
                             <Link href="/properties">همه ملک‌ها</Link>
                         </DropdownMenuItem>
 
-                        {safeTypeOptions.length > 0 ? (
+                        {safeStatusOptions.length > 0 ? (
                             <>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuLabel>نوع ملک</DropdownMenuLabel>
-                                {safeTypeOptions.map((item) => {
-                                    const href = item.slug
-                                        ? `/properties/type/${item.slug}`
-                                        : `/properties?property_type=${encodeURIComponent(item.value)}`;
+                                <DropdownMenuLabel>نوع معامله</DropdownMenuLabel>
+                                {safeStatusOptions.map((item) => {
+                                    const href = `/properties/${item.value}`;
 
                                     return (
-                                        <DropdownMenuItem asChild key={`type-${item.value}`}>
+                                        <DropdownMenuItem asChild key={`status-${item.value}`}>
                                             <Link href={href}>
                                                 {item.label}
                                             </Link>

@@ -107,22 +107,36 @@ const resolveSort = (searchParams: Record<string, string | string[] | undefined>
 
 export const filtersFromSeoSegments = (
   dealType?: string,
-  city?: string
+  city?: string,
+  type?: string
 ): Partial<PropertySearchFilters> => {
   const normalizedDealType = normalizeTaxonomySlug(dealType).toLowerCase();
   const normalizedCity = (city || "").trim();
+  const normalizedType = normalizeTaxonomySlug(type).toLowerCase();
 
   if (!normalizedDealType) {
     return {};
   }
 
-  if (normalizedDealType === "buy" || normalizedDealType === "rent") {
-    return { state_slug: normalizedDealType };
+  if (normalizedDealType === "buy" || normalizedDealType === "rent" || normalizedDealType === "pre-sale" || normalizedDealType === "mortgage") {
+    const result: Partial<PropertySearchFilters> = {
+      state_slug: normalizedDealType,
+      ...(normalizedCity ? { search: denormalizeSegment(safeDecodeURIComponent(normalizedCity)) } : {}),
+    };
+
+    if (normalizedType) {
+      result.type_slug = normalizedType;
+    }
+
+    return result;
   }
 
-  if (normalizedDealType.startsWith("buy-") || normalizedDealType.startsWith("rent-")) {
-    const [stateSlug, ...typeParts] = normalizedDealType.split("-");
-    const typeSlug = typeParts.join("-");
+  const legacyPrefixes = ["buy", "rent", "pre-sale", "mortgage"];
+  const matchedPrefix = legacyPrefixes.find((prefix) => normalizedDealType.startsWith(`${prefix}-`));
+
+  if (matchedPrefix) {
+    const stateSlug = matchedPrefix;
+    const typeSlug = normalizedDealType.slice(matchedPrefix.length + 1);
 
     const result: Partial<PropertySearchFilters> = {
       state_slug: stateSlug,
@@ -130,7 +144,7 @@ export const filtersFromSeoSegments = (
     };
 
     if (normalizedCity) {
-      result.search = denormalizeSegment(decodeURIComponent(normalizedCity));
+      result.search = denormalizeSegment(safeDecodeURIComponent(normalizedCity));
     }
 
     return result;
@@ -141,25 +155,21 @@ export const filtersFromSeoSegments = (
 
 const resolveSeoPathMode = (
   filters: PropertySearchFilters
-): "properties" | "state-taxonomy" | "type-taxonomy" | "legacy-state-type" | "legacy-state-type-city" => {
+): "properties" | "status" | "status-city" | "status-city-type" => {
   const stateSlug = normalizeTaxonomySlug(filters.state_slug).toLowerCase();
   const typeSlug = normalizeTaxonomySlug(filters.type_slug).toLowerCase();
   const search = (filters.search || "").trim();
 
+  if (stateSlug && search && typeSlug) {
+    return "status-city-type";
+  }
+
+  if (stateSlug && search) {
+    return "status-city";
+  }
+
   if (stateSlug && !typeSlug) {
-    return "state-taxonomy";
-  }
-
-  if (!stateSlug && typeSlug) {
-    return "type-taxonomy";
-  }
-
-  if (stateSlug && typeSlug && search) {
-    return "legacy-state-type-city";
-  }
-
-  if (stateSlug && typeSlug) {
-    return "legacy-state-type";
+    return "status";
   }
 
   return "properties";
@@ -172,20 +182,16 @@ export const resolvePropertySearchPath = (filters: PropertySearchFilters): strin
 
   const mode = resolveSeoPathMode(filters);
 
-  if (mode === "state-taxonomy") {
-    return `/properties/state/${encodeURIComponent(stateSlug)}`;
+  if (mode === "status") {
+    return `/properties/${encodeURIComponent(stateSlug)}`;
   }
 
-  if (mode === "type-taxonomy") {
-    return `/properties/type/${encodeURIComponent(typeSlug)}`;
+  if (mode === "status-city") {
+    return `/properties/${encodeURIComponent(stateSlug)}/${encodeURIComponent(citySegment)}`;
   }
 
-  if (mode === "legacy-state-type") {
-    return `/properties/${stateSlug}-${typeSlug}`;
-  }
-
-  if (mode === "legacy-state-type-city") {
-    return `/properties/${stateSlug}-${typeSlug}/${citySegment}`;
+  if (mode === "status-city-type") {
+    return `/properties/${encodeURIComponent(stateSlug)}/${encodeURIComponent(citySegment)}/${encodeURIComponent(typeSlug)}`;
   }
 
   return "/properties";
@@ -268,9 +274,13 @@ export const filtersToSearchParams = (
   const params = new URLSearchParams();
   const mode = resolveSeoPathMode(next);
 
-  const isStateEncoded = mode === "state-taxonomy" || mode === "legacy-state-type" || mode === "legacy-state-type-city";
-  const isTypeEncoded = mode === "type-taxonomy" || mode === "legacy-state-type" || mode === "legacy-state-type-city";
-  const isSearchEncoded = mode === "legacy-state-type-city";
+  const isStateEncoded =
+    mode === "status" ||
+    mode === "status-city" ||
+    mode === "status-city-type";
+  const isTypeEncoded =
+    mode === "status-city-type";
+  const isSearchEncoded = mode === "status-city" || mode === "status-city-type";
 
   if (next.search && !isSearchEncoded) params.set("search", next.search);
   if (next.status) params.set("status", next.status);

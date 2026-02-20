@@ -3,7 +3,7 @@
 import React from 'react';
 import { cn } from '@/core/utils/cn';
 import { Logo } from '../Logo';
-import { Menu, type HeaderMenuTypeOption } from './Menu';
+import { Menu, type HeaderMenuStatusOption } from './Menu';
 import type { SiteLogo } from '@/types/settings/branding';
 
 type HeaderShellProps = {
@@ -11,7 +11,7 @@ type HeaderShellProps = {
     isScrolled: boolean;
     initialMode: 'transparent' | 'solid';
     reserveSpaceOnScroll?: boolean;
-    typeOptions?: HeaderMenuTypeOption[];
+    statusOptions?: HeaderMenuStatusOption[];
 };
 
 export function HeaderShell({
@@ -19,7 +19,7 @@ export function HeaderShell({
     isScrolled,
     initialMode,
     reserveSpaceOnScroll = false,
-    typeOptions = [],
+    statusOptions = [],
 }: HeaderShellProps) {
     const isTransparentInitial = initialMode === 'transparent';
 
@@ -43,7 +43,7 @@ export function HeaderShell({
 
                 <Menu
                     variant={isScrolled || !isTransparentInitial ? 'solid' : 'transparent'}
-                    typeOptions={typeOptions}
+                    statusOptions={statusOptions}
                 />
 
                 <div className="w-10" />

@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { HeaderTransparent } from './HeaderTransparent';
 import { HeaderSolid } from './HeaderSolid';
 import type { SiteLogo } from '@/types/settings/branding';
-import type { HeaderMenuTypeOption } from './Menu';
+import type { HeaderMenuStatusOption } from './Menu';
 
 /**
  * Main Header Switcher
@@ -13,10 +13,10 @@ import type { HeaderMenuTypeOption } from './Menu';
  */
 type HeaderProps = {
   logo?: SiteLogo | null;
-  typeOptions?: HeaderMenuTypeOption[];
+  statusOptions?: HeaderMenuStatusOption[];
 };
 
-export function Header({ logo = null, typeOptions = [] }: HeaderProps) {
+export function Header({ logo = null, statusOptions = [] }: HeaderProps) {
   const pathname = usePathname();
   const isHomepage = pathname === '/';
   const [isScrolled, setIsScrolled] = React.useState(false);
@@ -48,8 +48,8 @@ export function Header({ logo = null, typeOptions = [] }: HeaderProps) {
   }, []);
 
   if (isHomepage) {
-    return <HeaderTransparent logo={logo} isScrolled={isScrolled} typeOptions={typeOptions} />;
+    return <HeaderTransparent logo={logo} isScrolled={isScrolled} statusOptions={statusOptions} />;
   }
 
-  return <HeaderSolid logo={logo} isScrolled={isScrolled} typeOptions={typeOptions} />;
+  return <HeaderSolid logo={logo} isScrolled={isScrolled} statusOptions={statusOptions} />;
 }

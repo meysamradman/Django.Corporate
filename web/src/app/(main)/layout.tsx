@@ -12,6 +12,7 @@ import type { SiteLogo } from "@/types/settings/branding";
 import type { PublicGeneralSettings } from "@/types/settings/general";
 import type { FooterAboutItem, FooterSectionItem } from "@/types/settings/footer";
 import type { PublicChatbotSettings } from "@/types/chatbot/chatbot";
+import type { HeaderMenuStatusOption } from "@/components/layout/Header/Menu";
 
 interface MainLayoutProps {
     children: React.ReactNode;
@@ -23,25 +24,52 @@ function HeaderFallback() {
 
 async function HeaderSlot() {
     let logo: SiteLogo | null = null;
-    let typeOptions: Array<{ value: string; label: string; slug?: string }> = [];
+    let statusOptions: HeaderMenuStatusOption[] = [];
+
+    const toDealSegment = (value: string): string => {
+        const normalized = value.trim().toLowerCase().replace(/[_\s]+/g, '-');
+        if (normalized === 'presale') return 'pre-sale';
+        return normalized;
+    };
 
     try {
-        const [logoResponse, typesResponse] = await Promise.all([
+        const [logoResult, statusesResult] = await Promise.allSettled([
             brandingApi.getLogo(),
-            realEstateApi.getTypes({ page: 1, size: 50 }).catch(() => null),
+            realEstateApi.getListingTypes(),
         ]);
 
-        logo = logoResponse;
-        typeOptions = (typesResponse?.data ?? []).map((item) => ({
-            value: String(item.id),
-            label: item.name,
-            slug: item.slug,
+        if (logoResult.status === 'fulfilled') {
+            logo = logoResult.value;
+        }
+
+        const listingTypes = statusesResult.status === 'fulfilled' ? statusesResult.value : [];
+        const usageTypeMap = new Map<string, string>();
+
+        (listingTypes ?? []).forEach((item) => {
+            const rawUsageType = (item.value || '').trim();
+            const rawLabel = (item.label || '').trim();
+            const normalizedUsageType = toDealSegment(rawUsageType);
+
+            if (!rawUsageType || !normalizedUsageType || usageTypeMap.has(normalizedUsageType)) {
+                return;
+            }
+
+            usageTypeMap.set(normalizedUsageType, rawLabel || rawUsageType);
+        });
+
+        const normalizedStatuses = Array.from(usageTypeMap.entries()).map(([value, label]) => ({
+            value,
+            label,
         }));
+
+        if (normalizedStatuses.length > 0) {
+            statusOptions = normalizedStatuses;
+        }
     } catch {
-        logo = null;
+        // keep safe defaults
     }
 
-    return <Header logo={logo} typeOptions={typeOptions} />;
+    return <Header logo={logo} statusOptions={statusOptions} />;
 }
 
 function FooterFallback() {

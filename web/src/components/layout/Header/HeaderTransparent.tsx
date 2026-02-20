@@ -3,22 +3,22 @@
 import React from 'react';
 import type { SiteLogo } from '@/types/settings/branding';
 import { HeaderShell } from './HeaderShell';
-import type { HeaderMenuTypeOption } from './Menu';
+import type { HeaderMenuStatusOption } from './Menu';
 
 type HeaderTransparentProps = {
     logo?: SiteLogo | null;
     isScrolled: boolean;
-    typeOptions?: HeaderMenuTypeOption[];
+    statusOptions?: HeaderMenuStatusOption[];
 };
 
-export function HeaderTransparent({ logo = null, isScrolled, typeOptions = [] }: HeaderTransparentProps) {
+export function HeaderTransparent({ logo = null, isScrolled, statusOptions = [] }: HeaderTransparentProps) {
     return (
         <HeaderShell
             logo={logo}
             isScrolled={isScrolled}
             initialMode="transparent"
             reserveSpaceOnScroll={false}
-            typeOptions={typeOptions}
+            statusOptions={statusOptions}
         />
     );
 }

@@ -35,7 +35,7 @@ export default function Types({ types = [] }: TypesProps) {
 
                         {type ? (
                             <div className="absolute inset-0">
-                                <Link href={`/properties/type/${encodeURIComponent(type.slug)}`} className="absolute inset-0 z-10" aria-label={`مشاهده ${type.name}`} />
+                                <Link href={`/properties?type_slug=${encodeURIComponent(type.slug)}`} className="absolute inset-0 z-10" aria-label={`مشاهده ${type.name}`} />
                                 <div className="absolute inset-0 bg-black/25" />
 
                                 <div className="absolute top-4 right-4 text-white text-right">

@@ -49,7 +49,7 @@ export default function State({ states = [] }: StateProps) {
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((state) => (
-        <Link key={state.id} href={`/properties/state/${encodeURIComponent(state.slug)}`}>
+        <Link key={state.id} href={`/properties?state_slug=${encodeURIComponent(state.slug)}`}>
           <Card className="">
             <CardContent className="">
               <div className="relative h-40 md:h-56">

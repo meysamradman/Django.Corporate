@@ -5,6 +5,8 @@ from rest_framework.permissions import AllowAny
 from src.core.pagination import StandardLimitPagination
 from src.core.responses.response import APIResponse
 from src.real_estate.messages.messages import STATE_ERRORS, STATE_SUCCESS
+from src.real_estate.models.constants import get_listing_type_label
+from src.real_estate.models.state import PropertyState
 from src.real_estate.services.public.state_services import PropertyStatePublicService
 from src.real_estate.serializers.public.state_serializer import (
     PropertyStatePublicListSerializer,
@@ -107,6 +109,29 @@ class PropertyStatePublicViewSet(viewsets.ReadOnlyModelViewSet):
     def featured(self, request):
         limit = self._parse_positive_int(request.query_params.get('limit'), default=3, max_value=24)
         data = PropertyStatePublicService.get_featured_states_data(limit=limit)
+
+        return APIResponse.success(
+            message=STATE_SUCCESS['state_list_success'],
+            data=data,
+            status_code=status.HTTP_200_OK,
+        )
+
+    @action(detail=False, methods=['get'], url_path='usage-types')
+    def usage_types(self, request):
+        usage_types = list(
+            PropertyState.objects.filter(is_active=True)
+            .values_list('usage_type', flat=True)
+            .distinct()
+        )
+
+        data = [
+            {
+                'value': code,
+                'label': get_listing_type_label(code),
+            }
+            for code in usage_types
+            if code
+        ]
 
         return APIResponse.success(
             message=STATE_SUCCESS['state_list_success'],
