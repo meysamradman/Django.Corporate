@@ -69,6 +69,7 @@ const MODULE_NAMES = {
   ADMIN: 'admin',
   REAL_ESTATE: 'real_estate',
   REAL_ESTATE_PROPERTY: 'real_estate.property',
+  REAL_ESTATE_LOCATION: 'real_estate.location',
   REAL_ESTATE_AGENT: 'real_estate.agent',
   REAL_ESTATE_AGENCY: 'real_estate.agency',
   REAL_ESTATE_TYPE: 'real_estate.type',
@@ -159,6 +160,7 @@ const ROLE_ACCESS_OVERRIDES: Record<
     full: [
       MODULE_NAMES.REAL_ESTATE,
       MODULE_NAMES.REAL_ESTATE_PROPERTY,
+      MODULE_NAMES.REAL_ESTATE_LOCATION,
       MODULE_NAMES.REAL_ESTATE_AGENT,
       MODULE_NAMES.REAL_ESTATE_AGENCY,
       MODULE_NAMES.REAL_ESTATE_TYPE,

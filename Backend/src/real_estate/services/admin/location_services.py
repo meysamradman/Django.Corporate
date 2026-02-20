@@ -50,8 +50,7 @@ class RealEstateLocationAdminService:
         if search:
             queryset = queryset.filter(
                 Q(name__icontains=search) |
-                Q(code__icontains=search) |
-                Q(province__name__icontains=search)
+                Q(code__icontains=search)
             )
 
         if date_from:
@@ -100,8 +99,7 @@ class RealEstateLocationAdminService:
         if search:
             queryset = queryset.filter(
                 Q(name__icontains=search) |
-                Q(code__icontains=search) |
-                Q(city__name__icontains=search)
+                Q(code__icontains=search)
             )
 
         if date_from:

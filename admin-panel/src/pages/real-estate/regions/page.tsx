@@ -137,14 +137,14 @@ export default function RealEstateRegionsPage() {
           },
         });
       },
-      permission: "real_estate.property.update",
+      permission: "real_estate.location.update",
     },
     {
       label: "حذف",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: (item) => setDeleteConfirm({ open: true, isBulk: false, id: item.id }),
       isDestructive: true,
-      permission: "real_estate.property.delete",
+      permission: "real_estate.location.delete",
     },
   ];
 
@@ -178,7 +178,7 @@ export default function RealEstateRegionsPage() {
     <div className="space-y-6">
       <PageHeader title="لیست مناطق شهری">
         <ProtectedButton
-          permission="real_estate.property.create"
+          permission="real_estate.location.create"
           size="sm"
           onClick={() => {
             open(DRAWER_IDS.REAL_ESTATE_REGION_FORM, {
@@ -210,7 +210,7 @@ export default function RealEstateRegionsPage() {
           pageSizeOptions={[10, 20, 50]}
           deleteConfig={{
             onDeleteSelected: handleDeleteSelected,
-            permission: "real_estate.property.delete",
+            permission: "real_estate.location.delete",
             denyMessage: "اجازه حذف منطقه ندارید",
           }}
           filterConfig={filterConfig}

@@ -36,13 +36,13 @@ class RealEstateProvinceViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
     pagination_class = StandardLimitPagination
     permission_map = {
-        'list': 'real_estate.property.read',
-        'retrieve': 'real_estate.property.read',
-        'cities': 'real_estate.property.read',
-        'create': 'real_estate.property.create',
-        'update': 'real_estate.property.update',
-        'partial_update': 'real_estate.property.update',
-        'destroy': 'real_estate.property.delete',
+        'list': 'real_estate.location.read',
+        'retrieve': 'real_estate.location.read',
+        'cities': 'real_estate.location.read',
+        'create': 'real_estate.location.create',
+        'update': 'real_estate.location.update',
+        'partial_update': 'real_estate.location.update',
+        'destroy': 'real_estate.location.delete',
     }
     permission_denied_message = LOCATION_ERRORS["location_not_authorized"]
 
@@ -128,13 +128,13 @@ class RealEstateCityViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
     pagination_class = StandardLimitPagination
     permission_map = {
-        'list': 'real_estate.property.read',
-        'retrieve': 'real_estate.property.read',
-        'regions': 'real_estate.property.read',
-        'create': 'real_estate.property.create',
-        'update': 'real_estate.property.update',
-        'partial_update': 'real_estate.property.update',
-        'destroy': 'real_estate.property.delete',
+        'list': 'real_estate.location.read',
+        'retrieve': 'real_estate.location.read',
+        'regions': 'real_estate.location.read',
+        'create': 'real_estate.location.create',
+        'update': 'real_estate.location.update',
+        'partial_update': 'real_estate.location.update',
+        'destroy': 'real_estate.location.delete',
     }
     permission_denied_message = LOCATION_ERRORS["location_not_authorized"]
 
@@ -237,12 +237,12 @@ class RealEstateCityRegionViewSet(PermissionRequiredMixin, viewsets.ModelViewSet
     permission_classes = [real_estate_permission]
     pagination_class = StandardLimitPagination
     permission_map = {
-        'list': 'real_estate.property.read',
-        'retrieve': 'real_estate.property.read',
-        'create': 'real_estate.property.create',
-        'update': 'real_estate.property.update',
-        'partial_update': 'real_estate.property.update',
-        'destroy': 'real_estate.property.delete',
+        'list': 'real_estate.location.read',
+        'retrieve': 'real_estate.location.read',
+        'create': 'real_estate.location.create',
+        'update': 'real_estate.location.update',
+        'partial_update': 'real_estate.location.update',
+        'destroy': 'real_estate.location.delete',
     }
     permission_denied_message = LOCATION_ERRORS["location_not_authorized"]
 

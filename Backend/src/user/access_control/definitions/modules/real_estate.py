@@ -129,6 +129,31 @@ REAL_ESTATE_PERMISSIONS = {
         'display_name': 'Delete Property State',
         'description': 'Allow deleting property states',
     },
+
+    'real_estate.location.read': {
+        'module': 'real_estate_properties',
+        'action': 'read',
+        'display_name': 'View Property Locations',
+        'description': 'Allow viewing provinces, cities and regions',
+    },
+    'real_estate.location.create': {
+        'module': 'real_estate_properties',
+        'action': 'create',
+        'display_name': 'Create Property Location',
+        'description': 'Allow creating provinces, cities and regions',
+    },
+    'real_estate.location.update': {
+        'module': 'real_estate_properties',
+        'action': 'update',
+        'display_name': 'Update Property Location',
+        'description': 'Allow updating provinces, cities and regions',
+    },
+    'real_estate.location.delete': {
+        'module': 'real_estate_properties',
+        'action': 'delete',
+        'display_name': 'Delete Property Location',
+        'description': 'Allow deleting provinces, cities and regions',
+    },
     
     'real_estate.label.read': {
         'module': 'real_estate_properties',
