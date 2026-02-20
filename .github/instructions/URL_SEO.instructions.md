@@ -380,3 +380,46 @@ Cache keys:
 - [ ] cache key `detail:id` اضافه شده
 - [ ] invalidation وابستگی‌های taxonomy کامل انجام شده
 - [ ] revalidation Next برای tag/pathهای مرتبط فعال است
+
+
+
+PUBLIC — وب‌سایت (SEO)
+وضعیت
+/rent
+/buy
+/pre-sale
+/mortgage
+
+وضعیت + شهر
+/rent/tehran
+/buy/shiraz
+/pre-sale/mashhad
+
+وضعیت + شهر + نوع ملک
+/rent/tehran/apartment
+/buy/tehran/villa
+/pre-sale/shiraz/apartment
+
+لیست پایه (قبل از انتخاب شهر)
+/rent
+/buy
+
+فیلترها (Query)
+/rent/tehran/apartment?rooms=2
+/rent/tehran/apartment?min_price=5000000000
+/rent/tehran/apartment?rooms=2&has_parking=true
+
+pagination
+/rent/tehran/apartment?page=2
+
+تگ / برچسب (صفحه اختصاصی)
+/tag/luxury
+/tag/new-build
+/tag/sea-view
+
+لیست + تگ
+/rent/tehran/apartment?tag=luxury
+
+جزئیات ملک
+/property/3515234/luxury-apartment-in-tehran
+

@@ -6,6 +6,7 @@ import { brandingApi } from "@/api/settings/branding";
 import { generalSettingsApi } from "@/api/settings/general";
 import { footerApi } from "@/api/settings/footer";
 import { chatbotApi } from "@/api/chatbot/route";
+import { realEstateApi } from "@/api/real-estate/route";
 import { ChatbotWidget } from "@/components/chatbot/ChatbotWidget";
 import type { SiteLogo } from "@/types/settings/branding";
 import type { PublicGeneralSettings } from "@/types/settings/general";
@@ -22,13 +23,25 @@ function HeaderFallback() {
 
 async function HeaderSlot() {
     let logo: SiteLogo | null = null;
+    let typeOptions: Array<{ value: string; label: string; slug?: string }> = [];
+
     try {
-        logo = await brandingApi.getLogo();
+        const [logoResponse, typesResponse] = await Promise.all([
+            brandingApi.getLogo(),
+            realEstateApi.getTypes({ page: 1, size: 50 }).catch(() => null),
+        ]);
+
+        logo = logoResponse;
+        typeOptions = (typesResponse?.data ?? []).map((item) => ({
+            value: String(item.id),
+            label: item.name,
+            slug: item.slug,
+        }));
     } catch {
         logo = null;
     }
 
-    return <Header logo={logo} />;
+    return <Header logo={logo} typeOptions={typeOptions} />;
 }
 
 function FooterFallback() {
