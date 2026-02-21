@@ -16,13 +16,9 @@ interface PropertyDetailPrintViewProps {
     propertyId: number;
 }
 
-const toPersianDigits = (str: string | number): string => {
-    return str.toString().replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[parseInt(d)]);
-};
-
 const formatPrice = (price: number | null | undefined) => {
     if (!price) return 'نامشخص / توافقی';
-    return toPersianDigits(new Intl.NumberFormat('fa-IR').format(price));
+    return new Intl.NumberFormat('en-US').format(price);
 };
 
 export function PropertyDetailPrintView({ propertyId }: PropertyDetailPrintViewProps) {
@@ -86,8 +82,8 @@ export function PropertyDetailPrintView({ propertyId }: PropertyDetailPrintViewP
                         <p className="text-xl text-slate-400 font-black tracking-tight uppercase italic">Property Official Documentation / Real Estate Export</p>
                     </div>
                     <div className="text-[12px] text-slate-800 font-black space-y-1 text-left uppercase">
-                        <div>DATE: {toPersianDigits(format(new Date(), 'yyyy/MM/dd'))}</div>
-                        <div>ID: {toPersianDigits(property.id)}</div>
+                        <div>DATE: {format(new Date(), 'yyyy/MM/dd')}</div>
+                        <div>ID: {property.id}</div>
                     </div>
                 </div>
 
@@ -96,7 +92,7 @@ export function PropertyDetailPrintView({ propertyId }: PropertyDetailPrintViewP
                         <img
                             src={mainImageUrl}
                             alt={property.title}
-                            className="w-full h-auto object-cover max-h-[600px]"
+                            className="w-full h-auto object-cover max-h-150"
                         />
                         <div className="absolute top-8 left-8 bg-blue-600 text-white px-6 py-2 rounded-full text-xs font-black shadow-lg">OFFICIAL LISTING</div>
                     </div>
@@ -129,11 +125,11 @@ export function PropertyDetailPrintView({ propertyId }: PropertyDetailPrintViewP
                     </div>
                     <div>
                         <div className="text-[10px] text-slate-400 mb-1 font-bold">متراژ</div>
-                        <div className="text-xs font-black text-slate-800">{toPersianDigits(property.built_area || property.land_area || 0)} متر مربع</div>
+                        <div className="text-xs font-black text-slate-800">{property.built_area || property.land_area || 0} متر مربع</div>
                     </div>
                     <div>
                         <div className="text-[10px] text-slate-400 mb-1 font-bold">تعداد خواب</div>
-                        <div className="text-xs font-black text-slate-800">{toPersianDigits(property.bedrooms || 0)} خوابه</div>
+                        <div className="text-xs font-black text-slate-800">{property.bedrooms || 0} خوابه</div>
                     </div>
                 </div>
 
@@ -164,7 +160,7 @@ export function PropertyDetailPrintView({ propertyId }: PropertyDetailPrintViewP
                 <div className="mt-40 pt-10 border-t-4 border-slate-900 flex justify-between items-center text-[12px] text-slate-400 font-black italic">
                     <div>سند رسمی استخراج شده از درگاه مدیریت املاک</div>
                     <div className="text-slate-900 font-black uppercase not-italic tracking-[0.5em] px-10">Real Estate Management System</div>
-                    <div>صفحه {toPersianDigits(1)} از {toPersianDigits(1)}</div>
+                    <div>صفحه 1 از 1</div>
                 </div>
             </div>
 

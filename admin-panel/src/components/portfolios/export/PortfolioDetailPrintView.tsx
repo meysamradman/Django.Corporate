@@ -16,10 +16,6 @@ interface PortfolioDetailPrintViewProps {
     portfolioId: number;
 }
 
-const toPersianDigits = (str: string | number): string => {
-    return str.toString().replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[parseInt(d)]);
-};
-
 export function PortfolioDetailPrintView({ portfolioId }: PortfolioDetailPrintViewProps) {
     const { data: portfolio, isLoading, error } = useQuery({
         queryKey: ['portfolio', 'print', portfolioId],
@@ -81,8 +77,8 @@ export function PortfolioDetailPrintView({ portfolioId }: PortfolioDetailPrintVi
                         <p className="text-xl text-slate-300 font-black tracking-tight italic uppercase">Engineering Documentation / Portfolio Item</p>
                     </div>
                     <div className="text-[12px] text-slate-800 font-black space-y-1 text-left uppercase">
-                        <div>DATE: {toPersianDigits(format(new Date(), 'yyyy/MM/dd'))}</div>
-                        <div>ID: {toPersianDigits(portfolio.id)}</div>
+                        <div>DATE: {format(new Date(), 'yyyy/MM/dd')}</div>
+                        <div>ID: {portfolio.id}</div>
                     </div>
                 </div>
 
@@ -105,7 +101,7 @@ export function PortfolioDetailPrintView({ portfolioId }: PortfolioDetailPrintVi
                     </div>
                     <div className="bg-slate-50 border-4 border-white flex-1 p-8 rounded-4xl text-right">
                         <div className="text-[10px] text-slate-400 mb-1 font-bold tracking-[0.3em] uppercase">Execution Date</div>
-                        <div className="text-lg font-black text-slate-800 italic">{toPersianDigits(format(new Date(portfolio.created_at), 'MMMM yyyy'))}</div>
+                        <div className="text-lg font-black text-slate-800 italic">{format(new Date(portfolio.created_at), 'MMMM yyyy')}</div>
                     </div>
                     <div className="bg-slate-50 border-4 border-white flex-1 p-8 rounded-4xl text-right">
                         <div className="text-[10px] text-slate-400 mb-1 font-bold tracking-[0.3em] uppercase">Public Visibility</div>
@@ -134,7 +130,7 @@ export function PortfolioDetailPrintView({ portfolioId }: PortfolioDetailPrintVi
                 <div className="mt-40 pt-10 border-t-4 border-slate-900 flex justify-between items-center text-[12px] text-slate-400 font-black italic">
                     <div>سند مهندسی و مستندات واحد فنی</div>
                     <div className="text-slate-900 font-black uppercase not-italic tracking-[0.5em] px-10">Management System</div>
-                    <div>صفحه {toPersianDigits(1)} از {toPersianDigits(1)}</div>
+                    <div>صفحه 1 از 1</div>
                 </div>
             </div>
 

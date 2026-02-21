@@ -23,11 +23,21 @@ export const ProvinceSide: React.FC<ProvinceSideProps> = ({
   const [form, setForm] = useState({ name: "", code: "", slug: "", latitude: "", longitude: "", coordinates: "" });
 
   const normalizeCoordinateText = (value: string) => {
-    return String(value || "")
-      .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
-      .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))
-      .replace(/،/g, ",")
-      .trim();
+    const raw = String(value || "").replace(/،/g, ",").trim();
+    let normalized = "";
+
+    for (const char of raw) {
+      const code = char.charCodeAt(0);
+      if (code >= 0x06f0 && code <= 0x06f9) {
+        normalized += String(code - 0x06f0);
+      } else if (code >= 0x0660 && code <= 0x0669) {
+        normalized += String(code - 0x0660);
+      } else {
+        normalized += char;
+      }
+    }
+
+    return normalized;
   };
 
   const parseCombinedCoordinates = (value: string): { lat: number; lng: number } | null => {

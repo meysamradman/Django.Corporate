@@ -179,9 +179,22 @@ export default function LocationMap({
     return data.display_name || `${latitude?.toFixed(6) || '0'}, ${longitude?.toFixed(6) || '0'}`;
   };
 
-  const toEnglishDigits = (str: string) => {
-    return str.replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString())
-      .replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d).toString());
+  const normalizeCoordinateText = (value: string) => {
+    const raw = String(value || "");
+    let normalized = "";
+
+    for (const char of raw) {
+      const code = char.charCodeAt(0);
+      if (code >= 0x06f0 && code <= 0x06f9) {
+        normalized += String(code - 0x06f0);
+      } else if (code >= 0x0660 && code <= 0x0669) {
+        normalized += String(code - 0x0660);
+      } else {
+        normalized += char;
+      }
+    }
+
+    return normalized;
   };
 
   const handlePositionChange = async (lat: number, lng: number) => {
@@ -227,7 +240,7 @@ export default function LocationMap({
         }
 
         if (onRegionUpdate) {
-          const normalizedAddress = toEnglishDigits(address);
+          const normalizedAddress = normalizeCoordinateText(address);
           const regionMatch = normalizedAddress.match(/منطقه\s*(\d+)/i) || normalizedAddress.match(/District\s*(\d+)/i);
           if (regionMatch) {
             const detectedRegion = parseInt(regionMatch[1]);

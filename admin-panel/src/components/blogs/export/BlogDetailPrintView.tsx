@@ -16,10 +16,6 @@ interface BlogDetailPrintViewProps {
     blogId: number;
 }
 
-const toPersianDigits = (str: string | number): string => {
-    return str.toString().replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[parseInt(d)]);
-};
-
 export function BlogDetailPrintView({ blogId }: BlogDetailPrintViewProps) {
     const { data: blog, isLoading, error } = useQuery({
         queryKey: ['blog', 'print', blogId],
@@ -81,8 +77,8 @@ export function BlogDetailPrintView({ blogId }: BlogDetailPrintViewProps) {
                         <p className="text-lg text-slate-400 font-bold italic">Official Documentation / Article Export</p>
                     </div>
                     <div className="text-[11px] text-slate-700 font-bold space-y-1 text-left">
-                        <div>تاریخ چاپ: {toPersianDigits(format(new Date(), 'yyyy/MM/dd'))}</div>
-                        <div>شناسه سند: {toPersianDigits(blog.id)}</div>
+                        <div>تاریخ چاپ: {format(new Date(), 'yyyy/MM/dd')}</div>
+                        <div>شناسه سند: {blog.id}</div>
                     </div>
                 </div>
 
@@ -91,7 +87,7 @@ export function BlogDetailPrintView({ blogId }: BlogDetailPrintViewProps) {
                         <img
                             src={mainImageUrl}
                             alt={blog.title}
-                            className="w-full h-auto object-cover max-h-[500px]"
+                            className="w-full h-auto object-cover max-h-125"
                         />
                     </div>
                 )}
@@ -106,7 +102,7 @@ export function BlogDetailPrintView({ blogId }: BlogDetailPrintViewProps) {
                     <div>
                         <div className="text-[10px] text-slate-400 mb-1 font-bold">تاریخ انتشار اصلی</div>
                         <div className="text-xs font-black text-slate-800">
-                            {toPersianDigits(format(new Date(blog.created_at), 'yyyy/MM/dd'))}
+                            {format(new Date(blog.created_at), 'yyyy/MM/dd')}
                         </div>
                     </div>
                     <div>
@@ -118,7 +114,7 @@ export function BlogDetailPrintView({ blogId }: BlogDetailPrintViewProps) {
                     <div>
                         <div className="text-[10px] text-slate-400 mb-1 font-bold">آمار بازدید</div>
                         <div className="text-xs font-black text-blue-600">
-                            {toPersianDigits(blog.views_count || 0)} مشاهده
+                            {blog.views_count || 0} مشاهده
                         </div>
                     </div>
                 </div>
@@ -150,7 +146,7 @@ export function BlogDetailPrintView({ blogId }: BlogDetailPrintViewProps) {
                 <div className="mt-32 pt-10 border-t-2 border-slate-900 flex justify-between items-center text-[11px] text-slate-400 font-black italic">
                     <div>سند رسمی استخراج شده از درگاه مدیریت محتوا</div>
                     <div className="text-slate-900 font-black uppercase not-italic tracking-widest px-10">Corporate Management System</div>
-                    <div>صفحه {toPersianDigits(1)} از {toPersianDigits(1)}</div>
+                    <div>صفحه 1 از 1</div>
                 </div>
             </div>
 

@@ -14,13 +14,9 @@ interface PropertyPrintViewProps {
     propertyIds: number[];
 }
 
-const toPersianDigits = (str: string | number): string => {
-    return str.toString().replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[parseInt(d)]);
-};
-
 const formatPrice = (price: number | null | undefined) => {
     if (!price) return '-';
-    return toPersianDigits(new Intl.NumberFormat('fa-IR').format(price));
+    return new Intl.NumberFormat('en-US').format(price);
 };
 
 export function PropertyPrintView({ propertyIds }: PropertyPrintViewProps) {
@@ -63,7 +59,7 @@ export function PropertyPrintView({ propertyIds }: PropertyPrintViewProps) {
                     </button>
                     <div className="h-6 w-px bg-slate-200 mx-2"></div>
                     <div className="text-slate-500 text-sm font-bold bg-slate-50 px-4 py-1.5 rounded-full border border-slate-100">
-                        لیست املاک ({toPersianDigits(properties.length)} مورد انتخاب شده)
+                        لیست املاک ({properties.length} مورد انتخاب شده)
                     </div>
                 </div>
                 <button
@@ -81,9 +77,9 @@ export function PropertyPrintView({ propertyIds }: PropertyPrintViewProps) {
                         <p className="text-sm text-slate-400 font-bold italic tracking-[0.2em] uppercase opacity-70">System Export / Real Estate Comprehensive Report</p>
                     </div>
                     <div className="text-left text-xs text-slate-800 font-black space-y-1.5 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                        <div className="flex justify-between gap-8"><span>تاریخ چاپ:</span> <span>{toPersianDigits(format(new Date(), 'yyyy/MM/dd'))}</span></div>
-                        <div className="flex justify-between gap-8 border-t border-slate-200/50 pt-1"><span>زمان ثبت:</span> <span>{toPersianDigits(format(new Date(), 'HH:mm'))}</span></div>
-                        <div className="flex justify-between gap-8 border-t border-slate-200/50 pt-1"><span>تعداد کل:</span> <span>{toPersianDigits(properties.length)} مورد</span></div>
+                        <div className="flex justify-between gap-8"><span>تاریخ چاپ:</span> <span>{format(new Date(), 'yyyy/MM/dd')}</span></div>
+                        <div className="flex justify-between gap-8 border-t border-slate-200/50 pt-1"><span>زمان ثبت:</span> <span>{format(new Date(), 'HH:mm')}</span></div>
+                        <div className="flex justify-between gap-8 border-t border-slate-200/50 pt-1"><span>تعداد کل:</span> <span>{properties.length} مورد</span></div>
                     </div>
                 </div>
 
@@ -105,10 +101,10 @@ export function PropertyPrintView({ propertyIds }: PropertyPrintViewProps) {
                         <tbody className="text-slate-800">
                             {properties.map((property: any, index: number) => (
                                 <tr key={property.id} className="border-b border-slate-200">
-                                    <td className="p-3 text-xs font-bold text-slate-500 border-x border-slate-100 text-center italic">{toPersianDigits(index + 1)}</td>
+                                    <td className="p-3 text-xs font-bold text-slate-500 border-x border-slate-100 text-center italic">{index + 1}</td>
                                     <td className="p-3 border-x border-slate-100">
                                         <div className="text-sm font-black text-slate-900 leading-tight truncate">{property.title}</div>
-                                        <div className="text-[8px] text-blue-500 font-bold mt-1 tracking-widest font-mono">ID: {toPersianDigits(property.id)}</div>
+                                        <div className="text-[8px] text-blue-500 font-bold mt-1 tracking-widest font-mono">ID: {property.id}</div>
                                     </td>
                                     <td className="p-3 border-x border-slate-100 text-center">
                                         <div className="text-[10px] font-black text-slate-700 leading-none">{property.property_type?.title || '-'}</div>
@@ -138,7 +134,7 @@ export function PropertyPrintView({ propertyIds }: PropertyPrintViewProps) {
                                         </span>
                                     </td>
                                     <td className="p-3 text-center border-x border-slate-100">
-                                        <div className="text-[9px] font-bold text-slate-500">{toPersianDigits(format(new Date(property.created_at), 'MM/dd'))}</div>
+                                        <div className="text-[9px] font-bold text-slate-500">{format(new Date(property.created_at), 'MM/dd')}</div>
                                     </td>
                                 </tr>
                             ))}

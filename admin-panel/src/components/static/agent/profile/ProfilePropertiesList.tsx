@@ -73,7 +73,7 @@ export function ProfilePropertiesList({
       titleExtra={
         <div className="flex items-center gap-2">
             <span className="text-[10px] text-font-s hidden sm:inline-block">تعداد کل:</span>
-            <Badge variant="gray" className="font-mono">{totalCount}</Badge>
+            <Badge variant="gray">{totalCount}</Badge>
         </div>
       }
     >
@@ -137,7 +137,7 @@ export function ProfilePropertiesList({
                                         {property.title}
                                     </a>
                                   <div className="flex items-center gap-2 text-[10px] text-font-s/80">
-                                    <span className="font-mono bg-divi/40 px-1.5 py-0.5 rounded text-[9px] border border-br/20">#{property.id}</span>
+                                    <span className="bg-divi/40 px-1.5 py-0.5 rounded text-[9px] border border-br/20">#{property.id}</span>
                                     <span className="w-px h-2.5 bg-br/60"></span>
                                     <span className="px-1.5 py-0.5 rounded bg-blue-0 text-blue-1 border border-blue">
                                             {property.dealType}
@@ -166,8 +166,7 @@ export function ProfilePropertiesList({
                         {/* Price */}
                         <td className="px-6 py-4">
                             <div className="flex items-center justify-end gap-1.5 font-bold text-font-p">
-                                <span className="text-lg tracking-tight dir-ltr">{property.price.replace(/\D/g, '')}</span>
-                              <span className="text-[10px] text-font-s font-normal">میلیون</span>
+                                <span className="text-sm tracking-tight">{property.price}</span>
                            </div>
                         </td>
 

@@ -14,13 +14,6 @@ interface PortfolioPrintViewProps {
     portfolioIds: number[];
 }
 
-/**
- * Helper to convert Latin digits to Persian digits
- */
-const toPersianDigits = (str: string | number): string => {
-    return str.toString().replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[parseInt(d)]);
-};
-
 export function PortfolioPrintView({ portfolioIds }: PortfolioPrintViewProps) {
     const { data: portfolios, isLoading, error } = useQuery({
         queryKey: ['portfolios', 'print', portfolioIds],
@@ -37,7 +30,7 @@ export function PortfolioPrintView({ portfolioIds }: PortfolioPrintViewProps) {
             label: '#',
             width: '4%',
             align: 'center' as const,
-            render: (_: any, index: number) => toPersianDigits(index + 1)
+            render: (_: any, index: number) => String(index + 1)
         },
         {
             key: 'title',
@@ -108,7 +101,7 @@ export function PortfolioPrintView({ portfolioIds }: PortfolioPrintViewProps) {
             align: 'center' as const,
             render: (item: any) => (
                 <span className="text-xs font-bold text-slate-700">
-                    {toPersianDigits(format(new Date(item.created_at), 'yyyy/MM/dd'))}
+                    {format(new Date(item.created_at), 'yyyy/MM/dd')}
                 </span>
             )
         },
@@ -170,9 +163,9 @@ export function PortfolioPrintView({ portfolioIds }: PortfolioPrintViewProps) {
                         <p className="text-sm text-slate-400 font-bold italic tracking-widest uppercase">System Export / Engineering Report</p>
                     </div>
                     <div className="text-left text-xs text-slate-700 font-bold space-y-1">
-                        <div>تاریخ چاپ: {toPersianDigits(format(new Date(), 'yyyy/MM/dd'))}</div>
-                        <div>زمان: {toPersianDigits(format(new Date(), 'HH:mm'))}</div>
-                        <div>تعداد کل: {toPersianDigits(portfolios?.length || 0)} مورد</div>
+                        <div>تاریخ چاپ: {format(new Date(), 'yyyy/MM/dd')}</div>
+                        <div>زمان: {format(new Date(), 'HH:mm')}</div>
+                        <div>تعداد کل: {portfolios?.length || 0} مورد</div>
                     </div>
                 </div>
 
@@ -210,7 +203,7 @@ export function PortfolioPrintView({ portfolioIds }: PortfolioPrintViewProps) {
 
                 <div className="mt-12 pt-6 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-400 font-bold">
                     <div className="uppercase tracking-widest">Official Management System</div>
-                    <div>صفحه {toPersianDigits(1)} از {toPersianDigits(1)}</div>
+                    <div>صفحه 1 از 1</div>
                 </div>
             </div>
 

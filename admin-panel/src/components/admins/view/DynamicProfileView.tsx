@@ -25,12 +25,15 @@ const formatDate = (value?: string | null) => {
   if (!value) return "---";
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
-  return parsed.toLocaleDateString("fa-IR");
+  const year = parsed.getFullYear();
+  const month = String(parsed.getMonth() + 1).padStart(2, "0");
+  const day = String(parsed.getDate()).padStart(2, "0");
+  return `${year}/${month}/${day}`;
 };
 
 const formatMoneyToMillion = (value?: number | null) => {
   if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return "0 میلیون";
-  return `${new Intl.NumberFormat("fa-IR").format(Math.round(value / 1_000_000))} میلیون`;
+  return `${new Intl.NumberFormat("en-US").format(Math.round(value / 1_000_000))} میلیون`;
 };
 
 const mapPropertyStatus = (isActive?: boolean, isPublished?: boolean): "فعال" | "در انتظار" | "غیرفعال" => {
@@ -73,7 +76,7 @@ export function DynamicProfileView({ adminId, profileMode }: DynamicProfileViewP
       id: property.id,
       title: toSafeString(property.title),
       city: toSafeString(property.city_name),
-      propertyType: toSafeString(property.property_type?.name),
+      propertyType: toSafeString(property.property_type?.title),
       dealType: "فروش",
       status: mapPropertyStatus(property.is_active, property.is_published),
       price: formatMoneyToMillion(
@@ -148,9 +151,9 @@ export function DynamicProfileView({ adminId, profileMode }: DynamicProfileViewP
         nationalId={toSafeString(adminData.profile?.national_id)}
         createdAt={formatDate(adminData.created_at)}
         active={adminData.is_active}
-        avatarUrl={adminData.profile?.profile_picture?.url || FALLBACK_AVATAR}
+        avatarUrl={adminData.profile?.profile_picture?.file_url || FALLBACK_AVATAR}
         coverUrl={FALLBACK_COVER}
-        profileViews={consultantStats.totalViews}
+        profileViews={String(consultantStats.totalViews)}
         propertyCount={String(consultantStats.totalProperties)}
         ticketCount={String(consultantStats.activeProperties)}
       />
