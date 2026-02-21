@@ -4,6 +4,7 @@ import { realEstateApi } from "@/api/real-estate";
 import { TaxonomyDrawer } from "@/components/templates/TaxonomyDrawer";
 import { FormField, FormFieldInput } from "@/components/shared/FormField";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
+import { Button } from "@/components/elements/Button";
 import { showError, showSuccess } from "@/core/toast";
 
 interface CitySideProps {
@@ -20,7 +21,55 @@ export const CitySide: React.FC<CitySideProps> = ({
   editId,
 }) => {
   const isEditMode = !!editId;
-  const [form, setForm] = useState({ name: "", code: "", slug: "", province_id: "", latitude: "", longitude: "" });
+  const [form, setForm] = useState({ name: "", code: "", slug: "", province_id: "", latitude: "", longitude: "", coordinates: "" });
+
+  const normalizeCoordinateText = (value: string) => {
+    return String(value || "")
+      .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
+      .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))
+      .replace(/،/g, ",")
+      .trim();
+  };
+
+  const parseCombinedCoordinates = (value: string): { lat: number; lng: number } | null => {
+    const normalized = normalizeCoordinateText(value);
+    if (!normalized) return null;
+
+    const parts = normalized.split(",").map((part) => part.trim()).filter(Boolean);
+    if (parts.length !== 2) return null;
+
+    const lat = Number(parts[0]);
+    const lng = Number(parts[1]);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    return { lat, lng };
+  };
+
+  const applyCombinedCoordinates = () => {
+    if (!form.coordinates.trim()) return;
+
+    const parsed = parseCombinedCoordinates(form.coordinates);
+    if (!parsed) {
+      showError("فرمت مختصات معتبر نیست. مثال: 35.6892, 51.3890");
+      return;
+    }
+
+    if (parsed.lat < -90 || parsed.lat > 90) {
+      showError("عرض جغرافیایی باید بین -90 تا 90 باشد");
+      return;
+    }
+
+    if (parsed.lng < -180 || parsed.lng > 180) {
+      showError("طول جغرافیایی باید بین -180 تا 180 باشد");
+      return;
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      latitude: parsed.lat.toString(),
+      longitude: parsed.lng.toString(),
+      coordinates: `${parsed.lat}, ${parsed.lng}`,
+    }));
+  };
 
   const { data: provinces = [] } = useQuery({
     queryKey: ["real-estate-provinces"],
@@ -44,11 +93,14 @@ export const CitySide: React.FC<CitySideProps> = ({
         province_id: cityData.province_id ? String(cityData.province_id) : "",
         latitude: cityData.latitude !== null && cityData.latitude !== undefined ? String(cityData.latitude) : "",
         longitude: cityData.longitude !== null && cityData.longitude !== undefined ? String(cityData.longitude) : "",
+        coordinates: cityData.latitude !== null && cityData.latitude !== undefined && cityData.longitude !== null && cityData.longitude !== undefined
+          ? `${cityData.latitude}, ${cityData.longitude}`
+          : "",
       });
       return;
     }
     if (!isEditMode) {
-      setForm({ name: "", code: "", slug: "", province_id: "", latitude: "", longitude: "" });
+      setForm({ name: "", code: "", slug: "", province_id: "", latitude: "", longitude: "", coordinates: "" });
     }
   }, [isOpen, isEditMode, cityData]);
 
@@ -121,6 +173,22 @@ export const CitySide: React.FC<CitySideProps> = ({
           onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
           placeholder="مثال: tehran-city"
         />
+        <div className="space-y-2">
+          <FormFieldInput
+            label="مختصات ترکیبی (اختیاری)"
+            id="city_coordinates"
+            value={form.coordinates}
+            disabled={isLoading}
+            onChange={(e) => setForm((prev) => ({ ...prev, coordinates: e.target.value }))}
+            placeholder="35.6892, 51.3890"
+          />
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-font-s">از گوگل مپ مستقیم `lat, lng` کپی کن و اعمال بزن.</p>
+            <Button type="button" size="sm" variant="outline" onClick={applyCombinedCoordinates} disabled={isLoading || !form.coordinates.trim()}>
+              اعمال مختصات
+            </Button>
+          </div>
+        </div>
         <FormFieldInput
           label="عرض جغرافیایی (اختیاری)"
           id="city_latitude"
