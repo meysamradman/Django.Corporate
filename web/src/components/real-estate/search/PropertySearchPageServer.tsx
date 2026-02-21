@@ -62,12 +62,14 @@ export default async function PropertySearchPageServer({ filters }: PropertySear
     id: item.id,
     value: String(item.id),
     title: item.name,
+    slug: item.slug,
   }));
 
   const cityOptions = (citiesResponse?.data ?? []).map((item) => ({
     id: item.id,
     value: String(item.id),
     title: item.name,
+    slug: item.slug,
     provinceId: item.province_id,
   }));
 

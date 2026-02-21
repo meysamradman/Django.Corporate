@@ -143,6 +143,7 @@ export default function PropertySearchSidebar({
           id: item.id,
           value: String(item.id),
           title: item.name,
+          slug: item.slug,
           provinceId: item.province_id,
         }));
         setDynamicCityOptions(nextOptions);
@@ -318,7 +319,7 @@ export default function PropertySearchSidebar({
                   province: provinceValue,
                   city: null,
                   region: null,
-                  province_slug: selectedProvince?.title ? toSeoLocationSegment(selectedProvince.title) : "",
+                  province_slug: selectedProvince?.slug || (selectedProvince?.title ? toSeoLocationSegment(selectedProvince.title) : ""),
                   city_slug: "",
                 });
               }}
@@ -341,7 +342,7 @@ export default function PropertySearchSidebar({
                 update({
                   city: cityId,
                   region: null,
-                  city_slug: selectedCity?.title ? toSeoLocationSegment(selectedCity.title) : "",
+                  city_slug: selectedCity?.slug || (selectedCity?.title ? toSeoLocationSegment(selectedCity.title) : ""),
                 });
               }}
             >
