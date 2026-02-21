@@ -173,7 +173,8 @@ export function Sidebar({
   };
 
   const handleProfileClick = () => {
-    navigate(`/admins/me/edit`);
+    const isConsultant = user?.user_role_type === 'consultant' || user?.has_agent_profile;
+    navigate(isConsultant ? `/agents/me/view` : `/admins/me/view`);
   };
 
   const handleLogout = async () => {

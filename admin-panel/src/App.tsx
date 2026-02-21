@@ -135,7 +135,7 @@ function App() {
                       <Route path="agents" element={<Navigate to="/agents" replace />} />
                       <Route path="agents/:id/view" element={<AgentRedirectView />} />
                       <Route path="agents/:id/edit" element={<AgentRedirectEdit />} />
-                      <Route path="me-consultant/edit" element={<Navigate to="/agents/me/edit" replace />} />
+                      <Route path="me-consultant/edit" element={<Navigate to="/agents/me/view" replace />} />
                     </Route>
                     <Route path="agents">
                       <Route index element={<AgentsPage />} />

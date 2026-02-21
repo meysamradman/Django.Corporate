@@ -53,7 +53,7 @@ export default function EditAgentPage() {
       <div className="space-y-6">
         <div className="border p-6 text-center space-y-4">
           <p className="text-destructive">شما فقط می‌توانید پروفایل خود را ویرایش کنید.</p>
-          <Button onClick={() => navigate("/agents/me/edit")}>پروفایل من</Button>
+          <Button onClick={() => navigate("/agents/me/view")}>پروفایل من</Button>
         </div>
       </div>
     );

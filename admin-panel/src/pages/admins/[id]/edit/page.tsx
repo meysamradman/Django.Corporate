@@ -53,7 +53,7 @@ export default function EditAdminPage() {
       <div className="space-y-6">
         <div className="border p-6 text-center space-y-4">
           <p className="text-destructive">شما فقط می‌توانید پروفایل خود را مشاهده یا ویرایش کنید.</p>
-          <Button onClick={() => navigate("/admins/me/edit")}>پروفایل من</Button>
+          <Button onClick={() => navigate("/admins/me/view")}>پروفایل من</Button>
         </div>
       </div>
     );

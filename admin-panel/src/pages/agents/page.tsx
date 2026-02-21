@@ -87,7 +87,7 @@ export default function AgentsPage() {
     const currentUserIsAgent = user?.user_role_type === 'consultant' || user?.has_agent_profile;
 
     if (isOwnProfile && currentUserIsAgent) {
-      navigate('/agents/me/edit');
+      navigate('/agents/me/view');
     } else {
       navigate(`/agents/${admin.id}/edit`);
     }
