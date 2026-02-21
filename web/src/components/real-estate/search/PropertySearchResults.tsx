@@ -41,7 +41,7 @@ const getPropertyImageUrl = (property: Property): string | null => {
   return mediaImage;
 };
 
-const getPropertyCanonicalPath = (property: Property): string => `/properties/id/${property.id}/${encodeURIComponent(property.slug)}`;
+const getPropertyCanonicalPath = (property: Property): string => `/properties/${property.id}/${encodeURIComponent(property.slug)}`;
 
 const buildPageHref = (filters: PropertySearchFilters, page: number): string => {
   return filtersToHref(filters, { page });

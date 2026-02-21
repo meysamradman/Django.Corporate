@@ -19,12 +19,12 @@ async function PropertiesPageBody({ searchParams }: PageProps) {
   if (filters.city !== null) {
     const cityById = await realEstateApi.getCityById(filters.city).catch(() => null);
     if (cityById?.name) {
-      filters.city_slug = toSeoSegment(cityById.name);
+      filters.city_slug = String(cityById.slug || toSeoSegment(cityById.name)).trim();
       if (typeof cityById.province_id === "number") {
         filters.province = cityById.province_id;
       }
       if (cityById.province_name) {
-        filters.province_slug = toSeoSegment(cityById.province_name);
+        filters.province_slug = String(cityById.province_slug || toSeoSegment(cityById.province_name)).trim();
       }
     }
   }
@@ -32,7 +32,7 @@ async function PropertiesPageBody({ searchParams }: PageProps) {
   if (filters.city === null && filters.province !== null) {
     const provinceById = await realEstateApi.getProvinceById(filters.province).catch(() => null);
     if (provinceById?.name) {
-      filters.province_slug = toSeoSegment(provinceById.name);
+      filters.province_slug = String(provinceById.slug || toSeoSegment(provinceById.name)).trim();
     }
   }
 

@@ -37,7 +37,7 @@ export default function RealFeachure({ properties = [] }: RealFeachureProps) {
         return parts.join('، ') || property.neighborhood || '';
     };
 
-    const getPropertyCanonicalPath = (property: Property): string => `/properties/id/${property.id}/${encodeURIComponent(property.slug)}`;
+    const getPropertyCanonicalPath = (property: Property): string => `/properties/${property.id}/${encodeURIComponent(property.slug)}`;
 
     return (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">

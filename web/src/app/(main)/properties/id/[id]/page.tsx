@@ -6,7 +6,7 @@ type PageProps = {
   params: Promise<{ id: string }>;
 };
 
-const getCanonicalPropertyPath = (id: string | number, slug: string) => `/properties/id/${id}/${encodeURIComponent(slug)}`;
+const getCanonicalPropertyPath = (id: string | number, slug: string) => `/properties/${id}/${encodeURIComponent(slug)}`;
 
 export default async function PropertyLegacyRedirectPage({ params }: PageProps) {
   const { id } = await params;

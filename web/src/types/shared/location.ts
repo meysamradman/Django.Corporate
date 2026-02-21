@@ -38,6 +38,7 @@ export interface ProvinceCompact {
     id: number;
     name: string;
     code: string;
+    slug?: string;
 }
 
 export interface CityCompact {
@@ -45,6 +46,8 @@ export interface CityCompact {
     name: string;
     code: string;
     province_name: string;
+    slug?: string;
+    province_slug?: string;
 }
 
 export interface RegionCompact {

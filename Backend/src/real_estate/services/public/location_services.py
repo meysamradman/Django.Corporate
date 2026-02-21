@@ -32,7 +32,11 @@ class PropertyLocationPublicService:
         queryset = Province.objects.filter(is_active=True)
 
         if search:
-            queryset = queryset.filter(Q(name__icontains=search) | Q(code__icontains=search))
+            queryset = queryset.filter(
+                Q(name__icontains=search)
+                | Q(code__icontains=search)
+                | Q(slug__icontains=search)
+            )
 
         queryset = queryset.order_by(
             *PropertyLocationPublicService._normalize_ordering(
@@ -56,7 +60,9 @@ class PropertyLocationPublicService:
             queryset = queryset.filter(
                 Q(name__icontains=search)
                 | Q(code__icontains=search)
+                | Q(slug__icontains=search)
                 | Q(province__name__icontains=search)
+                | Q(province__slug__icontains=search)
             )
 
         queryset = queryset.order_by(

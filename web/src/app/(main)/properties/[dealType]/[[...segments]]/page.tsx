@@ -2,8 +2,20 @@ import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { realEstateApi } from "@/api/real-estate/route";
+import {
+  PropertyDescription,
+  PropertyAgentSticky,
+  PropertyAttributes,
+  PropertyDetails,
+  PropertyFloorPlans,
+  PropertyFeatures,
+  PropertyGallery,
+  PropertyLocation,
+  PropertyVideo,
+} from "@/components/real-estate/property-detail";
 import PropertySearchPageServer from "@/components/real-estate/search/PropertySearchPageServer";
 import PropertySearchPageFallback from "@/components/real-estate/search/PropertySearchPageFallback";
+import { preparePropertyGallery } from "@/components/real-estate/property-detail/preparePropertyGallery";
 import { filtersFromSeoSegments, filtersToSearchParams, normalizeTaxonomySlug, resolvePropertySearchFilters, resolvePropertySearchPath, toSeoLocationSegment } from "@/components/real-estate/search/filters";
 
 type PageProps = {
@@ -23,6 +35,75 @@ async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: Page
     notFound();
   }
 
+  const segments = routeParams.segments || [];
+  const numericPropertyId = Number.parseInt(firstSegmentRaw, 10);
+  const isPropertyDetailRoute = Number.isFinite(numericPropertyId) && numericPropertyId > 0;
+
+  if (isPropertyDetailRoute) {
+    if (segments.length > 1) {
+      notFound();
+    }
+
+    const property = await realEstateApi
+      .getPropertyByNumericId(numericPropertyId)
+      .catch(() => null);
+
+    if (!property) {
+      notFound();
+    }
+
+    const routeSlug = normalizeTaxonomySlug(segments[0] || "").trim().toLowerCase();
+    const propertySlug = String(property.slug || "").trim().toLowerCase();
+    const canonicalPath = `/properties/${property.id}/${encodeURIComponent(property.slug)}`;
+    const normalizedRouteDealType = normalizeTaxonomySlug(routeParams.dealType);
+    const normalizedRouteSegments = segments.map((item) => normalizeTaxonomySlug(item));
+    const currentPath = `/properties/${encodeURIComponent(normalizedRouteDealType)}${normalizedRouteSegments.length ? `/${normalizedRouteSegments.map((item) => encodeURIComponent(item)).join("/")}` : ""}`;
+
+    if (!propertySlug || routeSlug !== propertySlug || String(property.id) !== String(numericPropertyId) || currentPath !== canonicalPath) {
+      redirect(canonicalPath);
+    }
+
+    const { images, mainImageUrl } = preparePropertyGallery(property);
+
+    return (
+      <main className="container mr-auto ml-auto py-12 md:py-16">
+        <div className="space-y-10">
+          <PropertyGallery
+            title={property.title || "ملک"}
+            images={images}
+            mainImageUrl={mainImageUrl}
+          />
+
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px] gap-10">
+            <div className="space-y-10">
+              <PropertyDetails property={property} />
+
+              <div className="lg:hidden">
+                <PropertyAgentSticky property={property} className="" />
+              </div>
+
+              <PropertyAttributes property={property} />
+
+              <PropertyFloorPlans floorPlans={property.floor_plans} />
+
+              <PropertyFeatures property={property} />
+
+              <PropertyVideo property={property} />
+
+              <PropertyDescription property={property} />
+
+              <PropertyLocation property={property} />
+            </div>
+
+            <div className="hidden lg:block lg:self-stretch">
+              <PropertyAgentSticky property={property} />
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   const availableStatuses = await realEstateApi
     .getStates({ page: 1, size: 200 })
     .then((response) => new Set((response?.data || []).map((item) => normalizeTaxonomySlug(item.slug || "").toLowerCase()).filter(Boolean)))
@@ -32,8 +113,6 @@ async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: Page
     .getTypes({ page: 1, size: 300 })
     .then((response) => new Set((response?.data || []).map((item) => normalizeTaxonomySlug(item.slug || "").toLowerCase()).filter(Boolean)))
     .catch(() => new Set<string>());
-
-  const segments = routeParams.segments || [];
 
   const isStatusRoute = availableStatuses.has(firstSegmentKey);
   const isTypeOnlyRoute = !isStatusRoute && availableTypes.has(firstSegmentKey);
@@ -89,20 +168,27 @@ async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: Page
 
   if (locationSegment) {
     const decodedLocation = decodeURIComponent(locationSegment).trim();
+    const normalizedLocationSegment = normalizeTaxonomySlug(decodedLocation).toLowerCase();
 
     const cityCandidates = await realEstateApi
       .getCities({ search: decodedLocation, page: 1, size: 200 })
       .then((response) => response?.data || [])
       .catch(() => []);
 
-    const cityBySegment = cityCandidates.find((item) => toSeoSegment(item.name || "") === toSeoSegment(decodedLocation));
+    const cityBySegment = cityCandidates.find((item) => {
+      const itemSlug = normalizeTaxonomySlug(item.slug || "").toLowerCase();
+      if (itemSlug && itemSlug === normalizedLocationSegment) {
+        return true;
+      }
+      return toSeoSegment(item.name || "") === toSeoSegment(decodedLocation);
+    });
 
     if (cityBySegment) {
       resolvedCityId = cityBySegment.id;
-      resolvedCitySlug = toSeoSegment(cityBySegment.name || decodedLocation);
+      resolvedCitySlug = String(cityBySegment.slug || toSeoSegment(cityBySegment.name || decodedLocation)).trim();
       resolvedProvinceId = cityBySegment.province_id ?? null;
       if (cityBySegment.province_name) {
-        resolvedProvinceSlug = toSeoSegment(cityBySegment.province_name);
+        resolvedProvinceSlug = String(cityBySegment.province_slug || toSeoSegment(cityBySegment.province_name)).trim();
       }
     } else {
       const provinceCandidates = await realEstateApi
@@ -110,14 +196,20 @@ async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: Page
         .then((response) => response?.data || [])
         .catch(() => []);
 
-      const provinceBySegment = provinceCandidates.find((item) => toSeoSegment(item.name || "") === toSeoSegment(decodedLocation));
+      const provinceBySegment = provinceCandidates.find((item) => {
+        const itemSlug = normalizeTaxonomySlug(item.slug || "").toLowerCase();
+        if (itemSlug && itemSlug === normalizedLocationSegment) {
+          return true;
+        }
+        return toSeoSegment(item.name || "") === toSeoSegment(decodedLocation);
+      });
 
       if (!provinceBySegment) {
         notFound();
       }
 
       resolvedProvinceId = provinceBySegment.id;
-      resolvedProvinceSlug = toSeoSegment(provinceBySegment.name || decodedLocation);
+      resolvedProvinceSlug = String(provinceBySegment.slug || toSeoSegment(provinceBySegment.name || decodedLocation)).trim();
     }
   }
 
@@ -133,12 +225,12 @@ async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: Page
   if (!locationSegment && filters.city !== null && !filters.city_slug) {
     const cityById = await realEstateApi.getCityById(filters.city).catch(() => null);
     if (cityById?.name) {
-      filters.city_slug = toSeoSegment(cityById.name);
+      filters.city_slug = String(cityById.slug || toSeoSegment(cityById.name)).trim();
       if (typeof cityById.province_id === "number") {
         filters.province = cityById.province_id;
       }
       if (cityById.province_name) {
-        filters.province_slug = toSeoSegment(cityById.province_name);
+        filters.province_slug = String(cityById.province_slug || toSeoSegment(cityById.province_name)).trim();
       }
     }
   }
@@ -146,7 +238,7 @@ async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: Page
   if (!locationSegment && filters.city === null && filters.province !== null && !filters.province_slug) {
     const provinceById = await realEstateApi.getProvinceById(filters.province).catch(() => null);
     if (provinceById?.name) {
-      filters.province_slug = toSeoSegment(provinceById.name);
+      filters.province_slug = String(provinceById.slug || toSeoSegment(provinceById.name)).trim();
     }
   }
 
@@ -154,7 +246,9 @@ async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: Page
   const canonicalQuery = filtersToSearchParams(filters).toString();
   const canonicalUrl = canonicalQuery ? `${canonicalPath}?${canonicalQuery}` : canonicalPath;
 
-  const currentPath = `/properties/${encodeURIComponent(routeParams.dealType)}${segments.length ? `/${segments.map((item) => encodeURIComponent(item)).join("/")}` : ""}`;
+  const normalizedRouteDealType = normalizeTaxonomySlug(routeParams.dealType);
+  const normalizedRouteSegments = segments.map((item) => normalizeTaxonomySlug(item));
+  const currentPath = `/properties/${encodeURIComponent(normalizedRouteDealType)}${normalizedRouteSegments.length ? `/${normalizedRouteSegments.map((item) => encodeURIComponent(item)).join("/")}` : ""}`;
   const currentParams = new URLSearchParams();
   for (const [key, rawValue] of Object.entries(query)) {
     const value = Array.isArray(rawValue) ? rawValue[0] : rawValue;

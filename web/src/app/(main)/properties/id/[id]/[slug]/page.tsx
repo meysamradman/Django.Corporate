@@ -18,10 +18,10 @@ type PageProps = {
   params: Promise<{ id: string; slug: string }>;
 };
 
-const getCanonicalPropertyPath = (id: string | number, slug: string) => `/properties/id/${id}/${encodeURIComponent(slug)}`;
+const getCanonicalPropertyPath = (id: string | number, slug: string) => `/properties/${id}/${encodeURIComponent(slug)}`;
 
 export default async function PropertyDetailPage({ params }: PageProps) {
-  const { id } = await params;
+  const { id, slug } = await params;
 
   const property = await realEstateApi
     .getPropertyByNumericId(id)
@@ -31,7 +31,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  if (String(property.id) !== id) {
+  const normalizedRouteSlug = decodeURIComponent(slug || "").trim().toLowerCase();
+  const normalizedPropertySlug = String(property.slug || "").trim().toLowerCase();
+
+  if (String(property.id) !== id || !normalizedPropertySlug || normalizedRouteSlug !== normalizedPropertySlug) {
     permanentRedirect(getCanonicalPropertyPath(property.id, property.slug));
   }
 

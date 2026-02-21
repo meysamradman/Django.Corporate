@@ -7,16 +7,17 @@ from src.real_estate.models.location import CityRegion
 class ProvincePublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Province
-        fields = ["id", "name", "code"]
+        fields = ["id", "name", "code", "slug"]
 
 
 class CityPublicSerializer(serializers.ModelSerializer):
     province_id = serializers.IntegerField(source="province.id", read_only=True)
     province_name = serializers.CharField(source="province.name", read_only=True)
+    province_slug = serializers.CharField(source="province.slug", read_only=True)
 
     class Meta:
         model = City
-        fields = ["id", "name", "code", "province_id", "province_name"]
+        fields = ["id", "name", "code", "slug", "province_id", "province_name", "province_slug"]
 
 
 class RegionPublicSerializer(serializers.ModelSerializer):
