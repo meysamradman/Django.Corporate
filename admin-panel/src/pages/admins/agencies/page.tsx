@@ -4,7 +4,7 @@ import { useAdminFilterOptions } from "@/components/admins/AdminTableFilters";
 import { DataTableDateRangeFilter } from "@/components/tables/DataTableDateRangeFilter";
 import { realEstateApi } from "@/api/real-estate";
 import { useQuery } from "@tanstack/react-query";
-import { Edit, Trash2, Plus, Search, Building2, Phone } from "lucide-react";
+import { Edit, Eye, Trash2, Plus, Search, Building2, Phone } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { ProtectedButton } from "@/core/permissions";
@@ -72,6 +72,14 @@ export default function AdminsAgenciesPage() {
 
   const actions = useMemo(() => {
     const agencyActions: CardItemAction<any>[] = [];
+
+    agencyActions.push({
+      label: "مشاهده",
+      icon: <Eye className="h-4 w-4" />,
+      onClick: (agency: any) => {
+        navigate(`/admins/agencies/${agency.id}/view`);
+      },
+    });
 
     agencyActions.push({
       label: "ویرایش",
@@ -242,7 +250,7 @@ export default function AdminsAgenciesPage() {
                 </>
               }
               onClick={(agency) => {
-                navigate(`/admins/agencies/${agency.id}/edit`);
+                navigate(`/admins/agencies/${agency.id}/view`);
               }}
             />
           );

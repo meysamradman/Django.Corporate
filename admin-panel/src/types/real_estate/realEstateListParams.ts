@@ -20,6 +20,7 @@ export interface PropertyListParams {
   status?: string;
   agent?: number | string;
   agency?: number | string;
+  created_by?: number | string;
   city?: number | string;
   province?: number | string;
   region?: number | string;
@@ -62,6 +63,7 @@ export interface PropertyFilters {
   status?: string;
   agent?: number | string;
   agency?: number | string;
+  created_by?: number | string;
   city?: number | string;
   province?: number | string;
   region?: number | string;

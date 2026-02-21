@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { 
   Building2, 
   MapPin, 
@@ -11,6 +11,8 @@ import { Badge } from "@/components/elements/Badge";
 import { Button } from "@/components/elements/Button";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { PaginationControls } from "@/components/shared/paginations/PaginationControls";
+import { Skeleton } from "@/components/elements/Skeleton";
+import { Loader } from "@/components/elements/Loader";
 
 export interface ProfilePropertyItem {
   id: number;
@@ -26,39 +28,27 @@ export interface ProfilePropertyItem {
 interface ProfilePropertiesListProps {
   isConsultant: boolean;
   properties: ProfilePropertyItem[];
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  totalCount: number;
+  isLoading?: boolean;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
 }
 
 export function ProfilePropertiesList({
   isConsultant,
   properties,
+  currentPage,
+  totalPages,
+  pageSize,
+  totalCount,
+  isLoading = false,
+  onPageChange,
+  onPageSizeChange,
 }: ProfilePropertiesListProps) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
-  const [searchTerm, setSearchTerm] = useState("");
-
-  // Simple search filter
-  const filteredProperties = useMemo(() => {
-    if (!searchTerm) return properties;
-    return properties.filter(p => 
-      p.title.includes(searchTerm) || 
-      p.city.includes(searchTerm) ||
-      p.price.includes(searchTerm)
-    );
-  }, [properties, searchTerm]);
-
-  const totalCount = filteredProperties.length;
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(1);
-    }
-  }, [totalPages, pageSize]); // Reset to page 1 if pages change significantly
-
-  const currentItems = useMemo(() => {
-    const startIndex = (currentPage - 1) * pageSize;
-    return filteredProperties.slice(startIndex, startIndex + pageSize);
-  }, [filteredProperties, currentPage, pageSize]);
+  const currentItems = useMemo(() => properties, [properties]);
 
   const rangeStart = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const rangeEnd = Math.min(currentPage * pageSize, totalCount);
@@ -78,31 +68,8 @@ export function ProfilePropertiesList({
       }
     >
       <div className="space-y-6">
-        
-        {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-            <div className="relative w-full sm:max-w-xs">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-font-s pointer-events-none" />
-                <input 
-                  type="text" 
-                  placeholder="جستجو در املاک (عنوان، شهر، قیمت)..." 
-                  className="w-full h-10 pr-10 pl-4 rounded-xl bg-bg border border-br/60 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-sm outline-none text-font-p"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
-                 {/* Mock Filters for visual balance */}
-                 <div className="px-3 py-2 rounded-lg border border-br/60 bg-bg text-xs font-medium text-font-s cursor-pointer hover:bg-divi/40 transition-colors whitespace-nowrap">
-                    همه وضعیت‌ها
-                 </div>
-                 <div className="px-3 py-2 rounded-lg border border-br/60 bg-bg text-xs font-medium text-font-s cursor-pointer hover:bg-divi/40 transition-colors whitespace-nowrap">
-                    مرتب‌سازی: جدیدترین
-                 </div>
-            </div>
-        </div>
-        
-        {currentItems.length > 0 ? (
+
+        {currentItems.length > 0 || isLoading ? (
           <div className="overflow-hidden rounded-xl border border-br/50 bg-card shadow-sm">
             <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -117,7 +84,19 @@ export function ProfilePropertiesList({
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-br/40">
-                    {currentItems.map((property) => (
+                    {isLoading && currentItems.length === 0 ? (
+                      Array.from({ length: 5 }).map((_, index) => (
+                        <tr key={`loading-${index}`}>
+                          <td className="px-6 py-4"><Skeleton className="h-10 w-full" /></td>
+                          <td className="px-6 py-4"><Skeleton className="h-8 w-full" /></td>
+                          <td className="px-6 py-4"><Skeleton className="h-8 w-full" /></td>
+                          <td className="px-6 py-4"><Skeleton className="h-8 w-full" /></td>
+                          <td className="px-6 py-4"><Skeleton className="h-8 w-20 mx-auto" /></td>
+                          <td className="px-6 py-4"><Skeleton className="h-8 w-20 mr-auto" /></td>
+                        </tr>
+                      ))
+                    ) : (
+                      currentItems.map((property) => (
                     <tr 
                         key={property.id} 
                     className="group transition-all hover:bg-divi/20"
@@ -196,10 +175,26 @@ export function ProfilePropertiesList({
                              </div>
                         </td>
                     </tr>
-                    ))}
+                    ))) }
                 </tbody>
                 </table>
             </div>
+
+            {isLoading && (
+              <div className="border-t border-br/40 py-2">
+                <Loader />
+              </div>
+            )}
+
+            {isLoading && currentItems.length > 0 && (
+              <div className="border-t border-br/40 p-3">
+                <div className="grid grid-cols-3 gap-3">
+                  <Skeleton className="h-2 w-full" />
+                  <Skeleton className="h-2 w-full" />
+                  <Skeleton className="h-2 w-full" />
+                </div>
+              </div>
+            )}
           </div>
         ) : (
            <div className="flex flex-col gap-4 h-64 items-center justify-center rounded-2xl border border-dashed border-br bg-divi/20 text-font-s w-full">
@@ -216,13 +211,11 @@ export function ProfilePropertiesList({
                 <PaginationControls
                     currentPage={currentPage}
                     totalPages={totalPages}
-                    onPageChange={setCurrentPage}
+                  onPageChange={onPageChange}
                     pageSize={pageSize}
-                    onPageSizeChange={(size) => {
-                        setPageSize(size);
-                        setCurrentPage(1);
-                    }}
-                    pageSizeOptions={[5, 10, 20]}
+                  onPageSizeChange={onPageSizeChange}
+                  pageSizeOptions={[10, 20, 50]}
+                  showPageSize={true}
                     showInfo={true}
                     infoText={`${rangeStart} - ${rangeEnd} از ${totalCount}`}
                     totalCount={totalCount}

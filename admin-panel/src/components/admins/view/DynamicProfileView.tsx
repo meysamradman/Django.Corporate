@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, Building2, Calendar, CheckCircle2, Eye, FileDigit, Globe, Hash } from "lucide-react";
 import { adminApi } from "@/api/admins/admins";
@@ -50,6 +50,8 @@ const toSafeString = (value?: string | null) => {
 export function DynamicProfileView({ adminId, profileMode }: DynamicProfileViewProps) {
   const isMeRoute = adminId === "me";
   const isNumericId = !Number.isNaN(Number(adminId));
+  const [propertiesPage, setPropertiesPage] = useState(1);
+  const [propertiesPageSize, setPropertiesPageSize] = useState(10);
 
   const { data: adminData, isLoading, error } = useQuery({
     queryKey: ["profile-view", isMeRoute ? "me" : adminId, profileMode],
@@ -65,9 +67,26 @@ export function DynamicProfileView({ adminId, profileMode }: DynamicProfileViewP
   });
 
   const { data: propertiesResponse, isLoading: isPropertiesLoading } = useQuery({
-    queryKey: ["profile-view-properties", adminData?.id],
-    enabled: Boolean(adminData?.id),
-    queryFn: () => realEstateApi.getPropertyList({ page: 1, size: 100, agent: adminData?.id, order_desc: true }),
+    queryKey: [
+      "profile-view-properties",
+      adminData?.id,
+      adminData?.agent_profile?.id,
+      profileMode,
+      propertiesPage,
+      propertiesPageSize,
+    ],
+    enabled: Boolean(
+      profileMode === "agent"
+        ? adminData?.agent_profile?.id
+        : adminData?.id
+    ),
+    queryFn: () =>
+      realEstateApi.getPropertyList(
+        profileMode === "agent"
+          ? { page: propertiesPage, size: propertiesPageSize, agent: adminData?.agent_profile?.id, order_desc: true }
+          : { page: propertiesPage, size: propertiesPageSize, created_by: adminData?.id, order_desc: true }
+      ),
+    placeholderData: (previousData) => previousData,
   });
 
   const mappedProperties = useMemo<ProfilePropertyItem[]>(() => {
@@ -125,7 +144,7 @@ export function DynamicProfileView({ adminId, profileMode }: DynamicProfileViewP
       : "ادمین پنل";
 
   const consultantStats = {
-    totalProperties: mappedProperties.length,
+    totalProperties: propertiesResponse?.pagination?.count ?? 0,
     activeProperties: mappedProperties.filter((item) => item.status === "فعال").length,
     soldProperties: adminData.agent_profile?.total_sales ?? 0,
     totalViews: String(adminData.agent_profile?.total_reviews ?? 0),
@@ -209,11 +228,20 @@ export function DynamicProfileView({ adminId, profileMode }: DynamicProfileViewP
         </>
       )}
 
-      {isPropertiesLoading ? (
-        <Skeleton className="h-64 w-full" />
-      ) : (
-        <ProfilePropertiesList isConsultant={isConsultant} properties={mappedProperties} />
-      )}
+      <ProfilePropertiesList
+        isConsultant={isConsultant}
+        properties={mappedProperties}
+        isLoading={isPropertiesLoading}
+        currentPage={propertiesResponse?.pagination?.current_page || propertiesPage}
+        totalPages={propertiesResponse?.pagination?.total_pages || 1}
+        pageSize={propertiesResponse?.pagination?.page_size || propertiesPageSize}
+        totalCount={propertiesResponse?.pagination?.count || 0}
+        onPageChange={(page) => setPropertiesPage(page)}
+        onPageSizeChange={(size) => {
+          setPropertiesPageSize(size);
+          setPropertiesPage(1);
+        }}
+      />
     </section>
   );
 }
