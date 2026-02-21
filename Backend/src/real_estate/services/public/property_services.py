@@ -86,6 +86,9 @@ class PropertyPublicService:
                 ('max_area', 'built_area__lte'),
                 ('bedrooms', 'bedrooms'),
                 ('bathrooms', 'bathrooms'),
+                ('kitchens', 'kitchens'),
+                ('living_rooms', 'living_rooms'),
+                ('year_built', 'year_built'),
                 ('parking_spaces', 'parking_spaces'),
                 ('storage_rooms', 'storage_rooms'),
             ):

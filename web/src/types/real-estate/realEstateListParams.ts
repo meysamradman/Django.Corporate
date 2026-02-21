@@ -20,6 +20,9 @@ export interface RealEstateListParams {
   max_area?: number;
   bedrooms?: number;
   bathrooms?: number;
+  kitchens?: number;
+  living_rooms?: number;
+  year_built?: number;
   parking_spaces?: number;
   storage_rooms?: number;
   created_after?: string;

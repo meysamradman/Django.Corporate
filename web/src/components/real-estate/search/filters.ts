@@ -246,6 +246,9 @@ export const resolvePropertySearchFilters = (
     max_area: toOptionalNumber(searchParams.max_area),
     bedrooms: toOptionalNumber(searchParams.rooms ?? searchParams.bedrooms),
     bathrooms: toOptionalNumber(searchParams.bathrooms),
+    kitchens: toOptionalNumber(searchParams.kitchens ?? searchParams.kitchen),
+    living_rooms: toOptionalNumber(searchParams.living_rooms ?? searchParams.living),
+    year_built: toOptionalNumber(searchParams.year_built ?? searchParams.build_year),
     parking_spaces: toOptionalNumber(searchParams.parking_spaces ?? searchParams.parking),
     storage_rooms: toOptionalNumber(searchParams.storage_rooms ?? searchParams.storage),
     created_after: toSingle(searchParams.created_after).trim(),
@@ -279,10 +282,13 @@ export const toPropertyListApiParams = (
   max_price: filters.max_price || undefined,
   min_area: filters.min_area || undefined,
   max_area: filters.max_area || undefined,
-  bedrooms: filters.bedrooms || undefined,
-  bathrooms: filters.bathrooms || undefined,
-  parking_spaces: filters.parking_spaces || undefined,
-  storage_rooms: filters.storage_rooms || undefined,
+  bedrooms: filters.bedrooms ?? undefined,
+  bathrooms: filters.bathrooms ?? undefined,
+  kitchens: filters.kitchens ?? undefined,
+  living_rooms: filters.living_rooms ?? undefined,
+  year_built: filters.year_built ?? undefined,
+  parking_spaces: filters.parking_spaces ?? undefined,
+  storage_rooms: filters.storage_rooms ?? undefined,
   created_after: filters.created_after || undefined,
   created_before: filters.created_before || undefined,
   type_slug: filters.type_slug || undefined,
@@ -323,8 +329,11 @@ export const filtersToSearchParams = (
   if (next.max_price) params.set("max_price", String(next.max_price));
   if (next.min_area) params.set("min_area", String(next.min_area));
   if (next.max_area) params.set("max_area", String(next.max_area));
-  if (next.bedrooms) params.set("rooms", String(next.bedrooms));
-  if (next.bathrooms) params.set("bathrooms", String(next.bathrooms));
+  if (next.bedrooms !== null) params.set("rooms", String(next.bedrooms));
+  if (next.bathrooms !== null) params.set("bathrooms", String(next.bathrooms));
+  if (next.kitchens !== null) params.set("kitchens", String(next.kitchens));
+  if (next.living_rooms !== null) params.set("living_rooms", String(next.living_rooms));
+  if (next.year_built !== null) params.set("year_built", String(next.year_built));
   if (next.parking_spaces !== null) params.set("parking_spaces", String(next.parking_spaces));
   if (next.storage_rooms !== null) params.set("storage_rooms", String(next.storage_rooms));
   if (next.created_after) params.set("created_after", next.created_after);

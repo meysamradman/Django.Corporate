@@ -432,17 +432,40 @@ export default function PropertySearchSidebar({
               min={0}
               value={filters.bedrooms ?? ""}
               onChange={(event) => update({ bedrooms: toNumberOrNull(event.target.value) })}
-              placeholder="2"
+              placeholder="انتخاب تعداد خواب"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-font-s">تعداد حمام</label>
+            <label className="text-sm text-font-s">تعداد سرویس</label>
             <Input
               type="number"
               min={0}
               value={filters.bathrooms ?? ""}
               onChange={(event) => update({ bathrooms: toNumberOrNull(event.target.value) })}
-              placeholder="1"
+              placeholder="انتخاب تعداد سرویس"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <label className="text-sm text-font-s">آشپزخانه</label>
+            <Input
+              type="number"
+              min={0}
+              value={filters.kitchens ?? ""}
+              onChange={(event) => update({ kitchens: toNumberOrNull(event.target.value) })}
+              placeholder="تعداد آشپزخانه"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm text-font-s">پذیرایی</label>
+            <Input
+              type="number"
+              min={0}
+              value={filters.living_rooms ?? ""}
+              onChange={(event) => update({ living_rooms: toNumberOrNull(event.target.value) })}
+              placeholder="تعداد پذیرایی"
             />
           </div>
         </div>
@@ -455,7 +478,7 @@ export default function PropertySearchSidebar({
               min={0}
               value={filters.parking_spaces ?? ""}
               onChange={(event) => update({ parking_spaces: toNumberOrNull(event.target.value) })}
-              placeholder="1"
+              placeholder="تعداد پارکینگ"
             />
           </div>
           <div className="space-y-2">
@@ -465,7 +488,21 @@ export default function PropertySearchSidebar({
               min={0}
               value={filters.storage_rooms ?? ""}
               onChange={(event) => update({ storage_rooms: toNumberOrNull(event.target.value) })}
-              placeholder="1"
+              placeholder="تعداد انباری"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <label className="text-sm text-font-s">سال ساخت (شمسی)</label>
+            <Input
+              type="number"
+              min={1300}
+              max={1550}
+              value={filters.year_built ?? ""}
+              onChange={(event) => update({ year_built: toNumberOrNull(event.target.value) })}
+              placeholder="مثال: 1402"
             />
           </div>
         </div>
