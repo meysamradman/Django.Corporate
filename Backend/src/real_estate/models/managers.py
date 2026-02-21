@@ -193,6 +193,7 @@ class PropertyQuerySet(models.QuerySet):
             search_rank=SearchRank(models.F('search_vector'), search_query)
         ).filter(
             Q(search_vector=search_query) |
+            Q(title__icontains=query) |
             Q(city__name__icontains=query) |
             Q(province__name__icontains=query) |
             Q(region__name__icontains=query) |
