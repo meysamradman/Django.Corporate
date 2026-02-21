@@ -5,7 +5,7 @@ import { DataTableDateRangeFilter } from "@/components/tables/DataTableDateRange
 import type { AdminWithProfile, AdminListParams } from "@/types/auth/admin";
 import { useAuth } from "@/core/auth/AuthContext";
 import { adminApi } from "@/api/admins/admins";
-import { Edit, Trash2, Plus, Search, Building2, Mail, Phone } from "lucide-react";
+import { Edit, Eye, Trash2, Plus, Search, Building2, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { useQuery } from "@tanstack/react-query";
@@ -93,8 +93,30 @@ export default function AgentsPage() {
     }
   };
 
+  const handleViewAdmin = (admin: AdminWithProfile) => {
+    const userId = user?.id ? Number(user.id) : null;
+    const targetId = admin?.id ? Number(admin.id) : null;
+    const isOwnProfile = userId !== null && targetId !== null && userId === targetId;
+
+    const currentUserIsAgent = user?.user_role_type === 'consultant' || user?.has_agent_profile;
+
+    if (isOwnProfile && currentUserIsAgent) {
+      navigate('/agents/me/view');
+    } else {
+      navigate(`/agents/${admin.id}/view`);
+    }
+  };
+
   const actions = useMemo(() => {
     const adminActions: CardItemAction<AdminWithProfile>[] = [];
+
+    adminActions.push({
+      label: "مشاهده",
+      icon: <Eye className="h-4 w-4" />,
+      onClick: (admin: AdminWithProfile) => {
+        handleViewAdmin(admin);
+      },
+    });
 
     adminActions.push({
       label: "ویرایش",
@@ -104,6 +126,7 @@ export default function AgentsPage() {
       },
       isDisabled: (admin: AdminWithProfile) => {
         if (!currentUserId) return true;
+        const isOwnProfile = Number(currentUserId) === Number(admin.id);
         return !isSuperAdmin && !isOwnProfile;
       },
     });
@@ -117,7 +140,7 @@ export default function AgentsPage() {
     });
 
     return adminActions;
-  }, [currentUserId, handleDeleteAdmin, isSuperAdmin]);
+  }, [currentUserId, handleDeleteAdmin, isSuperAdmin, navigate, user]);
 
   const getAdminFullName = (admin: AdminWithProfile) => {
     const profile = admin.profile;
@@ -299,7 +322,7 @@ export default function AgentsPage() {
                   </div>
                 </>
               }
-              onClick={(admin) => handleEditAdmin(admin)}
+              onClick={(admin) => handleViewAdmin(admin)}
             />
           );
         })}

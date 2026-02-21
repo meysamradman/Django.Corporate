@@ -1,0 +1,247 @@
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { AlertCircle, Building2, Calendar, CheckCircle2, Eye, FileDigit, Globe, Hash } from "lucide-react";
+import { adminApi } from "@/api/admins/admins";
+import { realEstateApi } from "@/api/real-estate/properties";
+import { Alert, AlertDescription } from "@/components/elements/Alert";
+import { Badge } from "@/components/elements/Badge";
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { HeadCard } from "@/components/static/admin/profile/HeadCard";
+import { ProfilePropertiesList, type ProfilePropertyItem } from "@/components/static/agent/profile/ProfilePropertiesList";
+import { InfoItem } from "@/components/static/agent/profile/InfoItem";
+import { Separator } from "@/components/elements/Separator";
+import { Skeleton } from "@/components/elements/Skeleton";
+import { ApiError } from "@/types/api/apiError";
+
+interface DynamicProfileViewProps {
+  adminId: string;
+  profileMode: "admin" | "agent";
+}
+
+const FALLBACK_AVATAR = "/images/profileone.webp";
+const FALLBACK_COVER = "/images/profile-banner.png";
+
+const formatDate = (value?: string | null) => {
+  if (!value) return "---";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleDateString("fa-IR");
+};
+
+const formatMoneyToMillion = (value?: number | null) => {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return "0 میلیون";
+  return `${new Intl.NumberFormat("fa-IR").format(Math.round(value / 1_000_000))} میلیون`;
+};
+
+const mapPropertyStatus = (isActive?: boolean, isPublished?: boolean): "فعال" | "در انتظار" | "غیرفعال" => {
+  if (!isActive) return "غیرفعال";
+  if (isPublished) return "فعال";
+  return "در انتظار";
+};
+
+const toSafeString = (value?: string | null) => {
+  if (!value || !value.trim()) return "---";
+  return value;
+};
+
+export function DynamicProfileView({ adminId, profileMode }: DynamicProfileViewProps) {
+  const isMeRoute = adminId === "me";
+  const isNumericId = !Number.isNaN(Number(adminId));
+
+  const { data: adminData, isLoading, error } = useQuery({
+    queryKey: ["profile-view", isMeRoute ? "me" : adminId, profileMode],
+    queryFn: () => {
+      if (isMeRoute) return adminApi.getCurrentAdminManagedProfile();
+      if (!isNumericId) return Promise.reject(new Error("شناسه نامعتبر است"));
+      return adminApi.getAdminById(Number(adminId));
+    },
+    retry: (failureCount, requestError) => {
+      if (requestError instanceof ApiError && requestError.response.AppStatusCode === 403) return false;
+      return failureCount < 2;
+    },
+  });
+
+  const { data: propertiesResponse, isLoading: isPropertiesLoading } = useQuery({
+    queryKey: ["profile-view-properties", adminData?.id],
+    enabled: Boolean(adminData?.id),
+    queryFn: () => realEstateApi.getPropertyList({ page: 1, size: 100, agent: adminData?.id, order_desc: true }),
+  });
+
+  const mappedProperties = useMemo<ProfilePropertyItem[]>(() => {
+    const rawProperties = propertiesResponse?.data ?? [];
+    return rawProperties.map((property) => ({
+      id: property.id,
+      title: toSafeString(property.title),
+      city: toSafeString(property.city_name),
+      propertyType: toSafeString(property.property_type?.name),
+      dealType: "فروش",
+      status: mapPropertyStatus(property.is_active, property.is_published),
+      price: formatMoneyToMillion(
+        property.sale_price ??
+          property.pre_sale_price ??
+          property.monthly_rent ??
+          property.rent_amount ??
+          property.mortgage_amount ??
+          property.price
+      ),
+      viewLink: `/real-estate/properties/${property.id}/view`,
+    }));
+  }, [propertiesResponse?.data]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-80 w-full" />
+        <Skeleton className="h-56 w-full" />
+      </div>
+    );
+  }
+
+  if (error || !adminData) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>دریافت اطلاعات پروفایل با خطا مواجه شد.</AlertDescription>
+      </Alert>
+    );
+  }
+
+  const firstName = adminData.profile?.first_name ?? "";
+  const lastName = adminData.profile?.last_name ?? "";
+  const fullName =
+    adminData.profile?.full_name ||
+    [firstName, lastName].filter(Boolean).join(" ") ||
+    adminData.full_name ||
+    "---";
+
+  const roleTitle =
+    profileMode === "agent"
+      ? "مشاور املاک"
+      : adminData.is_superuser
+      ? "سوپر ادمین"
+      : "ادمین پنل";
+
+  const consultantStats = {
+    totalProperties: mappedProperties.length,
+    activeProperties: mappedProperties.filter((item) => item.status === "فعال").length,
+    soldProperties: adminData.agent_profile?.total_sales ?? 0,
+    totalViews: String(adminData.agent_profile?.total_reviews ?? 0),
+  };
+
+  const isConsultant = profileMode === "agent";
+
+  return (
+    <section className="space-y-6 pb-8 min-h-[calc(100dvh-100px)]">
+      <HeadCard
+        fullName={fullName}
+        roleTitle={roleTitle}
+        firstName={toSafeString(firstName)}
+        lastName={toSafeString(lastName)}
+        birthDate={formatDate(adminData.profile?.birth_date)}
+        mobile={toSafeString(adminData.mobile)}
+        phone={toSafeString(adminData.profile?.phone)}
+        email={toSafeString(adminData.email)}
+        province={toSafeString(adminData.profile?.province?.name)}
+        city={toSafeString(adminData.profile?.city?.name)}
+        address={toSafeString(adminData.profile?.address)}
+        bio={toSafeString(isConsultant ? adminData.agent_profile?.bio : adminData.profile?.bio)}
+        nationalId={toSafeString(adminData.profile?.national_id)}
+        createdAt={formatDate(adminData.created_at)}
+        active={adminData.is_active}
+        avatarUrl={adminData.profile?.profile_picture?.url || FALLBACK_AVATAR}
+        coverUrl={FALLBACK_COVER}
+        profileViews={consultantStats.totalViews}
+        propertyCount={String(consultantStats.totalProperties)}
+        ticketCount={String(consultantStats.activeProperties)}
+      />
+
+      {isConsultant && (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <StatCard label="کل آگهی‌ها" value={consultantStats.totalProperties} variant="blue" icon={Building2} />
+            <StatCard label="آگهی فعال" value={consultantStats.activeProperties} variant="green" icon={CheckCircle2} />
+            <StatCard label="فروش موفق" value={consultantStats.soldProperties} variant="amber" icon={Calendar} />
+            <StatCard label="بازدید پروفایل" value={consultantStats.totalViews} variant="purple" icon={Eye} />
+          </div>
+
+          <CardWithIcon
+            icon={Building2}
+            title="اطلاعات حرفه‌ای و پروانه کسب"
+            iconBgColor="bg-indigo-0"
+            iconColor="text-indigo-1"
+            cardBorderColor="border-b-indigo-1"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <InfoItem label="شماره پروانه" value={toSafeString(adminData.agent_profile?.license_number)} dir="ltr" icon={FileDigit} />
+              <InfoItem label="تاریخ انقضا" value={formatDate(adminData.agent_profile?.license_expire_date)} dir="ltr" icon={Calendar} />
+              <InfoItem label="تخصص" value={toSafeString(adminData.agent_profile?.specialization)} icon={Hash} />
+              <InfoItem label="آژانس" value={toSafeString(adminData.agent_profile?.agency?.name)} icon={Building2} />
+            </div>
+
+            <Separator className="my-5 bg-indigo-1/30" />
+
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-indigo p-4 bg-indigo-0/40">
+              <div>
+                <p className="text-sm font-semibold text-font-p">وضعیت احراز هویت مشاور</p>
+                <p className="text-xs text-font-s">{adminData.agent_profile?.is_verified ? "تایید شده" : "در انتظار تایید"}</p>
+              </div>
+              {adminData.agent_profile?.is_verified ? <Badge variant="green">مشاور تایید شده</Badge> : <Badge variant="amber">در انتظار</Badge>}
+            </div>
+          </CardWithIcon>
+
+          <CardWithIcon
+            icon={Globe}
+            title="تنظیمات سئو پروفایل"
+            iconBgColor="bg-teal-0"
+            iconColor="text-teal-1"
+            cardBorderColor="border-b-teal-1"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InfoItem label="Meta Title" value={toSafeString(adminData.agent_profile?.meta_title)} />
+              <InfoItem label="OG Title" value={toSafeString(adminData.agent_profile?.og_title)} />
+              <InfoItem label="Meta Description" value={toSafeString(adminData.agent_profile?.meta_description)} className="md:col-span-2" />
+              <InfoItem label="OG Description" value={toSafeString(adminData.agent_profile?.og_description)} className="md:col-span-2" />
+            </div>
+          </CardWithIcon>
+        </>
+      )}
+
+      {isPropertiesLoading ? (
+        <Skeleton className="h-64 w-full" />
+      ) : (
+        <ProfilePropertiesList isConsultant={isConsultant} properties={mappedProperties} />
+      )}
+    </section>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+  variant,
+}: {
+  label: string;
+  value: string | number;
+  icon: React.ComponentType<{ className?: string }>;
+  variant: "blue" | "green" | "amber" | "purple";
+}) {
+  const styleMap: Record<"blue" | "green" | "amber" | "purple", string> = {
+    blue: "bg-blue-0 border-blue text-blue-2",
+    green: "bg-green-0 border-green text-green-2",
+    amber: "bg-amber-0 border-amber text-amber-2",
+    purple: "bg-purple-0 border-purple text-purple-2",
+  };
+
+  return (
+    <div className={`rounded-2xl border p-4 ${styleMap[variant]}`}>
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-font-s">{label}</span>
+        <span className="rounded-lg bg-card p-2">
+          <Icon className="size-4" />
+        </span>
+      </div>
+      <p className="mt-2 text-xl font-black text-font-p">{value}</p>
+    </div>
+  );
+}

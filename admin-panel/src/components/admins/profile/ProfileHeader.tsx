@@ -20,9 +20,10 @@ interface ProfileHeaderProps {
     };
     onProfileImageChange?: (media: Media | null) => void;
     adminId?: string;
+    isReadOnly?: boolean;
 }
 
-export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }: ProfileHeaderProps) {
+export function ProfileHeader({ admin, formData, onProfileImageChange, adminId, isReadOnly = false }: ProfileHeaderProps) {
     const [adminRoles, setAdminRoles] = useState<Role[]>(admin?.roles || []);
     const queryClient = useQueryClient();
     const { refreshUser } = useAuth();
@@ -54,6 +55,7 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
     const currentProfileImage: Media | null = formData.profileImage || admin?.profile?.profile_picture || null;
 
     const handleProfileImageSelect = async (selectedMedia: Media | null) => {
+        if (isReadOnly) return;
         const profilePictureId = selectedMedia?.id || null;
         const isMeRoute = adminId === "me";
         const targetAdminId = adminId && !isNaN(Number(adminId)) ? Number(adminId) : admin?.id;
@@ -130,6 +132,7 @@ export function ProfileHeader({ admin, formData, onProfileImageChange, adminId }
                     <ImageSelector
                         selectedMedia={currentProfileImage}
                         onMediaSelect={handleProfileImageSelect}
+                        disabled={isReadOnly}
                         size="md"
                         placeholderText={(formData.firstName?.[0] || admin.full_name?.[0] || "U") + (formData.lastName?.[0] || admin.full_name?.split(" ")?.[1]?.[0] || "")}
                         context="media_library"

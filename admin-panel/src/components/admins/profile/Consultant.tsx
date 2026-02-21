@@ -34,6 +34,7 @@ interface ConsultantTabProps {
     handleSaveProfile: () => void;
     isSaving?: boolean;
     fieldErrors?: Record<string, string>;
+    isReadOnly?: boolean;
 }
 
 export function Consultant({
@@ -43,9 +44,10 @@ export function Consultant({
     handleSaveProfile,
     isSaving = false,
     fieldErrors = {},
+    isReadOnly = false,
 }: ConsultantTabProps) {
     const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
-    const isConsultantEditable = true;
+    const isConsultantEditable = !isReadOnly;
 
     const { data: agenciesResponse, isLoading: agenciesLoading } = useQuery({
         queryKey: ['agencies-all'],

@@ -46,6 +46,7 @@ interface AccountTabProps {
     onProvinceChange?: (provinceName: string, provinceId: number) => void;
     onCityChange?: (cityName: string, cityId: number) => void;
     adminId?: string;
+    isReadOnly?: boolean;
 }
 
 export function Account({
@@ -58,8 +59,9 @@ export function Account({
     onProvinceChange,
     onCityChange,
     adminId,
+    isReadOnly = false,
 }: AccountTabProps) {
-    const isAccountEditable = true;
+    const isAccountEditable = !isReadOnly;
     const [provinces, setProvinces] = useState<ProvinceCompact[]>([]);
     const [cities, setCities] = useState<CityCompact[]>([]);
     const [loadingProvinces, setLoadingProvinces] = useState(false);
@@ -226,7 +228,7 @@ export function Account({
                         iconBgColor="bg-blue"
                         iconColor="stroke-blue-2"
                         cardBorderColor="border-b-blue-1"
-                        className="border-0 shadow-md hover:shadow-xl transition-all duration-300 relative overflow-hidden bg-gradient-to-br from-card via-card to-muted/30 before:absolute before:right-0 before:top-0 before:h-full before:w-1 before:bg-gradient-to-b before:from-blue-1 before:via-blue-1 before:to-blue-1"
+                        className="border-0 shadow-md hover:shadow-xl transition-all duration-300 relative overflow-hidden bg-linear-to-br from-card via-card to-muted/30 before:absolute before:right-0 before:top-0 before:h-full before:w-1 before:bg-linear-to-b before:from-blue-1 before:via-blue-1 before:to-blue-1"
                         contentClassName="pt-4 pb-4"
                     >
                         <div className="space-y-5">
@@ -234,7 +236,7 @@ export function Account({
                                 <div className="space-y-0 [&>div:not(:last-child)]:border-b">
                                     <div className="flex items-center justify-between gap-3 py-3">
                                         <div className="flex items-center gap-2">
-                                            <User className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <User className="w-4 h-4 text-font-s shrink-0" />
                                             <label>نام کامل:</label>
                                         </div>
                                         <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
@@ -249,14 +251,14 @@ export function Account({
 
                                     <div className="flex items-center justify-between gap-3 py-3">
                                         <div className="flex items-center gap-2">
-                                            <Smartphone className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <Smartphone className="w-4 h-4 text-font-s shrink-0" />
                                             <label>موبایل:</label>
                                         </div>
                                         <p className="text-font-p text-left">{formData.mobile || admin.mobile || "وارد نشده"}</p>
                                     </div>
                                     <div className="flex items-center justify-between gap-3 py-3">
                                         <div className="flex items-center gap-2">
-                                            <Mail className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <Mail className="w-4 h-4 text-font-s shrink-0" />
                                             <label>ایمیل:</label>
                                         </div>
                                         <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
@@ -265,14 +267,14 @@ export function Account({
                                     </div>
                                     <div className="flex items-center justify-between gap-3 py-3">
                                         <div className="flex items-center gap-2">
-                                            <Phone className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <Phone className="w-4 h-4 text-font-s shrink-0" />
                                             <label>تلفن:</label>
                                         </div>
                                         <p className="text-font-p text-left">{formData.phone || "وارد نشده"}</p>
                                     </div>
                                     <div className="flex items-center justify-between gap-3 py-3">
                                         <div className="flex items-center gap-2">
-                                            <Fingerprint className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <Fingerprint className="w-4 h-4 text-font-s shrink-0" />
                                             <label>کد ملی:</label>
                                         </div>
                                         <p className="text-font-p text-left">{formData.nationalId || "وارد نشده"}</p>
@@ -281,7 +283,7 @@ export function Account({
                                     {admin.created_at && (
                                         <div className="flex items-center justify-between gap-3 py-3">
                                             <div className="flex items-center gap-2">
-                                                <Clock className="w-4 h-4 text-font-s flex-shrink-0" />
+                                                <Clock className="w-4 h-4 text-font-s shrink-0" />
                                                 <label>تاریخ ایجاد:</label>
                                             </div>
                                             <p className="text-font-p text-left">
@@ -290,7 +292,7 @@ export function Account({
                                         </div>
                                     )}
 
-                                    {canManagePermissions && (
+                                    {canManagePermissions && !isReadOnly && (
                                         <div className="py-4 space-y-3">
                                             <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-md">
                                                 <Item variant="default" size="default" className="py-3">
@@ -347,9 +349,11 @@ export function Account({
                         cardBorderColor="border-b-primary"
                         className="hover:shadow-lg transition-all duration-300"
                         titleExtra={
-                            <Button size="sm" onClick={handleSaveProfile} disabled={isSaving}>
-                                {isSaving ? "در حال ذخیره..." : "ذخیره"}
-                            </Button>
+                            !isReadOnly ? (
+                                <Button size="sm" onClick={handleSaveProfile} disabled={isSaving}>
+                                    {isSaving ? "در حال ذخیره..." : "ذخیره"}
+                                </Button>
+                            ) : null
                         }
                         contentClassName="space-y-6"
                     >

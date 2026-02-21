@@ -41,9 +41,11 @@ const AdminPropertiesTab = lazy(() => import("@/components/admins/profile/Proper
 
 interface EditAdminFormProps {
     adminId: string;
+    profileMode?: "admin" | "agent";
+    viewOnly?: boolean;
 }
 
-export function EditAdminForm({ adminId }: EditAdminFormProps) {
+export function EditAdminForm({ adminId, profileMode = "admin", viewOnly = false }: EditAdminFormProps) {
 
     const [activeTab, setActiveTab] = useState("account");
     const queryClient = useQueryClient();
@@ -54,6 +56,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
 
     const isMeRoute = adminId === "me";
     const isAgentRoute = location.pathname.includes('/agents/');
+    const isAgentMode = profileMode === "agent" || isAgentRoute;
     const isNumericId = !Number.isNaN(Number(adminId));
     const queryKey = ['admin', isMeRoute ? 'me' : adminId];
 
@@ -188,6 +191,10 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
     }, [adminData, editMode]);
 
     const handleInputChange = (field: string, value: string | any) => {
+        if (viewOnly) {
+            return;
+        }
+
         if (field === "cancel") {
             setEditMode(false);
             return;
@@ -220,6 +227,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
     };
 
     const handleSaveProfile = async () => {
+        if (viewOnly) return;
         if (isSaving) return;
 
         setIsSaving(true);
@@ -387,7 +395,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
     };
 
     const handleGoToOwnProfile = () => {
-        navigate("/admins/me/edit");
+        navigate(isAgentMode ? "/agents/me/edit" : "/admins/me/edit");
     };
 
     if (error) {
@@ -438,8 +446,9 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
             <ProfileHeader
                 admin={adminData}
                 formData={formData}
-                onProfileImageChange={(media) => handleInputChange("profileImage", media)}
+                onProfileImageChange={!viewOnly ? (media) => handleInputChange("profileImage", media) : undefined}
                 adminId={adminId}
+                isReadOnly={viewOnly}
             />
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -461,23 +470,29 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                         </TabsTrigger>
                     )}
                     {adminData.user_role_type !== 'consultant' && hasPermission("real_estate.property.read") && (
+                        !isAgentMode ? (
                         <TabsTrigger value="properties">
                             <Home className="w-4 h-4" />
                             املاک
                         </TabsTrigger>
+                        ) : null
                     )}
-                    <TabsTrigger value="security">
-                        <KeyRound className="w-4 h-4" />
-                        گذرواژه
-                    </TabsTrigger>
+                    {!isAgentMode && !viewOnly ? (
+                        <TabsTrigger value="security">
+                            <KeyRound className="w-4 h-4" />
+                            گذرواژه
+                        </TabsTrigger>
+                    ) : null}
                     <TabsTrigger value="social">
                         <Share2 className="w-4 h-4" />
                         شبکه‌های اجتماعی
                     </TabsTrigger>
-                    <TabsTrigger value="advanced_settings">
-                        <Settings2 className="w-4 h-4" />
-                        تنظیمات پیشرفته
-                    </TabsTrigger>
+                    {!isAgentMode && !viewOnly ? (
+                        <TabsTrigger value="advanced_settings">
+                            <Settings2 className="w-4 h-4" />
+                            تنظیمات پیشرفته
+                        </TabsTrigger>
+                    ) : null}
                 </TabsList>
 
                 <TabsContent value="account">
@@ -492,6 +507,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                             onProvinceChange={handleProvinceChange}
                             onCityChange={handleCityChange}
                             adminId={adminId}
+                            isReadOnly={viewOnly}
                         />
                     </Suspense>
                 </TabsContent>
@@ -506,6 +522,7 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                                 handleSaveProfile={handleSaveProfile}
                                 isSaving={isSaving}
                                 fieldErrors={fieldErrors}
+                                isReadOnly={viewOnly}
                             />
                         </Suspense>
                     </TabsContent>
@@ -518,18 +535,22 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                     </TabsContent>
                 )}
                 {adminData.user_role_type !== 'consultant' && hasPermission("real_estate.property.read") && (
+                    !isAgentMode ? (
                     <TabsContent value="properties">
                         <Suspense fallback={<TabContentSkeleton />}>
                             <AdminPropertiesTab admin={adminData} />
                         </Suspense>
                     </TabsContent>
+                    ) : null
                 )}
 
-                <TabsContent value="security">
-                    <Suspense fallback={<TabContentSkeleton />}>
-                        <SecurityTab />
-                    </Suspense>
-                </TabsContent>
+                {!isAgentMode ? (
+                    <TabsContent value="security">
+                        <Suspense fallback={<TabContentSkeleton />}>
+                            <SecurityTab />
+                        </Suspense>
+                    </TabsContent>
+                ) : null}
 
                 <TabsContent value="social">
                     <Suspense fallback={<TabContentSkeleton />}>
@@ -537,19 +558,22 @@ export function EditAdminForm({ adminId }: EditAdminFormProps) {
                             adminSocialMedia={adminSocialMedia}
                             consultantSocialMedia={consultantSocialMedia}
                             hasConsultantProfile={adminData.user_role_type === 'consultant'}
-                            showAdminSection={!isAgentRoute}
+                            showAdminSection={!isAgentMode}
                             onAdminSocialMediaChange={setAdminSocialMedia}
                             onConsultantSocialMediaChange={setConsultantSocialMedia}
                             handleSaveProfile={handleSaveProfile}
+                            isReadOnly={viewOnly}
                         />
                     </Suspense>
                 </TabsContent>
 
-                <TabsContent value="advanced_settings">
-                    <Suspense fallback={<TabContentSkeleton />}>
-                        <AdvancedSettingsTab admin={adminData} />
-                    </Suspense>
-                </TabsContent>
+                {!isAgentMode && !viewOnly ? (
+                    <TabsContent value="advanced_settings">
+                        <Suspense fallback={<TabContentSkeleton />}>
+                            <AdvancedSettingsTab admin={adminData} />
+                        </Suspense>
+                    </TabsContent>
+                ) : null}
             </Tabs>
         </div>
     );

@@ -18,8 +18,11 @@ import AdminsEditPage from './pages/admins/[id]/edit/page';
 import AdminsViewPage from './pages/admins/[id]/view/page';
 import AdminsPermissionsPage from './pages/admins/permissions/page';
 import AdminsMePage from './pages/admins/me/edit/page';
+import AdminsMeViewPage from './pages/admins/me/view/page';
 import AgentsEditPage from './pages/agents/[id]/edit/page';
+import AgentsViewPage from './pages/agents/[id]/view/page';
 import AgentsMePage from './pages/agents/me/edit/page';
+import AgentsMeViewPage from './pages/agents/me/view/page';
 import AdminsAgenciesPage from './pages/admins/agencies/page';
 import AdminsAgenciesCreatePage from './pages/admins/agencies/create/page';
 import AdminsAgenciesEditPage from './pages/admins/agencies/[id]/edit/page';
@@ -80,15 +83,10 @@ import StaticAgentPage from '@/pages/static/agent/page';
 
 function AgentRedirectView() {
   const { id } = useParams<{ id: string }>();
-  return <Navigate to={`/agents/${id}/edit`} replace />;
+  return <Navigate to={`/agents/${id}/view`} replace />;
 }
 
 function AgentRedirectEdit() {
-  const { id } = useParams<{ id: string }>();
-  return <Navigate to={`/agents/${id}/edit`} replace />;
-}
-
-function AgentViewRedirect() {
   const { id } = useParams<{ id: string }>();
   return <Navigate to={`/agents/${id}/edit`} replace />;
 }
@@ -129,6 +127,7 @@ function App() {
                         <Route path=":id/view" element={<AgencyViewRedirect />} />
                         <Route path=":id/edit" element={<AdminsAgenciesEditPage />} />
                       </Route>
+                      <Route path="me/view" element={<AdminsMeViewPage />} />
                       <Route path="me/edit" element={<AdminsMePage />} />
                       <Route path=":id/view" element={<AdminsViewPage />} />
                       <Route path=":id/edit" element={<AdminsEditPage />} />
@@ -140,8 +139,9 @@ function App() {
                     </Route>
                     <Route path="agents">
                       <Route index element={<AgentsPage />} />
+                      <Route path="me/view" element={<AgentsMeViewPage />} />
                       <Route path="me/edit" element={<AgentsMePage />} />
-                      <Route path=":id/view" element={<AgentViewRedirect />} />
+                      <Route path=":id/view" element={<AgentsViewPage />} />
                       <Route path=":id/edit" element={<AgentsEditPage />} />
                     </Route>
                     <Route path="users">

@@ -62,7 +62,7 @@ export default function EditAgentPage() {
   return (
     <div className="space-y-6">
       <Suspense fallback={<EditFormSkeleton />}>
-        <EditAdminForm adminId={agentId} />
+        <EditAdminForm adminId={agentId} profileMode="agent" />
       </Suspense>
     </div>
   );

@@ -13,6 +13,7 @@ interface SocialTabProps {
     onAdminSocialMediaChange: (items: SocialMediaItem[]) => void;
     onConsultantSocialMediaChange: (items: SocialMediaItem[]) => void;
     handleSaveProfile: () => void;
+    isReadOnly?: boolean;
 }
 
 export function Social({
@@ -23,6 +24,7 @@ export function Social({
     onAdminSocialMediaChange,
     onConsultantSocialMediaChange,
     handleSaveProfile,
+    isReadOnly = false,
 }: SocialTabProps) {
     return (
         <TabsContent value="social">
@@ -39,6 +41,7 @@ export function Social({
                         <SocialMediaArrayEditor
                             items={adminSocialMedia}
                             onChange={onAdminSocialMediaChange}
+                            canEdit={!isReadOnly}
                         />
                     </CardWithIcon>
                 ) : null}
@@ -55,16 +58,19 @@ export function Social({
                         <SocialMediaArrayEditor
                             items={consultantSocialMedia}
                             onChange={onConsultantSocialMediaChange}
+                            canEdit={!isReadOnly}
                         />
                     </CardWithIcon>
                 ) : null}
 
-                <div className="flex justify-end gap-2 pt-2">
-                    <Button onClick={handleSaveProfile}>
-                        <Save className="h-4 w-4" />
-                        ذخیره تغییرات
-                    </Button>
-                </div>
+                {!isReadOnly ? (
+                    <div className="flex justify-end gap-2 pt-2">
+                        <Button onClick={handleSaveProfile}>
+                            <Save className="h-4 w-4" />
+                            ذخیره تغییرات
+                        </Button>
+                    </div>
+                ) : null}
             </div>
         </TabsContent>
     );

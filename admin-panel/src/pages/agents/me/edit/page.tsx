@@ -45,7 +45,7 @@ export default function MyAgentProfilePage() {
   return (
     <div className="space-y-6">
       <Suspense fallback={<EditFormSkeleton />}>
-        <EditAdminForm adminId="me" />
+        <EditAdminForm adminId="me" profileMode="agent" />
       </Suspense>
     </div>
   );

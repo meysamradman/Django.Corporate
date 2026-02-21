@@ -212,29 +212,29 @@ const ConsultantStatsCard = ({
           label="کل آگهی‌های ثبت شده" 
           value={stats.totalProperties} 
           icon={Building2} 
-          colorClass="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800"
-          iconBg="bg-blue-500"
+          colorClass="bg-blue-0 text-blue-2 border-blue"
+          iconBg="bg-blue-1"
       />
       <ModernStatItem 
           label="آگهی‌های فعال" 
           value={stats.activeProperties} 
           icon={Activity} 
-          colorClass="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800"
-          iconBg="bg-emerald-500"
+          colorClass="bg-green-0 text-green-2 border-green"
+          iconBg="bg-green-1"
       />
       <ModernStatItem 
           label="معاملات موفق" 
           value={stats.soldProperties} 
           icon={CheckCircle2} 
-          colorClass="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800"
-          iconBg="bg-amber-500"
+          colorClass="bg-amber-0 text-amber-2 border-amber"
+          iconBg="bg-amber-1"
       />
       <ModernStatItem 
           label="بازدید کل پروفایل" 
           value={stats.totalViews} 
           icon={Eye} 
-          colorClass="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800"
-          iconBg="bg-purple-500"
+          colorClass="bg-purple-0 text-purple-2 border-purple"
+          iconBg="bg-purple-1"
       />
     </div>
 );
@@ -246,18 +246,18 @@ const ModernStatItem = ({ label, value, icon: Icon, colorClass, iconBg }: { labe
      
      <div className="relative flex flex-col gap-3">
         <div className="flex items-center justify-between">
-            <div className={`p-2 rounded-xl text-white shadow-sm ${iconBg}`}>
+            <div className={`p-2 rounded-xl text-static-w shadow-sm ${iconBg}`}>
                 <Icon className="size-5" />
             </div>
             {/* Trend Indicator (Mock) */}
-             <div className="flex items-center text-[10px] font-medium opacity-70 bg-background/50 px-1.5 py-0.5 rounded-full border border-border/10">
+             <div className="flex items-center text-[10px] font-medium opacity-70 bg-bg/60 px-1.5 py-0.5 rounded-full border border-br/30">
                 <span>+12%</span>
             </div>
         </div>
         
         <div className="space-y-0.5">
-            <p className="text-2xl font-black tracking-tight text-foreground">{value}</p>
-            <p className="text-xs font-medium opacity-70 text-foreground/80">{label}</p>
+            <p className="text-2xl font-black tracking-tight text-font-p">{value}</p>
+            <p className="text-xs font-medium opacity-70 text-font-s">{label}</p>
         </div>
      </div>
   </div>
@@ -267,9 +267,9 @@ const ProfessionalInfoCard = ({ data }: { data: AdminStaticForm }) => (
   <CardWithIcon
     icon={Building2}
     title="اطلاعات حرفه‌ای و پروانه کسب"
-    iconBgColor="bg-indigo-100 dark:bg-indigo-900/20"
-    iconColor="stroke-indigo-600 dark:stroke-indigo-400"
-    cardBorderColor="border-indigo-100 dark:border-indigo-900/50"
+    iconBgColor="bg-indigo-0"
+    iconColor="text-indigo-1"
+    cardBorderColor="border-b-indigo-1"
   >
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <InfoItem label="شماره پروانه کسب" value={formatValue(data.licenseNumber)} dir="ltr" icon={FileDigit} />
@@ -278,20 +278,20 @@ const ProfessionalInfoCard = ({ data }: { data: AdminStaticForm }) => (
       <InfoItem label="آژانس املاک همکار" value={formatValue(data.agencyName)} icon={Building2} />
     </div>
 
-    <Separator className="my-5 bg-indigo-100 dark:bg-indigo-800" />
+    <Separator className="my-5 bg-indigo-1/30" />
 
-    <div className="flex items-start justify-between gap-4 p-4 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-800/50">
+    <div className="flex items-start justify-between gap-4 p-4 rounded-xl bg-indigo-0/40 border border-indigo">
       <div className="flex items-center gap-3">
         <div
           className={`size-10 shrink-0 rounded-full flex items-center justify-center ${
-            data.isVerified ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-amber-100 text-amber-600"
+            data.isVerified ? "bg-emerald-0 text-emerald-2" : "bg-amber-0 text-amber-2"
           }`}
         >
           {data.isVerified ? <CheckCircle2 className="size-5" /> : <AlertCircle className="size-5" />}
         </div>
         <div>
-          <p className="font-semibold text-sm text-foreground">احراز هویت و تایید در سیستم</p>
-          <p className="text-xs text-muted-foreground">
+          <p className="font-semibold text-sm text-font-p">احراز هویت و تایید در سیستم</p>
+          <p className="text-xs text-font-s">
             {data.isVerified
               ? 'با تایید این بخش، نشان "مشاور تایید شده" در پروفایل نمایش داده می‌شود.'
               : "در انتظار بررسی مدارک و تایید نهایی"}
@@ -307,33 +307,33 @@ const SeoSettingsCard = ({ data }: { data: AdminStaticForm }) => (
   <CardWithIcon
     icon={Globe}
     title="تنظیمات سئو و نمایش پروفایل"
-    iconBgColor="bg-sky-100 dark:bg-sky-900/20"
-    iconColor="stroke-sky-600 dark:stroke-sky-400"
-    cardBorderColor="border-sky-100 dark:border-sky-900/50"
+    iconBgColor="bg-teal-0"
+    iconColor="text-teal-1"
+    cardBorderColor="border-b-teal-1"
   >
     <div className="flex flex-col gap-6">
       
       {/* 1. Google Search Preview - Compact & Realistic */}
-      <div className="bg-card w-full border border-border/60 rounded-xl p-4 shadow-xs">
+        <div className="bg-card w-full border border-br/60 rounded-xl p-4 shadow-xs">
           <div className="flex items-center gap-2 mb-3">
-             <div className="size-6 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-                 <Globe className="size-3.5 text-blue-600 dark:text-blue-400" />
+           <div className="size-6 bg-blue-0 rounded-full flex items-center justify-center">
+             <Globe className="size-3.5 text-blue-1" />
              </div>
-             <span className="text-xs font-semibold text-muted-foreground">پیش‌نمایش گوگل</span>
+           <span className="text-xs font-semibold text-font-s">پیش‌نمایش گوگل</span>
           </div>
           
           <div className="pl-2 border-l-2 border-primary/20 space-y-1">
-             <div className="flex items-center gap-2 text-[11px] text-muted-foreground/80 mb-0.5">
+           <div className="flex items-center gap-2 text-[11px] text-font-s/80 mb-0.5">
                 <span className="bg-secondary/50 px-1.5 rounded-md">Monolingual.ir</span>
                 <span>›</span>
                 <span>consultant</span>
                 <span>›</span>
                 <span className="truncate max-w-37.5">{data.nationalId}</span>
              </div>
-             <h3 className="text-lg font-medium text-[#1a0dab] dark:text-[#8ab4f8] hover:underline cursor-pointer truncate">
+           <h3 className="text-lg font-medium text-link hover:underline cursor-pointer truncate">
                  {data.seoTitle || "عنوان نمایشی در گوگل"}
              </h3>
-             <p className="text-xs/5 text-muted-foreground line-clamp-2 max-w-prose">
+           <p className="text-xs/5 text-font-s line-clamp-2 max-w-prose">
                  {data.seoDescription || "توضیحات متا که در نتایج جستجو نمایش داده می‌شود و باید جذاب و مرتبط باشد..."}
              </p>
           </div>
@@ -346,35 +346,35 @@ const SeoSettingsCard = ({ data }: { data: AdminStaticForm }) => (
           {/* Right Column: SEO Inputs - Spans 7 cols */}
           <div className="md:col-span-7 flex flex-col gap-4 h-full">
               <div className="flex items-center gap-2 mb-1">
-                 <div className="size-1.5 rounded-full bg-indigo-500"></div>
-                 <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">اطلاعات کلیدی سئو</h4>
+                  <div className="size-1.5 rounded-full bg-indigo-1"></div>
+                  <h4 className="text-xs font-bold text-font-s uppercase tracking-widest">اطلاعات کلیدی سئو</h4>
               </div>
                
                <div className="bg-secondary/20 rounded-xl p-5 border border-border/50 flex flex-col gap-5 h-full justify-between">
                    <div className="space-y-1.5">
-                      <span className="text-[10px] font-medium text-muted-foreground/70 uppercase px-1">عنوان صفحه (Title Tag)</span>
-                      <p className="text-sm font-medium text-foreground p-3 bg-background/60 rounded-lg border border-border/40 min-h-10.5 flex items-center shadow-xs">
+                       <span className="text-[10px] font-medium text-font-s/70 uppercase px-1">عنوان صفحه (Title Tag)</span>
+                       <p className="text-sm font-medium text-font-p p-3 bg-bg/60 rounded-lg border border-br/40 min-h-10.5 flex items-center shadow-xs">
                         {data.seoTitle || "---"}
                       </p>
                    </div>
 
                    <div className="space-y-1.5">
                       <div className="flex justify-between items-center px-1">
-                          <span className="text-[10px] font-medium text-muted-foreground/70 uppercase">کلمات کلیدی</span>
+                          <span className="text-[10px] font-medium text-font-s/70 uppercase">کلمات کلیدی</span>
                           <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">با کاما جدا شده</span>
                       </div>
-                      <div className="flex flex-wrap gap-2 p-3 bg-background/60 rounded-lg border border-border/40 min-h-17.5 shadow-xs content-start">
+                       <div className="flex flex-wrap gap-2 p-3 bg-bg/60 rounded-lg border border-br/40 min-h-17.5 shadow-xs content-start">
                          {data.seoKeywords ? data.seoKeywords.split(/[,،]+/).map((k, i) => (
                              <span key={i} className="inline-flex items-center px-2 py-1 rounded bg-secondary text-[10px] text-secondary-foreground border border-secondary-foreground/10">
                                  # {k.trim()}
                              </span>
-                         )) : <span className="text-muted-foreground text-xs italic opacity-50">کلمه کلیدی ثبت نشده</span>}
+                         )) : <span className="text-font-s text-xs italic opacity-50">کلمه کلیدی ثبت نشده</span>}
                       </div>
                    </div>
 
                    <div className="space-y-1.5 grow">
-                      <span className="text-[10px] font-medium text-muted-foreground/70 uppercase px-1">توضیحات متا</span>
-                       <p className="text-xs/6 text-muted-foreground p-3 bg-background/60 rounded-lg border border-border/40 min-h-20 shadow-xs">
+                       <span className="text-[10px] font-medium text-font-s/70 uppercase px-1">توضیحات متا</span>
+                        <p className="text-xs/6 text-font-s p-3 bg-bg/60 rounded-lg border border-br/40 min-h-20 shadow-xs">
                         {data.seoDescription || "---"}
                       </p>
                    </div>
@@ -384,13 +384,13 @@ const SeoSettingsCard = ({ data }: { data: AdminStaticForm }) => (
           {/* Left Column: OG Preview - Spans 5 cols */}
           <div className="md:col-span-5 flex flex-col gap-4 h-full">
                <div className="flex items-center gap-2 mb-1">
-                  <div className="size-1.5 rounded-full bg-sky-500"></div>
-                  <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">کارت اشتراک گذاری</h4>
+                <div className="size-1.5 rounded-full bg-teal-1"></div>
+                <h4 className="text-xs font-bold text-font-s uppercase tracking-widest">کارت اشتراک گذاری</h4>
                </div>
 
-               <div className="bg-card rounded-xl border border-border p-3 shadow-sm h-full flex flex-col gap-3">
+              <div className="bg-card rounded-xl border border-br p-3 shadow-sm h-full flex flex-col gap-3">
                    {/* Image Container - Fixed Aspect Ratio but constrained height */}
-                   <div className="relative w-full overflow-hidden rounded-lg border border-border/50 bg-muted/30 aspect-[1.91/1] shadow-inner">
+                 <div className="relative w-full overflow-hidden rounded-lg border border-br/50 bg-divi/30 aspect-[1.91/1] shadow-inner">
                       {data.ogImage ? (
                          <img 
                            src={data.ogImage} 
@@ -398,7 +398,7 @@ const SeoSettingsCard = ({ data }: { data: AdminStaticForm }) => (
                            className="size-full object-cover transition-transform duration-700 hover:scale-105" 
                          />
                       ) : (
-                         <div className="size-full flex flex-col items-center justify-center gap-2 text-muted-foreground/40 bg-secondary/20">
+                     <div className="size-full flex flex-col items-center justify-center gap-2 text-font-s/40 bg-secondary/20">
                              <ImageIcon className="size-8 opacity-50" />
                              <span className="text-[10px]">تصویر تنظیم نشده</span>
                          </div>
@@ -423,9 +423,9 @@ const SeoSettingsCard = ({ data }: { data: AdminStaticForm }) => (
 );
 
 const CompactInfoRow = ({ label, value, placeholder }: { label: string, value?: string, placeholder?: string }) => (
-    <div className="flex items-center justify-between text-xs border border-border/40 rounded-lg px-3 py-2 bg-secondary/10">
-        <span className="font-semibold text-muted-foreground">{label}:</span>
-        <span className={`truncate max-w-37.5 ${!value ? "text-muted-foreground/50 italic" : "text-foreground"}`}>
+  <div className="flex items-center justify-between text-xs border border-br/40 rounded-lg px-3 py-2 bg-secondary/10">
+    <span className="font-semibold text-font-s">{label}:</span>
+    <span className={`truncate max-w-37.5 ${!value ? "text-font-s/50 italic" : "text-font-p"}`}>
             {value || placeholder || "---"}
         </span>
     </div>

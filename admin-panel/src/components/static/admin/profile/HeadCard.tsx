@@ -2,6 +2,7 @@ import React from "react";
 import { Card } from "@/components/elements/Card";
 import { Badge } from "@/components/elements/Badge";
 import { Button } from "@/components/elements/Button";
+import { Item, ItemContent, ItemMedia, ItemTitle, ItemDescription } from "@/components/elements/Item";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import {
   CalendarDays,
@@ -11,7 +12,6 @@ import {
   Mail,
   MapPin,
   Phone,
-  Send,
   User,
   Briefcase,
   Star,
@@ -67,7 +67,7 @@ export function HeadCard(props: HeadCardProps) {
   const initials = `${fullName.charAt(0) || "ا"}`;
 
   return (
-    <Card className="group relative overflow-hidden rounded-lg border-0 shadow-lg bg-card h-full flex flex-col">
+    <Card className="group relative overflow-hidden shadow-lg h-full flex flex-col">
       {/* Cover Section */}
       <div className="relative h-56 w-full shrink-0 overflow-hidden sm:h-64">
         <img
@@ -75,7 +75,7 @@ export function HeadCard(props: HeadCardProps) {
           alt="cover"
           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent" />
         
         {/* Floating Glass Stats */}
         <div className="absolute left-6 top-6 hidden sm:flex items-center gap-1 rounded-full border border-white/10 bg-black/20 p-1 backdrop-blur-md">
@@ -101,10 +101,10 @@ export function HeadCard(props: HeadCardProps) {
         <div className="flex justify-between items-end -mt-12 sm:-mt-16 mb-6 relative z-10">
            {/* Avatar */}
            <div className="relative">
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-blue-1 to-purple-1 blur-md opacity-40" />
-              <Avatar className="size-28 sm:size-36 rounded-2xl border-[4px] border-card shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-300">
+              <div className="absolute -inset-1 rounded-full bg-linear-to-br from-blue-1 to-purple-1 blur-md opacity-40" />
+              <Avatar className="size-28 sm:size-36 rounded-2xl border-4 border-card shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-300">
                 <AvatarImage src={avatarUrl} alt={fullName} className="object-cover" />
-                <AvatarFallback className="rounded-2xl bg-gradient-to-br from-blue to-blue-1 text-3xl font-black text-blue-2">
+                <AvatarFallback className="rounded-2xl bg-linear-to-br from-blue to-blue-1 text-3xl font-black text-blue-2">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -120,7 +120,7 @@ export function HeadCard(props: HeadCardProps) {
                  {active && <Badge variant="outline" className="border-green text-green-2 bg-green-0 text-[10px] px-2 py-0.5 h-6">فعال</Badge>}
               </div>
               <div className="flex items-center gap-2 mt-2">
-                 <Badge variant="secondary" className="font-bold text-primary bg-divi hover:bg-divi px-3 py-1 text-xs">
+                  <Badge variant="outline" className="font-bold text-primary bg-divi hover:bg-divi px-3 py-1 text-xs border-divi">
                     <Briefcase className="size-3.5 ml-1.5" />
                     {roleTitle}
                  </Badge>
@@ -141,7 +141,7 @@ export function HeadCard(props: HeadCardProps) {
         <div className="sm:hidden mb-6 text-center space-y-2">
             <h2 className="text-2xl font-black text-font-p">{fullName}</h2>
             <div className="flex justify-center gap-2">
-               <Badge variant="secondary" className="px-2 text-font-s bg-divi">{roleTitle}</Badge>
+                 <Badge variant="outline" className="px-2 text-font-s bg-divi border-divi">{roleTitle}</Badge>
             </div>
         </div>
 
@@ -202,7 +202,7 @@ export function HeadCard(props: HeadCardProps) {
 
           {/* Right Col: Contact & Location */}
           <div className="md:col-span-4 flex flex-col gap-4">
-             <div className="rounded-lg border border-br bg-gradient-to-b from-card to-bg p-5 space-y-4 h-full">
+             <div className="rounded-lg border border-br bg-linear-to-b from-card to-bg p-5 space-y-4 h-full">
                 
                 <h3 className="font-bold text-base flex items-center gap-2 border-b border-divi pb-3 text-font-p">
                   <span className="flex items-center justify-center size-7 rounded-lg bg-divi text-primary">
@@ -249,21 +249,12 @@ export function HeadCard(props: HeadCardProps) {
 
 // --- Sub-components ---
 
-function StatItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-col items-center">
-      <span className="text-[9px] uppercase text-white/70 mb-0.5">{label}</span>
-      <span className="font-mono text-sm font-bold leading-none">{value}</span>
-    </div>
-  );
-}
-
 function SocialButton({ icon, color }: { icon: React.ReactNode; color?: string }) {
   return (
     <Button
-      variant="ghost"
+      variant="outline"
       size="icon"
-      className={`size-10 rounded-xl transition-all duration-300 hover:scale-110 shadow-sm hover:shadow-md ${color}`}
+      className={`size-10 rounded-xl border-0 transition-all duration-300 hover:scale-110 shadow-sm hover:shadow-md ${color}`}
     >
       {React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: "size-5" })}
     </Button>
@@ -272,14 +263,14 @@ function SocialButton({ icon, color }: { icon: React.ReactNode; color?: string }
 
 function InfoCard({ icon, label, value, dir = "rtl", className }: { icon: React.ReactNode; label: string; value: string; dir?: "ltr" | "rtl", className?: string }) {
   return (
-    <div className={`flex items-center gap-3 p-3 rounded-lg border transition-all duration-300 ${className}`}>
-      <div className="shrink-0 p-2 rounded-lg bg-card/60 text-font-p">
+    <Item size="sm" className={`rounded-lg gap-3 border transition-all duration-300 ${className}`}>
+      <ItemMedia className="shrink-0 p-2 rounded-lg bg-card/60 text-font-p [&_svg]:size-5">
         {React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: "size-5" })}
-      </div>
-      <div className="min-w-0">
-        <p className="text-[11px] text-font-s mb-0.5">{label}</p>
-        <p className={`text-sm font-bold text-font-p truncate ${dir === "ltr" ? "text-left font-mono" : ""}`}>{value}</p>
-      </div>
-    </div>
+      </ItemMedia>
+      <ItemContent className="min-w-0 gap-0.5">
+        <ItemDescription className="text-[11px] text-font-s mb-0.5 leading-none line-clamp-1">{label}</ItemDescription>
+        <ItemTitle className={`text-sm font-bold text-font-p truncate ${dir === "ltr" ? "text-left font-mono" : ""}`}>{value}</ItemTitle>
+      </ItemContent>
+    </Item>
   );
 }

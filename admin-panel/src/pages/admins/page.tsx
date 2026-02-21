@@ -5,7 +5,7 @@ import { DataTableDateRangeFilter } from "@/components/tables/DataTableDateRange
 import type { AdminWithProfile, AdminListParams } from "@/types/auth/admin";
 import { useAuth } from "@/core/auth/AuthContext";
 import { adminApi } from "@/api/admins/admins";
-import { Edit, Trash2, Plus, Search, Building2, UserCog, Mail, Phone } from "lucide-react";
+import { Edit, Eye, Trash2, Plus, Search, Building2, UserCog, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { Input } from "@/components/elements/Input";
 import { useQuery } from "@tanstack/react-query";
@@ -80,6 +80,23 @@ export default function AdminsPage() {
 
   const actions = useMemo(() => {
     const adminActions: CardItemAction<AdminWithProfile>[] = [];
+
+    adminActions.push({
+      label: "مشاهده",
+      icon: <Eye className="h-4 w-4" />,
+      onClick: (admin: AdminWithProfile) => {
+        const isOwnProfile = currentUserId !== undefined && Number(currentUserId) === Number(admin.id);
+        const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
+
+        if (isOwnProfile) {
+          if (isConsultant) navigate('/agents/me/view');
+          else navigate('/admins/me/view');
+        } else {
+          if (isConsultant) navigate(`/agents/${admin.id}/view`);
+          else navigate(`/admins/${admin.id}/view`);
+        }
+      },
+    });
 
     adminActions.push({
       label: "ویرایش",
@@ -296,11 +313,11 @@ export default function AdminsPage() {
                 const isConsultant = !admin.is_superuser && (admin.user_role_type === 'consultant' || admin.has_agent_profile);
 
                 if (isOwnProfile) {
-                  if (isConsultant) navigate('/agents/me/edit');
-                  else navigate('/admins/me/edit');
+                  if (isConsultant) navigate('/agents/me/view');
+                  else navigate('/admins/me/view');
                 } else {
-                  if (isConsultant) navigate(`/agents/${admin.id}/edit`);
-                  else navigate(`/admins/${admin.id}/edit`);
+                  if (isConsultant) navigate(`/agents/${admin.id}/view`);
+                  else navigate(`/admins/${admin.id}/view`);
                 }
               }}
             />
