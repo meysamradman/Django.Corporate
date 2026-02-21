@@ -69,6 +69,9 @@ export function Breadcrumb() {
         'features': 'ویژگی‌ها',
         'agents': 'نمایندگان',
         'agencies': 'آژانس‌ها',
+        'provinces': 'استان‌ها',
+        'cities': 'شهرها',
+        'regions': 'مناطق',
         'me': 'من'
       };
       

@@ -69,6 +69,8 @@ export const PERMISSION_TRANSLATIONS = {
     'Property Label': 'برچسب ملک',
     'Property Features': 'ویژگی‌های ملک',
     'Property Feature': 'ویژگی ملک',
+    'Property Locations': 'موقعیت‌های ملک',
+    'Property Location': 'موقعیت ملک',
     'Property Tags': 'تگ‌های ملک',
     'Property Tag': 'تگ ملک',
     'real_estate': 'املاک',
@@ -79,6 +81,7 @@ export const PERMISSION_TRANSLATIONS = {
     'real_estate.state': 'وضعیت‌های ملک',
     'real_estate.label': 'برچسب‌های ملک',
     'real_estate.feature': 'ویژگی‌های ملک',
+    'real_estate.location': 'موقعیت‌های ملک',
     'real_estate.tag': 'تگ‌های ملک',
 
     'Upload Images': 'آپلود تصاویر',
