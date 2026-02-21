@@ -39,15 +39,32 @@ def _to_decimal(value: float) -> Decimal:
     return Decimal(str(value)).quantize(Decimal('0.00000001'))
 
 
+def _normalize_name_key(value: str) -> str:
+    text = (value or '').strip()
+    text = text.replace('ي', 'ی').replace('ك', 'ک').replace('‌', ' ')
+    text = ''.join(text.split())
+    return text
+
+
 def populate_coordinates():
     print("🚀 Updating coordinates for cities and provinces (data-file only)...")
 
     province_coordinates, city_coordinates = _load_coordinates()
 
+    province_by_key = {
+        _normalize_name_key(province.name): province
+        for province in Province.objects.all()
+    }
+
+    cities_by_key: dict[str, list[City]] = {}
+    for city in City.objects.all():
+        key = _normalize_name_key(city.name)
+        cities_by_key.setdefault(key, []).append(city)
+
     updated_provinces = 0
     for name, coords in province_coordinates.items():
         try:
-            province = Province.objects.filter(name=name).first()
+            province = province_by_key.get(_normalize_name_key(name))
             if province:
                 province.latitude = _to_decimal(coords[0])
                 province.longitude = _to_decimal(coords[1])
@@ -62,14 +79,14 @@ def populate_coordinates():
     updated_cities = 0
     for name, coords in city_coordinates.items():
         try:
-            cities = City.objects.filter(name=name)
-            if cities.exists():
+            cities = cities_by_key.get(_normalize_name_key(name), [])
+            if cities:
                 for city in cities:
                     city.latitude = _to_decimal(coords[0])
                     city.longitude = _to_decimal(coords[1])
                     city.save()
                     updated_cities += 1
-                print(f"✅ City updated: {name} ({cities.count()} matches)")
+                print(f"✅ City updated: {name} ({len(cities)} matches)")
             else:
                 print(f"⚠️ City not found: {name}")
         except Exception as e:

@@ -89,7 +89,7 @@ export const locationApi = {
     return data || [];
   },
 
-  createProvince: async (payload: { name: string; code: string; slug?: string }): Promise<RealEstateProvince> => {
+  createProvince: async (payload: { name: string; code: string; slug?: string; latitude?: number | null; longitude?: number | null }): Promise<RealEstateProvince> => {
     const response = await api.post<RealEstateProvince>('/admin/real-estate-provinces/', payload);
     return extractData<RealEstateProvince>(response);
   },
@@ -99,7 +99,7 @@ export const locationApi = {
     return extractData<RealEstateProvince>(response);
   },
 
-  updateProvince: async (id: number, payload: { name: string; code: string; slug?: string }): Promise<RealEstateProvince> => {
+  updateProvince: async (id: number, payload: { name: string; code: string; slug?: string; latitude?: number | null; longitude?: number | null }): Promise<RealEstateProvince> => {
     const response = await api.put<RealEstateProvince>(`/admin/real-estate-provinces/${id}/`, payload);
     return extractData<RealEstateProvince>(response);
   },
@@ -108,7 +108,7 @@ export const locationApi = {
     await api.delete(`/admin/real-estate-provinces/${id}/`);
   },
 
-  createCity: async (payload: { name: string; code: string; slug?: string; province_id: number }): Promise<RealEstateCity> => {
+  createCity: async (payload: { name: string; code: string; slug?: string; province_id: number; latitude?: number | null; longitude?: number | null }): Promise<RealEstateCity> => {
     const response = await api.post<RealEstateCity>('/admin/real-estate-cities/', payload);
     return extractData<RealEstateCity>(response);
   },
@@ -118,7 +118,7 @@ export const locationApi = {
     return extractData<RealEstateCity>(response);
   },
 
-  updateCity: async (id: number, payload: { name: string; code: string; slug?: string; province_id: number }): Promise<RealEstateCity> => {
+  updateCity: async (id: number, payload: { name: string; code: string; slug?: string; province_id: number; latitude?: number | null; longitude?: number | null }): Promise<RealEstateCity> => {
     const response = await api.put<RealEstateCity>(`/admin/real-estate-cities/${id}/`, payload);
     return extractData<RealEstateCity>(response);
   },

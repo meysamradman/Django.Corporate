@@ -20,7 +20,7 @@ export const CitySide: React.FC<CitySideProps> = ({
   editId,
 }) => {
   const isEditMode = !!editId;
-  const [form, setForm] = useState({ name: "", code: "", slug: "", province_id: "" });
+  const [form, setForm] = useState({ name: "", code: "", slug: "", province_id: "", latitude: "", longitude: "" });
 
   const { data: provinces = [] } = useQuery({
     queryKey: ["real-estate-provinces"],
@@ -42,11 +42,13 @@ export const CitySide: React.FC<CitySideProps> = ({
         code: String(cityData.code || ""),
         slug: cityData.slug || "",
         province_id: cityData.province_id ? String(cityData.province_id) : "",
+        latitude: cityData.latitude !== null && cityData.latitude !== undefined ? String(cityData.latitude) : "",
+        longitude: cityData.longitude !== null && cityData.longitude !== undefined ? String(cityData.longitude) : "",
       });
       return;
     }
     if (!isEditMode) {
-      setForm({ name: "", code: "", slug: "", province_id: "" });
+      setForm({ name: "", code: "", slug: "", province_id: "", latitude: "", longitude: "" });
     }
   }, [isOpen, isEditMode, cityData]);
 
@@ -57,6 +59,8 @@ export const CitySide: React.FC<CitySideProps> = ({
         code: form.code.trim(),
         slug: form.slug.trim() || undefined,
         province_id: Number(form.province_id),
+        latitude: form.latitude.trim() === "" ? null : Number(form.latitude),
+        longitude: form.longitude.trim() === "" ? null : Number(form.longitude),
       };
       if (isEditMode) {
         return realEstateApi.updateCity(editId!, payload);
@@ -116,6 +120,22 @@ export const CitySide: React.FC<CitySideProps> = ({
           disabled={isLoading}
           onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
           placeholder="مثال: tehran-city"
+        />
+        <FormFieldInput
+          label="عرض جغرافیایی (اختیاری)"
+          id="city_latitude"
+          value={form.latitude}
+          disabled={isLoading}
+          onChange={(e) => setForm((prev) => ({ ...prev, latitude: e.target.value }))}
+          placeholder="مثال: 35.6892"
+        />
+        <FormFieldInput
+          label="طول جغرافیایی (اختیاری)"
+          id="city_longitude"
+          value={form.longitude}
+          disabled={isLoading}
+          onChange={(e) => setForm((prev) => ({ ...prev, longitude: e.target.value }))}
+          placeholder="مثال: 51.3890"
         />
         <FormField label="استان" htmlFor="city_province" required>
           <Select

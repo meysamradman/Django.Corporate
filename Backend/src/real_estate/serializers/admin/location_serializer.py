@@ -16,7 +16,7 @@ class RealEstateProvinceSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Province
-        fields = ['id', 'public_id', 'name', 'code', 'slug', 'country_name', 'cities_count', 'is_active', 'created_at', 'updated_at']
+        fields = ['id', 'public_id', 'name', 'code', 'slug', 'country_name', 'cities_count', 'latitude', 'longitude', 'is_active', 'created_at', 'updated_at']
         read_only_fields = ['id']
     
     def get_cities_count(self, obj):
@@ -35,7 +35,7 @@ class RealEstateCitySerializer(serializers.ModelSerializer):
         fields = [
             'id', 'public_id', 'name', 'code', 'slug',
             'province_id', 'province_name',
-            'has_regions', 'property_count',
+            'has_regions', 'property_count', 'latitude', 'longitude',
             'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id']
@@ -68,7 +68,7 @@ class RealEstateCitySimpleSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = City
-        fields = ['id', 'name', 'code', 'slug']
+        fields = ['id', 'name', 'code', 'slug', 'latitude', 'longitude']
         read_only_fields = ['id']
 
 class RealEstateCityRegionSimpleSerializer(serializers.ModelSerializer):
@@ -83,8 +83,22 @@ class RealEstateProvinceCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Province
-        fields = ['id', 'name', 'code', 'slug']
+        fields = ['id', 'name', 'code', 'slug', 'latitude', 'longitude']
         read_only_fields = ['id']
+
+    def validate_latitude(self, value):
+        if value is None:
+            return value
+        if value < -90 or value > 90:
+            raise serializers.ValidationError('عرض جغرافیایی باید بین -90 و 90 باشد.')
+        return value
+
+    def validate_longitude(self, value):
+        if value is None:
+            return value
+        if value < -180 or value > 180:
+            raise serializers.ValidationError('طول جغرافیایی باید بین -180 و 180 باشد.')
+        return value
 
     def validate_slug(self, value):
         slug = normalize_manual_slug(value)
@@ -132,8 +146,22 @@ class RealEstateCityCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = City
-        fields = ['id', 'name', 'code', 'slug', 'province_id']
+        fields = ['id', 'name', 'code', 'slug', 'province_id', 'latitude', 'longitude']
         read_only_fields = ['id']
+
+    def validate_latitude(self, value):
+        if value is None:
+            return value
+        if value < -90 or value > 90:
+            raise serializers.ValidationError('عرض جغرافیایی باید بین -90 و 90 باشد.')
+        return value
+
+    def validate_longitude(self, value):
+        if value is None:
+            return value
+        if value < -180 or value > 180:
+            raise serializers.ValidationError('طول جغرافیایی باید بین -180 و 180 باشد.')
+        return value
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
