@@ -2,24 +2,14 @@ import { useState } from "react";
 import {
   Activity,
   AlertCircle,
-  AtSign,
   Building2,
   Calendar,
   CheckCircle2,
   Eye,
   FileDigit,
-  Fingerprint,
   Globe,
   Hash,
   Image as ImageIcon,
-  Instagram,
-  Linkedin,
-  Mail,
-  MapPin,
-  MessageCircle,
-  Phone,
-  ScrollText,
-  Send,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Badge } from "@/components/elements/Badge";
@@ -30,9 +20,12 @@ import {
   ProfilePropertiesList,
   type ProfilePropertyItem,
 } from "@/components/static/agent/profile/ProfilePropertiesList";
+import { HeadCard } from "@/components/static/admin/profile/HeadCard";
 
 interface AdminStaticForm {
   fullName: string;
+  avatarUrl: string;
+  coverUrl: string;
   mobile: string;
   landline: string;
   email: string;
@@ -75,6 +68,8 @@ interface AdminStaticForm {
 
 const MOCK_DATA: AdminStaticForm = {
   fullName: "سشی سشییس",
+  avatarUrl: "/images/profileone.webp",
+  coverUrl: "/images/profile-banner.png",
   mobile: "09124707989",
   landline: "02112345678",
   email: "consultant@example.com",
@@ -159,19 +154,34 @@ const formatValue = (value?: string | number | null) => {
 
 export const ProfileTabs = () => {
   const [data] = useState<AdminStaticForm>(MOCK_DATA);
+  const [firstName = "", ...lastNameParts] = (data.fullName || "").trim().split(/\s+/);
+  const lastName = lastNameParts.join(" ");
 
   return (
     <div className="w-full animate-in fade-in zoom-in-95 duration-500 pb-10">
       <div className="flex flex-col gap-6">
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
-          <aside className="xl:col-span-4 flex flex-col gap-6">
-            <QuickSidebar data={data} />
-          </aside>
-
-          <section className="xl:col-span-8 flex flex-col gap-6">
-            <ProfileCompanionCard data={data} />
-          </section>
-        </div>
+        <HeadCard
+          fullName={data.fullName}
+          roleTitle={data.roles?.[0] || "مشاور"}
+          firstName={firstName || data.fullName}
+          lastName={lastName || "---"}
+          birthDate={data.licenseExpireDate}
+          mobile={data.mobile}
+          phone={data.landline}
+          email={data.email}
+          province={data.province}
+          city={data.city}
+          address={data.address}
+          bio={data.biography}
+          nationalId={data.nationalId}
+          createdAt={data.createdAt}
+          active={data.isActive}
+          avatarUrl={data.avatarUrl}
+          coverUrl={data.coverUrl}
+          profileViews={data.consultantStats?.totalViews || "0"}
+          propertyCount={String(data.consultantStats?.totalProperties ?? 0)}
+          ticketCount={String(data.consultantStats?.activeProperties ?? 0)}
+        />
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
           <main className="xl:col-span-12 flex flex-col gap-6">
@@ -191,197 +201,6 @@ export const ProfileTabs = () => {
     </div>
   );
 };
-
-const QuickSidebar = ({ data }: { data: AdminStaticForm }) => (
-  <CardWithIcon
-    icon={Building2}
-    title="پروفایل مشاور"
-    iconBgColor="bg-teal-0/50"
-    iconColor="text-teal-1"
-    cardBorderColor="border-b-teal-1"
-    className="h-full min-h-[calc(100vh-180px)] overflow-hidden"
-    contentClassName="p-0"
-    showHeaderBorder={false}
-    titleExtra={<Badge variant={data.isActive ? "green" : "red"}>{data.isActive ? "فعال" : "غیرفعال"}</Badge>}
-  >
-    <div className="flex flex-col h-full relative">
-      
-      {/* 1. Cover Background - Abstract Pattern */}
-      <div className="h-40 w-full bg-linear-to-bl from-primary/20 via-primary/5 to-background relative overflow-hidden">
-        {/* Decorative Circles */}
-        <div className="absolute top-0 right-0 p-8 opacity-10">
-            <Building2 className="size-32 text-primary" />
-        </div>
-           <div className="absolute -left-10 -top-10 size-40 rounded-full bg-blue-0/30 blur-3xl"></div>
-      </div>
-
-      <div className="px-6 relative flex flex-col grow">
-        
-        {/* 2. Avatar - Overlapping Cover */}
-        <div className="flex flex-col items-center -mt-16 mb-6">
-          <div className="relative p-1.5 rounded-2xl bg-card shadow-xl shadow-black/5">
-             <div className="relative size-32 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-4xl font-black border border-br/50">
-                {getAvatarInitials(data.fullName)}
-               <span className="absolute bottom-2 right-2 size-5 rounded-full border-4 border-card bg-green-1 shadow-sm" />
-             </div>
-          </div>
-          
-          <div className="text-center mt-3">
-             <h3 className="text-2xl font-black text-foreground tracking-tight">{formatValue(data.fullName)}</h3>
-             <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
-                {(data.roles?.length ? data.roles : ["بدون نقش"]).map((role, index) => (
-                  <span key={index} className="inline-flex items-center px-2.5 py-1 rounded-md bg-secondary text-secondary-foreground text-xs font-medium border border-secondary-foreground/10">
-                    {role}
-                  </span>
-                ))}
-             </div>
-          </div>
-        </div>
-
-        {/* 3. Quick Stats Row (Visual Fill) */}
-        <div className="grid grid-cols-3 gap-2 mb-8 w-full">
-              <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-secondary/5 border border-br/50 hover:bg-secondary/10 hover:border-br transition-all">
-                 <span className="text-xl font-bold text-foreground dir-ltr">4.9</span>
-                 <span className="text-[10px] font-medium text-muted-foreground/80 mt-1">امتیاز کاربران</span>
-            </div>
-              <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-secondary/5 border border-br/50 hover:bg-secondary/10 hover:border-br transition-all">
-                 <span className="text-xl font-bold text-foreground dir-ltr">12</span>
-                 <span className="text-[10px] font-medium text-muted-foreground/80 mt-1">فایل فعال</span>
-            </div>
-              <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-secondary/5 border border-br/50 hover:bg-secondary/10 hover:border-br transition-all">
-                <span className="text-xl font-bold text-green-1 dir-ltr">+24</span>
-                 <span className="text-[10px] font-medium text-muted-foreground/80 mt-1">معاملات</span>
-            </div>
-        </div>
-
-        {/* 4. Contact Info */}
-        <div className="space-y-4 mb-auto">
-           <SidebarRow 
-              icon={AtSign} 
-              label="نام کاربری" 
-              value={extractUsername(data.email)} 
-              dir="ltr" 
-              className="bg-transparent border-transparent hover:bg-secondary/10 px-2 py-2"
-           />
-           
-           <div className="flex items-center gap-4">
-                <div className="h-px bg-br/60 flex-1"></div>
-                <div className="size-1 rounded-full bg-br"></div>
-                <div className="h-px bg-br/60 flex-1"></div>
-           </div>
-
-           <SidebarRow 
-              icon={Phone} 
-              label="موبایل" 
-              value={formatValue(data.mobile)} 
-              dir="ltr" 
-               className="bg-transparent border-transparent hover:bg-secondary/10 px-2 py-2"
-           />
-           
-           <div className="flex items-center gap-4">
-                <div className="h-px bg-br/60 flex-1"></div>
-                <div className="size-1 rounded-full bg-br"></div>
-                <div className="h-px bg-br/60 flex-1"></div>
-           </div>
-
-           <SidebarRow 
-              icon={MapPin} 
-              label="شهر" 
-              value={formatValue(data.city)} 
-               className="bg-transparent border-transparent hover:bg-secondary/10 px-2 py-2"
-           />
-        </div>
-
-        {/* 5. Social Footer */}
-        <div className="pt-6 pb-6 mt-4">
-          <div className="flex items-center justify-center gap-4">
-             <SocialIcon href={data.socialLinks?.linkedin} icon={Linkedin} label="لینکدین" className="border-blue-1/20 bg-blue-0/40 text-blue-1 hover:bg-blue-0/60" />
-             <SocialIcon href={data.socialLinks?.telegram} icon={Send} label="تلگرام" className="border-sky-1/20 bg-sky-0/40 text-sky-1 hover:bg-sky-0/60" />
-             <SocialIcon href={data.socialLinks?.whatsapp} icon={MessageCircle} label="واتساپ" className="border-green-1/20 bg-green-0/40 text-green-1 hover:bg-green-0/60" />
-             <SocialIcon href={data.socialLinks?.instagram} icon={Instagram} label="اینستاگرام" className="border-pink-1/20 bg-pink-0/40 text-pink-1 hover:bg-pink-0/60" />
-          </div>
-        </div>
-      </div>
-    </div>
-  </CardWithIcon>
-);
-
-const ProfileCompanionCard = ({ data }: { data: AdminStaticForm }) => (
-  <CardWithIcon
-    icon={ScrollText}
-    title="خلاصه پروفایل"
-    iconBgColor="bg-teal-0/50"
-    iconColor="text-teal-1"
-    cardBorderColor="border-b-teal-1"
-    className="h-full min-h-[calc(100vh-180px)] gap-0!"
-    contentClassName="flex flex-col justify-between h-full p-6 space-y-6"
-  >
-    <div className="space-y-6 flex-1">
-      <div>
-        <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-teal-1"></span>
-            بیوگرافی
-        </p>
-        <div className="rounded-lg border border-border/50 bg-secondary/5 p-4 text-sm leading-8 text-foreground/80 text-justify">
-          {formatValue(data.biography)}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <SidebarRow 
-            icon={Mail} 
-            label="ایمیل" 
-            value={formatValue(data.email)} 
-            dir="ltr" 
-            className="bg-secondary/5 p-3 rounded-lg border border-transparent hover:border-border/40 transition-colors flex-row-reverse" 
-        />
-        <SidebarRow 
-            icon={Phone} 
-            label="تلفن" 
-            value={formatValue(data.landline)} 
-            dir="ltr" 
-            className="bg-secondary/5 p-3 rounded-lg border border-transparent hover:border-border/40 transition-colors flex-row-reverse" 
-        />
-        <SidebarRow 
-            icon={Fingerprint} 
-            label="کد ملی" 
-            value={formatValue(data.nationalId)} 
-            dir="ltr" 
-            className="bg-secondary/5 p-3 rounded-lg border border-transparent hover:border-border/40 transition-colors flex-row-reverse" 
-        />
-        <SidebarRow 
-            icon={MapPin} 
-            label="موقعیت" 
-            value={`${formatValue(data.city)} - ${formatValue(data.province)}`} 
-            className="bg-secondary/5 p-3 rounded-lg border border-transparent hover:border-border/40 transition-colors flex-row-reverse" 
-        />
-      </div>
-
-      <div>
-        <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-teal-1"></span>
-            آدرس
-        </p>
-        <div className="rounded-lg border border-border/50 bg-secondary/5 p-4 text-sm leading-7 text-foreground/80 flex items-start gap-3">
-            <MapPin className="size-5 text-teal-1/70 shrink-0 mt-1" />
-            {formatValue(data.address)}
-        </div>
-      </div>
-    </div>
-
-    <div className="pt-6 mt-4 border-t border-border/50">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-secondary/10 px-3 py-1.5 rounded-lg">
-            <Calendar className="size-3.5" />
-            <span>تاریخ ایجاد: {formatValue(data.createdAt)}</span>
-        </div>
-        <Badge variant="outline" className="h-8 px-4 rounded-lg border-teal-1/30 text-teal-1 bg-teal-0/40 hover:bg-teal-0/60 hover:border-teal-1/50 transition-colors">
-            {formatValue(data.province)}
-        </Badge>
-      </div>
-    </div>
-  </CardWithIcon>
-);
 
 const ConsultantStatsCard = ({
   stats,
@@ -443,85 +262,6 @@ const ModernStatItem = ({ label, value, icon: Icon, colorClass, iconBg }: { labe
      </div>
   </div>
 );
-
-const SocialIcon = ({
-  href,
-  icon: Icon,
-  label,
-  className,
-}: {
-  href?: string;
-  icon: LucideIcon;
-  label: string;
-  className?: string;
-}) => (
-  href ? (
-    <a
-      href={href}
-      aria-label={label}
-      className={`size-9 rounded-xl border flex items-center justify-center transition-all hover:scale-105 ${className || "border-br bg-secondary/30 text-font-s hover:bg-secondary"}`}
-    >
-      <Icon className="size-4" />
-    </a>
-  ) : (
-    <button
-      type="button"
-      aria-label={label}
-      className={`size-9 rounded-xl border flex items-center justify-center opacity-60 ${className || "border-br bg-secondary/30 text-font-s"}`}
-    >
-      <Icon className="size-4" />
-    </button>
-  )
-);
-
-const SidebarRow = ({
-  icon: Icon,
-  label,
-  value,
-  dir,
-  className,
-}: {
-  icon?: LucideIcon;
-  label: string;
-  value: string | number;
-  dir?: "ltr" | "rtl";
-  className?: string;
-}) => (
-  // In RTL context (default for Persian):
-  // Flex direction is row.
-  // First child -> Right side
-  // Last child -> Left side
-  // We want: [Icon] [Text Content]
-  // This means Icon should be the FIRST child in the DOM structure.
-  <div className={`flex items-center gap-3 rounded-lg border border-border/50 bg-secondary/10 px-3 py-2 ${className || ""}`}>
-    
-    {Icon && (
-      <span className="size-9 shrink-0 rounded-lg bg-background/60 border border-border/20 flex items-center justify-center text-primary/70 shadow-xs">
-        <Icon className="size-4" />
-      </span>
-    )}
-    
-    <div className="min-w-0 flex-1 flex flex-col items-start text-right">
-      <span className="text-[10px] font-medium text-muted-foreground/80 leading-none mb-1">{label}</span>
-      <span dir={dir} className="truncate text-sm font-semibold text-foreground w-full">
-        {value}
-      </span>
-    </div>
-
-  </div>
-);
-
-const getAvatarInitials = (fullName: string) => {
-  const parts = fullName.trim().split(" ").filter(Boolean);
-  if (parts.length === 0) return "--";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return `${parts[0][0] || ""}${parts[1][0] || ""}`.toUpperCase();
-};
-
-const extractUsername = (email: string) => {
-  const [username] = email.split("@");
-  return username || "---";
-};
 
 const ProfessionalInfoCard = ({ data }: { data: AdminStaticForm }) => (
   <CardWithIcon
