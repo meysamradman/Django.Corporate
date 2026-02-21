@@ -86,6 +86,8 @@ class PropertyPublicService:
                 ('max_area', 'built_area__lte'),
                 ('bedrooms', 'bedrooms'),
                 ('bathrooms', 'bathrooms'),
+                ('parking_spaces', 'parking_spaces'),
+                ('storage_rooms', 'storage_rooms'),
             ):
                 parsed_value = PropertyPublicService._parse_int(filters.get(int_field))
                 if parsed_value is not None:

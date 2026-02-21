@@ -10,7 +10,7 @@ const toSingle = (value: string | string[] | undefined): string => {
 };
 
 const toOptionalNumber = (value: string | string[] | undefined): number | null => {
-  const single = toSingle(value).trim();
+  const single = toSingle(value).trim().replace(/,/g, "");
   if (!single) return null;
   const parsed = Number(single);
   if (Number.isNaN(parsed) || parsed < 0) return null;
@@ -246,6 +246,8 @@ export const resolvePropertySearchFilters = (
     max_area: toOptionalNumber(searchParams.max_area),
     bedrooms: toOptionalNumber(searchParams.rooms ?? searchParams.bedrooms),
     bathrooms: toOptionalNumber(searchParams.bathrooms),
+    parking_spaces: toOptionalNumber(searchParams.parking_spaces ?? searchParams.parking),
+    storage_rooms: toOptionalNumber(searchParams.storage_rooms ?? searchParams.storage),
     created_after: toSingle(searchParams.created_after).trim(),
     created_before: toSingle(searchParams.created_before).trim(),
     type_slug: resolvedTypeSlug,
@@ -279,6 +281,8 @@ export const toPropertyListApiParams = (
   max_area: filters.max_area || undefined,
   bedrooms: filters.bedrooms || undefined,
   bathrooms: filters.bathrooms || undefined,
+  parking_spaces: filters.parking_spaces || undefined,
+  storage_rooms: filters.storage_rooms || undefined,
   created_after: filters.created_after || undefined,
   created_before: filters.created_before || undefined,
   type_slug: filters.type_slug || undefined,
@@ -321,6 +325,8 @@ export const filtersToSearchParams = (
   if (next.max_area) params.set("max_area", String(next.max_area));
   if (next.bedrooms) params.set("rooms", String(next.bedrooms));
   if (next.bathrooms) params.set("bathrooms", String(next.bathrooms));
+  if (next.parking_spaces !== null) params.set("parking_spaces", String(next.parking_spaces));
+  if (next.storage_rooms !== null) params.set("storage_rooms", String(next.storage_rooms));
   if (next.created_after) params.set("created_after", next.created_after);
   if (next.created_before) params.set("created_before", next.created_before);
   if (next.type_slug && !isTypeEncoded) params.set("type", next.type_slug);

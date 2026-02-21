@@ -17,6 +17,8 @@ export type PropertySearchFilters = {
   max_area: number | null;
   bedrooms: number | null;
   bathrooms: number | null;
+  parking_spaces: number | null;
+  storage_rooms: number | null;
   created_after: string;
   created_before: string;
   type_slug: string;

@@ -92,7 +92,8 @@ const fromBoolString = (value: string): boolean | null => {
 };
 
 const toNumberOrNull = (value: string): number | null => {
-  const trimmed = value.trim();
+  const trimmed = value.trim().replace(/,/g, "");
+
   if (!trimmed) return null;
   const parsed = Number(trimmed);
   if (Number.isNaN(parsed) || parsed < 0) return null;
@@ -441,6 +442,29 @@ export default function PropertySearchSidebar({
               min={0}
               value={filters.bathrooms ?? ""}
               onChange={(event) => update({ bathrooms: toNumberOrNull(event.target.value) })}
+              placeholder="1"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <label className="text-sm text-font-s">تعداد پارکینگ</label>
+            <Input
+              type="number"
+              min={0}
+              value={filters.parking_spaces ?? ""}
+              onChange={(event) => update({ parking_spaces: toNumberOrNull(event.target.value) })}
+              placeholder="1"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm text-font-s">تعداد انباری</label>
+            <Input
+              type="number"
+              min={0}
+              value={filters.storage_rooms ?? ""}
+              onChange={(event) => update({ storage_rooms: toNumberOrNull(event.target.value) })}
               placeholder="1"
             />
           </div>

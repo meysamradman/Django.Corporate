@@ -42,6 +42,8 @@ class PropertyPublicViewSet(viewsets.ReadOnlyModelViewSet):
             'max_area': request.query_params.get('max_area'),
             'bedrooms': request.query_params.get('bedrooms'),
             'bathrooms': request.query_params.get('bathrooms'),
+            'parking_spaces': request.query_params.get('parking_spaces'),
+            'storage_rooms': request.query_params.get('storage_rooms'),
             'created_after': request.query_params.get('created_after'),
             'created_before': request.query_params.get('created_before'),
             'type_slug': request.query_params.get('type_slug'),
