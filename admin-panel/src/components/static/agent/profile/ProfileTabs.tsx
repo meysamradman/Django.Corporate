@@ -25,11 +25,11 @@ import type { LucideIcon } from "lucide-react";
 import { Badge } from "@/components/elements/Badge";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Separator } from "@/components/elements/Separator";
-import { InfoItem } from "@/components/static/profile/InfoItem";
+import { InfoItem } from "@/components/static/agent/profile/InfoItem";
 import {
   ProfilePropertiesList,
   type ProfilePropertyItem,
-} from "@/components/static/profile/ProfilePropertiesList";
+} from "@/components/static/agent/profile/ProfilePropertiesList";
 
 interface AdminStaticForm {
   fullName: string;

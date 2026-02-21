@@ -1,4 +1,4 @@
-import { ProfileTabs } from "@/components/static/profile/ProfileTabs";
+import { ProfileTabs } from "@/components/static/agent/profile/ProfileTabs";
 
 export default function StaticProfilePage() {
   return (

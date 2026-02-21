@@ -1,7 +1,7 @@
 import { Badge } from "@/components/elements/Badge";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { BadgeCheck, FileBadge, Calendar, Briefcase, Building, FileText, CheckCircle2 } from "lucide-react";
-import { InfoItem } from "@/components/static/profile/InfoItem";
+import { InfoItem } from "@/components/static/agent/profile/InfoItem";
 import { Label } from "@/components/elements/Label";
 
 interface ConsultantStaticTabProps {

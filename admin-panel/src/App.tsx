@@ -75,7 +75,8 @@ import RealEstateProvincesPage from './pages/real-estate/provinces/page';
 import RealEstateCitiesPage from './pages/real-estate/cities/page';
 import RealEstateRegionsPage from './pages/real-estate/regions/page';
 import RealEstateStatisticsPage from './pages/real-estate/statistics/page';
-import StaticProfilePage from './pages/static/profile/page';
+import StaticAdminPage from '@/pages/static/admin/page';
+import StaticAgentPage from '@/pages/static/agent/page';
 
 function AgentRedirectView() {
   const { id } = useParams<{ id: string }>();
@@ -201,7 +202,9 @@ function App() {
                     <Route path="chatbot" element={<ChatbotPage />} />
                     <Route path="form-builder" element={<FormBuilderPage />} />
                     <Route path="static">
-                      <Route path="profile" element={<StaticProfilePage />} />
+                      <Route path="profile" element={<StaticAdminPage />} />
+                      <Route path="admin" element={<StaticAdminPage />} />
+                      <Route path="agent" element={<StaticAgentPage />} />
                     </Route>
                     <Route path="page">
                       <Route path="about" element={<PageAbout />} />
