@@ -174,3 +174,5 @@ app/types/
 - Project uses **App Router**
 - Code must be clean, modular, and SEO-friendly
 - Pages MUST remain lightweight (pages must not become fat)
+
+ما فونت داریم هیچ کدی ننویس که اعداد فارسی نمایش بده
