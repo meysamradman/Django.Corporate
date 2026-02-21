@@ -247,6 +247,9 @@ class PropertyAdminService:
             logger.info(f"✅ [PropertyService][Create] Agent explicitly provided: {validated_data.get('agent').id if hasattr(validated_data.get('agent'), 'id') else validated_data.get('agent')}")
         else:
             logger.debug(f"⏭️  [PropertyService][Create] No agent assignment (no authenticated user)")
+
+        resolved_agent = validated_data.get('agent')
+        validated_data['agency'] = resolved_agent.agency if resolved_agent else None
         
         if validated_data.get('agency'):
             logger.info(f"🏢 [PropertyService][Create] Agency explicitly provided: {validated_data.get('agency').id if hasattr(validated_data.get('agency'), 'id') else validated_data.get('agency')}")
@@ -372,6 +375,12 @@ class PropertyAdminService:
         requested_status = validated_data.get('status')
         if requested_status in ('sold', 'rented'):
             raise ValidationError(PROPERTY_ERRORS["status_finalize_required"])
+
+        if 'agent' in validated_data:
+            resolved_agent = validated_data.get('agent')
+            validated_data['agency'] = resolved_agent.agency if resolved_agent else None
+        elif 'agency' in validated_data:
+            validated_data['agency'] = property_obj.agent.agency if property_obj.agent else None
 
         with transaction.atomic():
             if province: property_obj.province = province

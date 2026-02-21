@@ -37,6 +37,8 @@ PROPERTY_ERRORS = {
     "media_image_not_found": "تصویر رسانه یافت نشد.",
     "agent_id_required": "شناسه مشاور مورد نیاز است.",
     "agency_id_required": "شناسه آژانس مورد نیاز است.",
+    "agency_requires_agent": "برای تعیین آژانس، ابتدا باید مشاور انتخاب شود.",
+    "agent_agency_mismatch": "آژانس انتخاب‌شده با آژانسِ مشاور مطابقت ندارد.",
     "property_type_id_required": "شناسه نوع ملک مورد نیاز است.",
     "state_id_required": "شناسه وضعیت ملک مورد نیاز است.",
     "region_id_required": "شناسه محله مورد نیاز است.",

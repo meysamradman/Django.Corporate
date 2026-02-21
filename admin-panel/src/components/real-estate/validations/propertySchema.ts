@@ -358,6 +358,14 @@ export const propertyFormSchema = z.object({
     video_covers: z.record(z.string(), z.number().nullable()).optional(),
     audio_covers: z.record(z.string(), z.number().nullable()).optional(),
     document_covers: z.record(z.string(), z.number().nullable()).optional(),
+}).superRefine((data, ctx) => {
+    if (data.agency && !data.agent) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["agency"],
+            message: msg.realEstate().validation.agencyRequiresAgent,
+        });
+    }
 });
 
 export type PropertyFormValues = z.input<typeof propertyFormSchema>;

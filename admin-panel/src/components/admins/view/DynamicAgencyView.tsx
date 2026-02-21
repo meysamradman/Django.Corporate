@@ -16,6 +16,8 @@ import { mediaService } from "@/components/media/services";
 import type { PropertyAgent } from "@/types/real_estate/agent/realEstateAgent";
 import { PaginationControls } from "@/components/shared/paginations/PaginationControls";
 import { Loader } from "@/components/elements/Loader";
+import { adminApi } from "@/api/admins/admins";
+import type { AdminWithProfile } from "@/types/auth/admin";
 
 interface DynamicAgencyViewProps {
   agencyId: string;
@@ -59,9 +61,76 @@ export function DynamicAgencyView({ agencyId }: DynamicAgencyViewProps) {
     placeholderData: (previousData) => previousData,
   });
 
-  const agencyAgents = useMemo<PropertyAgent[]>(() => {
-    return agentsResponse?.data ?? [];
+  const shouldUseFallbackAdmins =
+    (agentsResponse?.pagination?.count ?? 0) === 0 && (agencyData?.agent_count ?? 0) > 0;
+
+  const {
+    data: fallbackAdminsResponse,
+    isLoading: isFallbackAdminsLoading,
+  } = useQuery({
+    queryKey: ["agency-view-admin-fallback", agencyId],
+    enabled: Boolean(agencyData?.id && shouldUseFallbackAdmins),
+    queryFn: () =>
+      adminApi.getAdminList({
+        user_role_type: "consultant",
+        no_pagination: true,
+      } as any),
+    staleTime: 0,
+  });
+
+  type AgencyAdvisorRow = {
+    id: number | string;
+    full_name: string;
+    phone?: string | null;
+    email?: string | null;
+    is_active: boolean;
+    view_admin_id: number | string;
+  };
+
+  const fallbackAgencyAdvisors = useMemo<AgencyAdvisorRow[]>(() => {
+    if (!agencyData?.id) return [];
+    const raw = (fallbackAdminsResponse?.data || []) as AdminWithProfile[];
+    return raw
+      .filter((admin) => Number(admin.agent_profile?.agency?.id) === Number(agencyData.id))
+      .map((admin) => ({
+        id: admin.agent_profile?.id || admin.id,
+        full_name:
+          admin.profile?.full_name ||
+          [admin.profile?.first_name, admin.profile?.last_name].filter(Boolean).join(" ") ||
+          admin.full_name ||
+          "---",
+        phone: admin.mobile || admin.profile?.phone || null,
+        email: admin.email || null,
+        is_active: Boolean(admin.is_active),
+        view_admin_id: admin.id,
+      }));
+  }, [agencyData?.id, fallbackAdminsResponse?.data]);
+
+  const isFallbackMode = shouldUseFallbackAdmins && fallbackAgencyAdvisors.length > 0;
+
+  const primaryAdvisors = useMemo<AgencyAdvisorRow[]>(() => {
+    const rawAgents = (agentsResponse?.data || []) as PropertyAgent[];
+    return rawAgents.map((agent) => ({
+      id: agent.id,
+      full_name: agent.full_name || `${agent.first_name || ""} ${agent.last_name || ""}`.trim() || "---",
+      phone: agent.phone || null,
+      email: agent.email || null,
+      is_active: Boolean(agent.is_active),
+      view_admin_id: agent.user || agent.id,
+    }));
   }, [agentsResponse?.data]);
+
+  const fallbackTotalCount = fallbackAgencyAdvisors.length;
+  const fallbackTotalPages = Math.max(1, Math.ceil(fallbackTotalCount / agentsPageSize));
+  const fallbackStart = (agentsPage - 1) * agentsPageSize;
+  const pagedFallbackAdvisors = fallbackAgencyAdvisors.slice(fallbackStart, fallbackStart + agentsPageSize);
+
+  const agencyAdvisors: AgencyAdvisorRow[] = isFallbackMode ? pagedFallbackAdvisors : primaryAdvisors;
+  const effectiveTotalCount = isFallbackMode ? fallbackTotalCount : agentsResponse?.pagination?.count || 0;
+  const effectiveTotalPages = isFallbackMode ? fallbackTotalPages : agentsResponse?.pagination?.total_pages || 1;
+  const effectiveCurrentPage = isFallbackMode ? agentsPage : agentsResponse?.pagination?.current_page || agentsPage;
+  const effectivePageSize = isFallbackMode ? agentsPageSize : agentsResponse?.pagination?.page_size || agentsPageSize;
+  const effectiveIsAgentsLoading = isFallbackMode ? isFallbackAdminsLoading : isAgentsLoading;
 
   if (isLoading) {
     return (
@@ -196,12 +265,12 @@ export function DynamicAgencyView({ agencyId }: DynamicAgencyViewProps) {
       </CardWithIcon>
 
       <AgencyAgentsList
-        agents={agencyAgents}
-        isLoading={isAgentsLoading}
-        currentPage={agentsResponse?.pagination?.current_page || agentsPage}
-        totalPages={agentsResponse?.pagination?.total_pages || 1}
-        pageSize={agentsResponse?.pagination?.page_size || agentsPageSize}
-        totalCount={agentsResponse?.pagination?.count || 0}
+        agents={agencyAdvisors}
+        isLoading={effectiveIsAgentsLoading}
+        currentPage={effectiveCurrentPage}
+        totalPages={effectiveTotalPages}
+        pageSize={effectivePageSize}
+        totalCount={effectiveTotalCount}
         onPageChange={setAgentsPage}
         onPageSizeChange={(size) => {
           setAgentsPageSize(size);
@@ -222,7 +291,14 @@ function AgencyAgentsList({
   onPageChange,
   onPageSizeChange,
 }: {
-  agents: PropertyAgent[];
+  agents: Array<{
+    id: number | string;
+    full_name: string;
+    phone?: string | null;
+    email?: string | null;
+    is_active: boolean;
+    view_admin_id: number | string;
+  }>;
   isLoading?: boolean;
   currentPage: number;
   totalPages: number;
@@ -258,7 +334,7 @@ function AgencyAgentsList({
               : agents.map((agent) => (
               <div key={agent.id} className="flex items-center justify-between gap-3 rounded-xl border border-br bg-card p-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-font-p truncate">{agent.full_name || `${agent.first_name || ""} ${agent.last_name || ""}`.trim() || "---"}</p>
+                  <p className="text-sm font-semibold text-font-p truncate">{agent.full_name || "---"}</p>
                   <p className="text-xs text-font-s truncate">{agent.phone || agent.email || "---"}</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -266,7 +342,7 @@ function AgencyAgentsList({
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => navigate(`/agents/${agent.user || agent.id}/view`)}
+                    onClick={() => navigate(`/agents/${agent.view_admin_id}/view`)}
                   >
                     مشاهده
                   </Button>

@@ -156,6 +156,7 @@ export const REAL_ESTATE_MESSAGES = {
         stateRequired: 'وضعیت ملک الزامی است',
         statusRequired: 'وضعیت معامله الزامی است',
         statusInvalid: 'وضعیت معامله نامعتبر است',
+        agencyRequiresAgent: 'برای تعیین آژانس، ابتدا باید مشاور انتخاب شود',
 
         provinceRequired: 'استان الزامی است',
         cityRequired: 'شهر الزامی است',

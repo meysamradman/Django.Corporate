@@ -6,7 +6,6 @@ import { realEstateApi } from "@/api/real-estate";
 import { cn } from "@/core/utils/cn";
 import { FormField } from "@/components/shared/FormField";
 import type { PropertyAgent } from "@/types/real_estate/agent/realEstateAgent";
-import type { RealEstateAgency } from "@/types/real_estate/agency/realEstateAgency";
 import type { PropertyFormValues } from "@/components/real-estate/validations/propertySchema";
 
 interface RealEstateAssignmentProps {
@@ -24,9 +23,7 @@ export function RealEstateAssignment(props: RealEstateAssignmentProps) {
         : { formErrors: (props as any).errors || {}, watch: null, setValue: null };
 
     const [agents, setAgents] = useState<PropertyAgent[]>([]);
-    const [agencies, setAgencies] = useState<RealEstateAgency[]>([]);
     const [loadingAgents, setLoadingAgents] = useState(true);
-    const [loadingAgencies, setLoadingAgencies] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -36,30 +33,50 @@ export function RealEstateAssignment(props: RealEstateAssignmentProps) {
             } finally {
                 setLoadingAgents(false);
             }
-
-            try {
-                const agenciesResponse = await realEstateApi.getAgencies({ page: 1, size: 100, is_active: true });
-                setAgencies(agenciesResponse.data || []);
-            } finally {
-                setLoadingAgencies(false);
-            }
         };
         fetchData();
     }, []);
+
+    const selectedAgentId = isFormApproach
+        ? (watch?.("agent") ?? null)
+        : (formData?.agent ?? null);
+
+    const selectedAgent = selectedAgentId
+        ? (agents || []).find((agent) => agent.id === Number(selectedAgentId))
+        : null;
+
+    const selectedAgency = selectedAgent?.agency ?? null;
+    const selectedAgencyId = selectedAgency?.id ?? null;
+
+    useEffect(() => {
+        if (isFormApproach && setValue && watch) {
+            const currentAgency = watch("agency") ?? null;
+            if (currentAgency !== selectedAgencyId) {
+                setValue("agency", selectedAgencyId, { shouldValidate: true, shouldDirty: true });
+            }
+            return;
+        }
+
+        if (!isFormApproach) {
+            const currentAgency = formData?.agency ?? null;
+            if (currentAgency !== selectedAgencyId) {
+                handleInputChange?.("agency", selectedAgencyId);
+            }
+        }
+    }, [
+        selectedAgencyId,
+        isFormApproach,
+        setValue,
+        watch,
+        formData?.agency,
+        handleInputChange,
+    ]);
 
     const handleAgentChange = (value: string) => {
         if (isFormApproach && setValue) {
             setValue("agent", value && value !== "none" ? Number(value) : null, { shouldValidate: false });
         } else {
             handleInputChange?.("agent", value && value !== "none" ? Number(value) : null);
-        }
-    };
-
-    const handleAgencyChange = (value: string) => {
-        if (isFormApproach && setValue) {
-            setValue("agency", value && value !== "none" ? Number(value) : null, { shouldValidate: false });
-        } else {
-            handleInputChange?.("agency", value && value !== "none" ? Number(value) : null);
         }
     };
 
@@ -93,20 +110,16 @@ export function RealEstateAssignment(props: RealEstateAssignmentProps) {
                 error={isFormApproach ? formErrors.agency?.message : formErrors?.agency}
             >
                 <Select
-                    disabled={!editMode || loadingAgencies}
-                    value={isFormApproach ? (watch?.("agency") ? String(watch("agency")) : "none") : (formData?.agency ? String(formData.agency) : "none")}
-                    onValueChange={handleAgencyChange}
+                    disabled
+                    value={selectedAgencyId ? String(selectedAgencyId) : "none"}
+                    onValueChange={() => undefined}
                 >
                     <SelectTrigger className={cn((isFormApproach ? formErrors.agency?.message : formErrors?.agency) && "border-red-1")}>
-                        <SelectValue placeholder={loadingAgencies ? "در حال بارگذاری..." : "آژانس را انتخاب کنید"} />
+                        <SelectValue placeholder={selectedAgent ? "آژانس مشاور" : "ابتدا مشاور را انتخاب کنید"} />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="none">هیچکدام</SelectItem>
-                        {(agencies || []).map((agency) => (
-                            <SelectItem key={agency.id} value={String(agency.id)}>
-                                {agency.name}
-                            </SelectItem>
-                        ))}
+                        {selectedAgency && <SelectItem value={String(selectedAgency.id)}>{selectedAgency.name}</SelectItem>}
                     </SelectContent>
                 </Select>
             </FormField>

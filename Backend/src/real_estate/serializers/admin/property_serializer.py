@@ -29,6 +29,32 @@ from src.real_estate.models.constants import (
 _MEDIA_LIST_LIMIT = getattr(settings, 'REAL_ESTATE_MEDIA_LIST_LIMIT', 5)
 _MEDIA_DETAIL_LIMIT = getattr(settings, 'REAL_ESTATE_MEDIA_DETAIL_LIMIT', 50)
 
+
+def _sync_agency_with_agent(attrs, instance=None):
+    has_agent = 'agent' in attrs
+    has_agency = 'agency' in attrs
+
+    agent = attrs.get('agent') if has_agent else getattr(instance, 'agent', None)
+
+    if agent is not None:
+        expected_agency = agent.agency
+        incoming_agency = attrs.get('agency') if has_agency else getattr(instance, 'agency', None)
+
+        if has_agency and incoming_agency is not None:
+            if expected_agency is None or incoming_agency.id != expected_agency.id:
+                raise serializers.ValidationError({"agency": PROPERTY_ERRORS["agent_agency_mismatch"]})
+
+        attrs['agency'] = expected_agency
+        return attrs
+
+    if has_agency and attrs.get('agency') is not None:
+        raise serializers.ValidationError({"agency": PROPERTY_ERRORS["agency_requires_agent"]})
+
+    if has_agent and attrs.get('agent') is None:
+        attrs['agency'] = None
+
+    return attrs
+
 class PropertyMediaAdminSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     public_id = serializers.UUIDField(read_only=True)
@@ -640,6 +666,8 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
                         )
                     })
 
+        attrs = _sync_agency_with_agent(attrs, instance=self.instance)
+
         return attrs
 
 class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
@@ -936,6 +964,8 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
 
         elif self.instance:
             pass
+
+        attrs = _sync_agency_with_agent(attrs, instance=self.instance)
 
         return attrs
 
