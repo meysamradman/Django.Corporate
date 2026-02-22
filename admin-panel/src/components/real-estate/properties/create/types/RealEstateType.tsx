@@ -117,7 +117,7 @@ export function RealEstateType(props: RealEstateTypeProps) {
             </FormField>
 
             <FormField
-                label="وضعیت ملک"
+                label="نوع معامله"
                 required
                 error={isFormApproach ? formErrors.state?.message : formErrors?.state}
             >

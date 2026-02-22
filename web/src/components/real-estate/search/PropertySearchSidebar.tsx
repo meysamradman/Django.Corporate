@@ -593,9 +593,9 @@ export default function PropertySearchSidebar({
       <Separator className="bg-br" />
 
       <section className={sectionClassName}>
-        <h3 className="text-sm font-black text-font-p">برچسب‌گذاری</h3>
+        <h3 className="text-sm font-black text-font-p">نشانه‌گذاری</h3>
         <div className="space-y-2">
-          <label className="text-sm text-font-s">برچسب</label>
+          <label className="text-sm text-font-s">نشانه</label>
           <NativeSelect
             value={filters.label_public_id}
             onChange={(event) => update({ label_public_id: event.target.value })}
@@ -610,7 +610,7 @@ export default function PropertySearchSidebar({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm text-font-s">تگ</label>
+          <label className="text-sm text-font-s">برچسب</label>
           <NativeSelect value={filters.tag_slug} onChange={(event) => update({ tag_slug: event.target.value })}>
             <NativeSelectOption value="">همه</NativeSelectOption>
             {tagOptions.map((item) => (

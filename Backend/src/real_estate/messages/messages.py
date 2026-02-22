@@ -92,7 +92,7 @@ PDF_LABELS = {
     'updated_at': 'تاریخ به‌روزرسانی',
     'page': 'صفحه {page}',
     'property_type': 'نوع ملک',
-    'state': 'وضعیت',
+    'state': 'نوع معامله',
     'city': 'شهر',
     'province': 'استان',
     'price': 'قیمت',
@@ -106,8 +106,8 @@ PDF_LABELS = {
     'active': 'فعال',
     'agent': 'نماینده',
     'agency': 'آژانس',
-    'labels': 'برچسب‌ها',
-    'tags': 'تگ‌ها',
+    'labels': 'نشانه‌ها',
+    'tags': 'برچسب‌ها',
     'features': 'ویژگی‌ها',
     'yes': 'بله',
     'no': 'خیر',
@@ -199,43 +199,43 @@ TYPE_ERRORS = {
 }
 
 STATE_SUCCESS = {
-    "state_list_success": "لیست وضعیت‌های ملک با موفقیت دریافت شد.",
-    "state_created": "وضعیت ملک با موفقیت ایجاد شد.",
-    "state_updated": "وضعیت ملک با موفقیت به‌روزرسانی شد.",
-    "state_deleted": "وضعیت ملک با موفقیت حذف شد.",
-    "state_retrieved": "وضعیت ملک با موفقیت دریافت شد.",
-    "state_bulk_deleted": "وضعیت‌های ملک با موفقیت حذف شدند.",
+    "state_list_success": "لیست انواع معامله ملک با موفقیت دریافت شد.",
+    "state_created": "نوع معامله ملک با موفقیت ایجاد شد.",
+    "state_updated": "نوع معامله ملک با موفقیت به‌روزرسانی شد.",
+    "state_deleted": "نوع معامله ملک با موفقیت حذف شد.",
+    "state_retrieved": "نوع معامله ملک با موفقیت دریافت شد.",
+    "state_bulk_deleted": "انواع معامله ملک با موفقیت حذف شدند.",
 }
 
 STATE_ERRORS = {
-    "state_not_found": "وضعیت ملک یافت نشد.",
-    "state_not_authorized": "شما اجازه دسترسی به وضعیت‌های ملک را ندارید.",
-    "state_create_failed": "ایجاد وضعیت ملک ناموفق بود.",
-    "state_update_failed": "به‌روزرسانی وضعیت ملک ناموفق بود.",
-    "state_delete_failed": "حذف وضعیت ملک ناموفق بود.",
-    "state_has_properties": "این وضعیت در {count} ملک استفاده شده و قابل حذف نیست.",
-    "state_ids_required": "شناسه وضعیت‌های ملک مورد نیاز است.",
-    "states_not_found": "وضعیت‌های انتخاب شده یافت نشدند.",
-    "state_exists": "این وضعیت قبلاً ثبت شده است.",
+    "state_not_found": "نوع معامله ملک یافت نشد.",
+    "state_not_authorized": "شما اجازه دسترسی به انواع معامله ملک را ندارید.",
+    "state_create_failed": "ایجاد نوع معامله ملک ناموفق بود.",
+    "state_update_failed": "به‌روزرسانی نوع معامله ملک ناموفق بود.",
+    "state_delete_failed": "حذف نوع معامله ملک ناموفق بود.",
+    "state_has_properties": "این نوع معامله در {count} ملک استفاده شده و قابل حذف نیست.",
+    "state_ids_required": "شناسه انواع معامله ملک مورد نیاز است.",
+    "states_not_found": "انواع معامله انتخاب‌شده یافت نشدند.",
+    "state_exists": "این نوع معامله قبلاً ثبت شده است.",
     "state_slug_exists": "این نامک قبلاً استفاده شده است.",
 }
 
 LABEL_SUCCESS = {
-    "label_list_success": "لیست برچسب‌های ملک با موفقیت دریافت شد.",
-    "label_created": "برچسب ملک با موفقیت ایجاد شد.",
-    "label_updated": "برچسب ملک با موفقیت به‌روزرسانی شد.",
-    "label_deleted": "برچسب ملک با موفقیت حذف شد.",
-    "label_retrieved": "برچسب ملک با موفقیت دریافت شد.",
+    "label_list_success": "لیست نشانه‌های ملک با موفقیت دریافت شد.",
+    "label_created": "نشانه ملک با موفقیت ایجاد شد.",
+    "label_updated": "نشانه ملک با موفقیت به‌روزرسانی شد.",
+    "label_deleted": "نشانه ملک با موفقیت حذف شد.",
+    "label_retrieved": "نشانه ملک با موفقیت دریافت شد.",
 }
 
 LABEL_ERRORS = {
-    "label_not_found": "برچسب ملک یافت نشد.",
-    "label_not_authorized": "شما اجازه دسترسی به برچسب‌های ملک را ندارید.",
-    "label_create_failed": "ایجاد برچسب ملک ناموفق بود.",
-    "label_update_failed": "به‌روزرسانی برچسب ملک ناموفق بود.",
-    "label_delete_failed": "حذف برچسب ملک ناموفق بود.",
-    "label_exists": "این برچسب قبلاً ثبت شده است.",
-    "label_slug_exists": "این اسلاگ برچسب قبلاً ثبت شده است.",
+    "label_not_found": "نشانه ملک یافت نشد.",
+    "label_not_authorized": "شما اجازه دسترسی به نشانه‌های ملک را ندارید.",
+    "label_create_failed": "ایجاد نشانه ملک ناموفق بود.",
+    "label_update_failed": "به‌روزرسانی نشانه ملک ناموفق بود.",
+    "label_delete_failed": "حذف نشانه ملک ناموفق بود.",
+    "label_exists": "این نشانه قبلاً ثبت شده است.",
+    "label_slug_exists": "این اسلاگ نشانه قبلاً ثبت شده است.",
 }
 
 FEATURE_SUCCESS = {
@@ -259,25 +259,25 @@ FEATURE_ERRORS = {
 }
 
 TAG_SUCCESS = {
-    "tag_list_success": "لیست تگ‌ها با موفقیت دریافت شد.",
-    "tag_created": "تگ با موفقیت ایجاد شد.",
-    "tag_updated": "تگ با موفقیت به‌روزرسانی شد.",
-    "tag_deleted": "تگ با موفقیت حذف شد.",
-    "tag_retrieved": "تگ با موفقیت دریافت شد.",
-    "tag_bulk_deleted": "تگ‌ها با موفقیت حذف شدند.",
+    "tag_list_success": "لیست برچسب‌ها با موفقیت دریافت شد.",
+    "tag_created": "برچسب با موفقیت ایجاد شد.",
+    "tag_updated": "برچسب با موفقیت به‌روزرسانی شد.",
+    "tag_deleted": "برچسب با موفقیت حذف شد.",
+    "tag_retrieved": "برچسب با موفقیت دریافت شد.",
+    "tag_bulk_deleted": "برچسب‌ها با موفقیت حذف شدند.",
 }
 
 TAG_ERRORS = {
-    "tag_not_found": "تگ یافت نشد.",
-    "tag_not_authorized": "شما اجازه دسترسی به تگ‌ها را ندارید.",
-    "tag_create_failed": "ایجاد تگ ناموفق بود.",
-    "tag_update_failed": "به‌روزرسانی تگ ناموفق بود.",
-    "tag_delete_failed": "حذف تگ ناموفق بود.",
-    "tag_has_properties": "این تگ در {count} مورد استفاده شده و قابل حذف نیست.",
-    "tag_ids_required": "شناسه تگ‌ها مورد نیاز است.",
-    "tags_not_found": "تگ‌های انتخاب شده یافت نشدند.",
+    "tag_not_found": "برچسب یافت نشد.",
+    "tag_not_authorized": "شما اجازه دسترسی به برچسب‌ها را ندارید.",
+    "tag_create_failed": "ایجاد برچسب ناموفق بود.",
+    "tag_update_failed": "به‌روزرسانی برچسب ناموفق بود.",
+    "tag_delete_failed": "حذف برچسب ناموفق بود.",
+    "tag_has_properties": "این برچسب در {count} مورد استفاده شده و قابل حذف نیست.",
+    "tag_ids_required": "شناسه برچسب‌ها مورد نیاز است.",
+    "tags_not_found": "برچسب‌های انتخاب شده یافت نشدند.",
     "tag_slug_exists": "این نامک قبلاً استفاده شده است.",
-    "tag_exists": "این تگ قبلاً ثبت شده است.",
+    "tag_exists": "این برچسب قبلاً ثبت شده است.",
 }
 
 FLOOR_PLAN_SUCCESS = {

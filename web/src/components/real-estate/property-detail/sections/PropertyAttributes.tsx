@@ -14,7 +14,7 @@ const STANDARD_ATTRIBUTES: StandardAttributeConfig[] = [
   { key: "building_usage", label: "نوع کاربری" },
   { key: "direction", label: "جهت ملک" },
   { key: "location_type", label: "موقعیت جغرافیایی" },
-  { key: "property_status", label: "وضعیت ملک" },
+  { key: "property_status", label: "نوع معامله" },
   { key: "unit_number", label: "شماره واحد" },
   { key: "property_condition", label: "وضعیت ملک" },
   { key: "property_direction", label: "جهت ملک" },

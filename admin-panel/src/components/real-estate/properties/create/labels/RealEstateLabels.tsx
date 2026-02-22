@@ -37,7 +37,7 @@ export function RealEstateLabels({ selectedLabels, onToggle, onRemove, editMode 
     return (
         <>
             <MultiSelector
-                label="برچسب‌ها"
+                label="نشانه‌ها"
                 icon={<FolderOpen className="w-4 h-4 stroke-purple-2" />}
                 items={labels}
                 selectedItems={selectedLabels}
@@ -46,7 +46,7 @@ export function RealEstateLabels({ selectedLabels, onToggle, onRemove, editMode 
                 onAdd={() => setShowAddDialog(true)}
                 loading={loadingLabels}
                 disabled={!editMode}
-                placeholder="برچسب‌ها را انتخاب کنید"
+                placeholder="نشانه‌ها را انتخاب کنید"
                 colorTheme="purple"
             />
 

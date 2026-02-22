@@ -45,7 +45,7 @@ export const PropertyStateSide: React.FC<PropertyStateSideProps> = ({
             if (onSuccess) onSuccess();
             onClose();
         },
-        itemLabel: "وضعیت ملک",
+        itemLabel: "نوع معامله ملک",
         titleFieldName: "title",
     });
 
@@ -55,7 +55,7 @@ export const PropertyStateSide: React.FC<PropertyStateSideProps> = ({
         <TaxonomyDrawer
             isOpen={isOpen}
             onClose={onClose}
-            title={isEditMode ? "ویرایش وضعیت ملک" : "ایجاد وضعیت ملک جدید"}
+            title={isEditMode ? "ویرایش نوع معامله ملک" : "ایجاد نوع معامله ملک"}
             onSubmit={handleSubmit}
             isPending={isPending}
             isSubmitting={isSubmitting}
@@ -71,7 +71,7 @@ export const PropertyStateSide: React.FC<PropertyStateSideProps> = ({
                     size="sm"
                     context="real_estate"
                     placeholderColor="primary"
-                    alt="تصویر وضعیت ملک"
+                    alt="تصویر نوع معامله ملک"
                     className="mx-auto"
                 />
 
@@ -81,7 +81,7 @@ export const PropertyStateSide: React.FC<PropertyStateSideProps> = ({
                         id="title"
                         required
                         error={errors.title?.message as string}
-                        placeholder="عنوان وضعیت را وارد کنید (مثال: فروشی)"
+                        placeholder="عنوان نوع معامله را وارد کنید (مثال: فروشی)"
                         {...register("title")}
                     />
 
@@ -98,7 +98,7 @@ export const PropertyStateSide: React.FC<PropertyStateSideProps> = ({
                         label="توضیحات کوتاه"
                         id="short_description"
                         error={errors.short_description?.message as string}
-                        placeholder="توضیحات کوتاه وضعیت ملک"
+                        placeholder="توضیحات کوتاه نوع معامله ملک"
                         rows={3}
                         maxLength={255}
                         {...register("short_description")}

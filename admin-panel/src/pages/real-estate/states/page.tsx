@@ -124,14 +124,14 @@ export default function PropertyStatesPage() {
     showError(getError("serverError"));
     return (
       <div className="space-y-6">
-        <PageHeader title="مدیریت وضعیت‌های ملک" />
+        <PageHeader title="مدیریت نوع معامله ملک" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title="مدیریت وضعیت‌های ملک">
+      <PageHeader title="مدیریت نوع معامله ملک">
         <ProtectedButton
           permission="real_estate.state.create"
           size="sm"
@@ -142,7 +142,7 @@ export default function PropertyStatesPage() {
           }}
         >
           <Plus className="h-4 w-4 ml-2" />
-          افزودن وضعیت
+          افزودن نوع معامله
         </ProtectedButton>
       </PageHeader>
 
@@ -163,7 +163,7 @@ export default function PropertyStatesPage() {
           deleteConfig={{
             onDeleteSelected: handleDeleteSelected,
             permission: "real_estate.state.delete",
-            denyMessage: "اجازه حذف وضعیت ملک ندارید",
+            denyMessage: "اجازه حذف نوع معامله ملک ندارید",
           }}
           filterConfig={stateFilterConfig}
         />
@@ -175,8 +175,8 @@ export default function PropertyStatesPage() {
             <AlertDialogTitle>تایید حذف</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteConfirm.isBulk
-                ? getConfirm("bulkDelete", { item: "وضعیت ملک", count: deleteConfirm.stateIds?.length || 0 })
-                : getConfirm("delete", { item: "وضعیت ملک" })}
+                ? getConfirm("bulkDelete", { item: "نوع معامله ملک", count: deleteConfirm.stateIds?.length || 0 })
+                : getConfirm("delete", { item: "نوع معامله ملک" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

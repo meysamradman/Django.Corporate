@@ -172,7 +172,7 @@ export default function PropertyHeroSearch({
             {/* Sell or Rent */}
             <div>
               <label htmlFor="transaction-state" className="block text-sm font-medium text-white mb-2">
-                فروش / اجاره
+                نوع معامله
               </label>
               <NativeSelect
                 id="transaction-state"
@@ -192,7 +192,7 @@ export default function PropertyHeroSearch({
             {/* Property Status */}
             <div>
               <label htmlFor="property-status" className="block text-sm font-medium text-white mb-2">
-                وضعیت ملک
+                وضعیت انتشار
               </label>
               <NativeSelect
                 id="property-status"

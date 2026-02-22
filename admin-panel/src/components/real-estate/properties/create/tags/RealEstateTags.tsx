@@ -37,7 +37,7 @@ export function RealEstateTags({ selectedTags, onToggle, onRemove, editMode }: R
     return (
         <>
             <MultiSelector
-                label="تگ‌ها"
+                label="برچسب‌ها"
                 icon={<Tag className="w-4 h-4 stroke-indigo-2" />}
                 items={tags}
                 selectedItems={selectedTags}
@@ -46,7 +46,7 @@ export function RealEstateTags({ selectedTags, onToggle, onRemove, editMode }: R
                 onAdd={() => setShowAddDialog(true)}
                 loading={loadingTags}
                 disabled={!editMode}
-                placeholder="تگ‌ها را انتخاب کنید"
+                placeholder="برچسب‌ها را انتخاب کنید"
                 colorTheme="indigo"
             />
 

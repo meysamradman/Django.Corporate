@@ -22,7 +22,7 @@ export function usePropertyLabelListActions({ setRowSelection }: UsePropertyLabe
     mutationFn: (labelId: number) => realEstateApi.deleteLabel(labelId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["property-labels"] });
-      showSuccess(msg.crud("deleted", { item: "برچسب ملک" }));
+      showSuccess(msg.crud("deleted", { item: "نشانه ملک" }));
     },
     onError: (error) => {
       notifyApiError(error, {
@@ -37,7 +37,7 @@ export function usePropertyLabelListActions({ setRowSelection }: UsePropertyLabe
     mutationFn: (labelIds: number[]) => Promise.all(labelIds.map((id) => realEstateApi.deleteLabel(id))),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["property-labels"] });
-      showSuccess(msg.crud("deleted", { item: "برچسب‌های ملک" }));
+      showSuccess(msg.crud("deleted", { item: "نشانه‌های ملک" }));
       setRowSelection({});
     },
     onError: (error) => {

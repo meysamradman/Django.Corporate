@@ -15,7 +15,7 @@ export function RealEstateLabels({ property }: RealEstateLabelsProps) {
     return (
         <CardWithIcon
             icon={Tag}
-            title="برچسب‌ها"
+            title="نشانه‌ها"
             iconBgColor="bg-pink-1/10"
             iconColor="text-pink-1"
             cardBorderColor="border-b-pink-1"
@@ -29,8 +29,8 @@ export function RealEstateLabels({ property }: RealEstateLabelsProps) {
                 ))
             ) : (
                 <EmptyState
-                    title="برچسبی یافت نشد"
-                    description="هیچ برچسبی برای این ملک ثبت نشده است"
+                    title="نشانه‌ای یافت نشد"
+                    description="هیچ نشانه‌ای برای این ملک ثبت نشده است"
                     icon={Tag}
                     size="sm"
                     fullBleed={true}

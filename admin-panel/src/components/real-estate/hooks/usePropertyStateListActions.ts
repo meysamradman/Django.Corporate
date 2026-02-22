@@ -22,7 +22,7 @@ export function usePropertyStateListActions({ setRowSelection }: UsePropertyStat
     mutationFn: (stateId: number) => realEstateApi.deleteState(stateId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["property-states"] });
-      showSuccess(msg.crud("deleted", { item: "وضعیت ملک" }));
+      showSuccess(msg.crud("deleted", { item: "نوع معامله ملک" }));
     },
     onError: (error) => {
       notifyApiError(error, {
@@ -37,7 +37,7 @@ export function usePropertyStateListActions({ setRowSelection }: UsePropertyStat
     mutationFn: (stateIds: number[]) => Promise.all(stateIds.map((id) => realEstateApi.deleteState(id))),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["property-states"] });
-      showSuccess(msg.crud("deleted", { item: "وضعیت‌های ملک" }));
+      showSuccess(msg.crud("deleted", { item: "انواع معامله ملک" }));
       setRowSelection({});
     },
     onError: (error) => {

@@ -40,7 +40,7 @@ export const PropertyTagSide: React.FC<PropertyTagSideProps> = ({
             if (onSuccess) onSuccess();
             onClose();
         },
-        itemLabel: "تگ",
+        itemLabel: "برچسب",
         titleFieldName: "title",
     });
 
@@ -50,7 +50,7 @@ export const PropertyTagSide: React.FC<PropertyTagSideProps> = ({
         <TaxonomyDrawer
             isOpen={isOpen}
             onClose={onClose}
-            title={isEditMode ? "ویرایش تگ" : "ایجاد تگ جدید"}
+            title={isEditMode ? "ویرایش برچسب" : "ایجاد برچسب جدید"}
             onSubmit={handleSubmit}
             isPending={isPending}
             isSubmitting={isSubmitting}
@@ -64,7 +64,7 @@ export const PropertyTagSide: React.FC<PropertyTagSideProps> = ({
                         id="title"
                         required
                         error={errors.title?.message as string}
-                        placeholder="عنوان تگ را وارد کنید"
+                        placeholder="عنوان برچسب را وارد کنید"
                         {...register("title")}
                     />
 
@@ -81,7 +81,7 @@ export const PropertyTagSide: React.FC<PropertyTagSideProps> = ({
                         label="توضیحات"
                         id="description"
                         error={errors.description?.message as string}
-                        placeholder="توضیحات تگ"
+                        placeholder="توضیحات برچسب"
                         rows={3}
                         {...register("description")}
                     />

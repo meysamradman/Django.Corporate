@@ -16,7 +16,7 @@ import {
 interface ExcelExportData {
     'عنوان': string;
     'نوع ملک': string;
-    'وضعیت ملک': string;
+    'نوع معامله': string;
     'شهر': string;
     'منطقه': string;
     'قیمت': string;
@@ -35,7 +35,7 @@ function transformPropertyData(properties: Property[]): ExcelExportData[] {
     return properties.map(property => ({
         'عنوان': property.title || '-',
         'نوع ملک': property.property_type?.title || '-',
-        'وضعیت ملک': property.state?.title || '-',
+        'نوع معامله': property.state?.title || '-',
         'شهر': property.city_name || '-',
         'منطقه': property.region_name || '-',
         'قیمت': formatPriceToPersian(property.price),
@@ -69,7 +69,7 @@ export async function exportPropertiesToExcel(
     const columnWidths = [
         { wch: 40 }, // عنوان
         { wch: 15 }, // نوع ملک
-        { wch: 15 }, // وضعیت ملک
+        { wch: 15 }, // نوع معامله
         { wch: 15 }, // شهر
         { wch: 15 }, // منطقه
         { wch: 20 }, // قیمت

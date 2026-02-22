@@ -15,7 +15,7 @@ export function RealEstateTags({ property }: RealEstateTagsProps) {
     return (
         <CardWithIcon
             icon={Hash}
-            title="تگ‌ها"
+            title="برچسب‌ها"
             iconBgColor="bg-blue-1/10"
             iconColor="text-blue-1"
             cardBorderColor="border-b-blue-1"
@@ -29,8 +29,8 @@ export function RealEstateTags({ property }: RealEstateTagsProps) {
                 ))
             ) : (
                 <EmptyState
-                    title="تگی یافت نشد"
-                    description="هیچ تگی برای این ملک ثبت نشده است"
+                    title="برچسبی یافت نشد"
+                    description="هیچ برچسبی برای این ملک ثبت نشده است"
                     icon={Hash}
                     size="sm"
                     fullBleed={true}

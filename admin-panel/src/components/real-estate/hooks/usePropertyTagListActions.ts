@@ -22,7 +22,7 @@ export function usePropertyTagListActions({ setRowSelection }: UsePropertyTagLis
     mutationFn: (tagId: number) => realEstateApi.deleteTag(tagId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["property-tags"] });
-      showSuccess(msg.crud("deleted", { item: "تگ ملک" }));
+      showSuccess(msg.crud("deleted", { item: "برچسب ملک" }));
     },
     onError: (error) => {
       notifyApiError(error, {
@@ -37,7 +37,7 @@ export function usePropertyTagListActions({ setRowSelection }: UsePropertyTagLis
     mutationFn: (tagIds: number[]) => Promise.all(tagIds.map((id) => realEstateApi.deleteTag(id))),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["property-tags"] });
-      showSuccess(msg.crud("deleted", { item: "تگ‌های ملک" }));
+      showSuccess(msg.crud("deleted", { item: "برچسب‌های ملک" }));
       setRowSelection({});
     },
     onError: (error) => {

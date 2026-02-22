@@ -33,7 +33,7 @@ export function RealEstateStandardAttributes({ property }: RealEstateStandardAtt
         building_usage: { label: "نوع کاربری", icon: Building2, color: "text-blue-1" },
         direction: { label: "جهت ملک", icon: Compass, color: "text-orange-1" },
         location_type: { label: "موقعیت جغرافیایی", icon: MapPin, color: "text-emerald-1" },
-        property_status: { label: "وضعیت ملک", icon: Key, color: "text-purple-1" },
+        property_status: { label: "نوع معامله", icon: Key, color: "text-purple-1" },
         unit_number: { label: "شماره واحد", icon: Home, color: "text-pink-1" },
         property_condition: { label: "وضعیت ملک", icon: Building2, color: "text-indigo-1" },
         property_direction: { label: "جهت ملک", icon: Compass, color: "text-orange-1" },

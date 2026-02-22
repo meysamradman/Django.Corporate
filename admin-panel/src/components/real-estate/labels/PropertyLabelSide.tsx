@@ -40,7 +40,7 @@ export const PropertyLabelSide: React.FC<PropertyLabelSideProps> = ({
             if (onSuccess) onSuccess();
             onClose();
         },
-        itemLabel: "برچسب",
+        itemLabel: "نشانه",
         titleFieldName: "title",
     });
 
@@ -50,7 +50,7 @@ export const PropertyLabelSide: React.FC<PropertyLabelSideProps> = ({
         <TaxonomyDrawer
             isOpen={isOpen}
             onClose={onClose}
-            title={isEditMode ? "ویرایش برچسب" : "ایجاد برچسب جدید"}
+            title={isEditMode ? "ویرایش نشانه" : "ایجاد نشانه جدید"}
             onSubmit={handleSubmit}
             isPending={isPending}
             isSubmitting={isSubmitting}
@@ -64,7 +64,7 @@ export const PropertyLabelSide: React.FC<PropertyLabelSideProps> = ({
                         id="title"
                         required
                         error={errors.title?.message as string}
-                        placeholder="عنوان برچسب را وارد کنید"
+                        placeholder="عنوان نشانه را وارد کنید"
                         {...register("title")}
                     />
 

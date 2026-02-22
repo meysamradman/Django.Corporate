@@ -125,14 +125,14 @@ export default function PropertyTagsPage() {
     showError(getError("serverError"));
     return (
       <div className="space-y-6">
-        <PageHeader title="مدیریت تگ‌های ملک" />
+        <PageHeader title="مدیریت برچسب‌های ملک" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title="مدیریت تگ‌های ملک">
+      <PageHeader title="مدیریت برچسب‌های ملک">
         <ProtectedButton
           permission="real_estate.tag.create"
           size="sm"
@@ -143,7 +143,7 @@ export default function PropertyTagsPage() {
           }}
         >
           <Plus className="h-4 w-4 ml-2" />
-          افزودن تگ
+          افزودن برچسب
         </ProtectedButton>
       </PageHeader>
 
@@ -164,7 +164,7 @@ export default function PropertyTagsPage() {
           deleteConfig={{
             onDeleteSelected: handleDeleteSelected,
             permission: "real_estate.tag.delete",
-            denyMessage: "اجازه حذف تگ ملک ندارید",
+            denyMessage: "اجازه حذف برچسب ملک ندارید",
           }}
           filterConfig={tagFilterConfig}
         />
@@ -176,8 +176,8 @@ export default function PropertyTagsPage() {
             <AlertDialogTitle>تایید حذف</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteConfirm.isBulk
-                ? getConfirm("bulkDelete", { item: "تگ ملک", count: deleteConfirm.tagIds?.length || 0 })
-                : getConfirm("delete", { item: "تگ ملک" })}
+                ? getConfirm("bulkDelete", { item: "برچسب ملک", count: deleteConfirm.tagIds?.length || 0 })
+                : getConfirm("delete", { item: "برچسب ملک" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
