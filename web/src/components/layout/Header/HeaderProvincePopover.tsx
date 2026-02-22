@@ -67,16 +67,38 @@ const toProvinceHref = (province: ProvinceCompact, searchParams: SearchParamsLik
   });
 };
 
+const toAllProvincesHref = (searchParams: SearchParamsLike): string => {
+  const currentFilters = resolvePropertySearchFilters(toSearchParamRecord(searchParams));
+
+  return filtersToHref(currentFilters, {
+    province: null,
+    province_slug: "",
+    city: null,
+    city_slug: "",
+    region: null,
+    page: 1,
+  });
+};
+
 export function HeaderProvincePopover({ provinceOptions = [] }: HeaderProvincePopoverProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [open, setOpen] = React.useState(false);
   const [preferredProvinceId, setPreferredProvinceId] = React.useState<number | null>(null);
+  const [preferredAll, setPreferredAll] = React.useState(false);
 
   React.useEffect(() => {
-    const fromCookie = Number(getCookieValue(PREFERRED_PROVINCE_ID_COOKIE));
+    const rawCookie = getCookieValue(PREFERRED_PROVINCE_ID_COOKIE);
+    if (rawCookie === "all") {
+      setPreferredAll(true);
+      setPreferredProvinceId(null);
+      return;
+    }
+
+    const fromCookie = Number(rawCookie);
     if (!Number.isNaN(fromCookie) && fromCookie > 0) {
+      setPreferredAll(false);
       setPreferredProvinceId(fromCookie);
     }
   }, []);
@@ -124,6 +146,8 @@ export function HeaderProvincePopover({ provinceOptions = [] }: HeaderProvincePo
     return null;
   }, [pathname, preferredProvinceId, provinceOptions, searchParams]);
 
+  const triggerLabel = selectedProvince?.name || (preferredAll ? "همه" : "استان");
+
   if (provinceOptions.length === 0) {
     return null;
   }
@@ -137,7 +161,7 @@ export function HeaderProvincePopover({ provinceOptions = [] }: HeaderProvincePo
           aria-label="انتخاب استان"
         >
           <MapPin className="size-3.5 text-font-s" />
-          <span className="line-clamp-1 max-w-24 sm:max-w-28">{selectedProvince?.name || "استان"}</span>
+          <span className="line-clamp-1 max-w-24 sm:max-w-28">{triggerLabel}</span>
           <ChevronDown className="size-3.5 text-font-s" />
         </button>
       </DialogTrigger>
@@ -148,6 +172,33 @@ export function HeaderProvincePopover({ provinceOptions = [] }: HeaderProvincePo
         </DialogHeader>
 
         <div className="max-h-[60vh] overflow-y-auto p-2">
+          <button
+            type="button"
+            onClick={() => {
+              const href = toAllProvincesHref(searchParams);
+              setCookieValue(PREFERRED_PROVINCE_ID_COOKIE, "all");
+              setPreferredAll(true);
+              setPreferredProvinceId(null);
+              setOpen(false);
+
+              if (!pathname.startsWith("/properties")) {
+                return;
+              }
+
+              const currentUrl = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+              if (currentUrl === href) {
+                return;
+              }
+              router.push(href);
+            }}
+            className={cn(
+              "mb-1 flex w-full cursor-pointer items-center justify-between rounded-lg border px-3 py-2.5 text-right transition-colors",
+              selectedProvince === null ? "border-br bg-bg text-font-p" : "border-transparent bg-transparent text-font-s hover:border-br hover:bg-bg hover:text-font-p"
+            )}
+          >
+            <span className="line-clamp-1 text-sm font-semibold">همه استان‌ها</span>
+          </button>
+
           {provinceOptions.map((province) => {
             const isActive = selectedProvince?.id === province.id;
 
@@ -158,6 +209,7 @@ export function HeaderProvincePopover({ provinceOptions = [] }: HeaderProvincePo
                 onClick={() => {
                   const href = toProvinceHref(province, searchParams);
                   setCookieValue(PREFERRED_PROVINCE_ID_COOKIE, String(province.id));
+                  setPreferredAll(false);
                   setPreferredProvinceId(province.id);
                   setOpen(false);
 

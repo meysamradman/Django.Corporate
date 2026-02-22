@@ -7,8 +7,6 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/elements/dropdown-menu';
 
@@ -19,13 +17,18 @@ export type HeaderMenuStatusOption = {
     label: string;
 };
 
+export type HeaderMenuTypeOption = {
+    value: string;
+    label: string;
+};
+
 type MenuProps = {
     variant: MenuVariant;
     statusOptions?: HeaderMenuStatusOption[];
+    typeOptions?: HeaderMenuTypeOption[];
 };
 
 const menuItems = [
-    { href: '/', label: 'خانه' },
     { href: '/agents', label: 'مشاورین' },
     { href: '/agencies', label: 'آژانس‌ها' },
     { href: '/portfolios', label: 'نمونه‌کارها' },
@@ -33,42 +36,63 @@ const menuItems = [
     { href: '/contact', label: 'تماس با ما' },
 ];
 
-export function Menu({ variant, statusOptions = [] }: MenuProps) {
+export function Menu({ variant, statusOptions = [], typeOptions = [] }: MenuProps) {
     const textClass = variant === 'transparent' ? 'text-wt' : 'text-font-p';
     const safeStatusOptions = statusOptions.filter((item) => item.value).slice(0, 10);
+    const safeTypeOptions = typeOptions.filter((item) => item.value).slice(0, 12);
 
     return (
             <nav className={`hidden lg:flex items-center gap-8 text-sm font-semibold ${textClass}`}>
-                <DropdownMenu>
-                    <DropdownMenuTrigger className={`inline-flex items-center gap-1.5 hover:text-primary transition-colors outline-none ${textClass}`}>
-                        املاک
-                        <ChevronDown className="size-4" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="min-w-56">
-                        <DropdownMenuItem asChild>
-                            <Link href="/properties">همه ملک‌ها</Link>
-                        </DropdownMenuItem>
+                <Link
+                    href="/"
+                    className={`hover:text-primary transition-colors ${textClass}`}
+                >
+                    خانه
+                </Link>
 
-                        {safeStatusOptions.length > 0 ? (
-                            <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuLabel>نوع معامله</DropdownMenuLabel>
-                                {safeStatusOptions.map((item) => {
-                                    const href = `/properties/${item.value}`;
+                {safeStatusOptions.length > 0 ? (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger className={`inline-flex items-center gap-1.5 hover:text-primary transition-colors outline-none ${textClass}`}>
+                            نوع معامله
+                            <ChevronDown className="size-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="min-w-56">
+                            {safeStatusOptions.map((item) => {
+                                const href = `/properties/${item.value}`;
 
-                                    return (
-                                        <DropdownMenuItem asChild key={`status-${item.value}`}>
-                                            <Link href={href}>
-                                                {item.label}
-                                            </Link>
-                                        </DropdownMenuItem>
-                                    );
-                                })}
-                            </>
-                        ) : null}
+                                return (
+                                    <DropdownMenuItem asChild key={`status-${item.value}`}>
+                                        <Link href={href}>
+                                            {item.label}
+                                        </Link>
+                                    </DropdownMenuItem>
+                                );
+                            })}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                ) : null}
 
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                {safeTypeOptions.length > 0 ? (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger className={`inline-flex items-center gap-1.5 hover:text-primary transition-colors outline-none ${textClass}`}>
+                            نوع ملک
+                            <ChevronDown className="size-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="min-w-56">
+                            {safeTypeOptions.map((item) => {
+                                const href = `/properties/${item.value}`;
+
+                                return (
+                                    <DropdownMenuItem asChild key={`type-${item.value}`}>
+                                        <Link href={href}>
+                                            {item.label}
+                                        </Link>
+                                    </DropdownMenuItem>
+                                );
+                            })}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                ) : null}
 
                 {menuItems.map((item) => (
                     <Link

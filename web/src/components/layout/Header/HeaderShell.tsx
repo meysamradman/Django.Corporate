@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { cn } from '@/core/utils/cn';
 import { Logo } from '../Logo';
-import { Menu, type HeaderMenuStatusOption } from './Menu';
+import { Menu, type HeaderMenuStatusOption, type HeaderMenuTypeOption } from './Menu';
 import { DarkMode } from '@/components/theme/DarkMode';
 import type { SiteLogo } from '@/types/settings/branding';
 import type { ProvinceCompact } from '@/types/shared/location';
@@ -16,6 +16,7 @@ type HeaderShellProps = {
     initialMode: 'transparent' | 'solid';
     reserveSpaceOnScroll?: boolean;
     statusOptions?: HeaderMenuStatusOption[];
+    typeOptions?: HeaderMenuTypeOption[];
     provinceOptions?: ProvinceCompact[];
 };
 
@@ -25,6 +26,7 @@ export function HeaderShell({
     initialMode,
     reserveSpaceOnScroll = false,
     statusOptions = [],
+    typeOptions = [],
     provinceOptions = [],
 }: HeaderShellProps) {
     const isTransparentInitial = initialMode === 'transparent';
@@ -52,6 +54,7 @@ export function HeaderShell({
                 <Menu
                     variant={isScrolled || !isTransparentInitial ? 'solid' : 'transparent'}
                     statusOptions={statusOptions}
+                    typeOptions={typeOptions}
                 />
 
                 <div className="justify-self-end flex items-center gap-2">

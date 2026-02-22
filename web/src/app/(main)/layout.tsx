@@ -12,7 +12,7 @@ import type { SiteLogo } from "@/types/settings/branding";
 import type { PublicGeneralSettings } from "@/types/settings/general";
 import type { FooterAboutItem, FooterSectionItem } from "@/types/settings/footer";
 import type { PublicChatbotSettings } from "@/types/chatbot/chatbot";
-import type { HeaderMenuStatusOption } from "@/components/layout/Header/Menu";
+import type { HeaderMenuStatusOption, HeaderMenuTypeOption } from "@/components/layout/Header/Menu";
 import type { ProvinceCompact } from "@/types/shared/location";
 
 interface MainLayoutProps {
@@ -26,12 +26,14 @@ function HeaderFallback() {
 async function HeaderSlot() {
     let logo: SiteLogo | null = null;
     let statusOptions: HeaderMenuStatusOption[] = [];
+    let typeOptions: HeaderMenuTypeOption[] = [];
     let provinceOptions: ProvinceCompact[] = [];
 
     try {
-        const [logoResult, statusesResult, provincesResult] = await Promise.allSettled([
+        const [logoResult, statusesResult, typesResult, provincesResult] = await Promise.allSettled([
             brandingApi.getLogo(),
             realEstateApi.getStates({ page: 1, size: 200 }),
+            realEstateApi.getTypes({ page: 1, size: 300 }),
             realEstateApi.getProvinces({ page: 1, size: 200, min_property_count: 1, ordering: "-property_count" }),
         ]);
 
@@ -63,6 +65,19 @@ async function HeaderSlot() {
             statusOptions = normalizedStatuses;
         }
 
+        const types = typesResult.status === 'fulfilled' ? (typesResult.value?.data ?? []) : [];
+        const normalizedTypes = types
+            .map((item) => ({
+                value: String(item.slug || '').trim(),
+                label: String(item.name || item.title || item.slug || '').trim(),
+            }))
+            .filter((item) => item.value && item.label)
+            .slice(0, 20);
+
+        if (normalizedTypes.length > 0) {
+            typeOptions = normalizedTypes;
+        }
+
         const provinces = provincesResult.status === "fulfilled" ? (provincesResult.value?.data ?? []) : [];
         if (provinces.length > 0) {
             provinceOptions = provinces;
@@ -71,7 +86,7 @@ async function HeaderSlot() {
         // keep safe defaults
     }
 
-    return <Header logo={logo} statusOptions={statusOptions} provinceOptions={provinceOptions} />;
+    return <Header logo={logo} statusOptions={statusOptions} typeOptions={typeOptions} provinceOptions={provinceOptions} />;
 }
 
 function FooterFallback() {

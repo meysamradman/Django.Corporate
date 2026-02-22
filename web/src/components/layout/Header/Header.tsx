@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { HeaderTransparent } from './HeaderTransparent';
 import { HeaderSolid } from './HeaderSolid';
 import type { SiteLogo } from '@/types/settings/branding';
-import type { HeaderMenuStatusOption } from './Menu';
+import type { HeaderMenuStatusOption, HeaderMenuTypeOption } from './Menu';
 import type { ProvinceCompact } from '@/types/shared/location';
 
 /**
@@ -15,10 +15,11 @@ import type { ProvinceCompact } from '@/types/shared/location';
 type HeaderProps = {
   logo?: SiteLogo | null;
   statusOptions?: HeaderMenuStatusOption[];
+  typeOptions?: HeaderMenuTypeOption[];
   provinceOptions?: ProvinceCompact[];
 };
 
-export function Header({ logo = null, statusOptions = [], provinceOptions = [] }: HeaderProps) {
+export function Header({ logo = null, statusOptions = [], typeOptions = [], provinceOptions = [] }: HeaderProps) {
   const pathname = usePathname();
   const isHomepage = pathname === '/';
   const [isScrolled, setIsScrolled] = React.useState(false);
@@ -50,8 +51,8 @@ export function Header({ logo = null, statusOptions = [], provinceOptions = [] }
   }, []);
 
   if (isHomepage) {
-    return <HeaderTransparent logo={logo} isScrolled={isScrolled} statusOptions={statusOptions} provinceOptions={provinceOptions} />;
+    return <HeaderTransparent logo={logo} isScrolled={isScrolled} statusOptions={statusOptions} typeOptions={typeOptions} provinceOptions={provinceOptions} />;
   }
 
-  return <HeaderSolid logo={logo} isScrolled={isScrolled} statusOptions={statusOptions} provinceOptions={provinceOptions} />;
+  return <HeaderSolid logo={logo} isScrolled={isScrolled} statusOptions={statusOptions} typeOptions={typeOptions} provinceOptions={provinceOptions} />;
 }
