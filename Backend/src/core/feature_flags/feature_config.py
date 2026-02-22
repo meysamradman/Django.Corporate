@@ -61,7 +61,7 @@ FEATURE_CONFIG = {
         'url_patterns': [
             r'^/api/admin/property',
             r'^/api/admin/property-type',
-            r'^/api/admin/property-state',
+            r'^/api/admin/listing-type',
             r'^/api/admin/property-label',
             r'^/api/admin/property-feature',
             r'^/api/admin/property-tag',
