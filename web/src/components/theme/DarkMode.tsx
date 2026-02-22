@@ -32,7 +32,7 @@ export function DarkMode() {
             onClick={toggleTheme}
             onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggleTheme()}
             aria-label="Toggle theme"
-            className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center cursor-pointer select-none text-font-p hover:text-foreground transition-colors shrink-0"
+            className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center cursor-pointer select-none rounded-lg border border-br bg-bg text-font-p transition-colors hover:bg-card shrink-0"
         >
             {resolvedTheme === "light" ? (
                 <Moon className="h-5 w-5" />

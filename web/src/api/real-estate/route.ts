@@ -14,29 +14,41 @@ import { PaginatedResponse } from "@/types/shared/pagination";
 import { CityCompact, ProvinceCompact, RegionCompact } from "@/types/shared/location";
 import { withQuery, toPaginatedResponse } from "@/api/shared";
 
+const REAL_ESTATE_CACHE = {
+    list: { cache: 'no-store' as const },
+    featured: { next: { revalidate: 15, tags: ['re:properties:featured'] } },
+    detail: { next: { revalidate: 60, tags: ['re:properties:detail'] } },
+};
+
 export const realEstateApi = {
     getFeaturedProperties: async (limit: number = 4): Promise<Property[]> => {
-        const response = await fetchApi.get<Property[]>(withQuery('/real-estate/properties/featured/', { limit }));
+        const response = await fetchApi.get<Property[]>(
+            withQuery('/real-estate/properties/featured/', { limit }),
+            REAL_ESTATE_CACHE.featured
+        );
         return response.data;
     },
 
     getProperties: async (params?: RealEstateListParams): Promise<PaginatedResponse<Property>> => {
-        const response = await fetchApi.get<Property[]>(withQuery('/real-estate/properties/', params as Record<string, unknown>));
+        const response = await fetchApi.get<Property[]>(
+            withQuery('/real-estate/properties/', params as Record<string, unknown>),
+            REAL_ESTATE_CACHE.list
+        );
         return toPaginatedResponse<Property>(response, params?.size || 10);
     },
 
     getPropertyByNumericId: async (id: string | number): Promise<Property> => {
-        const response = await fetchApi.get<Property>(`/real-estate/properties/id/${id}/`);
+        const response = await fetchApi.get<Property>(`/real-estate/properties/id/${id}/`, REAL_ESTATE_CACHE.detail);
         return response.data;
     },
 
     getPropertyBySlug: async (slug: string): Promise<Property> => {
-        const response = await fetchApi.get<Property>(`/real-estate/properties/${slug}/`);
+        const response = await fetchApi.get<Property>(`/real-estate/properties/${slug}/`, REAL_ESTATE_CACHE.detail);
         return response.data;
     },
 
     getPropertyByPublicId: async (publicId: string): Promise<Property> => {
-        const response = await fetchApi.get<Property>(`/real-estate/properties/p/${publicId}/`);
+        const response = await fetchApi.get<Property>(`/real-estate/properties/p/${publicId}/`, REAL_ESTATE_CACHE.detail);
         return response.data;
     },
 
