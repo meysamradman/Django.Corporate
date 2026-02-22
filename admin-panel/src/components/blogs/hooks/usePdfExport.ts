@@ -8,6 +8,7 @@ import { useMutation } from '@tanstack/react-query';
 import { toast } from '@/core/toast';
 import type { BlogExportParams } from '@/types/blog/blogListParams';
 import { exportBlogs, exportBlogPdf } from '@/api/blogs/export';
+import { getExport } from '@/core/messages/ui';
 
 interface UsePdfExportOptions {
     onSuccess?: () => void;
@@ -20,11 +21,11 @@ export function usePdfExport(options?: UsePdfExportOptions) {
             await exportBlogPdf(blogId);
         },
         onSuccess: () => {
-            toast.success('فایل PDF با موفقیت دانلود شد');
+            toast.success(getExport('pdfSuccess'));
             options?.onSuccess?.();
         },
         onError: (error: Error) => {
-            toast.error('خطا در دانلود فایل PDF');
+            toast.error(getExport('pdfError'));
             console.error('PDF export error:', error);
             options?.onError?.(error);
         },
@@ -35,11 +36,11 @@ export function usePdfExport(options?: UsePdfExportOptions) {
             await exportBlogs(filters, 'pdf');
         },
         onSuccess: () => {
-            toast.success('فایل PDF با موفقیت دانلود شد');
+            toast.success(getExport('pdfSuccess'));
             options?.onSuccess?.();
         },
         onError: (error: Error) => {
-            toast.error('خطا در دانلود فایل PDF');
+            toast.error(getExport('pdfError'));
             console.error('PDF list export error:', error);
             options?.onError?.(error);
         },

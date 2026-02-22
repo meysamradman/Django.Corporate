@@ -6,6 +6,7 @@ import { useMutation } from '@tanstack/react-query';
 import { toast } from '@/core/toast';
 import type { PortfolioExportParams } from '@/types/portfolio/portfolioListParams';
 import { exportPortfolios, exportPortfolioPdf } from '@/api/portfolios/export';
+import { getExport } from '@/core/messages/ui';
 
 interface UsePortfolioPdfExportOptions {
     onSuccess?: () => void;
@@ -18,11 +19,11 @@ export function usePortfolioPdfExport(options?: UsePortfolioPdfExportOptions) {
             await exportPortfolioPdf(portfolioId);
         },
         onSuccess: () => {
-            toast.success('فایل PDF پروژه با موفقیت دانلود شد');
+            toast.success(getExport('pdfSuccess'));
             options?.onSuccess?.();
         },
         onError: (error: Error) => {
-            toast.error('خطا در دانلود فایل PDF پروژه');
+            toast.error(getExport('pdfError'));
             options?.onError?.(error);
         },
     });
@@ -32,11 +33,11 @@ export function usePortfolioPdfExport(options?: UsePortfolioPdfExportOptions) {
             await exportPortfolios(filters, 'pdf');
         },
         onSuccess: () => {
-            toast.success('فایل PDF لیست پروژه‌ها با موفقیت دانلود شد');
+            toast.success(getExport('pdfSuccess'));
             options?.onSuccess?.();
         },
         onError: (error: Error) => {
-            toast.error('خطا در دانلود فایل PDF لیست پروژه‌ها');
+            toast.error(getExport('pdfError'));
             options?.onError?.(error);
         },
     });

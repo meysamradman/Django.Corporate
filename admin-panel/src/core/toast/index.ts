@@ -1,8 +1,30 @@
-import { type ExternalToast, toast } from 'sonner';
+import { type ExternalToast, toast as sonnerToast } from 'sonner';
+import type { ReactNode } from 'react';
 import { ApiError } from '@/types/api/apiError';
-import { getHttpError, getNetworkError, shouldUseBackendMessage, isSilentError } from '@/core/messages/errors';
+import { getError, getHttpError, getNetworkError, shouldUseBackendMessage, isSilentError, normalizeSystemMessage } from '@/core/messages/errors';
 
-export { toast };
+const normalizeMessage = (message: string) => normalizeSystemMessage(message);
+
+type ToastMessage = string | number | ReactNode;
+
+const normalizeToastInput = (message: ToastMessage): ToastMessage => {
+  if (typeof message === 'string') {
+    return normalizeMessage(message);
+  }
+  return message;
+};
+
+export const toast = Object.assign(
+  ((message: ToastMessage, options?: ExternalToast) => sonnerToast(normalizeToastInput(message), options)) as typeof sonnerToast,
+  {
+    ...sonnerToast,
+    success: (message: ToastMessage, options?: ExternalToast) => sonnerToast.success(normalizeToastInput(message), options),
+    error: (message: ToastMessage, options?: ExternalToast) => sonnerToast.error(normalizeToastInput(message), options),
+    info: (message: ToastMessage, options?: ExternalToast) => sonnerToast.info(normalizeToastInput(message), options),
+    warning: (message: ToastMessage, options?: ExternalToast) => sonnerToast.warning(normalizeToastInput(message), options),
+    loading: (message: ToastMessage, options?: ExternalToast) => sonnerToast.loading(normalizeToastInput(message), options),
+  }
+);
 
 const DEFAULT_OPTIONS: ExternalToast = {
   duration: 3000,
@@ -60,13 +82,14 @@ export function showError(
   } = options || {};
 
   if (typeof error === 'string') {
+    const normalizedError = normalizeMessage(error);
     if (showToast && typeof window !== 'undefined') {
-      const key = buildToastDedupeKey(error, dedupeKey);
+      const key = buildToastDedupeKey(normalizedError, dedupeKey);
       if (!shouldSkipDuplicateToast(key, dedupeMs)) {
-        toast.error(error, { ...ERROR_OPTIONS, ...toastOptions });
+        toast.error(normalizedError, { ...ERROR_OPTIONS, ...toastOptions });
       }
     }
-    return error;
+    return normalizedError;
   }
 
   let errorMessage = customMessage || getNetworkError('unknown');
@@ -91,6 +114,7 @@ export function showError(
   }
 
   if (showToast && typeof window !== 'undefined') {
+    errorMessage = normalizeMessage(errorMessage);
     const key = buildToastDedupeKey(errorMessage, dedupeKey);
     if (!shouldSkipDuplicateToast(key, dedupeMs)) {
       toast.error(errorMessage, { ...ERROR_OPTIONS, ...toastOptions });
@@ -120,19 +144,19 @@ export function notifyApiError(error: unknown, options?: NotifyApiErrorOptions):
 }
 
 export const showSuccess = (message: string, options?: ExternalToast) => {
-  toast.success(message, { ...DEFAULT_OPTIONS, ...options });
+  toast.success(normalizeMessage(message), { ...DEFAULT_OPTIONS, ...options });
 };
 
 export const showInfo = (message: string, options?: ExternalToast) => {
-  toast.info(message, { ...DEFAULT_OPTIONS, ...options });
+  toast.info(normalizeMessage(message), { ...DEFAULT_OPTIONS, ...options });
 };
 
 export const showNeutral = (message: string, options?: ExternalToast) => {
-  toast(message, { ...DEFAULT_OPTIONS, ...options });
+  toast(normalizeMessage(message), { ...DEFAULT_OPTIONS, ...options });
 };
 
 export const showWarning = (message: string, options?: ExternalToast) => {
-  toast.warning(message, { ...DEFAULT_OPTIONS, ...options });
+  toast.warning(normalizeMessage(message), { ...DEFAULT_OPTIONS, ...options });
 };
 
 export function extractFieldErrors(error: unknown): Record<string, string> {
@@ -180,7 +204,7 @@ type HandleFormApiErrorOptions = {
 export function handleFormApiError(error: unknown, options?: HandleFormApiErrorOptions): Record<string, string> {
   const {
     setFieldError,
-    checkFormMessage = 'لطفاً خطاهای فرم را بررسی کنید',
+    checkFormMessage = getError('checkForm'),
     fallbackMessage,
     showToastForFieldErrors = false,
     preferBackendMessage = false,

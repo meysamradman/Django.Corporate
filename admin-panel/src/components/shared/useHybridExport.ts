@@ -8,6 +8,7 @@
 import type { UseMutationResult } from '@tanstack/react-query';
 import { toast } from '@/core/toast';
 import { shouldUseClientSideExport } from '@/components/shared/export/excelExportConfig';
+import { getExport } from '@/core/messages/ui';
 
 interface HybridExportOptions<TData, TParams> {
     onClientExport: (data: TData[], filename: string) => Promise<void>;
@@ -24,20 +25,20 @@ export function useHybridExport<TData, TParams>(options: HybridExportOptions<TDa
         totalCount: number,
         params?: TParams
     ) => {
-        const toastId = toast.loading(`در حال آماده‌سازی فایل Excel (${itemLabel})...`);
+        const toastId = toast.loading(getExport('excelPreparing', { item: itemLabel }));
         try {
             if (shouldUseClientSideExport(totalCount)) {
                 const filename = `${filenamePrefix}_${new Date().toISOString().split('T')[0]}`;
                 await onClientExport(data, filename);
 
-                toast.success(`فایل Excel با ${data.length} رکورد آماده شد`, { id: toastId });
+                toast.success(getExport('excelReadyWithCount', { count: data.length }), { id: toastId });
             } else {
-                toast.info(`تعداد ${totalCount} رکورد از سرور دریافت می‌شود...`, { id: toastId });
+                toast.info(getExport('serverFetchingCount', { count: totalCount }), { id: toastId });
                 await backendMutation.mutateAsync(params);
-                toast.success(`فایل ${itemLabel} با موفقیت دریافت شد`, { id: toastId });
+                toast.success(getExport('fileReceived', { item: itemLabel }), { id: toastId });
             }
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : `خطا در Export ${itemLabel}`, { id: toastId });
+            toast.error(error instanceof Error ? error.message : getExport('exportErrorForItem', { item: itemLabel }), { id: toastId });
             console.error(`Export error (${itemLabel}):`, error);
         }
     };
