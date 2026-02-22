@@ -1,4 +1,5 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { Suspense } from "react";
 
@@ -18,7 +19,8 @@ import {
 import PropertySearchPageServer from "@/components/real-estate/search/PropertySearchPageServer";
 import PropertySearchPageFallback from "@/components/real-estate/search/PropertySearchPageFallback";
 import { preparePropertyGallery } from "@/components/real-estate/property-detail/preparePropertyGallery";
-import { filtersFromSeoSegments, filtersToSearchParams, normalizeTaxonomySlug, resolvePropertySearchFilters, resolvePropertySearchPath, toSeoLocationSegment } from "@/components/real-estate/search/filters";
+import { ensureCanonicalPropertySearchRedirect, toAbsoluteCanonicalUrl } from "@/core/seo/canonical/propertySearch";
+import { filtersFromSeoSegments, normalizeTaxonomySlug, resolvePropertySearchFilters, toSeoLocationSegment } from "@/components/real-estate/search/filters";
 
 type PageProps = {
   params: Promise<{ dealType: string; segments?: string[] }>;
@@ -64,7 +66,7 @@ async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: Page
     const currentPath = `/properties/${encodeURIComponent(normalizedRouteDealType)}${normalizedRouteSegments.length ? `/${normalizedRouteSegments.map((item) => encodeURIComponent(item)).join("/")}` : ""}`;
 
     if (!propertySlug || routeSlug !== propertySlug || String(property.id) !== String(numericPropertyId) || currentPath !== canonicalPath) {
-      redirect(canonicalPath);
+      permanentRedirect(canonicalPath);
     }
 
     const { images, mainImageUrl } = preparePropertyGallery(property);
@@ -271,26 +273,15 @@ async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: Page
     }
   }
 
-  const canonicalPath = resolvePropertySearchPath(filters);
-  const canonicalQuery = filtersToSearchParams(filters).toString();
-  const canonicalUrl = canonicalQuery ? `${canonicalPath}?${canonicalQuery}` : canonicalPath;
-
   const normalizedRouteDealType = normalizeTaxonomySlug(routeParams.dealType);
   const normalizedRouteSegments = segments.map((item) => normalizeTaxonomySlug(item));
   const currentPath = `/properties/${encodeURIComponent(normalizedRouteDealType)}${normalizedRouteSegments.length ? `/${normalizedRouteSegments.map((item) => encodeURIComponent(item)).join("/")}` : ""}`;
-  const currentParams = new URLSearchParams();
-  for (const [key, rawValue] of Object.entries(query)) {
-    const value = Array.isArray(rawValue) ? rawValue[0] : rawValue;
-    if (value !== undefined && value !== "") {
-      currentParams.set(key, value);
-    }
-  }
-  const currentQuery = currentParams.toString();
-  const currentUrl = currentQuery ? `${currentPath}?${currentQuery}` : currentPath;
 
-  if (canonicalUrl !== currentUrl) {
-    redirect(canonicalUrl);
-  }
+  ensureCanonicalPropertySearchRedirect({
+    filters,
+    path: currentPath,
+    searchParams: query,
+  });
 
   return <PropertySearchPageServer filters={filters} />;
 }
@@ -301,4 +292,19 @@ export default function PropertiesDealTypeSegmentsPage({ params, searchParams }:
       <PropertiesDealTypeSegmentsPageBody params={params} searchParams={searchParams} />
     </Suspense>
   );
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const routeParams = await params;
+  const dealType = normalizeTaxonomySlug(routeParams.dealType);
+  const segments = (routeParams.segments || []).map((segment) => normalizeTaxonomySlug(segment)).filter(Boolean);
+  const canonicalPath = `/properties/${encodeURIComponent(dealType)}${segments.length ? `/${segments.map((segment) => encodeURIComponent(segment)).join("/")}` : ""}`;
+
+  return {
+    title: "لیست املاک",
+    description: "جستجو و مشاهده لیست املاک با مسیرهای سئو و فیلترهای قابل اشتراک‌گذاری.",
+    alternates: {
+      canonical: toAbsoluteCanonicalUrl(canonicalPath),
+    },
+  };
 }

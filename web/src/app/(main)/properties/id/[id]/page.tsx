@@ -1,12 +1,11 @@
-import { notFound, permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { realEstateApi } from "@/api/real-estate/route";
+import { redirectToCanonicalDetail } from "@/core/seo/canonical/detail";
 
 type PageProps = {
   params: Promise<{ id: string }>;
 };
-
-const getCanonicalPropertyPath = (id: string | number, slug: string) => `/properties/${id}/${encodeURIComponent(slug)}`;
 
 export default async function PropertyLegacyRedirectPage({ params }: PageProps) {
   const { id } = await params;
@@ -20,5 +19,8 @@ export default async function PropertyLegacyRedirectPage({ params }: PageProps) 
     notFound();
   }
 
-  permanentRedirect(getCanonicalPropertyPath(property.id, property.slug));
+  redirectToCanonicalDetail({
+    basePath: "/properties",
+    entity: property,
+  });
 }

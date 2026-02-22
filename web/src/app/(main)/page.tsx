@@ -35,13 +35,13 @@ export default async function HomePage() {
 
   const typeOptions = allTypes.map((item) => ({
     id: item.id,
-    value: String(item.id),
+    value: item.slug || String(item.id),
     title: item.name,
   }));
 
   const stateOptions = allStates.map((item) => ({
     id: item.id,
-    value: String(item.id),
+    value: item.slug || String(item.id),
     title: item.title || item.name,
   }));
 

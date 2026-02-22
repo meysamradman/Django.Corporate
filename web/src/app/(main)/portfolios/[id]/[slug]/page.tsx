@@ -1,26 +1,17 @@
-import { notFound, permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { portfolioApi } from "@/api/portfolios/route";
 import PortfolioDetailHeader from "@/components/portfolios/detail/PortfolioDetailHeader";
 import PortfolioDetailContent from "@/components/portfolios/detail/PortfolioDetailContent";
 import PortfolioDetailMeta from "@/components/portfolios/detail/PortfolioDetailMeta";
+import { ensureCanonicalDetailRedirect } from "@/core/seo/canonical/detail";
 
 type PageProps = {
   params: Promise<{ id: string; slug: string }>;
 };
 
-const getCanonicalPortfolioPath = (id: string | number, slug: string) => `/portfolios/${id}/${encodeURIComponent(slug)}`;
-
-const getCanonicalPortfolioId = (portfolio: { id?: number; public_id: string }): string | number => {
-  if (typeof portfolio.id === "number" && Number.isFinite(portfolio.id)) {
-    return portfolio.id;
-  }
-
-  return portfolio.public_id;
-};
-
 export default async function PortfolioDetailPage({ params }: PageProps) {
-  const { id } = await params;
+  const { id, slug } = await params;
 
   const portfolio = await portfolioApi.getPortfolioByNumericId(id).catch(() => null);
 
@@ -28,11 +19,12 @@ export default async function PortfolioDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const canonicalId = getCanonicalPortfolioId(portfolio);
-
-  if (String(canonicalId) !== id) {
-    permanentRedirect(getCanonicalPortfolioPath(canonicalId, portfolio.slug));
-  }
+  ensureCanonicalDetailRedirect({
+    basePath: "/portfolios",
+    routeId: id,
+    routeSlug: slug,
+    entity: portfolio,
+  });
 
   return (
     <main className="container mx-auto px-4 py-10 md:py-12">

@@ -1,11 +1,12 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
 import { realEstateApi } from "@/api/real-estate/route";
 import PropertySearchPageServer from "@/components/real-estate/search/PropertySearchPageServer";
 import PropertySearchPageFallback from "@/components/real-estate/search/PropertySearchPageFallback";
-import { filtersToSearchParams, resolvePropertySearchFilters, resolvePropertySearchPath, toSeoLocationSegment } from "@/components/real-estate/search/filters";
+import { buildCanonicalPropertySearchAbsoluteUrl, ensureCanonicalPropertySearchRedirect } from "@/core/seo/canonical/propertySearch";
+import { resolvePropertySearchFilters, toSeoLocationSegment } from "@/components/real-estate/search/filters";
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -63,23 +64,23 @@ async function PropertiesPageBody({ searchParams }: PageProps) {
     }
   }
 
-  const canonicalPath = resolvePropertySearchPath(filters);
-  const canonicalQuery = filtersToSearchParams(filters).toString();
-  const canonicalUrl = canonicalQuery ? `${canonicalPath}?${canonicalQuery}` : canonicalPath;
+  if (!filters.type_slug && filters.property_type !== null) {
+    const resolvedById = await realEstateApi
+      .getTypes({ page: 1, size: 300 })
+      .then((response) => (response?.data || []).find((item) => item.id === filters.property_type))
+      .catch(() => null);
 
-  const currentParams = new URLSearchParams();
-  for (const [key, rawValue] of Object.entries(params)) {
-    const value = Array.isArray(rawValue) ? rawValue[0] : rawValue;
-    if (value !== undefined && value !== "") {
-      currentParams.set(key, value);
+    if (resolvedById?.slug) {
+      filters.type_slug = String(resolvedById.slug).trim();
+      filters.property_type = null;
     }
   }
-  const currentQuery = currentParams.toString();
-  const currentUrl = currentQuery ? `/properties?${currentQuery}` : "/properties";
 
-  if (canonicalUrl !== currentUrl) {
-    redirect(canonicalUrl);
-  }
+  ensureCanonicalPropertySearchRedirect({
+    filters,
+    path: "/properties",
+    searchParams: params,
+  });
 
   return <PropertySearchPageServer filters={filters} />;
 }
@@ -92,9 +93,15 @@ export default function PropertiesPage({ searchParams }: PageProps) {
   );
 }
 
-export async function generateMetadata() {
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const filters = resolvePropertySearchFilters(params);
+
   return {
     title: "لیست املاک",
     description: "جستجو و مشاهده لیست املاک با مسیرهای سئو و فیلترهای قابل اشتراک‌گذاری.",
+    alternates: {
+      canonical: buildCanonicalPropertySearchAbsoluteUrl(filters),
+    },
   };
 }

@@ -1,12 +1,11 @@
-import { notFound, permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { agencyApi } from "@/api/real-estate/agency";
+import { redirectToCanonicalDetail } from "@/core/seo/canonical/detail";
 
 type PageProps = {
   params: Promise<{ id: string }>;
 };
-
-const getCanonicalAgencyPath = (id: string | number, slug: string) => `/agencies/${id}/${encodeURIComponent(slug)}`;
 
 export default async function AgencyLegacyRedirectPage({ params }: PageProps) {
   const { id } = await params;
@@ -20,5 +19,8 @@ export default async function AgencyLegacyRedirectPage({ params }: PageProps) {
     notFound();
   }
 
-  permanentRedirect(getCanonicalAgencyPath(agency.id, agency.slug));
+  redirectToCanonicalDetail({
+    basePath: "/agencies",
+    entity: agency,
+  });
 }

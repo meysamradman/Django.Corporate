@@ -1,22 +1,13 @@
-import { notFound, permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { blogApi } from "@/api/blogs/route";
 import BlogDetailHeader from "@/components/blogs/detail/BlogDetailHeader";
 import BlogDetailContent from "@/components/blogs/detail/BlogDetailContent";
 import BlogDetailMeta from "@/components/blogs/detail/BlogDetailMeta";
+import { ensureCanonicalDetailRedirect } from "@/core/seo/canonical/detail";
 
 type PageProps = {
   params: Promise<{ id: string; slug: string }>;
-};
-
-const getCanonicalBlogPath = (id: string | number, slug: string) => `/blogs/${id}/${encodeURIComponent(slug)}`;
-
-const getCanonicalBlogId = (blog: { id?: number; public_id: string }): string | number => {
-  if (typeof blog.id === "number" && Number.isFinite(blog.id)) {
-    return blog.id;
-  }
-
-  return blog.public_id;
 };
 
 export default async function BlogDetailPage({ params }: PageProps) {
@@ -28,11 +19,12 @@ export default async function BlogDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const canonicalId = getCanonicalBlogId(blog);
-
-  if (String(canonicalId) !== id) {
-    permanentRedirect(getCanonicalBlogPath(canonicalId, blog.slug));
-  }
+  ensureCanonicalDetailRedirect({
+    basePath: "/blogs",
+    routeId: id,
+    routeSlug: slug,
+    entity: blog,
+  });
 
   return (
     <main className="container mx-auto px-4 py-10 md:py-12">

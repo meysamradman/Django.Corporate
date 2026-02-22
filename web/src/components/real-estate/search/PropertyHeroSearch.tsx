@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/elements/input";
 import { Button } from "@/components/elements/custom/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/select";
+import { filtersToHref, resolvePropertySearchFilters } from "@/components/real-estate/search/filters";
 
 /**
  * Option type for Hero Search dropdowns
@@ -82,7 +83,7 @@ function NativeSelectOption(_props: React.ComponentProps<"option">) {
  * - Client-side interactivity with instant state updates
  * - Keyboard support (Enter key triggers search)
  * - Responsive design (mobile-first grid layout)
- * - Navigates to /properties with query parameters when search is triggered
+ * - Navigates to canonical property search URL (same contract as sidebar filters)
  * - SSR-friendly: options are fetched on server and passed as props
  * 
  * @example
@@ -107,26 +108,18 @@ export default function PropertyHeroSearch({
   const [status, setStatus] = useState("");
 
   const handleSearch = () => {
-    const params = new URLSearchParams();
+    const baseFilters = resolvePropertySearchFilters({});
+    const href = filtersToHref(baseFilters, {
+      search: location.trim(),
+      type_slug: propertyType || "",
+      property_type: null,
+      state_slug: transactionState || "",
+      state: null,
+      status: status || "",
+      page: 1,
+    });
 
-    if (location.trim()) {
-      params.set("search", location.trim());
-    }
-
-    if (propertyType) {
-      params.set("property_type", propertyType);
-    }
-
-    if (transactionState) {
-      params.set("state", transactionState);
-    }
-
-    if (status) {
-      params.set("status", status);
-    }
-
-    const query = params.toString();
-    router.push(query ? `/properties?${query}` : "/properties");
+    router.push(href);
   };
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {

@@ -1,4 +1,4 @@
-import { notFound, permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { realEstateApi } from "@/api/real-estate/route";
 import {
@@ -14,12 +14,11 @@ import {
   PropertyVideo,
 } from "@/components/real-estate/property-detail";
 import { preparePropertyGallery } from "@/components/real-estate/property-detail/preparePropertyGallery";
+import { ensureCanonicalDetailRedirect } from "@/core/seo/canonical/detail";
 
 type PageProps = {
   params: Promise<{ id: string; slug: string }>;
 };
-
-const getCanonicalPropertyPath = (id: string | number, slug: string) => `/properties/${id}/${encodeURIComponent(slug)}`;
 
 export default async function PropertyDetailPage({ params }: PageProps) {
   const { id, slug } = await params;
@@ -32,12 +31,12 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const normalizedRouteSlug = decodeURIComponent(slug || "").trim().toLowerCase();
-  const normalizedPropertySlug = String(property.slug || "").trim().toLowerCase();
-
-  if (String(property.id) !== id || !normalizedPropertySlug || normalizedRouteSlug !== normalizedPropertySlug) {
-    permanentRedirect(getCanonicalPropertyPath(property.id, property.slug));
-  }
+  ensureCanonicalDetailRedirect({
+    basePath: "/properties",
+    routeId: id,
+    routeSlug: slug,
+    entity: property,
+  });
 
   const { images, mainImageUrl } = preparePropertyGallery(property);
 

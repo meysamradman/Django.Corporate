@@ -1,4 +1,5 @@
 import ShareButtons from "@/components/shared/share/ShareButtons";
+import { getSiteUrl } from "@/core/seo/site";
 
 type PropertyShareBarProps = {
   id: number;
@@ -7,7 +8,7 @@ type PropertyShareBarProps = {
 };
 
 export default function PropertyShareBar({ id, slug, title }: PropertyShareBarProps) {
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+  const baseUrl = getSiteUrl();
   const detailPath = slug ? `/properties/${id}/${encodeURIComponent(slug)}` : `/properties/id/${id}`;
   const shareUrl = `${baseUrl}${detailPath}`;
 
