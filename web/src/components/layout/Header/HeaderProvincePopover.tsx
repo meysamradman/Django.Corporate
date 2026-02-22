@@ -3,7 +3,7 @@
 import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, MapPin } from "lucide-react";
-import { Popover, PopoverContent, PopoverHeader, PopoverTitle, PopoverTrigger } from "@/components/elements/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/elements/dialog";
 import { filtersToHref, resolvePropertySearchFilters, toSeoLocationSegment } from "@/components/real-estate/search/filters";
 import { cn } from "@/core/utils/cn";
 import type { ProvinceCompact } from "@/types/shared/location";
@@ -28,6 +28,8 @@ const setCookieValue = (key: string, value: string): void => {
   if (typeof document === "undefined") return;
   document.cookie = `${key}=${encodeURIComponent(value)}; path=/; max-age=${60 * 60 * 24 * 180}; samesite=lax`;
 };
+
+const formatCount = (count: number): string => count.toLocaleString("fa-IR");
 
 type SearchParamsLike = {
   get: (name: string) => string | null;
@@ -127,25 +129,25 @@ export function HeaderProvincePopover({ provinceOptions = [] }: HeaderProvincePo
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
         <button
           type="button"
-          className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-br bg-bg px-3 text-xs font-bold text-font-p transition-colors hover:bg-card"
+          className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-br bg-bg px-3 text-xs font-bold text-font-p transition-colors hover:bg-card"
           aria-label="انتخاب استان"
         >
-          <span className="line-clamp-1 max-w-20 sm:max-w-24">{selectedProvince?.name || "استان"}</span>
           <MapPin className="size-3.5 text-font-s" />
+          <span className="line-clamp-1 max-w-24 sm:max-w-28">{selectedProvince?.name || "استان"}</span>
           <ChevronDown className="size-3.5 text-font-s" />
         </button>
-      </PopoverTrigger>
+      </DialogTrigger>
 
-      <PopoverContent align="end" className="w-72 border-br bg-card p-0" sideOffset={8}>
-        <PopoverHeader className="border-b border-br px-3 py-2.5 text-right">
-          <PopoverTitle className="text-sm font-bold text-font-p">انتخاب استان</PopoverTitle>
-        </PopoverHeader>
+      <DialogContent className="max-w-sm border-br bg-card p-0" showCloseButton={false}>
+        <DialogHeader className="border-b border-br px-4 py-3 text-right">
+          <DialogTitle className="text-sm font-black text-font-p">انتخاب استان</DialogTitle>
+        </DialogHeader>
 
-        <div className="max-h-80 overflow-y-auto p-2">
+        <div className="max-h-[60vh] overflow-y-auto p-2">
           {provinceOptions.map((province) => {
             const isActive = selectedProvince?.id === province.id;
 
@@ -170,7 +172,7 @@ export function HeaderProvincePopover({ provinceOptions = [] }: HeaderProvincePo
                   router.push(href);
                 }}
                 className={cn(
-                  "flex w-full cursor-pointer items-center justify-between rounded-md border px-3 py-2 text-right transition-colors",
+                  "flex w-full cursor-pointer items-center justify-between rounded-lg border px-3 py-2.5 text-right transition-colors",
                   isActive
                     ? "border-br bg-bg text-font-p"
                     : "border-transparent bg-transparent text-font-s hover:border-br hover:bg-bg hover:text-font-p"
@@ -178,13 +180,30 @@ export function HeaderProvincePopover({ provinceOptions = [] }: HeaderProvincePo
               >
                 <span className="line-clamp-1 text-sm font-semibold">{province.name}</span>
                 {typeof province.property_count === "number" ? (
-                  <span className="ms-2 text-xs font-medium text-font-s">{province.property_count}</span>
+                  <span
+                    className={cn(
+                      "ms-3 inline-flex min-w-8 items-center justify-center rounded-md border px-2 py-0.5 text-[11px] font-bold",
+                      isActive ? "border-br bg-card text-font-p" : "border-br bg-bg text-font-s"
+                    )}
+                  >
+                    {formatCount(province.property_count)}
+                  </span>
                 ) : null}
               </button>
             );
           })}
         </div>
-      </PopoverContent>
-    </Popover>
+
+        <div className="border-t border-br p-2">
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="inline-flex h-9 w-full items-center justify-center rounded-md border border-br bg-bg px-3 text-xs font-bold text-font-p transition-colors hover:bg-card"
+          >
+            بستن
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -3,9 +3,11 @@
 import React from "react";
 import { realEstateApi } from "@/api/real-estate/route";
 import { Button } from "@/components/elements/custom/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/elements/dialog";
 import { Input } from "@/components/elements/input";
 import { Separator } from "@/components/elements/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/select";
+import { ChevronDown } from "lucide-react";
 import { fromSortValue, toSeoLocationSegment, toSortValue } from "@/components/real-estate/search/filters";
 import type { PropertySearchFilters } from "@/types/real-estate/searchFilters";
 
@@ -100,6 +102,83 @@ const toNumberOrNull = (value: string): number | null => {
   if (Number.isNaN(parsed) || parsed < 0) return null;
   return parsed;
 };
+
+type PopupPickerOption = {
+  value: string;
+  title: string;
+};
+
+function PopupPicker({
+  value,
+  title,
+  placeholder,
+  options,
+  onSelect,
+  disabled = false,
+}: {
+  value: string;
+  title: string;
+  placeholder: string;
+  options: PopupPickerOption[];
+  onSelect: (value: string) => void;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const selected = options.find((item) => item.value === value);
+  const displayText = selected?.title || placeholder;
+
+  return (
+    <Dialog open={open} onOpenChange={(next) => setOpen(disabled ? false : next)}>
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          disabled={disabled}
+          className="inline-flex h-10 w-full items-center justify-between gap-2 rounded-md border border-br bg-wt px-3 text-sm text-font-p shadow-xs outline-none transition-colors focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <span className="line-clamp-1">{displayText}</span>
+          <ChevronDown className="size-4 text-font-s" />
+        </button>
+      </DialogTrigger>
+
+      <DialogContent className="max-w-sm border-br bg-card p-0" showCloseButton={false}>
+        <DialogHeader className="border-b border-br px-4 py-3 text-right">
+          <DialogTitle className="text-sm font-black text-font-p">{title}</DialogTitle>
+        </DialogHeader>
+
+        <div className="max-h-[60vh] overflow-y-auto p-2">
+          {options.map((item) => {
+            const isActive = item.value === value;
+            return (
+              <button
+                key={`${item.value || "empty"}-${item.title}`}
+                type="button"
+                onClick={() => {
+                  onSelect(item.value);
+                  setOpen(false);
+                }}
+                className={`flex w-full items-center rounded-md px-2.5 py-2 text-right text-sm transition-colors ${
+                  isActive ? "bg-bg text-font-p" : "text-font-s hover:bg-bg hover:text-font-p"
+                }`}
+              >
+                <span className="line-clamp-1">{item.title}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="border-t border-br p-2">
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="inline-flex h-9 w-full items-center justify-center rounded-md border border-br bg-bg px-3 text-xs font-bold text-font-p transition-colors hover:bg-card"
+          >
+            بستن
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function PropertySearchSidebar({
   filters,
@@ -316,11 +395,17 @@ export default function PropertySearchSidebar({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="space-y-2">
             <label className="text-sm text-font-s">استان</label>
-            <NativeSelect
+            <PopupPicker
               value={selectedProvinceValue}
-              onChange={(event) => {
-                const provinceValue = toNumberOrNull(event.target.value);
-                const selectedProvince = provinceOptions.find((item) => item.value === event.target.value);
+              title="انتخاب استان"
+              placeholder="همه استان‌ها"
+              options={[
+                { value: "", title: "همه استان‌ها" },
+                ...provinceOptions.map((item) => ({ value: item.value, title: item.title })),
+              ]}
+              onSelect={(value) => {
+                const provinceValue = toNumberOrNull(value);
+                const selectedProvince = provinceOptions.find((item) => item.value === value);
                 update({
                   province: provinceValue,
                   city: null,
@@ -329,51 +414,42 @@ export default function PropertySearchSidebar({
                   city_slug: "",
                 });
               }}
-            >
-              <NativeSelectOption value="">همه استان‌ها</NativeSelectOption>
-              {provinceOptions.map((item) => (
-                <NativeSelectOption key={item.id} value={item.value}>
-                  {item.title}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
+            />
           </div>
           <div className="space-y-2">
             <label className="text-sm text-font-s">شهر</label>
-            <NativeSelect
+            <PopupPicker
               value={selectedCityValue}
-              onChange={(event) => {
-                const cityId = toNumberOrNull(event.target.value);
-                const selectedCity = availableCityOptions.find((item) => item.value === event.target.value);
+              title="انتخاب شهر"
+              placeholder="همه شهرها"
+              options={[
+                { value: "", title: "همه شهرها" },
+                ...availableCityOptions.map((item) => ({ value: item.value, title: item.title })),
+              ]}
+              onSelect={(value) => {
+                const cityId = toNumberOrNull(value);
+                const selectedCity = availableCityOptions.find((item) => item.value === value);
                 update({
                   city: cityId,
                   region: null,
                   city_slug: selectedCity?.slug || (selectedCity?.title ? toSeoLocationSegment(selectedCity.title) : ""),
                 });
               }}
-            >
-              <NativeSelectOption value="">همه شهرها</NativeSelectOption>
-              {availableCityOptions.map((item) => (
-                <NativeSelectOption key={item.id} value={item.value}>
-                  {item.title}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
+            />
           </div>
           <div className="space-y-2">
             <label className="text-sm text-font-s">منطقه</label>
-            <NativeSelect
+            <PopupPicker
               value={selectedRegionValue}
-              onChange={(event) => update({ region: toNumberOrNull(event.target.value) })}
+              title="انتخاب منطقه"
+              placeholder="همه مناطق"
+              options={[
+                { value: "", title: "همه مناطق" },
+                ...availableRegionOptions.map((item) => ({ value: item.value, title: item.title })),
+              ]}
+              onSelect={(value) => update({ region: toNumberOrNull(value) })}
               disabled={filters.city === null}
-            >
-              <NativeSelectOption value="">همه مناطق</NativeSelectOption>
-              {availableRegionOptions.map((item) => (
-                <NativeSelectOption key={item.id} value={item.value}>
-                  {item.title}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
+            />
           </div>
         </div>
       </section>
