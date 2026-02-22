@@ -1,7 +1,7 @@
 from src.real_estate.utils.cache_shared import hash_payload
 
 class PropertyPublicCacheKeys:
-    SCHEMA_VERSION = "v5"
+    SCHEMA_VERSION = "v6"
 
     @staticmethod
     def list(filters=None, search=None, ordering=None):

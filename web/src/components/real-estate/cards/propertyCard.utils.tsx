@@ -1,41 +1,80 @@
 import { BedDouble, Bath } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { formatArea } from "@/core/utils/realEstateFormat";
-import { formatPriceToPersian } from "@/core/utils/realEstateFormat";
+import { formatArea, formatPriceToPersian } from "@/core/utils/realEstateFormat";
 import type { Property } from "@/types/real-estate/property";
 
 export const getPropertyCanonicalPath = (property: Property): string =>
   `/properties/${property.id}/${encodeURIComponent(property.slug)}`;
 
-export const toPriceLabel = (property: Property): string => {
-  const salePrice = property.sale_price ?? property.price ?? property.pre_sale_price ?? null;
-  const mortgagePrice = property.mortgage_amount ?? property.security_deposit ?? null;
-  const monthlyRentPrice = property.monthly_rent ?? property.rent_amount ?? null;
-  const usageType = property.state?.usage_type;
-
-  const hasMortgage = typeof mortgagePrice === "number" && mortgagePrice > 0;
-  const hasMonthlyRent = typeof monthlyRentPrice === "number" && monthlyRentPrice > 0;
-
-  if (usageType === "rent") {
-    const rentParts: string[] = [];
-
-    if (hasMortgage) {
-      rentParts.push(`رهن: ${formatPriceToPersian(mortgagePrice, "تومان")}`);
-    }
-
-    if (hasMonthlyRent) {
-      rentParts.push(`اجاره: ${formatPriceToPersian(monthlyRentPrice, "تومان")}`);
-    }
-
-    if (rentParts.length > 0) {
-      return rentParts.join(" | ");
-    }
-
-    return "قیمت توافقی";
+const toPositiveNumber = (value: unknown): number | null => {
+  if (typeof value === "number") {
+    return Number.isFinite(value) && value > 0 ? value : null;
   }
 
-  if (usageType === "mortgage") {
+  if (typeof value === "string") {
+    const normalizedDigits = value
+      .replace(/[۰-۹]/g, (digit) => String(digit.charCodeAt(0) - 1728))
+      .replace(/[٠-٩]/g, (digit) => String(digit.charCodeAt(0) - 1632));
+
+    const cleaned = normalizedDigits
+      .replace(/[٬,]/g, "")
+      .replace(/[^\d.-]/g, "")
+      .trim();
+
+    const normalized = Number(cleaned);
+    return Number.isFinite(normalized) && normalized > 0 ? normalized : null;
+  }
+
+  return null;
+};
+
+type DealKind = "rent" | "mortgage" | "sale";
+
+const getDealKind = (property: Property): DealKind => {
+  const usageType = (property.state?.usage_type || "").toLowerCase().trim();
+  if (usageType === "rent") return "rent";
+  if (usageType === "mortgage") return "mortgage";
+  return "sale";
+};
+
+export const toPriceLabel = (property: Property): string => {
+  const dealKind = getDealKind(property);
+
+  const salePrice =
+    toPositiveNumber(property.sale_price) ??
+    toPositiveNumber(property.price) ??
+    toPositiveNumber(property.pre_sale_price);
+
+  const mortgagePrice =
+    toPositiveNumber(property.mortgage_amount) ??
+    toPositiveNumber(property.security_deposit);
+
+  const monthlyRentPrice =
+    toPositiveNumber(property.rent_amount) ??
+    toPositiveNumber(property.monthly_rent) ??
+    (dealKind === "rent"
+      ? toPositiveNumber(property.price) ??
+        toPositiveNumber(property.sale_price) ??
+        toPositiveNumber(property.pre_sale_price)
+      : null);
+
+  const hasMortgage = mortgagePrice != null;
+  const hasMonthlyRent = monthlyRentPrice != null;
+
+  if (dealKind === "rent") {
+    const mortgageLabel = hasMortgage
+      ? formatPriceToPersian(mortgagePrice, "تومان")
+      : "توافقی";
+
+    const rentLabel = hasMonthlyRent
+      ? formatPriceToPersian(monthlyRentPrice, "تومان")
+      : "توافقی";
+
+    return `رهن: ${mortgageLabel} | اجاره: ${rentLabel}`;
+  }
+
+  if (dealKind === "mortgage") {
     if (hasMortgage) {
       return `رهن کامل: ${formatPriceToPersian(mortgagePrice, "تومان")}`;
     }
