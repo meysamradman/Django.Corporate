@@ -16,6 +16,8 @@ import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import type { Media } from "@/types/shared/media";
 import { Loader2 } from "lucide-react";
 import { showSuccess, showError } from '@/core/toast';
+import { getCrud } from '@/core/messages/ui';
+import { getError } from '@/core/messages/errors';
 import { generateSlug, formatSlug } from '@/core/slug/generate';
 import { validateSlug } from '@/core/slug/validate';
 import { MEDIA_MODULES, type MediaContextType } from "@/components/media/constants";
@@ -50,13 +52,13 @@ export function RealEstateCreateDialog({
     const createMutation = useMutation({
         mutationFn: (data: { title: string; slug: string; image_id?: number; is_active?: boolean; is_public?: boolean }) => onSubmit(data),
         onSuccess: (data) => {
-            showSuccess(`با موفقیت اضافه شد`);
+            showSuccess(getCrud('created', { item: 'آیتم' }));
             onSuccess?.(data);
             refetchList();
             handleClose();
         },
         onError: (error: any) => {
-            showError(error?.response?.data?.detail || "خطا در اضافه کردن");
+            showError(error?.response?.data?.detail || getError('serverError'));
         }
     });
 
@@ -117,7 +119,7 @@ export function RealEstateCreateDialog({
 
     return (
         <Dialog open={open} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[420px]">
+            <DialogContent className="sm:max-w-105">
                 <DialogHeader>
                     <DialogTitle>{labels.title}</DialogTitle>
                 </DialogHeader>

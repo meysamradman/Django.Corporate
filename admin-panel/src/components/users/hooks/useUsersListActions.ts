@@ -3,6 +3,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/api/admins/admins";
 import { notifyApiError, showSuccess } from "@/core/toast";
+import { getCrud } from "@/core/messages/ui";
 import { msg } from "@/core/messages";
 import type { UserDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
@@ -22,7 +23,7 @@ export function useUsersListActions({ setRowSelection }: UseUsersListActionsPara
     mutationFn: (userId: number) => adminApi.deleteUserByType(userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      showSuccess("با موفقیت حذف شد");
+      showSuccess(getCrud("deleted", { item: "آیتم" }));
     },
     onError: (error) => {
       notifyApiError(error, {
@@ -37,7 +38,7 @@ export function useUsersListActions({ setRowSelection }: UseUsersListActionsPara
     mutationFn: (userIds: number[]) => adminApi.bulkDeleteUsersByType(userIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      showSuccess("با موفقیت حذف شد");
+      showSuccess(getCrud("deleted", { item: "آیتم" }));
       setRowSelection({});
     },
     onError: (error) => {

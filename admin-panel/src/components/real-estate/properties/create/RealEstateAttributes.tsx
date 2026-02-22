@@ -5,6 +5,7 @@ import { Button } from "@/components/elements/Button";
 import { Settings, Plus, Building2, Compass, MapPin, Home, FileJson } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
 import { showError } from "@/core/toast";
+import { getValidation } from "@/core/messages/validation";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { RealEstateStandardAttributes } from "./attributes/RealEstateStandardAttributes";
 import { RealEstateExtraFields } from "./attributes/RealEstateExtraFields";
@@ -89,12 +90,12 @@ export function RealEstateAttributes({
 
     const handleSave = () => {
         if (!fieldKey.trim()) {
-            showError("نام فیلد الزامی است");
+            showError(getValidation("required", { field: "نام فیلد" }));
             return;
         }
 
         if (!editingKey && currentAttributes[fieldKey.trim()]) {
-            showError("این نام فیلد قبلاً استفاده شده است");
+            showError(getValidation("duplicateFieldName"));
             return;
         }
 

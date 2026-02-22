@@ -9,7 +9,7 @@ import { showError } from "@/core/toast";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyState } from "@/types/real_estate/state/realEstateState";
 import type { ColumnDef } from "@tanstack/react-table";
-import { getConfirm } from "@/core/messages";
+import { getConfirm, getError } from "@/core/messages";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -121,7 +121,7 @@ export default function PropertyStatesPage() {
   const columns = usePropertyStateColumns(rowActions, handleToggleActive, handleEditState) as ColumnDef<PropertyState>[];
 
   if (error) {
-    showError("خطا در بارگذاری داده‌ها");
+    showError(getError("serverError"));
     return (
       <div className="space-y-6">
         <PageHeader title="مدیریت وضعیت‌های ملک" />

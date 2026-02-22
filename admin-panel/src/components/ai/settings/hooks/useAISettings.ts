@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/ai';
 import { showSuccess, notifyApiError } from '@/core/toast';
+import { getCrud } from '@/core/messages/ui';
 import { usePermission, PERMISSIONS } from '@/core/permissions';
 import type { AISettingsModel, AISettingsProvider } from '@/types/ai/ai';
 import {
@@ -203,7 +204,7 @@ export function useAISettings() {
       });
 
       queryClient.invalidateQueries({ queryKey: ['ai-personal-settings'] });
-      showSuccess('تنظیمات با موفقیت به‌روزرسانی شد');
+      showSuccess(getCrud('updated', { item: 'تنظیمات' }));
     },
     onError: (error: unknown) => {
       notifyApiError(error, {

@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { realEstateApi } from "@/api/real-estate";
 import { ProtectedButton } from "@/core/permissions";
 import { showError, showSuccess } from "@/core/toast";
+import { getCrud } from "@/core/messages/ui";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/elements/AlertDialog";
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from "@/types/shared/pagination";
@@ -94,7 +95,7 @@ export default function RealEstateProvincesPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => realEstateApi.deleteProvince(id),
     onSuccess: () => {
-      showSuccess("استان با موفقیت حذف شد");
+      showSuccess(getCrud("deleted", { item: "استان" }));
       setDeleteConfirm({ open: false, isBulk: false });
       setRowSelection({});
       queryClient.invalidateQueries({ queryKey: ["real-estate-provinces-list"] });
@@ -106,7 +107,7 @@ export default function RealEstateProvincesPage() {
   const bulkDeleteMutation = useMutation({
     mutationFn: async (ids: number[]) => Promise.all(ids.map((id) => realEstateApi.deleteProvince(id))),
     onSuccess: () => {
-      showSuccess("استان‌ها با موفقیت حذف شدند");
+      showSuccess(getCrud("deleted", { item: "استان‌ها" }));
       setDeleteConfirm({ open: false, isBulk: false });
       setRowSelection({});
       queryClient.invalidateQueries({ queryKey: ["real-estate-provinces-list"] });

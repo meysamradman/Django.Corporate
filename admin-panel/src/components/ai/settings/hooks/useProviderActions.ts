@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/ai';
 import { showSuccess, notifyApiError } from '@/core/toast';
+import { getCrud } from '@/core/messages/ui';
 import { frontendToBackendProviderMap } from '../hooks/useAISettings';
 
 interface UseProviderActionsProps {
@@ -169,9 +170,9 @@ export function useProviderActions({
       }
 
       if (apiKey.trim()) {
-        showSuccess('API key با موفقیت ذخیره شد');
+        showSuccess(getCrud('saved', { item: 'API key' }));
       } else {
-        showSuccess('API key با موفقیت حذف شد');
+        showSuccess(getCrud('deleted', { item: 'API key' }));
       }
 
       setShowApiKeys(prev => ({
@@ -262,7 +263,7 @@ export function useProviderActions({
 
       queryClient.invalidateQueries({ queryKey: ['ai-backend-providers'] });
       queryClient.invalidateQueries({ queryKey: ['ai-personal-settings'] });
-      showSuccess('وضعیت با موفقیت تغییر کرد');
+      showSuccess(getCrud('updated', { item: 'وضعیت' }));
     },
     onError: (error: unknown) => {
       notifyApiError(error, {

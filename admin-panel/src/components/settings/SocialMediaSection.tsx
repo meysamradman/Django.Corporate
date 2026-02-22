@@ -14,6 +14,8 @@ import {
 } from "@/components/elements/AlertDialog";
 import { settingsApi } from "@/api/settings/settings";
 import { notifyApiError, showSuccess } from "@/core/toast";
+import { getCrud } from "@/core/messages/ui";
+import { getError } from "@/core/messages/errors";
 import { Plus, Edit, Trash2, Share2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
@@ -36,14 +38,14 @@ export function SocialMediaSection() {
     const deleteMutation = useMutation({
         mutationFn: (id: number) => settingsApi.deleteSocialMedia(id),
         onSuccess: () => {
-            showSuccess("شبکه اجتماعی با موفقیت حذف شد");
+            showSuccess(getCrud("deleted", { item: "شبکه اجتماعی" }));
             queryClient.invalidateQueries({ queryKey: ["social-medias"] });
             setDeleteDialogOpen(false);
             setItemToDelete(null);
         },
         onError: (error) => {
             notifyApiError(error, {
-                fallbackMessage: "خطا در حذف شبکه اجتماعی",
+                fallbackMessage: getError("serverError"),
                 dedupeKey: "settings-social-delete-error",
                 preferBackendMessage: false,
             });
@@ -112,11 +114,11 @@ export function SocialMediaSection() {
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-bg/50 hover:bg-bg/50">
-                                    <TableHead className="w-[80px] text-center">آیکون</TableHead>
+                                    <TableHead className="w-20 text-center">آیکون</TableHead>
                                     <TableHead className="text-right">نام</TableHead>
                                     <TableHead className="text-right">لینک</TableHead>
                                     <TableHead className="w-24 text-right">ترتیب</TableHead>
-                                    <TableHead className="w-[60px] text-center"></TableHead>
+                                    <TableHead className="w-15 text-center"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -143,7 +145,7 @@ export function SocialMediaSection() {
                                                 href={item.url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="text-primary hover:underline text-dir-ltr truncate max-w-[200px] inline-block"
+                                                className="text-primary hover:underline text-dir-ltr truncate max-w-50 inline-block"
                                             >
                                                 {item.url}
                                             </a>
@@ -153,7 +155,7 @@ export function SocialMediaSection() {
                                                 {item.order}
                                             </span>
                                         </TableCell>
-                                        <TableCell className="w-[60px]">
+                                        <TableCell className="w-15">
                                             <div className="flex items-center justify-center">
                                                 <DataTableRowActions
                                                     row={{ original: item } as any}

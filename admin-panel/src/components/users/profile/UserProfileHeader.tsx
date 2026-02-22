@@ -5,6 +5,8 @@ import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import type { Media } from "@/types/shared/media";
 import { useQueryClient } from '@tanstack/react-query';
 import { showError, showSuccess } from '@/core/toast';
+import { getCrud } from '@/core/messages/ui';
+import { getError } from '@/core/messages/errors';
 
 interface ProfileHeaderProps {
     user: UserWithProfile;
@@ -53,12 +55,12 @@ export function UserProfileHeader({ user, formData, onProfileImageChange }: Prof
             }
             
             if (profilePictureId) {
-                showSuccess("عکس پروفایل با موفقیت به‌روزرسانی شد");
+                showSuccess(getCrud("updated", { item: "عکس پروفایل" }));
             } else {
-                showSuccess("عکس پروفایل با موفقیت حذف شد");
+                showSuccess(getCrud("deleted", { item: "عکس پروفایل" }));
             }
         } catch (error) {
-            showError("خطا در ذخیره عکس پروفایل");
+            showError(getError("serverError"));
         }
     };
 

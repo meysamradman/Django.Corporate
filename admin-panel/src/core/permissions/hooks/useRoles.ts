@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { roleApi } from '@/api/admins/roles/roles'
 import type { RoleListParams } from '@/types/auth/permission'
 import { showError, showSuccess } from '@/core/toast';
+import { getCrud } from '@/core/messages/ui';
+import { getError } from '@/core/messages/errors';
 import { getPermissionTranslation } from '@/core/messages/permissions';
 
 const translateRoleError = (message: string): string => {
@@ -91,7 +93,7 @@ export const useCreateRole = () => {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['roles'] })
       await queryClient.invalidateQueries({ queryKey: ['permission-map'] })
-      showSuccess('نقش با موفقیت ایجاد شد')
+      showSuccess(getCrud('created', { item: 'نقش' }))
     },
     onError: (error: any) => {
       if (error?.metaData?.message) {
@@ -100,7 +102,7 @@ export const useCreateRole = () => {
       } else if (error?.message) {
         showError(error.message)
       } else {
-        showError('خطا در ایجاد نقش')
+        showError(getError('serverError'))
       }
     },
   })
@@ -119,7 +121,7 @@ export const useUpdateRole = () => {
       
       await queryClient.invalidateQueries({ queryKey: ['permission-map'] })
       
-      showSuccess('نقش با موفقیت بروزرسانی شد')
+      showSuccess(getCrud('updated', { item: 'نقش' }))
     },
     onError: (error: any) => {
       if (error?.metaData?.message) {
@@ -128,7 +130,7 @@ export const useUpdateRole = () => {
       } else if (error?.message) {
         showError(error.message)
       } else {
-        showError('خطا در بروزرسانی نقش')
+        showError(getError('serverError'))
       }
     },
   })
@@ -142,7 +144,7 @@ export const useDeleteRole = () => {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['roles'] })
       await queryClient.invalidateQueries({ queryKey: ['permission-map'] })
-      showSuccess('نقش با موفقیت حذف شد')
+      showSuccess(getCrud('deleted', { item: 'نقش' }))
     },
     onError: (error: any) => {
       if (error?.metaData?.message) {
@@ -151,7 +153,7 @@ export const useDeleteRole = () => {
       } else if (error?.message) {
         showError(error.message)
       } else {
-        showError('خطا در حذف نقش')
+        showError(getError('serverError'))
       }
     },
   })
@@ -171,7 +173,7 @@ export const useBulkDeleteRoles = () => {
         );
         showSuccess(successMessage)
       } else {
-        showSuccess('نقش‌ها با موفقیت حذف شدند')
+        showSuccess(getCrud('deleted', { item: 'نقش‌ها' }))
       }
     },
     onError: (error: any) => {
@@ -181,7 +183,7 @@ export const useBulkDeleteRoles = () => {
       } else if (error?.message) {
         showError(error.message)
       } else {
-        showError('خطا در حذف نقش‌ها')
+        showError(getError('serverError'))
       }
     },
   })
@@ -196,7 +198,7 @@ export const useUpdateRoleStatus = () => {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['roles'] })
       await queryClient.invalidateQueries({ queryKey: ['permission-map'] })
-      showSuccess('وضعیت نقش با موفقیت تغییر کرد')
+      showSuccess(getCrud('updated', { item: 'وضعیت نقش' }))
     },
     onError: (error: any) => {
       if (error?.metaData?.message) {
@@ -205,7 +207,7 @@ export const useUpdateRoleStatus = () => {
       } else if (error?.message) {
         showError(error.message)
       } else {
-        showError('خطا در تغییر وضعیت نقش')
+        showError(getError('serverError'))
       }
     },
   })

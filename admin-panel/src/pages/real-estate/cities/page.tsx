@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { realEstateApi } from "@/api/real-estate";
 import { ProtectedButton } from "@/core/permissions";
 import { showError, showSuccess } from "@/core/toast";
+import { getCrud } from "@/core/messages/ui";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/elements/AlertDialog";
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from "@/types/shared/pagination";
@@ -104,7 +105,7 @@ export default function RealEstateCitiesPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => realEstateApi.deleteCity(id),
     onSuccess: () => {
-      showSuccess("شهر با موفقیت حذف شد");
+      showSuccess(getCrud("deleted", { item: "شهر" }));
       setDeleteConfirm({ open: false, isBulk: false });
       setRowSelection({});
       queryClient.invalidateQueries({ queryKey: ["real-estate-cities-list"] });
@@ -117,7 +118,7 @@ export default function RealEstateCitiesPage() {
   const bulkDeleteMutation = useMutation({
     mutationFn: async (ids: number[]) => Promise.all(ids.map((id) => realEstateApi.deleteCity(id))),
     onSuccess: () => {
-      showSuccess("شهرها با موفقیت حذف شدند");
+      showSuccess(getCrud("deleted", { item: "شهرها" }));
       setDeleteConfirm({ open: false, isBulk: false });
       setRowSelection({});
       queryClient.invalidateQueries({ queryKey: ["real-estate-cities-list"] });

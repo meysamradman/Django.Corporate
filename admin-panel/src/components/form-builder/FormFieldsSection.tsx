@@ -21,6 +21,8 @@ import {
 import { formApi } from "@/api/form-builder/form-builder";
 import type { ContactFormField } from "@/types/form/contactForm";
 import { showSuccess, showError } from "@/core/toast";
+import { getCrud } from "@/core/messages/ui";
+import { getError } from "@/core/messages/errors";
 import { Plus, Edit, Trash2, FileText, Globe, Smartphone, MoreVertical, Loader2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { Badge } from "@/components/elements/Badge";
@@ -46,12 +48,12 @@ export function FormFieldsSection() {
         mutationFn: (id: number) => formApi.deleteField(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["form-fields"] });
-            showSuccess("فیلد با موفقیت حذف شد");
+            showSuccess(getCrud("deleted", { item: "فیلد" }));
             setDeleteDialogOpen(false);
             setFieldToDelete(null);
         },
         onError: () => {
-            showError("خطایی در حذف فیلد رخ داد");
+            showError(getError("serverError"));
         },
     });
 
@@ -138,7 +140,7 @@ export function FormFieldsSection() {
                                     <TableHead className="text-right py-4 px-6 text-xs font-bold uppercase tracking-wider text-font-s">نوع</TableHead>
                                     <TableHead className="text-right py-4 px-6 text-xs font-bold uppercase tracking-wider text-font-s">پلتفرم</TableHead>
                                     <TableHead className="w-24 text-right py-4 px-6 text-xs font-bold uppercase tracking-wider text-font-s">ترتیب</TableHead>
-                                    <TableHead className="w-[60px]"></TableHead>
+                                    <TableHead className="w-15"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -194,7 +196,7 @@ export function FormFieldsSection() {
                                                             <MoreVertical className="h-4 w-4 text-font-s" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="start" className="w-[160px] p-1.5 rounded-xl border-br shadow-xl">
+                                                    <DropdownMenuContent align="start" className="w-40 p-1.5 rounded-xl border-br shadow-xl">
                                                         <DropdownMenuItem
                                                             onClick={() => handleOpenSide(field.id)}
                                                             className="flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer"

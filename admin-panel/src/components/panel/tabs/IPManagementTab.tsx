@@ -8,6 +8,8 @@ import { Badge } from '@/components/elements/Badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/elements/Table';
 import { Alert, AlertDescription } from '@/components/elements/Alert';
 import { showSuccess, showError } from '@/core/toast';
+import { getError } from '@/core/messages/errors';
+import { getSecurity } from '@/core/messages/ui';
 import { Shield, ShieldOff, Ban, Unlock, AlertCircle, CheckCircle2, Plus, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/elements/Dialog';
 import { Label } from '@/components/elements/Label';
@@ -40,10 +42,10 @@ export function IPManagementTab() {
     mutationFn: ipManagementApi.unbanIP,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['banned-ips'] });
-      showSuccess('IP با موفقیت از ban خارج شد');
+      showSuccess(getSecurity('ipUnbanned'));
     },
     onError: () => {
-      showError('خطا در رفع ban IP');
+      showError(getSecurity('ipUnbanError'));
     },
   });
 
@@ -55,10 +57,10 @@ export function IPManagementTab() {
       setBanIPDialog(false);
       setBanIP('');
       setBanReason('');
-      showSuccess('IP با موفقیت ban شد');
+      showSuccess(getSecurity('ipBanned'));
     },
     onError: () => {
-      showError('خطا در ban کردن IP');
+      showError(getSecurity('ipBanError'));
     },
   });
 
@@ -70,10 +72,10 @@ export function IPManagementTab() {
       queryClient.invalidateQueries({ queryKey: ['banned-ips'] });
       setAddWhitelistDialog(false);
       setWhitelistIP('');
-      showSuccess('IP با موفقیت به whitelist اضافه شد');
+      showSuccess(getSecurity('ipWhitelisted'));
     },
     onError: (error: any) => {
-      showError(error?.response?.data?.metaData?.message || 'خطا در اضافه کردن IP به whitelist');
+      showError(error?.response?.data?.metaData?.message || getSecurity('ipWhitelistAddError'));
     },
   });
 
@@ -82,10 +84,10 @@ export function IPManagementTab() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ip-whitelist'] });
       queryClient.invalidateQueries({ queryKey: ['current-ip'] });
-      showSuccess('IP با موفقیت از whitelist حذف شد');
+      showSuccess(getSecurity('ipWhitelistRemoved'));
     },
     onError: (error: any) => {
-      showError(error?.response?.data?.metaData?.message || 'خطا در حذف IP از whitelist');
+      showError(error?.response?.data?.metaData?.message || getSecurity('ipWhitelistRemoveError'));
     },
   });
 
@@ -95,10 +97,10 @@ export function IPManagementTab() {
       queryClient.invalidateQueries({ queryKey: ['ip-whitelist'] });
       queryClient.invalidateQueries({ queryKey: ['current-ip'] });
       queryClient.invalidateQueries({ queryKey: ['banned-ips'] });
-      showSuccess('IP فعلی شما به whitelist اضافه شد');
+      showSuccess(getSecurity('currentIpWhitelisted'));
     },
     onError: (error: any) => {
-      showError(error?.response?.data?.metaData?.message || 'خطا در اضافه کردن IP فعلی به whitelist');
+      showError(error?.response?.data?.metaData?.message || getSecurity('currentIpWhitelistAddError'));
     },
   });
 
@@ -110,7 +112,7 @@ export function IPManagementTab() {
 
   const handleBan = () => {
     if (!banIP.trim()) {
-      showError('لطفاً IP را وارد کنید');
+      showError(getSecurity('ipRequired'));
       return;
     }
     banMutation.mutate({ ip: banIP.trim(), reason: banReason || undefined });
@@ -118,7 +120,7 @@ export function IPManagementTab() {
 
   const handleAddToWhitelist = () => {
     if (!whitelistIP.trim()) {
-      showError('لطفاً IP را وارد کنید');
+      showError(getSecurity('ipRequired'));
       return;
     }
     addToWhitelistMutation.mutate(whitelistIP.trim());

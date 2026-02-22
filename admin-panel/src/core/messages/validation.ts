@@ -14,6 +14,7 @@ export const VALIDATION_MESSAGES = {
   passwordRequired: 'رمز عبور الزامی است',
   passwordMinLength: 'رمز عبور باید حداقل ۸ کاراکتر باشد',
   passwordComplexity: 'رمز عبور باید شامل حروف بزرگ، کوچک، عدد و کاراکتر ویژه باشد',
+  passwordMismatch: 'رمز عبور و تکرار آن یکسان نیستند',
   
   captchaRequired: 'کد کپتچا الزامی است',
   otpRequired: 'کد یکبار مصرف الزامی است',
@@ -48,6 +49,8 @@ export const VALIDATION_MESSAGES = {
   slugInvalid: 'اسلاگ فقط می‌تواند شامل حروف فارسی، انگلیسی، اعداد و خط تیره باشد',
   
   urlInvalid: 'آدرس وارد شده معتبر نیست',
+  fileSizeLimit: 'حجم فایل نباید بیشتر از {max} باشد',
+  duplicateFieldName: 'این نام فیلد قبلاً استفاده شده است',
 } as const;
 
 export const getValidation = createMessageGetter(VALIDATION_MESSAGES);

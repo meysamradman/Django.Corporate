@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import { notifyApiError, showSuccess } from "@/core/toast";
+import { getCrud } from "@/core/messages/ui";
 import { msg } from "@/core/messages";
 import type { AgencyDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
@@ -17,7 +18,7 @@ export function useAdminsAgenciesListActions() {
     mutationFn: (agencyId: number) => realEstateApi.deleteAgency(agencyId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["agencies"] });
-      showSuccess("با موفقیت حذف شد");
+      showSuccess(getCrud("deleted", { item: "آیتم" }));
     },
     onError: (error) => {
       notifyApiError(error, {

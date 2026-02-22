@@ -3,6 +3,7 @@ import type { ApiResponse } from '@/types/api/apiResponse';
 import { ApiError } from '@/types/api/apiError';
 import type { PanelSettings } from '@/types/settings/panelSettings';
 import { showSuccess, showError } from '@/core/toast';
+import { getCrud } from '@/core/messages/ui';
 import { env } from '@/core/config/environment';
 
 const BASE_URL = '/admin/panel-settings';
@@ -85,7 +86,7 @@ export const downloadDatabaseExport = async (): Promise<void> => {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(downloadUrl);
 
-        showSuccess('دانلود پشتیبان دیتابیس با موفقیت انجام شد');
+        showSuccess(getCrud('saved', { item: 'پشتیبان دیتابیس' }));
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'خطا در دانلود پشتیبان دیتابیس';
         showError(errorMessage);

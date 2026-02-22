@@ -1,0 +1,26 @@
+﻿C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\components\panel\tabs\IPManagementTab.tsx:108:if (confirm(`آیا مطمئن هستید که می‌خواهید IP ${ip} را از ban خارج کنید؟`)) {
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\components\panel\tabs\IPManagementTab.tsx:130:if (confirm(`آیا مطمئن هستید که می‌خواهید IP ${ip} را از whitelist حذف کنید؟`)) {
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\components\real-estate\properties\create\RealEstateFloorPlans.tsx:163:if (!confirm("آیا از حذف این پلان اطمینان دارید؟")) return;
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\admins\agencies\page.tsx:268:{getConfirm('delete', { item: 'آژانس' })}
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\admins\page.tsx:336:{getConfirm('delete', { item: 'ادمین' })}
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\agents\page.tsx:339:{getConfirm('delete', { item: 'مشاور' })}
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\blogs\page.tsx:236:? getConfirm('bulkDelete', { item: 'بلاگ', count: deleteConfirm.blogIds?.length || 0 })
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\blogs\page.tsx:237:: getConfirm('delete', { item: 'بلاگ' })
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\portfolios\page.tsx:240:? getConfirm('bulkDelete', { item: 'نمونه‌کار', count: deleteConfirm.portfolioIds?.length || 0 })
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\portfolios\page.tsx:241:: getConfirm('delete', { item: 'نمونه‌کار' })
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\real-estate\features\page.tsx:178:? getConfirm("bulkDelete", { item: "ویژگی ملک", count: deleteConfirm.featureIds?.length || 0 })
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\real-estate\features\page.tsx:179:: getConfirm("delete", { item: "ویژگی ملک" })}
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\real-estate\labels\page.tsx:178:? getConfirm("bulkDelete", { item: "برچسب ملک", count: deleteConfirm.labelIds?.length || 0 })
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\real-estate\labels\page.tsx:179:: getConfirm("delete", { item: "برچسب ملک" })}
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\real-estate\properties\page.tsx:268:? getConfirm("bulkDelete", { item: "ملک", count: deleteConfirm.propertyIds?.length || 0 })
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\real-estate\properties\page.tsx:269:: getConfirm("delete", { item: "ملک" })}
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\real-estate\states\page.tsx:178:? getConfirm("bulkDelete", { item: "وضعیت ملک", count: deleteConfirm.stateIds?.length || 0 })
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\real-estate\states\page.tsx:179:: getConfirm("delete", { item: "وضعیت ملک" })}
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\real-estate\tags\page.tsx:179:? getConfirm("bulkDelete", { item: "تگ ملک", count: deleteConfirm.tagIds?.length || 0 })
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\real-estate\tags\page.tsx:180:: getConfirm("delete", { item: "تگ ملک" })}
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\real-estate\types\page.tsx:191:? getConfirm("bulkDelete", { item: "نوع ملک", count: deleteConfirm.typeIds?.length || 0 })
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\real-estate\types\page.tsx:192:: getConfirm("delete", { item: "نوع ملک" })}
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\roles\page.tsx:178:? getConfirm('bulkDelete', { item: 'نقش', count: deleteConfirm.roleIds?.length || 0 })
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\roles\page.tsx:179:: getConfirm('delete', { item: 'نقش' })
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\users\page.tsx:161:? getConfirm('bulkDelete', { item: 'کاربر', count: deleteConfirm.userIds?.length || 0 })
+C:\Users\HP\Desktop\Programing\Apps\Monolingual\Django\Corporate\admin-panel\src\pages\users\page.tsx:162:: getConfirm('delete', { item: 'کاربر' })

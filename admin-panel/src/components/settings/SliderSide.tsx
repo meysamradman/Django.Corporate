@@ -8,6 +8,7 @@ import { FormFieldInput, FormFieldSwitch, FormFieldTextarea } from "@/components
 import { sliderSchema, type SliderFormValues } from "./validations/settingsSchemas";
 import { showSuccess, showError } from "@/core/toast";
 import { msg } from "@/core/messages";
+import { getValidation } from "@/core/messages/validation";
 import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import type { Media } from "@/types/shared/media";
 import { Label } from "@/components/elements/Label";
@@ -118,7 +119,7 @@ export const SliderSide = () => {
 
     const onSubmit = (data: SliderFormValues) => {
         if (!data.image_id) {
-            showError("انتخاب تصویر برای اسلایدر الزامی است");
+            showError(getValidation("required", { field: "انتخاب تصویر برای اسلایدر" }));
             return;
         }
         mutation.mutate(data);

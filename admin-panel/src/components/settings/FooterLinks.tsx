@@ -22,6 +22,8 @@ import {
 import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
 import { DRAWER_IDS } from "@/components/shared/drawer/types";
 import { notifyApiError, showSuccess } from "@/core/toast";
+import { getCrud } from "@/core/messages/ui";
+import { getError } from "@/core/messages/errors";
 
 export function FooterLinks() {
     const queryClient = useQueryClient();
@@ -49,14 +51,14 @@ export function FooterLinks() {
     const deleteMutation = useMutation({
         mutationFn: (id: number) => settingsApi.deleteFooterLink(id),
         onSuccess: () => {
-            showSuccess("لینک فوتر با موفقیت حذف شد");
+            showSuccess(getCrud("deleted", { item: "لینک فوتر" }));
             queryClient.invalidateQueries({ queryKey: ["footer-links"] });
             setDeleteDialogOpen(false);
             setItemToDelete(null);
         },
         onError: (error) => {
             notifyApiError(error, {
-                fallbackMessage: "خطا در حذف لینک فوتر",
+                fallbackMessage: getError("serverError"),
                 dedupeKey: "settings-footer-link-delete-error",
                 preferBackendMessage: false,
             });

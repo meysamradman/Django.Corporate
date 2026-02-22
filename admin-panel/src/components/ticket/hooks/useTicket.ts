@@ -8,6 +8,8 @@ import type {
   TicketListParams,
 } from "@/types/ticket/ticket";
 import { notifyApiError, showSuccess } from "@/core/toast";
+import { getCrud } from "@/core/messages/ui";
+import { getError } from "@/core/messages/errors";
 
 export function useTicketStats() {
   return useQuery({
@@ -62,11 +64,11 @@ export function useCreateTicket() {
     mutationFn: (data: TicketCreate) => ticketApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
-      showSuccess("تیکت با موفقیت ایجاد شد");
+      showSuccess(getCrud("created", { item: "تیکت" }));
     },
     onError: (error: any) => {
       notifyApiError(error, {
-        fallbackMessage: "خطا در ایجاد تیکت",
+        fallbackMessage: getError("serverError"),
       });
     },
   });
@@ -81,11 +83,11 @@ export function useUpdateTicket() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       queryClient.invalidateQueries({ queryKey: ['ticket', variables.id] });
-      showSuccess("تیکت با موفقیت به‌روزرسانی شد");
+      showSuccess(getCrud("updated", { item: "تیکت" }));
     },
     onError: (error: any) => {
       notifyApiError(error, {
-        fallbackMessage: "خطا در به‌روزرسانی تیکت",
+        fallbackMessage: getError("serverError"),
       });
     },
   });
@@ -98,11 +100,11 @@ export function useDeleteTicket() {
     mutationFn: (id: number | string) => ticketApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
-      showSuccess("تیکت با موفقیت حذف شد");
+      showSuccess(getCrud("deleted", { item: "تیکت" }));
     },
     onError: (error: any) => {
       notifyApiError(error, {
-        fallbackMessage: "خطا در حذف تیکت",
+        fallbackMessage: getError("serverError"),
       });
     },
   });
@@ -117,11 +119,11 @@ export function useAssignTicket() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       queryClient.invalidateQueries({ queryKey: ['ticket', variables.id] });
-      showSuccess("تیکت با موفقیت اختصاص داده شد");
+      showSuccess(getCrud("updated", { item: "تخصیص تیکت" }));
     },
     onError: (error: any) => {
       notifyApiError(error, {
-        fallbackMessage: "خطا در اختصاص تیکت",
+        fallbackMessage: getError("serverError"),
       });
     },
   });
@@ -138,11 +140,11 @@ export function useUpdateTicketStatus() {
       queryClient.invalidateQueries({ queryKey: ['ticket', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['ticket-stats'] });
-      showSuccess("وضعیت تیکت با موفقیت به‌روزرسانی شد");
+      showSuccess(getCrud("updated", { item: "وضعیت تیکت" }));
     },
     onError: (error: any) => {
       notifyApiError(error, {
-        fallbackMessage: "خطا در به‌روزرسانی وضعیت تیکت",
+        fallbackMessage: getError("serverError"),
       });
     },
   });
@@ -159,11 +161,11 @@ export function useCreateTicketMessage() {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['ticket-stats'] });
-      showSuccess("پیام با موفقیت ارسال شد");
+      showSuccess(getCrud("created", { item: "پیام" }));
     },
     onError: (error: any) => {
       notifyApiError(error, {
-        fallbackMessage: "خطا در ارسال پیام",
+        fallbackMessage: getError("serverError"),
       });
     },
   });

@@ -6,6 +6,7 @@ import { FileDropzone } from '@/components/media/upload/MediaUploadZone';
 import { FileList } from '@/components/media/upload/FileList';
 import type { MediaFile, UploadSettings } from '@/components/media/hooks/useMediaUpload';
 import { showError, showWarning } from '@/core/toast';
+import { getAction } from '@/core/messages/ui';
 
 interface MediaLibraryUploadTabProps {
     isLoadingSettings: boolean;
@@ -54,11 +55,11 @@ export function MediaLibraryUploadTab({
                             <FileDropzone
                                 onFilesAdded={(incomingFiles) => {
                                     if (!canUploadMedia) {
-                                        showError('اجازه آپلود رسانه را ندارید');
+                                        showError(getAction('uploadPermissionDenied'));
                                         return;
                                     }
                                     if (isLoadingSettings) {
-                                        showWarning('لطفا صبر کنید تا تنظیمات بارگذاری شود');
+                                        showWarning(getAction('waitForSettingsLoad'));
                                         return;
                                     }
                                     processFiles(incomingFiles);

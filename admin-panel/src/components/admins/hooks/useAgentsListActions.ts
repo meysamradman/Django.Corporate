@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/api/admins/admins";
 import { notifyApiError, showSuccess } from "@/core/toast";
+import { getCrud } from "@/core/messages/ui";
 import { msg } from "@/core/messages";
 import type { AdminDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
@@ -18,7 +19,7 @@ export function useAgentsListActions() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["agents"] });
       queryClient.invalidateQueries({ queryKey: ["admins"] });
-      showSuccess("با موفقیت حذف شد");
+      showSuccess(getCrud("deleted", { item: "آیتم" }));
     },
     onError: (error) => {
       notifyApiError(error, {

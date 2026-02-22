@@ -22,6 +22,8 @@ import {
 import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
 import { DRAWER_IDS } from "@/components/shared/drawer/types";
 import { notifyApiError, showSuccess } from "@/core/toast";
+import { getCrud } from "@/core/messages/ui";
+import { getError } from "@/core/messages/errors";
 
 export function FooterSections() {
     const queryClient = useQueryClient();
@@ -38,7 +40,7 @@ export function FooterSections() {
     const deleteMutation = useMutation({
         mutationFn: (id: number) => settingsApi.deleteFooterSection(id),
         onSuccess: () => {
-            showSuccess("ستون فوتر با موفقیت حذف شد");
+            showSuccess(getCrud("deleted", { item: "ستون فوتر" }));
             queryClient.invalidateQueries({ queryKey: ["footer-sections"] });
             queryClient.invalidateQueries({ queryKey: ["footer-links"] });
             setDeleteDialogOpen(false);
@@ -46,7 +48,7 @@ export function FooterSections() {
         },
         onError: (error) => {
             notifyApiError(error, {
-                fallbackMessage: "خطا در حذف ستون فوتر",
+                fallbackMessage: getError("serverError"),
                 dedupeKey: "settings-footer-section-delete-error",
                 preferBackendMessage: false,
             });

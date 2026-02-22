@@ -9,7 +9,7 @@ import { showError } from "@/core/toast";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyType } from "@/types/real_estate/type/propertyType";
 import type { ColumnDef } from "@tanstack/react-table";
-import { getConfirm } from "@/core/messages";
+import { getConfirm, getError } from "@/core/messages";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -131,7 +131,7 @@ export default function PropertyTypesPage() {
   const columns = usePropertyTypeColumns(rowActions, handleToggleActive, handleEditType) as ColumnDef<PropertyType>[];
 
   if (error) {
-    showError("خطا در بارگذاری داده‌ها");
+    showError(getError("serverError"));
     return (
       <div className="space-y-6">
         <PageHeader title="مدیریت نوع‌های ملک" />

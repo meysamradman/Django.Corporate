@@ -19,6 +19,8 @@ import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/co
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/core/auth/AuthContext';
 import { showSuccess, showError } from '@/core/toast';
+import { getCrud } from '@/core/messages/ui';
+import { getError } from '@/core/messages/errors';
 import { adminApi } from '@/api/admins/admins';
 import { hasPermission } from "@/core/permissions/utils/permissionUtils";
 
@@ -161,11 +163,11 @@ export function UserAccount({
             await queryClient.invalidateQueries({ queryKey: ['user', queryKeyForInvalidate] });
             await queryClient.invalidateQueries({ queryKey: ['users'] });
 
-            showSuccess("وضعیت حساب کاربری با موفقیت به‌روزرسانی شد");
+            showSuccess(getCrud("updated", { item: "وضعیت حساب کاربری" }));
         },
         onError: (error) => {
             setIsActive(user.is_active);
-            showError(error, { customMessage: "خطا در به‌روزرسانی وضعیت حساب کاربری" });
+            showError(error, { customMessage: getError("serverError") });
         },
     });
 
@@ -184,7 +186,7 @@ export function UserAccount({
                         iconBgColor="bg-blue"
                         iconColor="stroke-blue-2"
                         cardBorderColor="border-b-blue-1"
-                        className="border-0 shadow-md hover:shadow-xl transition-all duration-300 relative overflow-hidden bg-gradient-to-br from-card via-card to-muted/30 before:absolute before:right-0 before:top-0 before:h-full before:w-1 before:bg-gradient-to-b before:from-blue-1 before:via-blue-1 before:to-blue-1"
+                        className="border-0 shadow-md hover:shadow-xl transition-all duration-300 relative overflow-hidden bg-linear-to-br from-card via-card to-muted/30 before:absolute before:right-0 before:top-0 before:h-full before:w-1 before:bg-linear-to-b before:from-blue-1 before:via-blue-1 before:to-blue-1"
                         contentClassName="pt-4 pb-4"
                     >
                         <div className="space-y-5">
@@ -192,7 +194,7 @@ export function UserAccount({
                                 <div className="space-y-0 [&>div:not(:last-child)]:border-b">
                                     <div className="flex items-center justify-between gap-3 pb-3">
                                         <div className="flex items-center gap-2">
-                                            <User className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <User className="w-4 h-4 text-font-s shrink-0" />
                                             <label>نام کامل:</label>
                                         </div>
                                         <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
@@ -227,14 +229,14 @@ export function UserAccount({
                                     )}
                                     <div className="flex items-center justify-between gap-3 py-3">
                                         <div className="flex items-center gap-2">
-                                            <Smartphone className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <Smartphone className="w-4 h-4 text-font-s shrink-0" />
                                             <label>موبایل:</label>
                                         </div>
                                         <p className="text-font-p text-left">{formData.mobile || user.mobile || "وارد نشده"}</p>
                                     </div>
                                     <div className="flex items-center justify-between gap-3 py-3">
                                         <div className="flex items-center gap-2">
-                                            <Mail className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <Mail className="w-4 h-4 text-font-s shrink-0" />
                                             <label>ایمیل:</label>
                                         </div>
                                         <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
@@ -243,14 +245,14 @@ export function UserAccount({
                                     </div>
                                     <div className="flex items-center justify-between gap-3 py-3">
                                         <div className="flex items-center gap-2">
-                                            <Phone className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <Phone className="w-4 h-4 text-font-s shrink-0" />
                                             <label>تلفن:</label>
                                         </div>
                                         <p className="text-font-p text-left">{formData.phone || "وارد نشده"}</p>
                                     </div>
                                     <div className="flex items-center justify-between gap-3 pt-3">
                                         <div className="flex items-center gap-2">
-                                            <Fingerprint className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <Fingerprint className="w-4 h-4 text-font-s shrink-0" />
                                             <label>کد ملی:</label>
                                         </div>
                                         <p className="text-font-p text-left">{formData.nationalId || "وارد نشده"}</p>
@@ -263,7 +265,7 @@ export function UserAccount({
                                 </div>
                                 <div className="relative flex justify-center">
                                     <div className="bg-card px-3 py-1 rounded-full border border-br/50 shadow-sm">
-                                        <div className="h-1 w-12 bg-gradient-to-r from-transparent via-primary/30 to-transparent rounded-full"></div>
+                                        <div className="h-1 w-12 bg-linear-to-r from-transparent via-primary/30 to-transparent rounded-full"></div>
                                     </div>
                                 </div>
                             </div>
@@ -271,7 +273,7 @@ export function UserAccount({
                                 <div className="space-y-0 [&>div:not(:last-child)]:border-b">
                                     <div className="flex items-center justify-between gap-3 pb-3">
                                         <div className="flex items-center gap-2">
-                                            <Calendar className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <Calendar className="w-4 h-4 text-font-s shrink-0" />
                                             <label>تاریخ تولد:</label>
                                         </div>
                                         <p className="text-font-p text-left">
@@ -280,28 +282,28 @@ export function UserAccount({
                                     </div>
                                     <div className="flex items-center justify-between gap-3 py-3">
                                         <div className="flex items-center gap-2">
-                                            <Globe className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <Globe className="w-4 h-4 text-font-s shrink-0" />
                                             <label>کشور:</label>
                                         </div>
                                         <p className="text-font-p text-left">ایران</p>
                                     </div>
                                     <div className="flex items-center justify-between gap-3 py-3">
                                         <div className="flex items-center gap-2">
-                                            <Map className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <Map className="w-4 h-4 text-font-s shrink-0" />
                                             <label>استان:</label>
                                         </div>
                                         <p className="text-font-p text-left">{formData.province || "وارد نشده"}</p>
                                     </div>
                                     <div className="flex items-center justify-between gap-3 py-3">
                                         <div className="flex items-center gap-2">
-                                            <MapPin className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <MapPin className="w-4 h-4 text-font-s shrink-0" />
                                             <label>شهر:</label>
                                         </div>
                                         <p className="text-font-p text-left">{formData.city || "وارد نشده"}</p>
                                     </div>
                                     <div className="flex items-center justify-between gap-3 pt-3">
                                         <div className="flex items-center gap-2">
-                                            <MapPin className="w-4 h-4 text-font-s flex-shrink-0" />
+                                            <MapPin className="w-4 h-4 text-font-s shrink-0" />
                                             <label>آدرس:</label>
                                         </div>
                                         <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">

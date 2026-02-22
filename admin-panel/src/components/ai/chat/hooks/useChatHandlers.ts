@@ -1,6 +1,8 @@
 import { useState, useRef, type RefObject, type KeyboardEvent, type ChangeEvent } from 'react';
 import { aiApi } from '@/api/ai/ai';
 import { showError, showSuccess, showInfo } from '@/core/toast';
+import { getAction } from '@/core/messages/ui';
+import { getValidation } from '@/core/messages/validation';
 import type { ChatMessage } from '@/types/ai/ai';
 
 interface UseChatHandlersOptions {
@@ -27,12 +29,12 @@ export function useChatHandlers({
 
     const handleSend = async () => {
         if (!selectedProvider) {
-            showError('لطفاً ابتدا یک Provider انتخاب کنید');
+            showError(getValidation('required', { field: 'Provider' }));
             return;
         }
 
         if (!message.trim()) {
-            showError('لطفاً پیام خود را وارد کنید');
+            showError(getValidation('required', { field: 'پیام' }));
             return;
         }
 
@@ -105,11 +107,11 @@ export function useChatHandlers({
         if (file) {
             const maxSize = 10 * 1024 * 1024;
             if (file.size > maxSize) {
-                showError('حجم فایل نباید بیشتر از 10 مگابایت باشد');
+                showError(getValidation('fileSizeLimit', { max: '10 مگابایت' }));
                 return;
             }
             setAttachedFile(file);
-            showSuccess(`فایل ${file.name} آماده ارسال است`);
+            showSuccess(getAction('fileReadyToSend', { name: file.name }));
         }
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
@@ -118,7 +120,7 @@ export function useChatHandlers({
 
     const removeAttachedFile = () => {
         setAttachedFile(null);
-        showInfo('فایل حذف شد');
+        showInfo(getAction('fileRemoved'));
     };
 
     return {

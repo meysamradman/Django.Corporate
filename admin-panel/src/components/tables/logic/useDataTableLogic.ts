@@ -7,6 +7,8 @@ import type {
   RowSelectionState,
 } from '@tanstack/react-table';
 import { showSuccess, showError, showInfo } from '@/core/toast';
+import { getAction, getCrud } from '@/core/messages/ui';
+import { getError } from '@/core/messages/errors';
 import { useDebounceValue } from '@/core/hooks/useDebounce';
 
 import type { ApiResponse } from '@/types/api/apiResponse';
@@ -245,12 +247,12 @@ export function useDataTableLogic<
 
   const handleDeleteItem = useCallback(async (id: number | string) => {
     if (!deleteItemFn) {
-              showError("خطا در حذف آیتم");
+              showError(getError('serverError'));
       return;
     }
     try {
       await deleteItemFn(id);
-      showSuccess("با موفقیت حذف شد");
+      showSuccess(getCrud('deleted', { item: 'آیتم' }));
       triggerRefetch();
       setRowSelection({});
     } catch (error) {
@@ -260,7 +262,7 @@ export function useDataTableLogic<
    
   const handleDeleteSelected = useCallback(async (idsToUse?: (string | number)[]) => {
     if (!deleteMultipleItemsFn) {
-              showError("خطا در حذف آیتم‌های انتخاب شده");
+              showError(getError('serverError'));
       return;
     }
     const selectedIds = idsToUse ?? Object.keys(rowSelection).filter(key => rowSelection[key]).map(key => {
@@ -272,13 +274,13 @@ export function useDataTableLogic<
     }).filter(id => id !== null) as (string | number)[];
 
     if (!selectedIds || selectedIds.length === 0) {
-      showInfo("آیتمی انتخاب نشده");
+      showInfo(getAction('noSelection'));
       return;
     }
 
     try {
       await deleteMultipleItemsFn(selectedIds);
-      showSuccess("با موفقیت حذف شد");
+      showSuccess(getCrud('deleted', { item: 'آیتم' }));
       triggerRefetch();
       setRowSelection({});
     } catch (error) {

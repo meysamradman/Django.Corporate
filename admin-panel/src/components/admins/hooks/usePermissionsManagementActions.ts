@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { showError, showSuccess } from "@/core/toast";
 import { msg } from "@/core/messages";
+import { getCrud } from "@/core/messages/ui";
 import type { RoleWithPermissions } from "@/types/auth/permission";
 
 interface UsePermissionsManagementActionsParams {
@@ -23,7 +24,7 @@ export function usePermissionsManagementActions({
 
     setIsSaving(true);
     try {
-      showSuccess("تغییرات با موفقیت ذخیره شد");
+      showSuccess(getCrud("saved", { item: "تغییرات" }));
       setModifiedPermissions(new Set());
       setSaveDialogOpen(false);
     } catch {

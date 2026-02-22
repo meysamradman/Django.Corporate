@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { showSuccess } from "@/core/toast";
+import { getCrud } from "@/core/messages/ui";
 import type { Ticket, ReplyTicketData } from "@/types/ticket/ticket";
 
 interface UseTicketListActionsParams {
@@ -37,7 +38,7 @@ export function useTicketListActions({
     refetch();
     queryClient.invalidateQueries({ queryKey: ["notifications"] });
     queryClient.invalidateQueries({ queryKey: ["ticket-stats"] });
-    showSuccess("داده‌ها به‌روزرسانی شدند");
+    showSuccess(getCrud("updated", { item: "داده‌ها" }));
   }, [refetch, queryClient]);
 
   const handleDeleteTicket = useCallback(

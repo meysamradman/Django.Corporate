@@ -5,6 +5,7 @@ import { PersianDatePicker } from "@/components/elements/PersianDatePicker";
 import { realEstateApi } from "@/api/real-estate";
 import type { Property } from "@/types/real_estate/realEstate";
 import { showError, showSuccess } from "@/core/toast";
+import { getCrud } from "@/core/messages/ui";
 import { TaxonomyDrawer } from "@/components/templates/TaxonomyDrawer";
 
 interface FinalizeDealDialogProps {
@@ -83,7 +84,7 @@ export function FinalizeDealDialog({ open, onOpenChange, property, onSuccess }: 
         commission: commission !== "" ? Number(commission) : null,
       }),
     onSuccess: () => {
-      showSuccess("معامله با موفقیت نهایی شد.");
+      showSuccess(getCrud("saved", { item: "معامله" }));
       onOpenChange(false);
       onSuccess?.();
     },

@@ -9,7 +9,7 @@ import { showError } from "@/core/toast";
 import { realEstateApi } from "@/api/real-estate";
 import type { PropertyLabel } from "@/types/real_estate/label/realEstateLabel";
 import type { ColumnDef } from "@tanstack/react-table";
-import { getConfirm } from "@/core/messages";
+import { getConfirm, getError } from "@/core/messages";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -121,7 +121,7 @@ export default function PropertyLabelsPage() {
   const columns = usePropertyLabelColumns(rowActions, handleToggleActive, handleEditLabel) as ColumnDef<PropertyLabel>[];
 
   if (error) {
-    showError("خطا در بارگذاری داده‌ها");
+    showError(getError("serverError"));
     return (
       <div className="space-y-6">
         <PageHeader title="مدیریت برچسب‌های ملک" />

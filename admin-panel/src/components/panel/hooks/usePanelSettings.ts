@@ -3,6 +3,8 @@ import { getPanelSettings } from '@/api/panel/panel';
 import type { PanelSettings } from '@/types/settings/panelSettings';
 import { api } from '@/core/config/api';
 import { notifyApiError, showSuccess } from '@/core/toast';
+import { getCrud } from '@/core/messages/ui';
+import { getError } from '@/core/messages/errors';
 import { useAuth } from '@/core/auth/AuthContext';
 
 export function usePanelSettings() {
@@ -31,11 +33,11 @@ export function useUpdatePanelSettings() {
         queryClient.setQueryData(['panel-settings'], updatedData);
       }
       queryClient.invalidateQueries({ queryKey: ['panel-settings'] });
-      showSuccess('تنظیمات پنل با موفقیت به‌روزرسانی شد');
+      showSuccess(getCrud('updated', { item: 'تنظیمات پنل' }));
     },
     onError: (error: unknown) => {
       notifyApiError(error, {
-        fallbackMessage: 'خطا در به‌روزرسانی تنظیمات پنل',
+        fallbackMessage: getError('serverError'),
         dedupeKey: 'panel-settings-update',
       });
     },

@@ -6,6 +6,8 @@ import type { EmailMessage } from "@/types/email/emailMessage";
 import type { MailboxType } from "@/components/email/types";
 import type { ComposeEmailData } from "@/components/email";
 import { notifyApiError, showSuccess, showError } from "@/core/toast";
+import { getCrud, getEmailAction } from "@/core/messages/ui";
+import { getError } from "@/core/messages/errors";
 
 interface UseEmailListActionsParams {
   selectedMailbox: MailboxType;
@@ -55,7 +57,7 @@ export function useEmailListActions({
       setEmails(response.data);
     } catch (error) {
       notifyApiError(error, {
-        fallbackMessage: "خطا در دریافت ایمیل‌ها",
+        fallbackMessage: getError("serverError"),
         dedupeKey: "email-fetch-list-error",
         preferBackendMessage: false,
       });
@@ -89,10 +91,10 @@ export function useEmailListActions({
       try {
         setEmails((prev) => prev.filter((item) => item.id !== email.id));
         setSelectedEmail(null);
-        showSuccess("ایمیل با موفقیت حذف شد");
+        showSuccess(getCrud("deleted", { item: "ایمیل" }));
       } catch (error) {
         notifyApiError(error, {
-          fallbackMessage: "خطا در حذف ایمیل",
+          fallbackMessage: getError("serverError"),
           dedupeKey: "email-delete-error",
           preferBackendMessage: false,
         });
@@ -103,16 +105,16 @@ export function useEmailListActions({
 
   const handleMarkAsRead = useCallback(async () => {
     if (selectedEmails.size === 0) {
-      showError("لطفا ابتدا ایمیل‌هایی را انتخاب کنید");
+      showError(getEmailAction("selectEmailsFirst"));
       return;
     }
     try {
-      showSuccess("ایمیل‌ها به عنوان خوانده شده علامت‌گذاری شدند");
+      showSuccess(getEmailAction("markedAsRead"));
       await fetchEmails();
       setSelectedEmails(new Set());
     } catch (error) {
       notifyApiError(error, {
-        fallbackMessage: "خطا در علامت‌گذاری ایمیل‌ها",
+        fallbackMessage: getError("serverError"),
         dedupeKey: "email-mark-read-error",
         preferBackendMessage: false,
       });
@@ -121,16 +123,16 @@ export function useEmailListActions({
 
   const handleMarkAsUnread = useCallback(async () => {
     if (selectedEmails.size === 0) {
-      showError("لطفا ابتدا ایمیل‌هایی را انتخاب کنید");
+      showError(getEmailAction("selectEmailsFirst"));
       return;
     }
     try {
-      showSuccess("ایمیل‌ها به عنوان نخوانده علامت‌گذاری شدند");
+      showSuccess(getEmailAction("markedAsUnread"));
       await fetchEmails();
       setSelectedEmails(new Set());
     } catch (error) {
       notifyApiError(error, {
-        fallbackMessage: "خطا در علامت‌گذاری ایمیل‌ها",
+        fallbackMessage: getError("serverError"),
         dedupeKey: "email-mark-unread-error",
         preferBackendMessage: false,
       });
@@ -142,7 +144,7 @@ export function useEmailListActions({
       try {
         if (replyToEmail) {
           await emailApi.markAsReplied(replyToEmail.id, data.message);
-          showSuccess("پاسخ با موفقیت ارسال شد");
+          showSuccess(getEmailAction("replySent"));
         } else {
           await emailApi.create({
             name: data.to.split("@")[0],
@@ -152,13 +154,13 @@ export function useEmailListActions({
             source: "email",
             status: "new",
           });
-          showSuccess("ایمیل با موفقیت ارسال شد");
+          showSuccess(getEmailAction("emailSent"));
         }
         setReplyToEmail(null);
         await fetchEmails();
       } catch (error) {
         notifyApiError(error, {
-          fallbackMessage: "خطا در ارسال ایمیل",
+          fallbackMessage: getError("serverError"),
           dedupeKey: "email-send-error",
           preferBackendMessage: true,
         });
@@ -177,11 +179,11 @@ export function useEmailListActions({
           message: data.message || "",
           source: "email",
         });
-        showSuccess("پیش‌نویس با موفقیت ذخیره شد");
+        showSuccess(getEmailAction("draftSaved"));
         await fetchEmails();
       } catch (error) {
         notifyApiError(error, {
-          fallbackMessage: "خطا در ذخیره پیش‌نویس",
+          fallbackMessage: getError("serverError"),
           dedupeKey: "email-save-draft-error",
           preferBackendMessage: false,
         });
@@ -196,12 +198,12 @@ export function useEmailListActions({
         await emailApi.update(email.id, {
           status: "new",
         });
-        showSuccess("پیش‌نویس با موفقیت منتشر شد");
+        showSuccess(getEmailAction("draftPublished"));
         setSelectedEmail(null);
         await fetchEmails();
       } catch (error) {
         notifyApiError(error, {
-          fallbackMessage: "خطا در انتشار پیش‌نویس",
+          fallbackMessage: getError("serverError"),
           dedupeKey: "email-publish-draft-error",
           preferBackendMessage: false,
         });
@@ -219,10 +221,10 @@ export function useEmailListActions({
         if (selectedEmail?.id === email.id) {
           setSelectedEmail(updatedEmail);
         }
-        showSuccess(email.is_starred ? "ستاره حذف شد" : "ستاره اضافه شد");
+        showSuccess(email.is_starred ? getEmailAction("starRemoved") : getEmailAction("starAdded"));
       } catch (error) {
         notifyApiError(error, {
-          fallbackMessage: "خطا در تغییر وضعیت ستاره",
+          fallbackMessage: getError("serverError"),
           dedupeKey: "email-toggle-star-error",
           preferBackendMessage: false,
         });

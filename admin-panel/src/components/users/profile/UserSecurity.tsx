@@ -8,6 +8,8 @@ import { FormField } from "@/components/shared/FormField";
 import { Eye, EyeOff, AlertCircle, Lock } from "lucide-react";
 import { showError, showSuccess } from '@/core/toast';
 import { validatePassword } from '@/core/validation';
+import { getValidation } from '@/core/messages/validation';
+import { getAuth } from '@/core/messages/ui';
 
 export function UserSecurity() {
     const [showNewPassword, setShowNewPassword] = useState(false);
@@ -17,10 +19,10 @@ export function UserSecurity() {
 
     const handleChangePassword = () => {
         if (newPassword !== confirmPassword) {
-            showError("رمز عبور و تکرار آن یکسان نیستند");
+            showError(getValidation("passwordMismatch"));
             return;
         }
-        showSuccess("رمز عبور با موفقیت تغییر کرد");
+        showSuccess(getAuth("passwordResetSuccess"));
         setNewPassword("");
         setConfirmPassword("");
     };

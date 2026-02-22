@@ -4,6 +4,9 @@ import { aiApi } from '@/api/ai/ai';
 import { mediaApi } from '@/api/media/media';
 import type { Media } from '@/types/shared/media';
 import { showSuccess, showError } from '@/core/toast';
+import { getCrud } from '@/core/messages/ui';
+import { getError } from '@/core/messages/errors';
+import { getValidation } from '@/core/messages/validation';
 import { AudioInputForm } from './AudioInputForm';
 import { GeneratedAudioDisplay } from './GeneratedAudioDisplay';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -117,17 +120,17 @@ export function AIAudioGenerator({
 
     const handleGenerate = async () => {
         if (!selectedProvider) {
-            showError('لطفاً Provider را انتخاب کنید');
+            showError(getValidation('required', { field: 'Provider' }));
             return;
         }
 
         if (!text.trim()) {
-            showError('لطفاً متن را وارد کنید');
+            showError(getValidation('required', { field: 'متن' }));
             return;
         }
 
         if (text.length > 4096) {
-            showError('متن نمی‌تواند بیشتر از 4096 کاراکتر باشد');
+            showError(getValidation('maxLength', { field: 'متن', max: 4096 }));
             return;
         }
 
@@ -151,11 +154,11 @@ export function AIAudioGenerator({
                 if (data.saved === false && data.audio_data_url) {
                     setGeneratedAudioUrl(data.audio_data_url);
                     setGeneratedMedia(null);
-                    showSuccess('پادکست با موفقیت تولید شد');
+                    showSuccess(getCrud('created', { item: 'پادکست' }));
                 } else {
                     setGeneratedMedia(data as Media);
                     setGeneratedAudioUrl(null);
-                    showSuccess('پادکست با موفقیت تولید و ذخیره شد');
+                    showSuccess(getCrud('saved', { item: 'پادکست' }));
                     onAudioGenerated?.(data as Media);
                 }
 
@@ -196,12 +199,13 @@ export function AIAudioGenerator({
                 const media = uploadResponse.data;
                 setGeneratedMedia(media);
                 setGeneratedAudioUrl(null);
-                showSuccess('فایل صوتی ذخیره شد');
+                showSuccess(getCrud('saved', { item: 'فایل صوتی' }));
                 onAudioGenerated?.(media);
             }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'خطای نامشخص';
-            showError('خطا در ذخیره فایل صوتی: ' + errorMessage);
+            const errorText = `${getError('serverError')}: ${errorMessage}`;
+            showError(errorText);
         }
     };
 

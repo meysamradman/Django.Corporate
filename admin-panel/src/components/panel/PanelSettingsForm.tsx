@@ -10,6 +10,7 @@ import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import { usePanelSettings, useUpdatePanelSettings } from './hooks/usePanelSettings';
 import { showSuccess } from '@/core/toast';
+import { getAction } from '@/core/messages/ui';
 import { Skeleton } from "@/components/elements/Skeleton";
 import type { Media } from '@/types/shared/media';
 import { ProtectedButton, useUIPermissions } from '@/core/permissions';
@@ -110,7 +111,7 @@ const PanelSettingsForm = forwardRef<PanelSettingsFormRef>((_props, ref) => {
             }
 
             if (!hasChanges) {
-                showSuccess("تغییری یافت نشد.");
+                showSuccess(getAction("noChanges"));
                 return;
             }
 

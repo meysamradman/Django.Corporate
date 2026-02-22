@@ -4,6 +4,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { pageApi } from "@/api/page/page";
 import type { TermsPage } from "@/types/page/page";
 import { showError } from "@/core/toast";
+import { getError } from "@/core/messages/errors";
+import { getValidation } from "@/core/messages/validation";
 import type { Media } from "@/types/shared/media";
 import { Save, Loader2, FileText, Search } from "lucide-react";
 import { PageInfo } from "./tabs/PageInfo.tsx";
@@ -56,7 +58,7 @@ export function PageTermsForm() {
             }
         } catch (error: any) {
             if (error?.response?.AppStatusCode && error.response.AppStatusCode !== 404) {
-                showError("خطا در بارگذاری صفحه");
+                showError(getError("serverError"));
             }
         } finally {
             setLoading(false);
@@ -65,7 +67,7 @@ export function PageTermsForm() {
 
     const handleSave = async () => {
         if (!title.trim()) {
-            showError("عنوان صفحه الزامی است");
+            showError(getValidation("required", { field: "عنوان صفحه" }));
             return;
         }
 
@@ -170,7 +172,7 @@ export function PageTermsForm() {
                 )}
             </Tabs>
 
-            <div className="fixed bottom-0 left-0 right-0 lg:right-[20rem] z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
+            <div className="fixed bottom-0 left-0 right-0 lg:right-80 z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
                 <ProtectedButton 
                     onClick={handleSave} 
                     permission="pages.manage"

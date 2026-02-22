@@ -13,6 +13,13 @@ export const ACTION_MESSAGES = {
   loading: 'در حال بارگذاری...',
   success: 'موفقیت',
   error: 'خطا',
+  noChanges: 'تغییری یافت نشد.',
+  noSelection: 'آیتمی انتخاب نشده',
+  uploadPermissionDenied: 'اجازه آپلود رسانه را ندارید',
+  waitForSettingsLoad: 'لطفا صبر کنید تا تنظیمات بارگذاری شود',
+  coverMustBeImage: 'کاور باید یک تصویر باشد',
+  fileRemoved: 'فایل حذف شد',
+  fileReadyToSend: 'فایل {name} آماده ارسال است',
   confirm: 'تأیید',
   cancel: 'لغو',
   delete: 'حذف',
@@ -65,9 +72,37 @@ export const AUTH_MESSAGES = {
   otpSendFailed: 'خطا در ارسال کد یکبار مصرف',
 } as const;
 
+export const SECURITY_MESSAGES = {
+  ipUnbanned: 'IP با موفقیت از ban خارج شد',
+  ipBanned: 'IP با موفقیت ban شد',
+  ipWhitelisted: 'IP با موفقیت به whitelist اضافه شد',
+  ipWhitelistRemoved: 'IP با موفقیت از whitelist حذف شد',
+  currentIpWhitelisted: 'IP فعلی شما به whitelist اضافه شد',
+  ipRequired: 'لطفاً IP را وارد کنید',
+  ipUnbanError: 'خطا در رفع ban IP',
+  ipBanError: 'خطا در ban کردن IP',
+  ipWhitelistAddError: 'خطا در اضافه کردن IP به whitelist',
+  ipWhitelistRemoveError: 'خطا در حذف IP از whitelist',
+  currentIpWhitelistAddError: 'خطا در اضافه کردن IP فعلی به whitelist',
+} as const;
+
+export const EMAIL_ACTION_MESSAGES = {
+  selectEmailsFirst: 'لطفا ابتدا ایمیل‌هایی را انتخاب کنید',
+  markedAsRead: 'ایمیل‌ها به عنوان خوانده شده علامت‌گذاری شدند',
+  markedAsUnread: 'ایمیل‌ها به عنوان نخوانده علامت‌گذاری شدند',
+  replySent: 'پاسخ با موفقیت ارسال شد',
+  emailSent: 'ایمیل با موفقیت ارسال شد',
+  draftSaved: 'پیش‌نویس با موفقیت ذخیره شد',
+  draftPublished: 'پیش‌نویس با موفقیت منتشر شد',
+  starAdded: 'ستاره اضافه شد',
+  starRemoved: 'ستاره حذف شد',
+} as const;
+
 export const getCrud = createMessageGetter(CRUD_MESSAGES);
 export const getAction = createMessageGetter(ACTION_MESSAGES);
 export const getConfirm = createMessageGetter(CONFIRM_MESSAGES);
 export const getExport = createMessageGetter(EXPORT_MESSAGES);
 export const getStatus = createMessageGetter(STATUS_MESSAGES);
 export const getAuth = createMessageGetter(AUTH_MESSAGES);
+export const getSecurity = createMessageGetter(SECURITY_MESSAGES);
+export const getEmailAction = createMessageGetter(EMAIL_ACTION_MESSAGES);

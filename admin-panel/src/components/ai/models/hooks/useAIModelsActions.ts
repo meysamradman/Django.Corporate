@@ -6,6 +6,7 @@ import { useUserPermissions } from "@/core/permissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { useAuth } from "@/core/auth/AuthContext";
 import { showError, showSuccess } from "@/core/toast";
+import { getAuth, getCrud } from "@/core/messages/ui";
 import type { AICapability } from "@/types/ai/ai";
 
 interface UseAIModelsActionsParams {
@@ -21,7 +22,7 @@ export function useAIModelsActions({ navigate }: UseAIModelsActionsParams) {
 
   useEffect(() => {
     if (!isAuthLoading && !hasAccess) {
-      showError("این صفحه فقط برای سوپر ادمین‌ها قابل دسترسی است");
+      showError(getAuth("accessDenied"));
       navigate("/ai/settings", { replace: true });
     }
   }, [isAuthLoading, hasAccess, navigate]);
@@ -31,7 +32,7 @@ export function useAIModelsActions({ navigate }: UseAIModelsActionsParams) {
       return aiApi.models.selectModel({ capability, provider, model_id });
     },
     onSuccess: (_, { capability }) => {
-      showSuccess(`تنظیمات ${capability} ذخیره شد`);
+      showSuccess(getCrud("saved", { item: `تنظیمات ${capability}` }));
       queryClient.invalidateQueries({ queryKey: ["ai-active-capabilities"] });
     },
     onError: (error) => {

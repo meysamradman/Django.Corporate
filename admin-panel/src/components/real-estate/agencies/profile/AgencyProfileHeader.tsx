@@ -4,6 +4,8 @@ import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 import type { Media } from "@/types/shared/media";
 import { useQueryClient } from '@tanstack/react-query';
 import { notifyApiError, showSuccess } from '@/core/toast';
+import { getCrud } from '@/core/messages/ui';
+import { getError } from '@/core/messages/errors';
 import { realEstateApi } from '@/api/real-estate';
 
 interface AgencyProfileHeaderProps {
@@ -48,13 +50,13 @@ export function AgencyProfileHeader({ agency, selectedLogo, onLogoChange, agency
             await queryClient.invalidateQueries({ queryKey: ['agencies'] });
 
             if (logoId) {
-                showSuccess("لوگو آژانس با موفقیت به‌روزرسانی شد");
+                showSuccess(getCrud("updated", { item: "لوگو آژانس" }));
             } else {
-                showSuccess("لوگو آژانس با موفقیت حذف شد");
+                showSuccess(getCrud("deleted", { item: "لوگو آژانس" }));
             }
         } catch (error) {
             notifyApiError(error, {
-                fallbackMessage: "خطا در ذخیره لوگو آژانس",
+                fallbackMessage: getError("serverError"),
                 preferBackendMessage: true,
                 dedupeKey: 'agency-logo-update-system-error',
             });

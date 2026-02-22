@@ -14,6 +14,8 @@ import {
 } from "@/components/elements/AlertDialog";
 import { settingsApi } from "@/api/settings/settings";
 import { notifyApiError, showSuccess } from "@/core/toast";
+import { getCrud } from "@/core/messages/ui";
+import { getError } from "@/core/messages/errors";
 import { Plus, Edit, Trash2, Smartphone } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
@@ -35,14 +37,14 @@ export function ContactMobiles() {
     const deleteMutation = useMutation({
         mutationFn: (id: number) => settingsApi.deleteContactMobile(id),
         onSuccess: () => {
-            showSuccess("شماره موبایل با موفقیت حذف شد");
+            showSuccess(getCrud("deleted", { item: "شماره موبایل" }));
             queryClient.invalidateQueries({ queryKey: ["contact-mobiles"] });
             setDeleteDialogOpen(false);
             setMobileToDelete(null);
         },
         onError: (error) => {
             notifyApiError(error, {
-                fallbackMessage: "خطا در حذف شماره موبایل",
+                fallbackMessage: getError("serverError"),
                 dedupeKey: "settings-contact-mobile-delete-error",
                 preferBackendMessage: false,
             });
@@ -114,7 +116,7 @@ export function ContactMobiles() {
                                     <TableHead className="text-right">شماره موبایل</TableHead>
                                     <TableHead className="text-right">برچسب</TableHead>
                                     <TableHead className="w-24 text-right">ترتیب</TableHead>
-                                    <TableHead className="w-[60px] text-center"></TableHead>
+                                    <TableHead className="w-15 text-center"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -131,7 +133,7 @@ export function ContactMobiles() {
                                                 {mobile.order}
                                             </span>
                                         </TableCell>
-                                        <TableCell className="w-[60px]">
+                                        <TableCell className="w-15">
                                             <div className="flex items-center justify-center">
                                                 <DataTableRowActions
                                                     row={{ original: mobile } as any}

@@ -3,6 +3,9 @@ import { useState, useEffect } from "react";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Home } from "lucide-react";
 import { showError, showSuccess } from "@/core/toast";
+import { getCrud } from "@/core/messages/ui";
+import { getError } from "@/core/messages/errors";
+import { getValidation } from "@/core/messages/validation";
 import { realEstateApi } from "@/api/real-estate";
 import type { Media } from "@/types/shared/media";
 import type { EditableFloorPlan } from "@/types/real_estate/floorPlanForm";
@@ -71,7 +74,7 @@ export default function RealEstateFloorPlans({
       const plans = await realEstateApi.getFloorPlans(propertyId);
       setFloorPlans(plans || []);
     } catch (error) {
-      showError("خطا در بارگذاری پلان‌های طبقات");
+      showError(getError("serverError"));
     } finally {
       setIsLoading(false);
     }
@@ -101,11 +104,11 @@ export default function RealEstateFloorPlans({
 
   const handleSaveFloorPlan = async () => {
     if (!newFloorPlan.title.trim()) {
-      showError("عنوان پلان الزامی است");
+      showError(getValidation("required", { field: "عنوان پلان" }));
       return;
     }
     if (!newFloorPlan.floor_size || newFloorPlan.floor_size <= 0) {
-      showError("مساحت پلان الزامی است");
+      showError(getValidation("required", { field: "مساحت پلان" }));
       return;
     }
 
@@ -114,11 +117,11 @@ export default function RealEstateFloorPlans({
     if (!propertyId) {
       if (editingPlanId && editingPlanId < 0) {
         setFloorPlans(prev => prev.map(p => p.id === editingPlanId ? { ...newFloorPlan, id: editingPlanId, images: selectedImages } : p));
-        showSuccess("پلان موقت بروزرسانی شد");
+        showSuccess(getCrud("updated", { item: "پلان موقت" }));
       } else {
         const tempId = floorPlans.length + 1;
         setFloorPlans(prev => [...prev, { ...newFloorPlan, id: -tempId, images: selectedImages }]);
-        showSuccess("پلان موقت اضافه شد");
+        showSuccess(getCrud("created", { item: "پلان موقت" }));
       }
       resetForm();
       return;
@@ -137,11 +140,11 @@ export default function RealEstateFloorPlans({
       if (editingPlanId && editingPlanId > 0) {
         const updatedPlan = await realEstateApi.updateFloorPlan(editingPlanId, floorPlanData);
         setFloorPlans(prev => prev.map(p => p.id === editingPlanId ? updatedPlan : p));
-        showSuccess("پلان با موفقیت بروزرسانی شد");
+        showSuccess(getCrud("updated", { item: "پلان" }));
       } else {
         const savedPlan = await realEstateApi.createFloorPlan(floorPlanData);
         setFloorPlans(prev => [...prev, savedPlan]);
-        showSuccess("پلان با موفقیت اضافه شد");
+        showSuccess(getCrud("created", { item: "پلان" }));
       }
       resetForm();
     } catch (error: any) {
@@ -163,14 +166,14 @@ export default function RealEstateFloorPlans({
     if (!confirm("آیا از حذف این پلان اطمینان دارید؟")) return;
     if (id < 0) {
       setFloorPlans(prev => prev.filter(p => p.id !== id));
-      showSuccess("پلان موقت حذف شد");
+      showSuccess(getCrud("deleted", { item: "پلان موقت" }));
       return;
     }
     try {
       setIsLoading(true);
       if (propertyId) await realEstateApi.deleteFloorPlan(id);
       setFloorPlans(prev => prev.filter(plan => plan.id !== id));
-      showSuccess("پلان با موفقیت حذف شد");
+      showSuccess(getCrud("deleted", { item: "پلان" }));
     } catch (error: any) {
       showError(error.response?.data?.metaData?.message || "خطا در حذف پلان");
     } finally {

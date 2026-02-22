@@ -9,6 +9,7 @@ import { FormFieldInput, FormFieldSelect, FormFieldSwitch } from "@/components/s
 import { footerLinkSchema, type FooterLinkFormValues } from "./validations/settingsSchemas";
 import { showSuccess, showError } from "@/core/toast";
 import { msg } from "@/core/messages";
+import { getValidation } from "@/core/messages/validation";
 import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
 import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
@@ -102,7 +103,7 @@ export const FooterLinkSide = () => {
 
     const onSubmit = (data: FooterLinkFormValues) => {
         if (!data.section || Number(data.section) <= 0) {
-            showError("انتخاب ستون فوتر الزامی است");
+            showError(getValidation("required", { field: "انتخاب ستون فوتر" }));
             return;
         }
         mutation.mutate({ ...data, section: Number(data.section) } as any);

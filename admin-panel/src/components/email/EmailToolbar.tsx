@@ -12,6 +12,7 @@ import {
   MailOpen,
 } from "lucide-react";
 import { showError } from "@/core/toast";
+import { getAuth } from "@/core/messages/ui";
 import { usePermission } from "@/core/permissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { ProtectedButton } from "@/core/permissions/components/ProtectedButton";
@@ -69,7 +70,7 @@ function EmailActionsDropdown({
 
   const handleClick = (callback?: () => void) => {
     if (!canUpdate) {
-      showError("شما دسترسی تغییر وضعیت ایمیل ندارید");
+      showError(getAuth("accessDenied"));
       return;
     }
     callback?.();

@@ -14,6 +14,8 @@ import {
 } from "@/components/elements/AlertDialog";
 import { settingsApi } from "@/api/settings/settings";
 import { notifyApiError, showSuccess } from "@/core/toast";
+import { getCrud } from "@/core/messages/ui";
+import { getError } from "@/core/messages/errors";
 import { Plus, Edit, Trash2, Layout, ExternalLink, CheckCircle2, XCircle } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/elements/Table";
 import { DataTableRowActions } from "@/components/tables/DataTableRowActions";
@@ -37,14 +39,14 @@ export function Sliders() {
     const deleteMutation = useMutation({
         mutationFn: (id: number) => settingsApi.deleteSlider(id),
         onSuccess: () => {
-            showSuccess("اسلایدر با موفقیت حذف شد");
+            showSuccess(getCrud("deleted", { item: "اسلایدر" }));
             queryClient.invalidateQueries({ queryKey: ["sliders"] });
             setDeleteDialogOpen(false);
             setItemToDelete(null);
         },
         onError: (error) => {
             notifyApiError(error, {
-                fallbackMessage: "خطا در حذف اسلایدر",
+                fallbackMessage: getError("serverError"),
                 dedupeKey: "settings-slider-delete-error",
                 preferBackendMessage: false,
             });
