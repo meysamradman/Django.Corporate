@@ -7,6 +7,7 @@ interface SocialMediaTabProps {
   adminSocialMedia: SocialMediaItem[];
   consultantSocialMedia: SocialMediaItem[];
   isConsultant: boolean;
+  showAdminSection?: boolean;
   onAdminSocialMediaChange: (items: SocialMediaItem[]) => void;
   onConsultantSocialMediaChange: (items: SocialMediaItem[]) => void;
 }
@@ -15,23 +16,26 @@ export default function SocialMediaTab({
   adminSocialMedia,
   consultantSocialMedia,
   isConsultant,
+  showAdminSection = true,
   onAdminSocialMediaChange,
   onConsultantSocialMediaChange,
 }: SocialMediaTabProps) {
   return (
     <div className="space-y-6">
-      <CardWithIcon
-        icon={User}
-        title="شبکه‌های اجتماعی ادمین"
-        iconBgColor="bg-pink"
-        iconColor="stroke-pink-2"
-        cardBorderColor="border-b-pink-1"
-      >
-        <SocialMediaArrayEditor
-          items={adminSocialMedia}
-          onChange={onAdminSocialMediaChange}
-        />
-      </CardWithIcon>
+      {showAdminSection ? (
+        <CardWithIcon
+          icon={User}
+          title="شبکه‌های اجتماعی ادمین"
+          iconBgColor="bg-pink"
+          iconColor="stroke-pink-2"
+          cardBorderColor="border-b-pink-1"
+        >
+          <SocialMediaArrayEditor
+            items={adminSocialMedia}
+            onChange={onAdminSocialMediaChange}
+          />
+        </CardWithIcon>
+      ) : null}
 
       {isConsultant ? (
         <CardWithIcon

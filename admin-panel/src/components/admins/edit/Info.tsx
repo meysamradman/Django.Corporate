@@ -1,0 +1,223 @@
+import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Input } from "@/components/elements/Input";
+import { Label } from "@/components/elements/Label";
+import { FormField } from "@/components/shared/FormField";
+import type { UseFormReturn } from "react-hook-form";
+import type { AdminFormValues } from "@/components/admins/validations/adminSchema";
+import { User, ShieldCheck, Building2 } from "lucide-react";
+import { filterNumericOnly } from "@/core/utils/numeric";
+import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
+import { Switch } from "@/components/elements/Switch";
+
+interface EditBaseInfoTabProps {
+  form: UseFormReturn<AdminFormValues>;
+  editMode: boolean;
+  canManageAccess: boolean;
+  lockRoleType?: boolean;
+}
+
+export default function EditInfo({
+  form,
+  editMode,
+  canManageAccess,
+  lockRoleType = false,
+}: EditBaseInfoTabProps) {
+  const { register, formState: { errors }, setValue, watch, clearErrors } = form;
+
+  const consultantFields = [
+    "license_number",
+    "license_expire_date",
+    "specialization",
+    "agency_id",
+    "bio",
+    "is_verified",
+    "meta_title",
+    "meta_description",
+    "meta_keywords",
+    "og_title",
+    "og_description",
+    "og_image_id",
+  ] as const;
+
+  const canEditRoleCard = editMode && canManageAccess && !lockRoleType;
+
+  return (
+    <div className="space-y-6">
+      <CardWithIcon
+        icon={User}
+        title="اطلاعات احراز هویت"
+        iconBgColor="bg-primary/10"
+        iconColor="stroke-primary"
+        cardBorderColor="border-b-primary"
+        className="hover:shadow-lg transition-all duration-300"
+      >
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <FormField
+            label="شماره موبایل"
+            htmlFor="mobile"
+            error={errors.mobile?.message}
+            required
+          >
+            <Input
+              id="mobile"
+              type="text"
+              inputMode="tel"
+              placeholder="09xxxxxxxxx"
+              disabled={!editMode}
+              {...register("mobile", {
+                onChange: (e) => {
+                  const filteredValue = filterNumericOnly(e.target.value);
+                  e.target.value = filteredValue;
+                  form.setValue("mobile", filteredValue);
+                }
+              })}
+            />
+          </FormField>
+
+          <FormField
+            label="ایمیل"
+            htmlFor="email"
+            error={errors.email?.message}
+          >
+            <Input
+              id="email"
+              type="email"
+              placeholder="example@domain.com"
+              disabled={!editMode}
+              {...register("email")}
+            />
+          </FormField>
+
+          <FormField
+            label="رمز عبور جدید"
+            htmlFor="password"
+            error={errors.password?.message}
+            description="در صورت نیاز به تغییر رمز عبور، این فیلد را تکمیل کنید"
+          >
+            <Input
+              id="password"
+              type="password"
+              placeholder="اختیاری"
+              disabled={!editMode}
+              {...register("password")}
+            />
+          </FormField>
+
+          <FormField
+            label="نام کامل"
+            htmlFor="full_name"
+            error={errors.full_name?.message}
+            required
+          >
+            <Input
+              id="full_name"
+              type="text"
+              placeholder="نام و نام خانوادگی"
+              disabled={!editMode}
+              {...register("full_name")}
+            />
+          </FormField>
+        </div>
+
+        {lockRoleType ? (
+          <div className="mt-8 space-y-2">
+            <Label className="text-base font-semibold text-font-p block">نوع دسترسی کاربر</Label>
+            <p className="text-sm text-font-s">این کاربر از نوع مشاور است و از این مسیر قابل تغییر به ادمین نیست.</p>
+          </div>
+        ) : (
+          <div className="mt-8 space-y-4">
+            <Label className="text-base font-semibold text-font-p mb-2 block">نوع دسترسی کاربر</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div
+              onClick={() => {
+                if (canEditRoleCard) {
+                  setValue("admin_role_type", "admin", { shouldValidate: false, shouldDirty: true });
+                  clearErrors(consultantFields);
+                }
+              }}
+              className={`relative rounded-2xl border-2 p-5 transition-all duration-300 group ${canEditRoleCard ? "cursor-pointer" : "cursor-default"} ${watch("admin_role_type") !== "consultant"
+                ? "border-primary bg-primary/5 shadow-md shadow-primary/10"
+                : "border-br bg-card hover:border-gray-0"
+                }`}
+            >
+              <div className="flex items-start gap-4">
+                <div className={`rounded-xl p-3 transition-colors ${watch("admin_role_type") !== "consultant" ? "bg-primary text-white" : "bg-bg text-gray-1 group-hover:bg-gray-0"
+                  }`}>
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
+                <div className="flex-1">
+                  <h4 className={`font-bold transition-colors ${watch("admin_role_type") !== "consultant" ? "text-primary" : "text-font-p"
+                    }`}>مدیر سیستم</h4>
+                  <p className="text-xs text-font-s mt-1 leading-relaxed">دسترسی کامل یا محدود به بخش‌های مدیریتی و تنظیمات فنی</p>
+                </div>
+                {watch("admin_role_type") !== "consultant" && (
+                  <div className="absolute top-3 left-3">
+                    <div className="bg-primary rounded-full p-1">
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div
+              onClick={() => {
+                if (canEditRoleCard) {
+                  setValue("admin_role_type", "consultant", { shouldValidate: false, shouldDirty: true });
+                  setValue("is_superuser", false, { shouldValidate: false, shouldDirty: true });
+                  clearErrors("is_superuser");
+                }
+              }}
+              className={`relative rounded-2xl border-2 p-5 transition-all duration-300 group ${canEditRoleCard ? "cursor-pointer" : "cursor-default"} ${watch("admin_role_type") === "consultant"
+                ? "border-blue-1 bg-blue-0/10 shadow-md shadow-blue-1/10"
+                : "border-br bg-card hover:border-gray-0"
+                }`}
+            >
+              <div className="flex items-start gap-4">
+                <div className={`rounded-xl p-3 transition-colors ${watch("admin_role_type") === "consultant" ? "bg-blue-1 text-white" : "bg-bg text-gray-1 group-hover:bg-gray-0"
+                  }`}>
+                  <Building2 className="w-6 h-6" />
+                </div>
+                <div className="flex-1">
+                  <h4 className={`font-bold transition-colors ${watch("admin_role_type") === "consultant" ? "text-blue-1" : "text-font-p"
+                    }`}>مشاور املاک</h4>
+                  <p className="text-xs text-font-s mt-1 leading-relaxed">دسترسی به بخش املاک، ثبت آگهی و مدیریت فایل‌های شخصی</p>
+                </div>
+                {watch("admin_role_type") === "consultant" && (
+                  <div className="absolute top-3 left-3">
+                    <div className="bg-blue-1 rounded-full p-1">
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          </div>
+        )}
+
+          <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden mt-6">
+            <Item variant="default" size="default" className="py-5">
+              <ItemContent>
+                <ItemTitle className="text-green-2">وضعیت فعال حساب</ItemTitle>
+                <ItemDescription>
+                  با غیرفعال شدن این تیک، ادمین دیگر امکان ورود نخواهد داشت.
+                </ItemDescription>
+              </ItemContent>
+              <ItemActions>
+                <Switch
+                  checked={watch("is_active") ?? true}
+                  disabled={!canEditRoleCard}
+                  onCheckedChange={(checked) => setValue("is_active", checked)}
+                />
+              </ItemActions>
+            </Item>
+          </div>
+      </CardWithIcon>
+    </div>
+  );
+}
