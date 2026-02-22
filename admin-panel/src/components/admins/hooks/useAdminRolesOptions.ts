@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { roleApi } from "@/api/admins/roles/roles";
 import type { Role } from "@/types/auth/permission";
 import { showError } from "@/core/toast";
+import { msg } from '@/core/messages';
 
 export function useAdminRolesOptions() {
   const [roles, setRoles] = useState<Role[]>([]);
@@ -16,8 +17,8 @@ export function useAdminRolesOptions() {
         const fetchedRoles = await roleApi.getAllRoles();
         setRoles(fetchedRoles);
       } catch (error) {
-        setRolesError("بارگذاری نقش‌ها ناموفق بود.");
-        showError(error, { customMessage: "بارگذاری نقش‌ها ناموفق بود" });
+        setRolesError(`${msg.action('rolesLoadFailed')}.`);
+        showError(error, { customMessage: msg.action('rolesLoadFailed') });
       } finally {
         setLoadingRoles(false);
       }

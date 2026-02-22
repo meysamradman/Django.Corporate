@@ -2,6 +2,7 @@ import { useEffect, useState, lazy, Suspense } from "react";
 import { MapPin, Loader2 } from "lucide-react";
 import { Label } from "@/components/elements/Label";
 import { showError } from "@/core/toast";
+import { msg } from "@/core/messages";
 import { settingsApi } from "@/api/settings/settings";
 import type { MapSettings } from "@/types/real_estate/map";
 
@@ -249,7 +250,7 @@ export default function LocationMap({
         }
       }
     } catch (error) {
-      showError("خطا در یافتن آدرس");
+      showError(msg.action('addressLookupError'));
     } finally {
       setIsGeocoding(false);
     }

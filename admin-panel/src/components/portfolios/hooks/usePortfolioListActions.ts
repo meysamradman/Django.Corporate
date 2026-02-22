@@ -186,7 +186,7 @@ export function usePortfolioListActions({
     }
 
     try {
-      showWarning('در حال آماده‌سازی فایل پرینت برای تمامی موارد...');
+      showWarning(msg.export('printPreparingAll'));
       const response = await portfolioApi.getPortfolioList({
         ...queryParams,
         page: 1,
@@ -197,11 +197,11 @@ export function usePortfolioListActions({
       if (allIds.length > 0) {
         openPrintWindow(allIds);
       } else {
-        showError('داده‌ای برای پرینت یافت نشد');
+        showError(msg.export('printNoData'));
       }
     } catch (error) {
       notifyApiError(error, {
-        fallbackMessage: 'خطا در بارگذاری داده‌ها برای پرینت',
+        fallbackMessage: msg.export('printError'),
         dedupeKey: 'portfolio-print-load-error',
         preferBackendMessage: false,
       });

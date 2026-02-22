@@ -18,6 +18,7 @@ import {
 import { useState, useRef, useCallback, useMemo, useEffect, type ChangeEvent } from 'react';
 import { mediaApi } from '@/api/media/media';
 import { showError, showSuccess } from '@/core/toast';
+import { msg } from '@/core/messages';
 import { mediaService } from '@/components/media/services';
 import { MediaLibraryModal } from '@/components/media/modals/MediaLibraryModal';
 
@@ -90,13 +91,13 @@ export function TipTapEditor({
     if (!editor) return;
 
     if (!file.type.startsWith('image/')) {
-      showError('فقط فایل‌های تصویری مجاز هستند');
+      showError(msg.action('imageOnlyAllowed'));
       return;
     }
 
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      showError('حجم فایل نباید از 5 مگابایت بیشتر باشد');
+      showError(msg.validation('fileSizeLimit', { max: '5 مگابایت' }));
       return;
     }
 
@@ -116,11 +117,11 @@ export function TipTapEditor({
 
         if (imageUrl) {
           editor.chain().focus().setImage({ src: imageUrl, alt: response.data.alt_text || '' }).run();
-          showSuccess('عکس با موفقیت اضافه شد');
+          showSuccess(msg.action('imageAdded'));
         }
       }
     } catch (error: any) {
-      showError('خطا در آپلود عکس: ' + (error.message || 'خطای نامشخص'));
+      showError(msg.action('imageUploadFailed', { reason: error.message || msg.error('unknown') }));
     } finally {
       setIsUploadingImage(false);
     }
@@ -190,7 +191,7 @@ export function TipTapEditor({
 
   if (!editor) {
     return (
-      <div className="min-h-[200px] border rounded-md flex items-center justify-center">
+      <div className="min-h-50 border rounded-md flex items-center justify-center">
         <div className="text-font-s">در حال بارگذاری ویرایشگر...</div>
       </div>
     );
@@ -575,7 +576,7 @@ export function TipTapEditor({
         </Button>
       </div>
 
-      <div className="border rounded-md min-h-[200px] bg-card">
+      <div className="border rounded-md min-h-50 bg-card">
         <EditorContent
           editor={editor}
           className="[&_.ProseMirror[data-placeholder]:empty::before]:content-[attr(data-placeholder)] [&_.ProseMirror[data-placeholder]:empty::before]:float-right [&_.ProseMirror[data-placeholder]:empty::before]:text-font-s [&_.ProseMirror[data-placeholder]:empty::before]:pointer-events-none [&_.ProseMirror[data-placeholder]:empty::before]:h-0 [&_.ProseMirror_img]:max-w-full [&_.ProseMirror_img]:h-auto [&_.ProseMirror_img]:rounded-md [&_.ProseMirror_img]:my-4 [&_.ProseMirror_img]:block [&_.ProseMirror_img]:mx-auto"

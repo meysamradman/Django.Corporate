@@ -5,6 +5,7 @@ import { TaxonomyDrawer } from "@/components/templates/TaxonomyDrawer";
 import { FormFieldInput } from "@/components/shared/FormField";
 import { Button } from "@/components/elements/Button";
 import { showError, showSuccess } from "@/core/toast";
+import { msg } from "@/core/messages";
 
 interface ProvinceSideProps {
   isOpen: boolean;
@@ -58,17 +59,17 @@ export const ProvinceSide: React.FC<ProvinceSideProps> = ({
 
     const parsed = parseCombinedCoordinates(form.coordinates);
     if (!parsed) {
-      showError("فرمت مختصات معتبر نیست. مثال: 35.6892, 51.3890");
+      showError(msg.validation('coordinatesFormatInvalid'));
       return;
     }
 
     if (parsed.lat < -90 || parsed.lat > 90) {
-      showError("عرض جغرافیایی باید بین -90 تا 90 باشد");
+      showError(msg.validation('latitudeRangeInvalid'));
       return;
     }
 
     if (parsed.lng < -180 || parsed.lng > 180) {
-      showError("طول جغرافیایی باید بین -180 تا 180 باشد");
+      showError(msg.validation('longitudeRangeInvalid'));
       return;
     }
 
@@ -121,7 +122,7 @@ export const ProvinceSide: React.FC<ProvinceSideProps> = ({
       return realEstateApi.createProvince(payload);
     },
     onSuccess: () => {
-      showSuccess(isEditMode ? "استان با موفقیت بروزرسانی شد" : "استان با موفقیت ایجاد شد");
+      showSuccess(msg.crud(isEditMode ? 'updated' : 'created', { item: 'استان' }));
       if (onSuccess) onSuccess();
       onClose();
     },
@@ -130,7 +131,7 @@ export const ProvinceSide: React.FC<ProvinceSideProps> = ({
 
   const handleSubmit = async () => {
     if (!form.name.trim() || !form.code.trim()) {
-      showError("نام و کد استان الزامی است");
+      showError(msg.validation('provinceNameCodeRequired'));
       return;
     }
     await saveMutation.mutateAsync();

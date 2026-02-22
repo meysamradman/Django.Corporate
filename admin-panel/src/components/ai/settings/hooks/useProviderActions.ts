@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/ai';
 import { showSuccess, notifyApiError } from '@/core/toast';
-import { getCrud } from '@/core/messages/ui';
+import { getCrud, getStatus, getAction } from '@/core/messages/ui';
 import { frontendToBackendProviderMap } from '../hooks/useAISettings';
 
 interface UseProviderActionsProps {
@@ -182,7 +182,7 @@ export function useProviderActions({
     },
     onError: (error: unknown) => {
       notifyApiError(error, {
-        fallbackMessage: 'خطا در ذخیره API key',
+        fallbackMessage: getAction('apiKeySaveError'),
         dedupeKey: 'ai-provider-save-key',
       });
     },
@@ -267,7 +267,7 @@ export function useProviderActions({
     },
     onError: (error: unknown) => {
       notifyApiError(error, {
-        fallbackMessage: 'خطا در تغییر وضعیت',
+        fallbackMessage: getStatus('statusChangeError'),
         dedupeKey: 'ai-provider-toggle-active',
       });
     },

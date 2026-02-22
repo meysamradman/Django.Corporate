@@ -6,6 +6,7 @@ import { FormField, FormFieldInput } from "@/components/shared/FormField";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { Button } from "@/components/elements/Button";
 import { showError, showSuccess } from "@/core/toast";
+import { msg } from "@/core/messages";
 
 interface CitySideProps {
   isOpen: boolean;
@@ -59,17 +60,17 @@ export const CitySide: React.FC<CitySideProps> = ({
 
     const parsed = parseCombinedCoordinates(form.coordinates);
     if (!parsed) {
-      showError("فرمت مختصات معتبر نیست. مثال: 35.6892, 51.3890");
+      showError(msg.validation('coordinatesFormatInvalid'));
       return;
     }
 
     if (parsed.lat < -90 || parsed.lat > 90) {
-      showError("عرض جغرافیایی باید بین -90 تا 90 باشد");
+      showError(msg.validation('latitudeRangeInvalid'));
       return;
     }
 
     if (parsed.lng < -180 || parsed.lng > 180) {
-      showError("طول جغرافیایی باید بین -180 تا 180 باشد");
+      showError(msg.validation('longitudeRangeInvalid'));
       return;
     }
 
@@ -130,7 +131,7 @@ export const CitySide: React.FC<CitySideProps> = ({
       return realEstateApi.createCity(payload);
     },
     onSuccess: () => {
-      showSuccess(isEditMode ? "شهر با موفقیت بروزرسانی شد" : "شهر با موفقیت ایجاد شد");
+      showSuccess(msg.crud(isEditMode ? 'updated' : 'created', { item: 'شهر' }));
       if (onSuccess) onSuccess();
       onClose();
     },
@@ -139,7 +140,7 @@ export const CitySide: React.FC<CitySideProps> = ({
 
   const handleSubmit = async () => {
     if (!form.name.trim() || !form.code.trim() || !form.province_id) {
-      showError("نام، کد و استان شهر الزامی است");
+      showError(msg.validation('cityNameCodeProvinceRequired'));
       return;
     }
     await saveMutation.mutateAsync();

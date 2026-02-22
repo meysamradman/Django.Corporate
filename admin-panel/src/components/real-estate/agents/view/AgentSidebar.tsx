@@ -9,6 +9,7 @@ import { Switch } from "@/components/elements/Switch";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { realEstateApi } from "@/api/real-estate";
 import { showSuccess, showError } from '@/core/toast';
+import { msg } from '@/core/messages';
 import {
   CheckCircle2,
   XCircle,
@@ -55,11 +56,11 @@ export function AgentSidebar({ agent }: AgentSidebarProps) {
       setIsActive(data.is_active ?? true);
       queryClient.invalidateQueries({ queryKey: ['agent', agent.id] });
       queryClient.invalidateQueries({ queryKey: ['agents'] });
-      showSuccess(`وضعیت فعال با موفقیت به ${data.is_active ? 'فعال' : 'غیرفعال'} تغییر یافت`);
+      showSuccess(msg.action('activeStatusChanged', { status: data.is_active ? msg.status('active') : msg.status('inactive') }));
     },
     onError: (error) => {
       setIsActive(!isActive);
-      showError(error, { customMessage: "خطا در تغییر وضعیت فعال" });
+      showError(error, { customMessage: msg.action('activeStatusChangeError') });
     },
   });
 
@@ -71,11 +72,11 @@ export function AgentSidebar({ agent }: AgentSidebarProps) {
       setIsVerified(data.is_verified ?? false);
       queryClient.invalidateQueries({ queryKey: ['agent', agent.id] });
       queryClient.invalidateQueries({ queryKey: ['agents'] });
-      showSuccess(`وضعیت تأیید با موفقیت به ${data.is_verified ? 'تأیید شده' : 'تأیید نشده'} تغییر یافت`);
+      showSuccess(msg.action('verifyStatusChanged', { status: data.is_verified ? 'تأیید شده' : 'تأیید نشده' }));
     },
     onError: (error) => {
       setIsVerified(!isVerified);
-      showError(error, { customMessage: "خطا در تغییر وضعیت تأیید" });
+      showError(error, { customMessage: msg.action('verifyStatusChangeError') });
     },
   });
 
@@ -93,7 +94,7 @@ export function AgentSidebar({ agent }: AgentSidebarProps) {
                   fill
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-purple-1 to-purple-2 flex items-center justify-center text-static-w text-5xl font-bold">
+                <div className="w-full h-full bg-linear-to-br from-purple-1 to-purple-2 flex items-center justify-center text-static-w text-5xl font-bold">
                   {agent.first_name?.[0]?.toUpperCase() || agent.last_name?.[0]?.toUpperCase() || "A"}
                 </div>
               )}
@@ -146,7 +147,7 @@ export function AgentSidebar({ agent }: AgentSidebarProps) {
               <div className="space-y-0 [&>div:not(:last-child)]:border-b">
                 <div className="flex items-center justify-between gap-3 pb-3">
                   <div className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-font-s flex-shrink-0" />
+                    <User className="w-4 h-4 text-font-s shrink-0" />
                     <label>مشاور:</label>
                   </div>
                   <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
@@ -161,7 +162,7 @@ export function AgentSidebar({ agent }: AgentSidebarProps) {
                 {agent.agency && (
                   <div className="flex items-center justify-between gap-3 py-3">
                     <div className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-font-s flex-shrink-0" />
+                      <Building2 className="w-4 h-4 text-font-s shrink-0" />
                       <label>آژانس:</label>
                     </div>
                     <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
@@ -177,7 +178,7 @@ export function AgentSidebar({ agent }: AgentSidebarProps) {
                 {agent.specialization && (
                   <div className="flex items-center justify-between gap-3 py-3">
                     <div className="flex items-center gap-2">
-                      <Briefcase className="w-4 h-4 text-font-s flex-shrink-0" />
+                      <Briefcase className="w-4 h-4 text-font-s shrink-0" />
                       <label>نوع:</label>
                     </div>
                     <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
@@ -193,7 +194,7 @@ export function AgentSidebar({ agent }: AgentSidebarProps) {
                 {agent.phone && (
                   <div className="flex items-center justify-between gap-3 py-3">
                     <div className="flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-font-s flex-shrink-0" />
+                      <Phone className="w-4 h-4 text-font-s shrink-0" />
                       <label>تلفن:</label>
                     </div>
                     <p className="text-font-p text-left">
@@ -205,7 +206,7 @@ export function AgentSidebar({ agent }: AgentSidebarProps) {
                 {agent.email && (
                   <div className="flex items-center justify-between gap-3 py-3">
                     <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-font-s flex-shrink-0" />
+                      <Mail className="w-4 h-4 text-font-s shrink-0" />
                       <label>ایمیل:</label>
                     </div>
                     <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
@@ -221,7 +222,7 @@ export function AgentSidebar({ agent }: AgentSidebarProps) {
                 {agent.city_name && (
                   <div className="flex items-center justify-between gap-3 py-3">
                     <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-font-s flex-shrink-0" />
+                      <MapPin className="w-4 h-4 text-font-s shrink-0" />
                       <label>شهر:</label>
                     </div>
                     <p className="text-font-p text-left">
@@ -232,7 +233,7 @@ export function AgentSidebar({ agent }: AgentSidebarProps) {
 
                 <div className="flex items-center justify-between gap-3 py-3">
                   <div className="flex items-center gap-2">
-                    <Hash className="w-4 h-4 text-font-s flex-shrink-0" />
+                    <Hash className="w-4 h-4 text-font-s shrink-0" />
                     <label>شناسه:</label>
                   </div>
                   <p className="text-font-p text-left">
@@ -242,7 +243,7 @@ export function AgentSidebar({ agent }: AgentSidebarProps) {
 
                 <div className="flex items-center justify-between gap-3 py-3">
                   <div className="flex items-center gap-2">
-                    <LinkIcon className="w-4 h-4 text-font-s flex-shrink-0" />
+                    <LinkIcon className="w-4 h-4 text-font-s shrink-0" />
                     <label>نامک:</label>
                   </div>
                   <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
@@ -257,7 +258,7 @@ export function AgentSidebar({ agent }: AgentSidebarProps) {
                 {agent.created_at && (
                   <div className="flex items-center justify-between gap-3 pt-3">
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-font-s flex-shrink-0" />
+                      <Clock className="w-4 h-4 text-font-s shrink-0" />
                       <label>تاریخ ایجاد:</label>
                     </div>
                     <p className="text-font-p text-left">

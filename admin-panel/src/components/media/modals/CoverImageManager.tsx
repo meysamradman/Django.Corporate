@@ -7,6 +7,7 @@ import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from '@/components/media/services';
 import { Image as ImageIcon, X } from 'lucide-react';
 import { showError } from '@/core/toast';
+import { msg } from '@/core/messages';
 
 interface CoverImageManagerProps {
   currentCoverImage?: Media | number | null;
@@ -41,7 +42,7 @@ export function CoverImageManager({
     const media = Array.isArray(selectedMedia) ? selectedMedia[0] : selectedMedia;
     
     if (media.media_type !== 'image') {
-      showError('فایل انتخاب شده باید یک تصویر باشد');
+      showError(msg.action('coverMustBeImage'));
       return;
     }
     

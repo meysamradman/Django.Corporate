@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { type MediaContextType, MODULE_MEDIA_CONFIGS } from "../constants";
 import { showError } from "@/core/toast";
+import { msg } from '@/core/messages';
 
 interface MediaGalleryProps {
   mediaItems: Media[];
@@ -88,7 +89,7 @@ export function MediaGallery({
     });
 
     if (uniqueNewItems.length < filteredByType.length) {
-      showError("برخی از فایل‌های انتخابی تکراری بودند و نادیده گرفته شدند");
+      showError(msg.action('duplicateFilesIgnored'));
     }
 
     if (uniqueNewItems.length === 0) {
@@ -100,7 +101,7 @@ export function MediaGallery({
     const globalTotal = totalItemsCount !== undefined ? totalItemsCount : mediaItems.length;
 
     if (globalTotal + uniqueNewItems.length > moduleMax) {
-      showError(`حداکثر تعداد کل فایل‌های مجاز برای این بخش ${moduleMax} عدد می‌باشد`);
+      showError(msg.action('maxTotalFilesLimit', { max: moduleMax }));
       const remainingGlobalSlots = moduleMax - globalTotal;
       if (remainingGlobalSlots <= 0) {
         setShowMainLibrary(false);
@@ -112,7 +113,7 @@ export function MediaGallery({
     if (maxSelection === 1 && uniqueNewItems.length > 0) {
       onMediaSelect([uniqueNewItems[0]]);
     } else if (maxSelection && mediaItems.length + uniqueNewItems.length > maxSelection) {
-      showError(`در این بخش حداکثر ${maxSelection} فایل می‌توان انتخاب کرد`);
+      showError(msg.action('maxSectionFilesLimit', { max: maxSelection }));
       const remainingGallerySlots = maxSelection - mediaItems.length;
       if (remainingGallerySlots <= 0) {
         setShowMainLibrary(false);

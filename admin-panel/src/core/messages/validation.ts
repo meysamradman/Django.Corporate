@@ -51,6 +51,13 @@ export const VALIDATION_MESSAGES = {
   urlInvalid: 'آدرس وارد شده معتبر نیست',
   fileSizeLimit: 'حجم فایل نباید بیشتر از {max} باشد',
   duplicateFieldName: 'این نام فیلد قبلاً استفاده شده است',
+  coordinatesFormatInvalid: 'فرمت مختصات معتبر نیست. مثال: 35.6892, 51.3890',
+  latitudeRangeInvalid: 'عرض جغرافیایی باید بین -90 تا 90 باشد',
+  longitudeRangeInvalid: 'طول جغرافیایی باید بین -180 تا 180 باشد',
+  provinceNameCodeRequired: 'نام و کد استان الزامی است',
+  cityNameCodeProvinceRequired: 'نام، کد و استان شهر الزامی است',
+  regionNameCodeCityRequired: 'نام، کد و شهر منطقه الزامی است',
+  regionCodeNumberRequired: 'کد منطقه باید عدد باشد',
 } as const;
 
 export const getValidation = createMessageGetter(VALIDATION_MESSAGES);

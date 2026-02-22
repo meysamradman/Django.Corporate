@@ -75,11 +75,11 @@ export function useBlogListActions({
     },
     onSuccess: (updated) => {
       queryClient.invalidateQueries({ queryKey: ['blogs'] });
-      showSuccess(`بلاگ با موفقیت ${updated.is_active ? 'فعال' : 'غیرفعال'} شد`);
+      showSuccess(msg.crud(updated.is_active ? 'activated' : 'deactivated', { item: 'بلاگ' }));
     },
     onError: (error) => {
       notifyApiError(error, {
-        fallbackMessage: 'خطا در تغییر وضعیت',
+        fallbackMessage: msg.status('statusChangeError'),
         dedupeKey: 'blog-toggle-active-error',
         preferBackendMessage: false,
       });
@@ -186,7 +186,7 @@ export function useBlogListActions({
     }
 
     try {
-      showWarning('در حال آماده‌سازی فایل پرینت برای تمامی موارد...');
+      showWarning(msg.export('printPreparingAll'));
       const response = await blogApi.getBlogList({
         ...queryParams,
         page: 1,
@@ -197,11 +197,11 @@ export function useBlogListActions({
       if (allIds.length > 0) {
         openPrintWindow(allIds);
       } else {
-        showError('داده‌ای برای پرینت یافت نشد');
+        showError(msg.export('printNoData'));
       }
     } catch (error) {
       notifyApiError(error, {
-        fallbackMessage: 'خطا در بارگذاری داده‌ها برای پرینت',
+        fallbackMessage: msg.export('printError'),
         dedupeKey: 'blog-print-load-error',
         preferBackendMessage: false,
       });

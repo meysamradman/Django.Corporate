@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/ai';
 import { showSuccess, notifyApiError } from '@/core/toast';
-import { getCrud } from '@/core/messages/ui';
+import { getCrud, getStatus } from '@/core/messages/ui';
 import { usePermission, PERMISSIONS } from '@/core/permissions';
 import type { AISettingsModel, AISettingsProvider } from '@/types/ai/ai';
 import {
@@ -208,7 +208,7 @@ export function useAISettings() {
     },
     onError: (error: unknown) => {
       notifyApiError(error, {
-        fallbackMessage: 'خطا در به‌روزرسانی تنظیمات',
+        fallbackMessage: getStatus('statusChangeError'),
         dedupeKey: 'ai-toggle-use-shared-api',
       });
     },

@@ -17,6 +17,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { roleFormSchema, roleFormDefaults, type RoleFormValues } from "@/components/roles/validations/roleSchema";
 import { extractFieldErrors, hasFieldErrors, showError } from '@/core/toast';
 import { getResourceIcon } from "@/components/roles/form/utils";
+import { msg } from '@/core/messages';
 import { getPermissionTranslation } from "@/core/messages/permissions";
 import { useRolePermissionBuckets } from "@/components/roles/hooks/useRolePermissionBuckets";
 import { useRolePermissionSelection } from "@/components/roles/hooks/useRolePermissionSelection";
@@ -124,7 +125,7 @@ export default function CreateRolePage() {
           });
         });
 
-        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
+        showError(error, { customMessage: msg.error('checkForm') });
       } else {
         showError(error);
       }

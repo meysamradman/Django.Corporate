@@ -172,7 +172,7 @@ export function useDataTableLogic<
       }
     } catch (error) {
       showError(error instanceof Error ? error : new Error("خطای نامشخص"), {
-          customMessage: "خطا در بارگذاری داده‌ها",
+          customMessage: getAction('dataLoadError'),
       });
       setData([]);
       setTotalItems(0);

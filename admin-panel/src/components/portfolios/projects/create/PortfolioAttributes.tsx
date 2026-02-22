@@ -5,6 +5,7 @@ import { Button } from "@/components/elements/Button";
 import { Settings, Plus } from "lucide-react";
 import type { PortfolioFormValues } from "@/components/portfolios/validations/portfolioSchema";
 import { showError } from "@/core/toast";
+import { msg } from "@/core/messages";
 import { PortfolioAttributesTable } from "./attributes/PortfolioAttributesTable";
 import { PortfolioAttributesDialogs } from "./attributes/PortfolioAttributesDialogs";
 
@@ -58,11 +59,11 @@ export function PortfolioAttributes(props: ExtraAttributesTabProps) {
 
     const handleSave = () => {
         if (!fieldKey.trim()) {
-            showError("نام فیلد الزامی است");
+            showError(msg.validation('required', { field: 'نام فیلد' }));
             return;
         }
         if (!editingKey && currentAttributes[fieldKey.trim()]) {
-            showError("این نام فیلد قبلاً استفاده شده است");
+            showError(msg.validation('duplicateFieldName'));
             return;
         }
         setSaving(true);

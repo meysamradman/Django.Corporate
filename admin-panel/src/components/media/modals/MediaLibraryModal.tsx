@@ -7,6 +7,7 @@ import { mediaApi, DEFAULT_MEDIA_PAGE_SIZE } from '@/api/media/media';
 import type { Media, MediaFilter } from '@/types/shared/media';
 import { useMediaUpload } from '@/components/media/hooks/useMediaUpload';
 import { showError } from "@/core/toast";
+import { msg } from '@/core/messages';
 import { useUserPermissions } from '@/core/permissions/hooks/useUserPermissions';
 import { useHasAccess } from '@/core/permissions/hooks/useHasAccess';
 import { mediaService } from '@/components/media/services';
@@ -204,13 +205,13 @@ export function MediaLibraryModal({
 
     const fileCategory = mediaService.getFileCategory(selectedCoverFile);
     if (fileCategory !== 'image') {
-      showError("کاور باید یک تصویر باشد");
+      showError(msg.action('coverMustBeImage'));
       return;
     }
 
     if (!uploadSettings?.sizeLimit?.image || selectedCoverFile.size > uploadSettings.sizeLimit.image) {
       const maxSize = uploadSettings?.sizeLimitFormatted?.image || 'نامشخص';
-      showError(`حجم فایل کاور بیش از حد مجاز است (${maxSize})`);
+      showError(msg.validation('fileSizeLimit', { max: maxSize }));
       return;
     }
 

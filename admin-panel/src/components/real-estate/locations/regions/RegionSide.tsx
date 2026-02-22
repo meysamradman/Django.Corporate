@@ -5,6 +5,7 @@ import { TaxonomyDrawer } from "@/components/templates/TaxonomyDrawer";
 import { FormField, FormFieldInput } from "@/components/shared/FormField";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { showError, showSuccess } from "@/core/toast";
+import { msg } from "@/core/messages";
 
 interface RegionSideProps {
   isOpen: boolean;
@@ -64,7 +65,7 @@ export const RegionSide: React.FC<RegionSideProps> = ({
       return realEstateApi.createRegion(payload);
     },
     onSuccess: () => {
-      showSuccess(isEditMode ? "منطقه با موفقیت بروزرسانی شد" : "منطقه با موفقیت ایجاد شد");
+      showSuccess(msg.crud(isEditMode ? 'updated' : 'created', { item: 'منطقه' }));
       if (onSuccess) onSuccess();
       onClose();
     },
@@ -73,11 +74,11 @@ export const RegionSide: React.FC<RegionSideProps> = ({
 
   const handleSubmit = async () => {
     if (!form.name.trim() || !form.code.trim() || !form.city_id) {
-      showError("نام، کد و شهر منطقه الزامی است");
+      showError(msg.validation('regionNameCodeCityRequired'));
       return;
     }
     if (Number.isNaN(Number(form.code))) {
-      showError("کد منطقه باید عدد باشد");
+      showError(msg.validation('regionCodeNumberRequired'));
       return;
     }
     await saveMutation.mutateAsync();

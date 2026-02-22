@@ -13,6 +13,7 @@ import {
   CardFooter,
 } from "@/components/elements/Card";
 import { toast, showError } from '@/core/toast';
+import { msg } from '@/core/messages';
 import { useUserPermissions } from '@/core/permissions';
 import { Loader } from '@/components/elements/Loader';
 import { MediaPageFilters } from '@/components/media/page/MediaPageFilters';
@@ -124,7 +125,7 @@ export default function MediaPage() {
 
   const handleDeleteSelected = async () => {
     if (!canDeleteMedia) {
-      showError("شما اجازه حذف رسانه‌ها را ندارید");
+      showError(msg.action('noMediaDeletePermission'));
       return;
     }
     const selectedMediaItems = mediaItems.filter(item => selectedItems[item.id]);
@@ -141,14 +142,14 @@ export default function MediaPage() {
         toast.promise(
           mediaApi.bulkDeleteMedia(selectedMediaItems),
           {
-            loading: 'در حال حذف رسانه‌ها...',
+            loading: msg.action('loading'),
             success: (response: any) => {
               fetchMedia(filters);
               clearSelection();
-              return `${response.data?.deleted_count || selectedMediaItems.length} رسانه برای حذف علامت‌گذاری شد.`;
+              return msg.crud('deleted', { item: `${response.data?.deleted_count || selectedMediaItems.length} رسانه` });
             },
             error: (error: any) => {
-              return error instanceof Error ? error.message : 'خطا در حذف رسانه‌ها.';
+              return error instanceof Error ? error.message : msg.error('serverError');
             },
           }
         );

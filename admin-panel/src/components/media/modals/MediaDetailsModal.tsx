@@ -15,6 +15,7 @@ import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from '@/components/media/services';
 import { mediaApi } from '@/api/media/media';
 import { showSuccess, showError } from '@/core/toast';
+import { msg } from '@/core/messages';
 import { CoverImageManager } from '@/components/media/modals/CoverImageManager';
 import { usePermission } from '@/core/permissions';
 import { MediaDetailsHeader } from '@/components/media/modals/details/MediaDetailsHeader';
@@ -156,7 +157,7 @@ export function MediaDetailsModal({
       const mediaUrl = mediaService.getMediaUrlFromObject(media);
 
       if (!mediaUrl) {
-        showError('لینک دانلود این رسانه در دسترس نیست');
+        showError(msg.action('downloadLinkUnavailable'));
         return;
       }
 
@@ -211,7 +212,7 @@ export function MediaDetailsModal({
       const response = await mediaApi.updateMedia(media.id, updateData);
 
       if (response.metaData.status === 'success' && response.data) {
-        showSuccess('تغییرات با موفقیت ذخیره شد');
+        showSuccess(msg.action('changesSaved'));
         setIsEditing(false);
         setNewCoverImage(null);
 
@@ -222,10 +223,10 @@ export function MediaDetailsModal({
           onMediaUpdated(finalUpdatedMedia);
         }
       } else {
-        showError(response.metaData.message || 'خطا در ذخیره تغییرات');
+        showError(response.metaData.message || msg.action('changesSaveError'));
       }
     } catch (error) {
-      showError('خطا در ذخیره تغییرات');
+      showError(msg.action('changesSaveError'));
     } finally {
       setIsSaving(false);
     }

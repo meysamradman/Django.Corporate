@@ -3,6 +3,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useDeleteRole, useBulkDeleteRoles } from "@/core/permissions";
 import type { Role } from "@/types/auth/permission";
 import { showWarning } from "@/core/toast";
+import { msg } from "@/core/messages";
 import type { RoleDeleteConfirmState } from "@/types/shared/deleteConfirm";
 
 interface UseRolesListActionsParams {
@@ -22,7 +23,7 @@ export function useRolesListActions({ data, setRowSelection }: UseRolesListActio
   const handleDeleteRole = (roleId: number) => {
     const role = data.find((item) => item.id === roleId);
     if (role?.is_system_role) {
-      showWarning("نقش‌های سیستمی قابل حذف نیستند");
+      showWarning(msg.action('systemRolesNotDeletable'));
       return;
     }
 
@@ -39,12 +40,12 @@ export function useRolesListActions({ data, setRowSelection }: UseRolesListActio
     const deletableRoles = selectedRoles.filter((role) => !role.is_system_role);
 
     if (deletableRoles.length === 0) {
-      showWarning("نقش‌های سیستمی قابل حذف نیستند");
+      showWarning(msg.action('systemRolesNotDeletable'));
       return;
     }
 
     if (deletableRoles.length < selectedRoles.length) {
-      showWarning(`تنها ${deletableRoles.length} نقش غیرسیستمی حذف خواهد شد`);
+      showWarning(msg.action('nonSystemRolesWillDelete', { count: deletableRoles.length }));
     }
 
     setDeleteConfirm({

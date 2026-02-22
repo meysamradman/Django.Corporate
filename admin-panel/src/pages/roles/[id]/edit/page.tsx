@@ -23,6 +23,7 @@ import {
   RoleInfoForm,
 } from "@/components/roles/form";
 import { getResourceIcon } from "@/components/roles/form/utils";
+import { msg } from '@/core/messages';
 import { getPermissionTranslation } from "@/core/messages/permissions";
 import { Switch } from "@/components/elements/Switch";
 import { useRolePermissionBuckets } from "@/components/roles/hooks/useRolePermissionBuckets";
@@ -140,7 +141,7 @@ export default function EditRolePage() {
             message: message as string
           });
         });
-        showError(error, { customMessage: "لطفاً خطاهای فرم را بررسی کنید" });
+        showError(error, { customMessage: msg.error('checkForm') });
       } else {
         showError(error);
       }
