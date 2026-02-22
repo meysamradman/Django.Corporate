@@ -1,39 +1,43 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import NProgress from 'nprogress';
+import LoadingBar, { type LoadingBarRef } from 'react-top-loading-bar';
 
 export function RouteProgress() {
   const location = useLocation();
   const prevPathnameRef = useRef(location.pathname);
+  const loaderRef = useRef<LoadingBarRef | null>(null);
 
   useEffect(() => {
     const pathnameChanged = prevPathnameRef.current !== location.pathname;
-    
-    if (pathnameChanged) {
-      NProgress.configure({
-        showSpinner: false,
-        easing: 'ease',
-        speed: 200,
-        minimum: 0.08,
-      });
 
-      NProgress.start();
+    if (pathnameChanged) {
+      loaderRef.current?.continuousStart(0, 200);
 
       const timer = setTimeout(() => {
-        NProgress.done();
+        loaderRef.current?.complete();
       }, 300);
 
       prevPathnameRef.current = location.pathname;
 
       return () => {
         clearTimeout(timer);
-        NProgress.done();
+        loaderRef.current?.complete();
       };
     }
-    
+
     prevPathnameRef.current = location.pathname;
   }, [location.pathname]);
 
-  return null;
+  return (
+    <LoadingBar
+      color="var(--primary)"
+      ref={loaderRef}
+      height={3}
+      shadow={false}
+      waitingTime={300}
+      transitionTime={200}
+      loaderSpeed={200}
+    />
+  );
 }
 
