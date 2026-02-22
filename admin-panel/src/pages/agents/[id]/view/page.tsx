@@ -1,5 +1,5 @@
 import { useParams, Navigate } from "react-router-dom";
-import { DynamicProfileView } from "@/components/admins/view/DynamicProfileView";
+import { AgentProfileView } from "@/components/agents/view/ProfileView";
 
 export default function ViewAgentPage() {
   const params = useParams();
@@ -9,6 +9,6 @@ export default function ViewAgentPage() {
     return <Navigate to="/agents" replace />;
   }
 
-  return <DynamicProfileView adminId={agentId} profileMode="agent" />;
+  return <AgentProfileView agentId={agentId} />;
 }
 

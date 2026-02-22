@@ -19,7 +19,7 @@ const EditFormSkeleton = () => (
   </div>
 );
 
-const EditAdminForm = lazy(() => import("@/components/admins/edit/EditForm").then((mod) => ({ default: mod.EditAdminForm })));
+const EditAgentForm = lazy(() => import("@/components/agents/edit/EditForm").then((mod) => ({ default: mod.EditAgentForm })));
 
 export default function EditAgentPage() {
   const params = useParams();
@@ -62,7 +62,7 @@ export default function EditAgentPage() {
   return (
     <div className="space-y-6">
       <Suspense fallback={<EditFormSkeleton />}>
-        <EditAdminForm adminId={agentId} profileMode="agent" />
+        <EditAgentForm agentId={agentId} />
       </Suspense>
     </div>
   );

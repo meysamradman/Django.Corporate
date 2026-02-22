@@ -1,5 +1,5 @@
-import { DynamicProfileView } from "@/components/admins/view/DynamicProfileView";
+import { AgentProfileView } from "@/components/agents/view/ProfileView";
 
 export default function MyAgentProfileViewPage() {
-  return <DynamicProfileView adminId="me" profileMode="agent" />;
+  return <AgentProfileView agentId="me" />;
 }
