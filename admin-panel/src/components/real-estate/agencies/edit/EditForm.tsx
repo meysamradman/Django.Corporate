@@ -1,111 +1,110 @@
-import { useState, useEffect, lazy, Suspense } from "react";
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useForm } from "react-hook-form";
-import { useFormState } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useForm, useFormState } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { notifyApiError, showSuccess } from '@/core/toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { AlertCircle, Building2, Search, Loader2, Save, Share2, UserCircle, Mail, Phone, MapPin, Clock, Star, CheckCircle2, XCircle } from "lucide-react";
-import { Skeleton } from "@/components/elements/Skeleton";
-import { realEstateApi } from "@/api/real-estate";
-import { msg } from '@/core/messages';
-import { ApiError } from "@/types/api/apiError";
-import { Button } from "@/components/elements/Button";
+import { AlertCircle, Building2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { Media } from "@/types/shared/media";
-import { MediaLibraryModal } from "@/components/media/modals/MediaLibraryModal";
-import { generateSlug, formatSlug } from '@/core/slug/generate';
-import { agencyFormSchema, agencyFormDefaults, type AgencyFormValues } from '@/components/real-estate/validations/agencySchema';
-import { AGENCY_FIELD_MAP, extractMappedAgencyFieldErrors } from '@/components/real-estate/validations/agencyApiError';
+import { Button } from "@/components/elements/Button";
 import { Alert, AlertDescription } from "@/components/elements/Alert";
-import type { SocialMediaItem } from "@/types/shared/socialMedia";
-import { SocialMediaArrayEditor } from "@/components/shared/SocialMediaArrayEditor";
-import { AgencyProfileHeader } from "@/components/real-estate/agencies/profile/AgencyProfileHeader";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Switch } from "@/components/elements/Switch";
-import { Item, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/components/elements/Item";
-
-const TabContentSkeleton = () => (
-    <div className="mt-6 space-y-6">
-        <div className="space-y-4 rounded-lg border p-6">
-            <Skeleton className="h-8 w-1/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-        </div>
-        <div className="space-y-4 rounded-lg border p-6">
-            <Skeleton className="h-8 w-1/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-        </div>
-    </div>
-);
-
-const BaseInfoTab = lazy(() => import("@/components/real-estate/agencies/edit/AgencyInfo"));
-const ProfileTab = lazy(() => import("@/components/real-estate/agencies/create/AgencyProfile"));
-const SEOTab = lazy(() => import("@/components/real-estate/agencies/edit/AgencySEO"));
+import { Skeleton } from "@/components/elements/Skeleton";
+import { TabbedPageLayout } from "@/components/templates/TabbedPageLayout";
+import { realEstateApi } from "@/api/real-estate";
+import { msg } from "@/core/messages";
+import { notifyApiError, showSuccess } from "@/core/toast";
+import { ApiError } from "@/types/api/apiError";
+import type { Media } from "@/types/shared/media";
+import type { SocialMediaItem } from "@/types/shared/socialMedia";
+import { generateSlug, formatSlug } from "@/core/slug/generate";
+import { agencyFormSchema, agencyFormDefaults, type AgencyFormValues } from "@/components/real-estate/validations/agencySchema";
+import { AGENCY_FIELD_MAP, extractMappedAgencyFieldErrors } from "@/components/real-estate/validations/agencyApiError";
+import { useEditAgencyPageTabs } from "../hooks/useEditAgencyPageTabs";
 
 interface EditAgencyFormProps {
     agencyId: string;
 }
 
-export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
-    const toNumberOrZero = (value: unknown): number => {
-        if (typeof value === 'number' && Number.isFinite(value)) return value;
-        if (typeof value === 'string') {
-            const parsed = Number(value);
-            if (Number.isFinite(parsed)) return parsed;
-        }
-        return 0;
-    };
+const TabSkeleton = () => (
+    <div className="mt-0 space-y-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+            <div className="flex-1 min-w-0">
+                <CardWithIcon
+                    icon={Building2}
+                    title="اطلاعات پایه"
+                    iconBgColor="bg-blue"
+                    iconColor="stroke-blue-2"
+                    cardBorderColor="border-b-blue-1"
+                >
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-16" />
+                                <Skeleton className="h-10 w-full" />
+                            </div>
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-10 w-full" />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </div>
+                </CardWithIcon>
+            </div>
+        </div>
+    </div>
+);
 
-    const [activeTab, setActiveTab] = useState("account");
+const AGENCY_EDIT_TAB_BY_FIELD: Record<string, string> = {
+    name: "account",
+    slug: "account",
+    phone: "account",
+    email: "account",
+    website: "profile",
+    license_number: "account",
+    license_expire_date: "account",
+    city: "profile",
+    province: "profile",
+    description: "profile",
+    address: "profile",
+    is_active: "account",
+    rating: "settings",
+    total_reviews: "settings",
+    profile_picture: "profile",
+    meta_title: "seo",
+    meta_description: "seo",
+    og_title: "seo",
+    og_description: "seo",
+    canonical_url: "seo",
+    robots_meta: "seo",
+    social_media: "social",
+    "social_media.name": "social",
+    "social_media.url": "social",
+    "social_media.order": "social",
+};
+
+const resolveAgencyEditErrorTab = (fieldKeys: Iterable<string>): string | null => {
+    for (const key of fieldKeys) {
+        const tab = AGENCY_EDIT_TAB_BY_FIELD[key];
+        if (tab) return tab;
+    }
+    return null;
+};
+
+export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
     const queryClient = useQueryClient();
     const navigate = useNavigate();
-    const [editMode] = useState(true);
+
+    const [activeTab, setActiveTab] = useState("account");
     const [selectedProfilePicture, setSelectedProfilePicture] = useState<Media | null>(null);
-    const [isSaving, setIsSaving] = useState(false);
-    const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
-    const [formAlert, setFormAlert] = useState<string | null>(null);
     const [socialMediaItems, setSocialMediaItems] = useState<SocialMediaItem[]>([]);
-
-    const AGENCY_EDIT_TAB_BY_FIELD: Record<string, string> = {
-        name: 'account',
-        slug: 'account',
-        phone: 'account',
-        email: 'account',
-        website: 'account',
-        license_number: 'account',
-        license_expire_date: 'account',
-        city: 'profile',
-        province: 'profile',
-        description: 'profile',
-        address: 'profile',
-        is_active: 'profile',
-        rating: 'profile',
-        total_reviews: 'profile',
-        profile_picture: 'profile',
-        meta_title: 'seo',
-        meta_description: 'seo',
-        og_title: 'seo',
-        og_description: 'seo',
-        canonical_url: 'seo',
-        robots_meta: 'seo',
-        social_media: 'social',
-        'social_media.name': 'social',
-        'social_media.url': 'social',
-        'social_media.order': 'social',
-    };
-
-    const resolveAgencyEditErrorTab = (fieldKeys: Iterable<string>): string | null => {
-        for (const key of fieldKeys) {
-            const tab = AGENCY_EDIT_TAB_BY_FIELD[key];
-            if (tab) return tab;
-        }
-        return null;
-    };
+    const [formAlert, setFormAlert] = useState<string | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
 
     const isNumericId = !Number.isNaN(Number(agencyId));
-    const queryKey = ['agency', agencyId];
+    const queryKey = ["agency", agencyId];
 
     const { data: agencyData, isLoading, error } = useQuery({
         queryKey,
@@ -148,8 +147,8 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
             description: agencyData.description || "",
             address: agencyData.address || "",
             is_active: agencyData.is_active ?? true,
-            rating: toNumberOrZero(agencyData.rating),
-            total_reviews: toNumberOrZero(agencyData.total_reviews),
+            rating: Number(agencyData.rating || 0),
+            total_reviews: Number(agencyData.total_reviews || 0),
             meta_title: agencyData.meta_title || "",
             meta_description: agencyData.meta_description || "",
             og_title: agencyData.og_title || "",
@@ -164,34 +163,31 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
 
     const handleInputChange = (field: string, value: string | boolean | number | null) => {
         if (field === "name" && typeof value === "string") {
-            const generatedSlug = generateSlug(value);
-            form.setValue("slug", generatedSlug);
-        } else if (field === "slug" && typeof value === "string") {
-            const formattedSlug = formatSlug(value);
-            form.setValue("slug", formattedSlug);
-        } else {
-            form.setValue(field as keyof AgencyFormValues, value);
+            form.setValue("name", value);
+            form.setValue("slug", generateSlug(value));
+            return;
         }
-    };
 
-    const handleImageSelect = (media: Media | Media[] | null) => {
-        const selected = Array.isArray(media) ? media[0] || null : media;
-        setSelectedProfilePicture(selected);
-        setIsMediaModalOpen(false);
+        if (field === "slug" && typeof value === "string") {
+            form.setValue("slug", formatSlug(value));
+            return;
+        }
+
+        form.setValue(field as keyof AgencyFormValues, value as never);
     };
 
     const handleSave = async () => {
-        if (isSaving) return;
+        if (isSaving || !agencyData) return;
 
         setFormAlert(null);
         form.clearErrors();
+
         const isValid = await form.trigger();
         if (!isValid) {
             const tabWithError = resolveAgencyEditErrorTab(Object.keys(form.formState.errors));
             if (tabWithError) {
                 setActiveTab(tabWithError);
             }
-            setFormAlert(msg.error('checkForm'));
             return;
         }
 
@@ -199,7 +195,7 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
 
         try {
             const data = form.getValues();
-            const profileData: Record<string, any> = {
+            const payload: Record<string, unknown> = {
                 name: data.name,
                 slug: data.slug || null,
                 phone: data.phone,
@@ -212,8 +208,8 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                 description: data.description || null,
                 address: data.address || null,
                 is_active: data.is_active,
-                rating: toNumberOrZero(data.rating),
-                total_reviews: toNumberOrZero(data.total_reviews),
+                rating: Number(data.rating || 0),
+                total_reviews: Number(data.total_reviews || 0),
                 meta_title: data.meta_title || null,
                 meta_description: data.meta_description || null,
                 og_title: data.og_title || null,
@@ -221,7 +217,7 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
                 canonical_url: data.canonical_url || null,
                 robots_meta: data.robots_meta || null,
                 social_media: socialMediaItems
-                    .filter((item) => (item.name || '').trim() && (item.url || '').trim())
+                    .filter((item) => (item.name || "").trim() && (item.url || "").trim())
                     .map((item, index) => ({
                         id: item.id,
                         name: item.name,
@@ -232,23 +228,17 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
             };
 
             if (selectedProfilePicture?.id) {
-                profileData.profile_picture = selectedProfilePicture.id;
+                payload.profile_picture = selectedProfilePicture.id;
             } else if (selectedProfilePicture === null) {
-                profileData.profile_picture = null;
+                payload.profile_picture = null;
             }
 
-            if (!agencyData) {
-                setFormAlert('اطلاعات آژانس یافت نشد');
-                return;
-            }
+            await realEstateApi.updateAgency(agencyData.id, payload);
 
-            await realEstateApi.updateAgency(agencyData.id, profileData);
+            await queryClient.invalidateQueries({ queryKey });
+            await queryClient.invalidateQueries({ queryKey: ["agencies"] });
 
-            await queryClient.invalidateQueries({ queryKey: ['agency', agencyId] });
-            await queryClient.refetchQueries({ queryKey: ['agency', agencyId] });
-            await queryClient.invalidateQueries({ queryKey: ['agencies'] });
-
-            showSuccess(msg.crud('updated', { item: 'آژانس' }));
+            showSuccess(msg.crud("updated", { item: "آژانس" }));
             navigate("/admins/agencies");
         } catch (error: unknown) {
             const { fieldErrors, nonFieldError } = extractMappedAgencyFieldErrors(
@@ -259,7 +249,7 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
             if (Object.keys(fieldErrors).length > 0) {
                 Object.entries(fieldErrors).forEach(([field, message]) => {
                     form.setError(field as keyof AgencyFormValues, {
-                        type: 'server',
+                        type: "server",
                         message,
                     });
                 });
@@ -281,32 +271,36 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
             }
 
             if (error instanceof ApiError && error.response.AppStatusCode < 500) {
-                setFormAlert(error.response.message || msg.error('validation'));
+                setFormAlert(error.response.message || msg.error("validation"));
                 return;
             }
 
             notifyApiError(error, {
-                fallbackMessage: msg.error('serverError'),
+                fallbackMessage: msg.error("serverError"),
                 preferBackendMessage: false,
-                dedupeKey: 'agencies-edit-system-error',
+                dedupeKey: "agencies-edit-system-error",
             });
         } finally {
             setIsSaving(false);
         }
     };
 
-    const handleGoToList = () => {
-        navigate("/admins/agencies");
-    };
-
     const handleTabChange = (nextTab: string) => {
         if (nextTab === activeTab) {
             return;
         }
-
         setFormAlert(null);
         setActiveTab(nextTab);
     };
+
+    const { tabs } = useEditAgencyPageTabs({
+        form,
+        selectedMedia: selectedProfilePicture,
+        setSelectedMedia: setSelectedProfilePicture,
+        socialMediaItems,
+        onSocialMediaChange: setSocialMediaItems,
+        onFieldChange: handleInputChange,
+    });
 
     if (error) {
         const errorMessage =
@@ -319,243 +313,36 @@ export function EditAgencyForm({ agencyId }: EditAgencyFormProps) {
         return (
             <div className="rounded-lg border p-6 text-center space-y-4">
                 <p className="text-destructive">{errorMessage}</p>
-                <Button onClick={handleGoToList}>بازگشت به لیست</Button>
+                <Button onClick={() => navigate("/admins/agencies")}>بازگشت به لیست</Button>
             </div>
         );
     }
 
     if (isLoading || !agencyData) {
-        return (
-            <div className="space-y-6">
-                <div className="rounded-lg border p-6">
-                    <Skeleton className="h-32 w-full mb-4" />
-                    <Skeleton className="h-8 w-1/3 mb-2" />
-                    <Skeleton className="h-4 w-2/3" />
-                </div>
-                <div className="space-y-4">
-                    <div className="flex gap-2">
-                        <Skeleton className="h-10 w-32" />
-                        <Skeleton className="h-10 w-32" />
-                    </div>
-                    <TabContentSkeleton />
-                </div>
-            </div>
-        );
+        return <TabSkeleton />;
     }
 
-    const currentName = form.watch("name") || agencyData.name || "وارد نشده";
-    const currentPhone = form.watch("phone") || agencyData.phone || "وارد نشده";
-    const currentEmail = form.watch("email") || agencyData.email || "وارد نشده";
-    const currentCity = agencyData.city_name || "وارد نشده";
-    const currentRating = String(form.watch("rating") ?? agencyData.rating ?? "-");
-    const currentIsActive = (form.watch("is_active") ?? agencyData.is_active) === true;
-
     return (
-        <>
+        <div className="space-y-4">
             {formAlert ? (
-                <Alert variant="destructive" className="border-red-1/50 mb-4">
+                <Alert variant="destructive" className="border-red-1/50">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>{formAlert}</AlertDescription>
                 </Alert>
             ) : null}
 
-            <AgencyProfileHeader
-                agency={agencyData}
-                selectedLogo={selectedProfilePicture}
-                onLogoChange={setSelectedProfilePicture}
-                agencyId={agencyId}
+            <TabbedPageLayout
+                title="ویرایش آژانس"
+                description="مدیریت اطلاعات آژانس"
+                showHeader={false}
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+                tabs={tabs}
+                onSave={handleSave}
+                isSaving={isSaving}
+                saveLabel="ذخیره تغییرات"
+                skeleton={<TabSkeleton />}
             />
-
-            <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
-                <div className="lg:col-span-2 space-y-6 lg:sticky lg:top-6 h-fit transition-all duration-300">
-                    <CardWithIcon
-                        icon={Building2}
-                        title="اطلاعات آژانس"
-                        iconBgColor="bg-blue"
-                        iconColor="stroke-blue-2"
-                        cardBorderColor="border-b-blue-1"
-                        className="border-0 shadow-md hover:shadow-xl transition-all duration-300 relative overflow-hidden bg-linear-to-br from-card via-card to-muted/30 before:absolute before:right-0 before:top-0 before:h-full before:w-1 before:bg-linear-to-b before:from-blue-1 before:via-blue-1 before:to-blue-1"
-                        contentClassName="pt-4 pb-4"
-                    >
-                        <div className="space-y-5">
-                            <div className="space-y-0 [&>div:not(:last-child)]:border-b">
-                                <div className="flex items-center justify-between gap-3 py-3">
-                                    <div className="flex items-center gap-2">
-                                        <Building2 className="w-4 h-4 text-font-s shrink-0" />
-                                        <label>نام آژانس:</label>
-                                    </div>
-                                    <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
-                                        <span className="text-font-p">{currentName}</span>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-between gap-3 py-3">
-                                    <div className="flex items-center gap-2">
-                                        <Phone className="w-4 h-4 text-font-s shrink-0" />
-                                        <label>تلفن:</label>
-                                    </div>
-                                    <p className="text-font-p text-left">{currentPhone}</p>
-                                </div>
-
-                                <div className="flex items-center justify-between gap-3 py-3">
-                                    <div className="flex items-center gap-2">
-                                        <Mail className="w-4 h-4 text-font-s shrink-0" />
-                                        <label>ایمیل:</label>
-                                    </div>
-                                    <div className="flex-1 ms-2 text-left min-w-0 overflow-hidden">
-                                        <span className="text-font-p break-all">{currentEmail}</span>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-between gap-3 py-3">
-                                    <div className="flex items-center gap-2">
-                                        <MapPin className="w-4 h-4 text-font-s shrink-0" />
-                                        <label>شهر:</label>
-                                    </div>
-                                    <p className="text-font-p text-left">{currentCity}</p>
-                                </div>
-
-                                <div className="flex items-center justify-between gap-3 py-3">
-                                    <div className="flex items-center gap-2">
-                                        <Star className="w-4 h-4 text-font-s shrink-0" />
-                                        <label>رتبه:</label>
-                                    </div>
-                                    <p className="text-font-p text-left">{currentRating}</p>
-                                </div>
-
-                                {agencyData.created_at ? (
-                                    <div className="flex items-center justify-between gap-3 py-3">
-                                        <div className="flex items-center gap-2">
-                                            <Clock className="w-4 h-4 text-font-s shrink-0" />
-                                            <label>تاریخ ایجاد:</label>
-                                        </div>
-                                        <p className="text-font-p text-left">{new Date(agencyData.created_at).toLocaleDateString("fa-IR")}</p>
-                                    </div>
-                                ) : null}
-
-                                <div className="py-4 space-y-3">
-                                    <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-md">
-                                        <Item variant="default" size="default" className="py-3">
-                                            <ItemContent>
-                                                <ItemTitle className="text-green-2 text-sm font-bold">وضعیت فعال</ItemTitle>
-                                                <ItemDescription className="text-xs">نمایش آژانس در لیست و امکان استفاده.</ItemDescription>
-                                            </ItemContent>
-                                            <ItemActions>
-                                                <Switch
-                                                    checked={currentIsActive}
-                                                    onCheckedChange={(checked) => handleInputChange("is_active", checked)}
-                                                    disabled={isSaving}
-                                                />
-                                            </ItemActions>
-                                        </Item>
-                                    </div>
-
-                                    <div>
-                                        <span className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs ${currentIsActive ? "bg-green text-green-1" : "bg-yellow text-yellow-1"}`}>
-                                            {currentIsActive ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
-                                            {currentIsActive ? "فعال" : "غیرفعال"}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </CardWithIcon>
-                </div>
-
-                <div className="lg:col-span-4">
-                    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                        <TabsList>
-                            <TabsTrigger value="account">
-                                <Building2 className="h-4 w-4" />
-                                اطلاعات پایه
-                            </TabsTrigger>
-                            <TabsTrigger value="profile">
-                                <UserCircle className="h-4 w-4" />
-                                پروفایل
-                            </TabsTrigger>
-                            <TabsTrigger value="seo">
-                                <Search className="h-4 w-4" />
-                                سئو
-                            </TabsTrigger>
-                            <TabsTrigger value="social">
-                                <Share2 className="h-4 w-4" />
-                                شبکه‌های اجتماعی
-                            </TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="account" className="mt-0">
-                            <Suspense fallback={<TabContentSkeleton />}>
-                                <BaseInfoTab
-                                    form={form}
-                                    editMode={editMode}
-                                    agencyData={agencyData}
-                                    handleInputChange={handleInputChange}
-                                />
-                            </Suspense>
-                        </TabsContent>
-
-                        <TabsContent value="profile" className="mt-0">
-                            <Suspense fallback={<TabContentSkeleton />}>
-                                <ProfileTab
-                                    form={form}
-                                    selectedMedia={selectedProfilePicture}
-                                    setSelectedMedia={setSelectedProfilePicture}
-                                    editMode={editMode}
-                                />
-                            </Suspense>
-                        </TabsContent>
-
-                        <TabsContent value="seo" className="mt-0">
-                            <Suspense fallback={<TabContentSkeleton />}>
-                                <SEOTab
-                                    form={form}
-                                    editMode={editMode}
-                                />
-                            </Suspense>
-                        </TabsContent>
-
-                        <TabsContent value="social" className="mt-0">
-                            <div className="rounded-lg border p-6">
-                                <SocialMediaArrayEditor
-                                    items={socialMediaItems}
-                                    onChange={setSocialMediaItems}
-                                />
-                            </div>
-                        </TabsContent>
-                    </Tabs>
-                </div>
-            </div>
-
-            <MediaLibraryModal
-                isOpen={isMediaModalOpen}
-                onClose={() => setIsMediaModalOpen(false)}
-                onSelect={handleImageSelect}
-                selectMultiple={false}
-                initialFileType="image"
-                showTabs={true}
-                context="media_library"
-            />
-
-            <div className="fixed bottom-0 left-0 right-0 lg:right-80 z-50 border-t border-br bg-card shadow-lg transition-all duration-300 flex items-center justify-end gap-3 py-4 px-8">
-                <Button
-                    type="button"
-                    onClick={handleSave}
-                    size="lg"
-                    disabled={isSaving}
-                >
-                    {isSaving ? (
-                        <>
-                            <Loader2 className="h-5 w-5 animate-spin" />
-                            در حال ذخیره...
-                        </>
-                    ) : (
-                        <>
-                            <Save className="h-5 w-5" />
-                            ذخیره تغییرات
-                        </>
-                    )}
-                </Button>
-            </div>
-        </>
+        </div>
     );
 }
