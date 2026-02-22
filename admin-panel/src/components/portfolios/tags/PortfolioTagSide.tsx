@@ -40,7 +40,7 @@ export const PortfolioTagSide: React.FC<PortfolioTagSideProps> = ({
             if (onSuccess) onSuccess();
             onClose();
         },
-        itemLabel: "تگ",
+        itemLabel: "برچسب",
         titleFieldName: "name",
     });
 
@@ -50,7 +50,7 @@ export const PortfolioTagSide: React.FC<PortfolioTagSideProps> = ({
         <TaxonomyDrawer
             isOpen={isOpen}
             onClose={onClose}
-            title={isEditMode ? "ویرایش تگ" : "ایجاد تگ جدید"}
+            title={isEditMode ? "ویرایش برچسب" : "ایجاد برچسب جدید"}
             onSubmit={handleSubmit}
             isPending={isPending}
             isSubmitting={isSubmitting}
@@ -64,7 +64,7 @@ export const PortfolioTagSide: React.FC<PortfolioTagSideProps> = ({
                         id="name"
                         required
                         error={errors.name?.message as string}
-                        placeholder="نام تگ را وارد کنید"
+                        placeholder="نام برچسب را وارد کنید"
                         {...register("name")}
                     />
 
@@ -81,7 +81,7 @@ export const PortfolioTagSide: React.FC<PortfolioTagSideProps> = ({
                         label="توضیحات"
                         id="description"
                         error={errors.description?.message as string}
-                        placeholder="توضیحات تگ"
+                        placeholder="توضیحات برچسب"
                         rows={3}
                         {...register("description")}
                     />

@@ -118,7 +118,7 @@ export default function TagPage() {
   if (error) {
     return (
       <div className="space-y-6">
-        <PageHeader title="مدیریت تگ‌ها" />
+        <PageHeader title="مدیریت برچسب‌ها" />
         <div className="text-center py-8">
           <p className="text-red-1 mb-4">خطا در بارگذاری داده‌ها</p>
           <Button onClick={() => window.location.reload()} className="mt-4">
@@ -131,10 +131,10 @@ export default function TagPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="مدیریت تگ‌ها">
+      <PageHeader title="مدیریت برچسب‌ها">
         <ProtectedButton permission="blog.create" size="sm" onClick={() => open(DRAWER_IDS.BLOG_TAG_FORM)}>
           <Edit className="h-4 w-4" />
-          افزودن تگ
+          افزودن برچسب
         </ProtectedButton>
       </PageHeader>
 
@@ -158,7 +158,7 @@ export default function TagPage() {
         deleteConfig={{
           onDeleteSelected: handleDeleteSelected,
           permission: "blog.delete",
-          denyMessage: "اجازه حذف تگ ندارید",
+          denyMessage: "اجازه حذف برچسب ندارید",
         }}
         filterConfig={tagFilterConfig}
       />
@@ -169,8 +169,8 @@ export default function TagPage() {
             <AlertDialogTitle>تایید حذف</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteConfirm.isBulk
-                ? `آیا از حذف ${deleteConfirm.tagIds?.length || 0} تگ انتخاب شده مطمئن هستید؟`
-                : "آیا از حذف این تگ مطمئن هستید؟"}
+                ? `آیا از حذف ${deleteConfirm.tagIds?.length || 0} برچسب انتخاب شده مطمئن هستید؟`
+                : "آیا از حذف این برچسب مطمئن هستید؟"}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
