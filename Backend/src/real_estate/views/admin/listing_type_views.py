@@ -26,14 +26,14 @@ class ListingTypeAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     permission_classes = [real_estate_permission]
     
     permission_map = {
-        'list': 'real_estate.state.read',
-        'retrieve': 'real_estate.state.read',
-        'create': 'real_estate.state.create',
-        'update': 'real_estate.state.update',
-        'partial_update': 'real_estate.state.update',
-        'destroy': 'real_estate.state.delete',
-        'bulk_delete': 'real_estate.state.delete',
-        'field_options': 'real_estate.state.read',
+        'list': 'real_estate.listing_type.read',
+        'retrieve': 'real_estate.listing_type.read',
+        'create': 'real_estate.listing_type.create',
+        'update': 'real_estate.listing_type.update',
+        'partial_update': 'real_estate.listing_type.update',
+        'destroy': 'real_estate.listing_type.delete',
+        'bulk_delete': 'real_estate.listing_type.delete',
+        'field_options': 'real_estate.listing_type.read',
     }
     permission_denied_message = LISTING_TYPE_ERRORS["listing_type_not_authorized"]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]

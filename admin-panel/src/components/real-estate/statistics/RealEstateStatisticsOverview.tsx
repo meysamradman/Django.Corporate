@@ -126,7 +126,7 @@ const MOCK_STATS: PropertyStatistics = {
     verified_percentage: 68.0,
   },
   types: { total: 12, with_properties: 8, without_properties: 4 },
-  states: { total: 32, with_properties: 15, without_properties: 17 },
+  listing_types: { total: 32, with_properties: 15, without_properties: 17 },
   labels: { total: 20, with_properties: 12, without_properties: 8 },
   features: { total: 50, with_properties: 35, without_properties: 15 },
   tags: { total: 100, with_properties: 65, without_properties: 35 },
@@ -178,8 +178,6 @@ export function RealEstateStatisticsOverview() {
   const stats = MOCK_STATS;
   const monthlyStats = MOCK_MONTHLY_STATS;
   const isLoading = false;
-
-  const error = null;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -306,8 +304,8 @@ export function RealEstateStatisticsOverview() {
         />
         <StatCard
           title="استان‌های پوشش داده شده"
-          value={stats?.states?.with_properties || 0}
-          subtitle={`از کل: ${stats?.states?.total || 0}`}
+              value={stats?.listing_types?.with_properties || 0}
+              subtitle={`از کل: ${stats?.listing_types?.total || 0}`}
           icon={<MapPin className="h-5 w-5 text-emerald-500" />}
           isLoading={isLoading}
           iconColor="text-emerald-500"

@@ -105,29 +105,29 @@ REAL_ESTATE_PERMISSIONS = {
         'description': 'Allow deleting property types',
     },
     
-    'real_estate.state.read': {
+    'real_estate.listing_type.read': {
         'module': 'real_estate_properties',
         'action': 'read',
-        'display_name': 'View Property States',
-        'description': 'Allow viewing property states',
+        'display_name': 'View Listing Types',
+        'description': 'Allow viewing listing types',
     },
-    'real_estate.state.create': {
+    'real_estate.listing_type.create': {
         'module': 'real_estate_properties',
         'action': 'create',
-        'display_name': 'Create Property State',
-        'description': 'Allow creating property states',
+        'display_name': 'Create Listing Type',
+        'description': 'Allow creating listing types',
     },
-    'real_estate.state.update': {
+    'real_estate.listing_type.update': {
         'module': 'real_estate_properties',
         'action': 'update',
-        'display_name': 'Update Property State',
-        'description': 'Allow updating property states',
+        'display_name': 'Update Listing Type',
+        'description': 'Allow updating listing types',
     },
-    'real_estate.state.delete': {
+    'real_estate.listing_type.delete': {
         'module': 'real_estate_properties',
         'action': 'delete',
-        'display_name': 'Delete Property State',
-        'description': 'Allow deleting property states',
+        'display_name': 'Delete Listing Type',
+        'description': 'Allow deleting listing types',
     },
 
     'real_estate.location.read': {

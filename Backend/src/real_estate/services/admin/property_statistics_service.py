@@ -29,7 +29,7 @@ class PropertyStatisticsService:
             'generated_at': timezone.now().isoformat(),
             'properties': cls._get_properties_stats(),
             'types': cls._get_types_stats(),
-            'states': cls._get_states_stats(),
+            'listing_types': cls._get_listing_types_stats(),
             'labels': cls._get_labels_stats(),
             'features': cls._get_features_stats(),
             'tags': cls._get_tags_stats(),
@@ -75,9 +75,9 @@ class PropertyStatisticsService:
         }
     
     @staticmethod
-    def _get_states_stats():
-        states_count = ListingType.objects.count()
-        states_with_properties = ListingType.objects.filter(properties__isnull=False).distinct().count()
+    def _get_listing_types_stats():
+        listing_types_count = ListingType.objects.count()
+        listing_types_with_properties = ListingType.objects.filter(properties__isnull=False).distinct().count()
         
         usage_breakdown = list(ListingType.objects.values('usage_type').annotate(
             count=Count('id'),
@@ -85,9 +85,9 @@ class PropertyStatisticsService:
         ))
         
         return {
-            'total': states_count,
-            'with_properties': states_with_properties,
-            'without_properties': states_count - states_with_properties,
+            'total': listing_types_count,
+            'with_properties': listing_types_with_properties,
+            'without_properties': listing_types_count - listing_types_with_properties,
             'usage_breakdown': usage_breakdown
         }
     

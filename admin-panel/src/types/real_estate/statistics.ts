@@ -17,7 +17,7 @@ export interface PropertyStatistics {
         with_properties: number;
         without_properties: number;
     };
-    states: {
+    listing_types: {
         total: number;
         with_properties: number;
         without_properties: number;
