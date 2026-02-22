@@ -1,6 +1,5 @@
-# Usage: python scripts/cleanup_code.py <directory_or_file>
-
 import ast
+import argparse
 import io
 import os
 import re
@@ -73,15 +72,29 @@ def _collect_full_line_comment_lines(content: str) -> Set[int]:
     return comment_lines
 
 
-def clean_python_file(file_path: str) -> None:
+def clean_python_file(
+    file_path: str,
+    *,
+    remove_docstrings: bool,
+    remove_comments: bool,
+    dry_run: bool,
+    preserve_marker: str,
+) -> None:
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             original_content = file.read()
 
+        if preserve_marker and preserve_marker in original_content:
+            print(f"Skipped (preserve marker): {file_path}")
+            return
+
+        if not remove_docstrings and not remove_comments:
+            return
+
         tree = ast.parse(original_content)
 
-        docstring_lines = _collect_docstring_lines(tree)
-        comment_lines = _collect_full_line_comment_lines(original_content)
+        docstring_lines = _collect_docstring_lines(tree) if remove_docstrings else set()
+        comment_lines = _collect_full_line_comment_lines(original_content) if remove_comments else set()
 
         lines_to_remove = docstring_lines.union(comment_lines)
         if not lines_to_remove:
@@ -97,6 +110,9 @@ def clean_python_file(file_path: str) -> None:
             cleaned_content += '\n'
 
         if cleaned_content != original_content:
+            if dry_run:
+                print(f"Would clean: {file_path}")
+                return
             with open(file_path, 'w', encoding='utf-8') as file:
                 file.write(cleaned_content)
             print(f"Cleaned: {file_path}")
@@ -107,11 +123,24 @@ def clean_python_file(file_path: str) -> None:
         print(f"Error processing {file_path}: {exc}")
 
 
-def process_target(target: str) -> None:
+def process_target(
+    target: str,
+    *,
+    remove_docstrings: bool,
+    remove_comments: bool,
+    dry_run: bool,
+    preserve_marker: str,
+) -> None:
     if os.path.isfile(target):
         ext = os.path.splitext(target)[1].lower()
         if ext in PY_EXTENSIONS:
-            clean_python_file(target)
+            clean_python_file(
+                target,
+                remove_docstrings=remove_docstrings,
+                remove_comments=remove_comments,
+                dry_run=dry_run,
+                preserve_marker=preserve_marker,
+            )
         return
 
     if os.path.isdir(target):
@@ -130,15 +159,57 @@ def process_target(target: str) -> None:
             for file_name in files:
                 ext = os.path.splitext(file_name)[1].lower()
                 if ext in PY_EXTENSIONS:
-                    clean_python_file(os.path.join(root, file_name))
+                    clean_python_file(
+                        os.path.join(root, file_name),
+                        remove_docstrings=remove_docstrings,
+                        remove_comments=remove_comments,
+                        dry_run=dry_run,
+                        preserve_marker=preserve_marker,
+                    )
         return
 
     print(f"Target not found: {target}")
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print('Usage: python scripts/cleanup_code.py <directory_or_file>')
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description='Safe Python cleanup utility')
+    parser.add_argument('target', help='Target directory or file')
+    parser.add_argument(
+        '--keep-docstrings',
+        action='store_true',
+        help='Keep Python docstrings (docstrings are removed by default)',
+    )
+    parser.add_argument(
+        '--remove-comments',
+        action='store_true',
+        default=True,
+        help='Remove full-line comments (enabled by default)',
+    )
+    parser.add_argument(
+        '--keep-comments',
+        action='store_true',
+        help='Keep full-line comments and disable comment cleanup',
+    )
+    parser.add_argument(
+        '--dry-run',
+        action='store_true',
+        help='Show files that would be cleaned without writing changes',
+    )
+    parser.add_argument(
+        '--preserve-marker',
+        default='',
+        help='Skip cleaning files containing this marker text',
+    )
 
-    process_target(sys.argv[1])
+    args = parser.parse_args()
+
+    remove_comments = args.remove_comments and not args.keep_comments
+    remove_docstrings = not args.keep_docstrings
+
+    process_target(
+        args.target,
+        remove_docstrings=remove_docstrings,
+        remove_comments=remove_comments,
+        dry_run=args.dry_run,
+        preserve_marker=args.preserve_marker,
+    )

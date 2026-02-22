@@ -1,6 +1,7 @@
 from django.core.cache import cache
 from django.conf import settings
 from django.utils import timezone
+from src.core.security.messages import IP_MANAGEMENT_DEFAULTS
 
 class IPBanService:
     BAN_CACHE_KEY = 'banned_ips'
@@ -21,13 +22,16 @@ class IPBanService:
         cache.set(cache_key, attempts, timeout=cls.BAN_DURATION)
         
         if attempts >= cls.MAX_ATTEMPTS:
-            cls.ban_ip(ip, reason=f'Too many honeypot attempts: {attempts}')
+            cls.ban_ip(
+                ip,
+                reason=IP_MANAGEMENT_DEFAULTS['honeypot_attempts_reason'].format(attempts=attempts)
+            )
             return True
         
         return False
     
     @classmethod
-    def ban_ip(cls, ip: str, reason: str = 'Honeypot triggered'):
+    def ban_ip(cls, ip: str, reason: str = IP_MANAGEMENT_DEFAULTS['auto_ban_reason']):
         if cls._is_whitelisted(ip):
             return
         

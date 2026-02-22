@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError, AuthenticationFailed
 
 from src.core.responses.response import APIResponse
-from src.core.security.captcha.messages import CAPTCHA_ERRORS
+from src.core.security.messages import CAPTCHA_ERRORS
 from src.core.security.captcha.services import CaptchaService
 from src.core.security.throttling import AdminLoginThrottle
 from src.core.utils.validation_helpers import extract_validation_message

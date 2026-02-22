@@ -10,7 +10,7 @@ from src.user.auth import UserJWTAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from src.core.security.throttling import UserLoginThrottle
 from src.core.security.captcha.services import CaptchaService
-from src.core.security.captcha.messages import CAPTCHA_ERRORS
+from src.core.security.messages import CAPTCHA_ERRORS
 
 class UserLoginView(APIView):
     permission_classes = [AllowAny]

@@ -11,7 +11,7 @@ from src.user.services.admin.admin_auth_service import AdminAuthService
 from src.user.messages import AUTH_ERRORS, AUTH_SUCCESS
 from django.middleware.csrf import get_token
 from src.core.security.captcha.services import CaptchaService
-from src.core.security.captcha.messages import CAPTCHA_ERRORS
+from src.core.security.messages import CAPTCHA_ERRORS
 from src.core.security.throttling import AdminLoginThrottle
 from src.user.access_control import BASE_ADMIN_PERMISSIONS
 from src.user.services.admin.admin_session_service import AdminSessionService

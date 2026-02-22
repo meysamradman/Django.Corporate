@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.conf import settings
 from src.core.security.ip_management import IPBanService
+from src.core.security.messages import SECURITY_ERRORS, SECURITY_MESSAGES
 
 class AdminSecurityMiddleware:
     
@@ -32,22 +33,22 @@ class AdminSecurityMiddleware:
             
             if IPBanService.is_banned(client_ip):
                 return JsonResponse({
-                    'error': 'Access denied',
-                    'message': 'دسترسی شما مسدود شده است'
+                    'error': SECURITY_ERRORS['access_denied'],
+                    'message': SECURITY_MESSAGES['ip_blocked']
                 }, status=403)
             
             if not request.is_secure() and not settings.DEBUG:
                 return JsonResponse({
-                    'error': 'HTTPS required for admin access',
-                    'message': 'دسترسی از طریق HTTPS الزامی است'
+                    'error': SECURITY_ERRORS['https_required'],
+                    'message': SECURITY_MESSAGES['https_required']
                 }, status=403)
             
             allowed_ips = getattr(settings, 'ADMIN_ALLOWED_IPS', [])
             if allowed_ips:
                 if client_ip not in allowed_ips:
                     return JsonResponse({
-                        'error': 'Access denied',
-                        'message': 'دسترسی از این IP مجاز نیست'
+                        'error': SECURITY_ERRORS['access_denied'],
+                        'message': SECURITY_MESSAGES['ip_not_allowed']
                     }, status=403)
 
         return self.get_response(request)

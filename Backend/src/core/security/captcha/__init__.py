@@ -1,4 +1,4 @@
-from .messages import CAPTCHA_SUCCESS, CAPTCHA_ERRORS
+from src.core.security.messages import CAPTCHA_SUCCESS, CAPTCHA_ERRORS
 from .services import CaptchaService
 from .serializers import CaptchaResponseSerializer, CaptchaVerifySerializer
 from .views import CaptchaGenerateView, CaptchaVerifyView

@@ -1,11 +1,10 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from django.conf import settings
 from django.core.cache import cache
-from django.utils import timezone
 from src.core.responses.response import APIResponse
 from src.user.auth.admin_session_auth import CSRFExemptSessionAuthentication
 from src.user.access_control.classes import IsSuperAdmin
+from src.core.security.messages import IP_MANAGEMENT_SUCCESS, IP_MANAGEMENT_ERRORS, IP_MANAGEMENT_DEFAULTS
 from .service import IPBanService
 
 class IPManagementViewSet(viewsets.ViewSet):
@@ -16,7 +15,22 @@ class IPManagementViewSet(viewsets.ViewSet):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
             return x_forwarded_for.split(',')[0].strip()
-        return request.META.get('REMOTE_ADDR', 'Unknown')
+        return request.META.get('REMOTE_ADDR', 'نامشخص')
+
+    def _get_actor_label(self, request):
+        email = getattr(request.user, 'email', None)
+        if email:
+            return email
+
+        mobile = getattr(request.user, 'mobile', None)
+        if mobile:
+            return mobile
+
+        user_id = getattr(request.user, 'id', None)
+        if user_id is not None:
+            return f'user:{user_id}'
+
+        return 'ادمین-نامشخص'
     
     @action(detail=False, methods=['get'])
     def banned_ips(self, request):
@@ -26,19 +40,19 @@ class IPManagementViewSet(viewsets.ViewSet):
             banned_list = [
                 {
                     'ip': ip,
-                    'reason': info.get('reason', 'Unknown'),
-                    'banned_at': info.get('banned_at', 'Unknown'),
+                    'reason': info.get('reason', IP_MANAGEMENT_DEFAULTS['unknown_reason']),
+                    'banned_at': info.get('banned_at', IP_MANAGEMENT_DEFAULTS['unknown_banned_at']),
                 }
                 for ip, info in banned_ips.items()
             ]
             
             return APIResponse.success(
-                message="Banned IPs retrieved successfully",
+                message=IP_MANAGEMENT_SUCCESS['banned_ips_retrieved'],
                 data=banned_list
             )
         except Exception as e:
             return APIResponse.error(
-                message="خطا در دریافت لیست IPهای ban شده",
+                message=IP_MANAGEMENT_ERRORS['banned_ips_retrieve_failed'],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -48,7 +62,7 @@ class IPManagementViewSet(viewsets.ViewSet):
             ip = request.data.get('ip')
             if not ip:
                 return APIResponse.error(
-                    message="IP address is required",
+                    message=IP_MANAGEMENT_ERRORS['ip_required'],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -56,11 +70,11 @@ class IPManagementViewSet(viewsets.ViewSet):
             IPBanService.reset_attempts(ip)
             
             return APIResponse.success(
-                message=f"IP {ip} از ban خارج شد"
+                message=IP_MANAGEMENT_SUCCESS['ip_unbanned'].format(ip=ip)
             )
         except Exception as e:
             return APIResponse.error(
-                message="خطا در رفع ban IP",
+                message=IP_MANAGEMENT_ERRORS['ip_unban_failed'],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -68,28 +82,30 @@ class IPManagementViewSet(viewsets.ViewSet):
     def ban_ip(self, request):
         try:
             ip = request.data.get('ip')
-            reason = request.data.get('reason', 'Manual ban by admin')
+            reason = request.data.get('reason', IP_MANAGEMENT_DEFAULTS['manual_ban_reason'])
             
             if not ip:
                 return APIResponse.error(
-                    message="IP address is required",
+                    message=IP_MANAGEMENT_ERRORS['ip_required'],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
             if IPBanService._is_whitelisted(ip):
                 return APIResponse.error(
-                    message="این IP در whitelist است و نمی‌توان ban کرد",
+                    message=IP_MANAGEMENT_ERRORS['ip_whitelisted_cannot_ban'],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
-            IPBanService.ban_ip(ip, reason=f"{reason} (by {request.user.email})")
+            actor = self._get_actor_label(request)
+            final_reason = IP_MANAGEMENT_DEFAULTS['ban_reason_with_actor'].format(reason=reason, actor=actor)
+            IPBanService.ban_ip(ip, reason=final_reason)
             
             return APIResponse.success(
-                message=f"IP {ip} ban شد"
+                message=IP_MANAGEMENT_SUCCESS['ip_banned'].format(ip=ip)
             )
         except Exception as e:
             return APIResponse.error(
-                message="خطا در ban کردن IP",
+                message=IP_MANAGEMENT_ERRORS['ip_ban_failed'],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -99,7 +115,7 @@ class IPManagementViewSet(viewsets.ViewSet):
             ip = request.query_params.get('ip')
             if not ip:
                 return APIResponse.error(
-                    message="IP address is required",
+                    message=IP_MANAGEMENT_ERRORS['ip_required'],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -107,7 +123,7 @@ class IPManagementViewSet(viewsets.ViewSet):
             is_banned = IPBanService.is_banned(ip)
             
             return APIResponse.success(
-                message="IP attempts retrieved",
+                message=IP_MANAGEMENT_SUCCESS['attempts_retrieved'],
                 data={
                     'ip': ip,
                     'attempts': attempts,
@@ -117,7 +133,7 @@ class IPManagementViewSet(viewsets.ViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message="خطا در دریافت اطلاعات IP",
+                message=IP_MANAGEMENT_ERRORS['attempts_retrieve_failed'],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -127,12 +143,12 @@ class IPManagementViewSet(viewsets.ViewSet):
             whitelist = IPBanService.get_whitelist()
             
             return APIResponse.success(
-                message="Whitelist IPs retrieved successfully",
+                message=IP_MANAGEMENT_SUCCESS['whitelist_retrieved'],
                 data=whitelist
             )
         except Exception as e:
             return APIResponse.error(
-                message="خطا در دریافت لیست whitelist",
+                message=IP_MANAGEMENT_ERRORS['whitelist_retrieve_failed'],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -142,7 +158,7 @@ class IPManagementViewSet(viewsets.ViewSet):
             ip = request.data.get('ip')
             if not ip:
                 return APIResponse.error(
-                    message="IP address is required",
+                    message=IP_MANAGEMENT_ERRORS['ip_required'],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -151,7 +167,7 @@ class IPManagementViewSet(viewsets.ViewSet):
                 ipaddress.ip_address(ip)
             except ValueError:
                 return APIResponse.error(
-                    message="IP address نامعتبر است",
+                    message=IP_MANAGEMENT_ERRORS['invalid_ip'],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -161,16 +177,16 @@ class IPManagementViewSet(viewsets.ViewSet):
                     IPBanService.reset_attempts(ip)
 
                 return APIResponse.success(
-                    message=f"IP {ip} به whitelist اضافه شد"
+                    message=IP_MANAGEMENT_SUCCESS['ip_whitelist_added'].format(ip=ip)
                 )
             else:
                 return APIResponse.error(
-                    message="این IP قبلاً در whitelist است",
+                    message=IP_MANAGEMENT_ERRORS['ip_already_whitelisted'],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
         except Exception as e:
             return APIResponse.error(
-                message="خطا در اضافه کردن IP به whitelist",
+                message=IP_MANAGEMENT_ERRORS['ip_whitelist_add_failed'],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -180,29 +196,29 @@ class IPManagementViewSet(viewsets.ViewSet):
             ip = request.data.get('ip')
             if not ip:
                 return APIResponse.error(
-                    message="IP address is required",
+                    message=IP_MANAGEMENT_ERRORS['ip_required'],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
             client_ip = self._get_client_ip(request)
             if ip == client_ip:
                 return APIResponse.error(
-                    message="شما نمی‌توانید IP فعلی خود را از whitelist حذف کنید",
+                    message=IP_MANAGEMENT_ERRORS['cannot_remove_current_ip'],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
             
             if IPBanService.remove_from_whitelist(ip):
                 return APIResponse.success(
-                    message=f"IP {ip} از whitelist حذف شد"
+                    message=IP_MANAGEMENT_SUCCESS['ip_whitelist_removed'].format(ip=ip)
                 )
             else:
                 return APIResponse.error(
-                    message="این IP در whitelist نیست",
+                    message=IP_MANAGEMENT_ERRORS['ip_not_in_whitelist'],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
         except Exception as e:
             return APIResponse.error(
-                message="خطا در حذف IP از whitelist",
+                message=IP_MANAGEMENT_ERRORS['ip_whitelist_remove_failed'],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -217,16 +233,16 @@ class IPManagementViewSet(viewsets.ViewSet):
                     IPBanService.reset_attempts(client_ip)
                 
                 return APIResponse.success(
-                    message=f"IP فعلی شما ({client_ip}) به whitelist اضافه شد"
+                    message=IP_MANAGEMENT_SUCCESS['current_ip_whitelist_added'].format(ip=client_ip)
                 )
             else:
                 return APIResponse.error(
-                    message="IP فعلی شما قبلاً در whitelist است",
+                    message=IP_MANAGEMENT_ERRORS['current_ip_already_whitelisted'],
                     status_code=status.HTTP_400_BAD_REQUEST
                 )
         except Exception as e:
             return APIResponse.error(
-                message="خطا در اضافه کردن IP فعلی به whitelist",
+                message=IP_MANAGEMENT_ERRORS['current_ip_whitelist_add_failed'],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -239,7 +255,7 @@ class IPManagementViewSet(viewsets.ViewSet):
             attempts = IPBanService.get_attempts(client_ip)
             
             return APIResponse.success(
-                message="Current IP retrieved",
+                message=IP_MANAGEMENT_SUCCESS['current_ip_retrieved'],
                 data={
                     'ip': client_ip,
                     'is_banned': is_banned,
@@ -250,7 +266,7 @@ class IPManagementViewSet(viewsets.ViewSet):
             )
         except Exception as e:
             return APIResponse.error(
-                message="خطا در دریافت IP فعلی",
+                message=IP_MANAGEMENT_ERRORS['current_ip_retrieve_failed'],
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 

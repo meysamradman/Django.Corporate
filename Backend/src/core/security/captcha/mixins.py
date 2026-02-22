@@ -1,7 +1,7 @@
 from rest_framework import status
 from src.core.responses.response import APIResponse
+from src.core.security.messages import CAPTCHA_ERRORS
 
-from . import CAPTCHA_ERRORS
 from .services import CaptchaService
 
 class CaptchaRequiredMixin:

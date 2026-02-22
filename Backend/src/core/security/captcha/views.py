@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from src.core.security.throttling import CaptchaThrottle
 from src.core.responses.response import APIResponse
-from . import CAPTCHA_SUCCESS, CAPTCHA_ERRORS
+from src.core.security.messages import CAPTCHA_SUCCESS, CAPTCHA_ERRORS
 from .services import CaptchaService
 from .serializers import CaptchaResponseSerializer, CaptchaVerifySerializer
 

@@ -101,13 +101,13 @@ class AdminPanelSettingsViewSet(viewsets.ViewSet):
             db_info = get_database_size_info()
             
             return APIResponse.success(
-                message='Database information retrieved successfully',
+                message=PANEL_SUCCESS['db_info_retrieved'],
                 data=db_info,
                 status_code=status.HTTP_200_OK
             )
         except Exception as e:
             return APIResponse.error(
-                message=f"Error retrieving database information: {extract_validation_message(e, PANEL_ERRORS['settings_retrieve_failed'])}",
+                message=extract_validation_message(e, PANEL_ERRORS['db_info_retrieve_failed']),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -121,7 +121,7 @@ class AdminPanelSettingsViewSet(viewsets.ViewSet):
             export_count = cache.get(cache_key, 0)
             if export_count >= export_rate_limit:
                 return APIResponse.error(
-                    message='Database export rate limit exceeded. Please try again later.',
+                    message=PANEL_ERRORS['db_export_rate_limit_exceeded'],
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS
                 )
             cache_ttl = min(export_rate_window, ADMIN_DB_EXPORT_RATE_LIMIT_TTL)
@@ -153,6 +153,6 @@ class AdminPanelSettingsViewSet(viewsets.ViewSet):
             
         except Exception as e:
             return APIResponse.error(
-                message=f"Error exporting database: {extract_validation_message(e, PANEL_ERRORS['settings_update_failed'])}",
+                message=extract_validation_message(e, PANEL_ERRORS['db_export_failed_simple']),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
