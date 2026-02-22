@@ -28,10 +28,15 @@ export function FinalizeDealDialog({ open, onOpenChange, property, onSuccess }: 
   const [responsibleAgent, setResponsibleAgent] = useState<string>(property.agent?.id ? String(property.agent.id) : "");
   const [commission, setCommission] = useState<string>("");
 
+  const normalizeDealType = (value?: string) => {
+    const allowed = ["sale", "rent", "presale", "exchange", "mortgage"];
+    return value && allowed.includes(value) ? value : "sale";
+  };
+
   useEffect(() => {
     if (!open) return;
     setResponsibleAgent(property.agent?.id ? String(property.agent.id) : "");
-    setDealType(property.state?.usage_type === "rent" ? "rent" : "sale");
+    setDealType(normalizeDealType(property.state?.usage_type));
     setSalePrice(property.sale_price ? String(property.sale_price) : "");
     setPreSalePrice(property.pre_sale_price ? String(property.pre_sale_price) : "");
     setMonthlyRent(property.monthly_rent ? String(property.monthly_rent) : "");
@@ -137,7 +142,10 @@ export function FinalizeDealDialog({ open, onOpenChange, property, onSuccess }: 
               onValueChange={setDealType}
               options={listingTypeOptions.length > 0 ? listingTypeOptions : [
                 { value: "sale", label: "فروش" },
-                { value: "rent", label: "اجاره" },
+                { value: "rent", label: "رهن و اجاره" },
+                { value: "mortgage", label: "رهن کامل" },
+                { value: "presale", label: "پیش‌فروش" },
+                { value: "exchange", label: "معاوضه" },
               ]}
               placeholder="نوع معامله را انتخاب کنید"
               required

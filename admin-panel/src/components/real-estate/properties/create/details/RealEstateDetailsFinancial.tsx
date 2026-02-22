@@ -7,14 +7,23 @@ interface RealEstateDetailsFinancialProps {
     editMode: boolean;
     errors?: Record<string, string>;
     handleNumericChange: (field: string) => (e: any) => void;
+    usageType?: string;
 }
 
 export function RealEstateDetailsFinancial({
     formData,
     editMode,
     errors,
-    handleNumericChange
+    handleNumericChange,
+    usageType
 }: RealEstateDetailsFinancialProps) {
+    const isMortgage = usageType === "mortgage";
+    const isRent = usageType === "rent";
+
+    const mortgageLabel = isMortgage ? "مبلغ رهن کامل" : "مبلغ رهن / ودیعه";
+    const rentAmountLabel = isRent ? "مبلغ اجاره" : "اجاره ماهیانه";
+    const monthlyRentLabel = isRent ? "اجاره ماهانه" : "اجاره (کوتاه‌مدت)";
+
     return (
         <div className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -59,7 +68,7 @@ export function RealEstateDetailsFinancial({
                 </div>
                 <span className="text-sm font-black text-font-p">
                     {formData?.price && formData?.built_area
-                        ? (Math.round(Number(formData.price) / Number(formData.built_area))).toLocaleString() + " IRR"
+                        ? (Math.round(Number(formData.price) / Number(formData.built_area))).toLocaleString("fa-IR") + " تومان"
                         : "-"
                     }
                 </span>
@@ -69,7 +78,7 @@ export function RealEstateDetailsFinancial({
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <FormFieldInput
-                    label="مبلغ رهن / ودیعه"
+                    label={mortgageLabel}
                     id="mortgage_amount"
                     type="number"
                     placeholder="0"
@@ -79,11 +88,11 @@ export function RealEstateDetailsFinancial({
                     error={errors?.mortgage_amount}
                 />
                 <FormFieldInput
-                    label="اجاره ماهیانه"
+                    label={rentAmountLabel}
                     id="rent_amount"
                     type="number"
-                    placeholder="0"
-                    disabled={!editMode}
+                    placeholder={isMortgage ? "برای رهن کامل خالی بگذارید" : "0"}
+                    disabled={!editMode || isMortgage}
                     value={formData?.rent_amount ?? ""}
                     onChange={handleNumericChange("rent_amount")}
                     error={errors?.rent_amount}
@@ -99,11 +108,11 @@ export function RealEstateDetailsFinancial({
                     error={errors?.security_deposit}
                 />
                 <FormFieldInput
-                    label="اجاره (کوتاه‌مدت)"
+                    label={monthlyRentLabel}
                     id="monthly_rent"
                     type="number"
                     placeholder="0"
-                    disabled={!editMode}
+                    disabled={!editMode || isMortgage}
                     value={formData?.monthly_rent ?? ""}
                     onChange={handleNumericChange("monthly_rent")}
                     error={errors?.monthly_rent}

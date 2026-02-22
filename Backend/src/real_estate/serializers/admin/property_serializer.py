@@ -23,6 +23,7 @@ from src.real_estate.models.constants import (
     PROPERTY_DIRECTION_CHOICES,
     CITY_POSITION_CHOICES,
     UNIT_TYPE_CHOICES,
+    LISTING_TYPE_FINANCIAL_RULES,
     PROPERTY_STATUS_CHOICES,
 )
 
@@ -54,6 +55,52 @@ def _sync_agency_with_agent(attrs, instance=None):
         attrs['agency'] = None
 
     return attrs
+
+
+def _is_positive_number(value):
+    return value is not None and value > 0
+
+
+def _resolve_listing_value(attrs, field_name, instance=None):
+    if field_name in attrs:
+        return attrs.get(field_name)
+    return getattr(instance, field_name, None) if instance is not None else None
+
+
+def _validate_listing_financials(attrs, instance=None):
+    state_obj = _resolve_listing_value(attrs, 'state', instance)
+    if state_obj is None:
+        return
+
+    usage_type = getattr(state_obj, 'usage_type', None)
+
+    sale_price = _resolve_listing_value(attrs, 'sale_price', instance)
+    price = _resolve_listing_value(attrs, 'price', instance)
+    pre_sale_price = _resolve_listing_value(attrs, 'pre_sale_price', instance)
+    monthly_rent = _resolve_listing_value(attrs, 'monthly_rent', instance)
+    rent_amount = _resolve_listing_value(attrs, 'rent_amount', instance)
+    mortgage_amount = _resolve_listing_value(attrs, 'mortgage_amount', instance)
+    security_deposit = _resolve_listing_value(attrs, 'security_deposit', instance)
+
+    has_sale_price = any(_is_positive_number(value) for value in (sale_price, price, pre_sale_price))
+    has_rent_amount = any(_is_positive_number(value) for value in (monthly_rent, rent_amount))
+    has_mortgage_amount = any(_is_positive_number(value) for value in (mortgage_amount, security_deposit))
+
+    rules = LISTING_TYPE_FINANCIAL_RULES.get(usage_type, {})
+
+    if rules.get('require_sale_price') and not has_sale_price:
+        raise serializers.ValidationError({'sale_price': PROPERTY_ERRORS['sale_requires_price']})
+
+    if rules.get('require_mortgage_and_rent'):
+        if not has_mortgage_amount or not has_rent_amount:
+            raise serializers.ValidationError({'state': PROPERTY_ERRORS['rent_requires_mortgage_and_rent']})
+
+    if rules.get('require_mortgage_only'):
+        if not has_mortgage_amount:
+            raise serializers.ValidationError({'mortgage_amount': PROPERTY_ERRORS['mortgage_requires_deposit']})
+
+    if rules.get('disallow_rent_amount') and has_rent_amount:
+            raise serializers.ValidationError({'rent_amount': PROPERTY_ERRORS['mortgage_disallow_rent_amount']})
 
 class PropertyMediaAdminSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
@@ -581,6 +628,9 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
         return data
 
     def validate(self, attrs):
+        if not attrs.get('state'):
+            raise serializers.ValidationError({'state': PROPERTY_ERRORS['state_id_required']})
+
         if not attrs.get('province'):
             raise serializers.ValidationError(PROPERTY_ERRORS["province_required"])
         if not attrs.get('city'):
@@ -667,6 +717,7 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
                     })
 
         attrs = _sync_agency_with_agent(attrs, instance=self.instance)
+        _validate_listing_financials(attrs, instance=self.instance)
 
         return attrs
 
@@ -966,6 +1017,7 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
             pass
 
         attrs = _sync_agency_with_agent(attrs, instance=self.instance)
+        _validate_listing_financials(attrs, instance=self.instance)
 
         return attrs
 

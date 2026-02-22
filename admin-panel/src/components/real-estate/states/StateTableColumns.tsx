@@ -121,8 +121,8 @@ export const usePropertyStateColumns = (
         const usageType = row.original.usage_type;
         const usageMap: Record<string, string> = {
           sale: "فروش",
-          rent: "اجاره",
-          mortgage: "رهن",
+          rent: "رهن و اجاره",
+          mortgage: "رهن کامل",
           presale: "پیش‌فروش",
           exchange: "معاوضه",
           other: "سایر",

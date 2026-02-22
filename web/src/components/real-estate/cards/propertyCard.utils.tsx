@@ -12,12 +12,12 @@ export const toPriceLabel = (property: Property): string => {
   const salePrice = property.sale_price ?? property.price ?? property.pre_sale_price ?? null;
   const mortgagePrice = property.mortgage_amount ?? property.security_deposit ?? null;
   const monthlyRentPrice = property.monthly_rent ?? property.rent_amount ?? null;
+  const usageType = property.state?.usage_type;
 
   const hasMortgage = typeof mortgagePrice === "number" && mortgagePrice > 0;
   const hasMonthlyRent = typeof monthlyRentPrice === "number" && monthlyRentPrice > 0;
-  const isRent = property.status === "for_rent" || hasMortgage || hasMonthlyRent;
 
-  if (isRent) {
+  if (usageType === "rent") {
     const rentParts: string[] = [];
 
     if (hasMortgage) {
@@ -31,6 +31,16 @@ export const toPriceLabel = (property: Property): string => {
     if (rentParts.length > 0) {
       return rentParts.join(" | ");
     }
+
+    return "قیمت توافقی";
+  }
+
+  if (usageType === "mortgage") {
+    if (hasMortgage) {
+      return `رهن کامل: ${formatPriceToPersian(mortgagePrice, "تومان")}`;
+    }
+
+    return "قیمت توافقی";
   }
 
   if (typeof salePrice === "number" && salePrice > 0) {

@@ -119,10 +119,11 @@ export const PropertyStateSide: React.FC<PropertyStateSideProps> = ({
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="sale">فروش</SelectItem>
-                                <SelectItem value="rent">اجاره</SelectItem>
-                                <SelectItem value="mortgage">رهن</SelectItem>
+                                <SelectItem value="rent">رهن و اجاره</SelectItem>
+                                <SelectItem value="mortgage">رهن کامل</SelectItem>
                                 <SelectItem value="presale">پیش‌فروش</SelectItem>
                                 <SelectItem value="exchange">معاوضه</SelectItem>
+                                <SelectItem value="other">سایر</SelectItem>
                             </SelectContent>
                         </Select>
                     </FormField>

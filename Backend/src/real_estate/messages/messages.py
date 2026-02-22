@@ -74,6 +74,10 @@ PROPERTY_ERRORS = {
     "extra_property_direction_invalid": "جهت ملک نامعتبر: {invalid_value}. مقادیر مجاز: {allowed_values}",
     "extra_city_position_invalid": "موقعیت شهری نامعتبر: {invalid_value}. مقادیر مجاز: {allowed_values}",
     "extra_unit_type_invalid": "نوع واحد نامعتبر: {invalid_value}. مقادیر مجاز: {allowed_values}",
+    "sale_requires_price": "برای ملک فروشی باید قیمت فروش وارد شود.",
+    "rent_requires_mortgage_and_rent": "برای حالت «رهن و اجاره» باید هم مبلغ رهن و هم مبلغ اجاره وارد شود.",
+    "mortgage_requires_deposit": "برای حالت «رهن کامل» وارد کردن مبلغ رهن الزامی است.",
+    "mortgage_disallow_rent_amount": "برای حالت «رهن کامل» مبلغ اجاره باید خالی یا صفر باشد.",
 }
 
 AGENT_DEFAULTS = {

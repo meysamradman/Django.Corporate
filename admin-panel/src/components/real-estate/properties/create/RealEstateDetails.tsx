@@ -1,11 +1,12 @@
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Home, DollarSign, Layers } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
 import { RealEstateDetailsDimensions } from "./details/RealEstateDetailsDimensions";
 import { RealEstateDetailsFacilities } from "./details/RealEstateDetailsFacilities";
 import { RealEstateDetailsFinancial } from "./details/RealEstateDetailsFinancial";
+import type { PropertyState } from "@/types/real_estate/state/realEstateState";
 
 interface DetailsTabProps {
     formData: any;
@@ -16,14 +17,19 @@ interface DetailsTabProps {
 
 export default function RealEstateDetails({ formData, handleInputChange, editMode, errors }: DetailsTabProps) {
     const [fieldOptions, setFieldOptions] = useState<any>(null);
+    const [propertyStates, setPropertyStates] = useState<PropertyState[]>([]);
     const [isLoadingOptions, setIsLoadingOptions] = useState(false);
 
     useEffect(() => {
         const loadFieldOptions = async () => {
             try {
                 setIsLoadingOptions(true);
-                const options = await realEstateApi.getFieldOptions();
+                const [options, statesResponse] = await Promise.all([
+                    realEstateApi.getFieldOptions(),
+                    realEstateApi.getStates({ page: 1, size: 100, is_active: true }),
+                ]);
                 setFieldOptions(options);
+                setPropertyStates(statesResponse.data || []);
             } catch (error) {
                 console.error("Load field options error:", error);
             } finally {
@@ -32,6 +38,12 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
         };
         loadFieldOptions();
     }, []);
+
+    const selectedUsageType = useMemo(() => {
+        const selectedStateId = Number(formData?.state);
+        if (!selectedStateId || Number.isNaN(selectedStateId)) return undefined;
+        return propertyStates.find((state) => Number(state.id) === selectedStateId)?.usage_type;
+    }, [formData?.state, propertyStates]);
 
     const handleNumericChange = useCallback((field: string) => (e: any) => {
         const val = e.target.value;
@@ -100,6 +112,7 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
                     editMode={editMode}
                     errors={errors}
                     handleNumericChange={handleNumericChange}
+                    usageType={selectedUsageType}
                 />
             </CardWithIcon>
         </div>
