@@ -90,14 +90,16 @@ export default function PropertyAgentSticky({
               </div>
             </div>
 
-            {phone ? (
-              <a
-                href={`tel:${phone}`}
-                className="text-xs font-black text-font-p border border-br/50 rounded-xl px-3 py-2 bg-bg hover:bg-bg/70 transition-colors"
-              >
-                تماس
-              </a>
-            ) : null}
+            <div className="flex items-center gap-2">
+              {phone ? (
+                <a
+                  href={`tel:${phone}`}
+                  className="text-xs font-black text-font-p border border-br/50 rounded-xl px-3 py-2 bg-bg hover:bg-bg/70 transition-colors"
+                >
+                  تماس
+                </a>
+              ) : null}
+            </div>
           </div>
         </div>
 

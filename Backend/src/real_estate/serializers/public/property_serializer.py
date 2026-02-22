@@ -107,6 +107,8 @@ class PropertyPublicListSerializer(serializers.ModelSerializer):
     province_name = serializers.SerializerMethodField()
     city_name = serializers.SerializerMethodField()
     district_name = serializers.SerializerMethodField()
+    owner_type = serializers.SerializerMethodField()
+    owner_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Property
@@ -115,6 +117,7 @@ class PropertyPublicListSerializer(serializers.ModelSerializer):
             'is_published', 'is_featured', 'is_active', 'status',
             'main_image',
             'property_type', 'state', 'agent', 'labels', 'tags', 'features',
+            'owner_type', 'owner_name',
             'price', 'sale_price', 'pre_sale_price', 'price_per_sqm', 'monthly_rent', 'mortgage_amount',
             'land_area', 'built_area', 'bedrooms', 'bathrooms', 'year_built',
             'province_name', 'city_name', 'district_name', 'neighborhood',
@@ -182,6 +185,55 @@ class PropertyPublicListSerializer(serializers.ModelSerializer):
     def get_district_name(self, obj):
         region = getattr(obj, 'region', None)
         return region.name if region else None
+
+    def get_owner_type(self, obj):
+        agent = getattr(obj, 'agent', None)
+        if not getattr(obj, 'agent_id', None) or not agent:
+            return 'admin'
+
+        created_by_id = getattr(obj, 'created_by_id', None)
+        agent_user_id = getattr(agent, 'user_id', None)
+
+        if created_by_id and agent_user_id and created_by_id == agent_user_id:
+            return 'admin'
+
+        return 'agent'
+
+    def get_owner_name(self, obj):
+        owner_type = self.get_owner_type(obj)
+
+        if owner_type == 'agent':
+            agent = getattr(obj, 'agent', None)
+            if agent:
+                full_name = (getattr(agent, 'full_name', '') or '').strip()
+                if full_name:
+                    return full_name
+
+                first_name = (getattr(agent, 'first_name', '') or '').strip()
+                last_name = (getattr(agent, 'last_name', '') or '').strip()
+                combined = f"{first_name} {last_name}".strip()
+                if combined:
+                    return combined
+
+        created_by = getattr(obj, 'created_by', None)
+        if created_by:
+            profile = getattr(created_by, 'admin_profile', None)
+            if profile:
+                first_name = (getattr(profile, 'first_name', '') or '').strip()
+                last_name = (getattr(profile, 'last_name', '') or '').strip()
+                combined = f"{first_name} {last_name}".strip()
+                if combined:
+                    return combined
+
+            mobile = (getattr(created_by, 'mobile', '') or '').strip()
+            if mobile:
+                return mobile
+
+            email = (getattr(created_by, 'email', '') or '').strip()
+            if email:
+                return email
+
+        return 'ادمین سیستم'
 
 class PropertyPublicDetailSerializer(PropertyPublicListSerializer):
     media = serializers.SerializerMethodField()

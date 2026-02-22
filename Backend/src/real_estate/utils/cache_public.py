@@ -1,7 +1,7 @@
 from src.real_estate.utils.cache_shared import hash_payload
 
 class PropertyPublicCacheKeys:
-    SCHEMA_VERSION = "v2"
+    SCHEMA_VERSION = "v5"
 
     @staticmethod
     def list(filters=None, search=None, ordering=None):
@@ -15,15 +15,15 @@ class PropertyPublicCacheKeys:
 
     @staticmethod
     def detail_slug(slug):
-        return f"public:real_estate:property:detail:slug:{slug}"
+        return f"public:real_estate:property:detail:{PropertyPublicCacheKeys.SCHEMA_VERSION}:slug:{slug}"
 
     @staticmethod
     def detail_id(property_id):
-        return f"public:real_estate:property:detail:id:{property_id}"
+        return f"public:real_estate:property:detail:{PropertyPublicCacheKeys.SCHEMA_VERSION}:id:{property_id}"
 
     @staticmethod
     def detail_public_id(public_id):
-        return f"public:real_estate:property:detail:public_id:{public_id}"
+        return f"public:real_estate:property:detail:{PropertyPublicCacheKeys.SCHEMA_VERSION}:public_id:{public_id}"
 
     @staticmethod
     def featured(limit):

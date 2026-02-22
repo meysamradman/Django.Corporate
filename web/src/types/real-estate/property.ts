@@ -22,6 +22,8 @@ export interface Property extends Base {
     property_type?: PropertyType | null;
     state?: PropertyState | null;
     agent?: PropertyAgent | null;
+    owner_type?: "agent" | "admin" | string;
+    owner_name?: string | null;
     labels: PropertyLabel[];
     tags: PropertyTag[];
     features: PropertyFeature[];

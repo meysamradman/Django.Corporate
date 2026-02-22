@@ -1,4 +1,8 @@
 import type { Property } from "@/types/real-estate/property";
+import {
+  formatArea as formatAreaFa,
+  formatPriceToPersian,
+} from "@/core/utils/realEstateFormat";
 
 type PropertyDetailsProps = {
   property: Pick<
@@ -38,12 +42,8 @@ function formatFa(value: number) {
   }
 }
 
-function formatArea(value: number) {
-  return `${formatFa(value)} متر`;
-}
-
 function formatMoney(value: number) {
-  return `${formatFa(value)} تومان`;
+  return formatPriceToPersian(value, "تومان");
 }
 
 function formatStatus(status?: string | null) {
@@ -93,11 +93,11 @@ export default function PropertyDetails({ property, className }: PropertyDetails
     detailsRows.push({
       leftLabel: "زیربنا",
       leftValue: rowValue(
-        property.built_area != null ? formatArea(Number(property.built_area)) : "—"
+        property.built_area != null ? formatAreaFa(Number(property.built_area)) : "—"
       ),
       rightLabel: "مساحت زمین",
       rightValue: rowValue(
-        property.land_area != null ? formatArea(Number(property.land_area)) : "—"
+        property.land_area != null ? formatAreaFa(Number(property.land_area)) : "—"
       ),
     });
   }

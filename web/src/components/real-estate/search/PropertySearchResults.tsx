@@ -58,7 +58,7 @@ export default function PropertySearchResults({
           موردی مطابق فیلترهای شما پیدا نشد.
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {properties.map((property) => {
             return (
               <PropertyCardList key={`property-list-${property.id}`} property={property} />

@@ -31,6 +31,8 @@ class PropertyQuerySet(models.QuerySet):
             'agent__agency',
             'agent__user',
             'agency',
+            'created_by',
+            'created_by__admin_profile',
             'city',
             'province',
             'region'

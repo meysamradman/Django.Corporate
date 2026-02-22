@@ -10,6 +10,7 @@ import {
   PropertyFloorPlans,
   PropertyFeatures,
   PropertyGallery,
+  PropertyShareBar,
   PropertyLocation,
   PropertyVideo,
 } from "@/components/real-estate/property-detail";
@@ -76,6 +77,12 @@ async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: Page
 
           <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px] gap-10">
             <div className="space-y-10">
+              <PropertyShareBar
+                id={property.id}
+                slug={property.slug}
+                title={property.title}
+              />
+
               <PropertyDetails property={property} />
 
               <div className="lg:hidden">

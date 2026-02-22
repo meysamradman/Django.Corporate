@@ -1,16 +1,43 @@
 import { BedDouble, Bath } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { formatArea } from "@/core/utils/realEstateFormat";
+import { formatPriceToPersian } from "@/core/utils/realEstateFormat";
 import type { Property } from "@/types/real-estate/property";
 
 export const getPropertyCanonicalPath = (property: Property): string =>
   `/properties/${property.id}/${encodeURIComponent(property.slug)}`;
 
 export const toPriceLabel = (property: Property): string => {
-  const rawPrice =
-    property.price ?? property.sale_price ?? property.pre_sale_price ?? property.monthly_rent ?? null;
-  if (!rawPrice || rawPrice <= 0) return "قیمت توافقی";
-  return `${rawPrice.toLocaleString("en-US")} تومان`;
+  const salePrice = property.sale_price ?? property.price ?? property.pre_sale_price ?? null;
+  const mortgagePrice = property.mortgage_amount ?? property.security_deposit ?? null;
+  const monthlyRentPrice = property.monthly_rent ?? property.rent_amount ?? null;
+
+  const hasMortgage = typeof mortgagePrice === "number" && mortgagePrice > 0;
+  const hasMonthlyRent = typeof monthlyRentPrice === "number" && monthlyRentPrice > 0;
+  const isRent = property.status === "for_rent" || hasMortgage || hasMonthlyRent;
+
+  if (isRent) {
+    const rentParts: string[] = [];
+
+    if (hasMortgage) {
+      rentParts.push(`رهن: ${formatPriceToPersian(mortgagePrice, "تومان")}`);
+    }
+
+    if (hasMonthlyRent) {
+      rentParts.push(`اجاره: ${formatPriceToPersian(monthlyRentPrice, "تومان")}`);
+    }
+
+    if (rentParts.length > 0) {
+      return rentParts.join(" | ");
+    }
+  }
+
+  if (typeof salePrice === "number" && salePrice > 0) {
+    return formatPriceToPersian(salePrice, "تومان");
+  }
+
+  return "قیمت توافقی";
 };
 
 export const toLocationLabel = (property: Property): string => {
@@ -30,13 +57,16 @@ export const getMetaItems = (property: Property): Array<{ key: string; icon: Rea
   }
 
   if (property.built_area != null) {
-    result.push({ key: "built_area", icon: <span className="text-[11px] font-semibold">متر</span>, value: String(property.built_area) });
+    result.push({ key: "built_area", icon: <span className="text-[11px] font-semibold">•</span>, value: formatArea(Number(property.built_area)) });
   }
 
   return result.slice(0, 3);
 };
 
 export const getAgentName = (property: Property): string => {
+  const ownerName = (property.owner_name || "").trim();
+  if (ownerName) return ownerName;
+
   const fullName = (property.agent?.full_name || "").trim();
   if (fullName) return fullName;
 
@@ -44,7 +74,29 @@ export const getAgentName = (property: Property): string => {
   const lastName = (property.agent?.last_name || "").trim();
   const composedName = `${firstName} ${lastName}`.trim();
 
-  return composedName || "مشاور";
+  if (composedName) return composedName;
+
+  const createdBy = (property.created_by || "").trim();
+  if (createdBy) return createdBy;
+
+  return "ادمین سیستم";
+};
+
+const hasValidAgentOwner = (property: Property): boolean => {
+  if (property.owner_type === "agent") {
+    return true;
+  }
+
+  if (property.owner_type === "admin") {
+    return false;
+  }
+
+  const licenseNumber = (property.agent?.license_number || "").trim();
+  return Boolean(licenseNumber);
+};
+
+export const getOwnerRoleLabel = (property: Property): string => {
+  return hasValidAgentOwner(property) ? "مشاور" : "ادمین";
 };
 
 export const getAgentInitials = (property: Property): string => {

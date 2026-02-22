@@ -1,5 +1,6 @@
-import { Bath, BedDouble, DollarSign, Ruler } from "lucide-react";
+import { Bath, BedDouble, Ruler } from "lucide-react";
 
+import { formatPriceToPersian } from "@/core/utils/realEstateFormat";
 import type { FloorPlan } from "@/types/real-estate/property";
 
 type PropertyFloorPlansProps = {
@@ -9,7 +10,7 @@ type PropertyFloorPlansProps = {
 
 function formatNumber(value: number) {
   try {
-    return new Intl.NumberFormat("en-US").format(value);
+    return new Intl.NumberFormat("fa-IR").format(value);
   } catch {
     return String(value);
   }
@@ -48,15 +49,13 @@ export default function PropertyFloorPlans({
               : null;
 
           const bedroomsText =
-            typeof plan.bedrooms === "number" ? String(plan.bedrooms) : null;
+            typeof plan.bedrooms === "number" ? formatNumber(plan.bedrooms) : null;
           const bathroomsText =
-            typeof plan.bathrooms === "number" ? String(plan.bathrooms) : null;
+            typeof plan.bathrooms === "number" ? formatNumber(plan.bathrooms) : null;
 
           const priceText =
             typeof plan.price === "number"
-              ? `${plan.currency ? plan.currency + " " : ""}${formatNumber(
-                  plan.price
-                )}`
+              ? formatPriceToPersian(plan.price, "تومان")
               : null;
 
           const mainImageUrl = plan.main_image?.url || null;
@@ -100,7 +99,6 @@ export default function PropertyFloorPlans({
 
                   {priceText ? (
                     <span className="flex items-center gap-1.5">
-                      <DollarSign className="w-3.5 h-3.5" />
                       <span>قیمت: {priceText}</span>
                     </span>
                   ) : null}

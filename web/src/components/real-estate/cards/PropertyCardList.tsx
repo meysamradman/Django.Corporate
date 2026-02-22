@@ -10,6 +10,7 @@ import {
   getAgentAvatar,
   getAgentInitials,
   getAgentName,
+  getOwnerRoleLabel,
   getMetaItems,
   getPropertyCanonicalPath,
   toLocationLabel,
@@ -29,6 +30,7 @@ export default function PropertyCardList({ property, className, priority = false
   const agentName = getAgentName(property);
   const agentInitials = getAgentInitials(property);
   const agentAvatar = getAgentAvatar(property);
+  const ownerRoleLabel = getOwnerRoleLabel(property);
 
   return (
     <Link
@@ -89,7 +91,7 @@ export default function PropertyCardList({ property, className, priority = false
             </div>
 
             <div className="min-w-0">
-              <p className="text-[11px] leading-5 text-font-s">مشاور</p>
+              <p className="text-[11px] leading-5 text-font-s">{ownerRoleLabel}</p>
               <TruncatedText text={agentName} maxLength={28} className="text-xs font-medium text-font-p" />
             </div>
           </div>
