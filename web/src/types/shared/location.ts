@@ -39,6 +39,7 @@ export interface ProvinceCompact {
     name: string;
     code: string;
     slug?: string;
+    property_count?: number;
 }
 
 export interface CityCompact {

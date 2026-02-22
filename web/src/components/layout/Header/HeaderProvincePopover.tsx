@@ -1,0 +1,190 @@
+"use client";
+
+import React from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { ChevronDown, MapPin } from "lucide-react";
+import { Popover, PopoverContent, PopoverHeader, PopoverTitle, PopoverTrigger } from "@/components/elements/popover";
+import { filtersToHref, resolvePropertySearchFilters, toSeoLocationSegment } from "@/components/real-estate/search/filters";
+import { cn } from "@/core/utils/cn";
+import type { ProvinceCompact } from "@/types/shared/location";
+
+type HeaderProvincePopoverProps = {
+  provinceOptions?: ProvinceCompact[];
+};
+
+const PREFERRED_PROVINCE_ID_COOKIE = "preferred_province_id";
+
+const getCookieValue = (key: string): string => {
+  if (typeof document === "undefined") return "";
+  const token = `${key}=`;
+  const found = document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(token));
+  return found ? decodeURIComponent(found.slice(token.length)) : "";
+};
+
+const setCookieValue = (key: string, value: string): void => {
+  if (typeof document === "undefined") return;
+  document.cookie = `${key}=${encodeURIComponent(value)}; path=/; max-age=${60 * 60 * 24 * 180}; samesite=lax`;
+};
+
+type SearchParamsLike = {
+  get: (name: string) => string | null;
+  forEach: (callback: (value: string, key: string) => void) => void;
+  toString: () => string;
+};
+
+const decodePathPart = (value: string): string => {
+  try {
+    return decodeURIComponent(value).trim();
+  } catch {
+    return value.trim();
+  }
+};
+
+const toSearchParamRecord = (searchParams: SearchParamsLike): Record<string, string> => {
+  const record: Record<string, string> = {};
+  searchParams.forEach((value: string, key: string) => {
+    record[key] = value;
+  });
+  return record;
+};
+
+const toProvinceHref = (province: ProvinceCompact, searchParams: SearchParamsLike): string => {
+  const currentFilters = resolvePropertySearchFilters(toSearchParamRecord(searchParams));
+  const provinceSlug = (province.slug || toSeoLocationSegment(province.name)).trim();
+
+  return filtersToHref(currentFilters, {
+    province: province.id,
+    province_slug: provinceSlug,
+    city: null,
+    city_slug: "",
+    region: null,
+    page: 1,
+  });
+};
+
+export function HeaderProvincePopover({ provinceOptions = [] }: HeaderProvincePopoverProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [open, setOpen] = React.useState(false);
+  const [preferredProvinceId, setPreferredProvinceId] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    const fromCookie = Number(getCookieValue(PREFERRED_PROVINCE_ID_COOKIE));
+    if (!Number.isNaN(fromCookie) && fromCookie > 0) {
+      setPreferredProvinceId(fromCookie);
+    }
+  }, []);
+
+  const selectedProvince = React.useMemo(() => {
+    const provinceIdRaw = searchParams.get("province");
+    if (provinceIdRaw) {
+      const provinceId = Number(provinceIdRaw);
+      if (!Number.isNaN(provinceId)) {
+        const matchedById = provinceOptions.find((item) => item.id === provinceId);
+        if (matchedById) {
+          return matchedById;
+        }
+      }
+    }
+
+    const provinceSlug = (searchParams.get("province_slug") || "").trim();
+    if (provinceSlug) {
+      const matchedBySlug = provinceOptions.find((item) => (item.slug || "").trim() === provinceSlug);
+      if (matchedBySlug) {
+        return matchedBySlug;
+      }
+    }
+
+    const pathnameParts = pathname.split("/").map((part) => decodePathPart(part)).filter(Boolean);
+    const propertiesIndex = pathnameParts.findIndex((part) => part === "properties");
+
+    if (propertiesIndex >= 0) {
+      const routeSegments = pathnameParts.slice(propertiesIndex + 1);
+      for (const segment of routeSegments) {
+        const matchedByPathSlug = provinceOptions.find((item) => (item.slug || "").trim() === segment);
+        if (matchedByPathSlug) {
+          return matchedByPathSlug;
+        }
+      }
+    }
+
+    if (preferredProvinceId !== null) {
+      const matchedByPreferred = provinceOptions.find((item) => item.id === preferredProvinceId);
+      if (matchedByPreferred) {
+        return matchedByPreferred;
+      }
+    }
+
+    return null;
+  }, [pathname, preferredProvinceId, provinceOptions, searchParams]);
+
+  if (provinceOptions.length === 0) {
+    return null;
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-br bg-bg px-3 text-xs font-bold text-font-p transition-colors hover:bg-card"
+          aria-label="انتخاب استان"
+        >
+          <span className="line-clamp-1 max-w-20 sm:max-w-24">{selectedProvince?.name || "استان"}</span>
+          <MapPin className="size-3.5 text-font-s" />
+          <ChevronDown className="size-3.5 text-font-s" />
+        </button>
+      </PopoverTrigger>
+
+      <PopoverContent align="end" className="w-72 border-br bg-card p-0" sideOffset={8}>
+        <PopoverHeader className="border-b border-br px-3 py-2.5 text-right">
+          <PopoverTitle className="text-sm font-bold text-font-p">انتخاب استان</PopoverTitle>
+        </PopoverHeader>
+
+        <div className="max-h-80 overflow-y-auto p-2">
+          {provinceOptions.map((province) => {
+            const isActive = selectedProvince?.id === province.id;
+
+            return (
+              <button
+                key={`province-${province.id}`}
+                type="button"
+                onClick={() => {
+                  const href = toProvinceHref(province, searchParams);
+                  setCookieValue(PREFERRED_PROVINCE_ID_COOKIE, String(province.id));
+                  setPreferredProvinceId(province.id);
+                  setOpen(false);
+
+                  if (!pathname.startsWith("/properties")) {
+                    return;
+                  }
+
+                  const currentUrl = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+                  if (currentUrl === href) {
+                    return;
+                  }
+                  router.push(href);
+                }}
+                className={cn(
+                  "flex w-full cursor-pointer items-center justify-between rounded-md border px-3 py-2 text-right transition-colors",
+                  isActive
+                    ? "border-br bg-bg text-font-p"
+                    : "border-transparent bg-transparent text-font-s hover:border-br hover:bg-bg hover:text-font-p"
+                )}
+              >
+                <span className="line-clamp-1 text-sm font-semibold">{province.name}</span>
+                {typeof province.property_count === "number" ? (
+                  <span className="ms-2 text-xs font-medium text-font-s">{province.property_count}</span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}

@@ -6,6 +6,7 @@ import { HeaderTransparent } from './HeaderTransparent';
 import { HeaderSolid } from './HeaderSolid';
 import type { SiteLogo } from '@/types/settings/branding';
 import type { HeaderMenuStatusOption } from './Menu';
+import type { ProvinceCompact } from '@/types/shared/location';
 
 /**
  * Main Header Switcher
@@ -14,9 +15,10 @@ import type { HeaderMenuStatusOption } from './Menu';
 type HeaderProps = {
   logo?: SiteLogo | null;
   statusOptions?: HeaderMenuStatusOption[];
+  provinceOptions?: ProvinceCompact[];
 };
 
-export function Header({ logo = null, statusOptions = [] }: HeaderProps) {
+export function Header({ logo = null, statusOptions = [], provinceOptions = [] }: HeaderProps) {
   const pathname = usePathname();
   const isHomepage = pathname === '/';
   const [isScrolled, setIsScrolled] = React.useState(false);
@@ -48,8 +50,8 @@ export function Header({ logo = null, statusOptions = [] }: HeaderProps) {
   }, []);
 
   if (isHomepage) {
-    return <HeaderTransparent logo={logo} isScrolled={isScrolled} statusOptions={statusOptions} />;
+    return <HeaderTransparent logo={logo} isScrolled={isScrolled} statusOptions={statusOptions} provinceOptions={provinceOptions} />;
   }
 
-  return <HeaderSolid logo={logo} isScrolled={isScrolled} statusOptions={statusOptions} />;
+  return <HeaderSolid logo={logo} isScrolled={isScrolled} statusOptions={statusOptions} provinceOptions={provinceOptions} />;
 }

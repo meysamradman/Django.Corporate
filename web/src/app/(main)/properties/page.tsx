@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { realEstateApi } from "@/api/real-estate/route";
@@ -13,6 +14,20 @@ type PageProps = {
 async function PropertiesPageBody({ searchParams }: PageProps) {
   const params = await searchParams;
   const filters = resolvePropertySearchFilters(params);
+  const cookieStore = await cookies();
+
+  if (
+    filters.city === null &&
+    filters.province === null &&
+    !filters.city_slug &&
+    !filters.province_slug
+  ) {
+    const preferredProvinceRaw = cookieStore.get("preferred_province_id")?.value || "";
+    const preferredProvinceId = Number(preferredProvinceRaw);
+    if (!Number.isNaN(preferredProvinceId) && preferredProvinceId > 0) {
+      filters.province = preferredProvinceId;
+    }
+  }
 
   const toSeoSegment = (value: string): string => toSeoLocationSegment(value);
 

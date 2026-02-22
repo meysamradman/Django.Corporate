@@ -18,14 +18,22 @@ class ProvincePublicViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ProvincePublicSerializer
 
     def get_queryset(self):
+        filters = {
+            "min_property_count": self.request.query_params.get("min_property_count"),
+        }
+        filters = {key: value for key, value in filters.items() if value not in (None, "")}
         search = (self.request.query_params.get("search") or "").strip() or None
         ordering = (self.request.query_params.get("ordering") or "").strip() or None
-        return PropertyLocationPublicService.get_provinces_queryset(search=search, ordering=ordering)
+        return PropertyLocationPublicService.get_provinces_queryset(filters=filters, search=search, ordering=ordering)
 
     def list(self, request, *args, **kwargs):
+        filters = {
+            "min_property_count": request.query_params.get("min_property_count"),
+        }
+        filters = {key: value for key, value in filters.items() if value not in (None, "")}
         search = (request.query_params.get("search") or "").strip() or None
         ordering = (request.query_params.get("ordering") or "").strip() or None
-        data = PropertyLocationPublicService.get_province_list_data(search=search, ordering=ordering)
+        data = PropertyLocationPublicService.get_province_list_data(filters=filters, search=search, ordering=ordering)
         page = self.paginate_queryset(data)
         if page is not None:
             return self.get_paginated_response(page)

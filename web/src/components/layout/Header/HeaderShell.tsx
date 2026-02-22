@@ -7,6 +7,8 @@ import { Logo } from '../Logo';
 import { Menu, type HeaderMenuStatusOption } from './Menu';
 import { DarkMode } from '@/components/theme/DarkMode';
 import type { SiteLogo } from '@/types/settings/branding';
+import type { ProvinceCompact } from '@/types/shared/location';
+import { HeaderProvincePopover } from './HeaderProvincePopover';
 
 type HeaderShellProps = {
     logo?: SiteLogo | null;
@@ -14,6 +16,7 @@ type HeaderShellProps = {
     initialMode: 'transparent' | 'solid';
     reserveSpaceOnScroll?: boolean;
     statusOptions?: HeaderMenuStatusOption[];
+    provinceOptions?: ProvinceCompact[];
 };
 
 export function HeaderShell({
@@ -22,6 +25,7 @@ export function HeaderShell({
     initialMode,
     reserveSpaceOnScroll = false,
     statusOptions = [],
+    provinceOptions = [],
 }: HeaderShellProps) {
     const isTransparentInitial = initialMode === 'transparent';
 
@@ -51,6 +55,7 @@ export function HeaderShell({
                 />
 
                 <div className="justify-self-end flex items-center gap-2">
+                    <HeaderProvincePopover provinceOptions={provinceOptions} />
                     <DarkMode />
                     <Link
                         href="/contact"

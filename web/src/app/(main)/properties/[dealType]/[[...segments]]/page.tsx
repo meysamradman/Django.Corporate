@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { Suspense } from "react";
 
 import { realEstateApi } from "@/api/real-estate/route";
@@ -29,6 +30,8 @@ const toSeoSegment = (value: string): string => toSeoLocationSegment(value);
 async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: PageProps) {
   const routeParams = await params;
   const query = await searchParams;
+  const queryFilters = resolvePropertySearchFilters(query);
+  const cookieStore = await cookies();
 
   const firstSegmentRaw = normalizeTaxonomySlug(routeParams.dealType);
   const firstSegmentKey = firstSegmentRaw.toLowerCase();
@@ -173,9 +176,25 @@ async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: Page
   let resolvedCitySlug = "";
   let resolvedProvinceSlug = "";
 
+  const hasCityHint = queryFilters.city !== null || Boolean(queryFilters.city_slug);
+  const hasProvinceHint = queryFilters.province !== null || Boolean(queryFilters.province_slug);
+
   if (locationSegment) {
     const decodedLocation = decodeURIComponent(locationSegment).trim();
     const normalizedLocationSegment = normalizeTaxonomySlug(decodedLocation).toLowerCase();
+
+    const provinceCandidates = await realEstateApi
+      .getProvinces({ search: decodedLocation, page: 1, size: 200 })
+      .then((response) => response?.data || [])
+      .catch(() => []);
+
+    const provinceBySegment = provinceCandidates.find((item) => {
+      const itemSlug = normalizeTaxonomySlug(item.slug || "").toLowerCase();
+      if (itemSlug && itemSlug === normalizedLocationSegment) {
+        return true;
+      }
+      return toSeoSegment(item.name || "") === toSeoSegment(decodedLocation);
+    });
 
     const cityCandidates = await realEstateApi
       .getCities({ search: decodedLocation, page: 1, size: 200 })
@@ -190,44 +209,47 @@ async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: Page
       return toSeoSegment(item.name || "") === toSeoSegment(decodedLocation);
     });
 
-    if (cityBySegment) {
+    const shouldUseCity =
+      Boolean(cityBySegment) &&
+      (!provinceBySegment || (hasCityHint && !hasProvinceHint));
+
+    if (shouldUseCity && cityBySegment) {
       resolvedCityId = cityBySegment.id;
       resolvedCitySlug = String(cityBySegment.slug || toSeoSegment(cityBySegment.name || decodedLocation)).trim();
       resolvedProvinceId = cityBySegment.province_id ?? null;
       if (cityBySegment.province_name) {
         resolvedProvinceSlug = String(cityBySegment.province_slug || toSeoSegment(cityBySegment.province_name)).trim();
       }
-    } else {
-      const provinceCandidates = await realEstateApi
-        .getProvinces({ search: decodedLocation, page: 1, size: 200 })
-        .then((response) => response?.data || [])
-        .catch(() => []);
-
-      const provinceBySegment = provinceCandidates.find((item) => {
-        const itemSlug = normalizeTaxonomySlug(item.slug || "").toLowerCase();
-        if (itemSlug && itemSlug === normalizedLocationSegment) {
-          return true;
-        }
-        return toSeoSegment(item.name || "") === toSeoSegment(decodedLocation);
-      });
-
-      if (!provinceBySegment) {
-        notFound();
-      }
-
+    } else if (provinceBySegment) {
       resolvedProvinceId = provinceBySegment.id;
       resolvedProvinceSlug = String(provinceBySegment.slug || toSeoSegment(provinceBySegment.name || decodedLocation)).trim();
+    } else {
+      notFound();
     }
   }
 
   const filters = {
-    ...resolvePropertySearchFilters(query),
+    ...queryFilters,
     ...pathFilters,
     city: resolvedCityId,
     province: resolvedProvinceId,
     city_slug: resolvedCitySlug,
     province_slug: resolvedProvinceSlug,
   };
+
+  if (
+    !locationSegment &&
+    filters.city === null &&
+    filters.province === null &&
+    !filters.city_slug &&
+    !filters.province_slug
+  ) {
+    const preferredProvinceRaw = cookieStore.get("preferred_province_id")?.value || "";
+    const preferredProvinceId = Number(preferredProvinceRaw);
+    if (!Number.isNaN(preferredProvinceId) && preferredProvinceId > 0) {
+      filters.province = preferredProvinceId;
+    }
+  }
 
   if (!locationSegment && filters.city !== null && !filters.city_slug) {
     const cityById = await realEstateApi.getCityById(filters.city).catch(() => null);

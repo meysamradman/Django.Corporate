@@ -79,9 +79,13 @@ export const realEstateApi = {
         return toPaginatedResponse<PropertyType>(response, params?.size || 50);
     },
 
-    getProvinces: async (params?: { page?: number; size?: number; search?: string }): Promise<PaginatedResponse<ProvinceCompact>> => {
+    getProvinces: async (
+        params?: { page?: number; size?: number; search?: string; min_property_count?: number; ordering?: string }
+    ): Promise<PaginatedResponse<ProvinceCompact>> => {
         const limit = params?.size;
-        const queryParams = toLimitOffsetQuery(params as ({ page?: number; size?: number; search?: string } & Record<string, unknown>) | undefined);
+        const queryParams = toLimitOffsetQuery(
+            params as ({ page?: number; size?: number; search?: string; min_property_count?: number; ordering?: string } & Record<string, unknown>) | undefined
+        );
 
         const response = await fetchApi.get<ProvinceCompact[]>(withQuery('/real-estate/provinces/', queryParams));
         return toPaginatedResponse<ProvinceCompact>(response, limit || 100);

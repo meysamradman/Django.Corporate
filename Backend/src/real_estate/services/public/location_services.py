@@ -1,5 +1,5 @@
 from django.core.cache import cache
-from django.db.models import Q
+from django.db.models import Count, Q
 
 from src.core.models import City, Province
 from src.real_estate.models.location import CityRegion
@@ -9,7 +9,7 @@ from src.real_estate.utils.cache_ttl import PUBLIC_TAXONOMY_DETAIL_TTL, PUBLIC_T
 
 
 class PropertyLocationPublicService:
-    PROVINCE_ALLOWED_ORDERING_FIELDS = {"name", "created_at"}
+    PROVINCE_ALLOWED_ORDERING_FIELDS = {"name", "created_at", "property_count"}
     CITY_ALLOWED_ORDERING_FIELDS = {"name", "created_at", "province__name"}
     REGION_ALLOWED_ORDERING_FIELDS = {"name", "created_at", "city__name", "city__province__name"}
 
@@ -28,8 +28,33 @@ class PropertyLocationPublicService:
         return (f"-{field}" if descending else field,)
 
     @staticmethod
-    def get_provinces_queryset(search: str | None = None, ordering: str | None = None):
-        queryset = Province.objects.filter(is_active=True)
+    def _parse_int(value):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _base_provinces_queryset():
+        return Province.objects.filter(is_active=True).annotate(
+            property_count=Count(
+                "real_estate_properties",
+                filter=Q(
+                    real_estate_properties__is_active=True,
+                    real_estate_properties__is_public=True,
+                    real_estate_properties__is_published=True,
+                ),
+            )
+        )
+
+    @staticmethod
+    def get_provinces_queryset(filters=None, search: str | None = None, ordering: str | None = None):
+        queryset = PropertyLocationPublicService._base_provinces_queryset()
+
+        if filters:
+            min_property_count = PropertyLocationPublicService._parse_int(filters.get("min_property_count"))
+            if min_property_count is not None:
+                queryset = queryset.filter(property_count__gte=min_property_count)
 
         if search:
             queryset = queryset.filter(
@@ -76,13 +101,18 @@ class PropertyLocationPublicService:
         return queryset
 
     @staticmethod
-    def get_province_list_data(search: str | None = None, ordering: str | None = None):
-        cache_key = LocationPublicCacheKeys.province_list(search=search, ordering=ordering)
+    def get_province_list_data(filters=None, search: str | None = None, ordering: str | None = None):
+        normalized_filters = filters or {}
+        cache_key = LocationPublicCacheKeys.province_list(filters=normalized_filters, search=search, ordering=ordering)
         cached_data = cache.get(cache_key)
         if cached_data is not None:
             return cached_data
 
-        queryset = PropertyLocationPublicService.get_provinces_queryset(search=search, ordering=ordering)
+        queryset = PropertyLocationPublicService.get_provinces_queryset(
+            filters=normalized_filters,
+            search=search,
+            ordering=ordering,
+        )
         data = ProvincePublicSerializer(queryset, many=True).data
         cache.set(cache_key, data, PUBLIC_TAXONOMY_LIST_TTL)
         return data
@@ -111,7 +141,7 @@ class PropertyLocationPublicService:
         if cached_data is not None:
             return cached_data
 
-        province = Province.objects.filter(id=province_id, is_active=True).first()
+        province = PropertyLocationPublicService._base_provinces_queryset().filter(id=province_id).first()
         if not province:
             return None
 

@@ -5,9 +5,11 @@ from src.real_estate.models.location import CityRegion
 
 
 class ProvincePublicSerializer(serializers.ModelSerializer):
+    property_count = serializers.IntegerField(read_only=True, default=0)
+
     class Meta:
         model = Province
-        fields = ["id", "name", "code", "slug"]
+        fields = ["id", "name", "code", "slug", "property_count"]
 
 
 class CityPublicSerializer(serializers.ModelSerializer):

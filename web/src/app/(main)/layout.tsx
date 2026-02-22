@@ -13,6 +13,7 @@ import type { PublicGeneralSettings } from "@/types/settings/general";
 import type { FooterAboutItem, FooterSectionItem } from "@/types/settings/footer";
 import type { PublicChatbotSettings } from "@/types/chatbot/chatbot";
 import type { HeaderMenuStatusOption } from "@/components/layout/Header/Menu";
+import type { ProvinceCompact } from "@/types/shared/location";
 
 interface MainLayoutProps {
     children: React.ReactNode;
@@ -25,11 +26,13 @@ function HeaderFallback() {
 async function HeaderSlot() {
     let logo: SiteLogo | null = null;
     let statusOptions: HeaderMenuStatusOption[] = [];
+    let provinceOptions: ProvinceCompact[] = [];
 
     try {
-        const [logoResult, statusesResult] = await Promise.allSettled([
+        const [logoResult, statusesResult, provincesResult] = await Promise.allSettled([
             brandingApi.getLogo(),
             realEstateApi.getStates({ page: 1, size: 200 }),
+            realEstateApi.getProvinces({ page: 1, size: 200, min_property_count: 1, ordering: "-property_count" }),
         ]);
 
         if (logoResult.status === 'fulfilled') {
@@ -59,11 +62,16 @@ async function HeaderSlot() {
         if (normalizedStatuses.length > 0) {
             statusOptions = normalizedStatuses;
         }
+
+        const provinces = provincesResult.status === "fulfilled" ? (provincesResult.value?.data ?? []) : [];
+        if (provinces.length > 0) {
+            provinceOptions = provinces;
+        }
     } catch {
         // keep safe defaults
     }
 
-    return <Header logo={logo} statusOptions={statusOptions} />;
+    return <Header logo={logo} statusOptions={statusOptions} provinceOptions={provinceOptions} />;
 }
 
 function FooterFallback() {
