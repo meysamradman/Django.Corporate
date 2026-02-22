@@ -1,6 +1,3 @@
-import Link from "next/link";
-
-import { Button } from "@/components/elements/custom/button";
 import {
   Pagination,
   PaginationContent,
@@ -10,6 +7,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/elements/pagination";
+import { PropertyCardList } from "@/components/real-estate/cards";
 
 import type { Property } from "@/types/real-estate/property";
 import type { PropertySearchFilters } from "@/types/real-estate/searchFilters";
@@ -25,23 +23,6 @@ type PropertySearchResultsProps = {
   isLoading?: boolean;
   onPageChange?: (page: number) => void;
 };
-
-const toPriceLabel = (property: Property): string => {
-  const rawPrice = property.price ?? property.sale_price ?? property.pre_sale_price ?? null;
-  if (!rawPrice || rawPrice <= 0) return "قیمت توافقی";
-  return `${rawPrice.toLocaleString("fa-IR")} تومان`;
-};
-
-const getPropertyImageUrl = (property: Property): string | null => {
-  const mainImage = property.main_image?.url || property.main_image?.file_url || null;
-  if (mainImage) return mainImage;
-
-  const mediaImage =
-    property.media?.find((item) => !!item?.media?.file_url)?.media?.file_url || null;
-  return mediaImage;
-};
-
-const getPropertyCanonicalPath = (property: Property): string => `/properties/${property.id}/${encodeURIComponent(property.slug)}`;
 
 const buildPageHref = (filters: PropertySearchFilters, page: number): string => {
   return filtersToHref(filters, { page });
@@ -77,46 +58,10 @@ export default function PropertySearchResults({
           موردی مطابق فیلترهای شما پیدا نشد.
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {properties.map((property) => {
-            const propertyPath = getPropertyCanonicalPath(property);
-            const imageUrl = getPropertyImageUrl(property);
-
             return (
-              <article key={property.id} className="rounded-lg border bg-card overflow-hidden flex flex-col">
-                <Link href={propertyPath} className="block">
-                  {imageUrl ? (
-                    <img
-                      src={imageUrl}
-                      alt={property.title || "ملک"}
-                      className="w-full h-44 object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-44 bg-bg flex items-center justify-center text-font-s text-sm">
-                      تصویر موجود نیست
-                    </div>
-                  )}
-                </Link>
-
-                <div className="p-4 space-y-3 flex-1 flex flex-col">
-                  <div className="space-y-1">
-                    <h2 className="font-semibold line-clamp-2 leading-7">{property.title || "ملک"}</h2>
-                    <p className="text-sm text-font-s line-clamp-2">{property.short_description || "-"}</p>
-                  </div>
-
-                  <div className="text-sm text-font-s">
-                    {(property.city_name || "") + " " + (property.province_name || "")}
-                  </div>
-
-                  <div className="mt-auto flex items-center justify-between gap-2 pt-1">
-                    <span className="font-semibold text-primary">{toPriceLabel(property)}</span>
-                    <Button asChild variant="outline" size="sm">
-                      <Link href={propertyPath}>مشاهده</Link>
-                    </Button>
-                  </div>
-                </div>
-              </article>
+              <PropertyCardList key={`property-list-${property.id}`} property={property} />
             );
           })}
         </div>

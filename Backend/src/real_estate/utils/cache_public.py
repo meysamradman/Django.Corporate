@@ -1,6 +1,7 @@
 from src.real_estate.utils.cache_shared import hash_payload
 
 class PropertyPublicCacheKeys:
+    SCHEMA_VERSION = "v2"
 
     @staticmethod
     def list(filters=None, search=None, ordering=None):
@@ -8,6 +9,7 @@ class PropertyPublicCacheKeys:
             'filters': filters or {},
             'search': search,
             'ordering': ordering,
+            'v': PropertyPublicCacheKeys.SCHEMA_VERSION,
         }
         return f"public:real_estate:property:list:{hash_payload(payload)}"
 
@@ -25,11 +27,11 @@ class PropertyPublicCacheKeys:
 
     @staticmethod
     def featured(limit):
-        return f"public:real_estate:property:featured:{limit}"
+        return f"public:real_estate:property:featured:{PropertyPublicCacheKeys.SCHEMA_VERSION}:{limit}"
 
     @staticmethod
     def related(slug, limit):
-        return f"public:real_estate:property:related:{slug}:{limit}"
+        return f"public:real_estate:property:related:{PropertyPublicCacheKeys.SCHEMA_VERSION}:{slug}:{limit}"
 
 class TypePublicCacheKeys:
 

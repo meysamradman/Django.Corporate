@@ -99,6 +99,7 @@ class PropertyAgentNestedPublicSerializer(serializers.ModelSerializer):
 class PropertyPublicListSerializer(serializers.ModelSerializer):
     property_type = PropertyTypeNestedPublicSerializer(read_only=True)
     state = PropertyStateNestedPublicSerializer(read_only=True)
+    agent = PropertyAgentNestedPublicSerializer(read_only=True)
     labels = PropertyLabelNestedPublicSerializer(many=True, read_only=True)
     tags = PropertyTagNestedPublicSerializer(many=True, read_only=True)
     features = PropertyFeatureNestedPublicSerializer(many=True, read_only=True)
@@ -113,7 +114,7 @@ class PropertyPublicListSerializer(serializers.ModelSerializer):
             'id', 'public_id', 'title', 'slug', 'short_description',
             'is_published', 'is_featured', 'is_active', 'status',
             'main_image',
-            'property_type', 'state', 'labels', 'tags', 'features',
+            'property_type', 'state', 'agent', 'labels', 'tags', 'features',
             'price', 'sale_price', 'pre_sale_price', 'price_per_sqm', 'monthly_rent', 'mortgage_amount',
             'land_area', 'built_area', 'bedrooms', 'bathrooms', 'year_built',
             'province_name', 'city_name', 'district_name', 'neighborhood',
