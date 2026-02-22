@@ -72,28 +72,26 @@ export default function PropertySearchClient({
 
   return (
     <main className="container mr-auto ml-auto py-10 md:py-12">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        <div className="lg:col-span-4 xl:col-span-3">
-          <div className="lg:sticky lg:top-24">
-            <PropertySearchSidebar
-              filters={filters}
-              isLoading={isLoading}
-              typeOptions={typeOptions}
-              stateOptions={stateOptions}
-              provinceOptions={provinceOptions}
-              cityOptions={cityOptions}
-              regionOptions={regionOptions}
-              labelOptions={labelOptions}
-              tagOptions={tagOptions}
-              featureOptions={featureOptions}
-              statusOptions={statusOptions}
-              onFiltersChange={onFiltersChange}
-              onReset={() => onReset(resetFilters)}
-            />
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:h-[calc(100vh-8.5rem)] lg:overflow-hidden">
+        <div className="lg:col-span-3 xl:col-span-3 lg:self-start lg:sticky lg:top-24 h-fit">
+          <PropertySearchSidebar
+            filters={filters}
+            isLoading={isLoading}
+            typeOptions={typeOptions}
+            stateOptions={stateOptions}
+            provinceOptions={provinceOptions}
+            cityOptions={cityOptions}
+            regionOptions={regionOptions}
+            labelOptions={labelOptions}
+            tagOptions={tagOptions}
+            featureOptions={featureOptions}
+            statusOptions={statusOptions}
+            onFiltersChange={onFiltersChange}
+            onReset={() => onReset(resetFilters)}
+          />
         </div>
 
-        <div className="lg:col-span-8 xl:col-span-9">
+        <div className="lg:col-span-9 xl:col-span-9 lg:overflow-y-auto lg:pl-1 scrollbar-hidden">
           <PropertySearchResults
             properties={properties}
             totalCount={totalCount}

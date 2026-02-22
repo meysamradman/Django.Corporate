@@ -4,6 +4,7 @@ import React from "react";
 import { realEstateApi } from "@/api/real-estate/route";
 import { Button } from "@/components/elements/custom/button";
 import { Input } from "@/components/elements/input";
+import { Separator } from "@/components/elements/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/select";
 import { fromSortValue, toSeoLocationSegment, toSortValue } from "@/components/real-estate/search/filters";
 import type { PropertySearchFilters } from "@/types/real-estate/searchFilters";
@@ -79,7 +80,7 @@ function NativeSelectOption(_props: React.ComponentProps<"option">) {
   return null;
 }
 
-const cardClassName = "rounded-md border bg-card p-3 space-y-3";
+const sectionClassName = "space-y-3";
 
 const toBoolString = (value: boolean | null): string => {
   if (value === null) return "";
@@ -223,14 +224,15 @@ export default function PropertySearchSidebar({
   };
 
   return (
-    <aside className="space-y-3">
-      <div className="rounded-lg border bg-card p-4 md:p-5 flex items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold">فیلترهای جستجو</h2>
+    <aside className="rounded-2xl border border-br bg-card p-4 md:p-5 space-y-5 lg:max-h-[calc(100vh-8.5rem)] lg:overflow-y-auto">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-base font-black text-font-p">فیلترهای جستجو</h2>
         <span className="text-xs text-font-s">{isLoading ? "در حال بروزرسانی..." : "آماده"}</span>
       </div>
+      <Separator className="bg-br" />
 
-      <div className={cardClassName}>
-        <h3 className="text-sm font-semibold">جستجو</h3>
+      <section className={sectionClassName}>
+        <h3 className="text-sm font-black text-font-p">جستجو</h3>
         <div className="space-y-2">
           <label className="text-sm text-font-s">عبارت جستجو</label>
           <Input
@@ -240,10 +242,11 @@ export default function PropertySearchSidebar({
           />
         </div>
         <p className="text-xs text-font-s">با تایپ، نتایج به‌صورت خودکار بروزرسانی می‌شود.</p>
-      </div>
+      </section>
+      <Separator className="bg-br" />
 
-      <div className={cardClassName}>
-        <h3 className="text-sm font-semibold">وضعیت آگهی</h3>
+      <section className={sectionClassName}>
+        <h3 className="text-sm font-black text-font-p">وضعیت آگهی</h3>
         <div className="space-y-2">
           <label className="text-sm text-font-s">وضعیت</label>
           <NativeSelect value={filters.status} onChange={(event) => update({ status: event.target.value })}>
@@ -255,10 +258,11 @@ export default function PropertySearchSidebar({
             ))}
           </NativeSelect>
         </div>
-      </div>
+      </section>
+      <Separator className="bg-br" />
 
-      <div className={cardClassName}>
-        <h3 className="text-sm font-semibold">نوع و معامله</h3>
+      <section className={sectionClassName}>
+        <h3 className="text-sm font-black text-font-p">نوع و معامله</h3>
         <div className="space-y-2">
           <label className="text-sm text-font-s">نوع ملک</label>
           <NativeSelect
@@ -304,10 +308,11 @@ export default function PropertySearchSidebar({
             ))}
           </NativeSelect>
         </div>
-      </div>
+      </section>
+      <Separator className="bg-br" />
 
-      <div className={cardClassName}>
-        <h3 className="text-sm font-semibold">موقعیت</h3>
+      <section className={sectionClassName}>
+        <h3 className="text-sm font-black text-font-p">موقعیت</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="space-y-2">
             <label className="text-sm text-font-s">استان</label>
@@ -371,10 +376,11 @@ export default function PropertySearchSidebar({
             </NativeSelect>
           </div>
         </div>
-      </div>
+      </section>
+      <Separator className="bg-br" />
 
-      <div className={cardClassName}>
-        <h3 className="text-sm font-semibold">قیمت و متراژ</h3>
+      <section className={sectionClassName}>
+        <h3 className="text-sm font-black text-font-p">قیمت و متراژ</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-2">
             <label className="text-sm text-font-s">حداقل قیمت</label>
@@ -420,10 +426,11 @@ export default function PropertySearchSidebar({
             />
           </div>
         </div>
-      </div>
+      </section>
+      <Separator className="bg-br" />
 
-      <div className={cardClassName}>
-        <h3 className="text-sm font-semibold">مشخصات ملک</h3>
+      <section className={sectionClassName}>
+        <h3 className="text-sm font-black text-font-p">مشخصات ملک</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-2">
             <label className="text-sm text-font-s">تعداد خواب</label>
@@ -506,10 +513,11 @@ export default function PropertySearchSidebar({
             />
           </div>
         </div>
-      </div>
+      </section>
+      <Separator className="bg-br" />
 
-      <div className={cardClassName}>
-        <h3 className="text-sm font-semibold">برچسب‌گذاری</h3>
+      <section className={sectionClassName}>
+        <h3 className="text-sm font-black text-font-p">برچسب‌گذاری</h3>
         <div className="space-y-2">
           <label className="text-sm text-font-s">برچسب</label>
           <NativeSelect
@@ -551,10 +559,11 @@ export default function PropertySearchSidebar({
             ))}
           </NativeSelect>
         </div>
-      </div>
+      </section>
+      <Separator className="bg-br" />
 
-      <div className={cardClassName}>
-        <h3 className="text-sm font-semibold">زمان و انتشار</h3>
+      <section className={sectionClassName}>
+        <h3 className="text-sm font-black text-font-p">زمان و انتشار</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-2">
             <label className="text-sm text-font-s">تاریخ ایجاد از</label>
@@ -609,10 +618,11 @@ export default function PropertySearchSidebar({
             </NativeSelect>
           </div>
         </div>
-      </div>
+      </section>
+      <Separator className="bg-br" />
 
-      <div className={cardClassName}>
-        <h3 className="text-sm font-semibold">مرتب‌سازی و پیشرفته</h3>
+      <section className={sectionClassName}>
+        <h3 className="text-sm font-black text-font-p">مرتب‌سازی و پیشرفته</h3>
         <div className="space-y-2">
           <label className="text-sm text-font-s">مرتب‌سازی</label>
           <NativeSelect
@@ -654,9 +664,9 @@ export default function PropertySearchSidebar({
             />
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="rounded-lg border bg-card p-3">
+      <div className="pt-1">
         <Button type="button" variant="outline" onClick={onReset} className="w-full">
           پاک کردن همه فیلترها
         </Button>

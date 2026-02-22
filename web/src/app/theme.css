@@ -223,28 +223,36 @@ html body[data-scroll-locked] {
 }
 
 ::-webkit-scrollbar {
-  width: 12px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg);
-  border-left: 1px solid var(--br);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--font-s) 30%, transparent);
-  border-radius: 6px;
-  border: 2px solid var(--bg);
+  background: color-mix(in srgb, var(--font-s) 26%, transparent);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--font-s) 50%, transparent);
+  background: color-mix(in srgb, var(--font-s) 38%, transparent);
 }
 
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--font-s) 30%, transparent) var(--bg);
+  scrollbar-color: color-mix(in srgb, var(--font-s) 26%, transparent) transparent;
+}
+
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
 }
 
 /* RTL: scrollbar on left for main content area */
@@ -255,32 +263,6 @@ main {
 /* Content inside main should remain RTL for proper Persian text alignment */
 main>div {
   direction: rtl;
-}
-
-/* Mobile: Adjust padding to compensate for scrollbar on left side */
-@media (max-width: 640px) {
-  main>div {
-    padding: 1rem calc(1rem + 5px) 1rem 1rem;
-  }
-}
-
-main::-webkit-scrollbar {
-  width: 12px;
-}
-
-main::-webkit-scrollbar-track {
-  background: var(--bg);
-  border-left: 1px solid var(--br);
-}
-
-main::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--font-s) 30%, transparent);
-  border-radius: 6px;
-  border: 2px solid var(--bg);
-}
-
-main::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--font-s) 50%, transparent);
 }
 
 @media print {
