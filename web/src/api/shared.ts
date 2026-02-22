@@ -3,6 +3,11 @@ import type { ApiPagination, PaginatedResponse } from '@/types/shared/pagination
 
 const DEFAULT_PAGE_SIZE = 10;
 
+type PageSizeParams = {
+  page?: number;
+  size?: number;
+};
+
 export const buildQueryString = (params?: Record<string, unknown>): string => {
   if (!params) return '';
 
@@ -28,6 +33,23 @@ export const withQuery = (baseUrl: string, params?: Record<string, unknown>): st
   const query = buildQueryString(params);
   if (!query) return baseUrl;
   return `${baseUrl}?${query}`;
+};
+
+export const toLimitOffsetQuery = <T extends PageSizeParams & Record<string, unknown>>(
+  params?: T,
+  extras?: Record<string, unknown>
+): Record<string, unknown> => {
+  const limit = params?.size;
+  const offset = params?.page && params?.size ? (params.page - 1) * params.size : undefined;
+
+  return {
+    ...(params || {}),
+    ...(extras || {}),
+    limit,
+    offset,
+    page: undefined,
+    size: undefined,
+  };
 };
 
 export const extractData = <T>(response: ApiResponse<T>): T => response.data;

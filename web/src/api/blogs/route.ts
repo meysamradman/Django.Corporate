@@ -6,26 +6,22 @@ import { BlogTag } from "@/types/blog/tags/blogTag";
 import { BlogTagListParams } from "@/types/blog/tags/blogTagFilter";
 import { BlogListParams } from "@/types/blog/blogListParams";
 import { PaginatedResponse } from "@/types/shared/pagination";
-import { toPaginatedResponse, withQuery } from "@/api/shared";
+import { toLimitOffsetQuery, toPaginatedResponse, withQuery } from "@/api/shared";
 
 export const blogApi = {
   getBlogList: async (params?: BlogListParams): Promise<PaginatedResponse<Blog>> => {
-    const limit = params?.size;
-    const offset = params?.page && params?.size ? (params.page - 1) * params.size : undefined;
     const ordering = params?.ordering || (params?.order_by
       ? `${params.order_desc ? "-" : ""}${params.order_by}`
       : undefined);
 
-    const queryParams = {
-      ...params,
-      limit,
-      offset,
-      ordering,
-      page: undefined,
-      size: undefined,
-      order_by: undefined,
-      order_desc: undefined,
-    } as Record<string, unknown>;
+    const queryParams = toLimitOffsetQuery(
+      params as (BlogListParams & Record<string, unknown>) | undefined,
+      {
+        ordering,
+        order_by: undefined,
+        order_desc: undefined,
+      }
+    );
 
     const response = await fetchApi.get<Blog[]>(withQuery("/blog/", queryParams));
     return toPaginatedResponse<Blog>(response, params?.size || 10);

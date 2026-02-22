@@ -12,7 +12,7 @@ import {
 import { RealEstateListParams, RealEstateTaxonomyListParams } from "@/types/real-estate/realEstateListParams";
 import { PaginatedResponse } from "@/types/shared/pagination";
 import { CityCompact, ProvinceCompact, RegionCompact } from "@/types/shared/location";
-import { withQuery, toPaginatedResponse } from "@/api/shared";
+import { withQuery, toLimitOffsetQuery, toPaginatedResponse } from "@/api/shared";
 
 const REAL_ESTATE_CACHE = {
     list: { cache: 'no-store' as const },
@@ -30,8 +30,10 @@ export const realEstateApi = {
     },
 
     getProperties: async (params?: RealEstateListParams): Promise<PaginatedResponse<Property>> => {
+        const queryParams = toLimitOffsetQuery(params as (RealEstateListParams & Record<string, unknown>) | undefined);
+
         const response = await fetchApi.get<Property[]>(
-            withQuery('/real-estate/properties/', params as Record<string, unknown>),
+            withQuery('/real-estate/properties/', queryParams),
             REAL_ESTATE_CACHE.list
         );
         return toPaginatedResponse<Property>(response, params?.size || 10);
@@ -79,14 +81,7 @@ export const realEstateApi = {
 
     getProvinces: async (params?: { page?: number; size?: number; search?: string }): Promise<PaginatedResponse<ProvinceCompact>> => {
         const limit = params?.size;
-        const offset = params?.page && params?.size ? (params.page - 1) * params.size : undefined;
-        const queryParams = {
-            ...params,
-            limit,
-            offset,
-            page: undefined,
-            size: undefined,
-        } as Record<string, unknown>;
+        const queryParams = toLimitOffsetQuery(params as ({ page?: number; size?: number; search?: string } & Record<string, unknown>) | undefined);
 
         const response = await fetchApi.get<ProvinceCompact[]>(withQuery('/real-estate/provinces/', queryParams));
         return toPaginatedResponse<ProvinceCompact>(response, limit || 100);
@@ -99,14 +94,7 @@ export const realEstateApi = {
 
     getCities: async (params?: { page?: number; size?: number; search?: string; province_id?: number | string }): Promise<PaginatedResponse<CityCompact & { province_id?: number }>> => {
         const limit = params?.size;
-        const offset = params?.page && params?.size ? (params.page - 1) * params.size : undefined;
-        const queryParams = {
-            ...params,
-            limit,
-            offset,
-            page: undefined,
-            size: undefined,
-        } as Record<string, unknown>;
+        const queryParams = toLimitOffsetQuery(params as ({ page?: number; size?: number; search?: string; province_id?: number | string } & Record<string, unknown>) | undefined);
 
         const response = await fetchApi.get<(CityCompact & { province_id?: number })[]>(withQuery('/real-estate/cities/', queryParams));
         return toPaginatedResponse<CityCompact & { province_id?: number }>(response, limit || 300);
@@ -119,14 +107,7 @@ export const realEstateApi = {
 
     getRegions: async (params?: { page?: number; size?: number; search?: string; province_id?: number | string; city_id?: number | string }): Promise<PaginatedResponse<RegionCompact>> => {
         const limit = params?.size;
-        const offset = params?.page && params?.size ? (params.page - 1) * params.size : undefined;
-        const queryParams = {
-            ...params,
-            limit,
-            offset,
-            page: undefined,
-            size: undefined,
-        } as Record<string, unknown>;
+        const queryParams = toLimitOffsetQuery(params as ({ page?: number; size?: number; search?: string; province_id?: number | string; city_id?: number | string } & Record<string, unknown>) | undefined);
 
         const response = await fetchApi.get<RegionCompact[]>(withQuery('/real-estate/regions/', queryParams));
         return toPaginatedResponse<RegionCompact>(response, limit || 600);
@@ -139,14 +120,7 @@ export const realEstateApi = {
 
     getStates: async (params?: RealEstateTaxonomyListParams): Promise<PaginatedResponse<PropertyState>> => {
         const limit = params?.size;
-        const offset = params?.page && params?.size ? (params.page - 1) * params.size : undefined;
-        const queryParams = {
-            ...params,
-            limit,
-            offset,
-            page: undefined,
-            size: undefined,
-        } as Record<string, unknown>;
+        const queryParams = toLimitOffsetQuery(params as (RealEstateTaxonomyListParams & Record<string, unknown>) | undefined);
 
         const response = await fetchApi.get<PropertyState[]>(withQuery('/real-estate/states/', queryParams));
         return toPaginatedResponse<PropertyState>(response, limit || 50);

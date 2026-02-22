@@ -8,26 +8,22 @@ import { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
 import { PortfolioTagListParams } from "@/types/portfolio/tags/portfolioTagFilter";
 import { PortfolioListParams } from "@/types/portfolio/portfolioListParams";
 import { PaginatedResponse } from "@/types/shared/pagination";
-import { toPaginatedResponse, withQuery } from "@/api/shared";
+import { toLimitOffsetQuery, toPaginatedResponse, withQuery } from "@/api/shared";
 
 export const portfolioApi = {
   getPortfolioList: async (params?: PortfolioListParams): Promise<PaginatedResponse<Portfolio>> => {
-    const limit = params?.size;
-    const offset = params?.page && params?.size ? (params.page - 1) * params.size : undefined;
     const ordering = params?.order_by
       ? `${params.order_desc ? "-" : ""}${params.order_by}`
       : undefined;
 
-    const queryParams = {
-      ...params,
-      limit,
-      offset,
-      ordering,
-      page: undefined,
-      size: undefined,
-      order_by: undefined,
-      order_desc: undefined,
-    } as Record<string, unknown>;
+    const queryParams = toLimitOffsetQuery(
+      params as (PortfolioListParams & Record<string, unknown>) | undefined,
+      {
+        ordering,
+        order_by: undefined,
+        order_desc: undefined,
+      }
+    );
 
     const response = await fetchApi.get<Portfolio[]>(withQuery("/portfolio/", queryParams));
     return toPaginatedResponse<Portfolio>(response, params?.size || 10);

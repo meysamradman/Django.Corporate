@@ -1,7 +1,7 @@
 import type { RealEstateListParams } from "@/types/real-estate/realEstateListParams";
 import type { PropertySearchFilters } from "@/types/real-estate/searchFilters";
 
-export const PROPERTY_PAGE_SIZE = 9;
+export const PROPERTY_PAGE_SIZE = 20;
 const DEFAULT_SORT_VALUE = "created_desc";
 
 const toSingle = (value: string | string[] | undefined): string => {
