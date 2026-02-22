@@ -2,7 +2,7 @@ from .property_views import PropertyAdminViewSet
 from .property_geo_views import PropertyGeoViewSet
 from .floor_plan_views import FloorPlanAdminViewSet
 from .type_views import PropertyTypeAdminViewSet
-from .state_views import PropertyStateAdminViewSet
+from .listing_type_views import ListingTypeAdminViewSet
 from .label_views import PropertyLabelAdminViewSet
 from .feature_views import PropertyFeatureAdminViewSet
 from .tag_views import PropertyTagAdminViewSet
@@ -19,7 +19,7 @@ __all__ = [
     'PropertyGeoViewSet',
     'FloorPlanAdminViewSet',
     'PropertyTypeAdminViewSet',
-    'PropertyStateAdminViewSet',
+    'ListingTypeAdminViewSet',
     'PropertyLabelAdminViewSet',
     'PropertyFeatureAdminViewSet',
     'PropertyTagAdminViewSet',

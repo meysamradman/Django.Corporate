@@ -5,7 +5,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from src.real_estate.models.property import Property
 from src.real_estate.models.media import PropertyImage, PropertyVideo, PropertyAudio, PropertyDocument
 from src.real_estate.models.type import PropertyType
-from src.real_estate.models.state import PropertyState
+from src.real_estate.models.listing_type import ListingType
 from src.real_estate.models.label import PropertyLabel
 from src.real_estate.models.feature import PropertyFeature
 from src.real_estate.models.tag import PropertyTag
@@ -156,10 +156,12 @@ class PropertyTypeSimpleAdminSerializer(serializers.ModelSerializer):
         model = PropertyType
         fields = ['id', 'public_id', 'title', 'display_order']
 
-class PropertyStateSimpleAdminSerializer(serializers.ModelSerializer):
+class ListingTypeSimpleAdminSerializer(serializers.ModelSerializer):
     class Meta:
-        model = PropertyState
+        model = ListingType
         fields = ['id', 'public_id', 'title']
+
+
 
 class PropertyLabelSimpleAdminSerializer(serializers.ModelSerializer):
     class Meta:
@@ -224,7 +226,7 @@ class RealEstateAgencySimpleAdminSerializer(serializers.ModelSerializer):
 class PropertyAdminListSerializer(serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
     property_type = PropertyTypeSimpleAdminSerializer(read_only=True)
-    state = PropertyStateSimpleAdminSerializer(read_only=True)
+    state = ListingTypeSimpleAdminSerializer(read_only=True)
     agent = PropertyAgentSimpleAdminSerializer(read_only=True)
     agency = RealEstateAgencySimpleAdminSerializer(read_only=True)
     
@@ -301,7 +303,7 @@ from src.real_estate.services.admin.property_media_services import PropertyAdmin
 class PropertyAdminDetailSerializer(MediaAggregationMixin, serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
     property_type = PropertyTypeSimpleAdminSerializer(read_only=True)
-    state = PropertyStateSimpleAdminSerializer(read_only=True)
+    state = ListingTypeSimpleAdminSerializer(read_only=True)
     agent = PropertyAgentSimpleAdminSerializer(read_only=True)
     agency = RealEstateAgencySimpleAdminSerializer(read_only=True)
     labels = PropertyLabelSimpleAdminSerializer(many=True, read_only=True)
@@ -811,7 +813,7 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
         help_text="نوع ملک"
     )
     state = serializers.PrimaryKeyRelatedField(
-        queryset=PropertyState.objects.all(), 
+        queryset=ListingType.objects.all(), 
         required=False,
         help_text="وضعیت ملک (فروشی، اجاره و ...)"
     )

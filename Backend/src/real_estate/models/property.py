@@ -8,7 +8,7 @@ from src.core.models import BaseModel, Province, City
 from src.real_estate.models.seo import SEOMixin
 from src.real_estate.models.location import CityRegion
 from src.real_estate.models.type import PropertyType
-from src.real_estate.models.state import PropertyState
+from src.real_estate.models.listing_type import ListingType
 from src.real_estate.models.label import PropertyLabel
 from src.real_estate.models.feature import PropertyFeature
 from src.real_estate.models.tag import PropertyTag
@@ -46,7 +46,7 @@ class Property(BaseModel, SEOMixin):
         blank=True
     )
     property_type = models.ForeignKey(PropertyType, on_delete=models.SET_NULL, related_name='properties', null=True, blank=True)
-    state = models.ForeignKey(PropertyState, on_delete=models.SET_NULL, related_name='properties', null=True, blank=True)
+    state = models.ForeignKey(ListingType, on_delete=models.SET_NULL, related_name='properties', null=True, blank=True)
     
     province = models.ForeignKey(Province, on_delete=models.PROTECT, related_name='real_estate_properties')
     city = models.ForeignKey(City, on_delete=models.PROTECT, related_name='real_estate_properties')

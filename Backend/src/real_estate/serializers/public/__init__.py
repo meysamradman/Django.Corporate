@@ -1,7 +1,7 @@
-from .state_serializer import (
-    PropertyStatePublicSerializer,
-    PropertyStatePublicListSerializer,
-    PropertyStatePublicDetailSerializer,
+from .listing_type_serializer import (
+    ListingTypePublicSerializer,
+    ListingTypePublicListSerializer,
+    ListingTypePublicDetailSerializer,
 )
 from .taxonomy_serializer import (
     PropertyTypePublicSerializer,
@@ -27,9 +27,9 @@ from .agency_serializer import (
 )
 
 __all__ = [
-    'PropertyStatePublicSerializer',
-    'PropertyStatePublicListSerializer',
-    'PropertyStatePublicDetailSerializer',
+    'ListingTypePublicSerializer',
+    'ListingTypePublicListSerializer',
+    'ListingTypePublicDetailSerializer',
     'PropertyTypePublicSerializer',
     'PropertyLabelPublicSerializer',
     'PropertyTagPublicSerializer',

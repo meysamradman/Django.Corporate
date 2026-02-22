@@ -9,7 +9,7 @@ from .cache_admin import (
 from .cache_public import (
     PropertyPublicCacheKeys,
     TypePublicCacheKeys,
-    StatePublicCacheKeys,
+    ListingTypePublicCacheKeys,
     TagPublicCacheKeys,
     FeaturePublicCacheKeys,
     LabelPublicCacheKeys,
@@ -26,7 +26,7 @@ __all__ = [
     'TypeCacheManager',
     'PropertyPublicCacheKeys',
     'TypePublicCacheKeys',
-    'StatePublicCacheKeys',
+    'ListingTypePublicCacheKeys',
     'TagPublicCacheKeys',
     'FeaturePublicCacheKeys',
     'LabelPublicCacheKeys',

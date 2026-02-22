@@ -1,7 +1,7 @@
 import type { Base } from "@/types/shared/base";
 import type { Media } from "@/types/shared/media";
 import type { PropertyType } from "./type/propertyType";
-import type { PropertyState } from "./state/realEstateState";
+import type { PropertyState } from "./listing-types/realEstateListingTypes";
 import type { PropertyLabel } from "./label/realEstateLabel";
 import type { PropertyFeature } from "./feature/realEstateFeature";
 import type { PropertyTag } from "./tags/realEstateTag";

@@ -1,4 +1,4 @@
-from .state_services import PropertyStatePublicService
+from .listing_type_services import ListingTypePublicService
 from .property_services import PropertyPublicService
 from .type_services import PropertyTypePublicService
 from .location_services import PropertyLocationPublicService
@@ -10,7 +10,7 @@ from .agency_services import RealEstateAgencyPublicService
 from .floor_plan_services import FloorPlanPublicService
 
 __all__ = [
-    'PropertyStatePublicService',
+    'ListingTypePublicService',
     'PropertyPublicService',
     'PropertyTypePublicService',
     'PropertyLocationPublicService',

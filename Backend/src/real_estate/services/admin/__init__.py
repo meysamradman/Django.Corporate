@@ -8,7 +8,7 @@ from .property_media_services import PropertyAdminMediaService
 from .property_geo_services import PropertyGeoService  # ✅ سرویس جغرافیایی
 from .floor_plan_media_services import FloorPlanMediaService
 from .type_services import PropertyTypeAdminService
-from .state_services import PropertyStateAdminService
+from .listing_type_services import ListingTypeAdminService
 from .label_services import PropertyLabelAdminService
 from .feature_services import PropertyFeatureAdminService
 from .tag_services import PropertyTagAdminService
@@ -27,7 +27,7 @@ __all__ = [
     'PropertyGeoService',  # ✅ سرویس جغرافیایی
     'FloorPlanMediaService',
     'PropertyTypeAdminService',
-    'PropertyStateAdminService',
+    'ListingTypeAdminService',
     'PropertyLabelAdminService',
     'PropertyFeatureAdminService',
     'PropertyTagAdminService',

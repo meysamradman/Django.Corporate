@@ -1,13 +1,13 @@
 import { lazy, Suspense, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
-import { usePropertyStateColumns } from "@/components/real-estate/states/StateTableColumns";
+import { useListingTypeColumns } from "@/components/real-estate/listing-types/ListingTypesTableColumns";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { ProtectedButton } from "@/core/permissions";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { showError } from "@/core/toast";
 import { realEstateApi } from "@/api/real-estate";
-import type { PropertyState } from "@/types/real_estate/state/realEstateState";
+import type { PropertyState } from "@/types/real_estate/listing-types/realEstateListingTypes";
 import type { ColumnDef } from "@tanstack/react-table";
 import { getConfirm, getError } from "@/core/messages";
 import {
@@ -23,20 +23,20 @@ import {
 import type { DataTableRowAction } from "@/types/shared/table";
 import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
 import { DRAWER_IDS } from "@/components/shared/drawer/types";
-import { usePropertyStateListTableState } from "@/components/real-estate/hooks/usePropertyStateListTableState";
-import { usePropertyStateListActions } from "@/components/real-estate/hooks/usePropertyStateListActions";
+import { useListingTypeListTableState } from "@/components/real-estate/hooks/usePropertyListingTypesListTableState";
+import { useListingTypeListActions } from "@/components/real-estate/hooks/usePropertyListingTypesListActions";
 
 const DataTable = lazy(() => import("@/components/tables/DataTable").then((mod) => ({ default: mod.DataTable })));
 
-export default function PropertyStatesPage() {
+export default function PropertyListingTypesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const open = useGlobalDrawerStore((state) => state.open);
 
   useEffect(() => {
     if (searchParams.get("action") === "create") {
-      open(DRAWER_IDS.REAL_ESTATE_STATE_FORM, {
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["property-states"] }),
+      open(DRAWER_IDS.REAL_ESTATE_LISTING_TYPE_FORM, {
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["listing-types"] }),
       });
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("action");
@@ -52,10 +52,10 @@ export default function PropertyStatesPage() {
     searchValue,
     clientFilters,
     handleFilterChange,
-    stateFilterConfig,
+    listingTypeFilterConfig,
     handlePaginationChange,
     handleSortingChange,
-  } = usePropertyStateListTableState();
+  } = useListingTypeListTableState();
 
   const queryParams = {
     search: searchValue,
@@ -69,9 +69,9 @@ export default function PropertyStatesPage() {
   };
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["property-states", queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.date_from, queryParams.date_to],
+    queryKey: ["listing-types", queryParams.search, queryParams.page, queryParams.size, queryParams.order_by, queryParams.order_desc, queryParams.is_active, queryParams.date_from, queryParams.date_to],
     queryFn: async () => {
-      const response = await realEstateApi.getStates(queryParams);
+      const response = await realEstateApi.getListingTypes(queryParams);
       return response;
     },
     staleTime: 0,
@@ -84,41 +84,41 @@ export default function PropertyStatesPage() {
   const {
     deleteConfirm,
     setDeleteConfirm,
-    handleDeleteState,
+    handleDeleteListingType,
     handleDeleteSelected,
     handleConfirmDelete,
     handleToggleActive,
-  } = usePropertyStateListActions({ setRowSelection });
+  } = useListingTypeListActions({ setRowSelection });
 
   const rowActions: DataTableRowAction<PropertyState>[] = [
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,
       onClick: (state) => {
-        open(DRAWER_IDS.REAL_ESTATE_STATE_FORM, {
+        open(DRAWER_IDS.REAL_ESTATE_LISTING_TYPE_FORM, {
           editId: state.id,
-          onSuccess: () => queryClient.invalidateQueries({ queryKey: ["property-states"] }),
+          onSuccess: () => queryClient.invalidateQueries({ queryKey: ["listing-types"] }),
         });
       },
-      permission: "real_estate.state.update",
+      permission: "real_estate.listing_type.update",
     },
     {
       label: "حذف",
       icon: <Trash2 className="h-4 w-4" />,
-      onClick: (state) => handleDeleteState(state.id),
+      onClick: (listingType) => handleDeleteListingType(listingType.id),
       isDestructive: true,
-      permission: "real_estate.state.delete",
+      permission: "real_estate.listing_type.delete",
     },
   ];
 
   const handleEditState = (id: number) => {
-    open(DRAWER_IDS.REAL_ESTATE_STATE_FORM, {
+    open(DRAWER_IDS.REAL_ESTATE_LISTING_TYPE_FORM, {
       editId: id,
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["property-states"] }),
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["listing-types"] }),
     });
   };
 
-  const columns = usePropertyStateColumns(rowActions, handleToggleActive, handleEditState) as ColumnDef<PropertyState>[];
+  const columns = useListingTypeColumns(rowActions, handleToggleActive, handleEditState) as ColumnDef<PropertyState>[];
 
   if (error) {
     showError(getError("serverError"));
@@ -133,11 +133,11 @@ export default function PropertyStatesPage() {
     <div className="space-y-6">
       <PageHeader title="مدیریت نوع معامله ملک">
         <ProtectedButton
-          permission="real_estate.state.create"
+          permission="real_estate.listing_type.create"
           size="sm"
           onClick={() => {
-            open(DRAWER_IDS.REAL_ESTATE_STATE_FORM, {
-              onSuccess: () => queryClient.invalidateQueries({ queryKey: ["property-states"] }),
+            open(DRAWER_IDS.REAL_ESTATE_LISTING_TYPE_FORM, {
+              onSuccess: () => queryClient.invalidateQueries({ queryKey: ["listing-types"] }),
             });
           }}
         >
@@ -162,10 +162,10 @@ export default function PropertyStatesPage() {
           pageSizeOptions={[10, 20, 50]}
           deleteConfig={{
             onDeleteSelected: handleDeleteSelected,
-            permission: "real_estate.state.delete",
+            permission: "real_estate.listing_type.delete",
             denyMessage: "اجازه حذف نوع معامله ملک ندارید",
           }}
-          filterConfig={stateFilterConfig}
+          filterConfig={listingTypeFilterConfig}
         />
       </Suspense>
 
@@ -175,7 +175,7 @@ export default function PropertyStatesPage() {
             <AlertDialogTitle>تایید حذف</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteConfirm.isBulk
-                ? getConfirm("bulkDelete", { item: "نوع معامله ملک", count: deleteConfirm.stateIds?.length || 0 })
+                ? getConfirm("bulkDelete", { item: "نوع معامله ملک", count: deleteConfirm.listingTypeIds?.length || 0 })
                 : getConfirm("delete", { item: "نوع معامله ملک" })}
             </AlertDialogDescription>
           </AlertDialogHeader>

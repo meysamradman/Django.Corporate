@@ -1,4 +1,4 @@
-from .state_views import PropertyStatePublicViewSet
+from .listing_type_views import ListingTypePublicViewSet
 from .property_views import PropertyPublicViewSet
 from .type_views import PropertyTypePublicViewSet
 from .location_views import ProvincePublicViewSet, CityPublicViewSet, RegionPublicViewSet
@@ -10,7 +10,7 @@ from .agency_views import RealEstateAgencyPublicViewSet
 from .floor_plan_views import FloorPlanPublicViewSet
 
 __all__ = [
-	'PropertyStatePublicViewSet',
+	'ListingTypePublicViewSet',
 	'PropertyPublicViewSet',
 	'PropertyTypePublicViewSet',
 	'ProvincePublicViewSet',

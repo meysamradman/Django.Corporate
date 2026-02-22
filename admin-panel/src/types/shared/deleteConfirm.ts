@@ -13,7 +13,7 @@ export type RoleDeleteConfirmState = DeleteConfirmState<'roleId', 'roleIds'>;
 export type PropertyDeleteConfirmState = DeleteConfirmState<'propertyId', 'propertyIds'>;
 export type PropertyFeatureDeleteConfirmState = DeleteConfirmState<'featureId', 'featureIds'>;
 export type PropertyLabelDeleteConfirmState = DeleteConfirmState<'labelId', 'labelIds'>;
-export type PropertyStateDeleteConfirmState = DeleteConfirmState<'stateId', 'stateIds'>;
+export type PropertyListingTypeDeleteConfirmState = DeleteConfirmState<'listingTypeId', 'listingTypeIds'>;
 export type PropertyTagDeleteConfirmState = DeleteConfirmState<'tagId', 'tagIds'>;
 export type PropertyTypeDeleteConfirmState = DeleteConfirmState<'typeId', 'typeIds'>;
 

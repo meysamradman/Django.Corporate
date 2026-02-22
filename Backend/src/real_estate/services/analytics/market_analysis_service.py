@@ -2,7 +2,7 @@ from django.db.models import Sum, Avg, F
 from django.utils import timezone
 from datetime import timedelta
 from src.real_estate.models.statistics import (
-    PropertyTypeStatistics, PropertyStateStatistics, RegionalStatistics, PropertyStatistics
+    PropertyTypeStatistics, ListingTypeStatistics, RegionalStatistics, PropertyStatistics
 )
 
 class MarketAnalysisService:
@@ -19,7 +19,7 @@ class MarketAnalysisService:
             total_leads=Sum('inquiries')
         ).order_by('-total_views')
         
-        state_stats = PropertyStateStatistics.objects.filter(
+        state_stats = ListingTypeStatistics.objects.filter(
             date__gte=last_30_days
         ).values('state__title').annotate(
             total_views=Sum('views'),

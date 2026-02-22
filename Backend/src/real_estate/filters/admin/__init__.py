@@ -5,7 +5,7 @@ from .type_filters import PropertyTypeAdminFilter
 from .tag_filters import PropertyTagAdminFilter
 from .feature_filters import PropertyFeatureAdminFilter
 from .label_filters import PropertyLabelAdminFilter
-from .state_filters import PropertyStateAdminFilter
+from .listing_type_filters import ListingTypeAdminFilter
 
 __all__ = [
     'PropertyAdminFilter',
@@ -15,6 +15,6 @@ __all__ = [
     'PropertyTagAdminFilter',
     'PropertyFeatureAdminFilter',
     'PropertyLabelAdminFilter',
-    'PropertyStateAdminFilter',
+    'ListingTypeAdminFilter',
 ]
 

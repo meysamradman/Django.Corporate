@@ -1,14 +1,14 @@
 from rest_framework import serializers
-from src.real_estate.models.state import PropertyState
+from src.real_estate.models.listing_type import ListingType
 
-class PropertyStatePublicSerializer(serializers.ModelSerializer):
+class ListingTypePublicSerializer(serializers.ModelSerializer):
 
     name = serializers.CharField(source='title', read_only=True)
     property_count = serializers.IntegerField(read_only=True)
     image_url = serializers.SerializerMethodField()
     
     class Meta:
-        model = PropertyState
+        model = ListingType
         fields = ['id', 'public_id', 'name', 'slug', 'short_description', 'usage_type', 'property_count', 'image_url', 'created_at', 'updated_at']
         read_only_fields = ['id', 'public_id', 'name', 'slug', 'short_description', 'usage_type', 'property_count', 'image_url', 'created_at', 'updated_at']
 
@@ -20,10 +20,10 @@ class PropertyStatePublicSerializer(serializers.ModelSerializer):
             pass
         return None
 
-class PropertyStatePublicListSerializer(PropertyStatePublicSerializer):
+class ListingTypePublicListSerializer(ListingTypePublicSerializer):
 
     pass
 
-class PropertyStatePublicDetailSerializer(PropertyStatePublicSerializer):
+class ListingTypePublicDetailSerializer(ListingTypePublicSerializer):
 
     pass

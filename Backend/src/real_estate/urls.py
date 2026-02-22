@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from src.real_estate import views
 from src.real_estate.views.admin import location_views as admin_location_views, property_geo_views
 from src.real_estate.views.public import (
-    state_views,
+    listing_type_views,
     property_views,
     type_views,
     location_views as public_location_views,
@@ -20,7 +20,8 @@ admin_router.register(r'admin/property', views.PropertyAdminViewSet, basename='a
 admin_router.register(r'admin/property-geo', property_geo_views.PropertyGeoViewSet, basename='admin-property-geo')
 admin_router.register(r'admin/floor-plan', views.FloorPlanAdminViewSet, basename='admin-floor-plan')
 admin_router.register(r'admin/property-type', views.PropertyTypeAdminViewSet, basename='admin-property-type')
-admin_router.register(r'admin/property-state', views.PropertyStateAdminViewSet, basename='admin-property-state')
+admin_router.register(r'admin/listing-type', views.ListingTypeAdminViewSet, basename='admin-listing-type')
+admin_router.register(r'admin/property-state', views.ListingTypeAdminViewSet, basename='admin-property-state')
 admin_router.register(r'admin/property-label', views.PropertyLabelAdminViewSet, basename='admin-property-label')
 admin_router.register(r'admin/property-feature', views.PropertyFeatureAdminViewSet, basename='admin-property-feature')
 admin_router.register(r'admin/property-tag', views.PropertyTagAdminViewSet, basename='admin-property-tag')
@@ -32,7 +33,8 @@ admin_router.register(r'admin/real-estate-city-regions', admin_location_views.Re
 public_router = DefaultRouter()
 public_router.register(r'real-estate/properties', property_views.PropertyPublicViewSet, basename='public-property')
 public_router.register(r'real-estate/types', type_views.PropertyTypePublicViewSet, basename='public-property-type')
-public_router.register(r'real-estate/states', state_views.PropertyStatePublicViewSet, basename='public-property-state')
+public_router.register(r'real-estate/listing-types', listing_type_views.ListingTypePublicViewSet, basename='public-listing-type')
+public_router.register(r'real-estate/states', listing_type_views.ListingTypePublicViewSet, basename='public-property-state')
 public_router.register(r'real-estate/provinces', public_location_views.ProvincePublicViewSet, basename='public-province')
 public_router.register(r'real-estate/cities', public_location_views.CityPublicViewSet, basename='public-city')
 public_router.register(r'real-estate/regions', public_location_views.RegionPublicViewSet, basename='public-region')

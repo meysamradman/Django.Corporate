@@ -32,7 +32,7 @@ async function HeaderSlot() {
     try {
         const [logoResult, statusesResult, typesResult, provincesResult] = await Promise.allSettled([
             brandingApi.getLogo(),
-            realEstateApi.getStates({ page: 1, size: 200 }),
+            realEstateApi.getListingTypes({ page: 1, size: 200 }),
             realEstateApi.getTypes({ page: 1, size: 300 }),
             realEstateApi.getProvinces({ page: 1, size: 200, min_property_count: 1, ordering: "-property_count" }),
         ]);

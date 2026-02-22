@@ -2,7 +2,7 @@ import { z } from "zod";
 import { msg } from "@/core/messages";
 import { validateSlug } from "@/core/slug/validate";
 
-export const propertyStateFormSchema = z.object({
+export const listingTypeFormSchema = z.object({
     title: z
         .string()
         .min(1, { message: msg.realEstate().validation.stateTitleRequired })
@@ -45,14 +45,14 @@ export const propertyStateFormSchema = z.object({
         .optional(),
 });
 
-export type PropertyStateFormValues = z.input<typeof propertyStateFormSchema>;
+export type ListingTypeFormValues = z.input<typeof listingTypeFormSchema>;
 
-export const propertyStateFormDefaults: PropertyStateFormValues = {
+export const listingTypeFormDefaults: ListingTypeFormValues = {
     title: "",
     slug: "",
     short_description: "",
     usage_type: "sale",
     is_active: true,
     image_id: null,
-} as PropertyStateFormValues;
+} as ListingTypeFormValues;
 

@@ -8,15 +8,15 @@ import { realEstateApi } from "@/api/real-estate";
 import { cn } from "@/core/utils/cn";
 import { FormField } from "@/components/shared/FormField";
 import type { PropertyType } from "@/types/real_estate/type/propertyType";
-import type { PropertyState } from "@/types/real_estate/state/realEstateState";
+import type { PropertyState } from "@/types/real_estate/listing-types/realEstateListingTypes";
 import type { PropertyFormValues } from "@/components/real-estate/validations/propertySchema";
 
 const PropertyTypeSide = lazy(() =>
     import("../../../types/PropertyTypeSide").then(module => ({ default: module.PropertyTypeSide }))
 );
 
-const PropertyStateSide = lazy(() =>
-    import("../../../states/PropertyStateSide").then(module => ({ default: module.PropertyStateSide }))
+const PropertyListingTypesSide = lazy(() =>
+    import("../../../listing-types/PropertyListingTypesSide").then(module => ({ default: module.PropertyListingTypesSide }))
 );
 
 interface RealEstateTypeProps {
@@ -51,7 +51,7 @@ export function RealEstateType(props: RealEstateTypeProps) {
 
     const fetchStates = async () => {
         try {
-            const statesResponse = await realEstateApi.getStates({ page: 1, size: 100, is_active: true });
+            const statesResponse = await realEstateApi.getListingTypes({ page: 1, size: 100, is_active: true });
             setPropertyStates(statesResponse.data || []);
         } finally {
             setLoadingStates(false);
@@ -159,7 +159,7 @@ export function RealEstateType(props: RealEstateTypeProps) {
                         fetchTypes();
                     }}
                 />
-                <PropertyStateSide
+                <PropertyListingTypesSide
                     isOpen={showStateDialog}
                     onClose={() => setShowStateDialog(false)}
                     onSuccess={() => {

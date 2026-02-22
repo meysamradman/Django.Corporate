@@ -198,26 +198,26 @@ TYPE_ERRORS = {
     "type_cannot_be_own_parent": "نوع ملک نمی‌تواند والد خودش باشد.",
 }
 
-STATE_SUCCESS = {
-    "state_list_success": "لیست انواع معامله ملک با موفقیت دریافت شد.",
-    "state_created": "نوع معامله ملک با موفقیت ایجاد شد.",
-    "state_updated": "نوع معامله ملک با موفقیت به‌روزرسانی شد.",
-    "state_deleted": "نوع معامله ملک با موفقیت حذف شد.",
-    "state_retrieved": "نوع معامله ملک با موفقیت دریافت شد.",
-    "state_bulk_deleted": "انواع معامله ملک با موفقیت حذف شدند.",
+LISTING_TYPE_SUCCESS = {
+    "listing_type_list_success": "لیست انواع معامله ملک با موفقیت دریافت شد.",
+    "listing_type_created": "نوع معامله ملک با موفقیت ایجاد شد.",
+    "listing_type_updated": "نوع معامله ملک با موفقیت به‌روزرسانی شد.",
+    "listing_type_deleted": "نوع معامله ملک با موفقیت حذف شد.",
+    "listing_type_retrieved": "نوع معامله ملک با موفقیت دریافت شد.",
+    "listing_type_bulk_deleted": "انواع معامله ملک با موفقیت حذف شدند.",
 }
 
-STATE_ERRORS = {
-    "state_not_found": "نوع معامله ملک یافت نشد.",
-    "state_not_authorized": "شما اجازه دسترسی به انواع معامله ملک را ندارید.",
-    "state_create_failed": "ایجاد نوع معامله ملک ناموفق بود.",
-    "state_update_failed": "به‌روزرسانی نوع معامله ملک ناموفق بود.",
-    "state_delete_failed": "حذف نوع معامله ملک ناموفق بود.",
-    "state_has_properties": "این نوع معامله در {count} ملک استفاده شده و قابل حذف نیست.",
-    "state_ids_required": "شناسه انواع معامله ملک مورد نیاز است.",
-    "states_not_found": "انواع معامله انتخاب‌شده یافت نشدند.",
-    "state_exists": "این نوع معامله قبلاً ثبت شده است.",
-    "state_slug_exists": "این نامک قبلاً استفاده شده است.",
+LISTING_TYPE_ERRORS = {
+    "listing_type_not_found": "نوع معامله ملک یافت نشد.",
+    "listing_type_not_authorized": "شما اجازه دسترسی به انواع معامله ملک را ندارید.",
+    "listing_type_create_failed": "ایجاد نوع معامله ملک ناموفق بود.",
+    "listing_type_update_failed": "به‌روزرسانی نوع معامله ملک ناموفق بود.",
+    "listing_type_delete_failed": "حذف نوع معامله ملک ناموفق بود.",
+    "listing_type_has_properties": "این نوع معامله در {count} ملک استفاده شده و قابل حذف نیست.",
+    "listing_type_ids_required": "شناسه انواع معامله ملک مورد نیاز است.",
+    "listing_types_not_found": "انواع معامله انتخاب‌شده یافت نشدند.",
+    "listing_type_exists": "این نوع معامله قبلاً ثبت شده است.",
+    "listing_type_slug_exists": "این نامک قبلاً استفاده شده است.",
 }
 
 LABEL_SUCCESS = {

@@ -78,7 +78,7 @@ export const PERMISSION_TRANSLATIONS = {
     'real_estate.agent': 'مشاوران',
     'real_estate.agency': 'آژانس‌ها',
     'real_estate.type': 'نوع ملک',
-    'real_estate.state': 'انواع معامله ملک',
+    'real_estate.listing_type': 'انواع معامله ملک',
     'real_estate.label': 'نشانه‌های ملک',
     'real_estate.feature': 'ویژگی‌های ملک',
     'real_estate.location': 'موقعیت‌های ملک',

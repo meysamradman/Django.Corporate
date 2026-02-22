@@ -54,7 +54,7 @@ async function PropertiesPageBody({ searchParams }: PageProps) {
 
   if (!filters.state_slug && filters.state !== null) {
     const resolvedById = await realEstateApi
-      .getStates({ page: 1, size: 200 })
+      .getListingTypes({ page: 1, size: 200 })
       .then((response) => (response?.data || []).find((item) => item.id === filters.state))
       .catch(() => null);
 

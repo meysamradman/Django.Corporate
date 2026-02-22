@@ -10,7 +10,7 @@ from src.real_estate.utils.cache_admin import (
 from src.real_estate.utils.cache_public import (
     PropertyPublicCacheKeys,
     TypePublicCacheKeys,
-    StatePublicCacheKeys,
+    ListingTypePublicCacheKeys,
     TagPublicCacheKeys,
     FeaturePublicCacheKeys,
     LabelPublicCacheKeys,

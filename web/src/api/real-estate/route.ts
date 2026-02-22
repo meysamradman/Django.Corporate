@@ -122,21 +122,21 @@ export const realEstateApi = {
         return response.data;
     },
 
-    getStates: async (params?: RealEstateTaxonomyListParams): Promise<PaginatedResponse<PropertyState>> => {
+    getListingTypes: async (params?: RealEstateTaxonomyListParams): Promise<PaginatedResponse<PropertyState>> => {
         const limit = params?.size;
         const queryParams = toLimitOffsetQuery(params as (RealEstateTaxonomyListParams & Record<string, unknown>) | undefined);
 
-        const response = await fetchApi.get<PropertyState[]>(withQuery('/real-estate/states/', queryParams));
+        const response = await fetchApi.get<PropertyState[]>(withQuery('/real-estate/listing-types/', queryParams));
         return toPaginatedResponse<PropertyState>(response, limit || 50);
     },
 
-    getListingTypes: async (): Promise<PropertyStatusOption[]> => {
-        const response = await fetchApi.get<PropertyStatusOption[]>('/real-estate/states/usage-types/');
+    getListingTypeUsageOptions: async (): Promise<PropertyStatusOption[]> => {
+        const response = await fetchApi.get<PropertyStatusOption[]>('/real-estate/listing-types/usage-types/');
         return response.data;
     },
 
-    getStateBySlug: async (slug: string): Promise<PropertyState> => {
-        const response = await fetchApi.get<PropertyState>(`/real-estate/states/${encodeURIComponent(slug)}/`);
+    getListingTypeBySlug: async (slug: string): Promise<PropertyState> => {
+        const response = await fetchApi.get<PropertyState>(`/real-estate/listing-types/${encodeURIComponent(slug)}/`);
         return response.data;
     },
 

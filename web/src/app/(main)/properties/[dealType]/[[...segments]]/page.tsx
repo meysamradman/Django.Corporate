@@ -117,7 +117,7 @@ async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: Page
   }
 
   const availableStatuses = await realEstateApi
-    .getStates({ page: 1, size: 200 })
+    .getListingTypes({ page: 1, size: 200 })
     .then((response) => new Set((response?.data || []).map((item) => normalizeTaxonomySlug(item.slug || "").toLowerCase()).filter(Boolean)))
     .catch(() => new Set<string>());
 

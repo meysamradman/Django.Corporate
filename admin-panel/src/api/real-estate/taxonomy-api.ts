@@ -1,6 +1,6 @@
 import { api } from '@/core/config/api';
 import type { PropertyType } from '@/types/real_estate/type/propertyType';
-import type { PropertyState } from '@/types/real_estate/state/realEstateState';
+import type { PropertyState } from '@/types/real_estate/listing-types/realEstateListingTypes';
 import type { PropertyLabel } from '@/types/real_estate/label/realEstateLabel';
 import type { PropertyFeature } from '@/types/real_estate/feature/realEstateFeature';
 import type { PropertyTag } from '@/types/real_estate/tags/realEstateTag';
@@ -18,18 +18,18 @@ export const taxonomyApi = {
     await api.delete('/admin/property-type/' + id + '/');
   },
 
-  getStates: async (params?: { page?: number; size?: number; is_active?: boolean }) => {
-    return fetchPaginated<PropertyState>('/admin/property-state/', params);
+  getListingTypes: async (params?: { page?: number; size?: number; is_active?: boolean }) => {
+    return fetchPaginated<PropertyState>('/admin/listing-type/', params);
   },
-  createState: async (data: Partial<PropertyState>) => extractData<PropertyState>(await api.post<PropertyState>('/admin/property-state/', data)),
-  getStateById: async (id: number) => extractData<PropertyState>(await api.get<PropertyState>('/admin/property-state/' + id + '/')),
-  updateState: async (id: number, data: Partial<PropertyState>) => extractData<PropertyState>(await api.put<PropertyState>('/admin/property-state/' + id + '/', data)),
-  partialUpdateState: async (id: number, data: Partial<PropertyState>) => extractData<PropertyState>(await api.patch<PropertyState>('/admin/property-state/' + id + '/', data)),
-  deleteState: async (id: number): Promise<void> => {
-    await api.delete('/admin/property-state/' + id + '/');
+  createListingType: async (data: Partial<PropertyState>) => extractData<PropertyState>(await api.post<PropertyState>('/admin/listing-type/', data)),
+  getListingTypeById: async (id: number) => extractData<PropertyState>(await api.get<PropertyState>('/admin/listing-type/' + id + '/')),
+  updateListingType: async (id: number, data: Partial<PropertyState>) => extractData<PropertyState>(await api.put<PropertyState>('/admin/listing-type/' + id + '/', data)),
+  partialUpdateListingType: async (id: number, data: Partial<PropertyState>) => extractData<PropertyState>(await api.patch<PropertyState>('/admin/listing-type/' + id + '/', data)),
+  deleteListingType: async (id: number): Promise<void> => {
+    await api.delete('/admin/listing-type/' + id + '/');
   },
-  getStateFieldOptions: async (): Promise<{ usage_type: [string, string][] }> => {
-    const response = await api.get<{ usage_type: [string, string][] }>('/admin/property-state/field-options/');
+  getListingTypeFieldOptions: async (): Promise<{ usage_type: [string, string][] }> => {
+    const response = await api.get<{ usage_type: [string, string][] }>('/admin/listing-type/field-options/');
     return extractData<{ usage_type: [string, string][] }>(response);
   },
 

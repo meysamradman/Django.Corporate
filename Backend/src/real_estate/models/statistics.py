@@ -418,10 +418,10 @@ class PropertyTypeStatistics(models.Model):
     def __str__(self):
         return f"{self.property_type.title} - {self.date}"
 
-class PropertyStateStatistics(models.Model):
+class ListingTypeStatistics(models.Model):
     
     state = models.ForeignKey(
-        'real_estate.PropertyState',
+        'real_estate.ListingType',
         on_delete=models.CASCADE,
         related_name='daily_stats',
         db_index=True

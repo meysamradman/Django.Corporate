@@ -23,7 +23,7 @@ export const buildSitemapEntries = async (): Promise<MetadataRoute.Sitemap> => {
 
   try {
     const [statesResponse, provincesResponse] = await Promise.all([
-      realEstateApi.getStates({ page: 1, size: 200 }),
+      realEstateApi.getListingTypes({ page: 1, size: 200 }),
       realEstateApi.getProvinces({ page: 1, size: 200, min_property_count: 1 }),
     ]);
 

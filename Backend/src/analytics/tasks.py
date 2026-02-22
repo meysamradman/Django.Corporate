@@ -96,7 +96,7 @@ def _sync_module_statistics(visits):
                 if module == 'real_estate' and apps.is_installed('src.real_estate'):
                     from src.real_estate.models import (
                         Property, PropertyViewLog, PropertyStatistics, 
-                        PropertyTypeStatistics, PropertyStateStatistics, RegionalStatistics
+                        PropertyTypeStatistics, ListingTypeStatistics, RegionalStatistics
                     )
                     prop = Property.objects.filter(slug=slug).first()
                     if prop:
@@ -135,12 +135,12 @@ def _sync_module_statistics(visits):
                             property_type=prop.property_type, date=visit.date
                         ).update(views=F('views') + 1)
 
-                        PropertyStateStatistics.objects.get_or_create(
+                        ListingTypeStatistics.objects.get_or_create(
                             state=prop.state,
                             date=visit.date,
                             defaults={'views': 0}
                         )
-                        PropertyStateStatistics.objects.filter(
+                        ListingTypeStatistics.objects.filter(
                             state=prop.state, date=visit.date
                         ).update(views=F('views') + 1)
 

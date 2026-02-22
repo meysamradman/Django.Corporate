@@ -69,7 +69,7 @@ export function getResourceIcon(resourceKey: string): ReactElement {
     'real_estate.agent': <UserCheck className="h-4 w-4 text-blue-1" />,
     'real_estate.agency': <Store className="h-4 w-4 text-purple-1" />,
     'real_estate.type': <Layers className="h-4 w-4 text-indigo-1" />,
-    'real_estate.state': <MapPin className="h-4 w-4 text-green-1" />,
+    'real_estate.listing_type': <MapPin className="h-4 w-4 text-green-1" />,
     'real_estate.label': <Tag className="h-4 w-4 text-pink-1" />,
     'real_estate.feature': <Star className="h-4 w-4 text-yellow-1" />,
     'real_estate.tag': <Tag className="h-4 w-4 text-teal-1" />,

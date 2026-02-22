@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import Slider from "@/components/home/Slider";
-import State from "@/components/home/State";
+import ListingTypes from "@/components/home/ListingTypes";
 import RealFeachure from "@/components/home/RealFeachure";
 import Types from "@/components/home/Types";
 import PropertyHeroSearch from "@/components/real-estate/search/PropertyHeroSearch";
@@ -25,10 +25,10 @@ export default async function HomePage() {
     Array<{ value: string; label: string }>
   ] = await Promise.all([
     brandingApi.getSliders().then((r) => (Array.isArray(r) ? r : [])).catch(() => []),
-    realEstateApi.getStates({ size: 3 }).then((r) => (Array.isArray(r?.data) ? r.data.slice(0, 3) : [])).catch(() => []),
+    realEstateApi.getListingTypes({ size: 3 }).then((r) => (Array.isArray(r?.data) ? r.data.slice(0, 3) : [])).catch(() => []),
     realEstateApi.getFeaturedProperties(4).then((r) => (Array.isArray(r) ? r : [])).catch(() => []),
     realEstateApi.getTypes({ size: 4 }).then((r) => (Array.isArray(r?.data) ? r.data.slice(0, 4) : [])).catch(() => []),
-    realEstateApi.getStates({ page: 1, size: 100 }).then((r) => (Array.isArray(r?.data) ? r.data : [])).catch(() => []),
+    realEstateApi.getListingTypes({ page: 1, size: 100 }).then((r) => (Array.isArray(r?.data) ? r.data : [])).catch(() => []),
     realEstateApi.getTypes({ page: 1, size: 100 }).then((r) => (Array.isArray(r?.data) ? r.data : [])).catch(() => []),
     realEstateApi.getPropertyStatuses().catch(() => []),
   ]);
@@ -74,7 +74,7 @@ export default async function HomePage() {
               برای شروع، نوع معامله را انتخاب کنید تا سریع‌تر به آگهی‌های مرتبط دسترسی داشته باشید.
             </p>
           </div>
-          <State states={states} />
+          <ListingTypes states={states} />
         </div>
       </section>
 

@@ -1,16 +1,16 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from django.utils.text import slugify
-from src.real_estate.models.state import PropertyState
-from src.real_estate.messages.messages import STATE_ERRORS
+from src.real_estate.models.listing_type import ListingType
+from src.real_estate.messages.messages import LISTING_TYPE_ERRORS
 from src.media.serializers import MediaAdminSerializer
 
-class PropertyStateAdminListSerializer(serializers.ModelSerializer):
+class ListingTypeAdminListSerializer(serializers.ModelSerializer):
     property_count = serializers.IntegerField(read_only=True)
     image_url = serializers.SerializerMethodField()
     
     class Meta:
-        model = PropertyState
+        model = ListingType
         fields = [
             'id', 'public_id', 'title', 'slug', 'short_description', 'usage_type',
             'is_active', 'property_count', 'image_url', 'created_at', 'updated_at'
@@ -25,19 +25,19 @@ class PropertyStateAdminListSerializer(serializers.ModelSerializer):
             pass
         return None
 
-class PropertyStateAdminDetailSerializer(serializers.ModelSerializer):
+class ListingTypeAdminDetailSerializer(serializers.ModelSerializer):
     property_count = serializers.IntegerField(read_only=True)
     image = MediaAdminSerializer(read_only=True)
     
     class Meta:
-        model = PropertyState
+        model = ListingType
         fields = [
             'id', 'public_id', 'title', 'slug', 'short_description', 'usage_type',
             'is_active', 'property_count', 'image', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
 
-class PropertyStateAdminCreateSerializer(serializers.ModelSerializer):
+class ListingTypeAdminCreateSerializer(serializers.ModelSerializer):
     image_id = serializers.IntegerField(
         required=False,
         allow_null=True,
@@ -46,7 +46,7 @@ class PropertyStateAdminCreateSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = PropertyState
+        model = ListingType
         fields = ['title', 'slug', 'short_description', 'usage_type', 'is_active', 'image_id']
 
     def __init__(self, *args, **kwargs):
@@ -61,13 +61,13 @@ class PropertyStateAdminCreateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_title(self, value):
-        if PropertyState.objects.filter(title=value).exists():
-            raise serializers.ValidationError(STATE_ERRORS["state_exists"])
+        if ListingType.objects.filter(title=value).exists():
+            raise serializers.ValidationError(LISTING_TYPE_ERRORS["listing_type_exists"])
         return value
     
     def validate_slug(self, value):
-        if value and PropertyState.objects.filter(slug=value).exists():
-            raise serializers.ValidationError(STATE_ERRORS["state_slug_exists"])
+        if value and ListingType.objects.filter(slug=value).exists():
+            raise serializers.ValidationError(LISTING_TYPE_ERRORS["listing_type_slug_exists"])
         return value
     
     def validate(self, data):
@@ -75,7 +75,7 @@ class PropertyStateAdminCreateSerializer(serializers.ModelSerializer):
             data['slug'] = slugify(data['title'], allow_unicode=True)
         return data
 
-class PropertyStateAdminUpdateSerializer(serializers.ModelSerializer):
+class ListingTypeAdminUpdateSerializer(serializers.ModelSerializer):
     image_id = serializers.IntegerField(
         required=False,
         allow_null=True,
@@ -84,7 +84,7 @@ class PropertyStateAdminUpdateSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = PropertyState
+        model = ListingType
         fields = ['title', 'slug', 'short_description', 'usage_type', 'is_active', 'image_id']
 
     def __init__(self, *args, **kwargs):
@@ -100,17 +100,17 @@ class PropertyStateAdminUpdateSerializer(serializers.ModelSerializer):
     
     def validate_title(self, value):
         if self.instance and hasattr(self.instance, 'id'):
-            if PropertyState.objects.exclude(id=self.instance.id).filter(title=value).exists():
-                raise serializers.ValidationError(STATE_ERRORS["state_exists"])
+            if ListingType.objects.exclude(id=self.instance.id).filter(title=value).exists():
+                raise serializers.ValidationError(LISTING_TYPE_ERRORS["listing_type_exists"])
         else:
-            if PropertyState.objects.filter(title=value).exists():
-                raise serializers.ValidationError(STATE_ERRORS["state_exists"])
+            if ListingType.objects.filter(title=value).exists():
+                raise serializers.ValidationError(LISTING_TYPE_ERRORS["listing_type_exists"])
         return value
     
     def validate_slug(self, value):
         if value and self.instance:
-            if PropertyState.objects.exclude(id=self.instance.id).filter(slug=value).exists():
-                raise serializers.ValidationError(STATE_ERRORS["state_slug_exists"])
+            if ListingType.objects.exclude(id=self.instance.id).filter(slug=value).exists():
+                raise serializers.ValidationError(LISTING_TYPE_ERRORS["listing_type_slug_exists"])
         return value
     
     def validate(self, data):
@@ -118,6 +118,6 @@ class PropertyStateAdminUpdateSerializer(serializers.ModelSerializer):
             data['slug'] = slugify(data['title'], allow_unicode=True)
         return data
 
-class PropertyStateAdminSerializer(PropertyStateAdminDetailSerializer):
+class ListingTypeAdminSerializer(ListingTypeAdminDetailSerializer):
     pass
 

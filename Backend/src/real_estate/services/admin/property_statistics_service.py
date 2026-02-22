@@ -5,7 +5,7 @@ from datetime import timedelta
 
 from src.real_estate.models.property import Property
 from src.real_estate.models.type import PropertyType
-from src.real_estate.models.state import PropertyState
+from src.real_estate.models.listing_type import ListingType
 from src.real_estate.models.label import PropertyLabel
 from src.real_estate.models.feature import PropertyFeature
 from src.real_estate.models.tag import PropertyTag
@@ -76,10 +76,10 @@ class PropertyStatisticsService:
     
     @staticmethod
     def _get_states_stats():
-        states_count = PropertyState.objects.count()
-        states_with_properties = PropertyState.objects.filter(properties__isnull=False).distinct().count()
+        states_count = ListingType.objects.count()
+        states_with_properties = ListingType.objects.filter(properties__isnull=False).distinct().count()
         
-        usage_breakdown = list(PropertyState.objects.values('usage_type').annotate(
+        usage_breakdown = list(ListingType.objects.values('usage_type').annotate(
             count=Count('id'),
             with_properties=Count('properties', distinct=True)
         ))

@@ -68,7 +68,7 @@ class TypePublicCacheKeys:
     def popular(limit):
         return f"public:real_estate:type:popular:{limit}"
 
-class StatePublicCacheKeys:
+class ListingTypePublicCacheKeys:
 
     @staticmethod
     def list(filters=None, search=None, ordering=None):

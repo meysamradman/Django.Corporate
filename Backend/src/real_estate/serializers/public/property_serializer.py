@@ -3,7 +3,7 @@ from rest_framework import serializers
 from src.real_estate.models.feature import PropertyFeature
 from src.real_estate.models.label import PropertyLabel
 from src.real_estate.models.property import Property
-from src.real_estate.models.state import PropertyState
+from src.real_estate.models.listing_type import ListingType
 from src.real_estate.models.tag import PropertyTag
 from src.real_estate.models.type import PropertyType
 from src.real_estate.models.agent import PropertyAgent
@@ -17,11 +17,11 @@ class PropertyTypeNestedPublicSerializer(serializers.ModelSerializer):
         fields = ['id', 'public_id', 'name', 'slug']
         read_only_fields = fields
 
-class PropertyStateNestedPublicSerializer(serializers.ModelSerializer):
+class ListingTypeNestedPublicSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='title', read_only=True)
 
     class Meta:
-        model = PropertyState
+        model = ListingType
         fields = ['id', 'public_id', 'name', 'slug', 'usage_type']
         read_only_fields = fields
 
@@ -98,7 +98,7 @@ class PropertyAgentNestedPublicSerializer(serializers.ModelSerializer):
 
 class PropertyPublicListSerializer(serializers.ModelSerializer):
     property_type = PropertyTypeNestedPublicSerializer(read_only=True)
-    state = PropertyStateNestedPublicSerializer(read_only=True)
+    state = ListingTypeNestedPublicSerializer(read_only=True)
     agent = PropertyAgentNestedPublicSerializer(read_only=True)
     labels = PropertyLabelNestedPublicSerializer(many=True, read_only=True)
     tags = PropertyTagNestedPublicSerializer(many=True, read_only=True)

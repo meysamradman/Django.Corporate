@@ -9,7 +9,7 @@ const PortfolioCategorySide = lazy(() => import('@/components/portfolios/categor
 const PortfolioOptionSide = lazy(() => import('@/components/portfolios/options/PortfolioOptionSide').then(module => ({ default: module.PortfolioOptionSide })));
 
 const PropertyTypeSide = lazy(() => import('@/components/real-estate/types/PropertyTypeSide').then(module => ({ default: module.PropertyTypeSide })));
-const PropertyStateSide = lazy(() => import('@/components/real-estate/states/PropertyStateSide').then(module => ({ default: module.PropertyStateSide })));
+const PropertyListingTypesSide = lazy(() => import('@/components/real-estate/listing-types/PropertyListingTypesSide').then(module => ({ default: module.PropertyListingTypesSide })));
 const PropertyLabelSide = lazy(() => import('@/components/real-estate/labels/PropertyLabelSide').then(module => ({ default: module.PropertyLabelSide })));
 const PropertyFeatureSide = lazy(() => import('@/components/real-estate/features/PropertyFeatureSide').then(module => ({ default: module.PropertyFeatureSide })));
 const PropertyTagSide = lazy(() => import('@/components/real-estate/tags/PropertyTagSide').then(module => ({ default: module.PropertyTagSide })));
@@ -37,7 +37,7 @@ const DRAWERS = {
     [DRAWER_IDS.PORTFOLIO_CATEGORY_FORM]: PortfolioCategorySide,
     [DRAWER_IDS.PORTFOLIO_OPTION_FORM]: PortfolioOptionSide,
     [DRAWER_IDS.REAL_ESTATE_TYPE_FORM]: PropertyTypeSide,
-    [DRAWER_IDS.REAL_ESTATE_STATE_FORM]: PropertyStateSide,
+    [DRAWER_IDS.REAL_ESTATE_LISTING_TYPE_FORM]: PropertyListingTypesSide,
     [DRAWER_IDS.REAL_ESTATE_LABEL_FORM]: PropertyLabelSide,
     [DRAWER_IDS.REAL_ESTATE_FEATURE_FORM]: PropertyFeatureSide,
     [DRAWER_IDS.REAL_ESTATE_TAG_FORM]: PropertyTagSide,

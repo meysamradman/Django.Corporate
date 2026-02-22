@@ -6,7 +6,7 @@ import { realEstateApi } from "@/api/real-estate";
 import { RealEstateDetailsDimensions } from "./details/RealEstateDetailsDimensions";
 import { RealEstateDetailsFacilities } from "./details/RealEstateDetailsFacilities";
 import { RealEstateDetailsFinancial } from "./details/RealEstateDetailsFinancial";
-import type { PropertyState } from "@/types/real_estate/state/realEstateState";
+import type { PropertyState } from "@/types/real_estate/listing-types/realEstateListingTypes";
 
 interface DetailsTabProps {
     formData: any;
@@ -26,7 +26,7 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
                 setIsLoadingOptions(true);
                 const [options, statesResponse] = await Promise.all([
                     realEstateApi.getFieldOptions(),
-                    realEstateApi.getStates({ page: 1, size: 100, is_active: true }),
+                    realEstateApi.getListingTypes({ page: 1, size: 100, is_active: true }),
                 ]);
                 setFieldOptions(options);
                 setPropertyStates(statesResponse.data || []);

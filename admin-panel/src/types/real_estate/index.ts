@@ -1,7 +1,7 @@
 export type { Property, PropertyMediaItem, PropertyUpdateData } from "./realEstate";
 export type { PropertyListParams, PropertyFilters, PropertyExportParams } from "./realEstateListParams";
 export type { PropertyType } from "./type/propertyType";
-export type { PropertyState } from "./state/realEstateState";
+export type { PropertyState } from "./listing-types/realEstateListingTypes";
 export type { PropertyLabel } from "./label/realEstateLabel";
 export type { PropertyFeature } from "./feature/realEstateFeature";
 export type { PropertyTag } from "./tags/realEstateTag";

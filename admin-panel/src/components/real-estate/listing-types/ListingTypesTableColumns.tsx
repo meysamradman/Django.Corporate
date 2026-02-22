@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { PropertyState } from "@/types/real_estate/state/realEstateState";
+import type { PropertyState } from "@/types/real_estate/listing-types/realEstateListingTypes";
 import { Badge } from "@/components/elements/Badge";
 import { Switch } from "@/components/elements/Switch";
 import { formatDate } from "@/core/utils/commonFormat";
@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/elements/Checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/elements/Avatar";
 import { mediaService } from "@/components/media/services";
 
-export const usePropertyStateColumns = (
+export const useListingTypeColumns = (
   actions: DataTableRowAction<PropertyState>[] = [],
   onToggleActive?: (state: PropertyState) => void,
   onEditState?: (id: number) => void
@@ -60,7 +60,7 @@ export const usePropertyStateColumns = (
           return state.title.charAt(0).toUpperCase();
         };
 
-        const canEdit = hasPermission("real_estate.state.update");
+        const canEdit = hasPermission("real_estate.listing_type.update");
         const isEditable = canEdit && !!onEditState;
 
         return (
@@ -155,7 +155,7 @@ export const usePropertyStateColumns = (
       cell: ({ row }) => {
         const state = row.original;
         const isActive = state.is_active;
-        const canUpdate = hasPermission("real_estate.state.update");
+        const canUpdate = hasPermission("real_estate.listing_type.update");
 
         if (onToggleActive) {
           return (

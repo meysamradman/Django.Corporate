@@ -3,7 +3,7 @@ import type { OnChangeFn, SortingState } from '@tanstack/react-table';
 import type { TablePaginationState } from '@/types/shared/pagination';
 import type { PropertyFilters } from '@/types/real_estate/realEstateListParams';
 import type { PropertyType } from '@/types/real_estate/type/propertyType';
-import type { PropertyState } from '@/types/real_estate/state/realEstateState';
+import type { PropertyState } from '@/types/real_estate/listing-types/realEstateListingTypes';
 import type { CategoryItem } from '@/types/shared/table';
 import { initSortingFromURL } from '@/components/tables/utils/tableSorting';
 import { useTableFilters } from '@/components/tables/utils/useTableFilters';
@@ -164,7 +164,7 @@ export function usePropertyListTableState({ navigate }: UsePropertyListTableStat
       try {
         const [typesResponse, statesResponse, provincesResponse, citiesResponse, agentsResponse] = await Promise.all([
           realEstateApi.getTypes({ page: 1, size: 1000, is_active: true }),
-          realEstateApi.getStates({ page: 1, size: 1000, is_active: true }),
+          realEstateApi.getListingTypes({ page: 1, size: 1000, is_active: true }),
           realEstateApi.getProvinces(),
           realEstateApi.getCitiesWithProperties(),
           realEstateApi.getAgents({ page: 1, size: 1000, is_active: true }),

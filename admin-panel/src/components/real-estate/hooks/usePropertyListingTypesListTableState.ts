@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { useTableFilters } from "@/components/tables/utils/useTableFilters";
 import { initSortingFromURL } from "@/components/tables/utils/tableSorting";
 import { realEstateApi } from "@/api/real-estate";
-import { usePropertyStateFilterOptions, getPropertyStateFilterConfig } from "@/components/real-estate/states/StateTableFilters";
+import { useListingTypeFilterOptions, getListingTypeFilterConfig } from "@/components/real-estate/listing-types/ListingTypesTableFilters";
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import type { TablePaginationState } from "@/types/shared/pagination";
 
-export function usePropertyStateListTableState() {
-  const { booleanFilterOptions } = usePropertyStateFilterOptions();
+export function useListingTypeListTableState() {
+  const { booleanFilterOptions } = useListingTypeFilterOptions();
   const [usageTypeOptions, setUsageTypeOptions] = useState<{ label: string; value: string }[]>([]);
   const [_fieldOptions, setFieldOptions] = useState<any>(null);
 
@@ -51,7 +51,7 @@ export function usePropertyStateListTableState() {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const options = await realEstateApi.getStateFieldOptions();
+        const options = await realEstateApi.getListingTypeFieldOptions();
         setFieldOptions(options);
         setUsageTypeOptions(options.usage_type.map(([value, label]: [string, string]) => ({ label, value })));
       } catch {
@@ -62,7 +62,7 @@ export function usePropertyStateListTableState() {
 
   const { handleFilterChange } = useTableFilters(setClientFilters, setSearchValue, setPagination);
 
-  const stateFilterConfig = getPropertyStateFilterConfig(booleanFilterOptions, usageTypeOptions);
+  const listingTypeFilterConfig = getListingTypeFilterConfig(booleanFilterOptions, usageTypeOptions);
 
   const handlePaginationChange: OnChangeFn<TablePaginationState> = (updaterOrValue) => {
     const newPagination = typeof updaterOrValue === "function" ? updaterOrValue(pagination) : updaterOrValue;
@@ -99,7 +99,7 @@ export function usePropertyStateListTableState() {
     searchValue,
     clientFilters,
     handleFilterChange,
-    stateFilterConfig,
+    listingTypeFilterConfig,
     handlePaginationChange,
     handleSortingChange,
   };

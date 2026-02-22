@@ -5,7 +5,7 @@ from django.core.cache import cache
 
 from .models.property import Property
 from .models.type import PropertyType
-from .models.state import PropertyState
+from .models.listing_type import ListingType
 from .models.tag import PropertyTag
 from .models.feature import PropertyFeature
 from .models.label import PropertyLabel
@@ -35,7 +35,7 @@ def invalidate_type_cache_on_save(sender, **kwargs):
 def invalidate_type_cache_on_delete(sender, **kwargs):
     TypeCacheManager.invalidate_all()
 
-@receiver([post_save, post_delete], sender=PropertyState)
+@receiver([post_save, post_delete], sender=ListingType)
 @receiver([post_save, post_delete], sender=PropertyTag)
 @receiver([post_save, post_delete], sender=PropertyFeature)
 @receiver([post_save, post_delete], sender=PropertyLabel)
@@ -43,7 +43,7 @@ def invalidate_type_cache_on_delete(sender, **kwargs):
 @receiver([post_save, post_delete], sender=RealEstateAgency)
 def invalidate_public_real_estate_taxonomy_cache(sender, **kwargs):
     model_patterns = {
-        PropertyState: "public:real_estate:state:*",
+        ListingType: "public:real_estate:state:*",
         PropertyTag: "public:real_estate:tag:*",
         PropertyFeature: "public:real_estate:feature:*",
         PropertyLabel: "public:real_estate:label:*",

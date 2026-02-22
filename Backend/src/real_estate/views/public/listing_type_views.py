@@ -4,19 +4,19 @@ from rest_framework.permissions import AllowAny
 
 from src.core.pagination import StandardLimitPagination
 from src.core.responses.response import APIResponse
-from src.real_estate.messages.messages import STATE_ERRORS, STATE_SUCCESS
+from src.real_estate.messages.messages import LISTING_TYPE_ERRORS, LISTING_TYPE_SUCCESS
 from src.real_estate.models.constants import get_listing_type_label
-from src.real_estate.models.state import PropertyState
-from src.real_estate.services.public.state_services import PropertyStatePublicService
-from src.real_estate.serializers.public.state_serializer import (
-    PropertyStatePublicListSerializer,
-    PropertyStatePublicDetailSerializer,
+from src.real_estate.models.listing_type import ListingType
+from src.real_estate.services.public.listing_type_services import ListingTypePublicService
+from src.real_estate.serializers.public.listing_type_serializer import (
+    ListingTypePublicListSerializer,
+    ListingTypePublicDetailSerializer,
 )
 
-class PropertyStatePublicViewSet(viewsets.ReadOnlyModelViewSet):
+class ListingTypePublicViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     pagination_class = StandardLimitPagination
-    serializer_class = PropertyStatePublicListSerializer
+    serializer_class = ListingTypePublicListSerializer
     lookup_field = 'slug'
 
     def get_queryset(self):
@@ -29,7 +29,7 @@ class PropertyStatePublicViewSet(viewsets.ReadOnlyModelViewSet):
         search = self.request.query_params.get('search')
         ordering = self.request.query_params.get('ordering')
 
-        return PropertyStatePublicService.get_state_queryset(
+        return ListingTypePublicService.get_listing_type_queryset(
             filters=filters,
             search=search,
             ordering=ordering,
@@ -37,8 +37,8 @@ class PropertyStatePublicViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
-            return PropertyStatePublicDetailSerializer
-        return PropertyStatePublicListSerializer
+            return ListingTypePublicDetailSerializer
+        return ListingTypePublicListSerializer
 
     def list(self, request, *args, **kwargs):
         filters = {
@@ -49,69 +49,69 @@ class PropertyStatePublicViewSet(viewsets.ReadOnlyModelViewSet):
         search = request.query_params.get('search')
         ordering = request.query_params.get('ordering')
 
-        data = PropertyStatePublicService.get_state_list_data(filters=filters, search=search, ordering=ordering)
+        data = ListingTypePublicService.get_listing_type_list_data(filters=filters, search=search, ordering=ordering)
         page = self.paginate_queryset(data)
         if page is not None:
             return self.get_paginated_response(page)
 
         return APIResponse.success(
-            message=STATE_SUCCESS['state_list_success'],
+            message=LISTING_TYPE_SUCCESS['listing_type_list_success'],
             data=data,
             status_code=status.HTTP_200_OK,
         )
 
     def retrieve(self, request, slug=None):
-        state_data = PropertyStatePublicService.get_state_detail_by_slug_data(slug)
+        listing_type_data = ListingTypePublicService.get_listing_type_detail_by_slug_data(slug)
 
-        if not state_data:
+        if not listing_type_data:
             return APIResponse.error(
-                message=STATE_ERRORS['state_not_found'],
+                message=LISTING_TYPE_ERRORS['listing_type_not_found'],
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
         return APIResponse.success(
-            message=STATE_SUCCESS['state_retrieved'],
-            data=state_data,
+            message=LISTING_TYPE_SUCCESS['listing_type_retrieved'],
+            data=listing_type_data,
             status_code=status.HTTP_200_OK,
         )
 
-    @action(detail=False, methods=['get'], url_path='id/(?P<state_id>[^/.]+)')
-    def get_by_id(self, request, state_id=None):
-        state_data = PropertyStatePublicService.get_state_detail_by_id_data(state_id)
-        if not state_data:
+    @action(detail=False, methods=['get'], url_path='id/(?P<listing_type_id>[^/.]+)')
+    def get_by_id(self, request, listing_type_id=None):
+        listing_type_data = ListingTypePublicService.get_listing_type_detail_by_id_data(listing_type_id)
+        if not listing_type_data:
             return APIResponse.error(
-                message=STATE_ERRORS['state_not_found'],
+                message=LISTING_TYPE_ERRORS['listing_type_not_found'],
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
         return APIResponse.success(
-            message=STATE_SUCCESS['state_retrieved'],
-            data=state_data,
+            message=LISTING_TYPE_SUCCESS['listing_type_retrieved'],
+            data=listing_type_data,
             status_code=status.HTTP_200_OK,
         )
 
     @action(detail=False, methods=['get'], url_path='p/(?P<public_id>[^/.]+)')
     def get_by_public_id(self, request, public_id=None):
-        state_data = PropertyStatePublicService.get_state_detail_by_public_id_data(public_id)
-        if not state_data:
+        listing_type_data = ListingTypePublicService.get_listing_type_detail_by_public_id_data(public_id)
+        if not listing_type_data:
             return APIResponse.error(
-                message=STATE_ERRORS['state_not_found'],
+                message=LISTING_TYPE_ERRORS['listing_type_not_found'],
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
         return APIResponse.success(
-            message=STATE_SUCCESS['state_retrieved'],
-            data=state_data,
+            message=LISTING_TYPE_SUCCESS['listing_type_retrieved'],
+            data=listing_type_data,
             status_code=status.HTTP_200_OK,
         )
 
     @action(detail=False, methods=['get'], url_path='featured')
     def featured(self, request):
         limit = self._parse_positive_int(request.query_params.get('limit'), default=3, max_value=24)
-        data = PropertyStatePublicService.get_featured_states_data(limit=limit)
+        data = ListingTypePublicService.get_featured_listing_types_data(limit=limit)
 
         return APIResponse.success(
-            message=STATE_SUCCESS['state_list_success'],
+            message=LISTING_TYPE_SUCCESS['listing_type_list_success'],
             data=data,
             status_code=status.HTTP_200_OK,
         )
@@ -119,7 +119,7 @@ class PropertyStatePublicViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=['get'], url_path='usage-types')
     def usage_types(self, request):
         usage_types = list(
-            PropertyState.objects.filter(is_active=True)
+            ListingType.objects.filter(is_active=True)
             .values_list('usage_type', flat=True)
             .distinct()
         )
@@ -134,7 +134,7 @@ class PropertyStatePublicViewSet(viewsets.ReadOnlyModelViewSet):
         ]
 
         return APIResponse.success(
-            message=STATE_SUCCESS['state_list_success'],
+            message=LISTING_TYPE_SUCCESS['listing_type_list_success'],
             data=data,
             status_code=status.HTTP_200_OK,
         )

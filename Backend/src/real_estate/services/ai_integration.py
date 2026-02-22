@@ -2,7 +2,7 @@ from typing import Dict, Any
 from django.db import transaction
 from django.utils.text import slugify
 
-from src.real_estate.models import Property, PropertyType, PropertyState
+from src.real_estate.models import Property, PropertyType, ListingType
 from src.core.models import Province, City
 from src.real_estate.utils.cache_admin import PropertyCacheManager
 from src.real_estate.messages.messages import PROPERTY_ERRORS
@@ -31,9 +31,9 @@ def save_ai_content_to_real_estate(
             
             state_id = destination_data.get('state_id')
             if state_id:
-                state = PropertyState.objects.filter(id=state_id).first()
+                state = ListingType.objects.filter(id=state_id).first()
             else:
-                state = PropertyState.objects.filter(is_active=True).first()
+                state = ListingType.objects.filter(is_active=True).first()
 
             province_id = destination_data.get('province_id')
             city_id = destination_data.get('city_id')

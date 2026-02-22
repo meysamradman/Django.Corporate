@@ -342,7 +342,7 @@ class PropertyTypeQuerySet(models.QuerySet):
         
         return self.only('id', 'title', 'slug', 'depth', 'path', 'public_id', 'display_order')
 
-class PropertyStateQuerySet(models.QuerySet):
+class ListingTypeQuerySet(models.QuerySet):
     
     def active(self):
         return self.filter(is_active=True)

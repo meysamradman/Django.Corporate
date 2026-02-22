@@ -71,7 +71,7 @@ import PropertiesCreatePage from './pages/real-estate/properties/create/page';
 import PropertiesEditPage from './pages/real-estate/properties/[id]/edit/page';
 import PropertiesViewPage from './pages/real-estate/properties/[id]/view/page';
 import PropertyTypesPage from './pages/real-estate/types/page';
-import PropertyStatesPage from './pages/real-estate/states/page';
+import PropertyListingTypesPage from './pages/real-estate/listing-types/page';
 import PropertyLabelsPage from './pages/real-estate/labels/page';
 import PropertyFeaturesPage from './pages/real-estate/features/page';
 import PropertyTagsPage from './pages/real-estate/tags/page';
@@ -216,7 +216,7 @@ function App() {
                         <Route path=":id/view" element={<PropertiesViewPage />} />
                       </Route>
                       <Route path="types" element={<PropertyTypesPage />} />
-                      <Route path="states" element={<PropertyStatesPage />} />
+                      <Route path="listing-types" element={<PropertyListingTypesPage />} />
                       <Route path="labels" element={<PropertyLabelsPage />} />
                       <Route path="features" element={<PropertyFeaturesPage />} />
                       <Route path="tags" element={<PropertyTagsPage />} />

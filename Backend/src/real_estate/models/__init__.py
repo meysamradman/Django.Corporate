@@ -1,7 +1,7 @@
 from src.core.models import Province, City
 from .location import CityRegion
 from .type import PropertyType
-from .state import PropertyState
+from .listing_type import ListingType
 from .label import PropertyLabel
 from .feature import PropertyFeature
 from .tag import PropertyTag
@@ -21,7 +21,7 @@ __all__ = [
     'City',
     'CityRegion',
     'PropertyType',
-    'PropertyState',
+    'ListingType',
     'PropertyLabel',
     'PropertyFeature',
     'PropertyTag',

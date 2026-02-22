@@ -1,6 +1,6 @@
 import type { FilterConfig } from "@/types/shared/table";
 
-export const usePropertyStateFilterOptions = () => {
+export const useListingTypeFilterOptions = () => {
   const booleanFilterOptions = [
     { label: "بله", value: true },
     { label: "خیر", value: false },
@@ -11,7 +11,7 @@ export const usePropertyStateFilterOptions = () => {
   };
 };
 
-export const getPropertyStateFilterConfig = (
+export const getListingTypeFilterConfig = (
   booleanFilterOptions: { label: string; value: boolean }[],
   usageTypeOptions: { label: string; value: string }[] = []
 ): FilterConfig[] => [

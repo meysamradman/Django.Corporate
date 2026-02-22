@@ -2,19 +2,19 @@ import React from "react";
 import { realEstateApi } from "@/api/real-estate";
 import { TaxonomyDrawer } from "@/components/templates/TaxonomyDrawer";
 import { useRealEstateTaxonomyForm } from "@/components/real-estate/hooks/useRealEstateTaxonomyForm";
-import { propertyStateFormSchema, propertyStateFormDefaults, type PropertyStateFormValues } from "@/components/real-estate/validations/stateSchema";
+import { listingTypeFormSchema, listingTypeFormDefaults, type ListingTypeFormValues } from "@/components/real-estate/validations/listingTypesSchema";
 import { FormField, FormFieldInput, FormFieldTextarea, FormFieldSwitch } from "@/components/shared/FormField";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { ImageSelector } from "@/components/media/selectors/ImageSelector";
 
-interface PropertyStateSideProps {
+interface PropertyListingTypesSideProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess?: () => void;
     editId?: number | null;
 }
 
-export const PropertyStateSide: React.FC<PropertyStateSideProps> = ({
+export const PropertyListingTypesSide: React.FC<PropertyListingTypesSideProps> = ({
     isOpen,
     onClose,
     onSuccess,
@@ -30,17 +30,17 @@ export const PropertyStateSide: React.FC<PropertyStateSideProps> = ({
         isLoading,
         isPending,
         isSubmitting,
-    } = useRealEstateTaxonomyForm<PropertyStateFormValues>({
+    } = useRealEstateTaxonomyForm<ListingTypeFormValues>({
         id: editId?.toString(),
         isEditMode,
-        schema: propertyStateFormSchema,
-        defaultValues: propertyStateFormDefaults,
-        fetchQueryKey: isEditMode ? ["property-state", editId] : undefined,
-        fetchQueryFn: isEditMode ? () => realEstateApi.getStateById(editId!) : undefined,
-        createMutationFn: (data) => realEstateApi.createState(data),
-        updateMutationFn: (id, data) => realEstateApi.updateState(id, data),
-        invalidateQueryKeys: [["property-states"]],
-        onSuccessRedirect: "/real-estate/states",
+        schema: listingTypeFormSchema,
+        defaultValues: listingTypeFormDefaults,
+        fetchQueryKey: isEditMode ? ["listing-type", editId] : undefined,
+        fetchQueryFn: isEditMode ? () => realEstateApi.getListingTypeById(editId!) : undefined,
+        createMutationFn: (data) => realEstateApi.createListingType(data),
+        updateMutationFn: (id, data) => realEstateApi.updateListingType(id, data),
+        invalidateQueryKeys: [["listing-types"]],
+        onSuccessRedirect: "/real-estate/listing-types",
         onSuccess: () => {
             if (onSuccess) onSuccess();
             onClose();
@@ -59,7 +59,7 @@ export const PropertyStateSide: React.FC<PropertyStateSideProps> = ({
             onSubmit={handleSubmit}
             isPending={isPending}
             isSubmitting={isSubmitting}
-            formId="property-state-drawer-form"
+            formId="listing-type-drawer-form"
             submitButtonText={isEditMode ? "بروزرسانی" : "ایجاد"}
         >
             <div className="space-y-6">
