@@ -169,6 +169,9 @@ export function usePortfolioForm({ id, isEditMode }: UsePortfolioFormProps) {
                     og_image_id: data.og_image?.id || undefined,
                     canonical_url: data.canonical_url || undefined,
                     robots_meta: data.robots_meta || undefined,
+                    categories: categoryIds,
+                    tags: tagIds,
+                    options: optionIds,
                     extra_attributes: data.extra_attributes || {},
                     ...segmentedMediaIds,
                     ...segmentedCovers,
@@ -198,9 +201,9 @@ export function usePortfolioForm({ id, isEditMode }: UsePortfolioFormProps) {
                     og_image: data.og_image?.id || undefined,
                     canonical_url: data.canonical_url || undefined,
                     robots_meta: data.robots_meta || undefined,
-                    categories_ids: categoryIds,
-                    tags_ids: tagIds,
-                    options_ids: optionIds,
+                    categories: categoryIds,
+                    tags: tagIds,
+                    options: optionIds,
                     extra_attributes: data.extra_attributes || {},
                 };
 

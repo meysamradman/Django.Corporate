@@ -152,8 +152,8 @@ export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
                     og_image_id: data.og_image?.id || undefined,
                     canonical_url: data.canonical_url || undefined,
                     robots_meta: data.robots_meta || undefined,
-                    categories_ids: categoryIds,
-                    tags_ids: tagIds,
+                    categories: categoryIds,
+                    tags: tagIds,
                     media_ids: allMediaIds.length > 0 ? allMediaIds : existingMediaIds,
                     main_image_id: mainImageId,
                     media_covers: Object.keys(mediaCovers).length > 0 ? mediaCovers : undefined,
@@ -182,8 +182,8 @@ export function useBlogForm({ id, isEditMode }: UseBlogFormProps) {
                     og_image: data.og_image?.id || undefined,
                     canonical_url: data.canonical_url || undefined,
                     robots_meta: data.robots_meta || undefined,
-                    categories_ids: categoryIds,
-                    tags_ids: tagIds,
+                    categories: categoryIds,
+                    tags: tagIds,
                 };
 
                 if (allMediaIds.length > 0) {

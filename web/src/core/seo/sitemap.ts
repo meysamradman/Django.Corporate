@@ -22,9 +22,11 @@ export const buildSitemapEntries = async (): Promise<MetadataRoute.Sitemap> => {
   let propertyPaths: string[] = [];
 
   try {
-    const [statesResponse, provincesResponse] = await Promise.all([
+    const [statesResponse, provincesResponse, typesResponse, tagsResponse] = await Promise.all([
       realEstateApi.getListingTypes({ page: 1, size: 200 }),
       realEstateApi.getProvinces({ page: 1, size: 200, min_property_count: 1 }),
+      realEstateApi.getTypes({ page: 1, size: 300 }),
+      realEstateApi.getTags({ page: 1, size: 300 }),
     ]);
 
     const states = (statesResponse?.data || [])
@@ -35,8 +37,18 @@ export const buildSitemapEntries = async (): Promise<MetadataRoute.Sitemap> => {
       .map((item) => String(item.slug || "").trim())
       .filter(Boolean);
 
+    const types = (typesResponse?.data || [])
+      .map((item) => String(item.slug || "").trim())
+      .filter(Boolean);
+
+    const tags = (tagsResponse?.data || [])
+      .map((item) => String(item.slug || "").trim())
+      .filter(Boolean);
+
     const statePaths = states.map((stateSlug) => `/properties/${encodeURIComponent(stateSlug)}`);
     const provincePaths = provinces.map((provinceSlug) => `/properties/${encodeURIComponent(provinceSlug)}`);
+    const typePaths = types.map((typeSlug) => `/properties/${encodeURIComponent(typeSlug)}`);
+    const tagPaths = tags.map((tagSlug) => `/properties/tag/${encodeURIComponent(tagSlug)}`);
 
     const stateProvincePaths: string[] = [];
     states.forEach((stateSlug) => {
@@ -45,7 +57,13 @@ export const buildSitemapEntries = async (): Promise<MetadataRoute.Sitemap> => {
       });
     });
 
-    propertyPaths = uniquePaths([...statePaths, ...provincePaths, ...stateProvincePaths]);
+    propertyPaths = uniquePaths([
+      ...statePaths,
+      ...provincePaths,
+      ...typePaths,
+      ...tagPaths,
+      ...stateProvincePaths,
+    ]);
   } catch {
     propertyPaths = [];
   }

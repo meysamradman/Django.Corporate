@@ -138,6 +138,7 @@ const resolveSeoPathMode = (
   filters: PropertySearchFilters
 ):
   | "properties"
+  | "tag"
   | "status"
   | "status-type"
   | "status-location"
@@ -148,6 +149,11 @@ const resolveSeoPathMode = (
   const stateSlug = normalizeTaxonomySlug(filters.state_slug);
   const typeSlug = normalizeTaxonomySlug(filters.type_slug);
   const locationSlug = normalizeTaxonomySlug(filters.city_slug) || normalizeTaxonomySlug(filters.province_slug);
+  const tagSlug = normalizeTaxonomySlug(filters.tag_slug);
+
+  if (tagSlug && !stateSlug && !typeSlug && !locationSlug) {
+    return "tag";
+  }
 
   if (stateSlug && locationSlug && typeSlug) {
     return "status-location-type";
@@ -184,8 +190,13 @@ export const resolvePropertySearchPath = (filters: PropertySearchFilters): strin
   const stateSlug = normalizeTaxonomySlug(filters.state_slug);
   const typeSlug = normalizeTaxonomySlug(filters.type_slug);
   const locationSegment = normalizeTaxonomySlug(filters.city_slug) || normalizeTaxonomySlug(filters.province_slug);
+  const tagSlug = normalizeTaxonomySlug(filters.tag_slug);
 
   const mode = resolveSeoPathMode(filters);
+
+  if (mode === "tag") {
+    return `/properties/tag/${encodeURIComponent(tagSlug)}`;
+  }
 
   if (mode === "status") {
     return `/properties/${encodeURIComponent(stateSlug)}`;
@@ -310,6 +321,7 @@ export const filtersToSearchParams = (
   const next = { ...filters, ...(overrides || {}) };
   const params = new URLSearchParams();
   const mode = resolveSeoPathMode(next);
+  const isTagEncoded = mode === "tag";
 
   const isStateEncoded = mode === "status" || mode.startsWith("status-");
   const isTypeEncoded = mode === "type" || mode.endsWith("type");
@@ -340,7 +352,7 @@ export const filtersToSearchParams = (
   if (next.created_before) params.set("created_before", next.created_before);
   if (next.type_slug && !isTypeEncoded) params.set("type", next.type_slug);
   if (next.state_slug && !isStateEncoded) params.set("state_slug", next.state_slug);
-  if (next.tag_slug) params.set("tag", next.tag_slug);
+  if (next.tag_slug && !isTagEncoded) params.set("tag", next.tag_slug);
   if (next.label_slug) params.set("label_slug", next.label_slug);
   if (next.label_public_id) params.set("label_public_id", next.label_public_id);
   if (next.feature_public_id) params.set("feature_public_id", next.feature_public_id);

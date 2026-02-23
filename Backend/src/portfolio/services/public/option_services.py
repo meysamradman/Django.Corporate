@@ -46,7 +46,7 @@ class PortfolioOptionPublicService:
                     portfolio_options__status='published',
                 ),
             )
-        ).filter(portfolio_count__gt=0)
+        )
 
     @staticmethod
     def get_option_queryset(filters=None, search=None, ordering=None):

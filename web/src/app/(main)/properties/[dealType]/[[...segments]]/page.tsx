@@ -42,6 +42,7 @@ async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: Page
   }
 
   const segments = routeParams.segments || [];
+  const isTagRoute = firstSegmentKey === "tag";
   const numericPropertyId = Number.parseInt(firstSegmentRaw, 10);
   const isPropertyDetailRoute = Number.isFinite(numericPropertyId) && numericPropertyId > 0;
 
@@ -114,6 +115,32 @@ async function PropertiesDealTypeSegmentsPageBody({ params, searchParams }: Page
         </div>
       </main>
     );
+  }
+
+  if (isTagRoute) {
+    if (segments.length !== 1) {
+      notFound();
+    }
+
+    const tagSlug = normalizeTaxonomySlug(segments[0]);
+    if (!tagSlug) {
+      notFound();
+    }
+
+    const filters = {
+      ...queryFilters,
+      tag_slug: tagSlug,
+    };
+
+    const currentPath = `/properties/tag/${encodeURIComponent(tagSlug)}`;
+
+    ensureCanonicalPropertySearchRedirect({
+      filters,
+      path: currentPath,
+      searchParams: query,
+    });
+
+    return <PropertySearchPageServer filters={filters} />;
   }
 
   const availableStatuses = await realEstateApi
@@ -294,11 +321,16 @@ export default function PropertiesDealTypeSegmentsPage({ params, searchParams }:
   );
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const routeParams = await params;
+  const query = await searchParams;
   const dealType = normalizeTaxonomySlug(routeParams.dealType);
   const segments = (routeParams.segments || []).map((segment) => normalizeTaxonomySlug(segment)).filter(Boolean);
   const canonicalPath = `/properties/${encodeURIComponent(dealType)}${segments.length ? `/${segments.map((segment) => encodeURIComponent(segment)).join("/")}` : ""}`;
+  const hasQueryFilters = Object.entries(query).some(([, value]) => {
+    const single = Array.isArray(value) ? value[0] : value;
+    return typeof single === "string" && single.trim() !== "";
+  });
 
   return {
     title: "لیست املاک",
@@ -306,5 +338,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     alternates: {
       canonical: toAbsoluteCanonicalUrl(canonicalPath),
     },
+    robots: hasQueryFilters
+      ? { index: false, follow: true }
+      : { index: true, follow: true },
   };
 }

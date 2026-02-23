@@ -18,10 +18,14 @@ const buildQueryStringFromRawParams = (params: Record<string, string | string[] 
 };
 
 export const buildCanonicalPropertySearchUrl = (filters: PropertySearchFilters): string => {
-  const canonicalPath = resolvePropertySearchPath(filters);
-  const canonicalQuery = filtersToSearchParams(filters).toString();
+  return resolvePropertySearchPath(filters);
+};
 
-  return canonicalQuery ? `${canonicalPath}?${canonicalQuery}` : canonicalPath;
+export const buildNormalizedPropertySearchUrl = (filters: PropertySearchFilters): string => {
+  const canonicalPath = resolvePropertySearchPath(filters);
+  const normalizedQuery = filtersToSearchParams(filters).toString();
+
+  return normalizedQuery ? `${canonicalPath}?${normalizedQuery}` : canonicalPath;
 };
 
 export const toAbsoluteCanonicalUrl = (path: string): string => toAbsoluteUrl(path);
@@ -49,7 +53,7 @@ export const ensureCanonicalPropertySearchRedirect = ({
   path: string;
   searchParams: Record<string, string | string[] | undefined>;
 }): void => {
-  const canonicalUrl = buildCanonicalPropertySearchUrl(filters);
+  const canonicalUrl = buildNormalizedPropertySearchUrl(filters);
   const currentUrl = buildCurrentUrl({ path, searchParams });
 
   if (canonicalUrl !== currentUrl) {

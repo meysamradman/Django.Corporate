@@ -96,6 +96,10 @@ export default function PropertiesPage({ searchParams }: PageProps) {
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
   const params = await searchParams;
   const filters = resolvePropertySearchFilters(params);
+  const hasQueryFilters = Object.entries(params).some(([, value]) => {
+    const single = Array.isArray(value) ? value[0] : value;
+    return typeof single === "string" && single.trim() !== "";
+  });
 
   return {
     title: "لیست املاک",
@@ -103,5 +107,8 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
     alternates: {
       canonical: buildCanonicalPropertySearchAbsoluteUrl(filters),
     },
+    robots: hasQueryFilters
+      ? { index: false, follow: true }
+      : { index: true, follow: true },
   };
 }

@@ -46,7 +46,7 @@ class PortfolioTagPublicService:
                     portfolio_tags__status='published',
                 ),
             )
-        ).filter(portfolio_count__gt=0)
+        )
 
     @staticmethod
     def get_tag_queryset(filters=None, search=None, ordering=None):

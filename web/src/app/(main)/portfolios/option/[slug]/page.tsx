@@ -68,17 +68,17 @@ async function PortfoliosOptionBody({ params, searchParams }: PageProps) {
   const { items: portfolios, pagination } = resolvePaginatedData(response, page);
 
   const categoryResponse = await portfolioApi
-    .getCategories({ size: 50 })
+    .getCategories({ size: 200, ordering: "name" })
     .catch(() => null);
   const { items: categories } = resolvePaginatedData(categoryResponse, 1);
 
   const tagResponse = await portfolioApi
-    .getTags({ size: 50 })
+    .getTags({ size: 200, ordering: "name" })
     .catch(() => null);
   const { items: tags } = resolvePaginatedData(tagResponse, 1);
 
   const optionResponse = await portfolioApi
-    .getOptions({ size: 50 })
+    .getOptions({ size: 200, ordering: "name" })
     .catch(() => null);
   const { items: options } = resolvePaginatedData(optionResponse, 1);
 

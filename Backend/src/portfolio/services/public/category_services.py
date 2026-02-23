@@ -47,7 +47,7 @@ class PortfolioCategoryPublicService:
                     portfolio_categories__status='published',
                 ),
             )
-        ).filter(portfolio_count__gt=0)
+        )
 
     @staticmethod
     def get_category_queryset(filters=None, search=None, ordering=None):
