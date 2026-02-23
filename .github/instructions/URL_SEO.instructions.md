@@ -423,3 +423,66 @@ pagination
 جزئیات ملک
 /property/3515234/luxury-apartment-in-tehran
 
+✅ صفحات اصلی (Indexable – canonical دارند)
+/properties
+نوع معامله
+/properties/sale
+/properties/rent
+نوع ملک
+/properties/apartment
+/properties/villa
+/properties/land
+موقعیت
+/properties/tehran
+/properties/east-azerbaijan
+ترکیب‌های اصلی (در صورت نیاز)
+/properties/sale/tehran
+/properties/rent/east-azerbaijan
+برچسب (صفحه مستقل)
+/properties/tag/لوکس
+/properties/tag/نوساز
+
+📌 این‌ها:
+
+index می‌شن
+
+تو sitemap میان
+
+canonical = خودشون
+
+⚠️ صفحات فیلتر (NOT indexable – canonical ندارند به خودشون)
+فیلتر روی صفحه اصلی
+/properties?price=5-10
+/properties?rooms=2
+فیلتر روی موقعیت
+/properties/tehran?price=5-10
+/properties/east-azerbaijan?rooms=3
+فیلتر برچسب (به‌صورت query)
+/properties/tehran?tag=لوکس
+فیلتر ترکیبی
+/properties/sale/tehran?price=5-10&rooms=2&tag=لوکس
+
+📌 این‌ها:
+
+در sitemap ❌
+
+لینک منو ❌
+
+canonical → path بدون query
+
+🔗 Canonical rule (خلاصه قطعی)
+URL فعلی	canonical
+/properties/tehran?tag=لوکس	/properties/tehran
+/properties/sale?price=5-10	/properties/sale
+/properties/sale/tehran?rooms=2	/properties/sale/tehran
+🧠 جمع‌بندی خیلی کوتاه
+
+Path = هویت صفحه
+
+Query = فیلتر موقت
+
+فقط pathها index
+
+فیلترها هیچ‌وقت صفحه مستقل نیستند
+
+این دقیقاً همون ساختاریه که «برگ‌برگ»، «دیوار»، «سایت‌های املاک حرفه‌ای» می‌رن.

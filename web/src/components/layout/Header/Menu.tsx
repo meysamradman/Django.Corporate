@@ -57,6 +57,11 @@ export function Menu({ variant, statusOptions = [], typeOptions = [] }: MenuProp
                             <ChevronDown className="size-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="min-w-56">
+                            <DropdownMenuItem asChild>
+                                <Link href="/properties">
+                                    همه
+                                </Link>
+                            </DropdownMenuItem>
                             {safeStatusOptions.map((item) => {
                                 const href = `/properties/${item.value}`;
 
@@ -79,6 +84,11 @@ export function Menu({ variant, statusOptions = [], typeOptions = [] }: MenuProp
                             <ChevronDown className="size-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="min-w-56">
+                            <DropdownMenuItem asChild>
+                                <Link href="/properties">
+                                    همه
+                                </Link>
+                            </DropdownMenuItem>
                             {safeTypeOptions.map((item) => {
                                 const href = `/properties/${item.value}`;
 
