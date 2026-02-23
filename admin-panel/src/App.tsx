@@ -81,6 +81,7 @@ import RealEstateRegionsPage from './pages/real-estate/regions/page';
 import RealEstateStatisticsPage from './pages/real-estate/statistics/page';
 import StaticAdminPage from '@/pages/static/admin/page';
 import StaticAgentPage from '@/pages/static/agent/page';
+import StaticDesignSystemRoutePage from '@/pages/static/design-system/page';
 
 function AgentRedirectView() {
   const { id } = useParams<{ id: string }>();
@@ -201,6 +202,7 @@ function App() {
                       <Route path="profile" element={<StaticAdminPage />} />
                       <Route path="admin" element={<StaticAdminPage />} />
                       <Route path="agent" element={<StaticAgentPage />} />
+                      <Route path="design-system" element={<StaticDesignSystemRoutePage />} />
                     </Route>
                     <Route path="page">
                       <Route path="about" element={<PageAbout />} />
