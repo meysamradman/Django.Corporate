@@ -90,7 +90,7 @@ export function ActiveProvidersBar() {
           aria-label={`Providers: شخصی ${personalActiveCount} - اشتراکی ${sharedActiveCount}`}
           title={`Providers: شخصی ${personalActiveCount} - اشتراکی ${sharedActiveCount}`}
         >
-          <Brain size={16} className="text-font-p" />
+          <Brain className="text-font-p" />
         </button>
       </DropdownMenuTrigger>
 

@@ -24,7 +24,7 @@ export function Header({ onMenuClick, isContentCollapsed = false, onContentToggl
           className="lg:hidden shrink-0 border-none bg-transparent shadow-none hover:bg-transparent cursor-pointer"
           aria-label="باز کردن منو"
         >
-          <Menu size={20} />
+          <Menu />
         </Button>
 
         {isContentCollapsed && onContentToggle && (
@@ -37,7 +37,7 @@ export function Header({ onMenuClick, isContentCollapsed = false, onContentToggl
             )}
             aria-label="گسترش سایدبار"
           >
-            <PanelLeft size={20} className="rotate-180 transition-transform duration-200" />
+            <PanelLeft className="rotate-180 transition-transform duration-200" />
           </button>
         )}
         
