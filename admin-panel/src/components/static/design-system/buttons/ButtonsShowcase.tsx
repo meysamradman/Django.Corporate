@@ -3,21 +3,29 @@ import { Plus, Search, Trash2, ArrowLeft, Save } from "lucide-react";
 
 export function ButtonsShowcase() {
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
+    <div className="space-y-5">
+      <div className="space-y-2">
+        <p className="text-xs text-font-s">Variant ها</p>
+        <div className="flex flex-wrap items-center gap-3">
         <Button variant="default">پیش‌فرض</Button>
         <Button variant="outline">Outline</Button>
         <Button variant="destructive">حذف</Button>
         <Button variant="link">لینک</Button>
+        </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="space-y-2">
+        <p className="text-xs text-font-s">Size ها (فقط API خود المنت)</p>
+        <div className="flex flex-wrap items-center gap-3">
         <Button size="sm">کوچک</Button>
-        <Button size="default">نرمال</Button>
         <Button size="lg">بزرگ</Button>
+        <Button size="xl">خیلی بزرگ</Button>
+        </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="space-y-2">
+        <p className="text-xs text-font-s">Icon + Label</p>
+        <div className="flex flex-wrap items-center gap-3">
         <Button>
           <Plus />
           افزودن مورد
@@ -34,9 +42,12 @@ export function ButtonsShowcase() {
           بازگشت
           <ArrowLeft />
         </Button>
+        </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="space-y-2">
+        <p className="text-xs text-font-s">Loading</p>
+        <div className="flex flex-wrap items-center gap-3">
         <Button isLoading loadingText="در حال ذخیره...">
           <Save />
           ذخیره
@@ -44,6 +55,7 @@ export function ButtonsShowcase() {
         <Button variant="outline" isLoading loadingText="در حال دریافت...">
           دریافت داده
         </Button>
+        </div>
       </div>
     </div>
   );
