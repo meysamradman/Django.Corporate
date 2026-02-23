@@ -16,7 +16,6 @@ export default async function PropertySearchPageServer({ filters }: PropertySear
     provincesResponse,
     citiesResponse,
     regionsResponse,
-    labelsResponse,
     tagsResponse,
     featuresResponse,
     statusesResponse,
@@ -27,7 +26,6 @@ export default async function PropertySearchPageServer({ filters }: PropertySear
     realEstateApi.getProvinces({ page: 1, size: 100 }).catch(() => null),
     realEstateApi.getCities({ page: 1, size: 2000 }).catch(() => null),
     realEstateApi.getRegions({ page: 1, size: 800 }).catch(() => null),
-    realEstateApi.getLabels({ page: 1, size: 100 }).catch(() => null),
     realEstateApi.getTags({ page: 1, size: 100 }).catch(() => null),
     realEstateApi.getFeatures({ page: 1, size: 200 }).catch(() => null),
     realEstateApi.getPropertyStatuses().catch(() => []),
@@ -50,12 +48,6 @@ export default async function PropertySearchPageServer({ filters }: PropertySear
     value: String(item.id),
     title: item.title || item.name,
     slug: item.slug,
-  }));
-
-  const labelOptions = (labelsResponse?.data ?? []).map((item) => ({
-    id: item.id,
-    value: item.public_id,
-    title: item.name,
   }));
 
   const provinceOptions = (provincesResponse?.data ?? []).map((item) => ({
@@ -110,7 +102,6 @@ export default async function PropertySearchPageServer({ filters }: PropertySear
       provinceOptions={provinceOptions}
       cityOptions={cityOptions}
       regionOptions={regionOptions}
-      labelOptions={labelOptions}
       tagOptions={tagOptions}
       featureOptions={featureOptions}
       statusOptions={statusOptions}

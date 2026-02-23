@@ -28,7 +28,6 @@ type PropertySearchSidebarProps = {
   provinceOptions: SidebarOption[];
   cityOptions: SidebarOption[];
   regionOptions: SidebarOption[];
-  labelOptions: SidebarOption[];
   tagOptions: SidebarOption[];
   featureOptions: SidebarOption[];
   statusOptions: SidebarOption[];
@@ -188,7 +187,6 @@ export default function PropertySearchSidebar({
   provinceOptions,
   cityOptions,
   regionOptions,
-  labelOptions,
   tagOptions,
   featureOptions,
   statusOptions,
@@ -456,49 +454,58 @@ export default function PropertySearchSidebar({
       <Separator className="bg-br" />
 
       <section className={sectionClassName}>
-        <h3 className="text-sm font-black text-font-p">قیمت و متراژ</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <label className="text-sm text-font-s">حداقل قیمت</label>
-            <Input
-              type="number"
-              min={0}
-              value={filters.min_price ?? ""}
-              onChange={(event) => update({ min_price: toNumberOrNull(event.target.value) })}
-              placeholder="1000000000"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm text-font-s">حداکثر قیمت</label>
-            <Input
-              type="number"
-              min={0}
-              value={filters.max_price ?? ""}
-              onChange={(event) => update({ max_price: toNumberOrNull(event.target.value) })}
-              placeholder="5000000000"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <label className="text-sm text-font-s">حداقل متراژ</label>
+        <h3 className="text-sm font-black text-font-p">متراژ (متر)</h3>
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-font-s">از</span>
             <Input
               type="number"
               min={0}
               value={filters.min_area ?? ""}
               onChange={(event) => update({ min_area: toNumberOrNull(event.target.value) })}
-              placeholder="60"
+              placeholder="متر مربع"
+              className="flex-1"
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-sm text-font-s">حداکثر متراژ</label>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-font-s">تا</span>
             <Input
               type="number"
               min={0}
               value={filters.max_area ?? ""}
               onChange={(event) => update({ max_area: toNumberOrNull(event.target.value) })}
-              placeholder="250"
+              placeholder="متر مربع"
+              className="flex-1"
+            />
+          </div>
+        </div>
+      </section>
+
+      <Separator className="bg-br" />
+
+      <section className={sectionClassName}>
+        <h3 className="text-sm font-black text-font-p">قیمت هر متر مربع (تومان)</h3>
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-font-s">از</span>
+            <Input
+              type="number"
+              min={0}
+              value={filters.min_price ?? ""}
+              onChange={(event) => update({ min_price: toNumberOrNull(event.target.value) })}
+              placeholder="تومان"
+              className="flex-1"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-font-s">تا</span>
+            <Input
+              type="number"
+              min={0}
+              value={filters.max_price ?? ""}
+              onChange={(event) => update({ max_price: toNumberOrNull(event.target.value) })}
+              placeholder="تومان"
+              className="flex-1"
             />
           </div>
         </div>
@@ -593,22 +600,7 @@ export default function PropertySearchSidebar({
       <Separator className="bg-br" />
 
       <section className={sectionClassName}>
-        <h3 className="text-sm font-black text-font-p">نشانه‌گذاری</h3>
-        <div className="space-y-2">
-          <label className="text-sm text-font-s">نشانه</label>
-          <NativeSelect
-            value={filters.label_public_id}
-            onChange={(event) => update({ label_public_id: event.target.value })}
-          >
-            <NativeSelectOption value="">همه</NativeSelectOption>
-            {labelOptions.map((item) => (
-              <NativeSelectOption key={item.id} value={item.value}>
-                {item.title}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-        </div>
-
+        <h3 className="text-sm font-black text-font-p">فیلترهای تکمیلی</h3>
         <div className="space-y-2">
           <label className="text-sm text-font-s">برچسب</label>
           <NativeSelect value={filters.tag_slug} onChange={(event) => update({ tag_slug: event.target.value })}>
