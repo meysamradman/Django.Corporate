@@ -5,7 +5,6 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from '@/components/elements/Tooltip';
-import { IconContext } from '@phosphor-icons/react';
 import { useLocation } from 'react-router-dom';
 import { cn } from '@/core/utils/cn';
 import { useCallback } from 'react';
@@ -44,48 +43,46 @@ export function NavMain({ groups, onIconClick, selectedItem }: NavMainProps) {
 
   return (
     <TooltipProvider>
-      <IconContext.Provider value={{ weight: "duotone", size: 22 }}>
-        <div className="flex flex-col space-y-2 p-2">
-          {groups.map((group) => (
-            <div key={group.title}>
-              <div className="space-y-2">
-                {group.items.map((item) => {
-                  const isActive = isItemActive(item);
+      <div className="flex flex-col space-y-2 p-2">
+        {groups.map((group) => (
+          <div key={group.title}>
+            <div className="space-y-2">
+              {group.items.map((item) => {
+                const isActive = isItemActive(item);
 
-                  const buttonClasses = cn(
-                    "inline-flex items-center justify-center h-9 w-9 rounded-lg transition-colors cursor-pointer group",
-                    item.disabled && "cursor-not-allowed opacity-50",
-                    item.state === "readOnly" && "outline outline-1 outline-amber-1",
-                    item.state === "limited" && "outline outline-1 outline-blue-1",
-                    item.state === "locked" && "outline outline-1 outline-gray-1",
-                    isActive
-                      ? "bg-blue text-blue-1"
-                      : "bg-transparent text-sdb-ic hover:bg-sdb-hv hover:text-blue-1"
-                  );
+                const buttonClasses = cn(
+                  "inline-flex items-center justify-center h-9 w-9 rounded-lg transition-colors cursor-pointer group",
+                  item.disabled && "cursor-not-allowed opacity-50",
+                  item.state === "readOnly" && "outline outline-1 outline-amber-1",
+                  item.state === "limited" && "outline outline-1 outline-blue-1",
+                  item.state === "locked" && "outline outline-1 outline-gray-1",
+                  isActive
+                    ? "bg-blue text-blue-1"
+                    : "bg-transparent text-sdb-ic hover:bg-sdb-hv hover:text-blue-1"
+                );
 
-                  return (
-                    <Tooltip key={item.title}>
-                      <TooltipTrigger asChild>
-                        <button
-                          onClick={() => handleItemClick(item)}
-                          className={buttonClasses}
-                          aria-label={item.title}
-                          disabled={item.disabled}
-                        >
-                          {item.icon && <item.icon />}
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="left">
-                        <p>{item.title}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  );
-                })}
-              </div>
+                return (
+                  <Tooltip key={item.title}>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => handleItemClick(item)}
+                        className={buttonClasses}
+                        aria-label={item.title}
+                        disabled={item.disabled}
+                      >
+                        {item.icon && <item.icon size={22} />}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left">
+                      <p>{item.title}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
             </div>
-          ))}
-        </div>
-      </IconContext.Provider>
+          </div>
+        ))}
+      </div>
     </TooltipProvider>
   );
 }

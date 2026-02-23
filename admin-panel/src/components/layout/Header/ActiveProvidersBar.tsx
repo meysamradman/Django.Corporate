@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { aiApi } from '@/api/ai/ai';
-import { Brain } from '@phosphor-icons/react';
+import { Brain } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -90,7 +90,7 @@ export function ActiveProvidersBar() {
           aria-label={`Providers: شخصی ${personalActiveCount} - اشتراکی ${sharedActiveCount}`}
           title={`Providers: شخصی ${personalActiveCount} - اشتراکی ${sharedActiveCount}`}
         >
-          <Brain weight="duotone" size={16} className="text-font-p" />
+          <Brain size={16} className="text-font-p" />
         </button>
       </DropdownMenuTrigger>
 

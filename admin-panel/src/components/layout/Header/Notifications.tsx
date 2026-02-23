@@ -1,4 +1,4 @@
-import { Bell, Envelope as Mail, Ticket, CaretLeft as ChevronLeft } from '@phosphor-icons/react';
+import { Bell, Mail, Ticket, ChevronLeft } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,7 +55,7 @@ export function Notifications() {
           className="relative inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center cursor-pointer text-font-p hover:text-foreground transition-colors shrink-0 rounded-md hover:bg-bg"
           aria-label="اعلان‌ها"
         >
-          <Bell weight="duotone" size={20} />
+          <Bell size={20} />
           {hasNotifications && !isLoading && (
             <div className="absolute inline-flex items-center justify-center w-3.5 h-3.5 sm:w-4 sm:h-4 text-[9px] sm:text-[10px] font-bold text-static-w bg-red-1 border border-static-w rounded-full top-0.5 right-0.5 sm:top-1 sm:right-1 animate-pulse">
               {totalCount > 99 ? '99+' : totalCount}
@@ -88,7 +88,7 @@ export function Notifications() {
               <>
                 <div className="px-2 py-1.5">
                   <div className="flex items-center gap-2 text-xs font-medium text-font-s mb-1">
-                    <Ticket weight="duotone" size={16} />
+                    <Ticket size={16} />
                     <span>تیکت‌های جدید ({notifications.tickets.total_new})</span>
                   </div>
                 </div>
@@ -114,7 +114,7 @@ export function Notifications() {
                           </span>
                         </div>
                       </div>
-                      <ChevronLeft weight="regular" size={16} className="text-font-s shrink-0" />
+                      <ChevronLeft size={16} className="text-font-s shrink-0" />
                     </div>
                     <span className="text-xs text-font-s">
                       {new Date(ticket.created_at).toLocaleDateString('fa-IR', {
@@ -142,7 +142,7 @@ export function Notifications() {
               <>
                 <div className="px-2 py-1.5">
                   <div className="flex items-center gap-2 text-xs font-medium text-font-s mb-1">
-                    <Mail weight="duotone" size={16} />
+                    <Mail size={16} />
                     <span>ایمیل‌های جدید ({notifications.emails.new_count})</span>
                   </div>
                 </div>
@@ -164,7 +164,7 @@ export function Notifications() {
               className="flex-1 justify-center"
               onClick={() => navigate('/ticket')}
             >
-              <Ticket weight="duotone" size={16} className="ml-2" />
+              <Ticket size={16} className="ml-2" />
               همه تیکت‌ها
             </DropdownMenuItem>
           )}
@@ -173,7 +173,7 @@ export function Notifications() {
               className="flex-1 justify-center"
               onClick={() => navigate('/email')}
             >
-              <Mail weight="duotone" size={16} className="ml-2" />
+              <Mail size={16} className="ml-2" />
               همه ایمیل‌ها
             </DropdownMenuItem>
           )}

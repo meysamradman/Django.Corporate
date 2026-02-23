@@ -30,6 +30,12 @@ html body[data-scroll-locked] {
     padding: 0;
   }
 
+  .lucide {
+    width: 20px;
+    height: 20px;
+    stroke-width: 1.7;
+  }
+
   h1 {
     font-size: 1.5rem;
     font-weight: 700;

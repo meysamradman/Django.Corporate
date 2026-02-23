@@ -1,4 +1,4 @@
-import { SidebarSimple } from "@phosphor-icons/react";
+import { PanelLeft } from "lucide-react";
 import { cn } from "@/core/utils/cn";
 import type { MenuItem } from '@/types/shared/menu';
 
@@ -38,7 +38,7 @@ export function SidebarHeader({
             isContentCollapsed ? "گسترش سایدبار" : "جمع کردن سایدبار"
           }
         >
-          <SidebarSimple weight="regular" size={20} className={cn(
+          <PanelLeft size={20} className={cn(
             "transition-transform duration-200",
             isContentCollapsed && "rotate-180"
           )} />
