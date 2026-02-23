@@ -11,6 +11,7 @@ import { buildPortfolioListAjaxHref, toPortfolioListApiParams, PORTFOLIOS_PAGE_S
 import type { Portfolio } from "@/types/portfolio/portfolio";
 import type { PortfolioCategory } from "@/types/portfolio/category/portfolioCategory";
 import type { PortfolioTag } from "@/types/portfolio/tags/portfolioTag";
+import type { PortfolioOption } from "@/types/portfolio/options/portfolioOption";
 import type { ApiPagination, PaginatedResponse } from "@/types/shared/pagination";
 
 type PortfolioListPageClientProps = {
@@ -19,18 +20,21 @@ type PortfolioListPageClientProps = {
   initialSearch?: string;
   initialCategorySlug?: string;
   initialTagSlug?: string;
+  initialOptionSlug?: string;
   categories: PortfolioCategory[];
   tags: PortfolioTag[];
+  options: PortfolioOption[];
 };
 
 const cardClassName = "rounded-md border bg-card p-3 space-y-3";
 
-const toUrl = (state: { page: number; search?: string; category_slug?: string; tag_slug?: string }): string =>
+const toUrl = (state: { page: number; search?: string; category_slug?: string; tag_slug?: string; option_slug?: string }): string =>
   buildPortfolioListAjaxHref({
     page: state.page,
     search: state.search,
     category_slug: state.category_slug,
     tag_slug: state.tag_slug,
+    option_slug: state.option_slug,
   });
 
 const replaceUrl = (url: string) => {
@@ -71,12 +75,15 @@ export default function PortfolioListPageClient({
   initialSearch,
   initialCategorySlug,
   initialTagSlug,
+  initialOptionSlug,
   categories,
   tags,
+  options,
 }: PortfolioListPageClientProps) {
   const [search, setSearch] = React.useState(initialSearch ?? "");
   const [categorySlug, setCategorySlug] = React.useState<string | undefined>(initialCategorySlug);
   const [tagSlug, setTagSlug] = React.useState<string | undefined>(initialTagSlug);
+  const [optionSlug, setOptionSlug] = React.useState<string | undefined>(initialOptionSlug);
   const [page, setPage] = React.useState<number>(initialPagination.current_page || 1);
 
   const [portfolios, setPortfolios] = React.useState<Portfolio[]>(initialPortfolios);
@@ -93,6 +100,7 @@ export default function PortfolioListPageClient({
     setSearch(initialSearch ?? "");
     setCategorySlug(initialCategorySlug);
     setTagSlug(initialTagSlug);
+    setOptionSlug(initialOptionSlug);
     setPage(initialPagination.current_page || 1);
     setPortfolios(initialPortfolios);
     setPagination(initialPagination);
@@ -100,7 +108,7 @@ export default function PortfolioListPageClient({
     setError(null);
     hasFetchedRef.current = false;
     isMountedRef.current = false;
-  }, [initialSearch, initialCategorySlug, initialTagSlug, initialPagination, initialPortfolios]);
+  }, [initialSearch, initialCategorySlug, initialTagSlug, initialOptionSlug, initialPagination, initialPortfolios]);
 
   const stateForUrl = React.useMemo(
     () => ({
@@ -108,8 +116,9 @@ export default function PortfolioListPageClient({
       search: debouncedSearch || undefined,
       category_slug: categorySlug || undefined,
       tag_slug: tagSlug || undefined,
+      option_slug: optionSlug || undefined,
     }),
-    [page, debouncedSearch, categorySlug, tagSlug]
+    [page, debouncedSearch, categorySlug, tagSlug, optionSlug]
   );
 
   React.useEffect(() => {
@@ -141,6 +150,7 @@ export default function PortfolioListPageClient({
             search: debouncedSearch || undefined,
             category_slug: categorySlug || undefined,
             tag_slug: tagSlug || undefined,
+            option_slug: optionSlug || undefined,
           })
         );
 
@@ -163,7 +173,7 @@ export default function PortfolioListPageClient({
     return () => {
       isStale = true;
     };
-  }, [page, debouncedSearch, categorySlug, tagSlug]);
+  }, [page, debouncedSearch, categorySlug, tagSlug, optionSlug]);
 
   const onSearchChange = (value: string) => {
     setSearch(value);
@@ -204,6 +214,7 @@ export default function PortfolioListPageClient({
                 search={debouncedSearch || undefined}
                 category_slug={categorySlug || undefined}
                 tag_slug={tagSlug || undefined}
+                option_slug={optionSlug || undefined}
                 onPageChange={onPageChange}
               />
             </div>
@@ -262,6 +273,8 @@ export default function PortfolioListPageClient({
                   key={category.public_id}
                   onClick={() => {
                     setCategorySlug(category.slug);
+                    setTagSlug(undefined);
+                    setOptionSlug(undefined);
                     setPage(1);
                   }}
                   className={
@@ -304,6 +317,8 @@ export default function PortfolioListPageClient({
                   key={tag.public_id}
                   onClick={() => {
                     setTagSlug(tag.slug);
+                    setCategorySlug(undefined);
+                    setOptionSlug(undefined);
                     setPage(1);
                   }}
                   className={
@@ -319,6 +334,48 @@ export default function PortfolioListPageClient({
         </div>
 
         <div className={cardClassName}>
+          <h3 className="text-sm font-semibold">گزینه‌ها</h3>
+
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => {
+                setOptionSlug(undefined);
+                setPage(1);
+              }}
+              className={
+                "block w-full text-right rounded-md border px-3 py-2 text-sm transition-colors " +
+                (optionSlug ? "bg-card text-font-s" : "bg-gray text-font-p")
+              }
+            >
+              همه گزینه‌ها
+            </button>
+
+            {options.map((option) => {
+              const isActive = optionSlug === option.slug;
+              return (
+                <button
+                  type="button"
+                  key={option.public_id}
+                  onClick={() => {
+                    setOptionSlug(option.slug);
+                    setCategorySlug(undefined);
+                    setTagSlug(undefined);
+                    setPage(1);
+                  }}
+                  className={
+                    "block w-full text-right rounded-md border px-3 py-2 text-sm transition-colors " +
+                    (isActive ? "bg-gray text-font-p" : "bg-card text-font-s hover:text-font-p")
+                  }
+                >
+                  {option.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className={cardClassName}>
           <h3 className="text-sm font-semibold">تنظیمات</h3>
           <p className="text-xs text-font-s">اندازه هر صفحه: {PORTFOLIOS_PAGE_SIZE}</p>
           <button
@@ -327,6 +384,7 @@ export default function PortfolioListPageClient({
               setSearch("");
               setCategorySlug(undefined);
               setTagSlug(undefined);
+              setOptionSlug(undefined);
               setPage(1);
             }}
             className="inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm text-font-s hover:text-font-p"

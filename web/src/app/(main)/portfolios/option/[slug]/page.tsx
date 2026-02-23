@@ -50,7 +50,7 @@ function PortfoliosPageFallback() {
   );
 }
 
-async function PortfoliosCategoryBody({ params, searchParams }: PageProps) {
+async function PortfoliosOptionBody({ params, searchParams }: PageProps) {
   const { slug } = await params;
   const sp = await searchParams;
   const { page, search } = resolvePortfolioListQuery(sp);
@@ -58,13 +58,11 @@ async function PortfoliosCategoryBody({ params, searchParams }: PageProps) {
   const normalizedSlug = normalizeSlug(slug) || slug;
 
   if (normalizedSlug !== slug) {
-    permanentRedirect(
-      buildPortfolioListHref({ page, search, category_slug: normalizedSlug, tag_slug: undefined })
-    );
+    permanentRedirect(buildPortfolioListHref({ page, search, option_slug: normalizedSlug, category_slug: undefined, tag_slug: undefined }));
   }
 
   const response = await portfolioApi
-    .getPortfolioList(toPortfolioListApiParams({ page, search, category_slug: normalizedSlug, option_slug: undefined }))
+    .getPortfolioList(toPortfolioListApiParams({ page, search, option_slug: normalizedSlug }))
     .catch(() => null);
 
   const { items: portfolios, pagination } = resolvePaginatedData(response, page);
@@ -89,8 +87,7 @@ async function PortfoliosCategoryBody({ params, searchParams }: PageProps) {
       initialPortfolios={portfolios}
       initialPagination={pagination}
       initialSearch={search}
-      initialCategorySlug={normalizedSlug}
-      initialOptionSlug={undefined}
+      initialOptionSlug={normalizedSlug}
       categories={categories}
       tags={tags}
       options={options}
@@ -98,16 +95,16 @@ async function PortfoliosCategoryBody({ params, searchParams }: PageProps) {
   );
 }
 
-export default function PortfolioCategoryPage({ params, searchParams }: PageProps) {
+export default function PortfolioOptionPage({ params, searchParams }: PageProps) {
   return (
     <main className="container mx-auto px-4 py-10 md:py-12">
       <div className="mb-8">
         <h1 className="mb-3 text-3xl font-bold text-font-p md:text-4xl">نمونه‌کارها</h1>
-        <p className="max-w-2xl text-font-s">نمایش نمونه‌کارها براساس دسته‌بندی انتخاب‌شده.</p>
+        <p className="max-w-2xl text-font-s">نمایش نمونه‌کارها براساس گزینه انتخاب‌شده.</p>
       </div>
 
       <Suspense fallback={<PortfoliosPageFallback />}>
-        <PortfoliosCategoryBody params={params} searchParams={searchParams} />
+        <PortfoliosOptionBody params={params} searchParams={searchParams} />
       </Suspense>
     </main>
   );
@@ -117,7 +114,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
 
   return {
-    title: `نمونه‌کارها | دسته‌بندی ${slug}`,
-    description: `نمونه‌کارها در دسته‌بندی ${slug}.`,
+    title: `نمونه‌کارها | گزینه ${slug}`,
+    description: `نمونه‌کارها با گزینه ${slug}.`,
   };
 }

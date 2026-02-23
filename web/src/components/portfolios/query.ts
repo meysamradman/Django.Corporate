@@ -28,7 +28,7 @@ export const normalizeSlug = (value?: string): string | undefined => {
 
 export const resolvePortfolioListQuery = (
   searchParams: SearchParams
-): { page: number; search?: string; category_slug?: string; tag_slug?: string } => {
+): { page: number; search?: string; category_slug?: string; tag_slug?: string; option_slug?: string } => {
   const pageRaw = Number(toSingle(searchParams.page));
   const page = Number.isFinite(pageRaw) && pageRaw > 0 ? Math.floor(pageRaw) : 1;
 
@@ -39,7 +39,9 @@ export const resolvePortfolioListQuery = (
 
   const tag_slug = normalizeSlug(toSingle(searchParams.tag_slug));
 
-  return { page, search, category_slug, tag_slug };
+  const option_slug = normalizeSlug(toSingle(searchParams.option_slug));
+
+  return { page, search, category_slug, tag_slug, option_slug };
 };
 
 export const toPortfolioListApiParams = ({
@@ -47,17 +49,20 @@ export const toPortfolioListApiParams = ({
   search,
   category_slug,
   tag_slug,
+  option_slug,
 }: {
   page: number;
   search?: string;
   category_slug?: string;
   tag_slug?: string;
+  option_slug?: string;
 }) => ({
   page,
   size: PORTFOLIOS_PAGE_SIZE,
   search,
   category_slug: normalizeSlug(category_slug),
   tag_slug: normalizeSlug(tag_slug),
+  option_slug: normalizeSlug(option_slug),
   order_by: "created_at",
   order_desc: true,
 });
@@ -65,13 +70,17 @@ export const toPortfolioListApiParams = ({
 export const buildPortfolioListBasePath = ({
   category_slug,
   tag_slug,
+  option_slug,
 }: {
   category_slug?: string;
   tag_slug?: string;
+  option_slug?: string;
 }): string => {
+  const normalizedOption = normalizeSlug(option_slug);
   const normalizedTag = normalizeSlug(tag_slug);
   const normalizedCategory = normalizeSlug(category_slug);
 
+  if (normalizedOption) return `/portfolios/option/${encodeURIComponent(normalizedOption)}`;
   if (normalizedTag) return `/portfolios/tag/${encodeURIComponent(normalizedTag)}`;
   if (normalizedCategory) return `/portfolios/category/${encodeURIComponent(normalizedCategory)}`;
   return "/portfolios";
@@ -82,11 +91,13 @@ export const buildPortfolioListHref = ({
   search,
   category_slug,
   tag_slug,
+  option_slug,
 }: {
   page: number;
   search?: string;
   category_slug?: string;
   tag_slug?: string;
+  option_slug?: string;
 }): string => {
   const params = new URLSearchParams();
 
@@ -99,7 +110,7 @@ export const buildPortfolioListHref = ({
   }
 
   const query = params.toString();
-  const basePath = buildPortfolioListBasePath({ category_slug, tag_slug });
+  const basePath = buildPortfolioListBasePath({ category_slug, tag_slug, option_slug });
   return query ? `${basePath}?${query}` : basePath;
 };
 
@@ -108,11 +119,13 @@ export const buildPortfolioListAjaxHref = ({
   search,
   category_slug,
   tag_slug,
+  option_slug,
 }: {
   page: number;
   search?: string;
   category_slug?: string;
   tag_slug?: string;
+  option_slug?: string;
 }): string => {
   const params = new URLSearchParams();
 
@@ -125,6 +138,6 @@ export const buildPortfolioListAjaxHref = ({
   }
 
   const query = params.toString();
-  const basePath = buildPortfolioListBasePath({ category_slug, tag_slug });
+  const basePath = buildPortfolioListBasePath({ category_slug, tag_slug, option_slug });
   return query ? `${basePath}?${query}` : basePath;
 };

@@ -6,6 +6,7 @@ export interface PortfolioListParams {
   order_desc?: boolean;
   category_slug?: string;
   tag_slug?: string;
+  option_slug?: string;
   status?: string;
   is_featured?: string | boolean;
   is_public?: string | boolean;

@@ -50,9 +50,10 @@ function PortfoliosPageFallback() {
 
 async function PortfoliosPageBody({ searchParams }: PageProps) {
 	const params = await searchParams;
-	const { page, search, category_slug, tag_slug } = resolvePortfolioListQuery(params);
+	const { page, search, category_slug, tag_slug, option_slug } = resolvePortfolioListQuery(params);
 	const normalizedCategory = normalizeSlug(category_slug);
 	const normalizedTag = normalizeSlug(tag_slug);
+	const normalizedOption = normalizeSlug(option_slug);
 
 	const response = await portfolioApi
 		.getPortfolioList(
@@ -61,6 +62,7 @@ async function PortfoliosPageBody({ searchParams }: PageProps) {
 				search,
 				category_slug: normalizedCategory,
 				tag_slug: normalizedTag,
+				option_slug: normalizedOption,
 			})
 		)
 		.catch(() => null);
@@ -77,6 +79,11 @@ async function PortfoliosPageBody({ searchParams }: PageProps) {
 		.catch(() => null);
 	const { items: tags } = resolvePaginatedData(tagResponse, 1);
 
+	const optionResponse = await portfolioApi
+		.getOptions({ size: 50 })
+		.catch(() => null);
+	const { items: options } = resolvePaginatedData(optionResponse, 1);
+
 	return (
 		<PortfolioListPageClient
 			initialPortfolios={portfolios}
@@ -84,8 +91,10 @@ async function PortfoliosPageBody({ searchParams }: PageProps) {
 			initialSearch={search}
 			initialCategorySlug={normalizedCategory}
 			initialTagSlug={normalizedTag}
+			initialOptionSlug={normalizedOption}
 			categories={categories}
 			tags={tags}
+			options={options}
 		/>
 	);
 }

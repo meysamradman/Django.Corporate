@@ -51,6 +51,8 @@ class PortfolioPublicService:
                 queryset = queryset.filter(is_featured=filters['is_featured'])
             if filters.get('tag_slug'):
                 queryset = queryset.filter(tags__slug=filters['tag_slug'])
+            if filters.get('option_slug'):
+                queryset = queryset.filter(options__slug=filters['option_slug'])
             created_after = PortfolioPublicService._parse_date(filters.get('created_after'))
             created_before = PortfolioPublicService._parse_date(filters.get('created_before'))
             if created_after:

@@ -62,7 +62,7 @@ async function PortfoliosTagBody({ params, searchParams }: PageProps) {
   }
 
   const response = await portfolioApi
-    .getPortfolioList(toPortfolioListApiParams({ page, search, tag_slug: normalizedSlug }))
+    .getPortfolioList(toPortfolioListApiParams({ page, search, tag_slug: normalizedSlug, option_slug: undefined }))
     .catch(() => null);
 
   const { items: portfolios, pagination } = resolvePaginatedData(response, page);
@@ -77,14 +77,21 @@ async function PortfoliosTagBody({ params, searchParams }: PageProps) {
     .catch(() => null);
   const { items: tags } = resolvePaginatedData(tagResponse, 1);
 
+  const optionResponse = await portfolioApi
+    .getOptions({ size: 50 })
+    .catch(() => null);
+  const { items: options } = resolvePaginatedData(optionResponse, 1);
+
   return (
     <PortfolioListPageClient
       initialPortfolios={portfolios}
       initialPagination={pagination}
       initialSearch={search}
       initialTagSlug={normalizedSlug}
+      initialOptionSlug={undefined}
       categories={categories}
       tags={tags}
+      options={options}
     />
   );
 }

@@ -1,7 +1,9 @@
 import { Hash, Info } from "lucide-react";
+import Link from "next/link";
 
 import { Badge } from "@/components/elements/badge";
 import { formatDate } from "@/core/utils/format";
+import { buildPortfolioListHref } from "@/components/portfolios/query";
 import type { Portfolio } from "@/types/portfolio/portfolio";
 
 type PortfolioDetailMetaProps = {
@@ -41,9 +43,9 @@ export default function PortfolioDetailMeta({ portfolio }: PortfolioDetailMetaPr
 
           <div className="flex flex-wrap gap-2">
             {portfolio.tags.map((tag) => (
-              <Badge key={tag.public_id} variant="secondary">
-                {tag.name}
-              </Badge>
+              <Link key={tag.public_id} href={buildPortfolioListHref({ page: 1, tag_slug: tag.slug })} prefetch={false} className="inline-flex">
+                <Badge variant="secondary">{tag.name}</Badge>
+              </Link>
             ))}
           </div>
         </section>
@@ -55,9 +57,9 @@ export default function PortfolioDetailMeta({ portfolio }: PortfolioDetailMetaPr
 
           <div className="flex flex-wrap gap-2">
             {portfolio.options.map((option) => (
-              <Badge key={option.public_id} variant="secondary">
-                {option.name}
-              </Badge>
+              <Link key={option.public_id} href={buildPortfolioListHref({ page: 1, option_slug: option.slug })} prefetch={false} className="inline-flex">
+                <Badge variant="secondary">{option.name}</Badge>
+              </Link>
             ))}
           </div>
         </section>

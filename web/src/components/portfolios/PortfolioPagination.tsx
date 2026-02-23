@@ -17,17 +17,18 @@ type PortfolioPaginationProps = {
   search?: string;
   category_slug?: string;
   tag_slug?: string;
+  option_slug?: string;
   onPageChange?: (page: number) => void;
 };
 
-export default function PortfolioPagination({ currentPage, totalPages, search, category_slug, tag_slug, onPageChange }: PortfolioPaginationProps) {
+export default function PortfolioPagination({ currentPage, totalPages, search, category_slug, tag_slug, option_slug, onPageChange }: PortfolioPaginationProps) {
   if (totalPages <= 1) {
     return null;
   }
 
   const pages = getVisiblePages(currentPage, totalPages);
 
-  const buildHref = (page: number): string => buildPortfolioListHref({ page, search, category_slug, tag_slug });
+  const buildHref = (page: number): string => buildPortfolioListHref({ page, search, category_slug, tag_slug, option_slug });
 
   const handleClick = (page: number) => (event: React.MouseEvent<HTMLAnchorElement>) => {
     if (!onPageChange) return;

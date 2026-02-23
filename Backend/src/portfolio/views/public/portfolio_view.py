@@ -28,6 +28,7 @@ class PortfolioPublicViewSet(viewsets.ReadOnlyModelViewSet):
         filters = {
             'category_slug': request.query_params.get('category_slug'),
             'tag_slug': request.query_params.get('tag_slug'),
+            'option_slug': request.query_params.get('option_slug'),
             'is_featured': self._parse_bool(request.query_params.get('is_featured')),
             'created_after': request.query_params.get('created_after'),
             'created_before': request.query_params.get('created_before'),
