@@ -1,0 +1,215 @@
+import { useState, useEffect, lazy, Suspense } from 'react';
+import { Skeleton } from '@/components/elements/Skeleton';
+import { useAuth } from '@/core/auth/AuthContext';
+import { showError, showSuccess } from '@/core/toast';
+import { msg } from '@/core/messages';
+import { authApi } from '@/api/auth/auth';
+import { MobileInputForm } from './MobileInputForm';
+import { AUTH_UI_CONFIG } from '@/core/config/auth';
+import { ChevronLeft } from 'lucide-react';
+
+const PasswordLoginForm = lazy(() => import('./PasswordLoginForm'));
+const OTPLoginForm = lazy(() => import('./OTPLoginForm'));
+const AdminPasswordResetForm = lazy(() => import('./AdminPasswordResetForm'));
+
+const FormSkeleton = () => (
+  <div className="space-y-5">
+    <div className="space-y-2">
+      <Skeleton className="h-4 w-24" />
+      <Skeleton className="h-11 w-full rounded-lg" />
+    </div>
+    <div className="space-y-2">
+      <Skeleton className="h-4 w-20" />
+      <Skeleton className="h-11 w-full rounded-lg" />
+    </div>
+    <div className="space-y-2">
+      <Skeleton className="h-4 w-16" />
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-11 w-24 rounded-lg" />
+        <Skeleton className="h-11 flex-1 rounded-lg" />
+        <Skeleton className="h-11 w-11 rounded-lg" />
+      </div>
+    </div>
+    <Skeleton className="h-11 w-full rounded-lg" />
+  </div>
+);
+
+type LoginStep = 'mobile' | 'otp' | 'password' | 'forgot-password';
+
+export function LoginForm() {
+  const { login, loginWithOTP, isLoading: authLoading } = useAuth();
+  
+  const [step, setStep] = useState<LoginStep>('mobile');
+  const [mobile, setMobile] = useState<string>('');
+  const [otpLength, setOtpLength] = useState<number>(AUTH_UI_CONFIG.defaultOtpLength);
+  const [otpResendSeconds, setOtpResendSeconds] = useState<number>(AUTH_UI_CONFIG.otpResendSeconds);
+  const [captchaId, setCaptchaId] = useState<string>('');
+  const [captchaDigits, setCaptchaDigits] = useState<string>('');
+  const [captchaLoading, setCaptchaLoading] = useState<boolean>(false);
+  const [captchaAnswer, setCaptchaAnswer] = useState<string>('');
+
+  const fetchCaptchaChallenge = async () => {
+    setCaptchaLoading(true);
+    try {
+      const { captcha_id, digits } = await authApi.getCaptchaChallenge();
+      setCaptchaId(captcha_id);
+      setCaptchaDigits(digits);
+    } catch (error) {
+      showError(error, { customMessage: msg.error("network") });
+    } finally {
+      setCaptchaLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const [otpSettingsResult, captchaResult] = await Promise.allSettled([
+        authApi.getOTPSettings().catch(() => ({
+          otp_length: AUTH_UI_CONFIG.defaultOtpLength,
+          otp_resend_seconds: AUTH_UI_CONFIG.otpResendSeconds,
+        })),
+        authApi.getCaptchaChallenge().catch(() => null),
+      ]);
+
+      if (otpSettingsResult.status === 'fulfilled' && otpSettingsResult.value?.otp_length) {
+        setOtpLength(otpSettingsResult.value.otp_length);
+        setOtpResendSeconds(otpSettingsResult.value.otp_resend_seconds || AUTH_UI_CONFIG.otpResendSeconds);
+      }
+
+      if (captchaResult.status === 'fulfilled' && captchaResult.value) {
+        setCaptchaId(captchaResult.value.captcha_id);
+        setCaptchaDigits(captchaResult.value.digits);
+      } else if (captchaResult.status === 'rejected') {
+        showError(captchaResult.reason, { customMessage: msg.error("network") });
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleMobileSubmitted = (mobileNumber: string, captchaIdValue: string, captchaAnswerValue: string) => {
+    setMobile(mobileNumber);
+    setCaptchaId(captchaIdValue);
+    setCaptchaAnswer(captchaAnswerValue);
+    setStep('password');
+  };
+
+  const handlePasswordLogin = async (mobile: string, password: string) => {
+    if (!captchaId) {
+      showError(new Error(msg.validation("captchaRequired")));
+      await fetchCaptchaChallenge();
+      return;
+    }
+
+    await login(mobile, password, captchaId, captchaAnswer);
+    showSuccess(msg.auth("loginSuccess"));
+  };
+
+  const handleOTPLogin = async (mobile: string, otp: string) => {
+    if (!captchaId) {
+      showError(new Error(msg.validation("captchaRequired")));
+      await fetchCaptchaChallenge();
+      return;
+    }
+
+    await loginWithOTP(mobile, otp, captchaId, captchaAnswer);
+    showSuccess(msg.auth("loginSuccess"));
+  };
+
+  const handleCaptchaInvalid = () => {
+    setCaptchaAnswer('');
+    setStep('mobile');
+    void fetchCaptchaChallenge();
+  };
+
+  const handleBackToMobile = () => {
+    setStep('mobile');
+    setMobile('');
+  };
+
+  const handleSwitchToPassword = () => {
+    setStep('password');
+    fetchCaptchaChallenge();
+  };
+
+  const handleBackToOTP = () => {
+    setStep('otp');
+  };
+
+  const handleOpenForgotPassword = () => {
+    setStep('forgot-password');
+    if (!captchaId) {
+      void fetchCaptchaChallenge();
+    }
+  };
+
+  const handlePasswordResetCompleted = (mobileNumber: string) => {
+    setMobile(mobileNumber);
+    setCaptchaAnswer('');
+    setStep('password');
+    void fetchCaptchaChallenge();
+  };
+
+  if (step === 'mobile') {
+    return (
+      <MobileInputForm 
+        onMobileSubmitted={handleMobileSubmitted}
+        loading={authLoading}
+        captchaId={captchaId}
+        captchaDigits={captchaDigits}
+        captchaLoading={captchaLoading}
+        onCaptchaRefresh={fetchCaptchaChallenge}
+      />
+    );
+  }
+
+  return (
+    <>
+      {step === 'otp' && (
+        <button
+          type="button"
+          onClick={handleBackToMobile}
+          className="mb-4 flex items-center gap-2 text-sm text-font-s hover:text-font-p transition-colors cursor-pointer"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          بازگشت
+        </button>
+      )}
+
+      <Suspense fallback={<FormSkeleton />}>
+        {step === 'otp' ? (
+          <OTPLoginForm
+            mobile={mobile}
+            onLogin={handleOTPLogin}
+            onSwitchToPassword={handleSwitchToPassword}
+            onCaptchaInvalid={handleCaptchaInvalid}
+            loading={authLoading}
+            otpLength={otpLength}
+            resendSeconds={otpResendSeconds}
+          />
+        ) : step === 'forgot-password' ? (
+          <AdminPasswordResetForm
+            mobile={mobile}
+            initialCaptchaId={captchaId}
+            initialCaptchaDigits={captchaDigits}
+            initialCaptchaAnswer={captchaAnswer}
+            otpLength={otpLength}
+            resendSeconds={otpResendSeconds}
+            loading={authLoading}
+            onBack={() => setStep('password')}
+            onCompleted={handlePasswordResetCompleted}
+          />
+        ) : (
+          <PasswordLoginForm
+            mobile={mobile}
+            onLogin={handlePasswordLogin}
+            onSwitchToOTP={handleBackToOTP}
+            onForgotPassword={handleOpenForgotPassword}
+            onCaptchaInvalid={handleCaptchaInvalid}
+            loading={authLoading}
+          />
+        )}
+      </Suspense>
+    </>
+  );
+}
