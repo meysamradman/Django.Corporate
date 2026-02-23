@@ -31,6 +31,7 @@ type MenuProps = {
 const menuItems = [
     { href: '/agents', label: 'مشاورین' },
     { href: '/agencies', label: 'آژانس‌ها' },
+    { href: '/property-request', label: 'درخواست ملک' },
     { href: '/portfolios', label: 'نمونه‌کارها' },
     { href: '/blogs', label: 'وبلاگ' },
     { href: '/contact', label: 'تماس با ما' },

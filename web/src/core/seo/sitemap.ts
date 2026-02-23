@@ -16,6 +16,7 @@ export const buildSitemapEntries = async (): Promise<MetadataRoute.Sitemap> => {
     "/portfolios",
     "/agents",
     "/agencies",
+    "/property-request",
     "/contact",
   ];
 
