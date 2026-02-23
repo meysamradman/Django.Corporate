@@ -1,4 +1,4 @@
-import { Moon, SunMedium } from "lucide-react"
+import { Moon, Sun } from "@phosphor-icons/react"
 import { useState, useEffect, useCallback } from "react";
 
 export function DarkMode() {
@@ -69,9 +69,9 @@ export function DarkMode() {
       className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center cursor-pointer select-none text-font-p hover:text-foreground transition-colors shrink-0"
     >
       {theme === "light" ? (
-        <Moon className="h-5 w-5" />
+        <Moon weight="duotone" size={20} />
       ) : (
-        <SunMedium className="h-5 w-5" />
+        <Sun weight="duotone" size={20} />
       )}
     </div>
   );

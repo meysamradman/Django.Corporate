@@ -1,6 +1,6 @@
 import { useMemo, Fragment } from "react";
 import { useLocation, Link } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { CaretRight as ChevronRight } from "@phosphor-icons/react";
 
 interface BreadcrumbItem {
   label: string;
@@ -110,7 +110,9 @@ export function Breadcrumb() {
         <Fragment key={index}>
           {index > 0 && (
             <ChevronRight 
-              className="h-4 w-4 text-font-s/50 rotate-180 shrink-0" 
+              weight="regular"
+              size={16}
+              className="text-font-s/50 rotate-180 shrink-0" 
             />
           )}
           

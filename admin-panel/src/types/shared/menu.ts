@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { Icon } from "@phosphor-icons/react";
 
 export interface MenuBadge {
   label: string;
@@ -21,7 +21,7 @@ export interface MenuAccessConfig {
 export interface MenuItem {
   title: string;
   url?: string;
-  icon?: LucideIcon;
+  icon?: Icon;
   items?: MenuItem[];
   isTitle?: boolean;
   disabled?: boolean;

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { User, ChevronDown } from "lucide-react";
+import { User, CaretDown as ChevronDown } from "@phosphor-icons/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -255,7 +255,7 @@ export function Sidebar({
                     className="cursor-pointer group py-2.5 px-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <User className="h-5 w-5 text-font-s/70 group-hover:text-font-p transition-colors" />
+                      <User weight="duotone" size={20} className="text-font-s/70 group-hover:text-font-p transition-colors" />
                       <span className="text-[13px] font-medium">پروفایل من</span>
                     </div>
                   </DropdownMenuItem>
@@ -394,8 +394,10 @@ function MenuItemsList({ items }: MenuItemsListProps) {
               >
                 <span>{group.title}</span>
                 <ChevronDown
+                  weight="regular"
+                  size={16}
                   className={cn(
-                    "h-4 w-4 shrink-0 transition-transform duration-200",
+                    "shrink-0 transition-transform duration-200",
                     isOpen && "rotate-180"
                   )}
                 />

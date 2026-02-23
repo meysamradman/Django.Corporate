@@ -1,4 +1,4 @@
-import { MessageCircle } from 'lucide-react';
+import { ChatCircle } from '@phosphor-icons/react';
 import { useAIChat } from '@/components/ai/chat/AIChatContext';
 import { useCanManageAIChat } from '@/core/permissions/hooks/useUIPermissions';
 
@@ -23,7 +23,7 @@ export function AIChatButton() {
       onClick={handleClick}
       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && handleClick()}
     >
-      <MessageCircle className="h-5 w-5" />
+      <ChatCircle weight="duotone" size={20} />
       <span className="absolute top-1 right-1 h-2 w-2 bg-green-1 rounded-full border border-static-w animate-pulse" />
     </div>
   );

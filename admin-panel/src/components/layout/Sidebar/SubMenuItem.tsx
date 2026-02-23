@@ -60,7 +60,7 @@ export function SubMenuItem({
         aria-disabled="true"
       >
         {item.icon && (
-          <item.icon className="h-4 w-4 shrink-0" />
+          <item.icon weight="duotone" size={16} className="shrink-0" />
         )}
         <span className="flex-1">{item.title}</span>
         {item.badge && (
@@ -92,7 +92,7 @@ export function SubMenuItem({
         }}
       >
         {item.icon && (
-          <item.icon className="h-4 w-4 shrink-0" />
+          <item.icon weight="duotone" size={16} className="shrink-0" />
         )}
         <span className="flex-1">{item.title}</span>
         {item.badge && (
@@ -123,7 +123,7 @@ export function SubMenuItem({
       onClick={() => onItemClick?.(item.title)}
     >
       {item.icon && (
-        <item.icon className="h-4 w-4 shrink-0" />
+        <item.icon weight="duotone" size={16} className="shrink-0" />
       )}
       <span className="flex-1">{item.title}</span>
       {item.badge && (

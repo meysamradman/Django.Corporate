@@ -1,4 +1,4 @@
-import { Menu, PanelRight } from "lucide-react";
+import { List as Menu, SidebarSimple } from "@phosphor-icons/react";
 import { Button } from "@/components/elements/Button";
 import { Breadcrumb } from "@/components/layout/Breadcrumb/Breadcrumb";
 import { Notifications } from "@/components/layout/Header/Notifications";
@@ -24,7 +24,7 @@ export function Header({ onMenuClick, isContentCollapsed = false, onContentToggl
           className="lg:hidden shrink-0 border-none bg-transparent shadow-none hover:bg-transparent cursor-pointer"
           aria-label="باز کردن منو"
         >
-          <Menu className="h-5 w-5" />
+          <Menu weight="duotone" size={20} />
         </Button>
 
         {isContentCollapsed && onContentToggle && (
@@ -37,7 +37,7 @@ export function Header({ onMenuClick, isContentCollapsed = false, onContentToggl
             )}
             aria-label="گسترش سایدبار"
           >
-            <PanelRight className="h-5 w-5 rotate-180 transition-transform duration-200" />
+            <SidebarSimple weight="duotone" size={20} className="rotate-180 transition-transform duration-200" />
           </button>
         )}
         
