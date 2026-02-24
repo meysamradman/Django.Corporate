@@ -25,16 +25,19 @@ export function RealEstateAgency({ agency, hasAgentOrCreator }: RealEstateAgency
             !hasAgentOrCreator && "lg:px-20 py-8"
         )}>
             <Item className="hover:bg-bg/5 transition-colors rounded-2xl p-3 gap-5 border-none">
-                <ItemMedia className="size-16 rounded-2xl bg-wt border border-br p-3 flex items-center justify-center shadow-3xs shrink-0 group-hover:border-blue-1/40 transition-all ring-4 ring-bg/50">
-                    <Avatar className="size-full rounded-none">
+                <ItemMedia className="relative shrink-0">
+                    <Avatar className={cn(
+                        "border border-br/30 shadow-3xl transition-transform duration-500",
+                        !hasAgentOrCreator ? "size-20" : "size-16"
+                    )}>
                         <AvatarImage
                             src={
                                 (agency.logo && mediaService.getMediaUrlFromObject(agency.logo as any)) ||
                                 (agency.logo_url ? mediaService.getMediaUrlFromObject({ file_url: agency.logo_url } as any) : undefined)
                             }
-                            className="object-contain"
+                            className="object-cover"
                         />
-                        <AvatarFallback className="bg-blue-1/10 text-blue-1 font-bold text-lg">
+                        <AvatarFallback className="bg-blue-1/10 text-blue-1 font-black text-xl">
                             {agency.name?.[0] || 'A'}
                         </AvatarFallback>
                     </Avatar>

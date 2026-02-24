@@ -2,8 +2,7 @@
 import type { Property } from "@/types/real_estate/realEstate";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from "@/components/media/services";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Card, CardContent } from "@/components/elements/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import {
     Image as ImageIcon,
     Search,
@@ -29,15 +28,11 @@ export function RealEstateSEO({ property }: RealEstateSEOProps) {
     const canonicalUrl = property.canonical_url || "";
 
     return (
-        <CardWithIcon
-            icon={Search}
-            title="تنظیمات سئو و رسانه‌های اجتماعی"
-            iconBgColor="bg-teal-0"
-            iconColor="text-teal-1"
-            cardBorderColor="border-b-teal-1"
-            className="overflow-hidden"
-            contentClassName={!hasSEO ? "p-0" : ""}
-        >
+        <Card className="gap-0 overflow-hidden">
+            <CardHeader className="border-b">
+                <CardTitle>تنظیمات سئو و رسانه‌های اجتماعی</CardTitle>
+            </CardHeader>
+            <CardContent className={!hasSEO ? "p-0" : ""}>
             {!hasSEO ? (
                 <EmptyState
                     title="تنظیمات سئو یافت نشد"
@@ -113,6 +108,7 @@ export function RealEstateSEO({ property }: RealEstateSEOProps) {
                     </div>
                 </div>
             )}
-        </CardWithIcon>
+            </CardContent>
+        </Card>
     );
 }

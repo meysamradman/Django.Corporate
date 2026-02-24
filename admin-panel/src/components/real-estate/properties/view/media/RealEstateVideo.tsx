@@ -1,8 +1,7 @@
 
-import { Video as VideoIcon } from "lucide-react";
 import type { Property } from "@/types/real_estate/realEstate";
 import { mediaService } from "@/components/media/services";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { VideoPlayer } from "@/components/media/videos/VideoPlayer";
 import { cn } from "@/core/utils/cn";
 
@@ -24,15 +23,11 @@ export function RealEstateVideo({ property }: RealEstateVideoProps) {
 
     return (
         <div className="flex flex-col">
-            <CardWithIcon
-                icon={VideoIcon}
-                title={videos.length > 1 ? "ویدئوهای معرفی ملک" : "ویدئوی معرفی ملک"}
-                iconBgColor="bg-blue-0/50"
-                iconColor="text-blue-1"
-                cardBorderColor="border-b-blue-1"
-                className="w-full shadow-sm h-full flex flex-col"
-                contentClassName="p-0 flex-1 flex flex-col justify-center"
-            >
+            <Card className="gap-0 w-full shadow-sm h-full flex flex-col">
+                <CardHeader className="border-b">
+                    <CardTitle>{videos.length > 1 ? "ویدئوهای معرفی ملک" : "ویدئوی معرفی ملک"}</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0 flex-1 flex flex-col justify-center">
                 <div className={cn("w-full flex-1 flex flex-col justify-center", videos.length > 1 ? "grid grid-cols-1 sm:grid-cols-2 gap-4" : "")}>
                     {videos.map((item: any) => {
                         const media = item.media_detail || item.media || item;
@@ -51,7 +46,8 @@ export function RealEstateVideo({ property }: RealEstateVideoProps) {
                         );
                     })}
                 </div>
-            </CardWithIcon>
+                </CardContent>
+            </Card>
         </div>
     );
 }

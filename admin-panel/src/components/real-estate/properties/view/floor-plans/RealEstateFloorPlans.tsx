@@ -1,13 +1,12 @@
 
 import { useState } from "react";
 import type { Property } from "@/types/real_estate/realEstate";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/elements/Accordion";
 import { realEstateApi } from "@/api/real-estate";
 import { mediaService } from "@/components/media/services";
 import { formatArea, formatPriceToPersian } from "@/core/utils/realEstateFormat";
 import {
-    Home,
     Loader2,
     Maximize2,
     DollarSign,
@@ -60,15 +59,11 @@ export function RealEstateFloorPlans({ property }: RealEstateFloorPlansProps) {
     }
 
     return (
-        <CardWithIcon
-            icon={Home}
-            title="پلان طبقات"
-            iconBgColor="bg-indigo-0/50"
-            iconColor="text-indigo-1"
-            cardBorderColor="border-b-indigo-1"
-            className="shadow-sm"
-            contentClassName=""
-        >
+        <Card className="gap-0 shadow-sm">
+            <CardHeader className="border-b">
+                <CardTitle>پلان طبقات</CardTitle>
+            </CardHeader>
+            <CardContent>
             <Accordion
                 type="single"
                 collapsible
@@ -256,6 +251,7 @@ export function RealEstateFloorPlans({ property }: RealEstateFloorPlansProps) {
                     );
                 })}
             </Accordion>
-        </CardWithIcon>
+            </CardContent>
+        </Card>
     );
 }

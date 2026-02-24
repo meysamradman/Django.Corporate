@@ -25,8 +25,8 @@ export function RealEstateDetailsFacilities({ property }: RealEstateDetailsFacil
                     <DollarSign className="size-4" />
                 </ItemMedia>
                 <ItemContent className="flex-row items-center gap-2">
-                    <span className="text-[10px] font-bold text-font-s">قیمت کل / اجاره:</span>
-                    <span className="text-xs font-black text-emerald-1">
+                    <span className="text-[14px] font-bold text-font-s">قیمت کل / اجاره:</span>
+                    <span className="text-[14px] font-black text-emerald-1">
                         {property.price || property.monthly_rent
                             ? formatPriceToPersian(property.price || property.monthly_rent, property.currency || 'تومان')
                             : <ValueFallback value={null} />}
@@ -39,8 +39,8 @@ export function RealEstateDetailsFacilities({ property }: RealEstateDetailsFacil
                     <CreditCard className="size-4" />
                 </ItemMedia>
                 <ItemContent className="flex-row items-center gap-2">
-                    <span className="text-[10px] font-bold text-font-s">رهن / ودیعه:</span>
-                    <span className="text-xs font-black text-blue-1">
+                    <span className="text-[14px] font-bold text-font-s">رهن / ودیعه:</span>
+                    <span className="text-[14px] font-black text-blue-1">
                         {property.mortgage_amount || property.security_deposit
                             ? formatPriceToPersian(property.mortgage_amount || property.security_deposit, property.currency || 'تومان')
                             : <ValueFallback value={null} />}
@@ -53,8 +53,8 @@ export function RealEstateDetailsFacilities({ property }: RealEstateDetailsFacil
                     <Building2 className="size-4" />
                 </ItemMedia>
                 <ItemContent className="flex-row items-center gap-2">
-                    <span className="text-[10px] font-bold text-font-s">تعداد اتاق خواب:</span>
-                    <span className="text-xs font-black">
+                    <span className="text-[14px] font-bold text-font-s">تعداد اتاق خواب:</span>
+                    <span className="text-[14px] font-black">
                         {property.bedrooms !== null && property.bedrooms !== undefined ? (
                             getLocalizedFacility('bedrooms', property.bedrooms)
                         ) : <ValueFallback value={null} />}
@@ -67,8 +67,8 @@ export function RealEstateDetailsFacilities({ property }: RealEstateDetailsFacil
                     <Building2 className="size-4" />
                 </ItemMedia>
                 <ItemContent className="flex-row items-center gap-2">
-                    <span className="text-[10px] font-bold text-font-s">سرویس بهداشتی:</span>
-                    <span className="text-xs font-black">
+                    <span className="text-[14px] font-bold text-font-s">سرویس بهداشتی:</span>
+                    <span className="text-[14px] font-black">
                         {property.bathrooms !== null && property.bathrooms !== undefined ? (
                             getLocalizedFacility('bathrooms', property.bathrooms) || (property.bathrooms === 0 ? 'ندارد' : property.bathrooms.toLocaleString('fa-IR'))
                         ) : <ValueFallback value={null} />}
@@ -81,8 +81,8 @@ export function RealEstateDetailsFacilities({ property }: RealEstateDetailsFacil
                     <Soup className="size-4" />
                 </ItemMedia>
                 <ItemContent className="flex-row items-center gap-2">
-                    <span className="text-[10px] font-bold text-font-s">آشپزخانه:</span>
-                    <span className="text-xs font-black">
+                    <span className="text-[14px] font-bold text-font-s">آشپزخانه:</span>
+                    <span className="text-[14px] font-black">
                         {property.kitchens !== null && property.kitchens !== undefined ? (
                             getLocalizedFacility('kitchens', property.kitchens)
                         ) : <ValueFallback value={null} />}
@@ -95,8 +95,8 @@ export function RealEstateDetailsFacilities({ property }: RealEstateDetailsFacil
                     <Users className="size-4" />
                 </ItemMedia>
                 <ItemContent className="flex-row items-center gap-2">
-                    <span className="text-[10px] font-bold text-font-s">پذیرایی:</span>
-                    <span className="text-xs font-black">
+                    <span className="text-[14px] font-bold text-font-s">پذیرایی:</span>
+                    <span className="text-[14px] font-black">
                         {property.living_rooms !== null && property.living_rooms !== undefined ? (
                             getLocalizedFacility('living_rooms', property.living_rooms)
                         ) : <ValueFallback value={null} />}

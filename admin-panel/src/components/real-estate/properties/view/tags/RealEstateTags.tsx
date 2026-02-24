@@ -1,7 +1,7 @@
 
 import { Hash } from "lucide-react";
 import type { Property } from "@/types/real_estate/realEstate";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Badge } from "@/components/elements/Badge";
 
@@ -13,14 +13,11 @@ export function RealEstateTags({ property }: RealEstateTagsProps) {
     const tags = property.tags || [];
 
     return (
-        <CardWithIcon
-            icon={Hash}
-            title="برچسب‌ها"
-            iconBgColor="bg-blue-1/10"
-            iconColor="text-blue-1"
-            cardBorderColor="border-b-blue-1"
-            contentClassName={tags.length === 0 ? "p-0" : "flex flex-wrap gap-2 p-5"}
-        >
+        <Card className="gap-0">
+            <CardHeader className="border-b">
+                <CardTitle>برچسب‌ها</CardTitle>
+            </CardHeader>
+            <CardContent className={tags.length === 0 ? "p-0" : "flex flex-wrap gap-2 p-5"}>
             {tags.length > 0 ? (
                 tags.map((tag: any, index: number) => (
                     <Badge key={index} variant="outline" className="border-blue-1/20 text-blue-1 hover:bg-blue-0">
@@ -36,6 +33,7 @@ export function RealEstateTags({ property }: RealEstateTagsProps) {
                     fullBleed={true}
                 />
             )}
-        </CardWithIcon>
+            </CardContent>
+        </Card>
     );
 }

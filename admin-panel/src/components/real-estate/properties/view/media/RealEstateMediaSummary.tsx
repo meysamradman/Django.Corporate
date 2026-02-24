@@ -1,7 +1,7 @@
 
 import type { Property } from "@/types/real_estate/realEstate";
 import { Badge } from "@/components/elements/Badge";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { ImageIcon, Video, Music, FileText } from "lucide-react";
 
 interface PropertyMediaSummaryProps {
@@ -31,17 +31,14 @@ export function RealEstateMediaSummary({ property }: PropertyMediaSummaryProps) 
     ).length;
 
     return (
-        <CardWithIcon
-            icon={ImageIcon}
-            title="خلاصه رسانه‌ها"
-            iconBgColor="bg-blue-0/50"
-            iconColor="text-blue-1"
-            cardBorderColor="border-b-blue-1"
-            className="shadow-sm"
-            contentClassName=""
-            showHeaderBorder={false}
-            titleExtra={<Badge variant="blue">{property.media_count || 0} فایل</Badge>}
-        >
+        <Card className="gap-0 shadow-sm">
+            <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                    <span>خلاصه رسانه‌ها</span>
+                    <Badge variant="blue">{property.media_count || 0} فایل</Badge>
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
             <div className="grid grid-cols-2 gap-3 h-full content-start">
                 <div className="flex items-center justify-between p-3 bg-bg rounded-xl border border-br/50 group">
                     <div className="flex items-center gap-2">
@@ -72,6 +69,7 @@ export function RealEstateMediaSummary({ property }: PropertyMediaSummaryProps) 
                     <span className="font-bold text-font-p">{documentsCount}</span>
                 </div>
             </div>
-        </CardWithIcon>
+            </CardContent>
+        </Card>
     );
 }

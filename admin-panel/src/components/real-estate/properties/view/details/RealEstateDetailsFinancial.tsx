@@ -31,8 +31,8 @@ export function RealEstateDetailsFinancial({ property }: RealEstateDetailsFinanc
                     <Home className="size-4" />
                 </ItemMedia>
                 <ItemContent className="flex-row items-center gap-2">
-                    <span className="text-[10px] font-bold text-font-s">پارکینگ:</span>
-                    <span className="text-xs font-black">
+                    <span className="text-[14px] font-bold text-font-s">پارکینگ:</span>
+                    <span className="text-[14px] font-black">
                         {property.parking_spaces !== null && property.parking_spaces !== undefined ? (
                             (msg.realEstate().facilities.parking_spaces as any)[property.parking_spaces] || (property.parking_spaces === 0 ? 'ندارد' : property.parking_spaces.toLocaleString('fa-IR'))
                         ) : <ValueFallback value={null} />}
@@ -45,8 +45,8 @@ export function RealEstateDetailsFinancial({ property }: RealEstateDetailsFinanc
                     <Package className="size-4" />
                 </ItemMedia>
                 <ItemContent className="flex-row items-center gap-2">
-                    <span className="text-[10px] font-bold text-font-s">انباری:</span>
-                    <span className="text-xs font-black">
+                    <span className="text-[14px] font-bold text-font-s">انباری:</span>
+                    <span className="text-[14px] font-black">
                         {property.storage_rooms !== null && property.storage_rooms !== undefined ? (
                             (msg.realEstate().facilities.storage_rooms as any)[property.storage_rooms] || property.storage_rooms.toLocaleString('fa-IR')
                         ) : <ValueFallback value={null} />}
@@ -59,8 +59,8 @@ export function RealEstateDetailsFinancial({ property }: RealEstateDetailsFinanc
                     <Layers className="size-4" />
                 </ItemMedia>
                 <ItemContent className="flex-row items-center gap-2">
-                    <span className="text-[10px] font-bold text-font-s">تعداد کل طبقات:</span>
-                    <span className="text-xs font-black">{property.floors_in_building ? property.floors_in_building.toLocaleString('fa-IR') : <ValueFallback value={null} />}</span>
+                    <span className="text-[14px] font-bold text-font-s">تعداد کل طبقات:</span>
+                    <span className="text-[14px] font-black">{property.floors_in_building ? property.floors_in_building.toLocaleString('fa-IR') : <ValueFallback value={null} />}</span>
                 </ItemContent>
             </Item>
 
@@ -69,8 +69,8 @@ export function RealEstateDetailsFinancial({ property }: RealEstateDetailsFinanc
                     <Layers className="size-4" />
                 </ItemMedia>
                 <ItemContent className="flex-row items-center gap-2">
-                    <span className="text-[10px] font-bold text-font-s">طبقه ملک:</span>
-                    <span className="text-xs font-black">
+                    <span className="text-[14px] font-bold text-font-s">طبقه ملک:</span>
+                    <span className="text-[14px] font-black">
                         {property.floor_number !== null && property.floor_number !== undefined ? (
                             (msg.realEstate().facilities.floor_number as any)[property.floor_number] || property.floor_number.toLocaleString('fa-IR')
                         ) : <ValueFallback value={null} />}
@@ -83,8 +83,8 @@ export function RealEstateDetailsFinancial({ property }: RealEstateDetailsFinanc
                     <Briefcase className="size-4" />
                 </ItemMedia>
                 <ItemContent className="flex-row items-center gap-2">
-                    <span className="text-[10px] font-bold text-font-s">نوع سند:</span>
-                    <span className="text-xs font-black">{property.document_type ? (getLocalizedValue('document_type', property.document_type) || property.document_type) : <ValueFallback value={null} />}</span>
+                    <span className="text-[14px] font-bold text-font-s">نوع سند:</span>
+                    <span className="text-[14px] font-black">{property.document_type ? (getLocalizedValue('document_type', property.document_type) || property.document_type) : <ValueFallback value={null} />}</span>
                 </ItemContent>
             </Item>
 
@@ -93,8 +93,8 @@ export function RealEstateDetailsFinancial({ property }: RealEstateDetailsFinanc
                     <ShieldCheck className="size-4" />
                 </ItemMedia>
                 <ItemContent className="flex-row items-center gap-2">
-                    <span className="text-[10px] font-bold text-font-s">وضعیت سند:</span>
-                    <span className="text-xs font-black">
+                    <span className="text-[14px] font-bold text-font-s">وضعیت سند:</span>
+                    <span className="text-[14px] font-black">
                         {property.has_document === true ? 'دارد' : property.has_document === false ? 'ندارد' : <ValueFallback value={null} />}
                     </span>
                 </ItemContent>

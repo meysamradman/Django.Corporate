@@ -110,7 +110,6 @@ export function Breadcrumb() {
         <Fragment key={index}>
           {index > 0 && (
             <ChevronRight 
-              size={16}
               className="text-font-s/50 rotate-180 shrink-0" 
             />
           )}

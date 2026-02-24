@@ -1,8 +1,8 @@
 
 import type { Property } from "@/types/real_estate/realEstate";
 import { Badge } from "@/components/elements/Badge";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Activity, Eye, Globe, Smartphone, Heart, PhoneCall } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { Eye, Globe, Smartphone, Heart, PhoneCall } from "lucide-react";
 
 interface RealEstateStatsProps {
     property: Property;
@@ -20,17 +20,14 @@ export function RealEstateStats({ property }: RealEstateStatsProps) {
     const config = statusMap[property.status] || { label: property.status, variant: "gray" };
 
     return (
-        <CardWithIcon
-            icon={Activity}
-            title="آمار و وضعیت"
-            iconBgColor="bg-teal-0/50"
-            iconColor="text-teal-1"
-            cardBorderColor="border-b-teal-1"
-            className="shadow-sm"
-            contentClassName=""
-            showHeaderBorder={false}
-            titleExtra={<Badge variant={config.variant}>{config.label}</Badge>}
-        >
+        <Card className="gap-0 shadow-sm">
+            <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                    <span>آمار و وضعیت</span>
+                    <Badge variant={config.variant}>{config.label}</Badge>
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                 <div className="p-4 rounded-xl bg-bg border border-br/50 flex flex-col items-center gap-2 group hover:border-blue-1/30 transition-all">
                     <Eye className="w-4 h-4 text-blue-1 opacity-70 group-hover:opacity-100 transition-opacity" />
@@ -62,6 +59,7 @@ export function RealEstateStats({ property }: RealEstateStatsProps) {
                     <span className="text-[10px] font-bold text-font-s tracking-wider text-center">درخواست/تماس</span>
                 </div>
             </div>
-        </CardWithIcon>
+            </CardContent>
+        </Card>
     );
 }

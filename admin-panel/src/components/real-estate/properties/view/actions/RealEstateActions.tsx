@@ -39,7 +39,7 @@ export function RealEstateActions({
                     className="gap-2 text-[11px] font-black bg-blue-1 hover:bg-blue-2 text-wt shadow-md shadow-blue-1/10 transition-all active:scale-95"
                     onClick={() => navigate(`/real-estate/properties/${propertyId}/edit`)}
                 >
-                    <Edit2 className="w-3.5 h-3.5" />
+                    <Edit2 />
                     ویرایش
                 </Button>
 
@@ -51,7 +51,7 @@ export function RealEstateActions({
                         onClick={() => setOpenFinalizeDialog(true)}
                         disabled={isClosed}
                     >
-                        <BadgeCheck className="w-3.5 h-3.5" />
+                        <BadgeCheck />
                         {isClosed ? "معامله نهایی شده" : "نهایی‌سازی معامله"}
                     </Button>
                 ) : null}
@@ -63,7 +63,7 @@ export function RealEstateActions({
                         className="gap-1.5 text-[10.5px] font-bold border-0 hover:bg-card bg-transparent rounded-lg text-font-s transition-all active:scale-95"
                         onClick={onPrint}
                     >
-                        <Printer className="w-3.5 h-3.5 opacity-70" />
+                        <Printer className="opacity-70" />
                         چاپ
                     </Button>
                     <div className="w-px h-3.5 bg-br/60" />
@@ -74,7 +74,7 @@ export function RealEstateActions({
                         onClick={onPdf}
                         isLoading={isExportingPdf}
                     >
-                        <FileText className="w-3.5 h-3.5 opacity-70" />
+                        <FileText className="opacity-70" />
                         PDF
                     </Button>
                 </div>

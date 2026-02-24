@@ -32,8 +32,8 @@ export function RealEstateDetailsDimensions({ property }: RealEstateDetailsDimen
                     <Activity className="size-4" />
                 </ItemMedia>
                 <ItemContent className="flex-row items-center gap-2">
-                    <span className="text-[10px] font-bold text-font-s">وضعیت:</span>
-                    <span className="text-xs font-black">
+                    <span className="text-[14px] font-bold text-font-s">وضعیت:</span>
+                    <span className="text-[14px] font-black">
                         {getLocalizedValue('status', property.status) ? (
                             getLocalizedValue('status', property.status)
                         ) : (
@@ -48,8 +48,8 @@ export function RealEstateDetailsDimensions({ property }: RealEstateDetailsDimen
                     <Hash className="size-4" />
                 </ItemMedia>
                 <ItemContent className="flex-row items-center gap-2">
-                    <span className="text-[10px] font-bold text-font-s">شناسه ملک:</span>
-                    <span className="text-xs font-black">
+                    <span className="text-[14px] font-bold text-font-s">شناسه ملک:</span>
+                    <span className="text-[14px] font-black">
                         {property.id ? `HZ-${property.id}` : <ValueFallback value={null} />}
                     </span>
                 </ItemContent>
@@ -60,8 +60,8 @@ export function RealEstateDetailsDimensions({ property }: RealEstateDetailsDimen
                     <Home className="size-4" />
                 </ItemMedia>
                 <ItemContent className="flex-row items-center gap-2">
-                    <span className="text-[10px] font-bold text-font-s">نوع ملک:</span>
-                    <span className="text-xs font-black">
+                    <span className="text-[14px] font-bold text-font-s">نوع ملک:</span>
+                    <span className="text-[14px] font-black">
                         <ValueFallback value={property.property_type?.title} />
                     </span>
                 </ItemContent>
@@ -72,8 +72,8 @@ export function RealEstateDetailsDimensions({ property }: RealEstateDetailsDimen
                     <Maximize2 className="size-4" />
                 </ItemMedia>
                 <ItemContent className="flex-row items-center gap-2">
-                    <span className="text-[10px] font-bold text-font-s">زیربنا:</span>
-                    <span className="text-xs font-black">
+                    <span className="text-[14px] font-bold text-font-s">زیربنا:</span>
+                    <span className="text-[14px] font-black">
                         {property.built_area ? formatArea(property.built_area) : <ValueFallback value={null} />}
                     </span>
                 </ItemContent>
@@ -84,8 +84,8 @@ export function RealEstateDetailsDimensions({ property }: RealEstateDetailsDimen
                     <Layers className="size-4" />
                 </ItemMedia>
                 <ItemContent className="flex-row items-center gap-2">
-                    <span className="text-[10px] font-bold text-font-s">مساحت زمین:</span>
-                    <span className="text-xs font-black">
+                    <span className="text-[14px] font-bold text-font-s">مساحت زمین:</span>
+                    <span className="text-[14px] font-black">
                         {property.land_area ? formatArea(property.land_area) : <ValueFallback value={null} />}
                     </span>
                 </ItemContent>
@@ -96,8 +96,8 @@ export function RealEstateDetailsDimensions({ property }: RealEstateDetailsDimen
                     <Calendar className="size-4" />
                 </ItemMedia>
                 <ItemContent className="flex-row items-center gap-2">
-                    <span className="text-[10px] font-bold text-font-s">سال ساخت:</span>
-                    <span className="text-xs font-black">
+                    <span className="text-[14px] font-bold text-font-s">سال ساخت:</span>
+                    <span className="text-[14px] font-black">
                         {property.year_built ? property.year_built.toLocaleString('fa-IR', { useGrouping: false }) : <ValueFallback value={null} />}
                     </span>
                 </ItemContent>
