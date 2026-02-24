@@ -1,0 +1,19 @@
+.user-profile-pages {
+  --tabs-bg: color-mix(in oklab, var(--card) 85%, var(--bg));
+}
+
+.user-profile-pages .user-profile-tabs-list {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.4rem;
+  border: 1px solid var(--br);
+  border-radius: 0.85rem;
+  background: var(--tabs-bg);
+}
+
+.user-profile-pages .user-profile-tabs-list [data-slot="tabs-trigger"] {
+  white-space: nowrap;
+  border-radius: 0.7rem;
+}

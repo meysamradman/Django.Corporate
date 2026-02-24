@@ -273,7 +273,7 @@ export function EditUserForm({ userData }: EditUserFormProps) {
             />
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList>
+                <TabsList className="user-profile-tabs-list">
                     <TabsTrigger value="account">
                         <User className="w-4 h-4" />
                         حساب کاربری
