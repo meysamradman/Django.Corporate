@@ -6,7 +6,7 @@ import { useUserFilterOptions, getUserFilterConfig } from "@/components/users/Us
 import type { UserWithProfile } from "@/types/auth/user";
 import { adminApi } from "@/api/admins/admins";
 import type { Filter } from "@/types/auth/adminFilter";
-import { Edit, Trash2, Plus } from "lucide-react";
+import { Edit, Eye, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/elements/Button";
 import { ProtectedButton } from "@/core/permissions";
 import { useQuery } from "@tanstack/react-query";
@@ -77,6 +77,12 @@ export default function UsersPage() {
   const pageCount = response?.pagination?.total_pages || Math.ceil(totalCount / pagination.pageSize) || 1;
 
   const columns = useUserColumns([
+    {
+      label: "مشاهده",
+      icon: <Eye className="h-4 w-4" />,
+      onClick: (user: UserWithProfile) => navigate(`/users/${user.id}/view`),
+      permission: "users.read",
+    },
     {
       label: "ویرایش",
       icon: <Edit className="h-4 w-4" />,

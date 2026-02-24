@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { Button } from "@/components/elements/Button";
 import { adminApi } from "@/api/admins/admins";
+import "@/pages/users/user-profile-pages.css";
 
 const EditFormSkeleton = () => (
   <div className="space-y-6">
@@ -73,7 +74,7 @@ export default function EditUserPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="user-profile-pages space-y-6">
       <Suspense fallback={<EditFormSkeleton />}>
         <EditUserForm userData={userData as any} />
       </Suspense>

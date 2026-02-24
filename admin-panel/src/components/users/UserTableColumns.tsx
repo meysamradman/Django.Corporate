@@ -66,8 +66,8 @@ export const useUserColumns = (
 
         return (
           <ProtectedLink
-            to={`/users/${user.id}/edit`}
-            permission="users.update"
+            to={`/users/${user.id}/view`}
+            permission="users.read"
             className="flex items-center gap-3"
           >
             <Avatar className="table-avatar">
