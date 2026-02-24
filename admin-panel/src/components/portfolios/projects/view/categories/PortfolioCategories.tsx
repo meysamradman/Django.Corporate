@@ -1,7 +1,7 @@
 
 import { FolderOpen } from "lucide-react";
 import type { Portfolio } from "@/types/portfolio/portfolio";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Badge } from "@/components/elements/Badge";
 import { EmptyState } from "@/components/shared/EmptyState";
 
@@ -14,15 +14,14 @@ export function PortfolioCategories({ portfolio }: PortfolioCategoriesProps) {
     const hasCategories = categoriesCount > 0;
 
     return (
-        <CardWithIcon
-            icon={FolderOpen}
-            title="دسته‌بندی‌ها"
-            iconBgColor="bg-purple-0/50"
-            iconColor="text-purple-1"
-            cardBorderColor="border-b-purple-1"
-            className="shadow-sm"
-            titleExtra={<Badge variant="purple" className="h-5 px-2 text-[10px] font-black bg-purple-1/10 text-purple-1 border-purple-1/20">{categoriesCount.toLocaleString('fa-IR')} مورد</Badge>}
-        >
+        <Card className="gap-0 shadow-sm">
+            <CardHeader className="border-b">
+                <CardTitle className="flex items-center justify-between">
+                    <span>دسته‌بندی‌ها</span>
+                    <Badge variant="purple" className="h-5 px-2 text-[10px] font-black bg-purple-1/10 text-purple-1 border-purple-1/20">{categoriesCount.toLocaleString('fa-IR')} مورد</Badge>
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
             {hasCategories ? (
                 <div className="flex flex-wrap gap-2 px-5 py-2">
                     {portfolio.categories.map((category) => (
@@ -45,6 +44,7 @@ export function PortfolioCategories({ portfolio }: PortfolioCategoriesProps) {
                     fullBleed={true}
                 />
             )}
-        </CardWithIcon>
+            </CardContent>
+        </Card>
     );
 }

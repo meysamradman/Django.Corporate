@@ -1,8 +1,7 @@
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import type { Blog } from "@/types/blog/blog";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from "@/components/media/services";
-import { Card, CardContent } from "@/components/elements/Card";
 import { Search, Globe, ImageIcon } from "lucide-react";
 import { EmptyState } from "@/components/shared/EmptyState";
 
@@ -24,14 +23,11 @@ export function BlogSEO({ blog }: BlogSEOProps) {
     const canonicalUrl = blog.canonical_url || "";
 
     return (
-        <CardWithIcon
-            icon={Search}
-            title="تنظیمات سئو و رسانه‌های اجتماعی"
-            iconBgColor="bg-teal"
-            iconColor="stroke-teal-2"
-            cardBorderColor="border-b-teal-1"
-            contentClassName={!hasSEO ? "p-0" : ""}
-        >
+        <Card className="gap-0">
+            <CardHeader className="border-b">
+                <CardTitle>تنظیمات سئو و رسانه‌های اجتماعی</CardTitle>
+            </CardHeader>
+            <CardContent className={!hasSEO ? "p-0" : ""}>
             {!hasSEO ? (
                 <EmptyState
                     title="تنظیمات سئو یافت نشد"
@@ -70,7 +66,7 @@ export function BlogSEO({ blog }: BlogSEOProps) {
                     </div>
 
                     <div className="flex flex-col h-full gap-5">
-                        <Card className="flex-1 gap-0 bg-wt border-br/60 shadow-xs group transition-smooth hover:border-blue-1/20 overflow-hidden min-h-[140px] relative">
+                        <Card className="flex-1 gap-0 bg-wt border-br/60 shadow-xs group transition-smooth hover:border-blue-1/20 overflow-hidden min-h-35 relative">
                             <div className="absolute top-0 right-0 p-3 z-10 opacity-10 group-hover:opacity-100 transition-opacity">
                                 <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-blue-1/10 text-blue-1 text-[10px] font-black backdrop-blur-sm">
                                     <Globe className="size-3" />
@@ -106,6 +102,7 @@ export function BlogSEO({ blog }: BlogSEOProps) {
                     </div>
                 </div>
             )}
-        </CardWithIcon>
+            </CardContent>
+        </Card>
     );
 }

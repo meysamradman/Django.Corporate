@@ -1,7 +1,7 @@
 import type { Blog } from "@/types/blog/blog";
 import { BlogVideo } from "./BlogVideo";
 import { BlogAttachments } from "./BlogAttachments";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { ImageIcon } from "lucide-react";
 import { EmptyState } from "@/components/shared/EmptyState";
 
@@ -18,14 +18,11 @@ export function BlogMedia({ blog }: BlogMediaProps) {
 
     if (!hasMedia) {
         return (
-            <CardWithIcon
-                icon={ImageIcon}
-                title="رسانه‌ها و مستندات"
-                iconBgColor="bg-pink"
-                iconColor="stroke-pink-2"
-                cardBorderColor="border-b-pink-1"
-                contentClassName="p-0"
-            >
+            <Card className="gap-0">
+                <CardHeader className="border-b">
+                    <CardTitle>رسانه‌ها و مستندات</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
                 <EmptyState
                     title="رسانه‌ای یافت نشد"
                     description="ویدئو، پادکست یا سندی برای این وبلاگ ثبت نشده است"
@@ -33,7 +30,8 @@ export function BlogMedia({ blog }: BlogMediaProps) {
                     size="md"
                     fullBleed={true}
                 />
-            </CardWithIcon>
+                </CardContent>
+            </Card>
         );
     }
 

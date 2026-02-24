@@ -1,7 +1,7 @@
 import { Video as VideoIcon } from "lucide-react";
 import type { Portfolio } from "@/types/portfolio/portfolio";
 import { mediaService } from "@/components/media/services";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { VideoPlayer } from "@/components/media/videos/VideoPlayer";
 import { cn } from "@/core/utils/cn";
 
@@ -26,15 +26,11 @@ export function PortfolioVideo({ portfolio }: PortfolioVideoProps) {
     if (videos.length === 0) return null;
 
     return (
-        <CardWithIcon
-            icon={VideoIcon}
-            title={videos.length > 1 ? "ویدئوهای پروژه" : "ویدئوی معرفی پروژه"}
-            iconBgColor="bg-blue-0/50"
-            iconColor="text-blue-1"
-            cardBorderColor="border-b-blue-1"
-            className="w-full shadow-sm h-full flex flex-col"
-            contentClassName="p-0 flex-1 flex flex-col justify-center"
-        >
+        <Card className="gap-0 w-full shadow-sm h-full flex flex-col">
+            <CardHeader className="border-b">
+                <CardTitle>{videos.length > 1 ? "ویدئوهای پروژه" : "ویدئوی معرفی پروژه"}</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 flex-1 flex flex-col justify-center">
             <div className={cn("w-full flex-1 flex flex-col justify-center", videos.length > 1 ? "grid grid-cols-1 sm:grid-cols-2 gap-4 p-4" : "")}>
                 {videos.map((item: any) => {
                     const media = item.media_detail || item.media;
@@ -53,6 +49,7 @@ export function PortfolioVideo({ portfolio }: PortfolioVideoProps) {
                     );
                 })}
             </div>
-        </CardWithIcon>
+            </CardContent>
+        </Card>
     );
 }

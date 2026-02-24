@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { 
-  Building2, 
   MapPin, 
   Home, 
   Tag, 
@@ -9,7 +8,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/elements/Badge";
 import { Button } from "@/components/elements/Button";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { PaginationControls } from "@/components/shared/paginations/PaginationControls";
 import { Skeleton } from "@/components/elements/Skeleton";
 import { Loader } from "@/components/elements/Loader";
@@ -54,20 +53,18 @@ export function ProfilePropertiesList({
   const rangeEnd = Math.min(currentPage * pageSize, totalCount);
 
   return (
-    <CardWithIcon
-      icon={Building2}
-      title={isConsultant ? "لیست املاک و آگهی‌ها" : "لیست املاک ثبت‌شده"}
-      iconBgColor="bg-teal-0"
-      iconColor="text-teal-1"
-      cardBorderColor="border-b-teal-1"
-      titleExtra={
-        <div className="flex items-center gap-2">
+    <Card className="gap-0">
+      <CardHeader className="border-b">
+        <CardTitle className="flex items-center justify-between gap-2">
+          <span>{isConsultant ? "لیست املاک و آگهی‌ها" : "لیست املاک ثبت‌شده"}</span>
+          <div className="flex items-center gap-2">
             <span className="text-[10px] text-font-s hidden sm:inline-block">تعداد کل:</span>
             <Badge variant="gray">{totalCount}</Badge>
-        </div>
-      }
-    >
-      <div className="space-y-6">
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
 
         {currentItems.length > 0 || isLoading ? (
           <div className="overflow-hidden rounded-xl border border-br/50 bg-card shadow-sm">
@@ -223,8 +220,9 @@ export function ProfilePropertiesList({
              </div>
         </div>
        
-      </div>
-    </CardWithIcon>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

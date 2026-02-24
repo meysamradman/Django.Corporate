@@ -1,7 +1,7 @@
 
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import type { Portfolio } from "@/types/portfolio/portfolio";
-import { Settings, FileJson } from "lucide-react";
+import { FileJson } from "lucide-react";
 import { EmptyState } from "@/components/shared/EmptyState";
 
 interface PortfolioAttributesProps {
@@ -13,13 +13,11 @@ export function PortfolioAttributes({ portfolio }: PortfolioAttributesProps) {
     const attributesEntries = Object.entries(extraAttributes);
 
     return (
-        <CardWithIcon
-            icon={Settings}
-            title="مشخصات فنی و ویژگی‌های اضافی"
-            iconBgColor="bg-indigo"
-            iconColor="stroke-indigo-2"
-            cardBorderColor="border-b-indigo-1"
-        >
+        <Card className="gap-0">
+            <CardHeader className="border-b">
+                <CardTitle>مشخصات فنی و ویژگی‌های اضافی</CardTitle>
+            </CardHeader>
+            <CardContent>
             {attributesEntries.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {attributesEntries.map(([key, value], idx) => (
@@ -42,6 +40,7 @@ export function PortfolioAttributes({ portfolio }: PortfolioAttributesProps) {
                     fullBleed={true}
                 />
             )}
-        </CardWithIcon>
+            </CardContent>
+        </Card>
     );
 }

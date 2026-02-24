@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, Building2, Calendar, CheckCircle2, Eye, FileDigit, Globe, Hash } from "lucide-react";
+import { AlertCircle, Building2, Calendar, CheckCircle2, Eye, FileDigit, Hash } from "lucide-react";
 import { adminApi } from "@/api/admins/admins";
 import { realEstateApi } from "@/api/real-estate/properties";
 import { Alert, AlertDescription } from "@/components/elements/Alert";
 import { Badge } from "@/components/elements/Badge";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { HeadCard } from "@/components/static/admin/profile/HeadCard";
 import { ProfilePropertiesList, type ProfilePropertyItem } from "@/components/static/agent/profile/ProfilePropertiesList";
 import { InfoItem } from "@/components/static/agent/profile/InfoItem";
@@ -186,45 +186,43 @@ export function DynamicProfileView({ adminId, profileMode }: DynamicProfileViewP
             <StatCard label="بازدید پروفایل" value={consultantStats.totalViews} variant="purple" icon={Eye} />
           </div>
 
-          <CardWithIcon
-            icon={Building2}
-            title="اطلاعات حرفه‌ای و پروانه کسب"
-            iconBgColor="bg-indigo-0"
-            iconColor="text-indigo-1"
-            cardBorderColor="border-b-indigo-1"
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <InfoItem label="شماره پروانه" value={toSafeString(adminData.agent_profile?.license_number)} dir="ltr" icon={FileDigit} />
-              <InfoItem label="تاریخ انقضا" value={formatDate(adminData.agent_profile?.license_expire_date)} dir="ltr" icon={Calendar} />
-              <InfoItem label="تخصص" value={toSafeString(adminData.agent_profile?.specialization)} icon={Hash} />
-              <InfoItem label="آژانس" value={toSafeString(adminData.agent_profile?.agency?.name)} icon={Building2} />
-            </div>
-
-            <Separator className="my-5 bg-indigo-1/30" />
-
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-indigo p-4 bg-indigo-0/40">
-              <div>
-                <p className="text-sm font-semibold text-font-p">وضعیت احراز هویت مشاور</p>
-                <p className="text-xs text-font-s">{adminData.agent_profile?.is_verified ? "تایید شده" : "در انتظار تایید"}</p>
+          <Card className="gap-0">
+            <CardHeader className="border-b">
+              <CardTitle>اطلاعات حرفه‌ای و پروانه کسب</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <InfoItem label="شماره پروانه" value={toSafeString(adminData.agent_profile?.license_number)} dir="ltr" icon={FileDigit} />
+                <InfoItem label="تاریخ انقضا" value={formatDate(adminData.agent_profile?.license_expire_date)} dir="ltr" icon={Calendar} />
+                <InfoItem label="تخصص" value={toSafeString(adminData.agent_profile?.specialization)} icon={Hash} />
+                <InfoItem label="آژانس" value={toSafeString(adminData.agent_profile?.agency?.name)} icon={Building2} />
               </div>
-              {adminData.agent_profile?.is_verified ? <Badge variant="green">مشاور تایید شده</Badge> : <Badge variant="amber">در انتظار</Badge>}
-            </div>
-          </CardWithIcon>
 
-          <CardWithIcon
-            icon={Globe}
-            title="تنظیمات سئو پروفایل"
-            iconBgColor="bg-teal-0"
-            iconColor="text-teal-1"
-            cardBorderColor="border-b-teal-1"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InfoItem label="Meta Title" value={toSafeString(adminData.agent_profile?.meta_title)} />
-              <InfoItem label="OG Title" value={toSafeString(adminData.agent_profile?.og_title)} />
-              <InfoItem label="Meta Description" value={toSafeString(adminData.agent_profile?.meta_description)} className="md:col-span-2" />
-              <InfoItem label="OG Description" value={toSafeString(adminData.agent_profile?.og_description)} className="md:col-span-2" />
-            </div>
-          </CardWithIcon>
+              <Separator className="bg-br/40" />
+
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-br p-4 bg-divi/30">
+                <div>
+                  <p className="text-sm font-semibold text-font-p">وضعیت احراز هویت مشاور</p>
+                  <p className="text-xs text-font-s">{adminData.agent_profile?.is_verified ? "تایید شده" : "در انتظار تایید"}</p>
+                </div>
+                {adminData.agent_profile?.is_verified ? <Badge variant="green">مشاور تایید شده</Badge> : <Badge variant="amber">در انتظار</Badge>}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="gap-0">
+            <CardHeader className="border-b">
+              <CardTitle>تنظیمات سئو پروفایل</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InfoItem label="Meta Title" value={toSafeString(adminData.agent_profile?.meta_title)} />
+                <InfoItem label="OG Title" value={toSafeString(adminData.agent_profile?.og_title)} />
+                <InfoItem label="Meta Description" value={toSafeString(adminData.agent_profile?.meta_description)} className="md:col-span-2" />
+                <InfoItem label="OG Description" value={toSafeString(adminData.agent_profile?.og_description)} className="md:col-span-2" />
+              </div>
+            </CardContent>
+          </Card>
         </>
       )}
 

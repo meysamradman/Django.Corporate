@@ -1,6 +1,6 @@
 import { Tag } from "lucide-react";
 import type { Blog } from "@/types/blog/blog";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Badge } from "@/components/elements/Badge";
 import { EmptyState } from "@/components/shared/EmptyState";
 
@@ -13,14 +13,14 @@ export function BlogTags({ blog }: BlogTagsProps) {
     const hasTags = tagsCount > 0;
 
     return (
-        <CardWithIcon
-            icon={Tag}
-            title="تگ‌ها"
-            iconBgColor="bg-indigo"
-            iconColor="stroke-indigo-2"
-            cardBorderColor="border-b-indigo-1"
-            titleExtra={<Badge variant="blue">{tagsCount.toLocaleString('fa-IR')} مورد</Badge>}
-        >
+        <Card className="gap-0">
+            <CardHeader className="border-b">
+                <CardTitle className="flex items-center justify-between">
+                    <span>تگ‌ها</span>
+                    <Badge variant="blue">{tagsCount.toLocaleString('fa-IR')} مورد</Badge>
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
             {hasTags ? (
                 <div className="flex flex-wrap gap-2">
                     {blog.tags.map((tag) => (
@@ -43,6 +43,7 @@ export function BlogTags({ blog }: BlogTagsProps) {
                     fullBleed={true}
                 />
             )}
-        </CardWithIcon>
+            </CardContent>
+        </Card>
     );
 }

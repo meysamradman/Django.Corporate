@@ -1,4 +1,4 @@
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import type { Blog } from "@/types/blog/blog";
 import { Badge } from "@/components/elements/Badge";
 import { FolderOpen, Image as ImageIcon, Video as VideoIcon, Music, FileText } from "lucide-react";
@@ -26,14 +26,14 @@ export function BlogMediaSummary({ blog }: BlogMediaSummaryProps) {
     ).length;
 
     return (
-        <CardWithIcon
-            icon={FolderOpen}
-            title="خلاصه رسانه‌ها"
-            iconBgColor="bg-blue"
-            iconColor="stroke-blue-2"
-            cardBorderColor="border-b-blue-1"
-            titleExtra={<Badge variant="blue">{allMedia.length} فایل</Badge>}
-        >
+        <Card className="gap-0">
+            <CardHeader className="border-b">
+                <CardTitle className="flex items-center justify-between">
+                    <span>خلاصه رسانه‌ها</span>
+                    <Badge variant="blue">{allMedia.length} فایل</Badge>
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
             <div className="grid grid-cols-2 gap-3 h-full content-start">
                 <div className="flex items-center justify-between p-3 bg-bg/40 rounded-xl border border-br/30 group">
                     <div className="flex items-center gap-2">
@@ -64,6 +64,7 @@ export function BlogMediaSummary({ blog }: BlogMediaSummaryProps) {
                     <span className="font-bold text-font-p">{documentsCount}</span>
                 </div>
             </div>
-        </CardWithIcon>
+            </CardContent>
+        </Card>
     );
 }

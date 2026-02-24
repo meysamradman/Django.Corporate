@@ -1,8 +1,8 @@
 
 import type { Portfolio } from "@/types/portfolio/portfolio";
 import { Badge } from "@/components/elements/Badge";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Activity, Eye, Globe, Smartphone, Heart } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
+import { Eye, Globe, Smartphone, Heart } from "lucide-react";
 
 interface PortfolioStatsProps {
     portfolio: Portfolio;
@@ -17,16 +17,14 @@ export function PortfolioStats({ portfolio }: PortfolioStatsProps) {
     const config = statusMap[portfolio.status] || { label: portfolio.status, variant: "gray" };
 
     return (
-        <CardWithIcon
-            icon={Activity}
-            title="آمار و وضعیت بازخورد"
-            iconBgColor="bg-teal-0/50"
-            iconColor="text-teal-1"
-            cardBorderColor="border-b-teal-1"
-            className="shadow-sm"
-            showHeaderBorder={false}
-            titleExtra={<Badge variant={config.variant}>{config.label}</Badge>}
-        >
+        <Card className="gap-0 shadow-sm">
+            <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                    <span>آمار و وضعیت بازخورد</span>
+                    <Badge variant={config.variant}>{config.label}</Badge>
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="p-4 rounded-xl bg-bg border border-br/50 flex flex-col items-center gap-2 group hover:border-blue-1/30 transition-all">
                     <Eye className="w-4 h-4 text-blue-1 opacity-70 group-hover:opacity-100 transition-opacity" />
@@ -52,6 +50,7 @@ export function PortfolioStats({ portfolio }: PortfolioStatsProps) {
                     <span className="text-[10px] font-bold text-font-s tracking-wider text-center">علاقه</span>
                 </div>
             </div>
-        </CardWithIcon>
+            </CardContent>
+        </Card>
     );
 }

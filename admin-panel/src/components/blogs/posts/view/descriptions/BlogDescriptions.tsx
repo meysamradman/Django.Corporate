@@ -1,4 +1,4 @@
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import type { Blog } from "@/types/blog/blog";
 import { FileText } from "lucide-react";
 import { ReadMore } from "@/components/elements/ReadMore";
@@ -9,13 +9,11 @@ interface BlogDescriptionsProps {
 
 export function BlogDescriptions({ blog }: BlogDescriptionsProps) {
     return (
-        <CardWithIcon
-            icon={FileText}
-            title="توضیحات و جزئیات تکمیلی"
-            iconBgColor="bg-orange"
-            iconColor="stroke-orange-2"
-            cardBorderColor="border-b-orange-1"
-        >
+        <Card className="gap-0">
+            <CardHeader className="border-b">
+                <CardTitle>توضیحات و جزئیات تکمیلی</CardTitle>
+            </CardHeader>
+            <CardContent>
             <div className="flex flex-col gap-6">
                 <div>
                     <label className="text-[10px] font-black text-font-s tracking-widest uppercase mb-3 block opacity-40">
@@ -47,6 +45,7 @@ export function BlogDescriptions({ blog }: BlogDescriptionsProps) {
                     </div>
                 </div>
             </div>
-        </CardWithIcon>
+            </CardContent>
+        </Card>
     );
 }

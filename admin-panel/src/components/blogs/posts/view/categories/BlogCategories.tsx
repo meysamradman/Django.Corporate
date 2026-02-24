@@ -1,6 +1,6 @@
 import { FolderOpen } from "lucide-react";
 import type { Blog } from "@/types/blog/blog";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Badge } from "@/components/elements/Badge";
 import { EmptyState } from "@/components/shared/EmptyState";
 
@@ -13,14 +13,14 @@ export function BlogCategories({ blog }: BlogCategoriesProps) {
     const hasCategories = categoriesCount > 0;
 
     return (
-        <CardWithIcon
-            icon={FolderOpen}
-            title="دسته‌بندی‌ها"
-            iconBgColor="bg-purple"
-            iconColor="stroke-purple-2"
-            cardBorderColor="border-b-purple-1"
-            titleExtra={<Badge variant="purple">{categoriesCount.toLocaleString('fa-IR')} مورد</Badge>}
-        >
+        <Card className="gap-0">
+            <CardHeader className="border-b">
+                <CardTitle className="flex items-center justify-between">
+                    <span>دسته‌بندی‌ها</span>
+                    <Badge variant="purple">{categoriesCount.toLocaleString('fa-IR')} مورد</Badge>
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
             {hasCategories ? (
                 <div className="flex flex-wrap gap-2">
                     {blog.categories.map((category) => (
@@ -43,6 +43,7 @@ export function BlogCategories({ blog }: BlogCategoriesProps) {
                     fullBleed={true}
                 />
             )}
-        </CardWithIcon>
+            </CardContent>
+        </Card>
     );
 }

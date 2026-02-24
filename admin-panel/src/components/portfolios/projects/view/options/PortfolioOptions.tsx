@@ -1,7 +1,7 @@
 
 import { FileCode } from "lucide-react";
 import type { Portfolio } from "@/types/portfolio/portfolio";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Badge } from "@/components/elements/Badge";
 import { EmptyState } from "@/components/shared/EmptyState";
 
@@ -14,15 +14,14 @@ export function PortfolioOptions({ portfolio }: PortfolioOptionsProps) {
     const hasOptions = optionsCount > 0;
 
     return (
-        <CardWithIcon
-            icon={FileCode}
-            title="گزینه‌ها"
-            iconBgColor="bg-teal-0/50"
-            iconColor="text-teal-1"
-            cardBorderColor="border-b-teal-1"
-            className="shadow-sm"
-            titleExtra={<Badge variant="teal" className="h-5 px-2 text-[10px] font-black bg-teal-1/10 text-teal-1 border-teal-1/20">{optionsCount.toLocaleString('fa-IR')} مورد</Badge>}
-        >
+        <Card className="gap-0 shadow-sm">
+            <CardHeader className="border-b">
+                <CardTitle className="flex items-center justify-between">
+                    <span>گزینه‌ها</span>
+                    <Badge variant="teal" className="h-5 px-2 text-[10px] font-black bg-teal-1/10 text-teal-1 border-teal-1/20">{optionsCount.toLocaleString('fa-IR')} مورد</Badge>
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
             {hasOptions ? (
                 <div className="flex flex-wrap gap-2 px-5 py-2">
                     {portfolio.options.map((option) => (
@@ -44,6 +43,7 @@ export function PortfolioOptions({ portfolio }: PortfolioOptionsProps) {
                     fullBleed={true}
                 />
             )}
-        </CardWithIcon>
+            </CardContent>
+        </Card>
     );
 }

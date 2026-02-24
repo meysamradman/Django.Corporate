@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, Building2, Calendar, CheckCircle2, Edit2, FileDigit, Globe, Hash, UserRound } from "lucide-react";
+import { AlertCircle, Building2, Calendar, CheckCircle2, Edit2, FileDigit, Globe, Hash } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
 import { Alert, AlertDescription } from "@/components/elements/Alert";
 import { Button } from "@/components/elements/Button";
 import { PageHeader } from "@/components/layout/PageHeader/PageHeader";
 import { Skeleton } from "@/components/elements/Skeleton";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import { Badge } from "@/components/elements/Badge";
 import { InfoItem } from "@/components/static/agent/profile/InfoItem";
 import { HeadCard } from "@/components/static/admin/profile/HeadCard";
@@ -219,50 +219,48 @@ export function DynamicAgencyView({ agencyId }: DynamicAgencyViewProps) {
         <StatCard label="امتیاز" value={agencyData.rating ?? 0} variant="purple" icon={Building2} />
       </div>
 
-      <CardWithIcon
-        icon={Building2}
-        title="اطلاعات آژانس"
-        iconBgColor="bg-indigo-0"
-        iconColor="text-indigo-1"
-        cardBorderColor="border-b-indigo-1"
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <InfoItem label="شماره پروانه" value={toSafeString(agencyData.license_number)} dir="ltr" icon={FileDigit} />
-          <InfoItem label="تاریخ انقضا" value={formatDate(agencyData.license_expire_date)} dir="ltr" icon={Calendar} />
-          <InfoItem label="تلفن" value={toSafeString(agencyData.phone)} dir="ltr" icon={Hash} />
-          <InfoItem label="وب‌سایت" value={toSafeString(agencyData.website)} icon={Globe} />
-          <InfoItem label="استان" value={toSafeString(agencyData.province_name)} icon={Building2} />
-          <InfoItem label="شهر" value={toSafeString(agencyData.city_name)} icon={Building2} />
-          <InfoItem label="آدرس" value={toSafeString(agencyData.address)} className="sm:col-span-2" />
-        </div>
-
-        <Separator className="my-5 bg-indigo-1/30" />
-
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-indigo p-4 bg-indigo-0/40">
-          <div>
-            <p className="text-sm font-semibold text-font-p">وضعیت تایید آژانس</p>
-            <p className="text-xs text-font-s">{agencyData.is_verified ? "تایید شده" : "در انتظار تایید"}</p>
+      <Card className="gap-0">
+        <CardHeader className="border-b">
+          <CardTitle>اطلاعات آژانس</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <InfoItem label="شماره پروانه" value={toSafeString(agencyData.license_number)} dir="ltr" icon={FileDigit} />
+            <InfoItem label="تاریخ انقضا" value={formatDate(agencyData.license_expire_date)} dir="ltr" icon={Calendar} />
+            <InfoItem label="تلفن" value={toSafeString(agencyData.phone)} dir="ltr" icon={Hash} />
+            <InfoItem label="وب‌سایت" value={toSafeString(agencyData.website)} icon={Globe} />
+            <InfoItem label="استان" value={toSafeString(agencyData.province_name)} icon={Building2} />
+            <InfoItem label="شهر" value={toSafeString(agencyData.city_name)} icon={Building2} />
+            <InfoItem label="آدرس" value={toSafeString(agencyData.address)} className="sm:col-span-2" />
           </div>
-          {agencyData.is_verified ? <Badge variant="green">آژانس تایید شده</Badge> : <Badge variant="amber">در انتظار</Badge>}
-        </div>
-      </CardWithIcon>
 
-      <CardWithIcon
-        icon={Globe}
-        title="تنظیمات سئو آژانس"
-        iconBgColor="bg-teal-0"
-        iconColor="text-teal-1"
-        cardBorderColor="border-b-teal-1"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoItem label="Meta Title" value={toSafeString(agencyData.meta_title)} />
-          <InfoItem label="OG Title" value={toSafeString(agencyData.og_title)} />
-          <InfoItem label="Meta Description" value={toSafeString(agencyData.meta_description)} className="md:col-span-2" />
-          <InfoItem label="OG Description" value={toSafeString(agencyData.og_description)} className="md:col-span-2" />
-          <InfoItem label="Canonical URL" value={toSafeString(agencyData.canonical_url)} className="md:col-span-2" />
-          <InfoItem label="Robots" value={toSafeString(agencyData.robots_meta)} className="md:col-span-2" />
-        </div>
-      </CardWithIcon>
+          <Separator className="bg-br/40" />
+
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-br p-4 bg-divi/30">
+            <div>
+              <p className="text-sm font-semibold text-font-p">وضعیت تایید آژانس</p>
+              <p className="text-xs text-font-s">{agencyData.is_verified ? "تایید شده" : "در انتظار تایید"}</p>
+            </div>
+            {agencyData.is_verified ? <Badge variant="green">آژانس تایید شده</Badge> : <Badge variant="amber">در انتظار</Badge>}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="gap-0">
+        <CardHeader className="border-b">
+          <CardTitle>تنظیمات سئو آژانس</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InfoItem label="Meta Title" value={toSafeString(agencyData.meta_title)} />
+            <InfoItem label="OG Title" value={toSafeString(agencyData.og_title)} />
+            <InfoItem label="Meta Description" value={toSafeString(agencyData.meta_description)} className="md:col-span-2" />
+            <InfoItem label="OG Description" value={toSafeString(agencyData.og_description)} className="md:col-span-2" />
+            <InfoItem label="Canonical URL" value={toSafeString(agencyData.canonical_url)} className="md:col-span-2" />
+            <InfoItem label="Robots" value={toSafeString(agencyData.robots_meta)} className="md:col-span-2" />
+          </div>
+        </CardContent>
+      </Card>
 
       <AgencyAgentsList
         agents={agencyAdvisors}
@@ -312,80 +310,81 @@ function AgencyAgentsList({
   const rangeEnd = Math.min(currentPage * pageSize, totalCount);
 
   return (
-    <CardWithIcon
-      icon={UserRound}
-      title="لیست مشاوران آژانس"
-      iconBgColor="bg-blue-0"
-      iconColor="text-blue-1"
-      cardBorderColor="border-b-blue-1"
-      titleExtra={<Badge variant="gray">{agents.length}</Badge>}
-    >
-      {agents.length === 0 && !isLoading ? (
-        <div className="rounded-xl border border-dashed border-br p-6 text-center text-font-s">مشاوری برای این آژانس ثبت نشده است.</div>
-      ) : (
-        <div className="space-y-4">
-          <div className="space-y-3">
-            {isLoading && agents.length === 0
-              ? Array.from({ length: 5 }).map((_, index) => (
-                  <div key={`loading-agent-${index}`} className="rounded-xl border border-br bg-card p-3">
-                    <Skeleton className="h-10 w-full" />
+    <Card className="gap-0">
+      <CardHeader className="border-b">
+        <CardTitle className="flex items-center justify-between gap-2">
+          <span>لیست مشاوران آژانس</span>
+          <Badge variant="gray">{agents.length}</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {agents.length === 0 && !isLoading ? (
+          <div className="rounded-xl border border-dashed border-br p-6 text-center text-font-s">مشاوری برای این آژانس ثبت نشده است.</div>
+        ) : (
+          <div className="space-y-4">
+            <div className="space-y-3">
+              {isLoading && agents.length === 0
+                ? Array.from({ length: 5 }).map((_, index) => (
+                    <div key={`loading-agent-${index}`} className="rounded-xl border border-br bg-card p-3">
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                  ))
+                : agents.map((agent) => (
+                <div key={agent.id} className="flex items-center justify-between gap-3 rounded-xl border border-br bg-card p-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-font-p truncate">{agent.full_name || "---"}</p>
+                    <p className="text-xs text-font-s truncate">{agent.phone || agent.email || "---"}</p>
                   </div>
-                ))
-              : agents.map((agent) => (
-              <div key={agent.id} className="flex items-center justify-between gap-3 rounded-xl border border-br bg-card p-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-font-p truncate">{agent.full_name || "---"}</p>
-                  <p className="text-xs text-font-s truncate">{agent.phone || agent.email || "---"}</p>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={agent.is_active ? "green" : "red"}>{agent.is_active ? "فعال" : "غیرفعال"}</Badge>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => navigate(`/agents/${agent.view_admin_id}/view`)}
+                    >
+                      مشاهده
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={agent.is_active ? "green" : "red"}>{agent.is_active ? "فعال" : "غیرفعال"}</Badge>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => navigate(`/agents/${agent.view_admin_id}/view`)}
-                  >
-                    مشاهده
-                  </Button>
+              ))}
+
+              {isLoading && agents.length > 0 && (
+                <div className="rounded-xl border border-br bg-card p-3">
+                  <div className="grid grid-cols-3 gap-3">
+                    <Skeleton className="h-2 w-full" />
+                    <Skeleton className="h-2 w-full" />
+                    <Skeleton className="h-2 w-full" />
+                  </div>
                 </div>
-              </div>
-            ))}
+              )}
 
-            {isLoading && agents.length > 0 && (
-              <div className="rounded-xl border border-br bg-card p-3">
-                <div className="grid grid-cols-3 gap-3">
-                  <Skeleton className="h-2 w-full" />
-                  <Skeleton className="h-2 w-full" />
-                  <Skeleton className="h-2 w-full" />
+              {isLoading && (
+                <div className="rounded-xl border border-br bg-card py-1">
+                  <Loader />
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
-            {isLoading && (
-              <div className="rounded-xl border border-br bg-card py-1">
-                <Loader />
+            <div className="flex justify-center border-t border-br/40 pt-4">
+              <div className="w-full max-w-3xl">
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={onPageChange}
+                  pageSize={pageSize}
+                  onPageSizeChange={onPageSizeChange}
+                  pageSizeOptions={[10, 20, 50]}
+                  showPageSize={true}
+                  showInfo={true}
+                  infoText={`${rangeStart} - ${rangeEnd} از ${totalCount}`}
+                  totalCount={totalCount}
+                />
               </div>
-            )}
-          </div>
-
-          <div className="flex justify-center border-t border-br/40 pt-4">
-            <div className="w-full max-w-3xl">
-              <PaginationControls
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={onPageChange}
-                pageSize={pageSize}
-                onPageSizeChange={onPageSizeChange}
-                pageSizeOptions={[10, 20, 50]}
-                showPageSize={true}
-                showInfo={true}
-                infoText={`${rangeStart} - ${rangeEnd} از ${totalCount}`}
-                totalCount={totalCount}
-              />
             </div>
           </div>
-        </div>
-      )}
-    </CardWithIcon>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

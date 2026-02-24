@@ -2,8 +2,7 @@
 import type { Portfolio } from "@/types/portfolio/portfolio";
 import { MediaImage } from "@/components/media/base/MediaImage";
 import { mediaService } from "@/components/media/services";
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
-import { Card, CardContent } from "@/components/elements/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import {
     Image as ImageIcon,
     Search,
@@ -29,15 +28,11 @@ export function PortfolioSEO({ portfolio }: PortfolioSEOProps) {
     const canonicalUrl = portfolio.canonical_url || "";
 
     return (
-        <CardWithIcon
-            icon={Search}
-            title="تنظیمات سئو و پیش‌نمایش رسانه‌های اجتماعی"
-            iconBgColor="bg-teal-0"
-            iconColor="text-teal-1"
-            cardBorderColor="border-b-teal-1"
-            className="overflow-hidden"
-            contentClassName={!hasSEO ? "p-0" : ""}
-        >
+        <Card className="gap-0 overflow-hidden">
+            <CardHeader className="border-b">
+                <CardTitle>تنظیمات سئو و پیش‌نمایش رسانه‌های اجتماعی</CardTitle>
+            </CardHeader>
+            <CardContent className={!hasSEO ? "p-0" : ""}>
             {!hasSEO ? (
                 <EmptyState
                     title="تنظیمات سئو یافت نشد"
@@ -78,7 +73,7 @@ export function PortfolioSEO({ portfolio }: PortfolioSEOProps) {
                     </div>
 
                     <div className="flex flex-col h-full gap-5">
-                        <Card className="flex-1 bg-wt border-br/60 shadow-xs group transition-smooth hover:border-blue-1/20 overflow-hidden min-h-[140px] relative">
+                        <Card className="flex-1 bg-wt border-br/60 shadow-xs group transition-smooth hover:border-blue-1/20 overflow-hidden min-h-35 relative">
                             <div className="absolute top-0 right-0 p-3 z-10 opacity-10 group-hover:opacity-100 transition-opacity">
                                 <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-blue-1/10 text-blue-1 text-[10px] font-black backdrop-blur-sm">
                                     <Globe className="size-3" />
@@ -114,6 +109,7 @@ export function PortfolioSEO({ portfolio }: PortfolioSEOProps) {
                     </div>
                 </div>
             )}
-        </CardWithIcon>
+            </CardContent>
+        </Card>
     );
 }

@@ -1,4 +1,4 @@
-import { CardWithIcon } from "@/components/elements/CardWithIcon";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/elements/Card";
 import type { Blog } from "@/types/blog/blog";
 import { Badge } from "@/components/elements/Badge";
 import { Eye, Globe, Smartphone, Heart, Activity } from "lucide-react";
@@ -15,14 +15,14 @@ export function BlogStats({ blog }: BlogStatsProps) {
     const config = statusMap[blog.status] || { label: blog.status, variant: "gray" };
 
     return (
-        <CardWithIcon
-            icon={Activity}
-            title="آمار و وضعیت بازخورد"
-            iconBgColor="bg-green"
-            iconColor="stroke-green-2"
-            cardBorderColor="border-b-green-1"
-            titleExtra={<Badge variant={config.variant === "green" ? "green" : "yellow"}>{config.label}</Badge>}
-        >
+        <Card className="gap-0">
+            <CardHeader className="border-b">
+                <CardTitle className="flex items-center justify-between">
+                    <span>آمار و وضعیت بازخورد</span>
+                    <Badge variant={config.variant === "green" ? "green" : "yellow"}>{config.label}</Badge>
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                 <div className="p-4 rounded-xl bg-bg/40 border border-br/30 flex flex-col items-center gap-2 group hover:border-blue-1/30 transition-all">
                     <Eye className="w-4 h-4 text-blue-1 opacity-70 group-hover:opacity-100 transition-opacity" />
@@ -54,6 +54,7 @@ export function BlogStats({ blog }: BlogStatsProps) {
                     <span className="text-[10px] font-bold text-font-s tracking-wider text-center">نظرات</span>
                 </div>
             </div>
-        </CardWithIcon>
+            </CardContent>
+        </Card>
     );
 }
