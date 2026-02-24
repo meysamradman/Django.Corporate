@@ -30,6 +30,7 @@ import AdminsAgenciesEditPage from './pages/admins/agencies/[id]/edit/page';
 import UsersPage from './pages/users/page';
 import UsersCreatePage from './pages/users/create/page';
 import UsersEditPage from './pages/users/[id]/edit/page';
+import UsersViewPage from './pages/users/[id]/view/page';
 import RolesPage from './pages/roles/page';
 import RolesCreatePage from './pages/roles/create/page';
 import RolesEditPage from './pages/roles/[id]/edit/page';
@@ -144,6 +145,7 @@ function App() {
                     <Route path="users">
                       <Route index element={<UsersPage />} />
                       <Route path="create" element={<UsersCreatePage />} />
+                      <Route path=":id/view" element={<UsersViewPage />} />
                       <Route path=":id/edit" element={<UsersEditPage />} />
                     </Route>
                     <Route path="roles">

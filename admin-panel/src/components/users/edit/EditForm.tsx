@@ -1,7 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { notifyApiError, showSuccess } from "@/core/toast";
 import type { UserWithProfile } from "@/types/auth/user";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
 import { User, KeyRound, AlertCircle, Share2 } from "lucide-react";
 import { UserProfileHeader } from "@/components/users/profile/UserProfileHeader.tsx";
 import { Skeleton } from "@/components/elements/Skeleton";
@@ -13,6 +12,7 @@ import { userEditSchema } from "@/components/users/validations/userEditSchema";
 import { extractMappedUserFieldErrors, USER_EDIT_FIELD_MAP } from "@/components/users/validations/userApiError";
 import type { SocialMediaItem } from "@/types/shared/socialMedia";
 import { SocialMediaArrayEditor } from "@/components/shared/SocialMediaArrayEditor";
+import { TabbedPageLayout } from "@/components/templates/TabbedPageLayout";
 
 const TabContentSkeleton = () => (
     <div className="mt-6 space-y-6">
@@ -61,7 +61,6 @@ interface EditUserFormProps {
 
 export function EditUserForm({ userData }: EditUserFormProps) {
     const [activeTab, setActiveTab] = useState("account");
-    const [editMode, setEditMode] = useState(false);
     const [formData, setFormData] = useState({
         firstName: userData.profile?.first_name || "",
         lastName: userData.profile?.last_name || "",
@@ -123,10 +122,6 @@ export function EditUserForm({ userData }: EditUserFormProps) {
     }, [userData?.profile?.profile_picture?.id]);
 
     const handleInputChange = (field: string, value: string | any) => {
-        if (field === "cancel") {
-            setEditMode(false);
-            return;
-        }
         setFormData(prev => ({ ...prev, [field]: value }));
         
         if (fieldErrors[field]) {
@@ -208,7 +203,6 @@ export function EditUserForm({ userData }: EditUserFormProps) {
             
                                     await adminApi.updateUserByType(userData.id, updateData, 'user');
                         showSuccess(msg.crud('updated', { item: 'پروفایل کاربر' }));
-            setEditMode(false);
         } catch (error: unknown) {
                                     const { fieldErrors: newFieldErrors, nonFieldError: nonFieldMessage } = extractMappedUserFieldErrors(
                                         error,
@@ -257,6 +251,49 @@ export function EditUserForm({ userData }: EditUserFormProps) {
         }
     };
     
+    const tabs = [
+        {
+            id: "account",
+            label: "حساب کاربری",
+            icon: <User className="w-4 h-4" />,
+            content: (
+                <AccountTab
+                    user={userData}
+                    formData={formData}
+                    editMode={true}
+                    setEditMode={() => {}}
+                    handleInputChange={handleInputChange}
+                    handleSaveProfile={handleSaveProfile}
+                    isSaving={isSaving}
+                    fieldErrors={fieldErrors}
+                    onProvinceChange={handleProvinceChange}
+                    onCityChange={handleCityChange}
+                    userId={String(userData.id)}
+                />
+            ),
+        },
+        {
+            id: "security",
+            label: "گذرواژه",
+            icon: <KeyRound className="w-4 h-4" />,
+            content: <SecurityTab />,
+        },
+        {
+            id: "social",
+            label: "شبکه‌های اجتماعی",
+            icon: <Share2 className="w-4 h-4" />,
+            content: (
+                <div className="rounded-lg border p-6">
+                    <SocialMediaArrayEditor
+                        items={socialMediaItems}
+                        onChange={setSocialMediaItems}
+                        canEdit={true}
+                    />
+                </div>
+            ),
+        },
+    ];
+
     return (
         <div className="space-y-6">
             {formAlert ? (
@@ -272,56 +309,19 @@ export function EditUserForm({ userData }: EditUserFormProps) {
                 onProfileImageChange={(media) => handleInputChange("profileImage", media)}
             />
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList>
-                    <TabsTrigger value="account">
-                        <User className="w-4 h-4" />
-                        حساب کاربری
-                    </TabsTrigger>
-                    <TabsTrigger value="security">
-                        <KeyRound className="w-4 h-4" />
-                        گذرواژه
-                    </TabsTrigger>
-                    <TabsTrigger value="social">
-                        <Share2 className="w-4 h-4" />
-                        شبکه‌های اجتماعی
-                    </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="account">
-                    <Suspense fallback={<TabContentSkeleton />}>
-                        <AccountTab
-                            user={userData}
-                            formData={formData}
-                            editMode={editMode}
-                            setEditMode={setEditMode}
-                            handleInputChange={handleInputChange}
-                            handleSaveProfile={handleSaveProfile}
-                            isSaving={isSaving}
-                            fieldErrors={fieldErrors}
-                            onProvinceChange={handleProvinceChange}
-                            onCityChange={handleCityChange}
-                            userId={String(userData.id)}
-                        />
-                    </Suspense>
-                </TabsContent>
-
-                <TabsContent value="security">
-                    <Suspense fallback={<TabContentSkeleton />}>
-                        <SecurityTab />
-                    </Suspense>
-                </TabsContent>
-
-                <TabsContent value="social">
-                    <div className="rounded-lg border p-6">
-                        <SocialMediaArrayEditor
-                            items={socialMediaItems}
-                            onChange={setSocialMediaItems}
-                            canEdit={true}
-                        />
-                    </div>
-                </TabsContent>
-            </Tabs>
+            <Suspense fallback={<TabContentSkeleton />}>
+                <TabbedPageLayout
+                    title="ویرایش کاربر"
+                    showHeader={false}
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                    tabs={tabs}
+                    onSave={handleSaveProfile}
+                    isSaving={isSaving}
+                    saveLabel="ذخیره تغییرات"
+                    skeleton={<TabContentSkeleton />}
+                />
+            </Suspense>
         </div>
     );
 }
