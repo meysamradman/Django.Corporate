@@ -37,7 +37,7 @@ export default function Slider({ slidesData = [] }: SliderProps) {
           crossFade: true
         }}
         autoplay={{
-          delay: 6000,
+          delay: 7000,
           disableOnInteraction: false,
           pauseOnMouseEnter: true,
         }}

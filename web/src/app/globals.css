@@ -254,8 +254,8 @@
 /* Swiper RTL Styles */
 .swiper-button-prev,
 .swiper-button-next {
-  width: 3.25rem;
-  height: 3.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
   display: flex !important;
   align-items: center;
   justify-content: center;
@@ -265,24 +265,25 @@
   -webkit-appearance: none;
   -webkit-tap-highlight-color: transparent;
   color: var(--color-static-w) !important;
-  background: transparent !important;
-  border: none !important;
-  backdrop-filter: none;
-  border-radius: 0;
+  background: color-mix(in srgb, var(--color-static-b) 22%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--color-static-w) 22%, transparent) !important;
+  backdrop-filter: blur(4px);
+  border-radius: 9999px;
   cursor: pointer;
   user-select: none;
   z-index: 20;
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition: opacity 0.25s ease, background-color 0.25s ease, border-color 0.25s ease;
   filter: none;
 }
 
 .swiper-button-prev svg,
 .swiper-button-next svg {
-  width: 3rem;
-  height: 3rem;
+  width: 1.7rem;
+  height: 1.7rem;
   display: block;
   fill: none !important;
   stroke: currentColor !important;
+  stroke-width: 1.8;
 }
 
 /* Hide default arrows from swiper css */
@@ -293,28 +294,29 @@
 
 /* Navigation positioning: swap sides for RTL */
 [dir='ltr'] .swiper-button-prev {
-  left: 3rem !important;
+  left: 1.25rem !important;
   right: auto !important;
 }
 
 [dir='ltr'] .swiper-button-next {
-  right: 3rem !important;
+  right: 1.25rem !important;
   left: auto !important;
 }
 
 [dir='rtl'] .swiper-button-prev {
-  right: 3rem !important;
+  right: 1.25rem !important;
   left: auto !important;
 }
 
 [dir='rtl'] .swiper-button-next {
-  left: 3rem !important;
+  left: 1.25rem !important;
   right: auto !important;
 }
 
 .swiper-button-prev:hover,
 .swiper-button-next:hover {
-  transform: none;
+  background: color-mix(in srgb, var(--color-static-b) 34%, transparent) !important;
+  border-color: color-mix(in srgb, var(--color-static-w) 35%, transparent) !important;
 }
 
 .swiper-button-prev:focus-visible,
@@ -343,21 +345,27 @@
 
 /* Hero slider subtle reveal (Ken Burns style, no hover-zoom) */
 .home-hero-slider .swiper-slide .home-hero-media {
-  transform: scale(1.08);
+  transform: scale(1.12);
   transform-origin: center center;
   will-change: transform;
 }
 
 .home-hero-slider .swiper-slide-active .home-hero-media {
-  animation: heroReveal 6200ms ease-out forwards;
+  animation: heroReveal 7000ms ease-out forwards;
 }
 
 @keyframes heroReveal {
   from {
-    transform: scale(1.12);
+    transform: scale(1.2);
   }
   to {
     transform: scale(1);
   }
+}
+
+/* Keep videos stable in hero slider (no Ken Burns on video slides) */
+.home-hero-slider .swiper-slide video {
+  transform: none !important;
+  animation: none !important;
 }
 

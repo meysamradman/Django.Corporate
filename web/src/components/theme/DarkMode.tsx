@@ -24,8 +24,8 @@ export function DarkMode({ variant = "solid" }: DarkModeProps) {
         return (
             <div
                 aria-label="Loading theme"
-                className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center shrink-0">
-                <div className="w-5 h-5 sm:w-6 sm:h-6 bg-br animate-pulse rounded-full" />
+                className="inline-flex h-9 w-9 items-center justify-center shrink-0">
+                <div className="size-5 bg-br animate-pulse rounded-full" />
             </div>
         );
     }
@@ -42,7 +42,7 @@ export function DarkMode({ variant = "solid" }: DarkModeProps) {
             onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggleTheme()}
             aria-label="Toggle theme"
             className={cn(
-                "inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center cursor-pointer select-none rounded-lg border transition-colors shrink-0",
+                "inline-flex h-9 w-9 items-center justify-center cursor-pointer select-none rounded-lg border transition-colors shrink-0",
                 triggerClass
             )}
         >

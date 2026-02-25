@@ -164,7 +164,8 @@ export function HeaderProvincePopover({ provinceOptions = [], variant = "solid" 
   const triggerClass = variant === "transparent"
     ? "inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-static-w/20 bg-static-w/10 px-3 text-xs font-bold text-static-w transition-colors hover:bg-static-w/15"
     : "inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-br bg-bg px-3 text-xs font-bold text-font-p transition-colors hover:bg-card";
-  const triggerIconClass = variant === "transparent" ? "size-3.5 text-static-w/90" : "size-3.5 text-font-s";
+  const triggerMapIconClass = variant === "transparent" ? "size-3.5 text-static-w/90" : "size-3.5 text-font-s";
+  const triggerChevronClass = variant === "transparent" ? "size-3 text-static-w/80" : "size-3 text-font-s";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -174,9 +175,9 @@ export function HeaderProvincePopover({ provinceOptions = [], variant = "solid" 
           className={triggerClass}
           aria-label={TEXT.chooseProvince}
         >
-          <MapPin className={triggerIconClass} />
+          <MapPin className={triggerMapIconClass} />
           <span className="line-clamp-1 max-w-24 sm:max-w-28">{triggerLabel}</span>
-          <ChevronDown className={triggerIconClass} />
+          <ChevronDown className={triggerChevronClass} />
         </button>
       </DialogTrigger>
 
