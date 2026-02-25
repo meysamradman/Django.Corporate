@@ -11,6 +11,7 @@ export default function NeshanMapProvider({
     mapZoom,
     onLocationChange,
     disabled,
+    editable = true,
     setIsMapReady,
     apiKey,
 }: MapProviderProps) {
@@ -36,7 +37,7 @@ export default function NeshanMapProvider({
         const lngLat: [number, number] = [lng, lat];
 
         if (!markerRef.current) {
-            markerRef.current = new nmp_mapboxgl.Marker({ draggable: !disabled })
+            markerRef.current = new nmp_mapboxgl.Marker({ draggable: !disabled && !!editable })
                 .setLngLat(lngLat)
                 .addTo(map);
 
@@ -48,16 +49,16 @@ export default function NeshanMapProvider({
             });
         } else {
             markerRef.current.setLngLat(lngLat);
-            markerRef.current.setDraggable(!disabled);
+            markerRef.current.setDraggable(!disabled && !!editable);
         }
-    }, [disabled, onLocationChange]);
+    }, [disabled, editable, onLocationChange]);
 
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !hasApiKey) return;
 
         const handleClick = (event: any) => {
-            if (disabled) return;
+            if (disabled || !editable) return;
             const lng = event?.lngLat?.lng;
             const lat = event?.lngLat?.lat;
             if (typeof lat === "number" && typeof lng === "number") {
@@ -71,7 +72,7 @@ export default function NeshanMapProvider({
         return () => {
             map.off("click", handleClick);
         };
-    }, [disabled, onLocationChange, hasApiKey, syncMarker, mapReadyVersion]);
+    }, [disabled, editable, onLocationChange, hasApiKey, syncMarker, mapReadyVersion]);
 
     useEffect(() => {
         const map = mapRef.current;

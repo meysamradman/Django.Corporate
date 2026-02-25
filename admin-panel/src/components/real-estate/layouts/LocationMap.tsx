@@ -22,6 +22,7 @@ interface PropertyLocationMapProps {
   viewLatitude?: number | null;
   viewLongitude?: number | null;
   disabled?: boolean;
+  editable?: boolean;
   className?: string;
   minimal?: boolean;
 }
@@ -38,6 +39,7 @@ export default function LocationMap({
   viewLatitude,
   viewLongitude,
   disabled = false,
+  editable = true,
   className = "",
   minimal = false,
 }: PropertyLocationMapProps) {
@@ -299,6 +301,7 @@ export default function LocationMap({
               mapZoom={mapZoom}
               onLocationChange={handlePositionChange}
               disabled={disabled}
+              editable={editable}
               setIsMapReady={setIsMapReady}
               cityName={cityName}
               provinceName={provinceName}
@@ -313,6 +316,7 @@ export default function LocationMap({
               mapZoom={mapZoom}
               onLocationChange={handlePositionChange}
               disabled={disabled}
+              editable={editable}
               setIsMapReady={setIsMapReady}
               apiKey={mapSettings.configs?.google_maps?.api_key}
               google_maps_map_id={mapSettings.configs?.google_maps?.map_id}
@@ -329,6 +333,7 @@ export default function LocationMap({
               mapZoom={mapZoom}
               onLocationChange={handlePositionChange}
               disabled={disabled}
+              editable={editable}
               setIsMapReady={setIsMapReady}
               apiKey={mapSettings.configs?.neshan?.map_key || import.meta.env.VITE_NESHAN_MAP_KEY || null}
               cityName={cityName}

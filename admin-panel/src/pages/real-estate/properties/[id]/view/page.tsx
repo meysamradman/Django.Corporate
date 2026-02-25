@@ -87,19 +87,25 @@ export default function PropertyViewPage() {
         }}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         <div className="lg:col-span-8 xl:col-span-9 space-y-5">
           <div id="section-gallery" className="scroll-mt-32">
             <RealEstateGridGallery property={propertyData} />
           </div>
-
-          <RealEstateCRM property={propertyData} />
         </div>
 
         <div className="lg:col-span-4 xl:col-span-3">
           <div className="w-full h-full">
             <Card className="h-full overflow-hidden border-br shadow-2xl bg-card p-0 relative flex flex-col ring-1 ring-br/20">
-              <RealEstateLocation property={propertyData} />
+              <RealEstateLocation
+                property={propertyData}
+                bottomSlot={
+                  <RealEstateCRM
+                    property={propertyData}
+                    compact
+                  />
+                }
+              />
             </Card>
           </div>
         </div>

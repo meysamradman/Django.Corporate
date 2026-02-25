@@ -26,6 +26,7 @@ export interface MapProviderProps {
     mapZoom: number;
     onLocationChange: (lat: number, lng: number) => void;
     disabled: boolean;
+    editable?: boolean;
     setIsMapReady: (ready: boolean) => void;
     cityName?: string | null;
     provinceName?: string | null;

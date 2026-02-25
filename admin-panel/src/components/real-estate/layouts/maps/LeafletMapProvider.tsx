@@ -45,10 +45,10 @@ function ChangeView({ center, zoom }: { center: [number, number]; zoom: number }
     return null;
 }
 
-function MapClickHandler({ onMapClick, disabled }: { onMapClick: (lat: number, lng: number) => void; disabled?: boolean }) {
+function MapClickHandler({ onMapClick, disabled, editable }: { onMapClick: (lat: number, lng: number) => void; disabled?: boolean; editable?: boolean }) {
     useMapEvents({
         click(e) {
-            if (!disabled) {
+            if (!disabled && editable) {
                 const { lat, lng } = e.latlng;
                 onMapClick(lat, lng);
             }
@@ -57,7 +57,7 @@ function MapClickHandler({ onMapClick, disabled }: { onMapClick: (lat: number, l
     return null;
 }
 
-function LocationMarker({ position, onPositionChange, disabled }: { position: [number, number] | null; onPositionChange: (lat: number, lng: number) => void; disabled?: boolean }) {
+function LocationMarker({ position, onPositionChange, disabled, editable }: { position: [number, number] | null; onPositionChange: (lat: number, lng: number) => void; disabled?: boolean; editable?: boolean }) {
     const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(position);
     useEffect(() => { setMarkerPosition(position); }, [position]);
     if (!markerPosition) return null;
@@ -67,7 +67,7 @@ function LocationMarker({ position, onPositionChange, disabled }: { position: [n
             key={markerKey}
             position={markerPosition}
             icon={createCustomIcon(true)}
-            draggable={!disabled}
+            draggable={!disabled && !!editable}
             eventHandlers={{
                 dragend: (e) => {
                     const marker = e.target;
@@ -87,6 +87,7 @@ export default function LeafletMapProvider({
     mapZoom,
     onLocationChange,
     disabled,
+    editable = true,
     setIsMapReady
 }: MapProviderProps) {
     return (
@@ -105,11 +106,12 @@ export default function LeafletMapProvider({
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <ChangeView center={mapCenter} zoom={mapZoom} />
-            <MapClickHandler onMapClick={onLocationChange} disabled={disabled} />
+            <MapClickHandler onMapClick={onLocationChange} disabled={disabled} editable={editable} />
             <LocationMarker
                 position={latitude !== null && longitude !== null ? [latitude, longitude] : null}
                 onPositionChange={onLocationChange}
                 disabled={disabled}
+                editable={editable}
             />
         </MapContainer>
     );
