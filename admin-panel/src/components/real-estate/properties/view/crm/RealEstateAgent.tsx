@@ -16,9 +16,10 @@ interface RealEstateAgentProps {
     createdBy?: number;
     createdByPhone?: string;
     hasAgency: boolean;
+    compact?: boolean;
 }
 
-export function RealEstateAgent({ agent, createdByName, createdBy, createdByPhone, hasAgency }: RealEstateAgentProps) {
+export function RealEstateAgent({ agent, createdByName, createdBy, createdByPhone, hasAgency, compact = false }: RealEstateAgentProps) {
     const navigate = useNavigate();
 
     if (!agent && !createdByName) return null;
@@ -26,13 +27,13 @@ export function RealEstateAgent({ agent, createdByName, createdBy, createdByPhon
     return (
         <div className={cn(
             "flex-1 p-3",
-            !hasAgency && "lg:px-20 py-8"
+            !compact && !hasAgency && "lg:px-20 py-8"
         )}>
             <Item className="hover:bg-bg/5 transition-colors rounded-2xl p-3 gap-5 border-none">
                 <ItemMedia className="relative shrink-0">
                     <Avatar className={cn(
                         "border border-br/30 shadow-3xl transition-transform duration-500",
-                        !hasAgency ? "size-20" : "size-16"
+                        !compact && !hasAgency ? "size-20" : "size-16"
                     )}>
                         <AvatarImage
                             src={
@@ -47,7 +48,7 @@ export function RealEstateAgent({ agent, createdByName, createdBy, createdByPhon
                     </Avatar>
                     <div className={cn(
                         "absolute -bottom-0.5 -right-0.5 border-2 border-wt rounded-full animate-pulse shadow-md",
-                        !hasAgency ? "size-5" : "size-4",
+                        !compact && !hasAgency ? "size-5" : "size-4",
                         hasAgency ? 'bg-emerald-1' : 'bg-blue-1'
                     )} />
                 </ItemMedia>
@@ -61,7 +62,7 @@ export function RealEstateAgent({ agent, createdByName, createdBy, createdByPhon
                         </Badge>
                         <span className={cn(
                             "font-black text-font-p truncate tracking-tight",
-                            !hasAgency ? "text-xl" : "text-lg"
+                            !compact && !hasAgency ? "text-xl" : "text-lg"
                         )}>
                             {agent?.user ? (agent.full_name || `${agent.first_name} ${agent.last_name}`) : createdByName}
                         </span>
@@ -70,7 +71,7 @@ export function RealEstateAgent({ agent, createdByName, createdBy, createdByPhon
                         <Phone className="size-4 text-indigo-1/60" />
                         <span className={cn(
                             "font-black text-font-s dir-ltr tracking-tight",
-                            !hasAgency ? "text-base" : "text-sm"
+                            !compact && !hasAgency ? "text-base" : "text-sm"
                         )}>
                             {agent?.phone || createdByPhone || <ValueFallback value={null} fallback="بدون تماس" />}
                         </span>

@@ -93,14 +93,15 @@ export default function PropertyViewPage() {
             <RealEstateGridGallery property={propertyData} />
           </div>
 
-          <RealEstateCRM property={propertyData} />
         </div>
 
         <div className="lg:col-span-4 xl:col-span-3">
-          <div className="w-full h-full">
-            <Card className="h-full overflow-hidden border-br shadow-2xl bg-card p-0 relative flex flex-col ring-1 ring-br/20">
+          <div className="w-full h-full flex flex-col gap-5">
+            <Card className="overflow-hidden border-br shadow-2xl bg-card p-0 relative flex flex-col ring-1 ring-br/20">
               <RealEstateLocation property={propertyData} />
             </Card>
+
+            <RealEstateCRM property={propertyData} compact />
           </div>
         </div>
       </div>

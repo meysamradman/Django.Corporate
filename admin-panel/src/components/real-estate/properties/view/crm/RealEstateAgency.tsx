@@ -12,9 +12,10 @@ import type { Property } from "@/types/real_estate/realEstate";
 interface RealEstateAgencyProps {
     agency: Property["agency"];
     hasAgentOrCreator: boolean;
+    compact?: boolean;
 }
 
-export function RealEstateAgency({ agency, hasAgentOrCreator }: RealEstateAgencyProps) {
+export function RealEstateAgency({ agency, hasAgentOrCreator, compact = false }: RealEstateAgencyProps) {
     const navigate = useNavigate();
 
     if (!agency) return null;
@@ -22,13 +23,13 @@ export function RealEstateAgency({ agency, hasAgentOrCreator }: RealEstateAgency
     return (
         <div className={cn(
             "flex-1 p-3",
-            !hasAgentOrCreator && "lg:px-20 py-8"
+            !compact && !hasAgentOrCreator && "lg:px-20 py-8"
         )}>
             <Item className="hover:bg-bg/5 transition-colors rounded-2xl p-3 gap-5 border-none">
                 <ItemMedia className="relative shrink-0">
                     <Avatar className={cn(
                         "border border-br/30 shadow-3xl transition-transform duration-500",
-                        !hasAgentOrCreator ? "size-20" : "size-16"
+                        !compact && !hasAgentOrCreator ? "size-20" : "size-16"
                     )}>
                         <AvatarImage
                             src={
