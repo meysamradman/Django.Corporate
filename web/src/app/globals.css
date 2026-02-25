@@ -343,6 +343,78 @@
   border-radius: 0.375rem;
 }
 
+/* Custom hero slider controls */
+.home-hero-nav-button {
+  position: absolute;
+  left: 1.25rem;
+  z-index: 30;
+  inline-size: 2.7rem;
+  block-size: 2.7rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--color-static-w) 30%, transparent);
+  background: color-mix(in srgb, var(--color-static-b) 20%, transparent);
+  color: var(--color-static-w);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  transition: background-color 0.25s ease, border-color 0.25s ease, opacity 0.25s ease;
+}
+
+.home-hero-nav-button:hover {
+  background: color-mix(in srgb, var(--color-static-b) 34%, transparent);
+  border-color: color-mix(in srgb, var(--color-static-w) 45%, transparent);
+}
+
+.home-hero-nav-button svg {
+  inline-size: 1.35rem;
+  block-size: 1.35rem;
+  stroke-width: 1.75;
+}
+
+.home-hero-nav-prev {
+  inset-block-end: 10.6rem;
+}
+
+.home-hero-nav-next {
+  inset-block-end: 7.2rem;
+}
+
+.home-hero-counter {
+  position: absolute;
+  right: 1.45rem;
+  bottom: 7.25rem;
+  z-index: 30;
+  transform: none;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-static-w);
+  font-size: 1.45rem;
+  line-height: 1;
+  font-weight: 700;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.home-hero-counter-separator {
+  inline-size: 1.9rem;
+  block-size: 1px;
+  background: color-mix(in srgb, var(--color-static-w) 75%, transparent);
+}
+
+.home-hero-counter-total {
+  opacity: 0.78;
+  font-size: 1.15rem;
+}
+
+@media (max-width: 1024px) {
+  .home-hero-nav-button,
+  .home-hero-counter {
+    display: none;
+  }
+}
+
 /* Hero slider subtle reveal (Ken Burns style, no hover-zoom) */
 .home-hero-slider .swiper-slide .home-hero-media {
   transform: scale(1.12);
