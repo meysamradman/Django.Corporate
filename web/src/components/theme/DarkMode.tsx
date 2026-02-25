@@ -2,8 +2,13 @@
 import {Moon, SunMedium} from "lucide-react"
 import * as React from "react";
 import { useTheme } from "next-themes";
+import { cn } from "@/core/utils/cn";
 
-export function DarkMode() {
+type DarkModeProps = {
+    variant?: "transparent" | "solid";
+};
+
+export function DarkMode({ variant = "solid" }: DarkModeProps) {
     const { setTheme, resolvedTheme } = useTheme();
     const [mounted, setMounted] = React.useState(false);
 
@@ -25,6 +30,10 @@ export function DarkMode() {
         );
     }
 
+    const triggerClass = variant === "transparent"
+        ? "border-static-w/20 bg-static-w/10 text-static-w hover:bg-static-w/15"
+        : "border-br bg-bg text-font-p hover:bg-card";
+
     return (
         <div
             role="button"
@@ -32,7 +41,10 @@ export function DarkMode() {
             onClick={toggleTheme}
             onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggleTheme()}
             aria-label="Toggle theme"
-            className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center cursor-pointer select-none rounded-lg border border-br bg-bg text-font-p transition-colors hover:bg-card shrink-0"
+            className={cn(
+                "inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center cursor-pointer select-none rounded-lg border transition-colors shrink-0",
+                triggerClass
+            )}
         >
             {resolvedTheme === "light" ? (
                 <Moon className="h-5 w-5" />

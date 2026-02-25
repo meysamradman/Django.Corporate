@@ -15,6 +15,7 @@
   --bg-2: #f6f8fa;
   --bg-3: #f6f8fa;
   --bg-4: #f6f8fa;
+  --bg: #f6f8fa;
   /* Typography*/
   --font-p: #423f50;
   --font-s: #6b6876;
@@ -116,7 +117,8 @@
   --sdb-menu-ttl: #d1d5db;
   --sdb-hv: #1a1a1a;
   /* --- Header --- */
-  --header: #0f0f0f;
+  --header-s: #0f0f0f;
+  --header-t: #ffffff14;
   /* --- Card --- */
   --card: #111111;
   /* Table */

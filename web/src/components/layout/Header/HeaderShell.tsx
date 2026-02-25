@@ -30,6 +30,10 @@ export function HeaderShell({
     provinceOptions = [],
 }: HeaderShellProps) {
     const isTransparentInitial = initialMode === 'transparent';
+    const menuVariant: 'transparent' | 'solid' = isScrolled || !isTransparentInitial ? 'solid' : 'transparent';
+    const actionButtonClass = menuVariant === 'transparent'
+        ? 'hidden sm:inline-flex h-9 items-center rounded-lg border border-static-w/20 bg-static-w/10 px-3 text-xs font-black text-static-w transition-colors hover:bg-static-w/15'
+        : 'hidden sm:inline-flex h-9 items-center rounded-lg border border-br bg-bg px-3 text-xs font-black text-font-p transition-colors hover:bg-card';
 
     return (
         <>
@@ -52,17 +56,17 @@ export function HeaderShell({
                 </div>
 
                 <Menu
-                    variant={isScrolled || !isTransparentInitial ? 'solid' : 'transparent'}
+                    variant={menuVariant}
                     statusOptions={statusOptions}
                     typeOptions={typeOptions}
                 />
 
                 <div className="justify-self-end flex items-center gap-2">
-                    <HeaderProvincePopover provinceOptions={provinceOptions} />
-                    <DarkMode />
+                    <HeaderProvincePopover provinceOptions={provinceOptions} variant={menuVariant} />
+                    <DarkMode variant={menuVariant} />
                     <Link
                         href="/contact"
-                        className="hidden sm:inline-flex h-9 items-center rounded-lg border border-br bg-bg px-3 text-xs font-black text-font-p transition-colors hover:bg-card"
+                        className={actionButtonClass}
                     >
                         مشاوره
                     </Link>

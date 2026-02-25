@@ -190,7 +190,8 @@ export default function PropertyHeroSearch({
             <div>
               <Button
                 onClick={handleSearch}
-                className="w-full sm:w-auto h-12 px-8 bg-primary hover:bg-blue-2 text-wt font-black shadow-md transition-all duration-200"
+                size="hero"
+                className="w-full sm:w-auto bg-primary hover:bg-blue-2 text-wt font-black shadow-md transition-all duration-200"
               >
                 <Search className="ms-2 size-5" />
                 جستجو

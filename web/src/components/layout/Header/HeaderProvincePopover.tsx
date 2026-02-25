@@ -10,6 +10,15 @@ import type { ProvinceCompact } from "@/types/shared/location";
 
 type HeaderProvincePopoverProps = {
   provinceOptions?: ProvinceCompact[];
+  variant?: "transparent" | "solid";
+};
+
+const TEXT = {
+  all: "همه",
+  province: "استان",
+  chooseProvince: "انتخاب استان",
+  allProvinces: "همه استان‌ها",
+  close: "بستن",
 };
 
 const PREFERRED_PROVINCE_ID_COOKIE = "preferred_province_id";
@@ -80,7 +89,7 @@ const toAllProvincesHref = (searchParams: SearchParamsLike): string => {
   });
 };
 
-export function HeaderProvincePopover({ provinceOptions = [] }: HeaderProvincePopoverProps) {
+export function HeaderProvincePopover({ provinceOptions = [], variant = "solid" }: HeaderProvincePopoverProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -146,29 +155,34 @@ export function HeaderProvincePopover({ provinceOptions = [] }: HeaderProvincePo
     return null;
   }, [pathname, preferredProvinceId, provinceOptions, searchParams]);
 
-  const triggerLabel = selectedProvince?.name || (preferredAll ? "همه" : "استان");
+  const triggerLabel = selectedProvince?.name || (preferredAll ? TEXT.all : TEXT.province);
 
   if (provinceOptions.length === 0) {
     return null;
   }
+
+  const triggerClass = variant === "transparent"
+    ? "inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-static-w/20 bg-static-w/10 px-3 text-xs font-bold text-static-w transition-colors hover:bg-static-w/15"
+    : "inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-br bg-bg px-3 text-xs font-bold text-font-p transition-colors hover:bg-card";
+  const triggerIconClass = variant === "transparent" ? "size-3.5 text-static-w/90" : "size-3.5 text-font-s";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <button
           type="button"
-          className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-br bg-bg px-3 text-xs font-bold text-font-p transition-colors hover:bg-card"
-          aria-label="انتخاب استان"
+          className={triggerClass}
+          aria-label={TEXT.chooseProvince}
         >
-          <MapPin className="size-3.5 text-font-s" />
+          <MapPin className={triggerIconClass} />
           <span className="line-clamp-1 max-w-24 sm:max-w-28">{triggerLabel}</span>
-          <ChevronDown className="size-3.5 text-font-s" />
+          <ChevronDown className={triggerIconClass} />
         </button>
       </DialogTrigger>
 
       <DialogContent className="max-w-sm border-br bg-card p-0" showCloseButton={false}>
         <DialogHeader className="border-b border-br px-4 py-3 text-right">
-          <DialogTitle className="text-sm font-black text-font-p">انتخاب استان</DialogTitle>
+          <DialogTitle className="text-sm font-black text-font-p">{TEXT.chooseProvince}</DialogTitle>
         </DialogHeader>
 
         <div className="max-h-[60vh] overflow-y-auto p-2">
@@ -196,7 +210,7 @@ export function HeaderProvincePopover({ provinceOptions = [] }: HeaderProvincePo
               selectedProvince === null ? "border-br bg-bg text-font-p" : "border-transparent bg-transparent text-font-s hover:border-br hover:bg-bg hover:text-font-p"
             )}
           >
-            <span className="line-clamp-1 text-sm font-semibold">همه استان‌ها</span>
+            <span className="line-clamp-1 text-sm font-semibold">{TEXT.allProvinces}</span>
           </button>
 
           {provinceOptions.map((province) => {
@@ -252,7 +266,7 @@ export function HeaderProvincePopover({ provinceOptions = [] }: HeaderProvincePo
             onClick={() => setOpen(false)}
             className="inline-flex h-9 w-full items-center justify-center rounded-md border border-br bg-bg px-3 text-xs font-bold text-font-p transition-colors hover:bg-card"
           >
-            بستن
+            {TEXT.close}
           </button>
         </div>
       </DialogContent>
