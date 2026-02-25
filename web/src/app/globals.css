@@ -341,3 +341,23 @@
   border-radius: 0.375rem;
 }
 
+/* Hero slider subtle reveal (Ken Burns style, no hover-zoom) */
+.home-hero-slider .swiper-slide .home-hero-media {
+  transform: scale(1.08);
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.home-hero-slider .swiper-slide-active .home-hero-media {
+  animation: heroReveal 6200ms ease-out forwards;
+}
+
+@keyframes heroReveal {
+  from {
+    transform: scale(1.12);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+

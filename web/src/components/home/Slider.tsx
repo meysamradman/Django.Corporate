@@ -57,7 +57,7 @@ export default function Slider({ slidesData = [] }: SliderProps) {
         }}
         speed={1200}
         watchSlidesProgress={true}
-        className="h-full w-full group"
+        className="home-hero-slider h-full w-full"
       >
         {slides.map((slide) => (
           <SwiperSlide key={slide.id} className="relative overflow-hidden">
@@ -67,7 +67,7 @@ export default function Slider({ slidesData = [] }: SliderProps) {
                 <img
                   src={slide.media_url || ''}
                   alt={slide.title || 'اسلاید'}
-                  className="h-full w-full object-cover transition-transform duration-2000 ease-out group-hover:scale-110"
+                  className="home-hero-media h-full w-full object-cover"
                 />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                   <div className="max-w-4xl text-center text-white px-6">
@@ -147,3 +147,4 @@ export default function Slider({ slidesData = [] }: SliderProps) {
     </div>
   );
 }
+

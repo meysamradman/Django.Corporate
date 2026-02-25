@@ -155,7 +155,7 @@ export function HeaderProvincePopover({ provinceOptions = [], variant = "solid" 
     return null;
   }, [pathname, preferredProvinceId, provinceOptions, searchParams]);
 
-  const triggerLabel = selectedProvince?.name || (preferredAll ? TEXT.all : TEXT.province);
+  const triggerLabel = selectedProvince?.name || TEXT.province;
 
   if (provinceOptions.length === 0) {
     return null;

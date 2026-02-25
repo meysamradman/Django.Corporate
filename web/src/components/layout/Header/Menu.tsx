@@ -40,13 +40,13 @@ const LABELS = {
 
 const menuItems = [
     { href: '/property-request', label: 'درخواست ملک' },
-    { href: '/portfolios', label: 'نمونه‌کارها' },
 ];
 
 const aboutMegaItems = [
     { href: '/about', title: 'درباره ما', description: 'آشنایی با شناسنامه برند و ارزش‌های تیم.' },
     { href: '/contact', title: 'تماس با ما', description: 'راه‌های ارتباط مستقیم با تیم فروش و پشتیبانی.' },
     { href: '/blogs', title: 'وبلاگ', description: 'محتوای تخصصی بازار املاک و آموزش‌های کاربردی.' },
+    { href: '/portfolios', title: 'نمونه‌کارها', description: 'پروژه‌ها و نمونه‌های اجرا شده برای بررسی کیفیت کار.' },
     { href: '/agents', title: 'مشاورین', description: 'مشاهده پروفایل مشاوران فعال و راه‌های تماس.' },
     { href: '/agencies', title: 'آژانس‌ها', description: 'لیست آژانس‌های همکار و معتبر در پلتفرم.' },
 ];
