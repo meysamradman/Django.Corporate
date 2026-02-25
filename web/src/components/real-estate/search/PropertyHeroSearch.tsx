@@ -23,8 +23,7 @@ type PropertyHeroSearchProps = {
   typeOptions: HeroSearchOption[];
   /** Available transaction state options (e.g., فروش, اجاره, ...) */
   stateOptions: HeroSearchOption[];
-  /** Available property status options (e.g., منتشر شده, پیش‌نویس, ...) */
-  statusOptions: HeroSearchOption[];
+  className?: string;
 };
 
 const EMPTY_SELECT_VALUE = "__empty__";
@@ -48,8 +47,8 @@ function NativeSelect({ className, children, value, defaultValue, onChange, ...p
       disabled={props.disabled}
     >
       <SelectTrigger
-      id={props.id}
-      className={`w-full rounded-md border border-br bg-wt px-3 text-sm shadow-xs outline-none focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 ${className ?? ""}`}
+        id={props.id}
+        className={`w-full bg-bg text-font-p ${className ?? ""}`}
       >
         <SelectValue placeholder={placeholderOption?.props.children as React.ReactNode} />
       </SelectTrigger>
@@ -99,13 +98,12 @@ function NativeSelectOption(_props: React.ComponentProps<"option">) {
 export default function PropertyHeroSearch({
   typeOptions,
   stateOptions,
-  statusOptions,
+  className = "",
 }: PropertyHeroSearchProps) {
   const router = useRouter();
   const [location, setLocation] = useState("");
   const [propertyType, setPropertyType] = useState("");
   const [transactionState, setTransactionState] = useState("");
-  const [status, setStatus] = useState("");
 
   const handleSearch = () => {
     const baseFilters = resolvePropertySearchFilters({});
@@ -115,7 +113,6 @@ export default function PropertyHeroSearch({
       property_type: null,
       state_slug: transactionState || "",
       state: null,
-      status: status || "",
       page: 1,
     });
 
@@ -129,13 +126,13 @@ export default function PropertyHeroSearch({
   };
 
   return (
-    <div className="w-full bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 py-8 shadow-2xl">
+    <div className={`w-full ${className}`}>
       <div className="container mx-auto px-4">
-        <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 shadow-xl border border-white/10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_auto] gap-3 items-end">
+        <div className="rounded-2xl border border-br/50 bg-wt p-4 shadow-xl md:p-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_auto] gap-3 items-end">
             {/* Search by Location */}
             <div>
-              <label htmlFor="location-search" className="block text-sm font-medium text-white mb-2">
+              <label htmlFor="location-search" className="sr-only">
                 جستجو بر اساس موقعیت
               </label>
               <Input
@@ -145,20 +142,20 @@ export default function PropertyHeroSearch({
                 onChange={(e) => setLocation(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="شهر، منطقه، محله..."
-                className="bg-white/95 border-0 h-11 text-gray-900 placeholder:text-gray-500"
+                className="bg-bg border-br/50 text-font-p placeholder:text-font-s"
               />
             </div>
 
             {/* Property Type */}
             <div>
-              <label htmlFor="property-type" className="block text-sm font-medium text-white mb-2">
+              <label htmlFor="property-type" className="sr-only">
                 نوع ملک
               </label>
               <NativeSelect
                 id="property-type"
                 value={propertyType}
                 onChange={(e) => setPropertyType(e.target.value)}
-                className="bg-white/95 border-0 h-11 text-gray-900"
+                className="border-br/50"
               >
                 <NativeSelectOption value="">همه انواع</NativeSelectOption>
                 {typeOptions.map((option) => (
@@ -171,37 +168,17 @@ export default function PropertyHeroSearch({
 
             {/* Sell or Rent */}
             <div>
-              <label htmlFor="transaction-state" className="block text-sm font-medium text-white mb-2">
+              <label htmlFor="transaction-state" className="sr-only">
                 نوع معامله
               </label>
               <NativeSelect
                 id="transaction-state"
                 value={transactionState}
                 onChange={(e) => setTransactionState(e.target.value)}
-                className="bg-white/95 border-0 h-11 text-gray-900"
+                className="border-br/50"
               >
                 <NativeSelectOption value="">همه</NativeSelectOption>
                 {stateOptions.map((option) => (
-                  <NativeSelectOption key={option.id} value={option.value}>
-                    {option.title}
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
-            </div>
-
-            {/* Property Status */}
-            <div>
-              <label htmlFor="property-status" className="block text-sm font-medium text-white mb-2">
-                وضعیت انتشار
-              </label>
-              <NativeSelect
-                id="property-status"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="bg-white/95 border-0 h-11 text-gray-900"
-              >
-                <NativeSelectOption value="">همه وضعیت‌ها</NativeSelectOption>
-                {statusOptions.map((option) => (
                   <NativeSelectOption key={option.id} value={option.value}>
                     {option.title}
                   </NativeSelectOption>
@@ -213,9 +190,9 @@ export default function PropertyHeroSearch({
             <div>
               <Button
                 onClick={handleSearch}
-                className="w-full sm:w-auto h-11 px-8 bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                className="w-full sm:w-auto h-12 px-8 bg-primary hover:bg-blue-2 text-wt font-black shadow-md transition-all duration-200"
               >
-                <Search className="ml-2 size-5" />
+                <Search className="ms-2 size-5" />
                 جستجو
               </Button>
             </div>
@@ -225,3 +202,5 @@ export default function PropertyHeroSearch({
     </div>
   );
 }
+
+

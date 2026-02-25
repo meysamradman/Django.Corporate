@@ -15,14 +15,13 @@ export default async function HomePage() {
   // Server-side data fetching (parallel) for faster and SEO-friendly Home.
   // Keep Slider as a client component (interactive), but pass server-fetched data.
 
-  const [slides, states, featured, types, allStates, allTypes, statuses]: [
+  const [slides, states, featured, types, allStates, allTypes]: [
     HomeSliderItem[],
     PropertyState[],
     Property[],
     PropertyType[],
     PropertyState[],
-    PropertyType[],
-    Array<{ value: string; label: string }>
+    PropertyType[]
   ] = await Promise.all([
     brandingApi.getSliders().then((r) => (Array.isArray(r) ? r : [])).catch(() => []),
     realEstateApi.getListingTypes({ size: 3 }).then((r) => (Array.isArray(r?.data) ? r.data.slice(0, 3) : [])).catch(() => []),
@@ -30,7 +29,6 @@ export default async function HomePage() {
     realEstateApi.getTypes({ size: 4 }).then((r) => (Array.isArray(r?.data) ? r.data.slice(0, 4) : [])).catch(() => []),
     realEstateApi.getListingTypes({ page: 1, size: 100 }).then((r) => (Array.isArray(r?.data) ? r.data : [])).catch(() => []),
     realEstateApi.getTypes({ page: 1, size: 100 }).then((r) => (Array.isArray(r?.data) ? r.data : [])).catch(() => []),
-    realEstateApi.getPropertyStatuses().catch(() => []),
   ]);
 
   const typeOptions = allTypes.map((item) => ({
@@ -45,28 +43,21 @@ export default async function HomePage() {
     title: item.title || item.name,
   }));
 
-  const statusOptions = statuses.map((item, index) => ({
-    id: index + 1,
-    value: item.value,
-    title: item.label,
-  }));
-
   return (
     <>
-      <section>
+      <section className="relative">
         <Suspense fallback={<div className="relative w-full h-[80vh] bg-bg" />}>
           <Slider slidesData={slides} />
         </Suspense>
+        <div className="absolute inset-x-0 bottom-0 translate-y-1/2 z-30">
+          <PropertyHeroSearch
+            typeOptions={typeOptions}
+            stateOptions={stateOptions}
+          />
+        </div>
       </section>
 
-      {/* Hero Search Bar */}
-      <PropertyHeroSearch
-        typeOptions={typeOptions}
-        stateOptions={stateOptions}
-        statusOptions={statusOptions}
-      />
-
-      <section className="bg-bg py-12 md:py-16">
+      <section className="bg-bg pt-24 pb-12 md:pt-28 md:pb-16">
         <div className="container mr-auto ml-auto">
           <div className="mb-8 text-center">
             <h2>خوش آمدید</h2>

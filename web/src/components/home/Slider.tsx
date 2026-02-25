@@ -2,14 +2,13 @@
 
 import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay, EffectFade, Parallax } from 'swiper/modules';
+import { Navigation, Autoplay, EffectFade, Parallax } from 'swiper/modules';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import type { HomeSliderItem } from '@/types/settings/branding';
 
 // Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
-import 'swiper/css/pagination';
 import 'swiper/css/effect-fade';
 
 type SliderProps = {
@@ -28,7 +27,7 @@ export default function Slider({ slidesData = [] }: SliderProps) {
   return (
     <div className="relative w-full h-[80vh]">
       <Swiper
-        modules={[Navigation, Pagination, Autoplay, EffectFade, Parallax]}
+        modules={[Navigation, Autoplay, EffectFade, Parallax]}
         spaceBetween={0}
         slidesPerView={1}
         loop={true}
@@ -55,11 +54,6 @@ export default function Slider({ slidesData = [] }: SliderProps) {
         navigation={{
           prevEl: prevRef.current,
           nextEl: nextRef.current,
-        }}
-        pagination={{
-          clickable: true,
-          bulletClass: 'swiper-pagination-bullet',
-          bulletActiveClass: 'swiper-pagination-bullet-active',
         }}
         speed={1200}
         watchSlidesProgress={true}
@@ -149,9 +143,6 @@ export default function Slider({ slidesData = [] }: SliderProps) {
         >
           <ArrowLeft aria-hidden="true" focusable="false" />
         </button>
-
-        {/* Pagination */}
-        <div className="swiper-pagination swiper-pagination-custom"></div>
       </Swiper>
     </div>
   );

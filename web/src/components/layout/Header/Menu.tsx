@@ -2,13 +2,14 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ChevronDown } from 'lucide-react';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/elements/dropdown-menu';
+    NavigationMenu,
+    NavigationMenuContent,
+    NavigationMenuItem,
+    NavigationMenuList,
+    NavigationMenuTrigger,
+} from '@/components/elements/navigation-menu';
+import { cn } from '@/core/utils/cn';
 
 type MenuVariant = 'transparent' | 'solid';
 
@@ -39,81 +40,98 @@ const menuItems = [
 
 export function Menu({ variant, statusOptions = [], typeOptions = [] }: MenuProps) {
     const textClass = variant === 'transparent' ? 'text-wt' : 'text-font-p';
+    const triggerClass = variant === 'transparent'
+        ? 'bg-transparent text-wt hover:bg-wt/10 hover:text-wt data-[state=open]:bg-wt/15 data-[state=open]:text-wt'
+        : 'bg-transparent text-font-p hover:bg-bg hover:text-font-p data-[state=open]:bg-bg data-[state=open]:text-font-p';
+    const itemClass = variant === 'transparent'
+        ? 'hover:text-primary transition-colors text-wt'
+        : 'hover:text-primary transition-colors text-font-p';
     const safeStatusOptions = statusOptions.filter((item) => item.value).slice(0, 10);
     const safeTypeOptions = typeOptions.filter((item) => item.value).slice(0, 12);
 
     return (
-            <nav className={`hidden lg:flex items-center gap-8 text-sm font-semibold ${textClass}`}>
+            <nav className={`hidden lg:flex items-center text-sm font-semibold ${textClass}`}>
                 <Link
                     href="/"
-                    className={`hover:text-primary transition-colors ${textClass}`}
+                    className={cn("ms-2", itemClass)}
                 >
                     خانه
                 </Link>
 
-                {safeStatusOptions.length > 0 ? (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger className={`inline-flex items-center gap-1.5 hover:text-primary transition-colors outline-none ${textClass}`}>
-                            نوع معامله
-                            <ChevronDown className="size-4" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="min-w-56">
-                            <DropdownMenuItem asChild>
-                                <Link href="/properties">
-                                    همه
+                <NavigationMenu viewport={false} dir="rtl">
+                    <NavigationMenuList className="gap-2">
+                        {safeStatusOptions.length > 0 ? (
+                            <NavigationMenuItem>
+                                <NavigationMenuTrigger className={triggerClass}>
+                                    نوع معامله
+                                </NavigationMenuTrigger>
+                                <NavigationMenuContent className="min-w-56 border-br bg-wt p-2 shadow-lg">
+                                    <ul className="grid gap-1">
+                                        <li>
+                                            <Link
+                                                href="/properties"
+                                                className="block rounded-md px-3 py-2 text-sm font-bold text-font-p hover:bg-bg hover:text-primary transition-colors"
+                                            >
+                                                همه
+                                            </Link>
+                                        </li>
+                                        {safeStatusOptions.map((item) => (
+                                            <li key={`status-${item.value}`}>
+                                                <Link
+                                                    href={`/properties/${item.value}`}
+                                                    className="block rounded-md px-3 py-2 text-sm font-bold text-font-p hover:bg-bg hover:text-primary transition-colors"
+                                                >
+                                                    {item.label}
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </NavigationMenuContent>
+                            </NavigationMenuItem>
+                        ) : null}
+
+                        {safeTypeOptions.length > 0 ? (
+                            <NavigationMenuItem>
+                                <NavigationMenuTrigger className={triggerClass}>
+                                    نوع ملک
+                                </NavigationMenuTrigger>
+                                <NavigationMenuContent className="min-w-56 border-br bg-wt p-2 shadow-lg">
+                                    <ul className="grid gap-1">
+                                        <li>
+                                            <Link
+                                                href="/properties"
+                                                className="block rounded-md px-3 py-2 text-sm font-bold text-font-p hover:bg-bg hover:text-primary transition-colors"
+                                            >
+                                                همه
+                                            </Link>
+                                        </li>
+                                        {safeTypeOptions.map((item) => (
+                                            <li key={`type-${item.value}`}>
+                                                <Link
+                                                    href={`/properties/${item.value}`}
+                                                    className="block rounded-md px-3 py-2 text-sm font-bold text-font-p hover:bg-bg hover:text-primary transition-colors"
+                                                >
+                                                    {item.label}
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </NavigationMenuContent>
+                            </NavigationMenuItem>
+                        ) : null}
+
+                        {menuItems.map((item) => (
+                            <NavigationMenuItem key={item.href}>
+                                <Link
+                                    href={item.href}
+                                    className={cn("inline-flex h-9 items-center px-2", itemClass)}
+                                >
+                                    {item.label}
                                 </Link>
-                            </DropdownMenuItem>
-                            {safeStatusOptions.map((item) => {
-                                const href = `/properties/${item.value}`;
-
-                                return (
-                                    <DropdownMenuItem asChild key={`status-${item.value}`}>
-                                        <Link href={href}>
-                                            {item.label}
-                                        </Link>
-                                    </DropdownMenuItem>
-                                );
-                            })}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                ) : null}
-
-                {safeTypeOptions.length > 0 ? (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger className={`inline-flex items-center gap-1.5 hover:text-primary transition-colors outline-none ${textClass}`}>
-                            نوع ملک
-                            <ChevronDown className="size-4" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="min-w-56">
-                            <DropdownMenuItem asChild>
-                                <Link href="/properties">
-                                    همه
-                                </Link>
-                            </DropdownMenuItem>
-                            {safeTypeOptions.map((item) => {
-                                const href = `/properties/${item.value}`;
-
-                                return (
-                                    <DropdownMenuItem asChild key={`type-${item.value}`}>
-                                        <Link href={href}>
-                                            {item.label}
-                                        </Link>
-                                    </DropdownMenuItem>
-                                );
-                            })}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                ) : null}
-
-                {menuItems.map((item) => (
-                    <Link
-                        key={item.href}
-                        href={item.href}
-                        className={`hover:text-primary transition-colors ${textClass}`}
-                    >
-                        {item.label}
-                    </Link>
-                ))}
+                            </NavigationMenuItem>
+                        ))}
+                    </NavigationMenuList>
+                </NavigationMenu>
             </nav>
     );
 }
