@@ -3,11 +3,10 @@
 import React from "react";
 import { realEstateApi } from "@/api/real-estate/route";
 import { Button } from "@/components/elements/custom/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/elements/dialog";
 import { Input } from "@/components/elements/input";
+import { PopupPicker } from "@/components/elements/popup-picker";
 import { Separator } from "@/components/elements/separator";
 import { Switch } from "@/components/elements/switch";
-import { ChevronDown, X } from "lucide-react";
 import { fromSortValue, toSeoLocationSegment, toSortValue } from "@/components/real-estate/search/filters";
 import type { PropertySearchFilters } from "@/types/real-estate/searchFilters";
 
@@ -36,6 +35,15 @@ type PropertySearchSidebarProps = {
 };
 
 const sectionClassName = "space-y-3";
+const YEAR_BUILT_MIN = 1300;
+const YEAR_BUILT_MAX = 1550;
+const YEAR_BUILT_OPTIONS = [
+  { value: "", title: "همه سال‌ها" },
+  ...Array.from({ length: YEAR_BUILT_MAX - YEAR_BUILT_MIN + 1 }, (_, index) => {
+    const year = String(YEAR_BUILT_MAX - index);
+    return { value: year, title: year };
+  }),
+];
 
 const toNumberOrNull = (value: string): number | null => {
   const trimmed = value.trim().replace(/,/g, "");
@@ -62,83 +70,6 @@ function BinarySwitch({
       <span className="text-sm text-font-s">{label}</span>
       <Switch checked={checked} onCheckedChange={(nextChecked) => onChange(nextChecked ? true : null)} aria-label={label} />
     </div>
-  );
-}
-
-type PopupPickerOption = {
-  value: string;
-  title: string;
-};
-
-function PopupPicker({
-  value,
-  title,
-  placeholder,
-  options,
-  onSelect,
-  disabled = false,
-}: {
-  value: string;
-  title: string;
-  placeholder: string;
-  options: PopupPickerOption[];
-  onSelect: (value: string) => void;
-  disabled?: boolean;
-}) {
-  const [open, setOpen] = React.useState(false);
-  const selected = options.find((item) => item.value === value);
-  const displayText = selected?.title || placeholder;
-
-  return (
-    <Dialog open={open} onOpenChange={(next) => setOpen(disabled ? false : next)}>
-      <DialogTrigger asChild>
-        <button
-          type="button"
-          disabled={disabled}
-          className="inline-flex h-10 w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-br bg-wt px-3 text-sm text-font-p shadow-xs outline-none transition-colors focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <span className="line-clamp-1">{displayText}</span>
-          <ChevronDown className="size-4 text-font-s" />
-        </button>
-      </DialogTrigger>
-
-      <DialogContent className="max-w-sm border-br bg-card p-0" showCloseButton={false}>
-        <DialogHeader className="border-b border-br px-3 py-2">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-sm font-black text-font-p">{title}</DialogTitle>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="inline-flex size-8 cursor-pointer items-center justify-center rounded-md border border-br bg-bg text-font-s transition-colors hover:bg-card hover:text-font-p"
-              aria-label="بستن"
-            >
-              <X className="size-4" />
-            </button>
-          </div>
-        </DialogHeader>
-
-        <div className="max-h-[60vh] overflow-y-auto p-2">
-          {options.map((item) => {
-            const isActive = item.value === value;
-            return (
-              <button
-                key={`${item.value || "empty"}-${item.title}`}
-                type="button"
-                onClick={() => {
-                  onSelect(item.value);
-                  setOpen(false);
-                }}
-                className={`flex w-full cursor-pointer items-center rounded-md px-2.5 py-2 text-right text-sm transition-colors ${
-                  isActive ? "bg-bg text-font-p" : "text-font-s hover:bg-bg hover:text-font-p"
-                }`}
-              >
-                <span className="line-clamp-1">{item.title}</span>
-              </button>
-            );
-          })}
-        </div>
-      </DialogContent>
-    </Dialog>
   );
 }
 
@@ -288,6 +219,8 @@ export default function PropertySearchSidebar({
             value={selectedTypeValue}
             title="انتخاب نوع ملک"
             placeholder="همه"
+            searchable
+            searchPlaceholder="جستجوی نوع ملک"
             options={[
               { value: "", title: "همه" },
               ...typeOptions.map((item) => ({ value: item.value, title: item.title })),
@@ -310,6 +243,8 @@ export default function PropertySearchSidebar({
             value={selectedStateValue}
             title="انتخاب نوع معامله"
             placeholder="همه"
+            searchable
+            searchPlaceholder="جستجوی نوع معامله"
             options={[
               { value: "", title: "همه" },
               ...stateOptions.map((item) => ({ value: item.value, title: item.title })),
@@ -335,6 +270,8 @@ export default function PropertySearchSidebar({
               value={selectedProvinceValue}
               title="انتخاب استان"
               placeholder="همه استان‌ها"
+              searchable
+              searchPlaceholder="جستجوی استان"
               options={[
                 { value: "", title: "همه استان‌ها" },
                 ...provinceOptions.map((item) => ({ value: item.value, title: item.title })),
@@ -358,6 +295,8 @@ export default function PropertySearchSidebar({
               value={selectedCityValue}
               title="انتخاب شهر"
               placeholder="همه شهرها"
+              searchable
+              searchPlaceholder="جستجوی شهر"
               options={[
                 { value: "", title: "همه شهرها" },
                 ...availableCityOptions.map((item) => ({ value: item.value, title: item.title })),
@@ -379,6 +318,8 @@ export default function PropertySearchSidebar({
               value={selectedRegionValue}
               title="انتخاب منطقه"
               placeholder="همه مناطق"
+              searchable
+              searchPlaceholder="جستجوی منطقه"
               options={[
                 { value: "", title: "همه مناطق" },
                 ...availableRegionOptions.map((item) => ({ value: item.value, title: item.title })),
@@ -548,13 +489,14 @@ export default function PropertySearchSidebar({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-2">
             <label className="text-sm text-font-s">سال ساخت (شمسی)</label>
-            <Input
-              type="number"
-              min={1300}
-              max={1550}
-              value={filters.year_built ?? ""}
-              onChange={(event) => update({ year_built: toNumberOrNull(event.target.value) })}
-              placeholder="مثال: 1402"
+            <PopupPicker
+              value={filters.year_built !== null ? String(filters.year_built) : ""}
+              title="انتخاب سال ساخت"
+              placeholder="همه سال‌ها"
+              searchable
+              searchPlaceholder="جستجوی سال ساخت"
+              options={YEAR_BUILT_OPTIONS}
+              onSelect={(value) => update({ year_built: toNumberOrNull(value) })}
             />
           </div>
         </div>
