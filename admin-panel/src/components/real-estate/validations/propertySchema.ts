@@ -204,6 +204,10 @@ export const propertyFormSchema = z.object({
         .nullable()
         .optional(),
 
+    has_elevator: z
+        .boolean()
+        .default(false),
+
     document_type: z
         .union([z.string(), z.null(), z.undefined()])
         .optional(),
@@ -400,6 +404,7 @@ export const propertyFormDefaults: PropertyFormValues = {
     floor_number: null,
     parking_spaces: null,
     storage_rooms: null,
+    has_elevator: false,
     document_type: null,
     price: null,
     sale_price: null,

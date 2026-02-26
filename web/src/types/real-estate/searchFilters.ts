@@ -22,6 +22,9 @@ export type PropertySearchFilters = {
   year_built: number | null;
   parking_spaces: number | null;
   storage_rooms: number | null;
+  has_parking: boolean | null;
+  has_storage: boolean | null;
+  has_elevator: boolean | null;
   created_after: string;
   created_before: string;
   type_slug: string;

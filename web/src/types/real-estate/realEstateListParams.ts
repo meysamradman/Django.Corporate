@@ -25,6 +25,9 @@ export interface RealEstateListParams {
   year_built?: number;
   parking_spaces?: number;
   storage_rooms?: number;
+  has_parking?: boolean;
+  has_storage?: boolean;
+  has_elevator?: boolean;
   created_after?: string;
   created_before?: string;
   type_slug?: string;

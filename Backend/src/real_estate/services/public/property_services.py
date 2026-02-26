@@ -101,6 +101,22 @@ class PropertyPublicService:
                 if parsed_value is not None:
                     queryset = queryset.filter(**{bool_field: parsed_value})
 
+            has_parking = filters.get('has_parking')
+            if has_parking is True:
+                queryset = queryset.filter(parking_spaces__gt=0)
+            elif has_parking is False:
+                queryset = queryset.filter(Q(parking_spaces=0) | Q(parking_spaces__isnull=True))
+
+            has_storage = filters.get('has_storage')
+            if has_storage is True:
+                queryset = queryset.filter(storage_rooms__gt=0)
+            elif has_storage is False:
+                queryset = queryset.filter(Q(storage_rooms=0) | Q(storage_rooms__isnull=True))
+
+            has_elevator = filters.get('has_elevator')
+            if has_elevator is not None:
+                queryset = queryset.filter(has_elevator=has_elevator)
+
             for date_field, orm_field in (
                 ('created_after', 'created_at__date__gte'),
                 ('created_before', 'created_at__date__lte'),

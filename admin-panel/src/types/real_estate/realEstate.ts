@@ -76,6 +76,7 @@ export interface Property extends Omit<Base, "created_by"> {
 
   parking_spaces?: number | null;
   storage_rooms?: number | null;
+  has_elevator?: boolean | null;
   document_type?: string | null;
   has_document?: boolean | null;
   capacity?: number | null;

@@ -262,6 +262,9 @@ export const resolvePropertySearchFilters = (
     year_built: toOptionalNumber(searchParams.year_built ?? searchParams.build_year),
     parking_spaces: toOptionalNumber(searchParams.parking_spaces ?? searchParams.parking),
     storage_rooms: toOptionalNumber(searchParams.storage_rooms ?? searchParams.storage),
+    has_parking: toOptionalBoolean(searchParams.has_parking),
+    has_storage: toOptionalBoolean(searchParams.has_storage),
+    has_elevator: toOptionalBoolean(searchParams.has_elevator),
     created_after: toSingle(searchParams.created_after).trim(),
     created_before: toSingle(searchParams.created_before).trim(),
     type_slug: resolvedTypeSlug,
@@ -300,6 +303,9 @@ export const toPropertyListApiParams = (
   year_built: filters.year_built ?? undefined,
   parking_spaces: filters.parking_spaces ?? undefined,
   storage_rooms: filters.storage_rooms ?? undefined,
+  has_parking: filters.has_parking ?? undefined,
+  has_storage: filters.has_storage ?? undefined,
+  has_elevator: filters.has_elevator ?? undefined,
   created_after: filters.created_after || undefined,
   created_before: filters.created_before || undefined,
   type_slug: filters.type_slug || undefined,
@@ -348,6 +354,9 @@ export const filtersToSearchParams = (
   if (next.year_built !== null) params.set("year_built", String(next.year_built));
   if (next.parking_spaces !== null) params.set("parking_spaces", String(next.parking_spaces));
   if (next.storage_rooms !== null) params.set("storage_rooms", String(next.storage_rooms));
+  if (next.has_parking !== null) params.set("has_parking", next.has_parking ? "true" : "false");
+  if (next.has_storage !== null) params.set("has_storage", next.has_storage ? "true" : "false");
+  if (next.has_elevator !== null) params.set("has_elevator", next.has_elevator ? "true" : "false");
   if (next.created_after) params.set("created_after", next.created_after);
   if (next.created_before) params.set("created_before", next.created_before);
   if (next.type_slug && !isTypeEncoded) params.set("type", next.type_slug);

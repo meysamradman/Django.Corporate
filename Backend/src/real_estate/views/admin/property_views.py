@@ -843,6 +843,10 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             'bathrooms': Property.BATHROOM_CHOICES,
             'parking_spaces': Property.PARKING_CHOICES,
             'storage_rooms': Property.STORAGE_CHOICES,
+            'has_elevator': [
+                (True, 'دارد'),
+                (False, 'ندارد'),
+            ],
             'floor_number': Property.FLOOR_CHOICES,
             'kitchens': Property.KITCHEN_CHOICES,
             'living_rooms': Property.LIVING_ROOM_CHOICES,

@@ -98,7 +98,7 @@ class PropertyQuerySet(models.QuerySet):
             'land_area', 'built_area',
             'bedrooms', 'bathrooms', 'kitchens', 'living_rooms',
             'year_built', 'build_years', 'floors_in_building', 'floor_number',
-            'parking_spaces', 'storage_rooms', 'document_type', 'has_document',
+            'parking_spaces', 'storage_rooms', 'has_elevator', 'document_type', 'has_document',
             'views_count', 'web_views_count', 'app_views_count', 'favorites_count', 'inquiries_count',
             'published_at', 'created_at', 'updated_at',
             'meta_title', 'meta_description', # ✅ Kept for serializer

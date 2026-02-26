@@ -249,7 +249,7 @@ class PropertyAdminListSerializer(serializers.ModelSerializer):
             'land_area', 'built_area',
             'bedrooms', 'bathrooms', 'kitchens', 'living_rooms',
             'year_built', 'build_years', 'floors_in_building', 'floor_number',
-            'parking_spaces', 'storage_rooms', 'document_type', 'has_document',
+            'parking_spaces', 'storage_rooms', 'has_elevator', 'document_type', 'has_document',
             'views_count', 'web_views_count', 'app_views_count', 'favorites_count', 'inquiries_count',
             'meta_title', 'meta_description',
             'published_at', 'created_at', 'updated_at', # ✅ همیشه در انتها
@@ -343,7 +343,7 @@ class PropertyAdminDetailSerializer(MediaAggregationMixin, serializers.ModelSeri
             'land_area', 'built_area',
             'bedrooms', 'bathrooms', 'kitchens', 'living_rooms',
             'year_built', 'build_years', 'floors_in_building', 'floor_number',
-            'parking_spaces', 'storage_rooms', 'document_type', 'has_document',
+            'parking_spaces', 'storage_rooms', 'has_elevator', 'document_type', 'has_document',
             'views_count', 'web_views_count', 'app_views_count', 'favorites_count', 'inquiries_count',
             'published_at', 'created_at', 'updated_at',
             'region', 'city', 'neighborhood', 'address', 'postal_code', 
@@ -519,6 +519,10 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
         min_value=0,
         max_value=20
     )
+    has_elevator = serializers.BooleanField(
+        required=False,
+        help_text="Whether the property/building has an elevator"
+    )
     year_built = serializers.IntegerField(
         required=False,
         allow_null=True,
@@ -565,7 +569,7 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
             'land_area', 'built_area',
             'bedrooms', 'bathrooms', 'kitchens', 'living_rooms',
             'year_built', 'build_years', 'floors_in_building', 'floor_number',
-            'parking_spaces', 'storage_rooms', 'document_type', 'has_document',
+            'parking_spaces', 'storage_rooms', 'has_elevator', 'document_type', 'has_document',
             'extra_attributes',
             'is_published', 'is_featured', 'is_public',
             'meta_title', 'meta_description', 'og_title', 'og_description',
@@ -860,7 +864,7 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
             'land_area', 'built_area',
             'bedrooms', 'bathrooms', 'kitchens', 'living_rooms',
             'year_built', 'build_years', 'floors_in_building', 'floor_number',
-            'parking_spaces', 'storage_rooms', 'document_type', 'has_document',
+            'parking_spaces', 'storage_rooms', 'has_elevator', 'document_type', 'has_document',
             'extra_attributes',
             'is_published', 'is_featured', 'is_public', 'is_active',
             'meta_title', 'meta_description', 'og_title', 'og_description',

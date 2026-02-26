@@ -2,7 +2,7 @@
 import { Label } from "@/components/elements/Label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/Select";
 import { msg } from "@/core/messages";
-import { Key, Box, Car, Utensils, Sofa } from "lucide-react";
+import { Key, Box, Car, Utensils, Sofa, Building2 } from "lucide-react";
 
 interface RealEstateDetailsFacilitiesProps {
     formData: any;
@@ -21,6 +21,13 @@ export function RealEstateDetailsFacilities({
     isLoadingOptions,
     handleSelectChange
 }: RealEstateDetailsFacilitiesProps) {
+    const elevatorValue =
+        formData?.has_elevator === true
+            ? "true"
+            : formData?.has_elevator === false
+                ? "false"
+                : "false";
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="space-y-2">
@@ -117,6 +124,27 @@ export function RealEstateDetailsFacilities({
                     </SelectContent>
                 </Select>
                 {errors?.storage_rooms && <p className="text-xs text-red-1">{errors.storage_rooms}</p>}
+            </div>
+
+            <div className="space-y-2">
+                <div className="flex items-center gap-2 mb-1">
+                    <Building2 className="w-4 h-4 text-purple-2" />
+                    <Label htmlFor="has_elevator" className="font-bold">آسانسور</Label>
+                </div>
+                <Select
+                    value={elevatorValue}
+                    onValueChange={handleSelectChange("has_elevator")}
+                    disabled={!editMode || isLoadingOptions}
+                >
+                    <SelectTrigger className="w-full border-br bg-wt">
+                        <SelectValue placeholder="وضعیت آسانسور" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="true">دارد</SelectItem>
+                        <SelectItem value="false">ندارد</SelectItem>
+                    </SelectContent>
+                </Select>
+                {errors?.has_elevator && <p className="text-xs text-red-1">{errors.has_elevator}</p>}
             </div>
 
             <div className="space-y-2">

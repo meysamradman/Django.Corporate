@@ -107,8 +107,9 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                 build_years: (property as any).build_years || null,
                 floors_in_building: property.floors_in_building ? Number(property.floors_in_building) : null,
                 floor_number: (property as any).floor_number || null,
-                parking_spaces: property.parking_spaces ? Number(property.parking_spaces) : null,
-                storage_rooms: property.storage_rooms ? Number(property.storage_rooms) : null,
+                parking_spaces: property.parking_spaces !== null && property.parking_spaces !== undefined ? Number(property.parking_spaces) : null,
+                storage_rooms: property.storage_rooms !== null && property.storage_rooms !== undefined ? Number(property.storage_rooms) : null,
+                has_elevator: property.has_elevator ?? false,
                 document_type: (property as any).document_type || null,
                 price: property.price ? Number(property.price) : null,
                 sale_price: (property as any).sale_price ? Number((property as any).sale_price) : null,
@@ -227,7 +228,7 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                         setActiveTab("account");
                     else if (["province", "city", "region", "address", "postal_code", "neighborhood", "latitude", "longitude"].includes(field))
                         setActiveTab("location");
-                    else if (["land_area", "built_area", "bedrooms", "bathrooms", "kitchens", "living_rooms", "year_built", "build_years", "floors_in_building", "floor_number", "parking_spaces", "storage_rooms", "document_type", "price", "sale_price", "pre_sale_price", "mortgage_amount", "rent_amount", "monthly_rent", "security_deposit"].includes(field))
+                    else if (["land_area", "built_area", "bedrooms", "bathrooms", "kitchens", "living_rooms", "year_built", "build_years", "floors_in_building", "floor_number", "parking_spaces", "storage_rooms", "has_elevator", "document_type", "price", "sale_price", "pre_sale_price", "mortgage_amount", "rent_amount", "monthly_rent", "security_deposit"].includes(field))
                         setActiveTab("details");
                     else if (["extra_attributes", "labels_ids", "tags_ids", "features_ids"].includes(field))
                         setActiveTab("extra");
@@ -271,7 +272,7 @@ export function useRealEstateForm({ id, isEditMode }: UsePropertyFormProps) {
                         setActiveTab("account");
                     else if (["province", "city", "region", "address", "postal_code", "neighborhood", "latitude", "longitude"].includes(firstField))
                         setActiveTab("location");
-                    else if (["land_area", "built_area", "bedrooms", "bathrooms", "kitchens", "living_rooms", "year_built", "build_years", "floors_in_building", "floor_number", "parking_spaces", "storage_rooms", "document_type", "price", "sale_price", "pre_sale_price", "mortgage_amount", "rent_amount", "monthly_rent", "security_deposit"].includes(firstField))
+                    else if (["land_area", "built_area", "bedrooms", "bathrooms", "kitchens", "living_rooms", "year_built", "build_years", "floors_in_building", "floor_number", "parking_spaces", "storage_rooms", "has_elevator", "document_type", "price", "sale_price", "pre_sale_price", "mortgage_amount", "rent_amount", "monthly_rent", "security_deposit"].includes(firstField))
                         setActiveTab("details");
                     else if (["extra_attributes", "labels_ids", "tags_ids", "features_ids"].includes(firstField))
                         setActiveTab("extra");

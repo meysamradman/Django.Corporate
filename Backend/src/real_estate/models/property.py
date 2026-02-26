@@ -391,6 +391,12 @@ class Property(BaseModel, SEOMixin):
         verbose_name="Storage Rooms",
         help_text="Number of storage rooms (optional, 0 = No storage)"
     )
+    has_elevator = models.BooleanField(
+        default=False,
+        db_index=True,
+        verbose_name="Has Elevator",
+        help_text="Whether the property/building has an elevator"
+    )
     
     document_type = models.CharField(
         max_length=32,
@@ -516,6 +522,21 @@ class Property(BaseModel, SEOMixin):
                 fields=['city', 'year_built', 'floor_number', 'parking_spaces', 'storage_rooms'],
                 condition=models.Q(is_published=True, year_built__isnull=False),
                 name='idx_property_details'
+            ),
+            models.Index(
+                fields=['city', '-created_at'],
+                condition=models.Q(is_published=True, is_public=True, parking_spaces__gt=0),
+                name='idx_public_has_parking'
+            ),
+            models.Index(
+                fields=['city', '-created_at'],
+                condition=models.Q(is_published=True, is_public=True, storage_rooms__gt=0),
+                name='idx_public_has_storage'
+            ),
+            models.Index(
+                fields=['city', '-created_at'],
+                condition=models.Q(is_published=True, is_public=True, has_elevator=True),
+                name='idx_public_has_elevator'
             ),
             
             models.Index(

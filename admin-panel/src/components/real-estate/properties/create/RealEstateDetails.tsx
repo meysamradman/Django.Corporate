@@ -58,6 +58,14 @@ export default function RealEstateDetails({ formData, handleInputChange, editMod
     }, [handleInputChange]);
 
     const handleSelectChange = useCallback((field: string) => (value: string) => {
+        if (field === "has_elevator") {
+            if (value === "") {
+                handleInputChange(field, false);
+                return;
+            }
+            handleInputChange(field, value === "true");
+            return;
+        }
         const num = value === "" ? null : Number(value);
         handleInputChange(field, num);
     }, [handleInputChange]);

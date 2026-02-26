@@ -92,6 +92,16 @@ const toNumberOrNull = (value: string): number | null => {
   return parsed;
 };
 
+const toTriStateValue = (value: boolean | null): string => {
+  if (value === null) return "";
+  return value ? "true" : "false";
+};
+
+const fromTriStateValue = (value: string): boolean | null => {
+  if (!value) return null;
+  return value === "true";
+};
+
 type PopupPickerOption = {
   value: string;
   title: string;
@@ -526,6 +536,42 @@ export default function PropertySearchSidebar({
               onChange={(event) => update({ living_rooms: toNumberOrNull(event.target.value) })}
               placeholder="تعداد پذیرایی"
             />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="space-y-2">
+            <label className="text-sm text-font-s">پارکینگ (دارد/ندارد)</label>
+            <NativeSelect
+              value={toTriStateValue(filters.has_parking)}
+              onChange={(event) => update({ has_parking: fromTriStateValue(event.target.value) })}
+            >
+              <NativeSelectOption value="">مهم نیست</NativeSelectOption>
+              <NativeSelectOption value="true">دارد</NativeSelectOption>
+              <NativeSelectOption value="false">ندارد</NativeSelectOption>
+            </NativeSelect>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm text-font-s">انباری (دارد/ندارد)</label>
+            <NativeSelect
+              value={toTriStateValue(filters.has_storage)}
+              onChange={(event) => update({ has_storage: fromTriStateValue(event.target.value) })}
+            >
+              <NativeSelectOption value="">مهم نیست</NativeSelectOption>
+              <NativeSelectOption value="true">دارد</NativeSelectOption>
+              <NativeSelectOption value="false">ندارد</NativeSelectOption>
+            </NativeSelect>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm text-font-s">آسانسور (دارد/ندارد)</label>
+            <NativeSelect
+              value={toTriStateValue(filters.has_elevator)}
+              onChange={(event) => update({ has_elevator: fromTriStateValue(event.target.value) })}
+            >
+              <NativeSelectOption value="">مهم نیست</NativeSelectOption>
+              <NativeSelectOption value="true">دارد</NativeSelectOption>
+              <NativeSelectOption value="false">ندارد</NativeSelectOption>
+            </NativeSelect>
           </div>
         </div>
 

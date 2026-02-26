@@ -195,6 +195,7 @@ export const propertyApi = {
     bathrooms: [number, string][];
     parking_spaces: [number, string][];
     storage_rooms: [number, string][];
+    has_elevator?: [boolean, string][];
     floor_number: [number, string][];
     kitchens: [number, string][];
     living_rooms: [number, string][];
