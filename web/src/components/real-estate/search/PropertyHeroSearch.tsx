@@ -193,7 +193,7 @@ export default function PropertyHeroSearch({
                 size="hero"
                 className="w-full sm:w-auto bg-primary hover:bg-blue-2 text-wt font-black shadow-md transition-all duration-200"
               >
-                <Search className="ms-2 size-5" />
+                <Search className="size-5" />
                 جستجو
               </Button>
             </div>
@@ -203,5 +203,6 @@ export default function PropertyHeroSearch({
     </div>
   );
 }
+
 
 

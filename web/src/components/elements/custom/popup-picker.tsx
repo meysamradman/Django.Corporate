@@ -32,7 +32,7 @@ export function PopupPicker({
   onSelect,
   disabled = false,
   searchable = false,
-  searchPlaceholder = "جستجو کنید",
+  searchPlaceholder = "Search...",
   showCheck = true,
 }: PopupPickerProps) {
   const [open, setOpen] = React.useState(false);
@@ -66,15 +66,15 @@ export function PopupPicker({
       <DialogContent dir="rtl" className="max-w-sm border-br bg-card p-0" showCloseButton={false}>
         <DialogHeader className="border-b border-br px-3 py-2">
           <div className="flex items-center justify-between">
+            <DialogTitle className="text-sm font-black text-font-p">{title}</DialogTitle>
             <button
               type="button"
               onClick={() => setOpen(false)}
               className="inline-flex size-8 cursor-pointer items-center justify-center rounded-md border border-br bg-bg text-font-s transition-colors hover:bg-card hover:text-font-p"
-              aria-label="بستن"
+              aria-label="Close"
             >
               <X className="size-4" />
             </button>
-            <DialogTitle className="text-sm font-black text-font-p">{title}</DialogTitle>
           </div>
         </DialogHeader>
 
@@ -91,28 +91,27 @@ export function PopupPicker({
               <button
                 key={`${item.value || "empty"}-${item.title}`}
                 type="button"
+                dir="ltr"
                 onClick={() => {
                   onSelect(item.value);
                   setOpen(false);
                 }}
                 className={cn(
-                  "flex w-full cursor-pointer items-center justify-end rounded-md px-2.5 py-2 text-right text-sm transition-colors",
+                  "flex w-full cursor-pointer items-center justify-end gap-2 rounded-md px-2 py-2 text-right text-sm transition-colors",
                   isActive ? "bg-bg text-font-p" : "text-font-s hover:bg-bg hover:text-font-p"
                 )}
               >
-                <span className="inline-flex items-center gap-2">
-                  <span className="line-clamp-1">{item.title}</span>
-                  {showCheck ? (
-                    <span
-                      className={cn(
-                        "inline-flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors",
-                        isActive ? "border-primary bg-primary text-static-w" : "border-br bg-card text-transparent"
-                      )}
-                    >
-                      <Check className="size-3" />
-                    </span>
-                  ) : null}
-                </span>
+                <span dir="rtl" className="line-clamp-1 text-right">{item.title}</span>
+                {showCheck ? (
+                  <span
+                    className={cn(
+                      "inline-flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors",
+                      isActive ? "border-primary bg-primary text-static-w" : "border-br bg-card text-transparent"
+                    )}
+                  >
+                    <Check className="size-3" />
+                  </span>
+                ) : null}
               </button>
             );
           })}
