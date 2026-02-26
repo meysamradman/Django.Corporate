@@ -32,6 +32,8 @@ export type Agent = Base & {
   specialization?: string;
   profile_picture?: string;
   is_verified: boolean;
+  show_in_team?: boolean;
+  team_order?: number;
   rating: number;
   total_sales: number;
   total_reviews: number;
@@ -86,6 +88,7 @@ export type AgentListParams = {
   search?: string;
   agency_id?: number;
   is_verified?: boolean;
+  show_in_team?: boolean;
   specialization?: string;
   min_rating?: number;
   order_by?: string;

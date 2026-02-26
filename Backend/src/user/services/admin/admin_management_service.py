@@ -381,6 +381,9 @@ class AdminManagementService:
                         raise ValidationError({'agent_profile': AUTH_ERRORS.get("auth_validation_error")})
 
                     agent_profile = admin.real_estate_agent_profile
+                    can_manage_agent_flags = bool(
+                        getattr(admin_user, 'is_superuser', False) or getattr(admin_user, 'is_admin_full', False)
+                    )
 
                     if 'license_number' in nested_agent_profile:
                         license_number = nested_agent_profile.get('license_number')
@@ -403,8 +406,18 @@ class AdminManagementService:
                     if 'bio' in nested_agent_profile:
                         agent_profile.bio = (nested_agent_profile.get('bio') or '')
 
-                    if 'is_verified' in nested_agent_profile:
+                    if 'is_verified' in nested_agent_profile and can_manage_agent_flags:
                         agent_profile.is_verified = bool(nested_agent_profile.get('is_verified'))
+
+                    if 'show_in_team' in nested_agent_profile and can_manage_agent_flags:
+                        agent_profile.show_in_team = bool(nested_agent_profile.get('show_in_team'))
+
+                    if 'team_order' in nested_agent_profile and can_manage_agent_flags:
+                        try:
+                            team_order_value = int(nested_agent_profile.get('team_order') or 0)
+                        except (TypeError, ValueError):
+                            team_order_value = 0
+                        agent_profile.team_order = max(0, team_order_value)
 
                     if 'meta_title' in nested_agent_profile:
                         agent_profile.meta_title = (nested_agent_profile.get('meta_title') or '')

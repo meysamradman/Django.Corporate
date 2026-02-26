@@ -4,7 +4,7 @@ import type { RealEstateAgency } from '@/types/real_estate/agency/realEstateAgen
 import { fetchPaginated } from './shared';
 
 export const agentsAgenciesApi = {
-  getAgents: async (params?: { page?: number; size?: number; is_active?: boolean; is_verified?: boolean; agency?: number; city?: number }) => {
+  getAgents: async (params?: { page?: number; size?: number; is_active?: boolean; is_verified?: boolean; show_in_team?: boolean; agency?: number; city?: number }) => {
     return fetchPaginated<PropertyAgent>('/admin/property-agent/', params);
   },
   createAgent: async (data: Partial<PropertyAgent>) => (await api.post<PropertyAgent>('/admin/property-agent/', data)).data,

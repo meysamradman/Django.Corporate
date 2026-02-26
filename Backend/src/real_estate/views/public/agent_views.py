@@ -19,13 +19,14 @@ class PropertyAgentPublicViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'slug'
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['user__admin_profile__first_name', 'user__admin_profile__last_name', 'specialization', 'bio']
-    ordering_fields = ['rating', 'total_sales', 'total_reviews', 'created_at']
+    ordering_fields = ['rating', 'total_sales', 'total_reviews', 'created_at', 'team_order']
     ordering = ['-rating', '-total_reviews']
     
     def get_queryset(self):
         filters = {
             'agency_id': self.request.query_params.get('agency_id'),
             'is_verified': self.request.query_params.get('is_verified'),
+            'show_in_team': self.request.query_params.get('show_in_team'),
             'specialization': self.request.query_params.get('specialization'),
             'min_rating': self.request.query_params.get('min_rating'),
             'city_id': self.request.query_params.get('city_id'),
@@ -50,6 +51,7 @@ class PropertyAgentPublicViewSet(viewsets.ReadOnlyModelViewSet):
         filters = {
             'agency_id': request.query_params.get('agency_id'),
             'is_verified': request.query_params.get('is_verified'),
+            'show_in_team': request.query_params.get('show_in_team'),
             'specialization': request.query_params.get('specialization'),
             'min_rating': request.query_params.get('min_rating'),
             'city_id': request.query_params.get('city_id'),

@@ -22,6 +22,7 @@ class PropertyAgentPublicService:
         'total_sales',
         'total_reviews',
         'created_at',
+        'team_order',
     }
 
     @staticmethod
@@ -106,6 +107,10 @@ class PropertyAgentPublicService:
             is_verified = PropertyAgentPublicService._parse_bool(filters.get('is_verified'))
             if is_verified is not None:
                 queryset = queryset.filter(is_verified=is_verified)
+
+            show_in_team = PropertyAgentPublicService._parse_bool(filters.get('show_in_team'))
+            if show_in_team is not None:
+                queryset = queryset.filter(show_in_team=show_in_team)
 
             specialization = filters.get('specialization')
             if specialization:

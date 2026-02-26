@@ -26,6 +26,8 @@ export interface PropertyAgent extends Base {
   agency?: RealEstateAgency | null;
 
   is_verified: boolean;
+  show_in_team?: boolean;
+  team_order?: number | null;
   is_active: boolean;
 
   rating?: number | null;

@@ -88,6 +88,8 @@ const ADMIN_EDIT_TAB_BY_FIELD: Record<string, string> = {
     specialization: "consultant",
     agency_id: "consultant",
     is_verified: "consultant",
+    show_in_team: "consultant",
+    team_order: "consultant",
     bio: "consultant",
     meta_title: "consultant",
     meta_description: "consultant",
@@ -203,6 +205,8 @@ export function EditAdminForm({ adminId, profileMode = "admin", viewOnly = false
                     : adminData.agent_profile?.agency) || null,
             bio: adminData.agent_profile?.bio || "",
             is_verified: adminData.agent_profile?.is_verified || false,
+            show_in_team: adminData.agent_profile?.show_in_team || false,
+            team_order: adminData.agent_profile?.team_order ?? 0,
             meta_title: adminData.agent_profile?.meta_title || "",
             meta_description: adminData.agent_profile?.meta_description || "",
             meta_keywords: adminData.agent_profile?.meta_keywords || "",
@@ -302,7 +306,6 @@ export function EditAdminForm({ adminId, profileMode = "admin", viewOnly = false
                 specialization: data.specialization || null,
                 agency_id: data.agency_id || null,
                 bio: data.bio || null,
-                is_verified: data.is_verified || false,
                 meta_title: data.meta_title || null,
                 meta_description: data.meta_description || null,
                 meta_keywords: data.meta_keywords || null,
@@ -319,6 +322,11 @@ export function EditAdminForm({ adminId, profileMode = "admin", viewOnly = false
                         order: item.order ?? index,
                     })),
             };
+            if (canManageAccess) {
+                agentProfile.is_verified = data.is_verified || false;
+                agentProfile.show_in_team = data.show_in_team || false;
+                agentProfile.team_order = typeof data.team_order === "number" ? Math.max(0, data.team_order) : 0;
+            }
 
             updatePayload.agent_profile = agentProfile;
         }

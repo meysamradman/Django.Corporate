@@ -21,7 +21,7 @@ class PropertyAgentPublicListSerializer(serializers.ModelSerializer):
             'id', 'public_id', 'user_id', 'user_name', 'first_name', 'last_name',
             'user_email', 'agency_id', 'agency_name',
             'license_number', 'slug', 'specialization',
-            'profile_picture', 'is_verified', 'rating',
+            'profile_picture', 'is_verified', 'show_in_team', 'team_order', 'rating',
             'total_sales', 'total_reviews', 'bio',
             'phone', 'email', 'property_count',
             'city_name', 'province_name',

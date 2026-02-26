@@ -229,6 +229,21 @@ class AdminManagementView(AdminAuthMixin, APIView):
                         return self._forbidden_response(
                             AUTH_ERRORS["admin_field_edit_forbidden"].format(field=field)
                         )
+                if not self._is_super_admin(request.user):
+                    protected_agent_fields = ['is_verified', 'show_in_team', 'team_order']
+                    for field in protected_agent_fields:
+                        if field in request.data:
+                            return self._forbidden_response(
+                                AUTH_ERRORS["admin_field_edit_forbidden"].format(field=field)
+                            )
+
+                    agent_profile_payload = request.data.get('agent_profile')
+                    if isinstance(agent_profile_payload, dict):
+                        for field in protected_agent_fields:
+                            if field in agent_profile_payload:
+                                return self._forbidden_response(
+                                    AUTH_ERRORS["admin_field_edit_forbidden"].format(field=f"agent_profile.{field}")
+                                )
 
             payload = request.data.copy()
             serializer = AdminUpdateSerializer(

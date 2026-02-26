@@ -26,9 +26,10 @@ import {
 interface ConsultantFieldsProps {
   form: UseFormReturn<any>;
   isEdit?: boolean;
+  canManageAccess?: boolean;
 }
 
-export default function ConsultantFields({ form }: ConsultantFieldsProps) {
+export default function ConsultantFields({ form, canManageAccess = true }: ConsultantFieldsProps) {
   const { register, formState: { errors }, watch, setValue } = form;
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
 
@@ -149,6 +150,7 @@ export default function ConsultantFields({ form }: ConsultantFieldsProps) {
             </FormField>
           </div>
 
+          {canManageAccess ? (
           <div className="md:col-span-2 mt-2">
             <div className="flex items-center justify-between p-5 border-2 border-dashed border-blue-1/30 rounded-2xl bg-white/50 backdrop-blur-sm shadow-inner transition-all hover:bg-white hover:border-blue-1/50 group">
               <div className="flex items-center gap-4">
@@ -166,6 +168,41 @@ export default function ConsultantFields({ form }: ConsultantFieldsProps) {
               />
             </div>
           </div>
+          ) : null}
+
+          {canManageAccess ? (
+          <div className="md:col-span-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center justify-between rounded-xl border border-br bg-card px-4 py-3">
+                <div>
+                  <Label className="text-sm font-semibold text-font-p block">نمایش در تیم سایت</Label>
+                  <p className="text-xs text-font-s mt-1">در صفحه تیم عمومی نمایش داده شود</p>
+                </div>
+                <Switch
+                  checked={watch("show_in_team") || false}
+                  onCheckedChange={(checked) => setValue("show_in_team", checked)}
+                />
+              </div>
+
+              <FormField
+                label="ترتیب نمایش در تیم"
+                htmlFor="team_order"
+                error={errors.team_order?.message as string}
+              >
+                <Input
+                  id="team_order"
+                  type="number"
+                  min={0}
+                  value={String(watch("team_order") ?? 0)}
+                  onChange={(e) => {
+                    const parsed = Number(e.target.value);
+                    setValue("team_order", Number.isFinite(parsed) && parsed >= 0 ? parsed : 0);
+                  }}
+                />
+              </FormField>
+            </div>
+          </div>
+          ) : null}
         </div>
       </CardWithIcon>
 

@@ -6,6 +6,7 @@ class PropertyAgentAdminFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method='filter_search', label='Search')
     is_active = django_filters.BooleanFilter(field_name='is_active', label='Active Status')
     is_verified = django_filters.BooleanFilter(field_name='is_verified', label='Verified Status')
+    show_in_team = django_filters.BooleanFilter(field_name='show_in_team', label='Show In Team')
     
     agency = django_filters.NumberFilter(
         field_name='agency__id',

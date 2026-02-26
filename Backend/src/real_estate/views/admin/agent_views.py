@@ -37,7 +37,7 @@ class PropertyAgentAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PropertyAgentAdminFilter
     search_fields = ['user__mobile', 'user__email', 'user__admin_profile__first_name', 'user__admin_profile__last_name', 'license_number']
-    ordering_fields = ['created_at', 'updated_at', 'rating', 'total_sales', 'user__admin_profile__last_name']
+    ordering_fields = ['created_at', 'updated_at', 'rating', 'total_sales', 'team_order', 'user__admin_profile__last_name']
     ordering = ['-rating', '-total_sales', 'user__admin_profile__last_name']
     pagination_class = StandardLimitPagination
 

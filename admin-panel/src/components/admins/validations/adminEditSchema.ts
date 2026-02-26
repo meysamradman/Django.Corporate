@@ -204,6 +204,18 @@ export const adminEditFormSchema = z.object({
     .optional()
     .default(false),
 
+  show_in_team: z
+    .boolean()
+    .optional()
+    .default(false),
+
+  team_order: z
+    .number()
+    .int()
+    .min(0, { message: "ترتیب نمایش نمی‌تواند منفی باشد." })
+    .optional()
+    .default(0),
+
   meta_title: z
     .string()
     .max(70, { message: msg.validation("maxLength", { field: "عنوان متا", max: 70 }) })
@@ -290,6 +302,8 @@ export const adminEditFormDefaults: AdminFormValues = {
   agency_id: null,
   bio: "",
   is_verified: false,
+  show_in_team: false,
+  team_order: 0,
   meta_title: "",
   meta_description: "",
   meta_keywords: "",

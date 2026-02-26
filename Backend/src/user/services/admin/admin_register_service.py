@@ -221,6 +221,8 @@ class AdminRegisterService:
             'specialization': validated_data.get('specialization', ''),
             'bio': validated_data.get('bio', ''),
             'is_verified': validated_data.get('is_verified', False),
+            'show_in_team': validated_data.get('show_in_team', False),
+            'team_order': validated_data.get('team_order', 0),
             'meta_title': validated_data.get('meta_title', ''),
             'meta_description': validated_data.get('meta_description', ''),
             'og_title': validated_data.get('og_title', ''),

@@ -223,6 +223,25 @@ export default function AgentInfo({ formData, handleInputChange, editMode }: Bas
                                         disabled={!editMode}
                                     />
                                 </div>
+                                <div className="flex items-center justify-between p-4 border rounded-lg">
+                                    <div>
+                                        <label className="text-font-p font-medium">????? ?? ??? ??</label>
+                                        <p className="text-font-s text-muted-foreground">?? ???? ??? ??????? ???? ????? ???? ???</p>
+                                    </div>
+                                    <Switch
+                                        checked={formData.show_in_team ?? false}
+                                        onCheckedChange={(checked) => handleInputChange("show_in_team", checked)}
+                                        disabled={!editMode}
+                                    />
+                                </div>
+
+                                <FormFieldInput
+                                    label="????? ????? ???"
+                                    value={formData.team_order?.toString() || "0"}
+                                    onChange={(e) => handleInputChange("team_order", e.target.value ? Number(e.target.value) : 0)}
+                                    type="number"
+                                    disabled={!editMode}
+                                />
                             </div>
                         </div>
                     </CardWithIcon>
@@ -231,4 +250,6 @@ export default function AgentInfo({ formData, handleInputChange, editMode }: Bas
         </TabsContent>
     );
 }
+
+
 

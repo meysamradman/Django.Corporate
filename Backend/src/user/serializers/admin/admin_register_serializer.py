@@ -56,6 +56,8 @@ class AdminRegisterSerializer(serializers.Serializer):
     specialization = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=200)
     agency_id = serializers.IntegerField(required=False, allow_null=True)
     is_verified = serializers.BooleanField(required=False, default=False)
+    show_in_team = serializers.BooleanField(required=False, default=False)
+    team_order = serializers.IntegerField(required=False, default=0, min_value=0)
     
     meta_title = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=70)
     meta_description = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=300)

@@ -72,7 +72,7 @@ export function useEditAdminPageTabs({
         label: "اطلاعات مشاور",
         icon: <Building2 className="w-4 h-4" />,
         isVisible: adminRoleType === "consultant",
-        content: <ConsultantFields form={form} isEdit={true} />,
+        content: <ConsultantFields form={form} isEdit={true} canManageAccess={canManageAccess} />,
       },
       {
         id: "permissions",

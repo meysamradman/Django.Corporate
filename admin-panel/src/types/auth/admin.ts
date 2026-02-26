@@ -33,6 +33,8 @@ export interface PropertyAgentProfile {
     failure_rate?: number;
     bio: string;
     is_verified: boolean;
+    show_in_team?: boolean;
+    team_order?: number;
     is_active: boolean;
     slug: string;
     meta_title: string;
@@ -127,6 +129,8 @@ export interface AdminCreateRequest {
     license_expire_date?: string;
     specialization?: string;
     agency_id?: number;
+    show_in_team?: boolean;
+    team_order?: number;
 }
 
 export interface AdminUpdateRequest {
@@ -156,6 +160,8 @@ export interface AdminUpdateRequest {
     license_expire_date?: string;
     specialization?: string;
     agency_id?: number;
+    show_in_team?: boolean;
+    team_order?: number;
 }
 
 export interface AdminListParams {

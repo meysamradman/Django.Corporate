@@ -81,6 +81,8 @@ const ADMIN_CREATE_TAB_BY_FIELD: Record<string, string> = {
   specialization: "consultant",
   agency_id: "consultant",
   is_verified: "consultant",
+  show_in_team: "consultant",
+  team_order: "consultant",
   bio: "consultant",
   meta_title: "consultant",
   meta_description: "consultant",
@@ -171,32 +173,19 @@ export function CreateAdminForm() {
       }
 
       if (data.admin_role_type === "consultant") {
-        const agentProfile: Record<string, unknown> = {};
-        if (data.license_number) agentProfile.license_number = data.license_number;
-        if (data.license_expire_date) agentProfile.license_expire_date = data.license_expire_date;
-        if (data.specialization) agentProfile.specialization = data.specialization;
-        if (data.agency_id) agentProfile.agency_id = data.agency_id;
-        if (typeof data.is_verified === "boolean") agentProfile.is_verified = data.is_verified;
-
-        if (data.meta_title) agentProfile.meta_title = data.meta_title;
-        if (data.meta_description) agentProfile.meta_description = data.meta_description;
-        if (data.meta_keywords) agentProfile.meta_keywords = data.meta_keywords;
-        if (data.og_title) agentProfile.og_title = data.og_title;
-        if (data.og_description) agentProfile.og_description = data.og_description;
-        if (data.og_image_id) agentProfile.og_image_id = data.og_image_id;
-
-        if (Object.keys(agentProfile).length > 0) {
-          agentProfile.social_media = consultantSocialMedia
-            .filter((item) => (item.name || "").trim() && (item.url || "").trim())
-            .map((item, index) => ({
-              id: item.id,
-              name: item.name,
-              url: item.url,
-              icon: item.icon ?? item.icon_data?.id ?? null,
-              order: item.order ?? index,
-            }));
-          adminDataToSubmit.agent_profile = agentProfile;
-        }
+        if (data.license_number) adminDataToSubmit.license_number = data.license_number;
+        if (data.license_expire_date) adminDataToSubmit.license_expire_date = data.license_expire_date;
+        if (data.specialization) adminDataToSubmit.specialization = data.specialization;
+        if (data.agency_id) adminDataToSubmit.agency_id = data.agency_id;
+        if (typeof data.is_verified === "boolean") adminDataToSubmit.is_verified = data.is_verified;
+        if (typeof data.show_in_team === "boolean") adminDataToSubmit.show_in_team = data.show_in_team;
+        if (typeof data.team_order === "number") adminDataToSubmit.team_order = Math.max(0, data.team_order);
+        if (data.meta_title) adminDataToSubmit.meta_title = data.meta_title;
+        if (data.meta_description) adminDataToSubmit.meta_description = data.meta_description;
+        if (data.meta_keywords) adminDataToSubmit.meta_keywords = data.meta_keywords;
+        if (data.og_title) adminDataToSubmit.og_title = data.og_title;
+        if (data.og_description) adminDataToSubmit.og_description = data.og_description;
+        if (data.og_image_id) adminDataToSubmit.og_image_id = data.og_image_id;
       }
 
       return adminApi.createAdmin(adminDataToSubmit as any);

@@ -73,6 +73,18 @@ class PropertyAgent(BaseModel, SEOMixin):
         verbose_name="Verified",
         help_text="Designates whether this agent is verified"
     )
+    show_in_team = models.BooleanField(
+        default=False,
+        db_index=True,
+        verbose_name="Show In Team",
+        help_text="Show this agent in public team sections"
+    )
+    team_order = models.PositiveIntegerField(
+        default=0,
+        db_index=True,
+        verbose_name="Team Order",
+        help_text="Sort order for team listing (lower first)"
+    )
     rating = models.DecimalField(
         max_digits=3,
         decimal_places=2,
@@ -108,6 +120,7 @@ class PropertyAgent(BaseModel, SEOMixin):
         ordering = ['-rating', '-total_sales', 'user__admin_profile__last_name']
         indexes = [
             models.Index(fields=['is_active', 'is_verified', '-rating']),
+            models.Index(fields=['is_active', 'show_in_team', 'team_order']),
             models.Index(fields=['agency', 'is_active']),
             models.Index(fields=['user', 'is_active']),
             models.Index(fields=['license_number']),
