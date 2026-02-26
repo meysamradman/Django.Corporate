@@ -90,7 +90,7 @@ export function RealEstateDetailsFacilities({ property }: RealEstateDetailsFacil
                 </ItemContent>
             </Item>
 
-            <Item size="sm" className="rounded-none border-x-0 border-t-0 hover:bg-bg/40 transition-colors">
+            <Item size="sm" className="rounded-none border-x-0 border-t-0 border-b border-br/40 hover:bg-bg/40 transition-colors">
                 <ItemMedia className="text-indigo-1/60">
                     <Users className="size-4" />
                 </ItemMedia>
@@ -99,6 +99,20 @@ export function RealEstateDetailsFacilities({ property }: RealEstateDetailsFacil
                     <span className="text-[14px] font-black">
                         {property.living_rooms !== null && property.living_rooms !== undefined ? (
                             getLocalizedFacility('living_rooms', property.living_rooms)
+                        ) : <ValueFallback value={null} />}
+                    </span>
+                </ItemContent>
+            </Item>
+
+            <Item size="sm" className="rounded-none border-x-0 border-t-0 hover:bg-bg/40 transition-colors">
+                <ItemMedia className="text-emerald-1/60">
+                    <Building2 className="size-4" />
+                </ItemMedia>
+                <ItemContent className="flex-row items-center gap-2">
+                    <span className="text-[14px] font-bold text-font-s">آسانسور:</span>
+                    <span className="text-[14px] font-black">
+                        {property.has_elevator !== null && property.has_elevator !== undefined ? (
+                            property.has_elevator ? "دارد" : "ندارد"
                         ) : <ValueFallback value={null} />}
                     </span>
                 </ItemContent>

@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/elements/input";
 import { Separator } from "@/components/elements/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/select";
+import { Switch } from "@/components/elements/switch";
 import { ChevronDown } from "lucide-react";
 import { fromSortValue, toSeoLocationSegment, toSortValue } from "@/components/real-estate/search/filters";
 import type { PropertySearchFilters } from "@/types/real-estate/searchFilters";
@@ -92,15 +93,24 @@ const toNumberOrNull = (value: string): number | null => {
   return parsed;
 };
 
-const toTriStateValue = (value: boolean | null): string => {
-  if (value === null) return "";
-  return value ? "true" : "false";
-};
+function BinarySwitch({
+  value,
+  onChange,
+  label,
+}: {
+  value: boolean | null;
+  onChange: (value: boolean | null) => void;
+  label: string;
+}) {
+  const checked = value === true;
 
-const fromTriStateValue = (value: string): boolean | null => {
-  if (!value) return null;
-  return value === "true";
-};
+  return (
+    <div className="flex items-center justify-between rounded-md border border-br bg-wt px-3 py-2">
+      <span className="text-sm text-font-s">{label}</span>
+      <Switch checked={checked} onCheckedChange={(nextChecked) => onChange(nextChecked ? true : null)} aria-label={label} />
+    </div>
+  );
+}
 
 type PopupPickerOption = {
   value: string;
@@ -541,37 +551,25 @@ export default function PropertySearchSidebar({
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="space-y-2">
-            <label className="text-sm text-font-s">پارکینگ (دارد/ندارد)</label>
-            <NativeSelect
-              value={toTriStateValue(filters.has_parking)}
-              onChange={(event) => update({ has_parking: fromTriStateValue(event.target.value) })}
-            >
-              <NativeSelectOption value="">مهم نیست</NativeSelectOption>
-              <NativeSelectOption value="true">دارد</NativeSelectOption>
-              <NativeSelectOption value="false">ندارد</NativeSelectOption>
-            </NativeSelect>
+            <BinarySwitch
+              label="پارکینگ"
+              value={filters.has_parking}
+              onChange={(value) => update({ has_parking: value })}
+            />
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-font-s">انباری (دارد/ندارد)</label>
-            <NativeSelect
-              value={toTriStateValue(filters.has_storage)}
-              onChange={(event) => update({ has_storage: fromTriStateValue(event.target.value) })}
-            >
-              <NativeSelectOption value="">مهم نیست</NativeSelectOption>
-              <NativeSelectOption value="true">دارد</NativeSelectOption>
-              <NativeSelectOption value="false">ندارد</NativeSelectOption>
-            </NativeSelect>
+            <BinarySwitch
+              label="انباری"
+              value={filters.has_storage}
+              onChange={(value) => update({ has_storage: value })}
+            />
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-font-s">آسانسور (دارد/ندارد)</label>
-            <NativeSelect
-              value={toTriStateValue(filters.has_elevator)}
-              onChange={(event) => update({ has_elevator: fromTriStateValue(event.target.value) })}
-            >
-              <NativeSelectOption value="">مهم نیست</NativeSelectOption>
-              <NativeSelectOption value="true">دارد</NativeSelectOption>
-              <NativeSelectOption value="false">ندارد</NativeSelectOption>
-            </NativeSelect>
+            <BinarySwitch
+              label="آسانسور"
+              value={filters.has_elevator}
+              onChange={(value) => update({ has_elevator: value })}
+            />
           </div>
         </div>
 
