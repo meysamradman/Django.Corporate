@@ -3,8 +3,8 @@
 import React from "react";
 import { realEstateApi } from "@/api/real-estate/route";
 import { Button } from "@/components/elements/custom/button";
+import { PopupPicker } from "@/components/elements/custom/popup-picker";
 import { Input } from "@/components/elements/input";
-import { PopupPicker } from "@/components/elements/popup-picker";
 import { Separator } from "@/components/elements/separator";
 import { Switch } from "@/components/elements/switch";
 import { fromSortValue, toSeoLocationSegment, toSortValue } from "@/components/real-estate/search/filters";
@@ -226,8 +226,16 @@ export default function PropertySearchSidebar({
               ...typeOptions.map((item) => ({ value: item.value, title: item.title })),
             ]}
             onSelect={(value) => {
+              if (!value) {
+                update({
+                  property_type: null,
+                  type_slug: "",
+                });
+                return;
+              }
+
               const selected = typeOptions.find((item) => item.value === value);
-              const nextTypeSlug = selected?.slug || "";
+              const nextTypeSlug = (selected?.slug || "").trim();
               const nextTypeId = toNumberOrNull(value);
               update({
                 property_type: nextTypeId,
@@ -250,10 +258,18 @@ export default function PropertySearchSidebar({
               ...stateOptions.map((item) => ({ value: item.value, title: item.title })),
             ]}
             onSelect={(value) => {
+              if (!value) {
+                update({
+                  state: null,
+                  state_slug: "",
+                });
+                return;
+              }
+
               const selected = stateOptions.find((item) => item.value === value);
               update({
                 state: toNumberOrNull(value),
-                state_slug: selected?.slug || "",
+                state_slug: (selected?.slug || "").trim(),
               });
             }}
           />

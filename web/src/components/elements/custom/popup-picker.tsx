@@ -53,6 +53,7 @@ export function PopupPicker({
     <Dialog open={open} onOpenChange={(next) => setOpen(disabled ? false : next)}>
       <DialogTrigger asChild>
         <button
+          dir="rtl"
           type="button"
           disabled={disabled}
           className="inline-flex h-10 w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-br bg-wt px-3 text-sm text-font-p shadow-xs outline-none transition-colors focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
@@ -62,7 +63,7 @@ export function PopupPicker({
         </button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-sm border-br bg-card p-0" showCloseButton={false}>
+      <DialogContent dir="rtl" className="max-w-sm border-br bg-card p-0" showCloseButton={false}>
         <DialogHeader className="border-b border-br px-3 py-2">
           <div className="flex items-center justify-between">
             <button
