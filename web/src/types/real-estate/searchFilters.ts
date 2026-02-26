@@ -20,6 +20,9 @@ export type PropertySearchFilters = {
   kitchens: number | null;
   living_rooms: number | null;
   year_built: number | null;
+  building_age_bucket: string;
+  building_age_min: number | null;
+  building_age_max: number | null;
   parking_spaces: number | null;
   storage_rooms: number | null;
   has_parking: boolean | null;

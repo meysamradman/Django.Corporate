@@ -45,6 +45,56 @@ class PropertyPublicService:
             return None
 
     @staticmethod
+    def _apply_building_age_bucket_filter(queryset, bucket):
+        if not bucket:
+            return queryset
+
+        normalized_bucket = str(bucket).strip().lower()
+        current_year = Property.get_current_shamsi_year()
+
+        if normalized_bucket == 'new':
+            return queryset.filter(year_built__gte=current_year - 1, year_built__lte=current_year)
+        if normalized_bucket == '1_5':
+            return queryset.filter(year_built__gte=current_year - 5, year_built__lte=current_year - 1)
+        if normalized_bucket == '6_10':
+            return queryset.filter(year_built__gte=current_year - 10, year_built__lte=current_year - 6)
+        if normalized_bucket == '11_20':
+            return queryset.filter(year_built__gte=current_year - 20, year_built__lte=current_year - 11)
+        if normalized_bucket == '21_30':
+            return queryset.filter(year_built__gte=current_year - 30, year_built__lte=current_year - 21)
+        if normalized_bucket == '30_plus':
+            return queryset.filter(year_built__lte=current_year - 31)
+
+        return queryset
+
+    @staticmethod
+    def _apply_building_age_range_filter(queryset, min_age, max_age):
+        parsed_min = PropertyPublicService._parse_int(min_age)
+        parsed_max = PropertyPublicService._parse_int(max_age)
+
+        if parsed_min is None and parsed_max is None:
+            return queryset, False
+
+        if parsed_min is not None and parsed_min < 0:
+            parsed_min = 0
+        if parsed_max is not None and parsed_max < 0:
+            parsed_max = 0
+
+        if parsed_min is not None and parsed_max is not None and parsed_min > parsed_max:
+            parsed_min, parsed_max = parsed_max, parsed_min
+
+        current_year = Property.get_current_shamsi_year()
+        filtered = queryset
+
+        # Age N means built_year = current_year - N
+        if parsed_min is not None:
+            filtered = filtered.filter(year_built__lte=current_year - parsed_min)
+        if parsed_max is not None:
+            filtered = filtered.filter(year_built__gte=current_year - parsed_max)
+
+        return filtered, True
+
+    @staticmethod
     def _normalize_ordering(ordering):
         if not ordering:
             return ('-published_at', '-created_at')
@@ -78,6 +128,18 @@ class PropertyPublicService:
                 parsed_value = PropertyPublicService._parse_int(filters.get(int_filter))
                 if parsed_value is not None:
                     queryset = queryset.filter(**{f'{int_filter}_id': parsed_value})
+
+            queryset, has_manual_age_range = PropertyPublicService._apply_building_age_range_filter(
+                queryset,
+                filters.get('building_age_min'),
+                filters.get('building_age_max'),
+            )
+
+            if not has_manual_age_range:
+                queryset = PropertyPublicService._apply_building_age_bucket_filter(
+                    queryset,
+                    filters.get('building_age_bucket'),
+                )
 
             for int_field, orm_field in (
                 ('min_price', 'price__gte'),

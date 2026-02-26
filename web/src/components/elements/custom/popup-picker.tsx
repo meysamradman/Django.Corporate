@@ -18,10 +18,12 @@ type PopupPickerProps = {
   placeholder: string;
   options: PopupPickerOption[];
   onSelect: (value: string) => void;
+  displayText?: string;
   disabled?: boolean;
   searchable?: boolean;
   searchPlaceholder?: string;
   showCheck?: boolean;
+  renderFooter?: (helpers: { close: () => void }) => React.ReactNode;
 };
 
 export function PopupPicker({
@@ -30,16 +32,18 @@ export function PopupPicker({
   placeholder,
   options,
   onSelect,
+  displayText,
   disabled = false,
   searchable = false,
   searchPlaceholder = "Search...",
   showCheck = true,
+  renderFooter,
 }: PopupPickerProps) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
 
   const selected = options.find((item) => item.value === value);
-  const displayText = selected?.title || placeholder;
+  const resolvedDisplayText = displayText || selected?.title || placeholder;
   const normalizedQuery = query.trim().toLocaleLowerCase("fa-IR");
   const filteredOptions = searchable
     ? options.filter((item) => item.title.toLocaleLowerCase("fa-IR").includes(normalizedQuery))
@@ -58,7 +62,7 @@ export function PopupPicker({
           disabled={disabled}
           className="inline-flex h-10 w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-br bg-wt px-3 text-sm text-font-p shadow-xs outline-none transition-colors focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <span className="line-clamp-1 text-right">{displayText}</span>
+          <span className="line-clamp-1 text-right">{resolvedDisplayText}</span>
           <ChevronDown className="size-4 text-font-s" />
         </button>
       </DialogTrigger>
@@ -116,6 +120,7 @@ export function PopupPicker({
             );
           })}
         </div>
+        {renderFooter ? <div className="border-t border-br p-2">{renderFooter({ close: () => setOpen(false) })}</div> : null}
       </DialogContent>
     </Dialog>
   );

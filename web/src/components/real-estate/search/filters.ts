@@ -260,6 +260,9 @@ export const resolvePropertySearchFilters = (
     kitchens: toOptionalNumber(searchParams.kitchens ?? searchParams.kitchen),
     living_rooms: toOptionalNumber(searchParams.living_rooms ?? searchParams.living),
     year_built: toOptionalNumber(searchParams.year_built ?? searchParams.build_year),
+    building_age_bucket: toSingle(searchParams.building_age_bucket).trim(),
+    building_age_min: toOptionalNumber(searchParams.building_age_min),
+    building_age_max: toOptionalNumber(searchParams.building_age_max),
     parking_spaces: toOptionalNumber(searchParams.parking_spaces ?? searchParams.parking),
     storage_rooms: toOptionalNumber(searchParams.storage_rooms ?? searchParams.storage),
     has_parking: toOptionalBoolean(searchParams.has_parking),
@@ -300,7 +303,13 @@ export const toPropertyListApiParams = (
   bathrooms: filters.bathrooms ?? undefined,
   kitchens: filters.kitchens ?? undefined,
   living_rooms: filters.living_rooms ?? undefined,
-  year_built: filters.year_built ?? undefined,
+  year_built:
+    filters.building_age_bucket || filters.building_age_min !== null || filters.building_age_max !== null
+      ? undefined
+      : (filters.year_built ?? undefined),
+  building_age_bucket: filters.building_age_bucket || undefined,
+  building_age_min: filters.building_age_min ?? undefined,
+  building_age_max: filters.building_age_max ?? undefined,
   parking_spaces: filters.parking_spaces ?? undefined,
   storage_rooms: filters.storage_rooms ?? undefined,
   has_parking: filters.has_parking ?? undefined,
@@ -351,7 +360,10 @@ export const filtersToSearchParams = (
   if (next.bathrooms !== null) params.set("bathrooms", String(next.bathrooms));
   if (next.kitchens !== null) params.set("kitchens", String(next.kitchens));
   if (next.living_rooms !== null) params.set("living_rooms", String(next.living_rooms));
-  if (next.year_built !== null) params.set("year_built", String(next.year_built));
+  if (next.building_age_bucket) params.set("building_age_bucket", next.building_age_bucket);
+  if (next.building_age_min !== null) params.set("building_age_min", String(next.building_age_min));
+  if (next.building_age_max !== null) params.set("building_age_max", String(next.building_age_max));
+  if (!next.building_age_bucket && next.year_built !== null) params.set("year_built", String(next.year_built));
   if (next.parking_spaces !== null) params.set("parking_spaces", String(next.parking_spaces));
   if (next.storage_rooms !== null) params.set("storage_rooms", String(next.storage_rooms));
   if (next.has_parking !== null) params.set("has_parking", next.has_parking ? "true" : "false");

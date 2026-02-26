@@ -23,6 +23,9 @@ export interface RealEstateListParams {
   kitchens?: number;
   living_rooms?: number;
   year_built?: number;
+  building_age_bucket?: string;
+  building_age_min?: number;
+  building_age_max?: number;
   parking_spaces?: number;
   storage_rooms?: number;
   has_parking?: boolean;

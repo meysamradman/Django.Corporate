@@ -382,7 +382,7 @@ class AdminManagementService:
 
                     agent_profile = admin.real_estate_agent_profile
                     can_manage_agent_flags = bool(
-                        getattr(admin_user, 'is_superuser', False) or getattr(admin_user, 'is_admin_full', False)
+                        getattr(admin_user, 'is_superuser', False)
                     )
 
                     if 'license_number' in nested_agent_profile:

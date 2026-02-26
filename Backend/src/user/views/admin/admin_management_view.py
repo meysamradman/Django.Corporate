@@ -154,6 +154,9 @@ class AdminManagementView(AdminAuthMixin, APIView):
             return self.create_admin_post(request)
 
     def create_admin_post(self, request):
+        if not self._is_real_superuser(request.user):
+            return self._forbidden_response(AUTH_ERRORS["auth_not_superuser"])
+
         serializer = AdminRegisterSerializer(data=request.data, context={'admin_user': request.user})
         
         if not serializer.is_valid():
@@ -186,6 +189,9 @@ class AdminManagementView(AdminAuthMixin, APIView):
             )
 
     def bulk_delete_post(self, request):
+        if not self._is_real_superuser(request.user):
+            return self._forbidden_response(AUTH_ERRORS["auth_not_superuser"])
+
         serializer = BulkDeleteSerializer(data=request.data)
         if not serializer.is_valid():
             return APIResponse.error(
@@ -229,7 +235,7 @@ class AdminManagementView(AdminAuthMixin, APIView):
                         return self._forbidden_response(
                             AUTH_ERRORS["admin_field_edit_forbidden"].format(field=field)
                         )
-                if not self._is_super_admin(request.user):
+                if not self._is_real_superuser(request.user):
                     protected_agent_fields = ['is_verified', 'show_in_team', 'team_order']
                     for field in protected_agent_fields:
                         if field in request.data:
@@ -276,6 +282,9 @@ class AdminManagementView(AdminAuthMixin, APIView):
 
     def delete(self, request, admin_id, **kwargs):
         try:
+            if not self._is_real_superuser(request.user):
+                return self._forbidden_response(AUTH_ERRORS["auth_not_superuser"])
+
             if str(request.user.id) == str(admin_id):
                 return self._forbidden_response(AUTH_ERRORS["admin_cannot_self_delete"])
 
@@ -313,6 +322,9 @@ class AdminManagementView(AdminAuthMixin, APIView):
     def _is_super_admin(self, user):
         return getattr(user, 'is_admin_full', False) or getattr(user, 'is_superuser', False)
 
+    def _is_real_superuser(self, user):
+        return bool(getattr(user, 'is_superuser', False))
+
     def _has_role(self, user, role_name: str) -> bool:
         try:
             return hasattr(user, 'admin_user_roles') and user.admin_user_roles.filter(
@@ -323,22 +335,12 @@ class AdminManagementView(AdminAuthMixin, APIView):
             return False
 
     def _can_view_other_admins(self, user):
-        if self._is_super_admin(user):
+        if self._is_real_superuser(user):
             return True
-        
-        if self._has_role(user, 'user_manager'):
-            return True
-
-        if self._has_role(user, 'property_agent'):
-            return False
-        
-        user_type = getattr(user, 'user_type', None)
-        is_admin_active = getattr(user, 'is_admin_active', False)
-        
-        return user_type == 'admin' and is_admin_active
+        return False
 
     def _can_edit_other_admins(self, user):
-        return self._is_super_admin(user)
+        return self._is_real_superuser(user)
 
     def _can_delete_other_admins(self, user):
-        return self._is_super_admin(user)
+        return self._is_real_superuser(user)

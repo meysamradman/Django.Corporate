@@ -35,14 +35,14 @@ type PropertySearchSidebarProps = {
 };
 
 const sectionClassName = "space-y-3";
-const YEAR_BUILT_MIN = 1300;
-const YEAR_BUILT_MAX = 1550;
-const YEAR_BUILT_OPTIONS = [
-  { value: "", title: "همه سال‌ها" },
-  ...Array.from({ length: YEAR_BUILT_MAX - YEAR_BUILT_MIN + 1 }, (_, index) => {
-    const year = String(YEAR_BUILT_MAX - index);
-    return { value: year, title: year };
-  }),
+const BUILDING_AGE_OPTIONS = [
+  { value: "", title: "همه" },
+  { value: "new", title: "نوساز (۰ تا ۱ سال)" },
+  { value: "1_5", title: "۱ تا ۵ سال" },
+  { value: "6_10", title: "۶ تا ۱۰ سال" },
+  { value: "11_20", title: "۱۱ تا ۲۰ سال" },
+  { value: "21_30", title: "۲۱ تا ۳۰ سال" },
+  { value: "30_plus", title: "بالای ۳۰ سال" },
 ];
 
 const toNumberOrNull = (value: string): number | null => {
@@ -86,6 +86,8 @@ export default function PropertySearchSidebar({
 }: PropertySearchSidebarProps) {
   const [dynamicCityOptions, setDynamicCityOptions] = React.useState<SidebarOption[]>(cityOptions);
   const [dynamicRegionOptions, setDynamicRegionOptions] = React.useState<SidebarOption[]>(regionOptions);
+  const [ageMinDraft, setAgeMinDraft] = React.useState("");
+  const [ageMaxDraft, setAgeMaxDraft] = React.useState("");
 
   React.useEffect(() => {
     setDynamicCityOptions(cityOptions);
@@ -94,6 +96,11 @@ export default function PropertySearchSidebar({
   React.useEffect(() => {
     setDynamicRegionOptions(regionOptions);
   }, [regionOptions]);
+
+  React.useEffect(() => {
+    setAgeMinDraft(filters.building_age_min !== null ? String(filters.building_age_min) : "");
+    setAgeMaxDraft(filters.building_age_max !== null ? String(filters.building_age_max) : "");
+  }, [filters.building_age_min, filters.building_age_max]);
 
   React.useEffect(() => {
     let ignore = false;
@@ -190,6 +197,11 @@ export default function PropertySearchSidebar({
   const update = (updates: Partial<PropertySearchFilters>) => {
     onFiltersChange({ ...updates, page: 1 });
   };
+
+  const ageDisplayText =
+    filters.building_age_min !== null || filters.building_age_max !== null
+      ? `${filters.building_age_min ?? 0} تا ${filters.building_age_max ?? "نامحدود"} سال`
+      : undefined;
 
   return (
     <aside className="rounded-2xl border border-br bg-card p-4 md:p-5 space-y-5 lg:max-h-[calc(100vh-8.5rem)] lg:overflow-y-auto">
@@ -504,15 +516,62 @@ export default function PropertySearchSidebar({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-2">
-            <label className="text-sm text-font-s">سال ساخت (شمسی)</label>
+            <label className="text-sm text-font-s">سن بنا</label>
             <PopupPicker
-              value={filters.year_built !== null ? String(filters.year_built) : ""}
-              title="انتخاب سال ساخت"
-              placeholder="همه سال‌ها"
-              searchable
-              searchPlaceholder="جستجوی سال ساخت"
-              options={YEAR_BUILT_OPTIONS}
-              onSelect={(value) => update({ year_built: toNumberOrNull(value) })}
+              value={filters.building_age_bucket}
+              displayText={ageDisplayText}
+              title="انتخاب سن بنا"
+              placeholder="همه"
+              options={BUILDING_AGE_OPTIONS}
+              onSelect={(value) => update({ building_age_bucket: value, building_age_min: null, building_age_max: null, year_built: null })}
+              renderFooter={({ close }) => (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      type="number"
+                      min={0}
+                      value={ageMinDraft}
+                      onChange={(event) => setAgeMinDraft(event.target.value)}
+                      placeholder="از (سال)"
+                    />
+                    <Input
+                      type="number"
+                      min={0}
+                      value={ageMaxDraft}
+                      onChange={(event) => setAgeMaxDraft(event.target.value)}
+                      placeholder="تا (سال)"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setAgeMinDraft("");
+                        setAgeMaxDraft("");
+                        update({ building_age_min: null, building_age_max: null, building_age_bucket: "", year_built: null });
+                        close();
+                      }}
+                    >
+                      پاک کردن
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        update({
+                          building_age_bucket: "",
+                          building_age_min: toNumberOrNull(ageMinDraft),
+                          building_age_max: toNumberOrNull(ageMaxDraft),
+                          year_built: null,
+                        });
+                        close();
+                      }}
+                    >
+                      اعمال
+                    </Button>
+                  </div>
+                </div>
+              )}
             />
           </div>
         </div>

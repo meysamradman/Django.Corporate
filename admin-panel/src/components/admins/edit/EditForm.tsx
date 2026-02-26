@@ -133,8 +133,8 @@ export function EditAdminForm({ adminId, profileMode = "admin", viewOnly = false
     const queryKey = ["admin", isMeRoute ? "me" : adminId];
 
     const canManageAccess = useMemo(
-        () => Boolean(user?.is_superuser || user?.is_admin_full) && !viewOnly,
-        [user?.is_superuser, user?.is_admin_full, viewOnly]
+        () => Boolean(user?.is_superuser) && !viewOnly,
+        [user?.is_superuser, viewOnly]
     );
     const lockRoleType = isAgentMode;
     const canChangeRoleType = canManageAccess && !lockRoleType;
