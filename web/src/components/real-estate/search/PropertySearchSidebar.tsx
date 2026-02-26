@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import { realEstateApi } from "@/api/real-estate/route";
@@ -61,7 +61,7 @@ function NativeSelect({ className, children, value, defaultValue, onChange, ...p
       >
         <SelectValue placeholder={placeholderOption?.props.children as React.ReactNode} />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="w-[var(--radix-select-trigger-width)] max-w-[var(--radix-select-trigger-width)]">
         {optionElements.map((option, index) => {
           const optionValue = String(option.props.value ?? "");
           const mappedOptionValue = optionValue === "" ? EMPTY_SELECT_VALUE : optionValue;
@@ -82,16 +82,6 @@ function NativeSelectOption(_props: React.ComponentProps<"option">) {
 }
 
 const sectionClassName = "space-y-3";
-
-const toBoolString = (value: boolean | null): string => {
-  if (value === null) return "";
-  return value ? "true" : "false";
-};
-
-const fromBoolString = (value: string): boolean | null => {
-  if (!value) return null;
-  return value === "true";
-};
 
 const toNumberOrNull = (value: string): number | null => {
   const trimmed = value.trim().replace(/,/g, "");
@@ -187,9 +177,6 @@ export default function PropertySearchSidebar({
   provinceOptions,
   cityOptions,
   regionOptions,
-  tagOptions,
-  featureOptions,
-  statusOptions,
   onFiltersChange,
   onReset,
 }: PropertySearchSidebarProps) {
@@ -302,14 +289,12 @@ export default function PropertySearchSidebar({
 
   return (
     <aside className="rounded-2xl border border-br bg-card p-4 md:p-5 space-y-5 lg:max-h-[calc(100vh-8.5rem)] lg:overflow-y-auto">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center">
         <h2 className="text-base font-black text-font-p">فیلترهای جستجو</h2>
-        <span className="text-xs text-font-s">{isLoading ? "در حال بروزرسانی..." : "آماده"}</span>
       </div>
       <Separator className="bg-br" />
 
       <section className={sectionClassName}>
-        <h3 className="text-sm font-black text-font-p">جستجو</h3>
         <div className="space-y-2">
           <label className="text-sm text-font-s">عبارت جستجو</label>
           <Input
@@ -319,22 +304,6 @@ export default function PropertySearchSidebar({
           />
         </div>
         <p className="text-xs text-font-s">با تایپ، نتایج به‌صورت خودکار بروزرسانی می‌شود.</p>
-      </section>
-      <Separator className="bg-br" />
-
-      <section className={sectionClassName}>
-        <h3 className="text-sm font-black text-font-p">وضعیت آگهی</h3>
-        <div className="space-y-2">
-          <label className="text-sm text-font-s">وضعیت</label>
-          <NativeSelect value={filters.status} onChange={(event) => update({ status: event.target.value })}>
-            <NativeSelectOption value="">همه وضعیت‌ها</NativeSelectOption>
-            {statusOptions.map((item) => (
-              <NativeSelectOption key={item.id} value={item.value}>
-                {item.title}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-        </div>
       </section>
       <Separator className="bg-br" />
 
@@ -600,97 +569,7 @@ export default function PropertySearchSidebar({
       <Separator className="bg-br" />
 
       <section className={sectionClassName}>
-        <h3 className="text-sm font-black text-font-p">فیلترهای تکمیلی</h3>
-        <div className="space-y-2">
-          <label className="text-sm text-font-s">برچسب</label>
-          <NativeSelect value={filters.tag_slug} onChange={(event) => update({ tag_slug: event.target.value })}>
-            <NativeSelectOption value="">همه</NativeSelectOption>
-            {tagOptions.map((item) => (
-              <NativeSelectOption key={item.id} value={item.value}>
-                {item.title}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm text-font-s">ویژگی</label>
-          <NativeSelect
-            value={filters.feature_public_id}
-            onChange={(event) => update({ feature_public_id: event.target.value })}
-          >
-            <NativeSelectOption value="">همه</NativeSelectOption>
-            {featureOptions.map((item) => (
-              <NativeSelectOption key={item.id} value={item.value}>
-                {item.title}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-        </div>
-      </section>
-      <Separator className="bg-br" />
-
-      <section className={sectionClassName}>
-        <h3 className="text-sm font-black text-font-p">زمان و انتشار</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <label className="text-sm text-font-s">تاریخ ایجاد از</label>
-            <Input
-              type="date"
-              value={filters.created_after}
-              onChange={(event) => update({ created_after: event.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm text-font-s">تاریخ ایجاد تا</label>
-            <Input
-              type="date"
-              value={filters.created_before}
-              onChange={(event) => update({ created_before: event.target.value })}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="space-y-2">
-            <label className="text-sm text-font-s">فقط ویژه</label>
-            <NativeSelect
-              value={toBoolString(filters.is_featured)}
-              onChange={(event) => update({ is_featured: fromBoolString(event.target.value) })}
-            >
-              <NativeSelectOption value="">مهم نیست</NativeSelectOption>
-              <NativeSelectOption value="true">بله</NativeSelectOption>
-              <NativeSelectOption value="false">خیر</NativeSelectOption>
-            </NativeSelect>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm text-font-s">عمومی بودن</label>
-            <NativeSelect
-              value={toBoolString(filters.is_public)}
-              onChange={(event) => update({ is_public: fromBoolString(event.target.value) })}
-            >
-              <NativeSelectOption value="">مهم نیست</NativeSelectOption>
-              <NativeSelectOption value="true">عمومی</NativeSelectOption>
-              <NativeSelectOption value="false">غیرعمومی</NativeSelectOption>
-            </NativeSelect>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm text-font-s">فعال بودن</label>
-            <NativeSelect
-              value={toBoolString(filters.is_active)}
-              onChange={(event) => update({ is_active: fromBoolString(event.target.value) })}
-            >
-              <NativeSelectOption value="">مهم نیست</NativeSelectOption>
-              <NativeSelectOption value="true">فعال</NativeSelectOption>
-              <NativeSelectOption value="false">غیرفعال</NativeSelectOption>
-            </NativeSelect>
-          </div>
-        </div>
-      </section>
-      <Separator className="bg-br" />
-
-      <section className={sectionClassName}>
-        <h3 className="text-sm font-black text-font-p">مرتب‌سازی و پیشرفته</h3>
+        <h3 className="text-sm font-black text-font-p">مرتب‌سازی</h3>
         <div className="space-y-2">
           <label className="text-sm text-font-s">مرتب‌سازی</label>
           <NativeSelect
@@ -714,24 +593,6 @@ export default function PropertySearchSidebar({
           </NativeSelect>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <label className="text-sm text-font-s">اسلاگ نوع (SEO)</label>
-            <Input
-              value={filters.type_slug}
-              onChange={(event) => update({ type_slug: event.target.value, property_type: null })}
-              placeholder="type"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm text-font-s">اسلاگ وضعیت (پیشرفته)</label>
-            <Input
-              value={filters.state_slug}
-              onChange={(event) => update({ state_slug: event.target.value, state: null })}
-              placeholder="state_slug"
-            />
-          </div>
-        </div>
       </section>
 
       <div className="pt-1">
