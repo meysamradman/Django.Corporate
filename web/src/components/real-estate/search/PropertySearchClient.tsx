@@ -1,17 +1,21 @@
 "use client";
 
 import React from "react";
+import dynamic from "next/dynamic";
 
 import PropertySearchResults from "@/components/real-estate/search/PropertySearchResults";
-import PropertySearchSidebar, {
-  type SidebarOption,
-} from "@/components/real-estate/search/PropertySearchSidebar";
+import type { SidebarOption } from "@/components/real-estate/search/PropertySearchSidebar";
 import {
   resolvePropertySearchFilters,
 } from "@/components/real-estate/search/filters";
 import { usePropertySearch } from "@/components/real-estate/search/usePropertySearch";
 import type { Property } from "@/types/real-estate/property";
 import type { PropertySearchFilters } from "@/types/real-estate/searchFilters";
+
+const PropertySearchSidebar = dynamic(
+  () => import("@/components/real-estate/search/PropertySearchSidebar"),
+  { ssr: false }
+);
 
 type PropertySearchClientProps = {
   initialFilters: PropertySearchFilters;

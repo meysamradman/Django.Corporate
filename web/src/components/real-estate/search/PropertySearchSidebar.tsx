@@ -6,7 +6,6 @@ import { Button } from "@/components/elements/custom/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/elements/dialog";
 import { Input } from "@/components/elements/input";
 import { Separator } from "@/components/elements/separator";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/elements/select";
 import { Switch } from "@/components/elements/switch";
 import { ChevronDown } from "lucide-react";
 import { fromSortValue, toSeoLocationSegment, toSortValue } from "@/components/real-estate/search/filters";
@@ -35,52 +34,6 @@ type PropertySearchSidebarProps = {
   onFiltersChange: (updates: Partial<PropertySearchFilters>) => void;
   onReset: () => void;
 };
-
-const EMPTY_SELECT_VALUE = "__empty__";
-
-function NativeSelect({ className, children, value, defaultValue, onChange, ...props }: React.ComponentProps<"select">) {
-  const optionElements = React.Children.toArray(children).filter(React.isValidElement) as React.ReactElement<
-    React.ComponentProps<"option">
-  >[];
-  const mappedValue = value === "" ? EMPTY_SELECT_VALUE : (value as string | undefined);
-  const mappedDefaultValue = defaultValue === "" ? EMPTY_SELECT_VALUE : (defaultValue as string | undefined);
-  const placeholderOption = optionElements.find((option) => String(option.props.value ?? "") === "");
-
-  return (
-    <Select
-      value={mappedValue}
-      defaultValue={mappedValue === undefined ? mappedDefaultValue : undefined}
-      onValueChange={(nextValue) => {
-        const normalizedValue = nextValue === EMPTY_SELECT_VALUE ? "" : nextValue;
-        onChange?.({ target: { value: normalizedValue } } as React.ChangeEvent<HTMLSelectElement>);
-      }}
-      disabled={props.disabled}
-    >
-      <SelectTrigger
-      id={props.id}
-      className={`w-full rounded-md border border-br bg-wt px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 ${className ?? ""}`}
-      >
-        <SelectValue placeholder={placeholderOption?.props.children as React.ReactNode} />
-      </SelectTrigger>
-      <SelectContent className="w-[var(--radix-select-trigger-width)] max-w-[var(--radix-select-trigger-width)]">
-        {optionElements.map((option, index) => {
-          const optionValue = String(option.props.value ?? "");
-          const mappedOptionValue = optionValue === "" ? EMPTY_SELECT_VALUE : optionValue;
-
-          return (
-            <SelectItem key={`${mappedOptionValue}-${index}`} value={mappedOptionValue} disabled={option.props.disabled}>
-              {option.props.children}
-            </SelectItem>
-          );
-        })}
-      </SelectContent>
-    </Select>
-  );
-}
-
-function NativeSelectOption(_props: React.ComponentProps<"option">) {
-  return null;
-}
 
 const sectionClassName = "space-y-3";
 
@@ -331,10 +284,15 @@ export default function PropertySearchSidebar({
         <h3 className="text-sm font-black text-font-p">نوع و معامله</h3>
         <div className="space-y-2">
           <label className="text-sm text-font-s">نوع ملک</label>
-          <NativeSelect
+          <PopupPicker
             value={selectedTypeValue}
-            onChange={(event) => {
-              const value = event.target.value;
+            title="انتخاب نوع ملک"
+            placeholder="همه"
+            options={[
+              { value: "", title: "همه" },
+              ...typeOptions.map((item) => ({ value: item.value, title: item.title })),
+            ]}
+            onSelect={(value) => {
               const selected = typeOptions.find((item) => item.value === value);
               const nextTypeSlug = selected?.slug || "";
               const nextTypeId = toNumberOrNull(value);
@@ -343,36 +301,27 @@ export default function PropertySearchSidebar({
                 type_slug: nextTypeSlug,
               });
             }}
-          >
-            <NativeSelectOption value="">همه</NativeSelectOption>
-            {typeOptions.map((item) => (
-              <NativeSelectOption key={item.id} value={item.value}>
-                {item.title}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
+          />
         </div>
 
         <div className="space-y-2">
           <label className="text-sm text-font-s">نوع معامله</label>
-          <NativeSelect
+          <PopupPicker
             value={selectedStateValue}
-            onChange={(event) => {
-              const value = event.target.value;
+            title="انتخاب نوع معامله"
+            placeholder="همه"
+            options={[
+              { value: "", title: "همه" },
+              ...stateOptions.map((item) => ({ value: item.value, title: item.title })),
+            ]}
+            onSelect={(value) => {
               const selected = stateOptions.find((item) => item.value === value);
               update({
                 state: toNumberOrNull(value),
                 state_slug: selected?.slug || "",
               });
             }}
-          >
-            <NativeSelectOption value="">همه</NativeSelectOption>
-            {stateOptions.map((item) => (
-              <NativeSelectOption key={item.id} value={item.value}>
-                {item.title}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
+          />
         </div>
       </section>
       <Separator className="bg-br" />
@@ -616,25 +565,28 @@ export default function PropertySearchSidebar({
         <h3 className="text-sm font-black text-font-p">مرتب‌سازی</h3>
         <div className="space-y-2">
           <label className="text-sm text-font-s">مرتب‌سازی</label>
-          <NativeSelect
+          <PopupPicker
             value={sortValue}
-            onChange={(event) => {
-              const sortConfig = fromSortValue(event.target.value);
+            title="انتخاب مرتب‌سازی"
+            placeholder="مرتب‌سازی"
+            options={[
+              { value: "latest", title: "جدیدترین انتشار" },
+              { value: "created_desc", title: "جدیدترین ثبت" },
+              { value: "price_desc", title: "گران‌ترین" },
+              { value: "price_asc", title: "ارزان‌ترین" },
+              { value: "area_desc", title: "بیشترین متراژ" },
+              { value: "views_desc", title: "پربازدیدترین" },
+              { value: "favorites_desc", title: "محبوب‌ترین" },
+              { value: "updated_desc", title: "آخرین بروزرسانی" },
+            ]}
+            onSelect={(value) => {
+              const sortConfig = fromSortValue(value);
               update({
                 order_by: sortConfig.order_by,
                 order_desc: sortConfig.order_desc,
               });
             }}
-          >
-            <NativeSelectOption value="latest">جدیدترین انتشار</NativeSelectOption>
-            <NativeSelectOption value="created_desc">جدیدترین ثبت</NativeSelectOption>
-            <NativeSelectOption value="price_desc">گران‌ترین</NativeSelectOption>
-            <NativeSelectOption value="price_asc">ارزان‌ترین</NativeSelectOption>
-            <NativeSelectOption value="area_desc">بیشترین متراژ</NativeSelectOption>
-            <NativeSelectOption value="views_desc">پربازدیدترین</NativeSelectOption>
-            <NativeSelectOption value="favorites_desc">محبوب‌ترین</NativeSelectOption>
-            <NativeSelectOption value="updated_desc">آخرین بروزرسانی</NativeSelectOption>
-          </NativeSelect>
+          />
         </div>
 
       </section>
