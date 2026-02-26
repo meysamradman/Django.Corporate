@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/elements/input";
 import { Separator } from "@/components/elements/separator";
 import { Switch } from "@/components/elements/switch";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import { fromSortValue, toSeoLocationSegment, toSortValue } from "@/components/real-estate/search/filters";
 import type { PropertySearchFilters } from "@/types/real-estate/searchFilters";
 
@@ -95,7 +95,7 @@ function PopupPicker({
         <button
           type="button"
           disabled={disabled}
-          className="inline-flex h-10 w-full items-center justify-between gap-2 rounded-md border border-br bg-wt px-3 text-sm text-font-p shadow-xs outline-none transition-colors focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-10 w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-br bg-wt px-3 text-sm text-font-p shadow-xs outline-none transition-colors focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <span className="line-clamp-1">{displayText}</span>
           <ChevronDown className="size-4 text-font-s" />
@@ -103,8 +103,18 @@ function PopupPicker({
       </DialogTrigger>
 
       <DialogContent className="max-w-sm border-br bg-card p-0" showCloseButton={false}>
-        <DialogHeader className="border-b border-br px-4 py-3 text-right">
-          <DialogTitle className="text-sm font-black text-font-p">{title}</DialogTitle>
+        <DialogHeader className="border-b border-br px-3 py-2">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-sm font-black text-font-p">{title}</DialogTitle>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="inline-flex size-8 cursor-pointer items-center justify-center rounded-md border border-br bg-bg text-font-s transition-colors hover:bg-card hover:text-font-p"
+              aria-label="بستن"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
         </DialogHeader>
 
         <div className="max-h-[60vh] overflow-y-auto p-2">
@@ -118,7 +128,7 @@ function PopupPicker({
                   onSelect(item.value);
                   setOpen(false);
                 }}
-                className={`flex w-full items-center rounded-md px-2.5 py-2 text-right text-sm transition-colors ${
+                className={`flex w-full cursor-pointer items-center rounded-md px-2.5 py-2 text-right text-sm transition-colors ${
                   isActive ? "bg-bg text-font-p" : "text-font-s hover:bg-bg hover:text-font-p"
                 }`}
               >
@@ -126,16 +136,6 @@ function PopupPicker({
               </button>
             );
           })}
-        </div>
-
-        <div className="border-t border-br p-2">
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="inline-flex h-9 w-full items-center justify-center rounded-md border border-br bg-bg px-3 text-xs font-bold text-font-p transition-colors hover:bg-card"
-          >
-            بستن
-          </button>
         </div>
       </DialogContent>
     </Dialog>
