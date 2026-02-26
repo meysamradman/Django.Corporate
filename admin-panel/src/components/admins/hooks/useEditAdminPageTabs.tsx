@@ -98,7 +98,7 @@ export function useEditAdminPageTabs({
             adminSocialMedia={adminSocialMedia}
             consultantSocialMedia={consultantSocialMedia}
             isConsultant={adminRoleType === "consultant"}
-            showAdminSection={!lockRoleType}
+            showAdminSection={canManageAccess && !lockRoleType}
             onAdminSocialMediaChange={onAdminSocialMediaChange}
             onConsultantSocialMediaChange={onConsultantSocialMediaChange}
           />

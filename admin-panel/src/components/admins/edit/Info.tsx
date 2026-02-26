@@ -119,7 +119,7 @@ export default function EditInfo({
           </FormField>
         </div>
 
-        {lockRoleType ? (
+        {canManageAccess ? (lockRoleType ? (
           <div className="mt-8 space-y-2">
             <Label className="text-base font-semibold text-font-p block">نوع دسترسی کاربر</Label>
             <p className="text-sm text-font-s">این کاربر از نوع مشاور است و از این مسیر قابل تغییر به ادمین نیست.</p>
@@ -198,25 +198,27 @@ export default function EditInfo({
             </div>
           </div>
           </div>
-        )}
+        )) : null}
 
-          <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden mt-6">
-            <Item variant="default" size="default" className="py-5">
-              <ItemContent>
-                <ItemTitle className="text-green-2">وضعیت فعال حساب</ItemTitle>
-                <ItemDescription>
-                  با غیرفعال شدن این تیک، ادمین دیگر امکان ورود نخواهد داشت.
-                </ItemDescription>
-              </ItemContent>
-              <ItemActions>
-                <Switch
-                  checked={watch("is_active") ?? true}
-                  disabled={!canEditRoleCard}
-                  onCheckedChange={(checked) => setValue("is_active", checked)}
-                />
-              </ItemActions>
-            </Item>
-          </div>
+          {canManageAccess ? (
+            <div className="rounded-xl border border-green-1/40 bg-green-0/30 hover:border-green-1/60 transition-colors overflow-hidden mt-6">
+              <Item variant="default" size="default" className="py-5">
+                <ItemContent>
+                  <ItemTitle className="text-green-2">وضعیت فعال حساب</ItemTitle>
+                  <ItemDescription>
+                    با غیرفعال شدن این تیک، ادمین دیگر امکان ورود نخواهد داشت.
+                  </ItemDescription>
+                </ItemContent>
+                <ItemActions>
+                  <Switch
+                    checked={watch("is_active") ?? true}
+                    disabled={!canEditRoleCard}
+                    onCheckedChange={(checked) => setValue("is_active", checked)}
+                  />
+                </ItemActions>
+              </Item>
+            </div>
+          ) : null}
       </CardWithIcon>
     </div>
   );
