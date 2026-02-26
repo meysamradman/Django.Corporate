@@ -1,327 +1,285 @@
-import { useState, useEffect, lazy, Suspense } from "react";
-import { notifyApiError, showSuccess } from "@/core/toast";
-import type { UserWithProfile } from "@/types/auth/user";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/elements/Tabs";
-import { User, KeyRound, AlertCircle, Share2 } from "lucide-react";
-import { UserProfileHeader } from "@/components/users/profile/UserProfileHeader.tsx";
-import { Skeleton } from "@/components/elements/Skeleton";
+import { useState, lazy } from "react";
+import { useForm, type UseFormReturn } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
+import { AlertCircle, User, UserCircle, Share2 } from "lucide-react";
 import { adminApi } from "@/api/admins/admins";
-import { msg } from '@/core/messages';
-import { ApiError } from "@/types/api/apiError";
+import { TabbedPageLayout } from "@/components/templates/TabbedPageLayout";
 import { Alert, AlertDescription } from "@/components/elements/Alert";
-import { userEditSchema } from "@/components/users/validations/userEditSchema";
-import { extractMappedUserFieldErrors, USER_EDIT_FIELD_MAP } from "@/components/users/validations/userApiError";
+import { msg } from "@/core/messages";
+import { validatePassword } from "@/core/validation";
+import { extractFieldErrors, handleFormApiError, notifyApiError, showSuccess } from "@/core/toast";
+import { ApiError } from "@/types/api/apiError";
+import type { Media } from "@/types/shared/media";
+import type { UserWithProfile } from "@/types/auth/user";
 import type { SocialMediaItem } from "@/types/shared/socialMedia";
 import { SocialMediaArrayEditor } from "@/components/shared/SocialMediaArrayEditor";
+import { mapUserFieldErrorKey, USER_CREATE_FIELD_MAP } from "@/components/users/validations/userApiError";
+import { userFormSchema, type UserFormValues } from "@/components/users/validations/userSchema";
 
-const TabContentSkeleton = () => (
-    <div className="mt-6 space-y-6">
-        <div className="space-y-4 rounded-lg border p-6">
-            <Skeleton className="h-8 w-1/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-        </div>
-        <div className="space-y-4 rounded-lg border p-6">
-            <Skeleton className="h-8 w-1/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-        </div>
-    </div>
-);
+const BaseInfoTab = lazy(() => import("@/components/users/create/UserInfo"));
+const ProfileTab = lazy(() => import("@/components/users/create/UserProfile"));
 
-const AccountTab = lazy(() => import("@/components/users/profile/UserAccount.tsx").then((mod) => ({ default: mod.UserAccount })));
-const SecurityTab = lazy(() => import("@/components/users/profile/UserSecurity.tsx").then((mod) => ({ default: mod.UserSecurity })));
+const userEditFormSchema = userFormSchema.extend({
+  password: z
+    .string()
+    .superRefine((val, ctx) => {
+      if (!val || val.trim() === "") return;
+      const result = validatePassword(val);
+      if (!result.isValid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: result.error || msg.validation("passwordRequired"),
+        });
+      }
+    })
+    .optional()
+    .or(z.literal("")),
+});
+
+type UserEditFormValues = z.input<typeof userEditFormSchema>;
 
 const USER_EDIT_TAB_BY_FIELD: Record<string, string> = {
-    firstName: "account",
-    lastName: "account",
-    email: "account",
-    mobile: "account",
-    phone: "account",
-    nationalId: "account",
-    address: "account",
-    province: "account",
-    city: "account",
-    bio: "account",
-    birthDate: "account",
-    social: "social",
+  mobile: "base-info",
+  email: "base-info",
+  password: "base-info",
+  full_name: "base-info",
+  profile_first_name: "profile",
+  profile_last_name: "profile",
+  profile_birth_date: "profile",
+  profile_national_id: "profile",
+  profile_phone: "profile",
+  profile_province_id: "profile",
+  profile_city_id: "profile",
+  profile_address: "profile",
+  profile_bio: "profile",
+  profile_picture: "profile",
+  social_media: "social",
+  "profile.social_media": "social",
 };
 
 function resolveEditUserErrorTab(fieldKeys: Iterable<string>): string | null {
-    for (const key of fieldKeys) {
-        const tab = USER_EDIT_TAB_BY_FIELD[key];
-        if (tab) return tab;
-    }
-    return null;
+  for (const key of fieldKeys) {
+    const tab = USER_EDIT_TAB_BY_FIELD[key];
+    if (tab) return tab;
+  }
+  return null;
 }
 
 interface EditUserFormProps {
-    userData: UserWithProfile;
+  userData: UserWithProfile;
 }
 
 export function EditUserForm({ userData }: EditUserFormProps) {
-    const [activeTab, setActiveTab] = useState("account");
-    const [editMode, setEditMode] = useState(false);
-    const [formData, setFormData] = useState({
-        firstName: userData.profile?.first_name || "",
-        lastName: userData.profile?.last_name || "",
-        email: userData.email || "",
-        mobile: userData.mobile || "",
-        phone: userData.profile?.phone || "",
-        nationalId: userData.profile?.national_id || "",
-        address: userData.profile?.address || "",
-        province: userData.profile?.province?.name || "",
-        city: userData.profile?.city?.name || "",
-        bio: userData.profile?.bio || "",
-        profileImage: userData.profile?.profile_picture || null,
-        birthDate: userData.profile?.birth_date || "",
-    });
-    const [isSaving, setIsSaving] = useState(false);
-    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-    const [formAlert, setFormAlert] = useState<string | null>(null);
-    const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(
-        userData.profile?.province?.id || null
-    );
-    const [selectedCityId, setSelectedCityId] = useState<number | null>(
-        userData.profile?.city?.id || null
-    );
-    const [socialMediaItems, setSocialMediaItems] = useState<SocialMediaItem[]>(
-        userData.profile?.social_media || []
-    );
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<string>("base-info");
+  const [selectedMedia, setSelectedMedia] = useState<Media | null>(userData.profile?.profile_picture || null);
+  const [socialMediaItems, setSocialMediaItems] = useState<SocialMediaItem[]>(userData.profile?.social_media || []);
+  const [formAlert, setFormAlert] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (userData) {
-            setFormData({
-                firstName: userData.profile?.first_name || "",
-                lastName: userData.profile?.last_name || "",
-                email: userData.email || "",
-                mobile: userData.mobile || "",
-                phone: userData.profile?.phone || "",
-                nationalId: userData.profile?.national_id || "",
-                address: userData.profile?.address || "",
-                province: userData.profile?.province?.name || "",
-                city: userData.profile?.city?.name || "",
-                bio: userData.profile?.bio || "",
-                profileImage: userData.profile?.profile_picture || null,
-                birthDate: userData.profile?.birth_date || "",
+  const form = useForm<UserEditFormValues>({
+    resolver: zodResolver(userEditFormSchema),
+    defaultValues: {
+      mobile: userData.mobile || "",
+      email: userData.email || "",
+      password: "",
+      full_name:
+        userData.full_name ||
+        [userData.profile?.first_name, userData.profile?.last_name].filter(Boolean).join(" ").trim(),
+      profile_first_name: userData.profile?.first_name || "",
+      profile_last_name: userData.profile?.last_name || "",
+      profile_birth_date: userData.profile?.birth_date || "",
+      profile_national_id: userData.profile?.national_id || "",
+      profile_phone: userData.profile?.phone || "",
+      profile_province_id: userData.profile?.province?.id || null,
+      profile_city_id: userData.profile?.city?.id || null,
+      profile_address: userData.profile?.address || "",
+      profile_bio: userData.profile?.bio || "",
+      profile_picture: userData.profile?.profile_picture || null,
+      is_active: userData.is_active ?? true,
+    } as UserEditFormValues,
+    mode: "onSubmit",
+  });
+  const uiForm = form as unknown as UseFormReturn<UserFormValues>;
+
+  const editUserMutation = useMutation({
+    mutationFn: async (data: UserEditFormValues) => {
+      const fullName = data.full_name.trim();
+      const nameParts = fullName.split(/\s+/).filter(Boolean);
+      const derivedFirstName = nameParts[0] || "";
+      const derivedLastName = nameParts.slice(1).join(" ");
+
+      const updatePayload: Record<string, unknown> = {
+        mobile: data.mobile,
+        is_active: data.is_active ?? true,
+        profile: {
+          first_name: data.profile_first_name || derivedFirstName,
+          last_name: data.profile_last_name || derivedLastName || "",
+          birth_date: data.profile_birth_date || null,
+          national_id: data.profile_national_id || null,
+          phone: data.profile_phone || null,
+          province: data.profile_province_id || null,
+          city: data.profile_city_id || null,
+          address: data.profile_address || null,
+          bio: data.profile_bio || null,
+          profile_picture: selectedMedia?.id || null,
+          social_media: socialMediaItems
+            .filter((item) => (item.name || "").trim() && (item.url || "").trim())
+            .map((item, index) => ({
+              id: item.id,
+              name: item.name,
+              url: item.url,
+              icon: item.icon ?? item.icon_data?.id ?? null,
+              order: item.order ?? index,
+            })),
+        },
+      };
+
+      if (data.email) {
+        updatePayload.email = data.email;
+      }
+
+      if (data.password && data.password.trim()) {
+        updatePayload.password = data.password.trim();
+      }
+
+      return adminApi.updateUserByType(userData.id, updatePayload, "user");
+    },
+    onSuccess: async () => {
+      setFormAlert(null);
+      await queryClient.invalidateQueries({ queryKey: ["user", String(userData.id)] });
+      await queryClient.invalidateQueries({ queryKey: ["users"] });
+      showSuccess(msg.crud("updated", { item: "پروفایل کاربر" }));
+    },
+    onError: (error: unknown) => {
+      setFormAlert(null);
+
+      const fieldErrors = extractFieldErrors(error);
+      if (Object.keys(fieldErrors).length > 0) {
+        const mappedFieldKeys: string[] = [];
+
+        handleFormApiError(error, {
+          setFieldError: (field, message) => {
+            if (field === "non_field_errors") {
+              setFormAlert(message);
+              return;
+            }
+
+            const formField = mapUserFieldErrorKey(
+              field,
+              USER_CREATE_FIELD_MAP as unknown as Record<string, string>
+            ) as keyof UserEditFormValues;
+
+            mappedFieldKeys.push(String(formField));
+            form.setError(formField, {
+              type: "server",
+              message,
             });
-            setSelectedProvinceId(userData.profile?.province?.id || null);
-            setSelectedCityId(userData.profile?.city?.id || null);
-            setSocialMediaItems(userData.profile?.social_media || []);
+          },
+          checkFormMessage: msg.error("checkForm"),
+          showToastForFieldErrors: false,
+          preferBackendMessage: false,
+          dedupeKey: "users-edit-validation-error",
+        });
+
+        const tabWithError = resolveEditUserErrorTab(mappedFieldKeys);
+        if (tabWithError) {
+          setActiveTab(tabWithError);
         }
-    }, [userData?.id]);
+        return;
+      }
 
-    useEffect(() => {
-        if (!userData) return;
-        
-        if (userData.profile?.profile_picture?.id !== formData.profileImage?.id) {
-            setFormData(prev => ({
-                ...prev,
-                profileImage: userData.profile?.profile_picture || null
-            }));
-                    }
-    }, [userData?.profile?.profile_picture?.id]);
-
-    const handleInputChange = (field: string, value: string | any) => {
-        if (field === "cancel") {
-            setEditMode(false);
-            return;
+      if (error instanceof ApiError) {
+        const statusCode = error.response.AppStatusCode;
+        if (statusCode < 500) {
+          setFormAlert(error.response.message || msg.error("validation"));
+          return;
         }
-        setFormData(prev => ({ ...prev, [field]: value }));
-        
-        if (fieldErrors[field]) {
-            setFieldErrors(prev => {
-                const newErrors = { ...prev };
-                delete newErrors[field];
-                return newErrors;
-            });
-        }
-    };
+      }
 
-    const handleProvinceChange = (provinceName: string, provinceId: number) => {
-        handleInputChange("province", provinceName);
-        handleInputChange("city", "");
-        setSelectedProvinceId(provinceId);
-        setSelectedCityId(null);
-    };
+      notifyApiError(error, {
+        fallbackMessage: msg.error("serverError"),
+        preferBackendMessage: false,
+        dedupeKey: "users-edit-system-error",
+      });
+    },
+  });
 
-    const handleCityChange = (cityName: string, cityId: number) => {
-        handleInputChange("city", cityName);
-        setSelectedCityId(cityId);
-    };
+  const handleSubmit = async () => {
+    setFormAlert(null);
+    form.clearErrors();
+    const isValid = await form.trigger();
+    if (!isValid) {
+      const tabWithError = resolveEditUserErrorTab(Object.keys(form.formState.errors));
+      if (tabWithError) {
+        setActiveTab(tabWithError);
+      }
+      return;
+    }
+    editUserMutation.mutate(form.getValues());
+  };
 
-    const handleSaveProfile = async () => {
-        if (isSaving) return;
-        
-        setIsSaving(true);
-        setFieldErrors({});
-        setFormAlert(null);
+  const handleTabChange = (nextTab: string) => {
+    if (nextTab === activeTab) return;
+    setFormAlert(null);
+    setActiveTab(nextTab);
+  };
 
-        const schemaResult = userEditSchema.safeParse(formData);
-        if (!schemaResult.success) {
-            const nextFieldErrors: Record<string, string> = {};
-            schemaResult.error.issues.forEach((issue) => {
-                const fieldKey = issue.path[0];
-                if (typeof fieldKey === 'string' && !nextFieldErrors[fieldKey]) {
-                    nextFieldErrors[fieldKey] = issue.message;
-                }
-            });
-            setFieldErrors(nextFieldErrors);
-            const tabWithError = resolveEditUserErrorTab(Object.keys(nextFieldErrors));
-            if (tabWithError) {
-                setActiveTab(tabWithError);
-            }
-            setFormAlert(msg.error('checkForm'));
-            setIsSaving(false);
-            return;
-        }
-        
-        try {
-            const updateData: Record<string, any> = {
-                mobile: formData.mobile,
-                profile: {
-                    first_name: formData.firstName,
-                    last_name: formData.lastName,
-                    birth_date: formData.birthDate || null,
-                    national_id: formData.nationalId || null,
-                    phone: formData.phone || null,
-                    address: formData.address || null,
-                    bio: formData.bio || null,
-                    profile_picture: formData.profileImage?.id || null,
-                    province: selectedProvinceId,
-                    city: selectedCityId,
-                    social_media: socialMediaItems
-                        .filter((item) => (item.name || '').trim() && (item.url || '').trim())
-                        .map((item, index) => ({
-                            id: item.id,
-                            name: item.name,
-                            url: item.url,
-                            icon: item.icon ?? item.icon_data?.id ?? null,
-                            order: item.order ?? index,
-                        })),
-                }
-            };
-            
-            if (formData.email) {
-                updateData.email = formData.email;
-            }
-            
-                                    await adminApi.updateUserByType(userData.id, updateData, 'user');
-                        showSuccess(msg.crud('updated', { item: 'پروفایل کاربر' }));
-            setEditMode(false);
-        } catch (error: unknown) {
-                                    const { fieldErrors: newFieldErrors, nonFieldError: nonFieldMessage } = extractMappedUserFieldErrors(
-                                        error,
-                                        USER_EDIT_FIELD_MAP as unknown as Record<string, string>
-                                    );
+  return (
+    <div className="space-y-4">
+      {formAlert ? (
+        <Alert variant="destructive" className="border-red-1/50">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{formAlert}</AlertDescription>
+        </Alert>
+      ) : null}
 
-            if (Object.keys(newFieldErrors).length > 0) {
-                setFieldErrors(newFieldErrors);
-                const tabWithError = resolveEditUserErrorTab(Object.keys(newFieldErrors));
-                if (tabWithError) {
-                    setActiveTab(tabWithError);
-                }
-
-                if (nonFieldMessage) {
-                    setFormAlert(nonFieldMessage);
-                }
-                return;
-            }
-
-            if (nonFieldMessage) {
-                setFormAlert(nonFieldMessage);
-                return;
-            }
-
-            if (error instanceof ApiError) {
-                const statusCode = error.response.AppStatusCode;
-                const nonFieldErrors = error.response.errors?.non_field_errors;
-
-                if (nonFieldErrors && nonFieldErrors.length > 0 && statusCode < 500) {
-                    setFormAlert(nonFieldErrors[0]);
-                    return;
-                }
-
-                if (statusCode < 500) {
-                    setFormAlert(error.response.message || msg.error('validation'));
-                    return;
-                }
-            }
-
-            notifyApiError(error, {
-                fallbackMessage: msg.error('serverError'),
-                dedupeKey: 'users-edit-system-error',
-            });
-        } finally {
-            setIsSaving(false);
-        }
-    };
-    
-    return (
-        <div className="space-y-6">
-            {formAlert ? (
-                <Alert variant="destructive" className="border-red-1/50">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formAlert}</AlertDescription>
-                </Alert>
-            ) : null}
-
-            <UserProfileHeader
-                user={userData} 
-                formData={formData}
-                onProfileImageChange={(media) => handleInputChange("profileImage", media)}
-            />
-
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="user-profile-tabs-list">
-                    <TabsTrigger value="account">
-                        <User className="w-4 h-4" />
-                        حساب کاربری
-                    </TabsTrigger>
-                    <TabsTrigger value="security">
-                        <KeyRound className="w-4 h-4" />
-                        گذرواژه
-                    </TabsTrigger>
-                    <TabsTrigger value="social">
-                        <Share2 className="w-4 h-4" />
-                        شبکه‌های اجتماعی
-                    </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="account">
-                    <Suspense fallback={<TabContentSkeleton />}>
-                        <AccountTab
-                            user={userData}
-                            formData={formData}
-                            editMode={editMode}
-                            setEditMode={setEditMode}
-                            handleInputChange={handleInputChange}
-                            handleSaveProfile={handleSaveProfile}
-                            isSaving={isSaving}
-                            fieldErrors={fieldErrors}
-                            onProvinceChange={handleProvinceChange}
-                            onCityChange={handleCityChange}
-                            userId={String(userData.id)}
-                        />
-                    </Suspense>
-                </TabsContent>
-
-                <TabsContent value="security">
-                    <Suspense fallback={<TabContentSkeleton />}>
-                        <SecurityTab />
-                    </Suspense>
-                </TabsContent>
-
-                <TabsContent value="social">
-                    <div className="rounded-lg border p-6">
-                        <SocialMediaArrayEditor
-                            items={socialMediaItems}
-                            onChange={setSocialMediaItems}
-                            canEdit={true}
-                        />
-                    </div>
-                </TabsContent>
-            </Tabs>
-        </div>
-    );
+      <TabbedPageLayout
+        title="ویرایش کاربر"
+        description="مدیریت اطلاعات کاربر"
+        showHeader={false}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        onSave={handleSubmit}
+        isSaving={editUserMutation.isPending}
+        saveLabel="ذخیره تغییرات"
+        tabs={[
+          {
+            id: "base-info",
+            label: "اطلاعات پایه",
+            icon: <User className="w-4 h-4" />,
+            content: <BaseInfoTab form={uiForm} editMode={true} />,
+          },
+          {
+            id: "profile",
+            label: "پروفایل",
+            icon: <UserCircle className="w-4 h-4" />,
+            content: (
+              <ProfileTab
+                form={uiForm}
+                selectedMedia={selectedMedia}
+                setSelectedMedia={setSelectedMedia}
+                editMode={true}
+              />
+            ),
+          },
+          {
+            id: "social",
+            label: "شبکه‌های اجتماعی",
+            icon: <Share2 className="w-4 h-4" />,
+            content: (
+              <div className="rounded-lg border p-6">
+                <SocialMediaArrayEditor
+                  items={socialMediaItems}
+                  onChange={setSocialMediaItems}
+                  canEdit={true}
+                />
+              </div>
+            ),
+          },
+        ]}
+      />
+    </div>
+  );
 }
