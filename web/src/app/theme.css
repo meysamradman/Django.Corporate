@@ -1,6 +1,7 @@
 html body[data-scroll-locked] {
   margin-right: 0 !important;
   margin-left: 0 !important;
+  --removed-body-scroll-bar-size: 0px !important;
 }
 
 .toast {
@@ -68,6 +69,9 @@ html body[data-scroll-locked] {
 
   html {
     direction: rtl;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
     margin: 0;
     padding: 0;
   }
@@ -81,6 +85,7 @@ html body[data-scroll-locked] {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     direction: rtl;
+    min-height: 100%;
     margin: 0;
     padding: 0;
   }
