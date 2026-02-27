@@ -63,10 +63,9 @@ async function request<T>(
     signal: controller.signal,
   };
 
-  // Next.js 16:
-  // - For GET requests on the server, forcing `no-store` will make the route block navigation.
-  // - For mutations, always default to `no-store`.
-  // - Allow callers to override with `options.cache` / `options.next`.
+  // Cache policy in Next.js 16 should be endpoint-driven (per-request),
+  // not a global default in the fetch wrapper.
+  // This wrapper only enforces `no-store` for mutations by default.
   const isServer = typeof window === 'undefined';
 
   if (options?.next) {
@@ -78,19 +77,8 @@ async function request<T>(
   } else if (method !== 'GET') {
     fetchOptions.cache = 'no-store';
   } else if (!isServer) {
-    // Client-side defaults: keep responses fresh unless explicitly cached.
+    // Client-side defaults remain fresh unless explicitly cached.
     fetchOptions.cache = 'no-store';
-  } else {
-    // Server-side GET defaults:
-    // Make it cacheable + short-lived ISR by default to avoid "Blocking Route" warnings
-    // while keeping public data reasonably fresh.
-    fetchOptions.cache = 'force-cache';
-
-    if (!fetchOptions.next) {
-      fetchOptions.next = { revalidate: 60 };
-    } else if (typeof fetchOptions.next.revalidate !== 'number') {
-      fetchOptions.next = { ...fetchOptions.next, revalidate: 60 };
-    }
   }
 
   if (body !== undefined) {

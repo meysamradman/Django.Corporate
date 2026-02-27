@@ -287,6 +287,8 @@ ADMIN_URL_SECRET = os.getenv('ADMIN_URL_SECRET', 'x7K9mP2qL5nR8tY3vZ6wC4fH1jN0bM
 # 🔒 Admin IP Whitelist (اختیاری - برای امنیت بیشتر)
 ADMIN_ALLOWED_IPS = env_list('ADMIN_ALLOWED_IPS', default='')
 
+# Next.js on-demand tag revalidation webhook
+
 # ============================================
 # Django Session Settings
 # ============================================
