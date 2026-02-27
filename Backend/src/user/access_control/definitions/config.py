@@ -15,6 +15,7 @@ from .modules.ai import AI_PERMISSIONS
 from .modules.analytics import ANALYTICS_PERMISSIONS
 from .modules.management import MANAGEMENT_PERMISSIONS
 from .modules.real_estate import REAL_ESTATE_PERMISSIONS
+from .modules.real_estate_projects import REAL_ESTATE_PROJECTS_PERMISSIONS
 
 BASE_ADMIN_PERMISSIONS = BASE_PERMISSIONS
 
@@ -30,6 +31,7 @@ PERMISSIONS: Dict[str, Dict[str, Any]] = {
     **ANALYTICS_PERMISSIONS,
     **MANAGEMENT_PERMISSIONS,
     **REAL_ESTATE_PERMISSIONS,
+    **REAL_ESTATE_PROJECTS_PERMISSIONS,
 }
 
 @dataclass
@@ -203,7 +205,7 @@ SYSTEM_ROLES: Dict[str, RoleConfig] = {
         'real_estate_manager',
         level=2,
         permissions={
-            'modules': ['real_estate', 'real_estate_properties', 'real_estate_agents', 'real_estate_agencies', 'media', 'analytics'],
+            'modules': ['real_estate', 'real_estate_properties', 'real_estate_agents', 'real_estate_agencies', 'real_estate_projects', 'media', 'analytics'],
             'actions': ['manage'],
             'restrictions': ['no_user_management', 'no_system_settings']
         },
@@ -387,6 +389,11 @@ AVAILABLE_MODULES = {
         'name': 'real_estate_agencies',
         'display_name': 'Real Estate: Agencies',
         'description': 'Manage real estate agency offices.'
+    },
+    'real_estate_projects': {
+        'name': 'real_estate_projects',
+        'display_name': 'Real Estate: Projects',
+        'description': 'Manage real estate investment projects and related taxonomy.',
     },
 }
 

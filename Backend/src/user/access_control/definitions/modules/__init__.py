@@ -9,6 +9,7 @@ from .ai import AI_PERMISSIONS
 from .analytics import ANALYTICS_PERMISSIONS
 from .management import MANAGEMENT_PERMISSIONS
 from .real_estate import REAL_ESTATE_PERMISSIONS
+from .real_estate_projects import REAL_ESTATE_PROJECTS_PERMISSIONS
 
 __all__ = [
     'BASE_PERMISSIONS',
@@ -22,4 +23,5 @@ __all__ = [
     'ANALYTICS_PERMISSIONS',
     'MANAGEMENT_PERMISSIONS',
     'REAL_ESTATE_PERMISSIONS',
+    'REAL_ESTATE_PROJECTS_PERMISSIONS',
 ]

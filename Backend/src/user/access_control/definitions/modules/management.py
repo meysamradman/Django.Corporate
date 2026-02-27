@@ -67,6 +67,14 @@ MANAGEMENT_PERMISSIONS = {
         'is_standalone': True,
         'permission_category': 'content_master',
     },
+    'real_estate_projects.manage': {
+        'module': 'real_estate_projects',
+        'action': 'manage',
+        'display_name': 'Full Access to Real Estate Projects',
+        'description': 'Total access to real estate investment projects and related entities',
+        'is_standalone': True,
+        'permission_category': 'content_master',
+    },
     'admin.manage': {
         'module': 'admin',
         'action': 'manage',

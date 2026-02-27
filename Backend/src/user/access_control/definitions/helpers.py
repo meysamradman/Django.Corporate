@@ -19,6 +19,7 @@ class PermissionHelper:
         'contenttypes': 'content_types',
         'sessions': 'session_management',
         'real_estate': 'real_estate_management',
+        'real_estate_projects': 'real_estate_projects_management',
         'blog': 'blog_management',
         'portfolio': 'portfolio_management',
     }
