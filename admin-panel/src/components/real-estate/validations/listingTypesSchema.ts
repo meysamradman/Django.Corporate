@@ -51,7 +51,7 @@ export const listingTypeFormDefaults: ListingTypeFormValues = {
     title: "",
     slug: "",
     short_description: "",
-    usage_type: "sale",
+    usage_type: "",
     is_active: true,
     image_id: null,
 } as ListingTypeFormValues;

@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from django.utils.text import slugify
 from src.real_estate.models.listing_type import ListingType
+from src.real_estate.models.constants import LISTING_TYPE_CHOICES
 from src.real_estate.messages.messages import LISTING_TYPE_ERRORS
 from src.media.serializers import MediaAdminSerializer
 
@@ -38,6 +39,11 @@ class ListingTypeAdminDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'public_id', 'created_at', 'updated_at']
 
 class ListingTypeAdminCreateSerializer(serializers.ModelSerializer):
+    usage_type = serializers.ChoiceField(
+        choices=LISTING_TYPE_CHOICES,
+        required=True,
+        allow_blank=False,
+    )
     image_id = serializers.IntegerField(
         required=False,
         allow_null=True,

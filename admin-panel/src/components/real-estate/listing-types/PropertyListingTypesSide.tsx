@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { realEstateApi } from "@/api/real-estate";
 import { TaxonomyDrawer } from "@/components/templates/TaxonomyDrawer";
 import { useRealEstateTaxonomyForm } from "@/components/real-estate/hooks/useRealEstateTaxonomyForm";
@@ -21,6 +21,7 @@ export const PropertyListingTypesSide: React.FC<PropertyListingTypesSideProps> =
     editId,
 }) => {
     const isEditMode = !!editId;
+    const [usageTypeOptions, setUsageTypeOptions] = React.useState<[string, string][]>([]);
 
     const {
         form,
@@ -50,6 +51,28 @@ export const PropertyListingTypesSide: React.FC<PropertyListingTypesSideProps> =
     });
 
     const { register, formState: { errors }, watch, setValue } = form;
+
+    React.useEffect(() => {
+        let isMounted = true;
+
+        const loadFieldOptions = async () => {
+            try {
+                const options = await realEstateApi.getListingTypeFieldOptions();
+                if (isMounted) {
+                    setUsageTypeOptions(options?.usage_type || []);
+                }
+            } catch {
+                if (isMounted) {
+                    setUsageTypeOptions([]);
+                }
+            }
+        };
+
+        loadFieldOptions();
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     return (
         <TaxonomyDrawer
@@ -111,19 +134,18 @@ export const PropertyListingTypesSide: React.FC<PropertyListingTypesSideProps> =
                         error={errors.usage_type?.message as string}
                     >
                         <Select
-                            value={watch("usage_type")}
-                            onValueChange={(value) => setValue("usage_type", value, { shouldValidate: true })}
+                            value={watch("usage_type") || ""}
+                            onValueChange={(value) => setValue("usage_type", value, { shouldValidate: true, shouldDirty: true })}
                         >
                             <SelectTrigger id="usage_type">
                                 <SelectValue placeholder="انتخاب نوع کاربری" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="sale">فروش</SelectItem>
-                                <SelectItem value="rent">رهن و اجاره</SelectItem>
-                                <SelectItem value="mortgage">رهن کامل</SelectItem>
-                                <SelectItem value="presale">پیش‌فروش</SelectItem>
-                                <SelectItem value="exchange">معاوضه</SelectItem>
-                                <SelectItem value="other">سایر</SelectItem>
+                                {usageTypeOptions.map(([value, label]) => (
+                                    <SelectItem key={value} value={value}>
+                                        {label}
+                                    </SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </FormField>
