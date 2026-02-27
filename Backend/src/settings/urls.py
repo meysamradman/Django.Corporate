@@ -35,7 +35,7 @@ router.register(r'settings/footer-about', FooterAboutViewSet, basename='footer-a
 
 urlpatterns = [
     path('settings/logo/', PublicLogoView.as_view(), name='public-settings-logo'),
-    path('settings/sliders/', PublicSliderListView.as_view(), name='public-settings-sliders'),
+    path('settings/public/sliders/', PublicSliderListView.as_view(), name='public-settings-sliders'),
     path('settings/contact/', PublicContactView.as_view(), name='public-settings-contact'),
     path('settings/general/public/', PublicGeneralSettingsView.as_view(), name='public-settings-general'),
     path('settings/footer/', PublicFooterView.as_view(), name='public-settings-footer'),

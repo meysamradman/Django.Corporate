@@ -8,7 +8,7 @@ export const brandingApi = {
   },
 
   getSliders: async (): Promise<HomeSliderItem[]> => {
-    const response = await fetchApi.get<HomeSliderItem[]>("/settings/sliders/");
+    const response = await fetchApi.get<HomeSliderItem[]>("/settings/public/sliders/");
     return response.data;
   },
 };
