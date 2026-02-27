@@ -12,4 +12,5 @@ export interface HomeSliderItem {
   order: number;
   media_type: 'image' | 'video';
   media_url: string | null;
+  media_poster_url?: string | null;
 }

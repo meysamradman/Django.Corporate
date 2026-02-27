@@ -138,6 +138,7 @@ export interface Slider {
     image_data?: Media | null;
     video: Media | null;
     video_data?: Media | null;
+    video_cover?: Media | null;
     link: string;
     order: number;
     is_active: boolean;
@@ -149,6 +150,7 @@ export interface SliderCreate {
     description?: string;
     image_id?: number | null;
     video_id?: number | null;
+    video_cover_id?: number | null;
     link?: string;
     order?: number;
     is_active?: boolean;
@@ -159,6 +161,7 @@ export interface SliderUpdate {
     description?: string;
     image_id?: number | null;
     video_id?: number | null;
+    video_cover_id?: number | null;
     link?: string;
     order?: number;
     is_active?: boolean;

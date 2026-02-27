@@ -6,7 +6,7 @@ from src.settings.serializers.admin.slider_serializer import SliderSerializer
 from src.settings.utils.cache import SettingsCacheManager
 
 class SliderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
-    queryset = Slider.objects.all()
+    queryset = Slider.objects.select_related('image', 'video', 'video_cover', 'video__cover_image').all()
     serializer_class = SliderSerializer
     permission_classes = [settings_permission]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
@@ -22,8 +22,8 @@ class SliderViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.request.user and self.request.user.is_staff:
-            return Slider.objects.all()
-        return Slider.objects.filter(is_active=True)
+            return Slider.objects.select_related('image', 'video', 'video_cover', 'video__cover_image').all()
+        return Slider.objects.select_related('image', 'video', 'video_cover', 'video__cover_image').filter(is_active=True)
 
     def perform_create(self, serializer):
         instance = serializer.save()

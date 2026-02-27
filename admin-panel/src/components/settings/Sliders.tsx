@@ -127,20 +127,27 @@ export function Sliders() {
                                 {sliders.map((slider) => (
                                     <TableRow key={slider.id} className="hover:bg-bg/50 transition-colors">
                                         <TableCell className="text-center">
-                                            {(slider.video || slider.image || slider.image_data) ? (
+                                            {(() => {
+                                                const sliderMedia = slider.video
+                                                    ? (slider.video_cover
+                                                        ? { ...slider.video, cover_image: slider.video_cover, cover_image_url: slider.video_cover.file_url }
+                                                        : slider.video)
+                                                    : (slider.image || slider.image_data);
+                                                return sliderMedia ? (
                                                 <div className="flex justify-center p-1">
                                                     <MediaThumbnail
-                                                        media={(slider.video || slider.image || slider.image_data) as any}
+                                                        media={sliderMedia as any}
                                                         alt={slider.title}
                                                         className="h-16 w-24 object-cover rounded shadow-sm border border-muted/10"
                                                         showIcon={true}
                                                     />
                                                 </div>
-                                            ) : (
+                                                ) : (
                                                 <div className="h-16 w-24 mx-auto bg-muted/20 rounded flex items-center justify-center">
                                                     <Layout className="h-6 w-6 text-font-s opacity-20" />
                                                 </div>
-                                            )}
+                                                );
+                                            })()}
                                         </TableCell>
                                         <TableCell className="text-right font-medium">
                                             <div className="flex flex-col gap-1">

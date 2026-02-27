@@ -26,6 +26,7 @@ class PublicLogoSerializer(serializers.ModelSerializer):
 class PublicSliderSerializer(serializers.ModelSerializer):
     media_type = serializers.SerializerMethodField()
     media_url = serializers.SerializerMethodField()
+    media_poster_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Slider
@@ -38,6 +39,7 @@ class PublicSliderSerializer(serializers.ModelSerializer):
             'order',
             'media_type',
             'media_url',
+            'media_poster_url',
         ]
 
     def get_media_type(self, obj):
@@ -50,4 +52,13 @@ class PublicSliderSerializer(serializers.ModelSerializer):
             return obj.video.file.url
         if obj.image and getattr(obj.image, 'file', None):
             return obj.image.file.url
+        return None
+
+    def get_media_poster_url(self, obj):
+        if not obj.video_id:
+            return None
+        if obj.video_cover and getattr(obj.video_cover, 'file', None):
+            return obj.video_cover.file.url
+        if obj.video and getattr(obj.video.cover_image, 'file', None):
+            return obj.video.cover_image.file.url
         return None

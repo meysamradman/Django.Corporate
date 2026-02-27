@@ -27,6 +27,7 @@ export const SliderSide = () => {
     const isEditMode = !!editId;
     const [selectedImage, setSelectedImage] = useState<Media | null>(null);
     const [selectedVideo, setSelectedVideo] = useState<Media | null>(null);
+    const [selectedCustomVideoCover, setSelectedCustomVideoCover] = useState<Media | null>(null);
 
     const {
         register,
@@ -44,12 +45,15 @@ export const SliderSide = () => {
             order: 0,
             image_id: null,
             video_id: null,
+            video_cover_id: null,
             is_active: true,
         },
     });
 
     const isActive = watch("is_active");
-    const selectedVideoCover = selectedVideo ? mediaService.getMediaCoverUrl(selectedVideo) : "";
+    const selectedVideoCover = selectedCustomVideoCover
+        ? mediaService.getMediaUrlFromObject(selectedCustomVideoCover)
+        : (selectedVideo ? mediaService.getMediaCoverUrl(selectedVideo) : "");
     const hasVideoCover = Boolean(selectedVideoCover);
 
     const { data: sliderData, isLoading: isFetching } = useQuery({
@@ -62,6 +66,7 @@ export const SliderSide = () => {
         if (isEditMode && sliderData) {
             const imageId = typeof sliderData.image === "object" ? sliderData.image?.id : sliderData.image;
             const videoId = typeof sliderData.video === "object" ? sliderData.video?.id : sliderData.video;
+            const videoCoverId = typeof sliderData.video_cover === "object" ? sliderData.video_cover?.id : sliderData.video_cover;
 
             reset({
                 title: sliderData.title,
@@ -70,10 +75,12 @@ export const SliderSide = () => {
                 order: sliderData.order,
                 image_id: imageId || null,
                 video_id: videoId || null,
+                video_cover_id: videoCoverId || null,
                 is_active: sliderData.is_active,
             } as any);
             setSelectedImage((typeof sliderData.image === "object" ? sliderData.image : null) as any);
             setSelectedVideo((typeof sliderData.video === "object" ? sliderData.video : null) as any);
+            setSelectedCustomVideoCover((typeof sliderData.video_cover === "object" ? sliderData.video_cover : null) as any);
         } else if (!isEditMode && isOpen) {
             reset({
                 title: "",
@@ -82,10 +89,12 @@ export const SliderSide = () => {
                 order: 0,
                 image_id: null,
                 video_id: null,
+                video_cover_id: null,
                 is_active: true,
             });
             setSelectedImage(null);
             setSelectedVideo(null);
+            setSelectedCustomVideoCover(null);
         }
     }, [isEditMode, sliderData, reset, isOpen]);
 
@@ -114,16 +123,31 @@ export const SliderSide = () => {
     };
 
     const handleVideoSelect = (media: Media | null) => {
+        const currentVideoId = selectedVideo?.id ?? null;
+        const nextVideoId = media?.id ?? null;
         setSelectedVideo(media);
         setValue("video_id", media?.id || null);
+        if (!media || currentVideoId !== nextVideoId) {
+            setSelectedCustomVideoCover(null);
+            setValue("video_cover_id", null);
+        }
+    };
+
+    const handleVideoCoverSelect = (media: Media | null) => {
+        setSelectedCustomVideoCover(media);
+        setValue("video_cover_id", media?.id || null);
     };
 
     const onSubmit = (data: SliderFormValues) => {
-        if (!data.image_id) {
-            showError(getValidation("required", { field: "انتخاب تصویر برای اسلایدر" }));
+        if (!data.image_id && !data.video_id) {
+            showError(getValidation("required", { field: "انتخاب تصویر یا ویدئو برای اسلایدر" }));
             return;
         }
-        mutation.mutate(data);
+        const payload = {
+            ...data,
+            video_cover_id: data.video_id ? (data.video_cover_id ?? null) : null,
+        };
+        mutation.mutate(payload);
     };
 
     return (
@@ -141,8 +165,8 @@ export const SliderSide = () => {
                 <div className="space-y-4">
                     <div className="rounded-xl border border-muted/50 bg-bg/30 p-4 space-y-3">
                         <div className="flex items-center justify-between gap-3">
-                            <Label className="text-font-s font-medium self-start">تصویر اسلایدر *</Label>
-                            <span className="text-[11px] text-font-s">تصویر اصلی اسلاید</span>
+                            <Label className="text-font-s font-medium self-start">تصویر اسلایدر (اختیاری)</Label>
+                            <span className="text-[11px] text-font-s">برای اسلاید تصویری</span>
                         </div>
                         <ImageSelector
                             selectedMedia={selectedImage}
@@ -167,18 +191,33 @@ export const SliderSide = () => {
                             showLabel={false}
                             label="ویدئو اسلایدر"
                         />
+                        {selectedVideo && (
+                            <div className="pt-2 border-t border-muted/30 space-y-3">
+                                <div className="flex items-center justify-between gap-3">
+                                    <Label className="text-font-s font-medium self-start">کاور اختصاصی ویدئو (اختیاری)</Label>
+                                    <span className="text-[11px] text-font-s">فقط برای همین اسلایدر</span>
+                                </div>
+                                <ImageSelector
+                                    selectedMedia={selectedCustomVideoCover}
+                                    onMediaSelect={handleVideoCoverSelect}
+                                    size="md"
+                                    context="media_library"
+                                    alt="کاور اختصاصی ویدئو"
+                                />
+                            </div>
+                        )}
                         <div className="flex items-center gap-2 text-xs text-font-s">
                             {hasVideoCover ? (
                                 <>
                                     <CheckCircle2 className="h-3.5 w-3.5 text-green-1 shrink-0" />
-                                    <span>کاور ویدئو شناسایی شد.</span>
+                                    <span>{selectedCustomVideoCover ? "کاور اختصاصی ویدئو فعال است." : "کاور پیش فرض ویدئو از مدیا سنتر شناسایی شد."}</span>
                                 </>
                             ) : (
                                 <>
                                     <AlertCircle className="h-3.5 w-3.5 text-amber-1 shrink-0" />
                                     <span>
                                         {selectedVideo
-                                            ? "این ویدئو کاور ندارد؛ از مدیا سنتر برای ویدئو کاور تنظیم کنید."
+                                            ? "این ویدئو کاور ندارد؛ یا کاور اختصاصی همین اسلایدر را انتخاب کنید یا در مدیا سنتر کاور بگذارید."
                                             : "در صورت انتخاب ویدئو، کاور همان رسانه از مدیا سنتر نمایش داده می شود."}
                                     </span>
                                 </>

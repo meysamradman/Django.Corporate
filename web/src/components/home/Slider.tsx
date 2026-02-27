@@ -91,7 +91,14 @@ export default function Slider({ slidesData = [] }: SliderProps) {
               </div>
             ) : (
               <div className="relative w-full h-full">
-                <video className="w-full h-full object-cover" autoPlay loop muted playsInline>
+                <video
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  poster={slide.media_poster_url || undefined}
+                >
                   <source src={slide.media_url || ""} type="video/mp4" />
                 </video>
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">

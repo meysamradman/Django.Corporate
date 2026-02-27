@@ -5,7 +5,7 @@ def get_public_logo_settings() -> GeneralSettings:
 
 def get_public_active_sliders():
     return (
-        Slider.objects.select_related('image', 'video')
+        Slider.objects.select_related('image', 'video', 'video_cover', 'video__cover_image')
         .filter(is_active=True)
         .order_by('order', '-created_at')
     )

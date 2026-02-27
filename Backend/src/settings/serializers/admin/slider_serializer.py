@@ -18,11 +18,25 @@ class SliderSerializer(serializers.ModelSerializer):
         allow_null=True,
         write_only=True
     )
+    video_cover_id = serializers.PrimaryKeyRelatedField(
+        queryset=ImageMedia.objects.all(),
+        source='video_cover',
+        required=False,
+        allow_null=True,
+        write_only=True
+    )
     
     image = ImageMediaSerializer(read_only=True)
     video = VideoMediaSerializer(read_only=True)
+    video_cover = ImageMediaSerializer(read_only=True)
 
     class Meta:
         model = Slider
-        fields = ['id', 'title', 'description', 'image', 'image_id', 'video', 'video_id', 'link', 'order', 'is_active', 'created_at']
+        fields = [
+            'id', 'title', 'description',
+            'image', 'image_id',
+            'video', 'video_id',
+            'video_cover', 'video_cover_id',
+            'link', 'order', 'is_active', 'created_at'
+        ]
         read_only_fields = ['id', 'created_at']

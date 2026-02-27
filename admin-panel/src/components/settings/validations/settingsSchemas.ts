@@ -40,6 +40,7 @@ export const sliderSchema = z.object({
     order: z.preprocess((val) => Number(val), z.number().int().nonnegative().default(0)),
     image_id: z.number().nullable(),
     video_id: z.number().nullable().optional(),
+    video_cover_id: z.number().nullable().optional(),
     is_active: z.boolean().default(true),
 });
 

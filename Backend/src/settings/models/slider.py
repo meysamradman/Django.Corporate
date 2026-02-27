@@ -23,6 +23,14 @@ class Slider(BaseModel):
         related_name='sliders_video',
         verbose_name=_("video")
     )
+    video_cover = models.ForeignKey(
+        ImageMedia,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='sliders_video_cover',
+        verbose_name=_("video cover")
+    )
     link = models.URLField(_("link"), blank=True)
     order = models.PositiveIntegerField(_("order"), default=0)
     is_active = models.BooleanField(_("active"), default=True)
