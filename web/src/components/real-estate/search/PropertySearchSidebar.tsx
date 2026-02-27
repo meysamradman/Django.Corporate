@@ -15,6 +15,7 @@ export type SidebarOption = {
   value: string;
   title: string;
   slug?: string;
+  usageType?: string;
   provinceId?: number;
   cityId?: number;
 };
@@ -66,8 +67,8 @@ function BinarySwitch({
   const checked = value === true;
 
   return (
-    <div className="flex items-center justify-between rounded-md border border-br bg-wt px-3 py-2">
-      <span className="text-sm text-font-s">{label}</span>
+    <div className="flex items-center justify-between py-3 border-b border-br/60 last:border-b-0">
+      <span className="text-sm text-font-p">{label}</span>
       <Switch checked={checked} onCheckedChange={(nextChecked) => onChange(nextChecked ? true : null)} aria-label={label} />
     </div>
   );
@@ -193,6 +194,14 @@ export default function PropertySearchSidebar({
     filters.region !== null && availableRegionOptions.some((item) => item.value === String(filters.region))
       ? String(filters.region)
       : "";
+  const selectedState = stateOptions.find((item) => item.value === selectedStateValue);
+  const selectedUsageType = (selectedState?.usageType || "").toLowerCase().trim();
+  const priceFilterTitle =
+    selectedUsageType === "rent"
+      ? "بازه قیمت اجاره / رهن (تومان)"
+      : selectedUsageType === "mortgage"
+        ? "بازه رهن (تومان)"
+        : "بازه قیمت (تومان)";
 
   const update = (updates: Partial<PropertySearchFilters>) => {
     onFiltersChange({ ...updates, page: 1 });
@@ -391,7 +400,7 @@ export default function PropertySearchSidebar({
       <Separator className="bg-br" />
 
       <section className={sectionClassName}>
-        <h3 className="text-sm font-black text-font-p">قیمت هر متر مربع (تومان)</h3>
+        <h3 className="text-sm font-black text-font-p">{priceFilterTitle}</h3>
         <div className="space-y-3">
           <div className="flex items-center gap-3">
             <span className="text-sm text-font-s">از</span>
@@ -467,28 +476,22 @@ export default function PropertySearchSidebar({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="space-y-2">
-            <BinarySwitch
-              label="پارکینگ"
-              value={filters.has_parking}
-              onChange={(value) => update({ has_parking: value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <BinarySwitch
-              label="انباری"
-              value={filters.has_storage}
-              onChange={(value) => update({ has_storage: value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <BinarySwitch
-              label="آسانسور"
-              value={filters.has_elevator}
-              onChange={(value) => update({ has_elevator: value })}
-            />
-          </div>
+        <div>
+          <BinarySwitch
+            label="با پارکینگ"
+            value={filters.has_parking}
+            onChange={(value) => update({ has_parking: value })}
+          />
+          <BinarySwitch
+            label="با انباری"
+            value={filters.has_storage}
+            onChange={(value) => update({ has_storage: value })}
+          />
+          <BinarySwitch
+            label="با آسانسور"
+            value={filters.has_elevator}
+            onChange={(value) => update({ has_elevator: value })}
+          />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

@@ -16,6 +16,10 @@ export const usePropertyColumns = (
   onToggleActive?: (property: Property) => void
 ) => {
   const { hasPermission } = usePermission();
+  const toPositiveNumber = (value: unknown): number | null => {
+    if (typeof value !== "number") return null;
+    return Number.isFinite(value) && value > 0 ? value : null;
+  };
 
   const baseColumns: ColumnDef<Property>[] = [
     {
@@ -137,16 +141,35 @@ export const usePropertyColumns = (
       header: () => <div className="table-header-text">قیمت</div>,
       cell: ({ row }) => {
         const property = row.original;
-        const price = property.price || property.sale_price || property.pre_sale_price || property.monthly_rent;
+        const usageType = (property.state?.usage_type || "").toLowerCase().trim();
+        const salePrice =
+          toPositiveNumber(property.sale_price) ??
+          toPositiveNumber(property.price) ??
+          toPositiveNumber(property.pre_sale_price);
+        const mortgagePrice =
+          toPositiveNumber(property.mortgage_amount) ??
+          toPositiveNumber(property.security_deposit);
+        const rentPrice =
+          toPositiveNumber(property.rent_amount) ??
+          toPositiveNumber(property.monthly_rent);
         const currency = property.currency || 'تومان';
 
-        if (!price) {
-          return <div className="table-cell-secondary">-</div>;
+        if (usageType === "rent") {
+          const mortgageLabel = mortgagePrice ? formatPriceToPersian(mortgagePrice, currency) : "توافقی";
+          const rentLabel = rentPrice ? formatPriceToPersian(rentPrice, currency) : "توافقی";
+          return <div className="table-cell-primary">{`رهن: ${mortgageLabel} | اجاره: ${rentLabel}`}</div>;
         }
+
+        if (usageType === "mortgage") {
+          if (!mortgagePrice) return <div className="table-cell-secondary">-</div>;
+          return <div className="table-cell-primary">{`رهن کامل: ${formatPriceToPersian(mortgagePrice, currency)}`}</div>;
+        }
+
+        if (!salePrice) return <div className="table-cell-secondary">-</div>;
 
         return (
           <div className="table-cell-primary">
-            {formatPriceToPersian(price, currency)}
+            {formatPriceToPersian(salePrice, currency)}
           </div>
         );
       },

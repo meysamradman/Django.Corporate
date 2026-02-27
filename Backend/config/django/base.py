@@ -84,6 +84,7 @@ CORPORATE_APPS = [
     'src.blog.apps.BlogConfig', 
     'src.portfolio.apps.PortfolioConfig',
     'src.real_estate.apps.RealEstateConfig',
+    'src.real_estate_projects.apps.RealEstateProjectsConfig',
     'src.page.apps.PageConfig',
     'src.form.apps.FormConfig',
     'src.chatbot.apps.ChatbotConfig',

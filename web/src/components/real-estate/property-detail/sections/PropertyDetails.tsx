@@ -9,9 +9,11 @@ type PropertyDetailsProps = {
     Property,
     | "id"
     | "status"
+    | "state"
     | "property_type"
     | "price"
     | "sale_price"
+    | "pre_sale_price"
     | "monthly_rent"
     | "mortgage_amount"
     | "rent_amount"
@@ -46,6 +48,64 @@ function formatMoney(value: number) {
   return formatPriceToPersian(value, "تومان");
 }
 
+const toPositiveNumber = (value: unknown): number | null => {
+  if (typeof value === "number") {
+    return Number.isFinite(value) && value > 0 ? value : null;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value.replace(/,/g, "").trim());
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }
+
+  return null;
+};
+
+type DealKind = "rent" | "mortgage" | "sale";
+
+const getDealKind = (property: PropertyDetailsProps["property"]): DealKind => {
+  const usageType = (property.state?.usage_type || "").toLowerCase().trim();
+  if (usageType === "rent") return "rent";
+  if (usageType === "mortgage") return "mortgage";
+  return "sale";
+};
+
+const getDisplayPrice = (property: PropertyDetailsProps["property"]): string => {
+  const dealKind = getDealKind(property);
+
+  const salePrice =
+    toPositiveNumber(property.sale_price) ??
+    toPositiveNumber(property.price) ??
+    toPositiveNumber(property.pre_sale_price);
+
+  const mortgagePrice =
+    toPositiveNumber(property.mortgage_amount) ??
+    toPositiveNumber(property.security_deposit);
+
+  const monthlyRentPrice =
+    toPositiveNumber(property.monthly_rent) ??
+    toPositiveNumber(property.rent_amount);
+
+  if (dealKind === "rent") {
+    const mortgageLabel = mortgagePrice != null ? formatMoney(mortgagePrice) : "توافقی";
+    const rentLabel = monthlyRentPrice != null ? formatMoney(monthlyRentPrice) : "توافقی";
+    return `رهن: ${mortgageLabel} | اجاره: ${rentLabel}`;
+  }
+
+  if (dealKind === "mortgage") {
+    if (mortgagePrice != null) {
+      return `رهن کامل: ${formatMoney(mortgagePrice)}`;
+    }
+    return "قیمت توافقی";
+  }
+
+  if (salePrice != null) {
+    return formatMoney(salePrice);
+  }
+
+  return "قیمت توافقی";
+};
+
 function formatStatus(status?: string | null) {
   if (!status) return null;
   if (status === "for_sale") return "برای فروش";
@@ -70,23 +130,19 @@ type Row = {
 
 export default function PropertyDetails({ property, className }: PropertyDetailsProps) {
   const detailsRows: Row[] = [];
+  const dealKind = getDealKind(property);
 
   const propertyId = typeof property.id === "number" ? `HZ-${property.id}` : null;
   const statusText = formatStatus(property.status);
   const typeText = property.property_type?.name || null;
 
-  const displayPrice =
-    property.sale_price ??
-    property.price ??
-    property.monthly_rent ??
-    property.rent_amount ??
-    null;
+  const displayPrice = getDisplayPrice(property);
 
   detailsRows.push({
     leftLabel: "شناسه ملک",
     leftValue: rowValue(propertyId || "—"),
     rightLabel: "قیمت",
-    rightValue: rowValue(displayPrice != null ? formatMoney(displayPrice) : "—"),
+    rightValue: rowValue(displayPrice),
   });
 
   if (property.built_area != null || property.land_area != null) {
@@ -137,7 +193,10 @@ export default function PropertyDetails({ property, className }: PropertyDetails
 
   const additional: Array<{ label: string; value: React.ReactNode }> = [];
 
-  if (property.mortgage_amount != null || property.security_deposit != null) {
+  if (
+    (dealKind === "rent" || dealKind === "mortgage") &&
+    (property.mortgage_amount != null || property.security_deposit != null)
+  ) {
     additional.push({
       label: "رهن / ودیعه",
       value: rowValue(
@@ -148,7 +207,10 @@ export default function PropertyDetails({ property, className }: PropertyDetails
     });
   }
 
-  if (property.monthly_rent != null || property.rent_amount != null) {
+  if (
+    dealKind === "rent" &&
+    (property.monthly_rent != null || property.rent_amount != null)
+  ) {
     additional.push({
       label: "اجاره ماهانه",
       value: rowValue(formatMoney(Number(property.monthly_rent ?? property.rent_amount ?? 0))),
