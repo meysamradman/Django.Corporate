@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { settingsApi } from "@/api/settings/settings";
 import { TaxonomyDrawer } from "@/components/templates/TaxonomyDrawer";
 import { FormFieldInput, FormFieldSwitch, FormFieldTextarea } from "@/components/shared/FormField";
@@ -10,9 +11,10 @@ import { showSuccess, showError } from "@/core/toast";
 import { msg } from "@/core/messages";
 import { getValidation } from "@/core/messages/validation";
 import { ImageSelector } from "@/components/media/selectors/ImageSelector";
+import { MediaSelector } from "@/components/media/selectors/MediaSelector";
+import { mediaService } from "@/components/media/services";
 import type { Media } from "@/types/shared/media";
 import { Label } from "@/components/elements/Label";
-import { MediaSelector } from "@/components/media/selectors/MediaSelector";
 import { useGlobalDrawerStore } from "@/components/shared/drawer/store";
 import { DRAWER_IDS } from "@/components/shared/drawer/types";
 
@@ -47,6 +49,8 @@ export const SliderSide = () => {
     });
 
     const isActive = watch("is_active");
+    const selectedVideoCover = selectedVideo ? mediaService.getMediaCoverUrl(selectedVideo) : "";
+    const hasVideoCover = Boolean(selectedVideoCover);
 
     const { data: sliderData, isLoading: isFetching } = useQuery({
         queryKey: ["slider", editId],
@@ -90,9 +94,8 @@ export const SliderSide = () => {
             const payload = { ...data };
             if (isEditMode && editId) {
                 return await settingsApi.updateSlider(editId, payload);
-            } else {
-                return await settingsApi.createSlider(payload);
             }
+            return await settingsApi.createSlider(payload);
         },
         onSuccess: () => {
             showSuccess(msg.crud(isEditMode ? "updated" : "created", { item: "اسلایدر" }));
@@ -105,16 +108,14 @@ export const SliderSide = () => {
         },
     });
 
-    const handleImageSelect = (media: Media | Media[] | null) => {
-        const item = Array.isArray(media) ? media[0] : media;
-        setSelectedImage(item);
-        setValue("image_id", item?.id || null);
+    const handleImageSelect = (media: Media | null) => {
+        setSelectedImage(media);
+        setValue("image_id", media?.id || null);
     };
 
-    const handleVideoSelect = (media: Media | Media[] | null) => {
-        const item = Array.isArray(media) ? media[0] : media;
-        setSelectedVideo(item);
-        setValue("video_id", item?.id || null);
+    const handleVideoSelect = (media: Media | null) => {
+        setSelectedVideo(media);
+        setValue("video_id", media?.id || null);
     };
 
     const onSubmit = (data: SliderFormValues) => {
@@ -137,27 +138,52 @@ export const SliderSide = () => {
             submitButtonText={isEditMode ? "بروزرسانی" : "ایجاد"}
         >
             <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-3">
-                        <Label className="text-font-s font-medium self-start">تصویر اسلایدر *</Label>
+                <div className="space-y-4">
+                    <div className="rounded-xl border border-muted/50 bg-bg/30 p-4 space-y-3">
+                        <div className="flex items-center justify-between gap-3">
+                            <Label className="text-font-s font-medium self-start">تصویر اسلایدر *</Label>
+                            <span className="text-[11px] text-font-s">تصویر اصلی اسلاید</span>
+                        </div>
                         <ImageSelector
                             selectedMedia={selectedImage}
                             onMediaSelect={handleImageSelect}
-                            size="sm"
+                            size="lg"
                             context="media_library"
                             alt="تصویر اسلایدر"
                         />
                     </div>
-                    <div className="flex flex-col gap-3">
-                        <Label className="text-font-s font-medium self-start">ویدئو (اختیاری)</Label>
+
+                    <div className="rounded-xl border border-muted/50 bg-bg/30 p-4 space-y-3">
+                        <div className="flex items-center justify-between gap-3">
+                            <Label className="text-font-s font-medium self-start">ویدئو (اختیاری)</Label>
+                            <span className="text-[11px] text-font-s">انتخاب از مدیا سنتر</span>
+                        </div>
                         <MediaSelector
                             selectedMedia={selectedVideo}
                             onMediaSelect={handleVideoSelect}
-                            size="sm"
+                            size="lg"
                             context="media_library"
                             initialFileType="video"
+                            showLabel={false}
                             label="ویدئو اسلایدر"
                         />
+                        <div className="flex items-center gap-2 text-xs text-font-s">
+                            {hasVideoCover ? (
+                                <>
+                                    <CheckCircle2 className="h-3.5 w-3.5 text-green-1 shrink-0" />
+                                    <span>کاور ویدئو شناسایی شد.</span>
+                                </>
+                            ) : (
+                                <>
+                                    <AlertCircle className="h-3.5 w-3.5 text-amber-1 shrink-0" />
+                                    <span>
+                                        {selectedVideo
+                                            ? "این ویدئو کاور ندارد؛ از مدیا سنتر برای ویدئو کاور تنظیم کنید."
+                                            : "در صورت انتخاب ویدئو، کاور همان رسانه از مدیا سنتر نمایش داده می شود."}
+                                    </span>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -187,7 +213,7 @@ export const SliderSide = () => {
                         {...register("link")}
                     />
 
-                    <div className="grid grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <FormFieldInput
                             label="ترتیب نمایش"
                             id="order"
