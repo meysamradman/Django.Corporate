@@ -1,5 +1,5 @@
 
-import { Building2, Compass, MapPin, Key, Home } from "lucide-react";
+import { Building2, Compass, MapPin, Key, Home, Snowflake, Flame, Bath, ChefHat, Landmark, Sofa } from "lucide-react";
 import type { Property } from "@/types/real_estate/realEstate";
 import { useState, useEffect } from "react";
 import { realEstateApi } from "@/api/real-estate";
@@ -30,6 +30,16 @@ export function RealEstateStandardAttributes({ property }: RealEstateStandardAtt
     }, []);
 
     const attributeConfigs: Record<string, any> = {
+        cooling_system: { label: "سرمایش", icon: Snowflake, color: "text-cyan-1" },
+        heating_system: { label: "گرمایش", icon: Flame, color: "text-red-1" },
+        warm_water_provider: { label: "تامین‌کننده آب گرم", icon: Bath, color: "text-blue-1" },
+        floor_type: { label: "جنس کف", icon: Home, color: "text-emerald-1" },
+        toilet_type: { label: "سرویس بهداشتی", icon: Bath, color: "text-indigo-1" },
+        kitchen_type: { label: "نوع آشپزخانه", icon: ChefHat, color: "text-orange-1" },
+        building_facade: { label: "نمای ساختمان", icon: Landmark, color: "text-font-s" },
+        building_direction: { label: "جهت ساختمان", icon: Compass, color: "text-orange-1" },
+        occupancy_status: { label: "وضعیت سکونت", icon: Home, color: "text-purple-1" },
+        cabinet_material: { label: "جنس کابینت", icon: Sofa, color: "text-pink-1" },
         building_usage: { label: "نوع کاربری", icon: Building2, color: "text-blue-1" },
         direction: { label: "جهت ملک", icon: Compass, color: "text-orange-1" },
         location_type: { label: "موقعیت جغرافیایی", icon: MapPin, color: "text-emerald-1" },
@@ -47,6 +57,17 @@ export function RealEstateStandardAttributes({ property }: RealEstateStandardAtt
     const predefinedAttributes = predefinedKeys.filter(key => extraAttributes[key] !== undefined && extraAttributes[key] !== null);
 
     const getDisplayValue = (key: string, value: any) => {
+        if (Array.isArray(value)) {
+            const labels = value.map((item) => {
+                if (fieldOptions && fieldOptions[key]) {
+                    const option = fieldOptions[key].find((opt: any) => opt[0] === item);
+                    return option ? option[1] : String(item);
+                }
+                return String(item);
+            });
+            return labels.join("، ");
+        }
+
         if (value === true) return "دارد";
         if (value === false) return "ندارد";
 

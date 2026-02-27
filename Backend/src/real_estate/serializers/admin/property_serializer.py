@@ -25,6 +25,15 @@ from src.real_estate.models.constants import (
     UNIT_TYPE_CHOICES,
     LISTING_TYPE_FINANCIAL_RULES,
     PROPERTY_STATUS_CHOICES,
+    COOLING_SYSTEM_CHOICES,
+    HEATING_SYSTEM_CHOICES,
+    WARM_WATER_PROVIDER_CHOICES,
+    FLOOR_TYPE_CHOICES,
+    TOILET_TYPE_CHOICES,
+    KITCHEN_TYPE_CHOICES,
+    BUILDING_FACADE_CHOICES,
+    OCCUPANCY_STATUS_CHOICES,
+    CABINET_MATERIAL_CHOICES,
 )
 
 _MEDIA_LIST_LIMIT = getattr(settings, 'REAL_ESTATE_MEDIA_LIST_LIMIT', 5)
@@ -101,6 +110,49 @@ def _validate_listing_financials(attrs, instance=None):
 
     if rules.get('disallow_rent_amount') and has_rent_amount:
             raise serializers.ValidationError({'rent_amount': PROPERTY_ERRORS['mortgage_disallow_rent_amount']})
+
+
+_EXTRA_ATTRIBUTE_SINGLE_CHOICE_MAP = {
+    'cooling_system': COOLING_SYSTEM_CHOICES,
+    'heating_system': HEATING_SYSTEM_CHOICES,
+    'warm_water_provider': WARM_WATER_PROVIDER_CHOICES,
+    'floor_type': FLOOR_TYPE_CHOICES,
+    'toilet_type': TOILET_TYPE_CHOICES,
+    'kitchen_type': KITCHEN_TYPE_CHOICES,
+    'building_facade': BUILDING_FACADE_CHOICES,
+    'building_direction': PROPERTY_DIRECTION_CHOICES,
+    'occupancy_status': OCCUPANCY_STATUS_CHOICES,
+}
+
+_EXTRA_ATTRIBUTE_MULTI_CHOICE_MAP = {
+    'cabinet_material': CABINET_MATERIAL_CHOICES,
+}
+
+
+def _validate_extended_extra_attributes(extra_attrs):
+    if not extra_attrs or not isinstance(extra_attrs, dict):
+        return
+
+    for key, choices in _EXTRA_ATTRIBUTE_SINGLE_CHOICE_MAP.items():
+        value = extra_attrs.get(key)
+        if value in (None, ''):
+            continue
+        if value not in choices:
+            raise serializers.ValidationError({
+                "extra_attributes": f"مقدار '{value}' برای '{key}' نامعتبر است. مقادیر مجاز: {', '.join(choices.keys())}"
+            })
+
+    for key, choices in _EXTRA_ATTRIBUTE_MULTI_CHOICE_MAP.items():
+        value = extra_attrs.get(key)
+        if value in (None, '', []):
+            continue
+
+        values = value if isinstance(value, list) else [value]
+        invalid_values = [item for item in values if item not in choices]
+        if invalid_values:
+            raise serializers.ValidationError({
+                "extra_attributes": f"مقدار '{', '.join(map(str, invalid_values))}' برای '{key}' نامعتبر است. مقادیر مجاز: {', '.join(choices.keys())}"
+            })
 
 class PropertyMediaAdminSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
@@ -721,6 +773,7 @@ class PropertyAdminCreateSerializer(serializers.ModelSerializer):
                             allowed_values=', '.join(UNIT_TYPE_CHOICES.keys())
                         )
                     })
+            _validate_extended_extra_attributes(extra_attrs)
 
         attrs = _sync_agency_with_agent(attrs, instance=self.instance)
         _validate_listing_financials(attrs, instance=self.instance)
@@ -1001,6 +1054,7 @@ class PropertyAdminUpdateSerializer(PropertyAdminDetailSerializer):
                             allowed_values=', '.join(UNIT_TYPE_CHOICES.keys())
                         )
                     })
+            _validate_extended_extra_attributes(extra_attrs)
 
         region = attrs.get('region')
         city = attrs.get('city')

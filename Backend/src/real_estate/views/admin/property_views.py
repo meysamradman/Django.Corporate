@@ -836,6 +836,15 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
             get_city_position_choices_list,
             get_unit_type_choices_list,
             get_property_status_choices_list,
+            get_cooling_system_choices_list,
+            get_heating_system_choices_list,
+            get_warm_water_provider_choices_list,
+            get_floor_type_choices_list,
+            get_toilet_type_choices_list,
+            get_kitchen_type_choices_list,
+            get_building_facade_choices_list,
+            get_occupancy_status_choices_list,
+            get_cabinet_material_choices_list,
         )
         
         options = {
@@ -862,6 +871,16 @@ class PropertyAdminViewSet(PermissionRequiredMixin, viewsets.ModelViewSet):
                 'property_direction': get_property_direction_choices_list(),
                 'city_position': get_city_position_choices_list(),
                 'unit_type': get_unit_type_choices_list(),
+                'cooling_system': get_cooling_system_choices_list(),
+                'heating_system': get_heating_system_choices_list(),
+                'warm_water_provider': get_warm_water_provider_choices_list(),
+                'floor_type': get_floor_type_choices_list(),
+                'toilet_type': get_toilet_type_choices_list(),
+                'kitchen_type': get_kitchen_type_choices_list(),
+                'building_facade': get_building_facade_choices_list(),
+                'building_direction': get_property_direction_choices_list(),
+                'occupancy_status': get_occupancy_status_choices_list(),
+                'cabinet_material': get_cabinet_material_choices_list(),
             },
             
             'year_built': {

@@ -17,6 +17,16 @@ export function RealEstateStandardAttributes({
     editMode,
     predefinedFields
 }: RealEstateStandardAttributesProps) {
+    const resolveCurrentValue = (value: any) => {
+        if (Array.isArray(value)) return value[0] ?? "";
+        return value ?? "";
+    };
+
+    const resolveCurrentLabel = (key: string, value: any) => {
+        const normalized = resolveCurrentValue(value);
+        return fieldOptions?.[key]?.find((opt: any) => opt[0] === normalized)?.[1] || "تنظیم نشده";
+    };
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {predefinedFields.map((field) => (
@@ -33,13 +43,13 @@ export function RealEstateStandardAttributes({
                                 {field.label}
                             </label>
                             <span className="font-semibold text-font-p truncate">
-                                {fieldOptions?.[field.key]?.find((opt: any) => opt[0] === currentAttributes[field.key])?.[1] || "تنظیم نشده"}
+                                {resolveCurrentLabel(field.key, currentAttributes[field.key])}
                             </span>
                         </div>
                     </div>
 
                     <Select
-                        value={currentAttributes[field.key] || ''}
+                        value={resolveCurrentValue(currentAttributes[field.key])}
                         onValueChange={(val) => handleAttributeChange(field.key, val)}
                         disabled={!editMode}
                     >

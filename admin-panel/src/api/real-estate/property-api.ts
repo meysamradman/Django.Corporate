@@ -208,6 +208,16 @@ export const propertyApi = {
       property_direction?: [string, string][];
       city_position?: [string, string][];
       unit_type?: [string, string][];
+      cooling_system?: [string, string][];
+      heating_system?: [string, string][];
+      warm_water_provider?: [string, string][];
+      floor_type?: [string, string][];
+      toilet_type?: [string, string][];
+      kitchen_type?: [string, string][];
+      building_facade?: [string, string][];
+      building_direction?: [string, string][];
+      occupancy_status?: [string, string][];
+      cabinet_material?: [string, string][];
     };
     status?: [string, string][];
     listing_type?: [string, string][];

@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { CardWithIcon } from "@/components/elements/CardWithIcon";
 import { Button } from "@/components/elements/Button";
-import { Settings, Plus, Building2, Compass, MapPin, Home, FileJson } from "lucide-react";
+import { Settings, Plus, Building2, Compass, MapPin, Home, FileJson, Snowflake, Flame, Bath, ChefHat, Landmark, Sofa } from "lucide-react";
 import { realEstateApi } from "@/api/real-estate";
 import { showError } from "@/core/toast";
 import { getValidation } from "@/core/messages/validation";
@@ -17,15 +17,35 @@ interface ExtraAttributesTabProps {
 }
 
 const PREDEFINED_KEYS = [
+    'cooling_system',
+    'heating_system',
+    'warm_water_provider',
+    'floor_type',
+    'toilet_type',
+    'kitchen_type',
+    'building_facade',
+    'building_direction',
+    'occupancy_status',
+    'cabinet_material',
     'property_condition',
     'property_direction',
     'city_position',
     'unit_type',
     'construction_status',
-    'space_type'
+    'space_type',
 ];
 
 const PREDEFINED_FIELDS = [
+    { key: 'cooling_system', label: 'سرمایش', icon: Snowflake },
+    { key: 'heating_system', label: 'گرمایش', icon: Flame },
+    { key: 'warm_water_provider', label: 'تامین‌کننده آب گرم', icon: Bath },
+    { key: 'floor_type', label: 'جنس کف', icon: Home },
+    { key: 'toilet_type', label: 'سرویس بهداشتی', icon: Bath },
+    { key: 'kitchen_type', label: 'نوع آشپزخانه', icon: ChefHat },
+    { key: 'building_facade', label: 'نمای ساختمان', icon: Landmark },
+    { key: 'building_direction', label: 'جهت ساختمان', icon: Compass },
+    { key: 'occupancy_status', label: 'وضعیت سکونت', icon: Home },
+    { key: 'cabinet_material', label: 'جنس کابینت', icon: Sofa },
     { key: 'property_condition', label: 'وضعیت ملک', icon: Building2 },
     { key: 'property_direction', label: 'جهت ملک', icon: Compass },
     { key: 'city_position', label: 'موقعیت در شهر', icon: MapPin },

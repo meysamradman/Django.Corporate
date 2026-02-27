@@ -11,6 +11,16 @@ export function RealEstateExtraFields({ property }: RealEstateExtraFieldsProps) 
     const extraAttributes = property.extra_attributes || {};
 
     const attributeConfigs: Record<string, any> = {
+        cooling_system: true,
+        heating_system: true,
+        warm_water_provider: true,
+        floor_type: true,
+        toilet_type: true,
+        kitchen_type: true,
+        building_facade: true,
+        building_direction: true,
+        occupancy_status: true,
+        cabinet_material: true,
         building_usage: true,
         direction: true,
         location_type: true,
