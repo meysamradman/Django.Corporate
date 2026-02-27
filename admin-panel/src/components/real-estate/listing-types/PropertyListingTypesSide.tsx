@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { realEstateApi } from "@/api/real-estate";
 import { TaxonomyDrawer } from "@/components/templates/TaxonomyDrawer";
 import { useRealEstateTaxonomyForm } from "@/components/real-estate/hooks/useRealEstateTaxonomyForm";
