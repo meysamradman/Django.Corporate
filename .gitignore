@@ -1,0 +1,35 @@
+# ======================
+# Python
+# ======================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ======================
+# Django
+# ======================
+*.log
+local_settings.py
+db.sqlite3
+media/
+staticfiles/
+
+# migrations: فقط فایل‌های auto
+**/migrations/__pycache__/
+**/migrations/*.pyc
+
+# اگر migration نمی‌خوای اصلاً بره گیت (اختیاری)
+# **/migrations/
+
+# ======================
+# Environment
+# ======================
+.env
+.venv/
+venv/
+
+# ======================
+# IDE
+# ======================
+.idea/
+.vscode/
