@@ -13,7 +13,7 @@ class RealEstateProjectQuerySet(models.QuerySet):
         return self.active().public()
 
     def funding(self):
-        return self.filter(state__code="funding")
+        return self.filter(state__slug="funding")
 
     def featured(self):
         return self.filter(is_featured=True)
@@ -126,7 +126,7 @@ class RealEstateProjectQuerySet(models.QuerySet):
         return self.filter(city_id=city_id)
 
     def by_type(self, project_type):
-        return self.filter(project_type__code=project_type)
+        return self.filter(project_type__slug=project_type)
 
 
 class RealEstateProjectOfferQuerySet(models.QuerySet):

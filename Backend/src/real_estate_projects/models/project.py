@@ -219,8 +219,8 @@ class RealEstateProject(BaseModel, SEOMixin):
             if days >= 0:
                 self.total_duration_months = max(round(days / 30), 0)
 
-        state_code = (self.state.code if self.state_id else "").lower().strip()
-        if self.funding_started_at and self.elapsed_months == 0 and state_code in {"active", "completed"}:
+        state_slug = (self.state.slug if self.state_id else "").lower().strip()
+        if self.funding_started_at and self.elapsed_months == 0 and state_slug in {"active", "completed"}:
             now_date = timezone.now().date()
             if now_date >= self.funding_started_at:
                 self.elapsed_months = max(round((now_date - self.funding_started_at).days / 30), 0)

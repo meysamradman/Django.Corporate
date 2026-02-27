@@ -5,7 +5,7 @@ from .managers import RealEstateProjectStateQuerySet
 
 
 class RealEstateProjectState(BaseModel):
-    code = models.SlugField(max_length=50, unique=True, db_index=True, verbose_name="Code")
+    slug = models.SlugField(max_length=100, unique=True, db_index=True, allow_unicode=True, verbose_name="Slug")
     title = models.CharField(max_length=80, db_index=True, verbose_name="Title")
     description = models.CharField(max_length=255, blank=True, verbose_name="Description")
     display_order = models.PositiveIntegerField(default=0, db_index=True, verbose_name="Display Order")
